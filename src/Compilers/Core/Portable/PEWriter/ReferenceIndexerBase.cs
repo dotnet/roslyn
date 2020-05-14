@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -372,14 +374,14 @@ namespace Microsoft.Cci
                 }
                 else if (current is IPointerTypeReference)
                 {
-                    // The target type is itself an pointer type, and we must visit *its* target type.
+                    // The target type is itself a pointer type, and we must visit *its* target type.
                     // Iterate rather than recursing.
                     current = ((IPointerTypeReference)current).GetTargetType(Context);
                     continue;
                 }
                 else
                 {
-                    // The target type is not an pointer type and we must visit its children.
+                    // The target type is not a pointer type and we must visit its children.
                     // Dispatch the type in order to visit its children.
                     DispatchAsReference(current);
                     return;

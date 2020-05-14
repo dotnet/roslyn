@@ -1,22 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
+#nullable enable
+
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using Microsoft.Cci;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal enum SigningCapability
-    {
-        SignsStream,
-        SignsPeBuilder,
-    }
-
     /// <summary>
     /// Provides strong name and signs source assemblies.
     /// </summary>
@@ -27,42 +20,23 @@ namespace Microsoft.CodeAnalysis
         }
 
         public abstract override int GetHashCode();
-        public override abstract bool Equals(object other);
+        public override abstract bool Equals(object? other);
 
-        internal abstract SigningCapability Capability { get; }
+        internal abstract StrongNameFileSystem FileSystem { get; }
 
-        /// <exception cref="IOException"></exception>
-        internal abstract Stream CreateInputStream();
+        /// <summary>
+        /// Signs the <paramref name="filePath"/> value using <paramref name="keys"/>.
+        /// </summary>
+        internal abstract void SignFile(StrongNameKeys keys, string filePath);
 
-        internal abstract StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider);
+        /// <summary>
+        /// Signs the contents of <paramref name="peBlob"/> using <paramref name="peBuilder"/> and <paramref name="privateKey"/>.
+        /// </summary>
+        internal abstract void SignBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privateKey);
 
-        internal StrongNameKeys CommonCreateKeys(StrongNameFileSystem fileSystem, string keyFilePath, ImmutableArray<string> keyFileSearchPaths, CommonMessageProvider messageProvider)
-        {
-            try
-            {
-                string resolvedKeyFile = fileSystem.ResolveStrongNameKeyFile(keyFilePath, keyFileSearchPaths);
-                if (resolvedKeyFile == null)
-                {
-                    return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, CodeAnalysisResources.FileNotFound));
-                }
-
-                Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
-                var fileContent = ImmutableArray.Create(fileSystem.ReadAllBytes(resolvedKeyFile));
-                return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
-            }
-            catch (Exception ex)
-            {
-                return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, ex.Message));
-            }
-        }
-        internal virtual void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream)
-        {
-            throw new NotSupportedException();
-        }
-
-        internal virtual void SignPeBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privkey)
-        {
-            throw new NotSupportedException();
-        }
+        /// <summary>
+        /// Create a <see cref="StrongNameKeys"/> for the provided information.
+        /// </summary>
+        internal abstract StrongNameKeys CreateKeys(string? keyFilePath, string? keyContainerName, bool hasCounterSignature, CommonMessageProvider messageProvider);
     }
 }

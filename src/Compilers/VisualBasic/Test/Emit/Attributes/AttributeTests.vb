@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -4365,7 +4367,7 @@ End Class
             Dim emitResult2 = compilation2.Emit(peStream:=New MemoryStream(), options:=New EmitOptions(metadataOnly:=True))
             Assert.False(emitResult2.Success)
             AssertTheseDiagnostics(emitResult2.Diagnostics, <![CDATA[
-BC36970: Failed to emit module 'Test.dll'.
+BC36970: Failed to emit module 'Test.dll': Module has invalid attributes.
 ]]>)
 
             ' Use different mscorlib to test retargeting scenario

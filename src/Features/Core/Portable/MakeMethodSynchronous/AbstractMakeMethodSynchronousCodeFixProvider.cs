@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -15,6 +17,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider;
 
 namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 {
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
         public static readonly string EquivalenceKey = FeaturesResources.Make_method_synchronous;
 
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
-        protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, ITypeSymbol taskType, ITypeSymbol taskOfTType);
+        protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
 
-            bool isOrdinaryOrLocalFunction = methodSymbolOpt.IsOrdinaryMethodOrLocalFunction();
+            var isOrdinaryOrLocalFunction = methodSymbolOpt.IsOrdinaryMethodOrLocalFunction();
             if (isOrdinaryOrLocalFunction &&
                 methodSymbolOpt.Name.Length > AsyncSuffix.Length &&
                 methodSymbolOpt.Name.EndsWith(AsyncSuffix))
@@ -89,11 +92,10 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             Document document, IMethodSymbol methodSymbolOpt, SyntaxNode node, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var taskType = compilation.TaskType();
-            var taskOfTType = compilation.TaskOfTType();
+            var knownTypes = new KnownTypes(compilation);
 
             var annotation = new SyntaxAnnotation();
-            var newNode = RemoveAsyncTokenAndFixReturnType(methodSymbolOpt, node, taskType, taskOfTType)
+            var newNode = RemoveAsyncTokenAndFixReturnType(methodSymbolOpt, node, knownTypes)
                 .WithAdditionalAnnotations(Formatter.Annotation, annotation);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -123,8 +125,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
                 if (semanticModel.GetDeclaredSymbol(methodDeclaration) is IMethodSymbol methodSymbol)
                 {
                     var references = await SymbolFinder.FindRenamableReferencesAsync(
-                        new SymbolAndProjectId(methodSymbol, document.Project.Id),
-                        document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                        methodSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
 
                     var referencedSymbol = references.FirstOrDefault(r => Equals(r.Definition, methodSymbol));
                     if (referencedSymbol != null)

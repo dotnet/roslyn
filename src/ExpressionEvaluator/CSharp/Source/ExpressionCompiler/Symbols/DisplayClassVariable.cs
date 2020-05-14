@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal TypeSymbol Type
         {
-            get { return this.DisplayClassFields.Head.Type.TypeSymbol; }
+            get { return this.DisplayClassFields.Head.Type; }
         }
 
         internal Symbol ContainingSymbol
@@ -99,16 +101,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(!field.IsReadOnly || GeneratedNames.GetKind(field.Name) == GeneratedNameKind.AnonymousTypeField);
             // CONSIDER: Instead of digging fields out of the unsubstituted type and then performing substitution
             // on each one individually, we could dig fields out of the substituted type.
-            return new EEDisplayClassFieldSymbol(typeMap.SubstituteNamedType(field.ContainingType), field.Name, typeMap.SubstituteType(field.Type));
+            return new EEDisplayClassFieldSymbol(typeMap.SubstituteNamedType(field.ContainingType), field.Name, typeMap.SubstituteType(field.TypeWithAnnotations));
         }
 
         private sealed class EEDisplayClassFieldSymbol : FieldSymbol
         {
             private readonly NamedTypeSymbol _container;
             private readonly string _name;
-            private readonly TypeSymbolWithAnnotations _type;
+            private readonly TypeWithAnnotations _type;
 
-            internal EEDisplayClassFieldSymbol(NamedTypeSymbol container, string name, TypeSymbolWithAnnotations type)
+            internal EEDisplayClassFieldSymbol(NamedTypeSymbol container, string name, TypeWithAnnotations type)
             {
                 _container = container;
                 _name = name;
@@ -153,6 +155,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             public override bool IsVolatile
             {
                 get { return false; }
+            }
+
+            public override FlowAnalysisAnnotations FlowAnalysisAnnotations
+            {
+                get { return FlowAnalysisAnnotations.None; }
             }
 
             public override ImmutableArray<Location> Locations
@@ -200,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 throw ExceptionUtilities.Unreachable;
             }
 
-            internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+            internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
             {
                 return _type;
             }

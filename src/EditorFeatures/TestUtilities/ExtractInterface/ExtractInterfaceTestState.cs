@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 
         public static ExtractInterfaceTestState Create(string markup, string languageName, CompilationOptions compilationOptions)
         {
-            var exportProvider = ExportProviderFactory.CreateExportProvider();
+            var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
             var workspace = languageName == LanguageNames.CSharp
                 ? TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider, compilationOptions: compilationOptions as CSharpCompilationOptions)
                 : TestWorkspace.CreateVisualBasic(markup, exportProvider: exportProvider, compilationOptions: compilationOptions);
@@ -75,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 CancellationToken.None);
         }
 
-        public ExtractInterfaceResult ExtractViaCommand()
+        public Task<ExtractInterfaceResult> ExtractViaCommandAsync()
         {
-            return ExtractInterfaceService.ExtractInterface(
+            return ExtractInterfaceService.ExtractInterfaceAsync(
                 ExtractFromDocument,
                 _testDocument.CursorPosition.Value,
                 (errorMessage, severity) =>

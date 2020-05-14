@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
@@ -12,10 +14,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     [ExportWorkspaceServiceFactory(typeof(IMetadataService), ServiceLayer.Host), Shared]
     internal sealed class VsMetadataServiceFactory : IWorkspaceServiceFactory
     {
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VsMetadataServiceFactory()
         {
-            return new Service(workspaceServices);
         }
+
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+            => new Service(workspaceServices);
 
         private sealed class Service : IMetadataService
         {
@@ -31,9 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
-            {
-                return _manager.Value.CreateMetadataReferenceSnapshot(resolvedPath, properties);
-            }
+                => _manager.Value.CreateMetadataReferenceSnapshot(resolvedPath, properties);
         }
     }
 }

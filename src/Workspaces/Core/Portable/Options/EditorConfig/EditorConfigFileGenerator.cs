@@ -1,14 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    internal static class EditorConfigFileGenerator
+    internal static partial class EditorConfigFileGenerator
     {
         public static string Generate(
             ImmutableArray<(string feature, ImmutableArray<IOption> options)> groupedOptions,
@@ -37,6 +42,9 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 AppendOptionsToEditorConfig(optionSet, feature, options, language, editorconfig);
             }
+
+            var namingStylePreferences = optionSet.GetOption(NamingStyleOptions.NamingPreferences, language);
+            AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, language, editorconfig);
 
             return editorconfig.ToString();
         }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -201,6 +203,12 @@ namespace N
         [MemberData(nameof(PdbFormats))]
         public void CompareAllBytesEmitted_Release(DebugInformationFormat pdbFormat)
         {
+            // Disable for PDB due to flakiness https://github.com/dotnet/roslyn/issues/41626
+            if (pdbFormat == DebugInformationFormat.Pdb)
+            {
+                return;
+            }
+
             var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
             var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
             AssertEx.Equal(result1.pe, result2.pe);
@@ -222,6 +230,12 @@ namespace N
         [MemberData(nameof(PdbFormats))]
         public void CompareAllBytesEmitted_Debug(DebugInformationFormat pdbFormat)
         {
+            // Disable for PDB due to flakiness https://github.com/dotnet/roslyn/issues/41626
+            if (pdbFormat == DebugInformationFormat.Pdb)
+            {
+                return;
+            }
+
             var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
             var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
             AssertEx.Equal(result1.pe, result2.pe);

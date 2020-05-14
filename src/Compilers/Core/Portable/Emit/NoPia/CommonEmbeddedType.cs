@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -6,6 +8,7 @@ using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -63,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract bool IsBeforeFieldInit { get; }
             protected abstract bool IsComImport { get; }
             protected abstract bool IsInterface { get; }
+            protected abstract bool IsDelegate { get; }
             protected abstract bool IsSerializable { get; }
             protected abstract bool IsSpecialName { get; }
             protected abstract bool IsWindowsRuntimeImport { get; }
@@ -157,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                                 builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
 
                                 // Embed members matching default member name.
-                                string defaultMember = attrData.CommonConstructorArguments[0].Value as string;
+                                string defaultMember = attrData.CommonConstructorArguments[0].ValueInternal as string;
                                 if (defaultMember != null)
                                 {
                                     EmbedDefaultMembers(defaultMember, syntaxNodeOpt, diagnostics);
@@ -353,6 +357,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     return IsInterface;
+                }
+            }
+
+            bool Cci.ITypeDefinition.IsDelegate
+            {
+                get
+                {
+                    return IsDelegate;
                 }
             }
 
@@ -685,7 +697,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             /// </remarks>
             public override string ToString()
             {
-                return ((ISymbol)UnderlyingNamedType).ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+                return ((ISymbolInternal)UnderlyingNamedType).GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
             }
         }
     }

@@ -1,10 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol.MethodKind == MethodKind.LocalFunction;
         }
 
-        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            IMethodSymbol symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
@@ -29,44 +29,38 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             // If it's a delegate method, then cascade to the type as well.  These guys are
             // practically equivalent for users.
-            var symbol = symbolAndProjectId.Symbol;
             if (symbol.ContainingType.TypeKind == TypeKind.Delegate)
             {
-                return ImmutableArray.Create(
-                    symbolAndProjectId.WithSymbol((ISymbol)symbol.ContainingType));
+                return ImmutableArray.Create<ISymbol>(symbol.ContainingType);
             }
             else
             {
-                var otherPartsOfPartial = GetOtherPartsOfPartial(symbolAndProjectId);
+                var otherPartsOfPartial = GetOtherPartsOfPartial(symbol);
                 var baseCascadedSymbols = await base.DetermineCascadedSymbolsAsync(
-                    symbolAndProjectId, solution, projects, options, cancellationToken).ConfigureAwait(false);
+                    symbol, solution, projects, options, cancellationToken).ConfigureAwait(false);
 
                 if (otherPartsOfPartial == null && baseCascadedSymbols == null)
                 {
-                    return ImmutableArray<SymbolAndProjectId>.Empty;
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 return otherPartsOfPartial.Concat(baseCascadedSymbols);
             }
         }
 
-        private ImmutableArray<SymbolAndProjectId> GetOtherPartsOfPartial(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId)
+        private ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
         {
-            var symbol = symbolAndProjectId.Symbol;
             if (symbol.PartialDefinitionPart != null)
             {
-                return ImmutableArray.Create(
-                    symbolAndProjectId.WithSymbol((ISymbol)symbol.PartialDefinitionPart));
+                return ImmutableArray.Create<ISymbol>(symbol.PartialDefinitionPart);
             }
 
             if (symbol.PartialImplementationPart != null)
             {
-                return ImmutableArray.Create(
-                    symbolAndProjectId.WithSymbol((ISymbol)symbol.PartialImplementationPart));
+                return ImmutableArray.Create<ISymbol>(symbol.PartialImplementationPart);
             }
 
-            return ImmutableArray<SymbolAndProjectId>.Empty;
+            return ImmutableArray<ISymbol>.Empty;
         }
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
@@ -127,7 +121,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var nameMatches = await FindReferencesInDocumentUsingSymbolNameAsync(
                 symbol,
                 document,

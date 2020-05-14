@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -39,20 +41,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim args As ImmutableArray(Of TypedConstant) = attrData.CommonConstructorArguments
 
                 If args.Length > 0 Then
-                    Dim strVal As String = If(args(0).Kind <> TypedConstantKind.Array, TryCast(args(0).Value, String), Nothing)
+                    Dim strVal As String = If(args(0).Kind <> TypedConstantKind.Array, TryCast(args(0).ValueInternal, String), Nothing)
 
                     If Not String.IsNullOrEmpty(strVal) Then
                         Me.ClassId = strVal
                     End If
 
                     If args.Length > 1 Then
-                        strVal = If(args(1).Kind <> TypedConstantKind.Array, TryCast(args(1).Value, String), Nothing)
+                        strVal = If(args(1).Kind <> TypedConstantKind.Array, TryCast(args(1).ValueInternal, String), Nothing)
                         If Not String.IsNullOrEmpty(strVal) Then
                             Me.InterfaceId = strVal
                         End If
 
                         If args.Length > 2 Then
-                            strVal = If(args(2).Kind <> TypedConstantKind.Array, TryCast(args(2).Value, String), Nothing)
+                            strVal = If(args(2).Kind <> TypedConstantKind.Array, TryCast(args(2).ValueInternal, String), Nothing)
                             If Not String.IsNullOrEmpty(strVal) Then
                                 Me.EventId = strVal
                             End If
@@ -309,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If comVisible > -1 Then
                     Dim typedValue As TypedConstant = attrData(comVisible).CommonConstructorArguments(0)
-                    Dim value As Object = If(typedValue.Kind <> TypedConstantKind.Array, typedValue.Value, Nothing)
+                    Dim value As Object = If(typedValue.Kind <> TypedConstantKind.Array, typedValue.ValueInternal, Nothing)
 
                     If value Is Nothing OrElse (TypeOf value Is Boolean AndAlso Not DirectCast(value, Boolean)) Then
                         Return False
@@ -484,7 +486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If dispIdIndex > -1 Then
                     Dim typedValue As TypedConstant = attrData(dispIdIndex).CommonConstructorArguments(0)
-                    Dim value As Object = If(typedValue.Kind <> TypedConstantKind.Array, typedValue.Value, Nothing)
+                    Dim value As Object = If(typedValue.Kind <> TypedConstantKind.Array, typedValue.ValueInternal, Nothing)
 
                     If value IsNot Nothing AndAlso TypeOf value Is Integer Then
                         Dim dispId = DirectCast(value, Integer)
@@ -874,11 +876,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return ImmutableArray(Of NamedTypeSymbol).Empty
                 End Function
 
-                Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+                Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
                     Return Nothing
                 End Function
 
-                Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+                Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
                     Return ImmutableArray(Of NamedTypeSymbol).Empty
                 End Function
 

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -8,24 +12,26 @@ namespace Microsoft.Cci
 {
     [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
-    internal struct SequencePoint
+    internal readonly struct SequencePoint
     {
+        public const int HiddenLine = 0xfeefee;
+
         public readonly int Offset;
         public readonly int StartLine;
-        public readonly int StartColumn;
         public readonly int EndLine;
-        public readonly int EndColumn;
+        public readonly ushort StartColumn;
+        public readonly ushort EndColumn;
         public readonly DebugSourceDocument Document;
 
         public SequencePoint(
             DebugSourceDocument document,
             int offset,
             int startLine,
-            int startColumn,
+            ushort startColumn,
             int endLine,
-            int endColumn)
+            ushort endColumn)
         {
-            Debug.Assert(document != null);
+            RoslynDebug.Assert(document != null);
 
             Offset = offset;
             StartLine = startLine;
@@ -35,14 +41,14 @@ namespace Microsoft.Cci
             Document = document;
         }
 
-        public bool IsHidden => StartLine == 0xfeefee;
+        public bool IsHidden => StartLine == HiddenLine;
 
         public override int GetHashCode()
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             throw ExceptionUtilities.Unreachable;
         }

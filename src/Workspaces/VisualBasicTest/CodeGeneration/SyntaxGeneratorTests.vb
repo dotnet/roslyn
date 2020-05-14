@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Editing
@@ -15,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
 
         Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System})
 
-        Private _ienumerableInt As INamedTypeSymbol
+        Private ReadOnly _ienumerableInt As INamedTypeSymbol
 
         Public Sub New()
             Me._ienumerableInt = _emptyCompilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_emptyCompilation.GetSpecialType(SpecialType.System_Int32))
@@ -551,8 +553,6 @@ End If")
 
         <Fact>
         Public Sub TestSwitchStatements()
-            Dim x = 10
-
             VerifySyntax(Of SelectBlockSyntax)(
                 Generator.SwitchStatement(Generator.IdentifierName("x"),
                     Generator.SwitchSection(Generator.IdentifierName("y"),
@@ -785,6 +785,39 @@ End Sub")
                 Generator.VoidReturningLambdaExpression({Generator.LambdaParameter("x", Generator.IdentifierName("y")), Generator.LambdaParameter("a", Generator.IdentifierName("b"))}, Generator.IdentifierName("z")),
                 "Sub(x As y, a As b) z")
         End Sub
+
+        <Fact, WorkItem(31720, "https://github.com/dotnet/roslyn/issues/31720")>
+        Public Sub TestGetAttributeOnMethodBodies()
+            Dim compilation = Compile("
+Imports System
+<AttributeUsage(System.AttributeTargets.All)>
+Public Class MyAttribute
+  Inherits Attribute
+End Class
+
+Public Class C
+    <MyAttribute>
+    Sub New()
+    End Sub
+
+    <MyAttribute>
+    Sub M1()
+    End Sub
+
+    <MyAttribute>
+    Function M1() As String
+        Return Nothing
+    End Sub
+End Class
+")
+
+            Dim syntaxTree = compilation.SyntaxTrees(0)
+            Dim declarations = syntaxTree.GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)
+
+            For Each decl In declarations
+                Assert.Equal("<MyAttribute>", Generator.GetAttributes(decl).Single().ToString())
+            Next
+        End Sub
 #End Region
 
 #Region "Declarations"
@@ -851,7 +884,7 @@ End Function")
 
             VerifySyntax(Of MethodBlockSyntax)(
                 Generator.MethodDeclaration("m", accessibility:=Accessibility.Private, modifiers:=DeclarationModifiers.Partial),
-"Private Partial Sub m()
+"Partial Private Sub m()
 End Sub")
 
         End Sub
@@ -1388,7 +1421,7 @@ End Structure")
 
             VerifySyntax(Of StructureBlockSyntax)(
                 Generator.StructDeclaration("s", accessibility:=Accessibility.Public, modifiers:=DeclarationModifiers.Partial),
-"Public Partial Structure s
+"Partial Public Structure s
 End Structure")
 
             VerifySyntax(Of StructureBlockSyntax)(
@@ -2934,11 +2967,6 @@ End Get")
 
         Private Sub TestRemoveAllMembers(declaration As SyntaxNode)
             Assert.Equal(0, Generator.GetMembers(Generator.RemoveNodes(declaration, Generator.GetMembers(declaration))).Count)
-        End Sub
-
-        Private Sub TestRemoveMember(declaration As SyntaxNode, name As String, remainingNames As String())
-            Dim newDecl = Generator.RemoveNode(declaration, Generator.GetMembers(declaration).First(Function(m) Generator.GetName(m) = name))
-            AssertMemberNamesEqual(remainingNames, newDecl)
         End Sub
 
         <Fact>

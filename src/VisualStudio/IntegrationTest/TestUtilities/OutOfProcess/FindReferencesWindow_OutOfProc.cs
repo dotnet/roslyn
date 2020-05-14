@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
@@ -32,7 +34,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             // Go to Definition/Go to Implementation are synchronous so we don't need to wait for them
             // (and currently can't, anyway); if they are made asynchronous we will need to wait for
             // them here as well.
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.FindReferences);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.FindReferences);
 
             return _inProc.GetContents(windowCaption);
         }

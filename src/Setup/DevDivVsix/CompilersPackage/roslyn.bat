@@ -6,7 +6,7 @@ if "%VSCMD_ARG_CLEAN_ENV%" NEQ "" goto :clean_env
 @REM ------------------------------------------------------------------------
 :start
 
-set "PATH=%VSINSTALLDIR%MSBuild\15.0\bin\Roslyn;%PATH%"
+set "PATH=%VSINSTALLDIR%MSBuild\Current\bin\Roslyn;%PATH%"
 
 goto :end
 

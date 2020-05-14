@@ -1,12 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
@@ -14,11 +19,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     [ExportHighlighter(LanguageNames.CSharp)]
     internal class SwitchStatementHighlighter : AbstractKeywordHighlighter<SwitchStatementSyntax>
     {
-        protected override IEnumerable<TextSpan> GetHighlights(
-            SwitchStatementSyntax switchStatement, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SwitchStatementHighlighter()
         {
-            var spans = new List<TextSpan>();
+        }
 
+        protected override void AddHighlights(
+            SwitchStatementSyntax switchStatement, List<TextSpan> spans, CancellationToken cancellationToken)
+        {
             spans.Add(switchStatement.SwitchKeyword.Span);
 
             foreach (var switchSection in switchStatement.Sections)
@@ -31,8 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
 
                 HighlightRelatedKeywords(switchSection, spans, highlightBreaks: true, highlightGotos: true);
             }
-
-            return spans;
         }
 
         /// <summary>
@@ -68,8 +75,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
             }
             else
             {
-                foreach (var child in node.ChildNodes())
+                foreach (var childNodeOrToken in node.ChildNodesAndTokens())
                 {
+                    if (childNodeOrToken.IsToken)
+                        continue;
+
+                    var child = childNodeOrToken.AsNode();
                     var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
                     var highlightGotosForChild = highlightGotos && !child.IsKind(SyntaxKind.SwitchStatement);
 

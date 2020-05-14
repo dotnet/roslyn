@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -54,7 +58,7 @@ namespace Microsoft.Cci
 
         public TypeParameterVariance Variance
         {
-            get { return _parentParameter.Variance; }
+            get { return _inheritingType.IsInterface || _inheritingType.IsDelegate ? _parentParameter.Variance : TypeParameterVariance.NonVariant; }
         }
 
         #endregion
@@ -76,7 +80,7 @@ namespace Microsoft.Cci
             get { return false; }
         }
 
-        public IArrayTypeReference AsArrayTypeReference
+        public IArrayTypeReference? AsArrayTypeReference
         {
             get
             {
@@ -84,7 +88,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public IGenericMethodParameter AsGenericMethodParameter
+        public IGenericMethodParameter? AsGenericMethodParameter
         {
             get
             {
@@ -92,7 +96,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public IGenericMethodParameterReference AsGenericMethodParameterReference
+        public IGenericMethodParameterReference? AsGenericMethodParameterReference
         {
             get
             {
@@ -100,7 +104,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public IGenericTypeInstanceReference AsGenericTypeInstanceReference
+        public IGenericTypeInstanceReference? AsGenericTypeInstanceReference
         {
             get
             {
@@ -108,7 +112,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public IGenericTypeParameter AsGenericTypeParameter
+        public IGenericTypeParameter? AsGenericTypeParameter
         {
             get
             {
@@ -116,7 +120,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public IGenericTypeParameterReference AsGenericTypeParameterReference
+        public IGenericTypeParameterReference? AsGenericTypeParameterReference
         {
             get
             {
@@ -124,12 +128,12 @@ namespace Microsoft.Cci
             }
         }
 
-        public INamespaceTypeDefinition AsNamespaceTypeDefinition(EmitContext context)
+        public INamespaceTypeDefinition? AsNamespaceTypeDefinition(EmitContext context)
         {
             return this as INamespaceTypeDefinition;
         }
 
-        public INamespaceTypeReference AsNamespaceTypeReference
+        public INamespaceTypeReference? AsNamespaceTypeReference
         {
             get
             {
@@ -137,12 +141,12 @@ namespace Microsoft.Cci
             }
         }
 
-        public INestedTypeDefinition AsNestedTypeDefinition(EmitContext context)
+        public INestedTypeDefinition? AsNestedTypeDefinition(EmitContext context)
         {
             return this as INestedTypeDefinition;
         }
 
-        public INestedTypeReference AsNestedTypeReference
+        public INestedTypeReference? AsNestedTypeReference
         {
             get
             {
@@ -150,7 +154,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public ISpecializedNestedTypeReference AsSpecializedNestedTypeReference
+        public ISpecializedNestedTypeReference? AsSpecializedNestedTypeReference
         {
             get
             {
@@ -158,7 +162,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public IModifiedTypeReference AsModifiedTypeReference
+        public IModifiedTypeReference? AsModifiedTypeReference
         {
             get
             {
@@ -166,7 +170,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public IPointerTypeReference AsPointerTypeReference
+        public IPointerTypeReference? AsPointerTypeReference
         {
             get
             {
@@ -174,12 +178,12 @@ namespace Microsoft.Cci
             }
         }
 
-        public ITypeDefinition AsTypeDefinition(EmitContext context)
+        public ITypeDefinition? AsTypeDefinition(EmitContext context)
         {
             return this as ITypeDefinition;
         }
 
-        public IDefinition AsDefinition(EmitContext context)
+        public IDefinition? AsDefinition(EmitContext context)
         {
             return this as IDefinition;
         }
@@ -242,7 +246,7 @@ namespace Microsoft.Cci
 
         #region INamedEntity Members
 
-        public string Name
+        public string? Name
         {
             get { return _parentParameter.Name; }
         }

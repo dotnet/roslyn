@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -9,9 +11,7 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         private const int MaxResults = 3;
 
@@ -27,6 +27,13 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             _packageInstallerService = packageInstallerService;
             _symbolSearchService = symbolSearchService;
+        }
+
+        public sealed override FixAllProvider GetFixAllProvider()
+        {
+            // Currently Fix All is not supported for this provider
+            // https://github.com/dotnet/roslyn/issues/34457
+            return null;
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -49,8 +56,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 : null;
 
             var installerService = GetPackageInstallerService(document);
-            var packageSources = searchNuGetPackages && symbolSearchService != null && installerService != null
-                ? installerService.PackageSources
+            var packageSources = searchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
+                ? installerService.GetPackageSources()
                 : ImmutableArray<PackageSource>.Empty;
 
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(

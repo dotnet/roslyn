@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,7 @@ using Roslyn.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -28,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly bool _argumentOrderDoesNotMatter;
         private readonly Type _errorCodeType;
         private readonly bool _ignoreArgumentsWhenComparing;
+        private readonly DiagnosticSeverity? _defaultSeverityOpt;
+        private readonly DiagnosticSeverity? _effectiveSeverityOpt;
 
         // fields for DiagnosticDescriptions constructed via factories
         private readonly Func<SyntaxNode, bool> _syntaxPredicate;
@@ -64,7 +69,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LinePosition? startLocation,
             Func<SyntaxNode, bool> syntaxNodePredicate,
             bool argumentOrderDoesNotMatter,
-            Type errorCodeType = null)
+            Type errorCodeType = null,
+            DiagnosticSeverity? defaultSeverityOpt = null,
+            DiagnosticSeverity? effectiveSeverityOpt = null)
         {
             _code = code;
             _isWarningAsError = isWarningAsError;
@@ -74,6 +81,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _syntaxPredicate = syntaxNodePredicate;
             _argumentOrderDoesNotMatter = argumentOrderDoesNotMatter;
             _errorCodeType = errorCodeType ?? code.GetType();
+            _defaultSeverityOpt = defaultSeverityOpt;
+            _effectiveSeverityOpt = effectiveSeverityOpt;
         }
 
         public DiagnosticDescription(
@@ -83,7 +92,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LinePosition? startLocation,
             Func<SyntaxNode, bool> syntaxNodePredicate,
             bool argumentOrderDoesNotMatter,
-            Type errorCodeType = null)
+            Type errorCodeType = null,
+            DiagnosticSeverity? defaultSeverityOpt = null,
+            DiagnosticSeverity? effectiveSeverityOpt = null)
         {
             _code = code;
             _isWarningAsError = false;
@@ -93,16 +104,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _syntaxPredicate = syntaxNodePredicate;
             _argumentOrderDoesNotMatter = argumentOrderDoesNotMatter;
             _errorCodeType = errorCodeType ?? code.GetType();
+            _defaultSeverityOpt = defaultSeverityOpt;
+            _effectiveSeverityOpt = effectiveSeverityOpt;
         }
 
-        public DiagnosticDescription(Diagnostic d, bool errorCodeOnly)
+        public DiagnosticDescription(Diagnostic d, bool errorCodeOnly, bool includeDefaultSeverity = false, bool includeEffectiveSeverity = false)
         {
             _code = d.Code;
             _isWarningAsError = d.IsWarningAsError;
             _location = d.Location;
+            _defaultSeverityOpt = includeDefaultSeverity ? d.DefaultSeverity : (DiagnosticSeverity?)null;
+            _effectiveSeverityOpt = includeEffectiveSeverity ? d.Severity : (DiagnosticSeverity?)null;
 
             DiagnosticWithInfo dinfo = null;
-            if (d.Code == 0)
+            if (d.Code == 0 || d.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomObsolete))
             {
                 _code = d.Id;
                 _errorCodeType = typeof(string);
@@ -158,19 +173,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _startPosition = _location.GetMappedLineSpan().StartLinePosition;
         }
 
-        public DiagnosticDescription WithArguments(params string[] arguments)
+        public DiagnosticDescription WithArguments(params object[] arguments)
         {
-            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, false, _errorCodeType);
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, false, _errorCodeType, _defaultSeverityOpt, _effectiveSeverityOpt);
         }
 
         public DiagnosticDescription WithArgumentsAnyOrder(params string[] arguments)
         {
-            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, true, _errorCodeType);
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, true, _errorCodeType, _defaultSeverityOpt, _effectiveSeverityOpt);
         }
 
         public DiagnosticDescription WithWarningAsError(bool isWarningAsError)
         {
-            return new DiagnosticDescription(_code, isWarningAsError, _squiggledText, _arguments, _startPosition, _syntaxPredicate, true, _errorCodeType);
+            return new DiagnosticDescription(_code, isWarningAsError, _squiggledText, _arguments, _startPosition, _syntaxPredicate, true, _errorCodeType, _defaultSeverityOpt, _effectiveSeverityOpt);
+        }
+
+        public DiagnosticDescription WithDefaultSeverity(DiagnosticSeverity defaultSeverity)
+        {
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, _startPosition, _syntaxPredicate, true, _errorCodeType, defaultSeverity, _effectiveSeverityOpt);
+        }
+
+        public DiagnosticDescription WithEffectiveSeverity(DiagnosticSeverity effectiveSeverity)
+        {
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, _startPosition, _syntaxPredicate, true, _errorCodeType, _defaultSeverityOpt, effectiveSeverity);
         }
 
         /// <summary>
@@ -178,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public DiagnosticDescription WithLocation(int line, int column)
         {
-            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, new LinePosition(line - 1, column - 1), _syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType);
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, new LinePosition(line - 1, column - 1), _syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType, _defaultSeverityOpt, _effectiveSeverityOpt);
         }
 
         /// <summary>
@@ -187,10 +212,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <param name="syntaxPredicate">The argument to syntaxPredicate will be the nearest SyntaxNode whose Span contains first squiggled character.</param>
         public DiagnosticDescription WhereSyntax(Func<SyntaxNode, bool> syntaxPredicate)
         {
-            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, _startPosition, syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType);
+            return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, _startPosition, syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType, _defaultSeverityOpt, _effectiveSeverityOpt);
         }
 
         public object Code => _code;
+        public bool HasLocation => _startPosition != null;
+        public bool IsWarningAsError => _isWarningAsError;
+        public DiagnosticSeverity? DefaultSeverity => _defaultSeverityOpt;
+        public DiagnosticSeverity? EffectiveSeverity => _effectiveSeverityOpt;
 
         public override bool Equals(object obj)
         {
@@ -279,6 +308,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
+            if (_defaultSeverityOpt != d._defaultSeverityOpt ||
+                _effectiveSeverityOpt != d._effectiveSeverityOpt)
+            {
+                return false;
+            }
+
             return true;
         }
 
@@ -293,6 +328,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             hashCode = Hash.Combine(_arguments, hashCode);
             if (_startPosition != null)
                 hashCode = Hash.Combine(hashCode, _startPosition.Value.GetHashCode());
+            if (_defaultSeverityOpt != null)
+                hashCode = Hash.Combine(hashCode, _defaultSeverityOpt.Value.GetHashCode());
+            if (_effectiveSeverityOpt != null)
+                hashCode = Hash.Combine(hashCode, _effectiveSeverityOpt.Value.GetHashCode());
             return hashCode;
         }
 
@@ -361,6 +400,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sb.Append(".WithWarningAsError(true)");
             }
 
+            if (_defaultSeverityOpt != null)
+            {
+                sb.Append($".WithDefaultSeverity(DiagnosticSeverity.{_defaultSeverityOpt.Value.ToString()})");
+            }
+
+            if (_effectiveSeverityOpt != null)
+            {
+                sb.Append($".WithEffectiveSeverity(DiagnosticSeverity.{_effectiveSeverityOpt.Value.ToString()})");
+            }
+
             if (_syntaxPredicate != null && _showPredicate)
             {
                 sb.Append(".WhereSyntax(...)");
@@ -373,9 +422,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             const int CSharp = 1;
             const int VisualBasic = 2;
-            var language = actual.Any() && actual.First().Id.StartsWith("CS", StringComparison.Ordinal) ? CSharp : VisualBasic;
+            var language = actual.Any() && actual.First() is CSDiagnostic ? CSharp : VisualBasic;
             var includeDiagnosticMessagesAsComments = (language == CSharp);
             int indentDepth = (language == CSharp) ? 4 : 1;
+            var includeDefaultSeverity = expected.Any() && expected.All(d => d.DefaultSeverity != null);
+            var includeEffectiveSeverity = expected.Any() && expected.All(d => d.EffectiveSeverity != null);
 
             if (IsSortedOrEmpty(expected))
             {
@@ -429,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                 }
 
-                var description = new DiagnosticDescription(d, errorCodeOnly: false);
+                var description = new DiagnosticDescription(d, errorCodeOnly: false, includeDefaultSeverity, includeEffectiveSeverity);
                 var diffDescription = description;
                 var idx = Array.IndexOf(expected, description);
                 if (idx != -1)

@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,11 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     internal static class SemanticClassificationUtilities
     {
-        public static async Task ProduceTagsAsync<TClassificationService>(
+        public static async Task ProduceTagsAsync(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
-            IClassificationDelegationService<TClassificationService> delegationService,
-            TClassificationService classificationService,
+            IClassificationService classificationService,
             ClassificationTypeMap typeMap)
         {
             var document = spanToTag.Document;
@@ -33,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return;
             }
 
-            var classified = await TryClassifyContainingMemberSpan(
-                    context, spanToTag, delegationService, classificationService, typeMap).ConfigureAwait(false);
+            var classified = await TryClassifyContainingMemberSpanAsync(
+                    context, spanToTag, classificationService, typeMap).ConfigureAwait(false);
             if (classified)
             {
                 return;
@@ -43,14 +44,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // We weren't able to use our specialized codepaths for semantic classifying. 
             // Fall back to classifying the full span that was asked for.
             await ClassifySpansAsync(
-                context, spanToTag, delegationService, classificationService, typeMap).ConfigureAwait(false);
+                context, spanToTag, classificationService, typeMap).ConfigureAwait(false);
         }
 
-        private static async Task<bool> TryClassifyContainingMemberSpan<TClassificationService>(
+        private static async Task<bool> TryClassifyContainingMemberSpanAsync(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
-            IClassificationDelegationService<TClassificationService> delegationService,
-            TClassificationService classificationService,
+            IClassificationService classificationService,
             ClassificationTypeMap typeMap)
         {
             var range = context.TextChangeRange;
@@ -110,15 +110,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             // re-classify only the member we're inside.
             await ClassifySpansAsync(
-                context, subSpanToTag, delegationService, classificationService, typeMap).ConfigureAwait(false);
+                context, subSpanToTag, classificationService, typeMap).ConfigureAwait(false);
             return true;
         }
 
-        private static async Task ClassifySpansAsync<TClassificationService>(
+        private static async Task ClassifySpansAsync(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
-            IClassificationDelegationService<TClassificationService> delegationService,
-            TClassificationService classificationService,
+            IClassificationService classificationService,
             ClassificationTypeMap typeMap)
         {
             try
@@ -132,8 +131,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
-                    await delegationService.AddSemanticClassificationsAsync(
-                        classificationService, document, snapshotSpan.Span.ToTextSpan(), classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    await classificationService.AddSemanticClassificationsAsync(
+                        document, snapshotSpan.Span.ToTextSpan(), classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
                     ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);

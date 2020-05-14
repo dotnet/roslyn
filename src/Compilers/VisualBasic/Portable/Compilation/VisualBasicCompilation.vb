@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
@@ -659,7 +661,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            ' Reference binding doesn't depend on previous submission so we can reuse it.
+            ' Metadata references are inherited from the previous submission,
+            ' so we can only reuse the manager if we can guarantee that these references are the same.
+            ' Check if the previous script compilation doesn't change. 
+
+            ' TODO Consider comparing the metadata references if they have been bound already.
+            ' https://github.com/dotnet/roslyn/issues/43397
+            Dim reuseReferenceManager = ScriptCompilationInfo?.PreviousScriptCompilation Is info?.PreviousScriptCompilation
 
             Return New VisualBasicCompilation(
                 Me.AssemblyName,
@@ -675,7 +683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 info?.GlobalsType,
                 info IsNot Nothing,
                 _referenceManager,
-                reuseReferenceManager:=True)
+                reuseReferenceManager)
         End Function
 
         ''' <summary>
@@ -1231,6 +1239,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.GetBoundReferenceManager().GetMetadataReference(assemblySymbol)
         End Function
 
+        Private Protected Overrides Function CommonGetMetadataReference(assemblySymbol As IAssemblySymbol) As MetadataReference
+            Dim symbol = TryCast(assemblySymbol, AssemblySymbol)
+            If symbol IsNot Nothing Then
+                Return GetMetadataReference(symbol)
+            End If
+
+            Return Nothing
+        End Function
+
         Public Overrides ReadOnly Property ReferencedAssemblyNames As IEnumerable(Of AssemblyIdentity)
             Get
                 Return [Assembly].Modules.SelectMany(Function(m) m.GetReferencedAssemblies())
@@ -1278,7 +1295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <remarks>
         ''' In NetFx 4.0, block array initializers do not work on all combinations of {32/64 X Debug/Retail} when array elements are enums.
         ''' This is fixed in 4.5 thus enabling block array initialization for a very common case.
-        ''' We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .Net 4.5
+        ''' We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .NET Framework 4.5
         ''' </remarks>
         Friend ReadOnly Property EnableEnumArrayBlockInitialization As Boolean
             Get
@@ -1823,7 +1840,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Assembly.GetSpecialTypeMember(memberId)
         End Function
 
-        Friend Overrides Function CommonGetSpecialTypeMember(specialMember As SpecialMember) As ISymbol
+        Friend Overrides Function CommonGetSpecialTypeMember(specialMember As SpecialMember) As ISymbolInternal
             Return GetSpecialTypeMember(specialMember)
         End Function
 
@@ -1854,6 +1871,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shadows Function CreateArrayTypeSymbol(elementType As TypeSymbol, Optional rank As Integer = 1) As ArrayTypeSymbol
             If elementType Is Nothing Then
                 Throw New ArgumentNullException(NameOf(elementType))
+            End If
+
+            If rank < 1 Then
+                Throw New ArgumentException(NameOf(rank))
             End If
 
             Return ArrayTypeSymbol.CreateVBArray(elementType, Nothing, rank, Me)
@@ -1983,8 +2004,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Otherwise IDE performance might be affect.
                 If Options.ConcurrentBuild Then
                     Dim options = New ParallelOptions() With {.CancellationToken = cancellationToken}
-                    Parallel.For(0, SyntaxTrees.Length, options,
-                            UICultureUtilities.WithCurrentUICulture(Sub(i As Integer) builder.AddRange(SyntaxTrees(i).GetDiagnostics(cancellationToken))))
+                    Parallel.For(0, SyntaxTrees.Length, options, UICultureUtilities.WithCurrentUICulture(
+                        Sub(i As Integer)
+                            Try
+                                builder.AddRange(SyntaxTrees(i).GetDiagnostics(cancellationToken))
+                            Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                                Throw ExceptionUtilities.Unreachable
+                            End Try
+                        End Sub))
                 Else
                     For Each tree In SyntaxTrees
                         cancellationToken.ThrowIfCancellationRequested()
@@ -2138,10 +2165,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager) As AnalyzerDriver
+        Friend Overrides Function CreateAnalyzerDriver(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager, severityFilter As SeverityFilter) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.Kind
             Dim isComment As Func(Of SyntaxTrivia, Boolean) = Function(trivia As SyntaxTrivia) trivia.Kind() = SyntaxKind.CommentTrivia
-            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager, isComment)
+            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager, severityFilter, isComment)
         End Function
 
 #End Region
@@ -2275,7 +2302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             emitMetadataOnly As Boolean,
             emitTestCoverageData As Boolean,
             diagnostics As DiagnosticBag,
-            filterOpt As Predicate(Of ISymbol),
+            filterOpt As Predicate(Of ISymbolInternal),
             cancellationToken As CancellationToken) As Boolean
 
             ' The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that we don't emit
@@ -2300,7 +2327,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If moduleBeingBuilt.SourceModule.HasBadAttributes Then
                     ' If there were errors but no declaration diagnostics, explicitly add a "Failed to emit module" error.
-                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuilt.SourceModule.Name)
+                    diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, moduleBeingBuilt.SourceModule.Name,
+                        New LocalizableResourceString(NameOf(CodeAnalysisResources.ModuleHasInvalidAttributes), CodeAnalysisResources.ResourceManager, GetType(CodeAnalysisResources)))
                     Return False
                 End If
 
@@ -2620,7 +2648,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function CommonGetSpecialType(specialType As SpecialType) As INamedTypeSymbol
+        Private Protected Overrides Function CommonGetSpecialType(specialType As SpecialType) As INamedTypeSymbolInternal
             Return Me.GetSpecialType(specialType)
         End Function
 
@@ -2650,13 +2678,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        name)
         End Function
 
-        Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer) As IArrayTypeSymbol
+        Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer, elementNullableAnnotation As NullableAnnotation) As IArrayTypeSymbol
             Return CreateArrayTypeSymbol(elementType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(elementType)), rank)
         End Function
 
         Protected Overrides Function CommonCreateTupleTypeSymbol(elementTypes As ImmutableArray(Of ITypeSymbol),
                                                                  elementNames As ImmutableArray(Of String),
-                                                                 elementLocations As ImmutableArray(Of Location)) As INamedTypeSymbol
+                                                                 elementLocations As ImmutableArray(Of Location),
+                                                                 elementNullableAnnotations As ImmutableArray(Of NullableAnnotation)) As INamedTypeSymbol
             Dim typesBuilder = ArrayBuilder(Of TypeSymbol).GetInstance(elementTypes.Length)
             For i As Integer = 0 To elementTypes.Length - 1
                 typesBuilder.Add(elementTypes(i).EnsureVbSymbolOrNothing(Of TypeSymbol)($"{NameOf(elementTypes)}[{i}]"))
@@ -2673,7 +2702,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function CommonCreateTupleTypeSymbol(
                 underlyingType As INamedTypeSymbol,
                 elementNames As ImmutableArray(Of String),
-                elementLocations As ImmutableArray(Of Location)) As INamedTypeSymbol
+                elementLocations As ImmutableArray(Of Location),
+                elementNullableAnnotations As ImmutableArray(Of NullableAnnotation)) As INamedTypeSymbol
             Dim csharpUnderlyingTuple = underlyingType.EnsureVbSymbolOrNothing(Of NamedTypeSymbol)(NameOf(underlyingType))
 
             Dim cardinality As Integer
@@ -2683,6 +2713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             elementNames = CheckTupleElementNames(cardinality, elementNames)
             CheckTupleElementLocations(cardinality, elementLocations)
+            CheckTupleElementNullableAnnotations(cardinality, elementNullableAnnotations)
 
             Return TupleTypeSymbol.Create(
                 locationOpt:=Nothing,
@@ -2696,11 +2727,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw New NotSupportedException(VBResources.ThereAreNoPointerTypesInVB)
         End Function
 
+        Protected Overrides Function CommonCreateNativeIntegerTypeSymbol(signed As Boolean) As INamedTypeSymbol
+            Throw New NotSupportedException(VBResources.ThereAreNoNativeIntegerTypesInVB)
+        End Function
+
         Protected Overrides Function CommonCreateAnonymousTypeSymbol(
                 memberTypes As ImmutableArray(Of ITypeSymbol),
                 memberNames As ImmutableArray(Of String),
                 memberLocations As ImmutableArray(Of Location),
-                memberIsReadOnly As ImmutableArray(Of Boolean)) As INamedTypeSymbol
+                memberIsReadOnly As ImmutableArray(Of Boolean),
+                memberNullableAnnotations As ImmutableArray(Of CodeAnalysis.NullableAnnotation)) As INamedTypeSymbol
 
             Dim i = 0
             For Each t In memberTypes

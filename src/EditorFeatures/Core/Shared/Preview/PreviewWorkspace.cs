@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -68,6 +70,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             this.OnAdditionalDocumentOpened(documentId, text.Container);
         }
 
+        public override void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
+        {
+            var document = this.CurrentSolution.GetAnalyzerConfigDocument(documentId);
+            var text = document.GetTextSynchronously(CancellationToken.None);
+
+            this.OnAnalyzerConfigDocumentOpened(documentId, text.Container);
+        }
+
         public override void CloseDocument(DocumentId documentId)
         {
             var document = this.CurrentSolution.GetDocument(documentId);
@@ -84,6 +94,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             var version = document.GetTextVersionSynchronously(CancellationToken.None);
 
             this.OnAdditionalDocumentClosed(documentId, TextLoader.From(TextAndVersion.Create(text, version)));
+        }
+
+        public override void CloseAnalyzerConfigDocument(DocumentId documentId)
+        {
+            var document = this.CurrentSolution.GetAnalyzerConfigDocument(documentId);
+            var text = document.GetTextSynchronously(CancellationToken.None);
+            var version = document.GetTextVersionSynchronously(CancellationToken.None);
+
+            this.OnAnalyzerConfigDocumentClosed(documentId, TextLoader.From(TextAndVersion.Create(text, version)));
         }
 
         protected override void Dispose(bool finalize)

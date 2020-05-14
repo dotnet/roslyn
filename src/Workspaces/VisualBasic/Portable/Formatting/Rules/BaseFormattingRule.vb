@@ -1,11 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Class BaseFormattingRule
-        Inherits AbstractFormattingRule
+        Inherits CompatAbstractFormattingRule
 
         Public Sub New()
         End Sub
@@ -66,13 +68,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return TextSpan.FromBounds(spanStart, nextToken.SpanStart)
         End Function
 
+#Disable Warning IDE0060 ' Remove unused parameter
         Protected Sub AddSuppressWrappingIfOnSingleLineOperation(operations As List(Of SuppressOperation), startToken As SyntaxToken, endToken As SyntaxToken)
-            Contract.Fail("VB doesn't need to use this operation")
+            ' VB doesn't need to use this operation
+            Throw ExceptionUtilities.Unreachable
         End Sub
 
         Protected Sub AddSuppressAllOperationIfOnMultipleLine(operations As List(Of SuppressOperation), startToken As SyntaxToken, endToken As SyntaxToken)
-            Contract.Fail("VB doesn't need to use this operation")
+            ' VB doesn't need to use this operation
+            Throw ExceptionUtilities.Unreachable
         End Sub
+#Enable Warning IDE0060 ' Remove unused parameter
 
         Protected Sub AddAnchorIndentationOperation(operations As List(Of AnchorIndentationOperation), startToken As SyntaxToken, endToken As SyntaxToken)
             If startToken.Kind = SyntaxKind.None OrElse endToken.Kind = SyntaxKind.None Then

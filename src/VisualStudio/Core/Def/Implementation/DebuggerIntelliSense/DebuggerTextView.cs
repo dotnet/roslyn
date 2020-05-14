@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Windows;
@@ -42,7 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             // The editor requires the current top buffer.
             // TODO it seems to be a hack. It should be removed.
             // Here is an issue to track: https://github.com/dotnet/roslyn/issues/31189
-            _innerTextView.Properties.AddProperty(CompletionRoot, bufferGraph.TopBuffer);
+            // Starting debugging for the second time, we already have the property set.
+            _innerTextView.Properties[CompletionRoot] = bufferGraph.TopBuffer;
         }
 
         /// <summary>
@@ -314,51 +317,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         public void Close()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public void DisplayTextLineContainingBufferPosition(SnapshotPoint bufferPosition, double verticalDistance, ViewRelativePosition relativeTo, double? viewportWidthOverride, double? viewportHeightOverride)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public void DisplayTextLineContainingBufferPosition(SnapshotPoint bufferPosition, double verticalDistance, ViewRelativePosition relativeTo)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public SnapshotSpan GetTextElementSpan(SnapshotPoint point)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public ITextViewLine GetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition)
-        {
-            return _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
-        }
+            => _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
 
         public void QueueSpaceReservationStackRefresh()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public IAdornmentLayer GetAdornmentLayer(string name)
-        {
-            return _innerTextView.GetAdornmentLayer(name);
-        }
+            => _innerTextView.GetAdornmentLayer(name);
 
         public ISpaceReservationManager GetSpaceReservationManager(string name)
-        {
-            return _innerTextView.GetSpaceReservationManager(name);
-        }
+            => _innerTextView.GetSpaceReservationManager(name);
 
         IWpfTextViewLine IWpfTextView.GetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition)
-        {
-            return _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
-        }
+            => _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
 
-        public void DisconnectFromIntellisenseControllers()
+        public void Cleanup()
         {
             // The innerTextView of the immediate window never closes, but we want
             // our completion subscribers to unsubscribe from events when this
@@ -367,6 +352,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             {
                 this.ClosedInternal?.Invoke(this, EventArgs.Empty);
             }
+
+            _innerTextView.Properties.RemoveProperty(CompletionRoot);
         }
 
         public void QueuePostLayoutAction(Action action) => _innerTextView.QueuePostLayoutAction(action);

@@ -1,4 +1,8 @@
-﻿Imports Microsoft.CodeAnalysis.CodeRefactorings
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
+
+Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
@@ -23,6 +27,44 @@ end class",
 "class C
     Public Function GetProp() As Integer
         return 0
+    End Function
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestGetWithBodyLineContinuation() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    readonly property [||]Prop as integer
+        get 
+            return _
+                0
+        end get
+    end property
+end class",
+"class C
+    Public Function GetProp() As Integer
+        return _
+0
+    End Function
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestGetWithBodyCommentsAfterLineContinuation() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    readonly property [||]Prop as integer
+        get 
+            return _ ' Test
+                0
+        end get
+    end property
+end class",
+"class C
+    Public Function GetProp() As Integer
+        return _ ' Test
+0
     End Function
 end class")
         End Function

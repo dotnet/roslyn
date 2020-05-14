@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
@@ -11,11 +13,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             _outputHelper = outputHelper
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542103, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542103")>
         <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>
-        Public Sub RewriteConflictingExtensionMethodCallSite()
+        Public Sub RewriteConflictingExtensionMethodCallSite(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -36,7 +38,7 @@ Module M
 End Module
                             ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
+                </Workspace>, host:=host, renameTo:="Bar")
 
 
                 result.AssertLabeledSpansAre("Resolved", type:=RelatedLocationType.ResolvedReferenceConflict)
@@ -44,11 +46,11 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542821")>
         <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>
-        Public Sub RewriteConflictingExtensionMethodCallSiteRequiringTypeArguments()
+        Public Sub RewriteConflictingExtensionMethodCallSiteRequiringTypeArguments(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -69,7 +71,7 @@ Module M
 End Module
                             ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
+                </Workspace>, host:=host, renameTo:="Bar")
 
 
                 result.AssertLabeledSpansAre("Resolved", type:=RelatedLocationType.ResolvedReferenceConflict)
@@ -77,11 +79,11 @@ End Module
             End Using
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542821")>
         <WorkItem(535068, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535068")>
-        Public Sub RewriteConflictingExtensionMethodCallSiteInferredTypeArguments()
+        Public Sub RewriteConflictingExtensionMethodCallSiteInferredTypeArguments(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -102,7 +104,7 @@ Module M
 End Module
                             ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
+                </Workspace>, host:=host, renameTo:="Bar")
 
 
                 result.AssertLabeledSpansAre("Resolved", type:=RelatedLocationType.ResolvedReferenceConflict)
@@ -110,10 +112,10 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(539636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539636")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub QualifyConflictingMethodInvocation()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub QualifyConflictingMethodInvocation(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -129,7 +131,7 @@ Public Class C
 End Class
                                </Document>
                     </Project>
-                </Workspace>, renameTo:="F")
+                </Workspace>, host:=host, renameTo:="F")
 
 
                 result.AssertLabeledSpansAre("stmt1", "Program.F()", RelatedLocationType.ResolvedNonReferenceConflict)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -9,20 +11,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
-
         /// <summary>
         /// Callback object we pass to the OOP server to hear about the result 
         /// of the FindReferencesEngine as it executes there.
         /// </summary>
-        private class FindReferencesServerCallback
+        internal sealed class FindReferencesServerCallback : IEqualityComparer<SerializableSymbolAndProjectId>
         {
             private readonly Solution _solution;
             private readonly IStreamingFindReferencesProgress _progress;
             private readonly CancellationToken _cancellationToken;
 
             private readonly object _gate = new object();
-            private readonly Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId> _definitionMap =
-                new Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId>();
+            private readonly Dictionary<SerializableSymbolAndProjectId, ISymbol> _definitionMap;
 
             public FindReferencesServerCallback(
                 Solution solution,
@@ -32,11 +32,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _solution = solution;
                 _progress = progress;
                 _cancellationToken = cancellationToken;
+                _definitionMap = new Dictionary<SerializableSymbolAndProjectId, ISymbol>(this);
             }
+
+            public Task AddItemsAsync(int count) => _progress.ProgressTracker.AddItemsAsync(count);
+            public Task ItemCompletedAsync() => _progress.ProgressTracker.ItemCompletedAsync();
 
             public Task OnStartedAsync() => _progress.OnStartedAsync();
             public Task OnCompletedAsync() => _progress.OnCompletedAsync();
-            public Task ReportProgressAsync(int current, int maximum) => _progress.ReportProgressAsync(current, maximum);
 
             public Task OnFindInDocumentStartedAsync(DocumentId documentId)
             {
@@ -52,36 +55,40 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public async Task OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
             {
-                var symbolAndProjectId = await definition.TryRehydrateAsync(
+                var symbol = await definition.TryRehydrateAsync(
                     _solution, _cancellationToken).ConfigureAwait(false);
 
-                if (!symbolAndProjectId.HasValue)
-                {
+                if (symbol == null)
                     return;
-                }
 
                 lock (_gate)
                 {
-                    _definitionMap[definition] = symbolAndProjectId.Value;
+                    _definitionMap[definition] = symbol;
                 }
 
-                await _progress.OnDefinitionFoundAsync(symbolAndProjectId.Value).ConfigureAwait(false);
+                await _progress.OnDefinitionFoundAsync(symbol).ConfigureAwait(false);
             }
 
             public async Task OnReferenceFoundAsync(
                 SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
             {
-                SymbolAndProjectId symbolAndProjectId;
+                ISymbol symbol;
                 lock (_gate)
                 {
-                    symbolAndProjectId = _definitionMap[definition];
+                    symbol = _definitionMap[definition];
                 }
 
                 var referenceLocation = await reference.RehydrateAsync(
                     _solution, _cancellationToken).ConfigureAwait(false);
 
-                await _progress.OnReferenceFoundAsync(symbolAndProjectId, referenceLocation).ConfigureAwait(false);
+                await _progress.OnReferenceFoundAsync(symbol, referenceLocation).ConfigureAwait(false);
             }
+
+            bool IEqualityComparer<SerializableSymbolAndProjectId>.Equals(SerializableSymbolAndProjectId x, SerializableSymbolAndProjectId y)
+                => y.SymbolKeyData.Equals(x.SymbolKeyData);
+
+            int IEqualityComparer<SerializableSymbolAndProjectId>.GetHashCode(SerializableSymbolAndProjectId obj)
+                => obj.SymbolKeyData.GetHashCode();
         }
     }
 }

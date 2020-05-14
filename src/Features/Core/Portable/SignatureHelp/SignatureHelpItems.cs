@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -92,12 +94,12 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 Debug.Assert(selectedItem.Value >= 0, "actual item was not part of the final list");
             }
 
-            this.Items = distinctItems;
-            this.ApplicableSpan = applicableSpan;
-            this.ArgumentIndex = argumentIndex;
-            this.ArgumentCount = argumentCount;
-            this.SelectedItemIndex = selectedItem;
-            this.ArgumentName = argumentName;
+            Items = distinctItems;
+            ApplicableSpan = applicableSpan;
+            ArgumentIndex = argumentIndex;
+            ArgumentCount = argumentCount;
+            SelectedItemIndex = selectedItem;
+            ArgumentName = argumentName;
         }
     }
 }

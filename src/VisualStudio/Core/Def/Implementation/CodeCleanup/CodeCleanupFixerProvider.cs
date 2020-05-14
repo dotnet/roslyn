@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,12 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 {
-    /// <summary>
-    /// This is intentionally not exported as a concrete type and not an instance of
-    /// <see cref="ICodeCleanUpFixerProvider"/>. Roslyn is responsible for registering its own fixer provider, as
-    /// opposed to the implementation importing the instances of some interface.
-    /// </summary>
-    [Export]
+    [Export(typeof(ICodeCleanUpFixerProvider))]
+    [AppliesToProject(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.CSharpContentType)]
     internal class CodeCleanUpFixerProvider : ICodeCleanUpFixerProvider
     {
         private readonly ImmutableArray<Lazy<CodeCleanUpFixer, ContentTypeMetadata>> _codeCleanUpFixers;
@@ -32,14 +31,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         }
 
         public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers()
-        {
-            return _codeCleanUpFixers.SelectAsArray(lazyFixer => lazyFixer.Value);
-        }
+            => _codeCleanUpFixers.SelectAsArray(lazyFixer => lazyFixer.Value);
 
         public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers(IContentType contentType)
         {
             var fixers = _codeCleanUpFixers
-               .Where(handler => handler.Metadata.ContentTypes.Contains(contentType.TypeName)).ToList();
+               .Where(handler => handler.Metadata.ContentTypes.Any(contentType.IsOfType)).ToList();
 
             return fixers.ConvertAll(l => l.Value);
         }

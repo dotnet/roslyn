@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -12,19 +15,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
     {
         private string _defaultNamespace;
 
-        public IList<string> GetFolders(ProjectId projectId, Workspace workspace)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestProjectManagementService()
         {
-            return null;
         }
+
+        public IList<string> GetFolders(ProjectId projectId, Workspace workspace)
+            => null;
 
         public string GetDefaultNamespace(Project project, Workspace workspace)
-        {
-            return _defaultNamespace;
-        }
+            => _defaultNamespace;
 
         public void SetDefaultNamespace(string defaultNamespace)
-        {
-            _defaultNamespace = defaultNamespace;
-        }
+            => _defaultNamespace = defaultNamespace;
     }
 }

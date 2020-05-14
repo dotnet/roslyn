@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,19 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
         #region Helpers 
 
         private void TestSpan(string markup, ParseOptions options = null)
-        {
-            Test(markup, isMissing: false, isLine: false, options: options);
-        }
+            => Test(markup, isMissing: false, isLine: false, options: options);
 
         private void TestMissing(string markup)
-        {
-            Test(markup, isMissing: true, isLine: false);
-        }
+            => Test(markup, isMissing: true, isLine: false);
 
         private void TestLine(string markup)
-        {
-            Test(markup, isMissing: false, isLine: true);
-        }
+            => Test(markup, isMissing: false, isLine: true);
 
         private void Test(string markup, bool isMissing, bool isLine, ParseOptions options = null)
         {
@@ -40,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
                 markup, out var source, out var position, out TextSpan? expectedSpan);
             var tree = SyntaxFactory.ParseSyntaxTree(source, options);
 
-            bool hasBreakpoint = BreakpointSpans.TryGetBreakpointSpan(
+            var hasBreakpoint = BreakpointSpans.TryGetBreakpointSpan(
                 tree, position.Value, CancellationToken.None, out var breakpointSpan);
 
             if (isLine)
@@ -76,18 +72,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
 
         public static IEnumerable<TextSpan> GetBreakpointSequence(SyntaxNode root, int position)
         {
-            int endPosition = root.Span.End;
-            int lastSpanEnd = 0;
-            while (position < endPosition)
+            TextSpan lastSpan = default;
+            var endPosition = root.Span.End;
+            for (int p = position; p < endPosition; p++)
             {
-                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out var span) && span.End > lastSpanEnd)
+                if (BreakpointSpans.TryGetClosestBreakpointSpan(root, p, out var span) && span.Start > lastSpan.Start)
                 {
-                    position = lastSpanEnd = span.End;
+                    lastSpan = span;
                     yield return span;
-                }
-                else
-                {
-                    position++;
                 }
             }
         }
@@ -246,6 +238,245 @@ class C
         }
 
         [Fact]
+        public void GetBreakpointSequence7()
+        {
+            TestAll(@"
+class C
+{
+    IEnumerable<int> Goo()
+    $$[|{|]
+        [|_ = M2(
+            c
+            switch
+            {
+                (1) _ [|when f|] => [|M(0)|],
+                (3) _ [|when f|] => [|M(1)|],
+                (1, 2) _ [|when f|] => [|M(0)|],
+                (3, 4) _ [|when f|] => [|M(2)|],
+                _ => [|M(4)|],
+            },
+            M(5));|]
+    [|}|]
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression01()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+$$        [|_ = e switch
+        {
+            1 when f => 2,
+            3 when g => 4,
+            _ => 5,
+        };|]
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression02()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        [|_ = e switch
+        $${
+            1 when f => 2,
+            3 when g => 4,
+            _ => 5,
+        };|]
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression03()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {$$
+            1 [|when f|] => 2,
+            3 when g => 4,
+            _ => 5,
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression04()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 [|when f|] $$=> 2,
+            3 when g => 4,
+            _ => 5,
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression05()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f =$$> [|2|],
+            3 when g => 4,
+            _ => 5,
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression06()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f => [|2|],$$
+            3 when g => 4,
+            _ => 5,
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression07()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f => 2,
+$$            3 [|when g|] => 4,
+            _ => 5,
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression08()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f => 2,
+            3 when g => [|4|],$$
+            _ => 5,
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression09()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f => 2,
+            3 when g => 4,
+$$            _ => [|5|],
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression10()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f => 2,
+            3 when g => 4,
+            _ => [|5|],$$
+        };
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression11()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        _ = e switch
+        {
+            1 when f => 2,
+            3 when g => 4,
+            _ => [|5|],
+        $$};
+    }
+}");
+        }
+
+        [Fact]
+        public void SwitchExpression12()
+        {
+            TestSpan(
+@"class C
+{
+    void Goo()
+    {
+        [|_ = e switch
+        {
+            1 when f => 2,
+            3 when g => 4,
+            _ => 5,
+        }$$;|]
+    }
+}");
+        }
+
+        [Fact]
         public void ForStatementInitializer1a()
         {
             TestSpan(
@@ -324,9 +555,7 @@ $$    (
 
         [Fact]
         public void ForStatementInitializer3()
-        {
-            TestSpan("class C { void M() { for([|i = 0$$|]; ; }; }");
-        }
+            => TestSpan("class C { void M() { for([|i = 0$$|]; ; }; }");
 
         [Fact]
         public void ForStatementCondition()
@@ -700,15 +929,11 @@ $$    (
 
         [Fact]
         public void OrderByKeyword()
-        {
-            TestSpan("class C { void M() { from string s in null ord$$erby [|s.A|] ascending } }");
-        }
+            => TestSpan("class C { void M() { from string s in null ord$$erby [|s.A|] ascending } }");
 
         [Fact]
         public void AscendingKeyword()
-        {
-            TestSpan("class C { void M() { from string s in null orderby [|s.A|] $$ascending } }");
-        }
+            => TestSpan("class C { void M() { from string s in null orderby [|s.A|] $$ascending } }");
 
         [Fact]
         public void SelectExpression()
@@ -1083,46 +1308,32 @@ $$    [|private int i = 3;|]
 
         [Fact]
         public void ConstVariableDeclarator0()
-        {
-            TestMissing("class C { void Goo() { const int a = $$1; } }");
-        }
+            => TestMissing("class C { void Goo() { const int a = $$1; } }");
 
         [Fact]
         public void ConstVariableDeclarator1()
-        {
-            TestMissing("class C { void Goo() { const $$int a = 1; } }");
-        }
+            => TestMissing("class C { void Goo() { const $$int a = 1; } }");
 
         [Fact]
         public void ConstVariableDeclarator2()
-        {
-            TestMissing("class C { void Goo() { $$const int a = 1; } }");
-        }
+            => TestMissing("class C { void Goo() { $$const int a = 1; } }");
 
         [Fact]
         public void ConstFieldVariableDeclarator0()
-        {
-            TestMissing("class C { const int a = $$1; }");
-        }
+            => TestMissing("class C { const int a = $$1; }");
 
         [Fact]
         public void ConstFieldVariableDeclarator1()
-        {
-            TestMissing("class C { const $$int a = 1; }");
-        }
+            => TestMissing("class C { const $$int a = 1; }");
 
         [Fact]
         public void ConstFieldVariableDeclarator2()
-        {
-            TestMissing("class C { $$const int a = 1; }");
-        }
+            => TestMissing("class C { $$const int a = 1; }");
 
         [Fact]
         [WorkItem(538777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538777")]
         public void VariableDeclarator0()
-        {
-            TestMissing("class C { void Goo() { int$$ } }");
-        }
+            => TestMissing("class C { void Goo() { int$$ } }");
 
         [Fact]
         public void VariableDeclarator1()
@@ -1280,9 +1491,7 @@ $$  [|private int i = 0|], j = 1;
 
         [Fact]
         public void VariableDeclarator10()
-        {
-            TestSpan("class C { void M() { [|int i = 0$$;|] } }");
-        }
+            => TestSpan("class C { void M() { [|int i = 0$$;|] } }");
 
         [Fact]
         public void VariableDeclarator_Separators0()
@@ -1496,21 +1705,15 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 
         [Fact]
         public void EventAccessorAdd()
-        {
-            TestSpan("class C { eve$$nt Action Goo { add [|{|] } remove { } } }");
-        }
+            => TestSpan("class C { eve$$nt Action Goo { add [|{|] } remove { } } }");
 
         [Fact]
         public void EventAccessorAdd2()
-        {
-            TestSpan("class C { event Action Goo { ad$$d [|{|] } remove { } } }");
-        }
+            => TestSpan("class C { event Action Goo { ad$$d [|{|] } remove { } } }");
 
         [Fact]
         public void EventAccessorRemove()
-        {
-            TestSpan("class C { event Action Goo { add { } $$remove [|{|] } } }");
-        }
+            => TestSpan("class C { event Action Goo { add { } $$remove [|{|] } } }");
 
         [Fact]
         public void ElseClauseWithBlock()
@@ -1820,9 +2023,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 
         [Fact]
         public void SwitchLabelWithoutStatement()
-        {
-            TestSpan("class C { void M() { [|switch |]{ case 1$$: } } }");
-        }
+            => TestSpan("class C { void M() { [|switch |]{ case 1$$: } } }");
 
         [Fact]
         public void MultipleLabelsOnFirstLabel()

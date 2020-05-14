@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections;
@@ -247,8 +251,13 @@ namespace Microsoft.CodeAnalysis
         System_AsyncCallback = 43,
 
         /// <summary>
+        /// Indicates that the type is System.Runtime.CompilerServices.RuntimeFeature.
+        /// </summary>
+        System_Runtime_CompilerServices_RuntimeFeature = 44,
+
+        /// <summary>
         /// Count of special types. This is not a count of enum members.
         /// </summary>
-        Count = System_AsyncCallback
+        Count = System_Runtime_CompilerServices_RuntimeFeature
     }
 }

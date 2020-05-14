@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -89,6 +93,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 .Add(WellKnownSynchronizationKind.Projects, children => new ProjectChecksumCollection(children))
                 .Add(WellKnownSynchronizationKind.Documents, children => new DocumentChecksumCollection(children))
                 .Add(WellKnownSynchronizationKind.TextDocuments, children => new TextDocumentChecksumCollection(children))
+                .Add(WellKnownSynchronizationKind.AnalyzerConfigDocuments, children => new AnalyzerConfigDocumentChecksumCollection(children))
                 .Add(WellKnownSynchronizationKind.ProjectReferences, children => new ProjectReferenceChecksumCollection(children))
                 .Add(WellKnownSynchronizationKind.MetadataReferences, children => new MetadataReferenceChecksumCollection(children))
                 .Add(WellKnownSynchronizationKind.AnalyzerReferences, children => new AnalyzerReferenceChecksumCollection(children));

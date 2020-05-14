@@ -7,7 +7,7 @@
 set -e
 
 dir="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-dockerfile="$dir"/docker/mono
+dockerfile="$dir"/Mono
 
 [ -z "$CONTAINER_TAG" ] && CONTAINER_TAG="roslyn-build"
 [ -z "$CONTAINER_NAME" ] && CONTAINER_NAME="roslyn-build-container-mono-nightly"
@@ -15,6 +15,7 @@ dockerfile="$dir"/docker/mono
 
 # Ensure the container isn't already running. Can happened for cancelled jobs in CI
 docker kill $CONTAINER_NAME || true
+docker container rm $CONTAINER_NAME || true
 
 # Make container names CI-specific if we're running in CI
 #  Jenkins
@@ -22,7 +23,7 @@ docker kill $CONTAINER_NAME || true
 
 # Build the docker container (will be fast if it is already built)
 echo "Building Docker Container using Dockerfile: $dockerfile"
-docker build --build-arg USER_ID=$(id -u) -t $CONTAINER_TAG $dockerfile
+docker build --build-arg USER_ID=$(id -u) --build-arg CACHE_BUST=$(date +%s) -t $CONTAINER_TAG $dockerfile
 
 # Run the build in the container
 echo "Launching build in Docker Container"

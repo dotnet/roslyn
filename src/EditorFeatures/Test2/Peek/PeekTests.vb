@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Threading
@@ -55,8 +57,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"String [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"String [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
+                Assert.Equal($"String [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"String [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
                 Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("String", StringComparison.Ordinal))
             End Using
         End Sub
@@ -73,8 +75,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"Enumerable [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"Enumerable [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
+                Assert.Equal($"Enumerable [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"Enumerable [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
                 Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("Distinct", StringComparison.Ordinal))
             End Using
         End Sub
@@ -93,8 +95,8 @@ End Class
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"SerializableAttribute [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"SerializableAttribute [{EditorFeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
+                Assert.Equal($"SerializableAttribute [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"SerializableAttribute [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
                 Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("New()", StringComparison.Ordinal)) ' Navigates to constructor
             End Using
         End Sub
@@ -158,7 +160,7 @@ End Module
             }
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
         <ProjectReference>CSharpAssembly</ProjectReference>
         <Document>
             Imports N
@@ -201,7 +203,6 @@ End Module
             Dim peekableItemSource As New PeekableItemSource(textBuffer,
                                                              workspace.GetService(Of IPeekableItemFactory),
                                                              New MockPeekResultFactory(workspace.GetService(Of IPersistentSpanFactory)),
-                                                             workspace.GetService(Of IMetadataAsSourceFileService),
                                                              workspace.GetService(Of IWaitIndicator))
 
             Dim peekableSession As New Mock(Of IPeekSession)(MockBehavior.Strict)

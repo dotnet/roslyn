@@ -1,19 +1,19 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
-#Disable Warning RS1016 ' Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     Partial Friend Class MoveToTopOfFileCodeFixProvider
-#Enable Warning RS1016
         Private Class MoveToLineCodeAction
             Inherits CodeAction
 
             Private ReadOnly _destinationLine As Integer
             Private ReadOnly _document As Document
-            Private _token As SyntaxToken
+            Private ReadOnly _token As SyntaxToken
             Private ReadOnly _title As String
 
             Public Sub New(document As Document, token As SyntaxToken, destinationLine As Integer, title As String)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,30 +17,19 @@ namespace Microsoft.CodeAnalysis.Features.RQName
         /// </summary>
         /// <returns>The node if it could be created, otherwise null</returns>
         public static UnresolvedRQNode Build(ISymbol symbol)
-        {
-            switch (symbol.Kind)
+            => symbol.Kind switch
             {
-                case SymbolKind.Namespace:
-                    return BuildNamespace(symbol as INamespaceSymbol);
-                case SymbolKind.NamedType:
-                    return BuildNamedType(symbol as INamedTypeSymbol);
-                case SymbolKind.Method:
-                    return BuildMethod(symbol as IMethodSymbol);
-                case SymbolKind.Field:
-                    return BuildField(symbol as IFieldSymbol);
-                case SymbolKind.Event:
-                    return BuildEvent(symbol as IEventSymbol);
-                case SymbolKind.Property:
-                    return BuildProperty(symbol as IPropertySymbol);
-                default:
-                    return null;
-            }
-        }
+                SymbolKind.Namespace => BuildNamespace(symbol as INamespaceSymbol),
+                SymbolKind.NamedType => BuildNamedType(symbol as INamedTypeSymbol),
+                SymbolKind.Method => BuildMethod(symbol as IMethodSymbol),
+                SymbolKind.Field => BuildField(symbol as IFieldSymbol),
+                SymbolKind.Event => BuildEvent(symbol as IEventSymbol),
+                SymbolKind.Property => BuildProperty(symbol as IPropertySymbol),
+                _ => null,
+            };
 
         private static RQNamespace BuildNamespace(INamespaceSymbol @namespace)
-        {
-            return new RQNamespace(RQNodeBuilder.GetNameParts(@namespace));
-        }
+            => new RQNamespace(RQNodeBuilder.GetNameParts(@namespace));
 
         private static IList<string> GetNameParts(INamespaceSymbol @namespace)
         {
@@ -85,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             var namespaceNames = RQNodeBuilder.GetNameParts(@type.ContainingNamespace);
             var typeInfos = new List<RQUnconstructedTypeInfo>();
 
-            for (INamedTypeSymbol currentType = type; currentType != null; currentType = currentType.ContainingType)
+            for (var currentType = type; currentType != null; currentType = currentType.ContainingType)
             {
                 typeInfos.Insert(0, new RQUnconstructedTypeInfo(currentType.Name, currentType.TypeParameters.Length));
             }
@@ -272,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             {
                 var namedTypeSymbol = symbol as INamedTypeSymbol;
 
-                var definingType = namedTypeSymbol.ConstructedFrom != null ? namedTypeSymbol.ConstructedFrom : namedTypeSymbol;
+                var definingType = namedTypeSymbol.ConstructedFrom ?? namedTypeSymbol;
 
                 var typeChain = new List<INamedTypeSymbol>();
                 var type = namedTypeSymbol;

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -30,10 +32,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
                                                   placeSystemFirst As Boolean,
                                                   outOfProcess As Boolean) As Task
             Await TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, priority,
+                initialMarkup, expectedMarkup, index,
                 parameters:=New TestParameters(
                     options:=[Option](GenerationOptions.PlaceSystemNamespaceFirst, placeSystemFirst),
-                    fixProviderData:=outOfProcess))
+                    runProviderOutOfProc:=outOfProcess,
+                    priority:=priority))
         End Function
     End Class
 
@@ -45,10 +48,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, parameters As TestParameters) As (DiagnosticAnalyzer, CodeFixProvider)
-            Dim outOfProcess = DirectCast(parameters.fixProviderData, Boolean)
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
-                                                  WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
-                                                  WithChangedOption(RemoteFeatureOptions.AddImportEnabled, outOfProcess)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                .WithChangedOption(RemoteHostOptions.RemoteHostTest, parameters.runProviderOutOfProc)))
 
             Return MyBase.CreateDiagnosticProviderAndFixer(workspace, parameters)
         End Function
@@ -74,7 +75,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41484"), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         <WorkItem(11241, "https://github.com/dotnet/roslyn/issues/11241")>
         Public Async Function TestAddImportWithCaseChange() As Task
             Await TestAsync(
@@ -2605,6 +2606,22 @@ Class C
     Sub New()
         Dim s As Action = Sub()
                               Dim a = New Test()")
+        End Function
+
+        <WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Async Function TestMissingDiagnosticForNameOf() As Task
+            Await TestDiagnosticMissingAsync(
+"Imports System
+
+Class Class1
+    Sub M()
+        Dim a As Action = Sub()
+                            Dim x = [|NameOf|](System)
+                            Dim x2
+                          End Function
+    End Sub
+    Extension")
         End Function
     End Class
 End Namespace

@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -117,6 +120,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         /// </summary>
         public const string CS0281 = nameof(CS0281);
 
+        /// <summary>
+        /// 'X' does not contain a definition for 'Y' and no extension method 'Y' accepting a first argument of type 'X' could be found (are you missing a using directive for 'System'?)
+        /// Specialized for WinRT
+        /// </summary>
+        public const string CS4036 = nameof(CS4036);
+
         public static ImmutableArray<string> FixableTypeIds =
             ImmutableArray.Create(
                 CS0103,
@@ -143,7 +152,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     CS1955,
                     CS0428,
                     CS7036,
-                    CS0281));
+                    CS0281,
+                    CS4036));
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImport), Shared]
@@ -151,11 +161,14 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
     {
         public override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
 
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpAddImportCodeFixProvider()
         {
         }
 
         /// <summary>For testing purposes only (so that tests can pass in mock values)</summary> 
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         internal CSharpAddImportCodeFixProvider(
             IPackageInstallerService installerService,
             ISymbolSearchService symbolSearchService)

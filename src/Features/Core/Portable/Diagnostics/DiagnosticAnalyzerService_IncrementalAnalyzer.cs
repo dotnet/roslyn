@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Options;
@@ -14,15 +15,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         workspaceKinds: new string[] { WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.AnyCodeRoslynWorkspace })]
     internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
     {
-        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map;
-        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
-
-        private DiagnosticAnalyzerService()
-        {
-            _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
-            _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
-        }
-
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
             if (!workspace.Options.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
@@ -30,11 +22,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
             }
 
-            return GetOrCreateIncrementalAnalyzer(workspace);
-        }
-
-        private DiagnosticIncrementalAnalyzer GetOrCreateIncrementalAnalyzer(Workspace workspace)
-        {
             return _map.GetValue(workspace, _createIncrementalAnalyzer);
         }
 
@@ -52,12 +39,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
-            return new DiagnosticIncrementalAnalyzer(this, LogAggregator.GetNextId(), workspace, _hostAnalyzerManager, _hostDiagnosticUpdateSource);
+            return new DiagnosticIncrementalAnalyzer(this, LogAggregator.GetNextId(), workspace, AnalyzerInfoCache);
         }
 
         private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
-        {
-            Reanalyze(e.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
-        }
+            => Reanalyze(e.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
     }
 }

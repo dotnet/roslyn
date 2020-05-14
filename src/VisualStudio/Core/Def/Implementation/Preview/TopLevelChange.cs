@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -15,8 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
     {
         private readonly string _name;
         private readonly IComponentModel _componentModel;
-        private Solution _newSolution;
-        private Solution _oldSolution;
+        private readonly Solution _newSolution;
+        private readonly Solution _oldSolution;
         private readonly Glyph _glyph;
 
         public TopLevelChange(
@@ -43,9 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public override int GetTipText(out VSTREETOOLTIPTYPE eTipType, out string pbstrText)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public override int OnRequestSource(object pIUnknownTextView)
         {
@@ -72,45 +75,113 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         private Solution ApplyFileChanges(Solution solution, IEnumerable<FileChange> fileChanges, bool applyingChanges)
         {
-            foreach (FileChange fileChange in fileChanges)
+            foreach (var fileChange in fileChanges)
             {
-                var oldDocument = fileChange.GetOldDocument();
-                var updatedDocument = fileChange.GetUpdatedDocument();
-                bool isAdditionalDoc = fileChange.IsAdditionalDocumentChange;
+                var oldTextDocument = fileChange.GetOldDocument();
+                var updatedTextDocument = fileChange.GetUpdatedDocument();
+                var updatedDocumentTextOpt = updatedTextDocument?.GetTextAsync().Result;
+
+                // Apply file change to document.
+                ApplyFileChangesCore(oldTextDocument, updatedTextDocument?.Id, updatedDocumentTextOpt,
+                    fileChange.CheckState, fileChange.ChangedDocumentKind);
+
+                // Now apply file change to linked documents.
+                if (oldTextDocument is Document oldDocument)
+                {
+                    foreach (var linkedDocumentId in oldDocument.GetLinkedDocumentIds())
+                    {
+                        var oldLinkedDocument = oldDocument.Project.Solution.GetDocument(linkedDocumentId);
+
+                        // Ensure that we account for document removal, i.e. updatedDocumentTextOpt == null.
+                        var newLinkedDocumentIdOpt = updatedDocumentTextOpt != null ? oldLinkedDocument.Id : null;
+
+                        ApplyFileChangesCore(oldLinkedDocument, newLinkedDocumentIdOpt, updatedDocumentTextOpt,
+                            fileChange.CheckState, fileChange.ChangedDocumentKind);
+                    }
+                }
+                else if (updatedTextDocument is Document updatedDocument)
+                {
+                    foreach (var newLinkedDocumentId in updatedDocument.GetLinkedDocumentIds())
+                    {
+                        ApplyFileChangesCore(oldTextDocument, newLinkedDocumentId, updatedDocumentTextOpt,
+                            fileChange.CheckState, fileChange.ChangedDocumentKind);
+                    }
+                }
+            }
+
+            return solution;
+
+            // Local functions.
+            void ApplyFileChangesCore(
+                TextDocument oldDocument,
+                DocumentId updatedDocumentIdOpt,
+                SourceText updateDocumentTextOpt,
+                __PREVIEWCHANGESITEMCHECKSTATE checkState,
+                TextDocumentKind changedDocumentKind)
+            {
+                Debug.Assert(oldDocument != null || updatedDocumentIdOpt != null);
+                Debug.Assert((updatedDocumentIdOpt != null) == (updateDocumentTextOpt != null));
 
                 if (oldDocument == null)
                 {
                     // Added document to new solution.
                     // If unchecked, then remove this added document from new solution.
-                    if (applyingChanges && fileChange.CheckState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked)
+                    if (applyingChanges && checkState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked)
                     {
-                        solution = isAdditionalDoc ?
-                            solution.RemoveAdditionalDocument(updatedDocument.Id) :
-                            solution.RemoveDocument(updatedDocument.Id);
+                        switch (changedDocumentKind)
+                        {
+                            case TextDocumentKind.Document:
+                                solution = solution.RemoveDocument(updatedDocumentIdOpt);
+                                break;
+
+                            case TextDocumentKind.AnalyzerConfigDocument:
+                                solution = solution.RemoveAnalyzerConfigDocument(updatedDocumentIdOpt);
+                                break;
+
+                            case TextDocumentKind.AdditionalDocument:
+                                solution = solution.RemoveAdditionalDocument(updatedDocumentIdOpt);
+                                break;
+
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(changedDocumentKind);
+                        }
                     }
                 }
-                else if (updatedDocument == null)
+                else if (updatedDocumentIdOpt == null)
                 {
                     // Removed document from old solution.
                     // If unchecked, then add back this removed document to new solution.
-                    if (applyingChanges && fileChange.CheckState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked)
+                    if (applyingChanges && checkState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked)
                     {
                         var oldText = oldDocument.GetTextAsync().Result.ToString();
-                        solution = isAdditionalDoc ?
-                            solution.AddAdditionalDocument(oldDocument.Id, oldDocument.Name, oldText, oldDocument.Folders, oldDocument.FilePath) :
-                            solution.AddDocument(oldDocument.Id, oldDocument.Name, oldText, oldDocument.Folders, oldDocument.FilePath);
+
+                        switch (changedDocumentKind)
+                        {
+                            case TextDocumentKind.Document:
+                                solution = solution.AddDocument(oldDocument.Id, oldDocument.Name, oldText, oldDocument.Folders, oldDocument.FilePath);
+                                break;
+
+                            case TextDocumentKind.AnalyzerConfigDocument:
+                                solution = solution.AddAnalyzerConfigDocument(oldDocument.Id, oldDocument.Name, SourceText.From(oldText), oldDocument.Folders, oldDocument.FilePath);
+                                break;
+
+                            case TextDocumentKind.AdditionalDocument:
+                                solution = solution.AddAdditionalDocument(oldDocument.Id, oldDocument.Name, oldText, oldDocument.Folders, oldDocument.FilePath);
+                                break;
+
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(changedDocumentKind);
+                        }
                     }
                 }
                 else
                 {
+                    Debug.Assert(oldDocument.Id == updatedDocumentIdOpt);
+
                     // Changed document.
-                    solution = isAdditionalDoc ?
-                        solution.WithAdditionalDocumentText(updatedDocument.Id, updatedDocument.GetTextAsync().Result) :
-                        solution.WithDocumentText(updatedDocument.Id, updatedDocument.GetTextAsync().Result);
+                    solution = solution.WithTextDocumentText(updatedDocumentIdOpt, updateDocumentTextOpt, mode: PreservationMode.PreserveValue);
                 }
             }
-
-            return solution;
         }
 
         private Solution ApplyReferenceChanges(Solution solution, IEnumerable<ReferenceChange> referenceChanges)
@@ -141,8 +212,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         internal override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
-        {
-            pData[0].Image = pData[0].SelectedImage = (ushort)_glyph.GetStandardGlyphGroup();
-        }
+            => pData[0].Image = pData[0].SelectedImage = (ushort)_glyph.GetStandardGlyphGroup();
     }
 }

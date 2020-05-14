@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
@@ -17,24 +19,53 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                             .OfType<IMethodSymbol>()
                                             .Where(m => !m.Equals(renamedMethod) && m.Arity == renamedMethod.Arity);
 
-            var signatureToConflictingMember = new Dictionary<ImmutableArray<ITypeSymbol>, IMethodSymbol>(ConflictingSignatureComparer.Instance);
+            return GetConflictLocations(renamedMethod, potentiallyConfictingMethods, isMethod: true,
+                (method) => GetAllSignatures((method as IMethodSymbol).Parameters, trimOptionalParameters));
+        }
 
-            foreach (var method in potentiallyConfictingMethods)
+        public static ImmutableArray<Location> GetMembersWithConflictingSignatures(IPropertySymbol renamedProperty, bool trimOptionalParameters)
+        {
+            var potentiallyConfictingProperties =
+                renamedProperty.ContainingType.GetMembers(renamedProperty.Name)
+                                            .OfType<IPropertySymbol>()
+                                            .Where(m => !m.Equals(renamedProperty) && m.Parameters.Length == renamedProperty.Parameters.Length);
+
+            return GetConflictLocations(renamedProperty, potentiallyConfictingProperties, isMethod: false,
+                (property) => GetAllSignatures((property as IPropertySymbol).Parameters, trimOptionalParameters));
+        }
+
+        private static ImmutableArray<Location> GetConflictLocations(ISymbol renamedMember,
+            IEnumerable<ISymbol> potentiallyConfictingMembers,
+            bool isMethod,
+            Func<ISymbol, ImmutableArray<ImmutableArray<ITypeSymbol>>> getAllSignatures)
+        {
+            var signatureToConflictingMember = new Dictionary<ImmutableArray<ITypeSymbol>, ISymbol>(ConflictingSignatureComparer.Instance);
+
+            foreach (var member in potentiallyConfictingMembers)
             {
-                foreach (var signature in GetAllSignatures(method, trimOptionalParameters))
+                foreach (var signature in getAllSignatures(member))
                 {
-                    signatureToConflictingMember[signature] = method;
+                    signatureToConflictingMember[signature] = member;
                 }
             }
 
             var builder = ArrayBuilder<Location>.GetInstance();
 
-            foreach (var signature in GetAllSignatures(renamedMethod, trimOptionalParameters))
+            foreach (var signature in getAllSignatures(renamedMember))
             {
                 if (signatureToConflictingMember.TryGetValue(signature, out var conflictingSymbol))
                 {
-                    if (!(conflictingSymbol.PartialDefinitionPart != null && conflictingSymbol.PartialDefinitionPart == renamedMethod) &&
-                        !(conflictingSymbol.PartialImplementationPart != null && conflictingSymbol.PartialImplementationPart == renamedMethod))
+                    if (isMethod)
+                    {
+                        var conflictingMethod = conflictingSymbol as IMethodSymbol;
+                        var renamedMethod = renamedMember as IMethodSymbol;
+                        if (!(conflictingMethod.PartialDefinitionPart != null && Equals(conflictingMethod.PartialDefinitionPart, renamedMethod)) &&
+                            !(conflictingMethod.PartialImplementationPart != null && Equals(conflictingMethod.PartialImplementationPart, renamedMethod)))
+                        {
+                            builder.AddRange(conflictingSymbol.Locations);
+                        }
+                    }
+                    else
                     {
                         builder.AddRange(conflictingSymbol.Locations);
                     }
@@ -51,31 +82,24 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private ConflictingSignatureComparer() { }
 
             public bool Equals(ImmutableArray<ITypeSymbol> x, ImmutableArray<ITypeSymbol> y)
-            {
-                return x.SequenceEqual(y);
-            }
+                => x.SequenceEqual(y);
 
             public int GetHashCode(ImmutableArray<ITypeSymbol> obj)
             {
-                // This is a very simple GetHashCode implementation. Doing something "fancier" here  
-                // isn't really worth it, since to compute a proper hash we'd end up walking all the  
-                // ITypeSymbols anyways.  
+                // This is a very simple GetHashCode implementation. Doing something "fancier" here
+                // isn't really worth it, since to compute a proper hash we'd end up walking all the
+                // ITypeSymbols anyways.
                 return obj.Length;
             }
         }
 
-        private static ImmutableArray<ImmutableArray<ITypeSymbol>> GetAllSignatures(IMethodSymbol method, bool trimOptionalParameters)
+        private static ImmutableArray<ImmutableArray<ITypeSymbol>> GetAllSignatures(ImmutableArray<IParameterSymbol> parameters, bool trimOptionalParameters)
         {
             var resultBuilder = ArrayBuilder<ImmutableArray<ITypeSymbol>>.GetInstance();
 
             var signatureBuilder = ArrayBuilder<ITypeSymbol>.GetInstance();
 
-            if (method.MethodKind == MethodKind.Conversion)
-            {
-                signatureBuilder.Add(method.ReturnType);
-            }
-
-            foreach (var parameter in method.Parameters)
+            foreach (var parameter in parameters)
             {
                 // In VB, a method effectively creates multiple signatures which are produced by
                 // chopping off each of the optional parameters on the end, last to first, per 4.1.1 of

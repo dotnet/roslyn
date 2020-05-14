@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -42,7 +44,12 @@ public namespace A {}
             var global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
             var errs = tree.GetDiagnostics();
-            Assert.Equal(1, errs.Count());
+            Assert.Equal(0, errs.Count());
+
+            comp.VerifyDiagnostics(
+                // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+                // public namespace A {}
+                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public").WithLocation(2, 1));
         }
 
         // Types declared in compilation units or namespaces can have public or internal declared accessibility.

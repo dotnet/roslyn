@@ -1,14 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertForToForEach;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForToForEach
@@ -18,12 +21,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForToForEach
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertForToForEachCodeRefactoringProvider();
 
-        private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
+        private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
 
-        private IDictionary<OptionKey, object> ImplicitTypeEverywhere() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithSilent));
+        private OptionsCollection ImplicitTypeEverywhere()
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
+            };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
         public async Task TestArray1()
@@ -347,10 +353,11 @@ class C
 }");
         }
 
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
-        public async Task TestMissingOutsideKeyword()
+        public async Task TestBeforeKeyword()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -360,6 +367,18 @@ class C
        [||] for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v|} in array)
+        {
+            Console.WriteLine(v);
         }
     }
 }");
@@ -375,9 +394,40 @@ class C
 {
     void Test(string[] array)
     {
-        for ([||] int i = 0; i < array.Length; i++)
+        for ( [||]int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestInParentheses()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        for ([||]int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v|} in array)
+        {
+            Console.WriteLine(v);
         }
     }
 }");
@@ -393,9 +443,40 @@ class C
 {
     void Test(string[] array)
     {
-        for (int i = 0; i < array.Length; i++ [||])
+        for (int i = 0; i < array.Length; i++[||] )
         {
             Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestInParentheses2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        for (int i = 0; i < array.Length; i++[||])
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v|} in array)
+        {
+            Console.WriteLine(v);
         }
     }
 }");
@@ -1362,6 +1443,170 @@ class C
         [||]for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i][i]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestDoesNotUseLocalFunctionName()
+        {
+            await TestInRegularAndScript1Async(
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+
+        void v() { }
+    }
+}",
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v1|} in array)
+        {
+            Console.WriteLine(v1);
+        }
+
+        void v() { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestUsesLocalFunctionParameterName()
+        {
+            await TestInRegularAndScript1Async(
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+
+        void M(string v)
+        {
+        }
+    }
+}",
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v|} in array)
+        {
+            Console.WriteLine(v);
+        }
+
+        void M(string v)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestDoesNotUseLambdaParameterWithCSharpLessThan8()
+        {
+            await TestInRegularAndScript1Async(
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+
+        Action<int> myLambda = v => { };
+    }
+}",
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v1|} in array)
+        {
+            Console.WriteLine(v1);
+        }
+
+        Action<int> myLambda = v => { };
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestUsesLambdaParameterNameInCSharp8()
+        {
+            await TestInRegularAndScript1Async(
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+
+        Action<int> myLambda = v => { };
+    }
+}",
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v|} in array)
+        {
+            Console.WriteLine(v);
+        }
+
+        Action<int> myLambda = v => { };
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestNotWhenIteratingDifferentLists()
+        {
+            await TestMissingAsync(
+@"using System;
+using System.Collection.Generic;
+
+class Item { public string Value; }
+
+class C
+{
+    static void Test()
+    {
+        var first = new { list = new List<Item>() };
+        var second = new { list = new List<Item>() };
+
+        [||]for (var i = 0; i < first.list.Count; i++)
+        {
+            first.list[i].Value = second.list[i].Value;
         }
     }
 }");

@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     {
         public static ImmutableArray<DefinitionItem> GetDefinitions(
             ISymbol symbol,
-            Project project,
+            Solution solution,
             bool thirdPartyNavigationAllowed,
             CancellationToken cancellationToken)
         {
@@ -35,13 +37,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // VB global import aliases have a synthesized SyntaxTree.
             // We can't go to the definition of the alias, so use the target type.
 
-            var solution = project.Solution;
             if (alias != null)
             {
                 var sourceLocations = NavigableItemFactory.GetPreferredSourceLocations(
                     solution, symbol, cancellationToken);
 
-                if (sourceLocations.All(l => project.Solution.GetDocument(l.SourceTree) == null))
+                if (sourceLocations.All(l => solution.GetDocument(l.SourceTree) == null))
                 {
                     symbol = alias.Target;
                 }
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 symbol = method.PartialImplementationPart ?? symbol;
             }
 
-            var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
+            using var definitionsDisposer = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
 
             // Going to a symbol may end up actually showing the symbol in the Find-Usages window.
             // This happens when there is more than one location for the symbol (i.e. for partial
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // So, if we only have a single location to go to, this does no unnecessary work.  And,
             // if we do have multiple locations to show, it will just be done in the BG, unblocking
             // this command thread so it can return the user faster.
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
 
             if (thirdPartyNavigationAllowed)
             {
@@ -90,43 +91,40 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
 
             definitions.Add(definitionItem);
-            return definitions.ToImmutableAndFree();
+            return definitions.ToImmutable();
         }
 
         public static bool TryGoToDefinition(
             ISymbol symbol,
-            Project project,
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            Solution solution,
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingPresenter,
             CancellationToken cancellationToken,
-            bool thirdPartyNavigationAllowed = true,
-            bool throwOnHiddenDefinition = false)
+            bool thirdPartyNavigationAllowed = true)
         {
-            var definitions = GetDefinitions(symbol, project, thirdPartyNavigationAllowed, cancellationToken);
+            var definitions = GetDefinitions(symbol, solution, thirdPartyNavigationAllowed, cancellationToken);
 
-            var presenter = streamingPresenters.FirstOrDefault()?.Value;
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return presenter.TryNavigateToOrPresentItemsAsync(
-                project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
+            return threadingContext.JoinableTaskFactory.Run(
+                () => streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                    threadingContext, solution.Workspace, title, definitions));
         }
 
         public static bool TryGoToDefinition(
             ImmutableArray<DefinitionItem> definitions,
-            Project project,
+            Solution solution,
             string title,
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            CancellationToken cancellationToken)
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingPresenter)
         {
             if (definitions.IsDefaultOrEmpty)
-            {
                 return false;
-            }
 
-            var presenter = streamingPresenters.FirstOrDefault()?.Value;
-
-            return presenter.TryNavigateToOrPresentItemsAsync(
-                project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
+            return threadingContext.JoinableTaskFactory.Run(() =>
+                streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                    threadingContext, solution.Workspace, title, definitions));
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -38,6 +42,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             lineNumber = line.LineNumber;
             offset = position - line.Start;
+        }
+
+        public static int GetOffset(this SourceText text, int position)
+        {
+            GetLineAndOffset(text, position, out _, out var offset);
+            return offset;
         }
 
         public static void GetLinesAndOffsets(
@@ -134,9 +144,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool Match(char normalizedLeft, char right, bool caseSensitive)
-        {
-            return caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
-        }
+            => caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
 
         // 32KB. comes from SourceText char buffer size and less than large object size
         internal const int SourceTextLengthThreshold = 32 * 1024 / sizeof(char);
@@ -204,12 +212,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding encoding, CancellationToken cancellationToken)
+        public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding? encoding, CancellationToken cancellationToken)
         {
-            using (var textReader = ObjectReaderTextReader.Create(reader))
-            {
-                return textService.CreateText(textReader, encoding, cancellationToken);
-            }
+            using var textReader = ObjectReaderTextReader.Create(reader);
+
+            return textService.CreateText(textReader, encoding, cancellationToken);
         }
 
         private class ObjectReaderTextReader : TextReaderWithLength
@@ -247,8 +254,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return new ObjectReaderTextReader(builder.ToImmutable(), chunkSize, length);
             }
 
-            private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length) :
-                base(length)
+            private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length)
+                : base(length)
             {
                 _chunks = chunks;
                 _chunkSize = chunkSize;

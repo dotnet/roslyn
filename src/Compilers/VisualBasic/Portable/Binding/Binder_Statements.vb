@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -1344,7 +1346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If equalsValueOpt IsNot Nothing Then
                     Dim valueSyntax As ExpressionSyntax = equalsValueOpt.Value
 
-                    ' Use an LocalInProgressBinder to detect cycles using locals.
+                    ' Use a LocalInProgressBinder to detect cycles using locals.
                     Dim binder = New LocalInProgressBinder(Me, symbol)
                     valueExpression = binder.BindValue(valueSyntax, diagnostics)
 
@@ -1923,7 +1925,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         '       where the property is a getter-only autoproperty 
                         '       and the writing is happening in the corresponding constructor or initializer
                         If setMethod IsNot Nothing Then
-                            ReportDiagnosticsIfObsolete(diagnostics, setMethod, node)
+                            ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, setMethod, node)
 
                             If ReportUseSiteError(diagnostics, op1.Syntax, setMethod) Then
                                 isError = True
@@ -2457,7 +2459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 diagnostics.Add(node.Name, useSiteDiagnostics)
 
-                Debug.Assert(targetAsEvent.Type = eventField.Type OrElse eventSym.IsWindowsRuntimeEvent, "non-WinRT event should have the same type as its backing field")
+                Debug.Assert(TypeSymbol.Equals(targetAsEvent.Type, eventField.Type, TypeCompareKind.ConsiderEverything) OrElse eventSym.IsWindowsRuntimeEvent, "non-WinRT event should have the same type as its backing field")
 
                 receiver = New BoundFieldAccess(node.Name,
                                                 targetAsEvent.ReceiverOpt,
@@ -2514,7 +2516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return New BoundBadStatement(node, StaticCast(Of BoundNode).From(boundArguments).Add(target), True)
                 End If
 
-                If fireMethod.ContainingType <> Me.ContainingType Then
+                If Not TypeSymbol.Equals(fireMethod.ContainingType, Me.ContainingType, TypeCompareKind.ConsiderEverything) Then
                     ' Re: Dev10
                     ' // UNDONE: harishk - note that this is different from the check for an
                     ' // accessible event field for non-block events. This is because there
@@ -2572,7 +2574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim expression = statement.Expression
 
-            Dim boundExpression As boundExpression
+            Dim boundExpression As BoundExpression
 
             Select Case expression.Kind
                 Case SyntaxKind.InvocationExpression,
@@ -2662,7 +2664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindPrintStatement(printStmt As PrintStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
-            Dim boundExpression As boundExpression = BindRValue(printStmt.Expression, diagnostics)
+            Dim boundExpression As BoundExpression = BindRValue(printStmt.Expression, diagnostics)
             Return New BoundExpressionStatement(printStmt, boundExpression)
         End Function
 
@@ -2956,7 +2958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If result.IsGood AndAlso
                         result.Symbols(0).Kind = SymbolKind.Local Then
 
-                        Dim localSymbol = DirectCast(result.Symbols(0), localSymbol)
+                        Dim localSymbol = DirectCast(result.Symbols(0), LocalSymbol)
                         If localSymbol.IdentifierToken = identifier Then
                             ' This is an inferred local, we will need to compute its type.
                             isInferredLocal = True
@@ -3468,7 +3470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' create TryCast
                     Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Dim conversionKind As conversionKind = Conversions.ClassifyTryCastConversion(enumeratorType, idisposableType, useSiteDiagnostics)
+                    Dim conversionKind As ConversionKind = Conversions.ClassifyTryCastConversion(enumeratorType, idisposableType, useSiteDiagnostics)
 
                     If diagnostics.Add(collectionSyntax, useSiteDiagnostics) Then
                         ' Suppress additional diagnostics
@@ -3729,7 +3731,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' using a temporary diagnostic bag to only report use site errors for IEnumerable or IEnumerable(Of T) if they are used.
                 Dim ienumerableUseSiteDiagnostics = DiagnosticBag.GetInstance
                 Dim genericIEnumerable = GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T, collectionSyntax, ienumerableUseSiteDiagnostics)
-                Dim matchingInterfaces As New HashSet(Of NamedTypeSymbol)()
+                Dim matchingInterfaces As New HashSet(Of NamedTypeSymbol)(EqualsIgnoringComparer.InstanceIgnoringTupleNames)
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
 
                 If Not collection.IsNothingLiteral AndAlso
@@ -3772,7 +3774,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If ((collection.IsNothingLiteral OrElse collectionType.IsObjectType) AndAlso Me.OptionStrict <> OptionStrict.On) OrElse
                        (Not collection.IsNothingLiteral AndAlso Not collectionType.IsArrayType AndAlso IsOrInheritsFromOrImplementsInterface(collectionType, ienumerable, useSiteDiagnostics, matchingInterfaces)) Then
 
-                        Debug.Assert(collection.IsNothingLiteral OrElse collectionType.IsObjectType OrElse (matchingInterfaces.First = ienumerable AndAlso matchingInterfaces.Count = 1))
+                        Debug.Assert(collection.IsNothingLiteral OrElse collectionType.IsObjectType OrElse (TypeSymbol.Equals(matchingInterfaces.First, ienumerable, TypeCompareKind.ConsiderEverything) AndAlso matchingInterfaces.Count = 1))
 
                         diagnostics.Add(collectionSyntax, useSiteDiagnostics)
 
@@ -4051,7 +4053,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' GetEnumerator
             '
             ' first, get GetEnumerator function that takes no arguments, also search in extension methods
-            Dim lookupResult As New lookupResult()
+            Dim lookupResult As New LookupResult()
             If Not GetMemberIfMatchesRequirements(WellKnownMemberNames.GetEnumeratorMethodName,
                                                    collectionType,
                                                    s_isFunctionWithoutArguments,
@@ -4317,28 +4319,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
             Else
                 ' derivedType could be an interface
-                If derivedType.OriginalDefinition = interfaceType Then
+                If TypeSymbol.Equals(derivedType.OriginalDefinition, interfaceType, TypeCompareKind.ConsiderEverything) Then
                     If matchingInterfaces Is Nothing Then
                         Return True
                     End If
 
-                    matchingInterfaces.Add(DirectCast(derivedType, NamedTypeSymbol))
+                    RecordMatchForIsOrInheritsFromOrImplementsInterface(matchingInterfaces, DirectCast(derivedType, NamedTypeSymbol))
                 End If
 
                 ' implements or inherits interface
                 For Each interfaceOfDerived In derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                    If interfaceOfDerived.OriginalDefinition = interfaceType Then
+                    If TypeSymbol.Equals(interfaceOfDerived.OriginalDefinition, interfaceType, TypeCompareKind.ConsiderEverything) Then
                         If matchingInterfaces Is Nothing Then
                             Return True
                         End If
 
-                        matchingInterfaces.Add(interfaceOfDerived)
+                        RecordMatchForIsOrInheritsFromOrImplementsInterface(matchingInterfaces, interfaceOfDerived)
                     End If
                 Next
             End If
 
             Return matchingInterfaces IsNot Nothing AndAlso matchingInterfaces.Count > 0
         End Function
+
+        Private Shared Sub RecordMatchForIsOrInheritsFromOrImplementsInterface(matchingInterfaces As HashSet(Of NamedTypeSymbol), interfaceOfDerived As NamedTypeSymbol)
+            Debug.Assert(matchingInterfaces.Comparer Is EqualsIgnoringComparer.InstanceIgnoringTupleNames OrElse
+                         matchingInterfaces.Comparer Is EqualityComparer(Of NamedTypeSymbol).Default)
+
+            If Not matchingInterfaces.Add(interfaceOfDerived) AndAlso
+               matchingInterfaces.Comparer Is EqualsIgnoringComparer.InstanceIgnoringTupleNames AndAlso
+               Not interfaceOfDerived.IsDefinition Then
+
+                ' Keep the last match in the set
+                matchingInterfaces.Remove(interfaceOfDerived)
+                matchingInterfaces.Add(interfaceOfDerived)
+            End If
+        End Sub
 
         Public Function BindWithBlock(node As WithBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
             Dim binder As Binder = Me.GetBinder(DirectCast(node, VisualBasicSyntaxNode))
@@ -4418,7 +4434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' check if all declared variables are initialized                    
                     If localDeclarations.Kind = BoundKind.LocalDeclaration Then
-                        Dim boundLocalDeclaration = DirectCast(localDeclarations, boundLocalDeclaration)
+                        Dim boundLocalDeclaration = DirectCast(localDeclarations, BoundLocalDeclaration)
 
                         Dim initializerExpression = boundLocalDeclaration.InitializerOpt
                         If initializerExpression Is Nothing Then
@@ -4467,7 +4483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Bind the body of the using statement.
             Dim usingBody As BoundBlock = BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
-            Dim usingInfo As New usingInfo(node, placeholderInfo)
+            Dim usingInfo As New UsingInfo(node, placeholderInfo)
             Dim locals As ImmutableArray(Of LocalSymbol) = GetUsingBlockLocals(usingBinder)
 
             Return New BoundUsingStatement(node, resourceList, resourceExpression, usingBody, usingInfo, locals)
@@ -4807,7 +4823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     If Not previousType.IsErrorType() Then
-                        If previousType = exceptionType Then
+                        If TypeSymbol.Equals(previousType, exceptionType, TypeCompareKind.ConsiderEverything) Then
                             ReportDiagnostic(diagnostics, declaration, ERRID.WRN_DuplicateCatch, exceptionType)
                             Exit For
                         End If

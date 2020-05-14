@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -24,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim mockPresenter As New MockNavigationBarPresenter(document.GetTextView(), Sub() presentItemsCalled = True)
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
-                Dim controller = controllerFactory.CreateController(mockPresenter, document.TextBuffer)
+                Dim controller = controllerFactory.CreateController(mockPresenter, document.GetTextBuffer())
 
                 ' The first time this is called, we should get various calls as a part of the
                 ' present
@@ -52,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument("LEADING TEXT {|Document:|} TRAILING TEXT", {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("LEADING TEXT {|Document:|} TRAILING TEXT", {subjectDocument})
                 Dim view = projectedDocument.GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextSnapshot, projectedDocument.CursorPosition.Value))
 
@@ -63,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 ' present
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
-                Dim controller = controllerFactory.CreateController(mockPresenter, subjectDocument.TextBuffer)
+                Dim controller = controllerFactory.CreateController(mockPresenter, subjectDocument.GetTextBuffer())
 
                 Dim provider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
@@ -113,7 +115,7 @@ class C
                     End Sub)
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
-                Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.TextBuffer)
+                Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.GetTextBuffer())
 
                 memberName = Nothing
                 mockPresenter.RaiseDropDownFocused()
@@ -171,7 +173,7 @@ End Class
                     End Sub)
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
-                Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.TextBuffer)
+                Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.GetTextBuffer())
 
                 memberNames = Nothing
                 mockPresenter.RaiseDropDownFocused()
@@ -225,7 +227,7 @@ class C
                     End Sub)
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
-                Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.TextBuffer)
+                Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.GetTextBuffer())
 
                 mockPresenter.RaiseDropDownFocused()
                 Assert.True(actualProjectNames.SequenceEqual(expectedProjectNames))
@@ -264,7 +266,7 @@ End Class
                     End Sub)
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
-                Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.TextBuffer)
+                Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.GetTextBuffer())
 
                 mockPresenter.RaiseDropDownFocused()
                 Assert.True(actualProjectNames.SequenceEqual(expectedProjectNames))
@@ -299,7 +301,8 @@ End Class
                     End Sub)
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
-                Dim controller = controllerFactory.CreateController(mockPresenter, document.TextBuffer)
+                Dim controller = controllerFactory.CreateController(mockPresenter, document.GetTextBuffer())
+                controller.SetWorkspace(workspace)
 
                 mockPresenter.RaiseDropDownFocused()
                 Assert.Equal("VBProj", projectName)
@@ -310,8 +313,8 @@ End Class
                 Dim workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
                 Dim navigationBarWaiter = listenerProvider.GetWaiter(FeatureAttribute.NavigationBar)
 
-                Await workspaceWaiter.CreateWaitTask()
-                Await navigationBarWaiter.CreateWaitTask()
+                Await workspaceWaiter.ExpeditedWaitAsync()
+                Await navigationBarWaiter.ExpeditedWaitAsync()
 
                 Await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
 

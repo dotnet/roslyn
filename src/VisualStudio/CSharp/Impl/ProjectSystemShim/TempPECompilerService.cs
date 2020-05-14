@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -24,9 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         private readonly IMetadataService _metadataService;
 
         public TempPECompilerService(IMetadataService metadataService)
-        {
-            _metadataService = metadataService;
-        }
+            => _metadataService = metadataService;
 
         public int CompileTempPE(string pszOutputFileName, int sourceCount, string[] fileNames, string[] fileContents, int optionCount, string[] optionNames, object[] optionValues)
         {
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             var trees = new List<SyntaxTree>(capacity: sourceCount);
 
-            for (int i = 0; i < fileNames.Length; i++)
+            for (var i = 0; i < fileNames.Length; i++)
             {
                 // create a parse tree w/o encoding - the tree won't be used to emit PDBs
                 trees.Add(SyntaxFactory.ParseSyntaxTree(fileContents[i], parsedArguments.ParseOptions, fileNames[i]));
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             var arguments = new List<string>();
 
-            for (int i = 0; i < optionNames.Length; i++)
+            for (var i = 0; i < optionNames.Length; i++)
             {
                 var optionName = optionNames[i];
                 var optionValue = optionValues[i];

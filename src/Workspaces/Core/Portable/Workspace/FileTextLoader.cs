@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -9,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -34,6 +39,12 @@ namespace Microsoft.CodeAnalysis
     [ExportOptionProvider, Shared]
     internal class FileTextLoaderOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FileTextLoaderOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             FileTextLoaderOptions.FileLengthThreshold);
     }
@@ -41,8 +52,18 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public class FileTextLoader : TextLoader
     {
-        private readonly string _path;
-        private readonly Encoding _defaultEncoding;
+        /// <summary>
+        /// Absolute path of the file.
+        /// </summary>
+        public string Path { get; }
+
+        /// <summary>
+        /// Specifies an encoding to be used if the actual encoding of the file 
+        /// can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
+        /// If <c>null</c> auto-detect heuristics are used to determine the encoding. 
+        /// Note that if the stream starts with Byte Order Mark the value of <see cref="DefaultEncoding"/> is ignored.
+        /// </summary>
+        public Encoding? DefaultEncoding { get; }
 
         /// <summary>
         /// Creates a content loader for specified file.
@@ -55,37 +76,20 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="path"/> is not an absolute path.</exception>
-        public FileTextLoader(string path, Encoding defaultEncoding)
+        public FileTextLoader(string path, Encoding? defaultEncoding)
         {
             CompilerPathUtilities.RequireAbsolutePath(path, "path");
 
-            _path = path;
-            _defaultEncoding = defaultEncoding;
+            Path = path;
+            DefaultEncoding = defaultEncoding;
         }
 
-        /// <summary>
-        /// Absolute path of the file.
-        /// </summary>
-        public string Path
-        {
-            get { return _path; }
-        }
-
-        /// <summary>
-        /// Specifies an encoding to be used if the actual encoding of the file 
-        /// can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
-        /// If <c>null</c> auto-detect heuristics are used to determine the encoding. 
-        /// Note that if the stream starts with Byte Order Mark the value of <see cref="DefaultEncoding"/> is ignored.
-        /// </summary>
-        public Encoding DefaultEncoding
-        {
-            get { return _defaultEncoding; }
-        }
+        internal sealed override string FilePath => Path;
 
         protected virtual SourceText CreateText(Stream stream, Workspace workspace)
         {
-            var factory = workspace.Services.GetService<ITextFactoryService>();
-            return factory.CreateText(stream, _defaultEncoding);
+            var factory = workspace.Services.GetRequiredService<ITextFactoryService>();
+            return factory.CreateText(stream, DefaultEncoding);
         }
 
         /// <summary>
@@ -95,9 +99,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="InvalidDataException"></exception>
         public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
-            ValidateFileLength(workspace, _path);
+            ValidateFileLength(workspace, Path);
 
-            DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var prevLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
 
             TextAndVersion textAndVersion;
 
@@ -167,27 +171,25 @@ namespace Microsoft.CodeAnalysis
             // this logic. This is tracked by https://github.com/dotnet/corefx/issues/6007, at least in
             // corefx. We also open the file for reading with FileShare mode read/write/delete so that
             // we do not lock this file.
-            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 1, useAsync: true)))
+            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 1, useAsync: true)))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
 
                 // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
                 // but probably not for command line case where it doesn't use more sophisticated services.
-                using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false))
-                {
-                    var text = CreateText(readStream, workspace);
-                    textAndVersion = TextAndVersion.Create(text, version, _path);
-                }
+                using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var text = CreateText(readStream, workspace);
+                textAndVersion = TextAndVersion.Create(text, version, Path);
             }
 
             // Check if the file was definitely modified and closed while we were reading. In this case, we know the read we got was
             // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
             // If the file hasn't been closed yet and there's another writer, we will rely on file change notifications to notify us
             // and reload the file.
-            DateTime newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var newLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {
-                var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, _path);
+                var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, Path);
                 throw new IOException(message);
             }
 
@@ -201,28 +203,28 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="InvalidDataException"></exception>
         internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
-            ValidateFileLength(workspace, _path);
+            ValidateFileLength(workspace, Path);
 
-            DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var prevLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
 
             TextAndVersion textAndVersion;
 
             // Open file for reading with FileShare mode read/write/delete so that we do not lock this file.
-            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 4096, useAsync: false)))
+            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 4096, useAsync: false)))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
                 var text = CreateText(stream, workspace);
-                textAndVersion = TextAndVersion.Create(text, version, _path);
+                textAndVersion = TextAndVersion.Create(text, version, Path);
             }
 
             // Check if the file was definitely modified and closed while we were reading. In this case, we know the read we got was
             // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
             // If the file hasn't been closed yet and there's another writer, we will rely on file change notifications to notify us
             // and reload the file.
-            DateTime newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
+            var newLastWriteTime = FileUtilities.GetFileTimeStamp(Path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {
-                var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, _path);
+                var message = string.Format(WorkspacesResources.File_was_externally_modified_colon_0, Path);
                 throw new IOException(message);
             }
 
@@ -230,9 +232,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private string GetDebuggerDisplay()
-        {
-            return nameof(Path) + " = " + Path;
-        }
+            => nameof(Path) + " = " + Path;
 
         private static void ValidateFileLength(Workspace workspace, string path)
         {

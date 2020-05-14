@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -75,7 +77,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         /// </summary>
         private bool _resharperExtensionInstalledAndEnabled = false;
         private bool _infoBarOpen = false;
-        private bool _isFirstRun = true;
 
         /// <summary>
         /// Chain all update tasks so that task runs serially
@@ -114,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             }
 
             var vsShell = _serviceProvider.GetService<IVsShell, SVsShell>();
-            var hr = vsShell.IsPackageInstalled(ReSharperPackageGuid, out int extensionEnabled);
+            var hr = vsShell.IsPackageInstalled(ReSharperPackageGuid, out var extensionEnabled);
             if (ErrorHandler.Failed(hr))
             {
                 FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
@@ -152,15 +153,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             // cancel previous state machine update request
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource = new CancellationTokenSource();
-
             var cancellationToken = _cancellationTokenSource.Token;
 
             // make sure all state machine change work is serialized so that cancellation
             // doesn't mess the state up.   
-            _lastTask = _lastTask.ContinueWith(async _ =>
+            _lastTask = _lastTask.SafeContinueWithFromAsync(_ =>
             {
-                await UpdateStateMachineWorkerAsync(cancellationToken).ConfigureAwait(false);
-            }, cancellationToken, TaskContinuationOptions.LazyCancellation, TaskScheduler.Default).Unwrap();
+                return UpdateStateMachineWorkerAsync(cancellationToken);
+            }, cancellationToken, TaskScheduler.Default);
         }
 
         private async Task UpdateStateMachineWorkerAsync(CancellationToken cancellationToken)
@@ -179,7 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 return;
             }
 
-            if (!_isFirstRun && currentStatus == lastStatus)
+            if (currentStatus == lastStatus)
             {
                 return;
             }
@@ -195,15 +195,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                         // N->E or S->E. If ReSharper was just installed and is enabled, reset NeedsReset.
                         options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
                     }
+
                     // Else is N->N, N->S, S->N, S->S. N->S can occur if the user suspends ReSharper, then disables
                     // the extension, then reenables the extension. We will show the gold bar after the switch
                     // if there is still a pending show.
-
-                    // If ReSharper was suspended and the user closed and reopened VS, we want to reset the gold bar
-                    else if (_isFirstRun)
-                    {
-                        options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, true);
-                    }
 
                     break;
                 case ReSharperStatus.Enabled:
@@ -217,13 +212,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     break;
             }
 
-            _workspace.Options = options;
+            // Apply the new options.
+            // We need to switch to UI thread to invoke TryApplyChanges.
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(options));
+
             if (options.GetOption(KeybindingResetOptions.NeedsReset))
             {
                 ShowGoldBar();
             }
-
-            _isFirstRun = false;
         }
 
         private void ShowGoldBar()
@@ -263,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         /// <summary>
         /// Returns true if ReSharper is installed, enabled, and not suspended.  
         /// </summary>
-        private async Task<ReSharperStatus> IsReSharperRunningAsync(ReSharperStatus lastStatus, CancellationToken cancellationToken)
+        private async ValueTask<ReSharperStatus> IsReSharperRunningAsync(ReSharperStatus lastStatus, CancellationToken cancellationToken)
         {
             // Quick exit if resharper is either uninstalled or not enabled
             if (!_resharperExtensionInstalledAndEnabled)
@@ -273,43 +270,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             await EnsureOleCommandTargetAsync().ConfigureAwait(false);
 
-            var cmds = new OLECMD[1];
-            cmds[0].cmdID = ResumeId;
-            cmds[0].cmdf = 0;
-
-            for (var count = 0; count < 10; count++)
+            // poll until either suspend or resume botton is available, or until operation is canceled
+            while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var hr = await QueryStatusOnUIThreadAsync().ConfigureAwait(false);
-                if (ErrorHandler.Failed(hr))
-                {
-                    // In the case of an error when attempting to get the status, pretend that ReSharper isn't enabled. We also
-                    // shut down monitoring so we don't keep hitting this.
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
-                    await ShutdownAsync().ConfigureAwait(false);
+                var suspendFlag = await QueryStatusAsync(SuspendId).ConfigureAwait(false);
 
+                // In the case of an error when attempting to get the status, pretend that ReSharper isn't enabled. We also
+                // shut down monitoring so we don't keep hitting this.
+                if (suspendFlag == 0)
+                {
                     return ReSharperStatus.NotInstalledOrDisabled;
                 }
 
-                // When ReSharper is suspended, the ReSharper_Resume command has the Enabled | Supported flags. 
-                if (((OLECMDF)cmds[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED))
+                var resumeFlag = await QueryStatusAsync(ResumeId).ConfigureAwait(false);
+                if (resumeFlag == 0)
+                {
+                    return ReSharperStatus.NotInstalledOrDisabled;
+                }
+
+                // When ReSharper is running, the ReSharper_Suspend command is Enabled and not Invisible
+                if (suspendFlag.HasFlag(OLECMDF.OLECMDF_ENABLED) && !suspendFlag.HasFlag(OLECMDF.OLECMDF_INVISIBLE))
+                {
+                    return ReSharperStatus.Enabled;
+                }
+
+                // When ReSharper is suspended, the ReSharper_Resume command is Enabled and not Invisible
+                if (resumeFlag.HasFlag(OLECMDF.OLECMDF_ENABLED) && !resumeFlag.HasFlag(OLECMDF.OLECMDF_INVISIBLE))
                 {
                     return ReSharperStatus.Suspended;
                 }
 
-                //otherwise sleep for a bit and check again
+                // ReSharper has not finished initializing, so try again later
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken).ConfigureAwait(false);
             }
 
-            // If resume button doesn't become active within a reasonable amount of time, assume ReSharper is Enabled
-            return ReSharperStatus.Enabled;
-
-            async Task<int> QueryStatusOnUIThreadAsync()
+            async Task<OLECMDF> QueryStatusAsync(uint cmdId)
             {
+                var cmds = new OLECMD[1];
+                cmds[0].cmdID = cmdId;
+                cmds[0].cmdf = 0;
+
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                return _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
+                var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
+                if (ErrorHandler.Failed(hr))
+                {
+                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    await ShutdownAsync().ConfigureAwait(false);
+
+                    return 0;
+                }
+
+                return (OLECMDF)cmds[0].cmdf;
             }
 
             async Task EnsureOleCommandTargetAsync()
@@ -342,31 +356,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             KeybindingsResetLogger.Log("KeybindingsReset");
 
-            _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(KeybindingResetOptions.NeedsReset, false)));
         }
 
         private void OpenExtensionsHyperlink()
         {
             ThisCanBeCalledOnAnyThread();
 
-            if (!BrowserHelper.TryGetUri(KeybindingsFwLink, out Uri fwLink))
-            {
-                // We're providing a constant, known-good link. This should be impossible.
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            BrowserHelper.StartBrowser(fwLink);
+            BrowserHelper.StartBrowser(KeybindingsFwLink);
 
             KeybindingsResetLogger.Log("ExtensionsLink");
-            _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(KeybindingResetOptions.NeedsReset, false)));
         }
 
         private void NeverShowAgain()
         {
-            AssertIsForeground();
-
-            _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeverShowAgain, true)
-                                                   .WithChangedOption(KeybindingResetOptions.NeedsReset, false);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(KeybindingResetOptions.NeverShowAgain, true)
+                .WithChangedOption(KeybindingResetOptions.NeedsReset, false)));
             KeybindingsResetLogger.Log("NeverShowAgain");
 
             // The only external references to this object are as callbacks, which are removed by the Shutdown method.

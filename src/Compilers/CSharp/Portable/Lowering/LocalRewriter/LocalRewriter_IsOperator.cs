@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -30,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewrittenOperand.Kind == BoundKind.MethodGroup)
             {
                 var methodGroup = (BoundMethodGroup)rewrittenOperand;
-                BoundExpression receiver = methodGroup.ReceiverOpt;
+                BoundExpression? receiver = methodGroup.ReceiverOpt;
                 if (receiver != null && receiver.Kind != BoundKind.ThisReference)
                 {
                     // possible side-effect
@@ -45,8 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operandType = rewrittenOperand.Type;
             var targetType = rewrittenTargetType.Type;
 
-            Debug.Assert((object)operandType != null || rewrittenOperand.ConstantValue.IsNull);
-            Debug.Assert((object)targetType != null);
+            Debug.Assert(operandType is { } || rewrittenOperand.ConstantValue!.IsNull);
+            Debug.Assert(targetType is { });
 
             // TODO: Handle dynamic operand type and target type
 
@@ -62,20 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // operand is a reference type with bound identity or implicit conversion
                     // We can replace the "is" instruction with a null check
-
-                    Debug.Assert((object)operandType != null);
-                    if (operandType.TypeKind == TypeKind.TypeParameter)
-                    {
-                        // We need to box the type parameter even if it is a known
-                        // reference type to ensure there are no verifier errors
-                        rewrittenOperand = MakeConversionNode(
-                            syntax: rewrittenOperand.Syntax,
-                            rewrittenOperand: rewrittenOperand,
-                            conversion: Conversion.Boxing,
-                            rewrittenType: _compilation.GetSpecialType(SpecialType.System_Object),
-                            @checked: false);
-                    }
-
                     return MakeNullCheck(syntax, rewrittenOperand, BinaryOperatorKind.NotEqual);
                 }
             }

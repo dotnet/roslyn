@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -23,9 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         where T : struct
     {
         static EnumCodeStyleOptionViewModel()
-        {
-            Contract.ThrowIfFalse(typeof(T).IsEnum);
-        }
+            => Contract.ThrowIfFalse(typeof(T).IsEnum);
 
         private readonly ImmutableArray<T> _enumValues;
         private readonly ImmutableArray<string> _previews;
@@ -34,31 +34,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private NotificationOptionViewModel _selectedNotificationPreference;
 
         public EnumCodeStyleOptionViewModel(
-            PerLanguageOption<CodeStyleOption<T>> option,
+            PerLanguageOption2<CodeStyleOption2<T>> option,
             string language,
             string description,
             T[] enumValues,
             string[] previews,
             AbstractOptionPreviewViewModel info,
-            OptionSet options,
+            OptionStore optionStore,
             string groupName,
             List<CodeStylePreference> preferences)
             : this((IOption)option, language, description, enumValues, previews, info,
-                   options, groupName, preferences)
+                   optionStore, groupName, preferences)
         {
         }
 
         public EnumCodeStyleOptionViewModel(
-            Option<CodeStyleOption<T>> option,
+            Option2<CodeStyleOption2<T>> option,
             string description,
             T[] enumValues,
             string[] previews,
             AbstractOptionPreviewViewModel info,
-            OptionSet options,
+            OptionStore optionStore,
             string groupName,
             List<CodeStylePreference> preferences)
             : this(option, language: null, description, enumValues, previews, info,
-                   options, groupName, preferences)
+                   optionStore, groupName, preferences)
         {
         }
 
@@ -69,10 +69,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             T[] enumValues,
             string[] previews,
             AbstractOptionPreviewViewModel info,
-            OptionSet options,
+            OptionStore optionStore,
             string groupName,
             List<CodeStylePreference> preferences)
-            : base(option, description, info, options, groupName, preferences)
+            : base(option, description, info, groupName, preferences)
         {
             Debug.Assert(preferences.Count == enumValues.Length);
             Debug.Assert(previews.Length == enumValues.Length);
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _enumValues = enumValues.ToImmutableArray();
             _previews = previews.ToImmutableArray();
 
-            var codeStyleOption = (CodeStyleOption<T>)options.GetOption(new OptionKey(option, language));
+            var codeStyleOption = (CodeStyleOption<T>)optionStore.GetOption(new OptionKey(option, language));
 
             var enumIndex = _enumValues.IndexOf(codeStyleOption.Value);
             if (enumIndex < 0 || enumIndex >= Preferences.Count)

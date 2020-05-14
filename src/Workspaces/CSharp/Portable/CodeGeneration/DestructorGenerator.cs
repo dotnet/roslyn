@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -13,9 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal static class DestructorGenerator
     {
         private static MemberDeclarationSyntax LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return LastConstructor(members) ?? LastField(members);
-        }
+            => LastConstructor(members) ?? LastField(members);
 
         internal static TypeDeclarationSyntax AddDestructorTo(
             TypeDeclarationSyntax destination,
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var destructorDeclaration = GenerateDestructorDeclaration(destructor, GetDestination(destination), options);
+            var destructorDeclaration = GenerateDestructorDeclaration(destructor, options);
 
             // Generate after the last constructor, or after the last field, or at the start of the
             // type.
@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal static DestructorDeclarationSyntax GenerateDestructorDeclaration(
-            IMethodSymbol destructor, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IMethodSymbol destructor, CodeGenerationOptions options)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
 
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<DestructorDeclarationSyntax>(destructor, options);
             if (reusableSyntax != null)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            bool hasNoBody = !options.GenerateMethodBodies;
+            var hasNoBody = !options.GenerateMethodBodies;
 
             var declaration = SyntaxFactory.DestructorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(destructor.GetAttributes(), options),

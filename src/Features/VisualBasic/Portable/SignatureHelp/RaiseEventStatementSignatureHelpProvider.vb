@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -12,6 +15,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     <ExportSignatureHelpProvider("RaiseEventSignatureHelpProvider", LanguageNames.VisualBasic), [Shared]>
     Friend Class RaiseEventStatementSignatureHelpProvider
         Inherits AbstractVisualBasicSignatureHelpProvider
+
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+        End Sub
 
         Public Overrides Function IsTriggerCharacter(ch As Char) As Boolean
             Return ch = "("c OrElse ch = ","c
@@ -75,12 +83,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 semanticModel.LookupStaticMembers(raiseEventStatement.SpanStart, containingType, raiseEventStatement.Name.Identifier.ValueText),
                 semanticModel.LookupSymbols(raiseEventStatement.SpanStart, containingType, raiseEventStatement.Name.Identifier.ValueText))
 
-            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
-            Dim allowedEvents = events.WhereAsArray(Function(s) s.Kind = SymbolKind.Event AndAlso s.ContainingType Is containingType).
+            Dim allowedEvents = events.WhereAsArray(Function(s) s.Kind = SymbolKind.Event AndAlso Equals(s.ContainingType, containingType)).
                                        OfType(Of IEventSymbol)().
                                        ToImmutableArrayOrEmpty().
                                        FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
-                                       Sort(symbolDisplayService, semanticModel, raiseEventStatement.SpanStart)
+                                       Sort(semanticModel, raiseEventStatement.SpanStart)
 
             Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
@@ -88,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
+                allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
@@ -96,10 +103,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             eventSymbol As IEventSymbol,
             raiseEventStatement As RaiseEventStatementSyntax,
             semanticModel As SemanticModel,
-            symbolDisplayService As ISymbolDisplayService,
             anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-            documentationCommentFormattingService As IDocumentationCommentFormattingService,
-            cancellationToken As CancellationToken
+            documentationCommentFormattingService As IDocumentationCommentFormattingService
         ) As SignatureHelpItem
 
             Dim position = raiseEventStatement.SpanStart
@@ -108,13 +113,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim item = CreateItem(
                 eventSymbol, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 False,
                 eventSymbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(eventSymbol, semanticModel, position),
                 GetSeparatorParts(),
-                GetPostambleParts(eventSymbol, semanticModel, position),
-                type.DelegateInvokeMethod.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
+                GetPostambleParts(),
+                type.DelegateInvokeMethod.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
 
             Return item
         End Function
@@ -140,11 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return result
         End Function
 
-        Private Function GetPostambleParts(
-            eventSymbol As IEventSymbol,
-            semanticModel As SemanticModel,
-            position As Integer) As IList(Of SymbolDisplayPart)
-
+        Private Function GetPostambleParts() As IList(Of SymbolDisplayPart)
             Return {Punctuation(SyntaxKind.CloseParenToken)}
         End Function
     End Class

@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Globalization;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -34,22 +35,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         public string GetDiagnosticID()
-        {
-            var diagnostic = _fix.PrimaryDiagnostic;
-
-            // we log diagnostic id as it is if it is from us
-            if (diagnostic.Descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry))
-            {
-                return diagnostic.Id;
-            }
-
-            // if it is from third party, we use hashcode
-            return diagnostic.GetHashCode().ToString(CultureInfo.InvariantCulture);
-        }
+            => _fix.PrimaryDiagnostic.GetTelemetryDiagnosticID();
 
         protected override DiagnosticData GetDiagnostic()
-        {
-            return _fix.GetPrimaryDiagnosticData();
-        }
+            => _fix.GetPrimaryDiagnosticData();
     }
 }

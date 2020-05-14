@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
@@ -72,6 +74,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
 
             str = New TestVisualBasicObjectFormatter(maximumLineLength:=80).FormatObject(sort, SingleLineOptions)
             Assert.Equal("Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, aF=-1, AG=1 }", str)
+        End Sub
+
+        <Fact>
+        Public Sub ArrayMethodParameters()
+            Dim result = New TestVisualBasicObjectFormatter(maximumLineLength:=100).FormatMethodSignature(Signatures.Arrays)
+            Assert.Equal("ObjectFormatterFixtures.Signatures.ArrayParameters(Integer(), Integer(,), Integer(,,))", result)
         End Sub
 
         <Fact>

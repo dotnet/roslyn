@@ -1,11 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -15,16 +21,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
     [UseExportProvider]
     public class F1HelpTests
     {
+        private static readonly ComposableCatalog s_catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpHelpContextService));
+        private static readonly IExportProviderFactory s_exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(s_catalog);
+
         private async Task TestAsync(string markup, string expectedText)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
-            {
-                var caret = workspace.Documents.First().CursorPosition;
+            using var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: s_exportProviderFactory.CreateExportProvider());
+            var caret = workspace.Documents.First().CursorPosition;
 
-                var service = new CSharpHelpContextService();
-                var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
-                Assert.Equal(expectedText, actualText);
-            }
+            var service = Assert.IsType<CSharpHelpContextService>(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<IHelpContextService>());
+            var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
+            Assert.Equal(expectedText, actualText);
         }
 
         private async Task Test_KeywordAsync(string markup, string expectedText)
@@ -561,6 +568,20 @@ class Program
                   select [||]y;
     }
 }", "System.String");
+        }
+
+        [WorkItem(36001, "https://github.com/dotnet/roslyn/issues/36001")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNameof()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void goo()
+    {
+        var v = [||]nameof(goo);
+    }
+}", "nameof");
         }
     }
 }

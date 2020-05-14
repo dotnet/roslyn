@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -612,6 +614,7 @@ class C
     static async Task<int> M()
     {
         return await d;     //-fieldAccess: dynamic
+                            //-awaitableValuePlaceholder: dynamic
                             //-awaitExpression: dynamic
                             //-conversion: int
     }
@@ -635,7 +638,9 @@ class C
 	{
 		var x = await await d; //-typeExpression: dynamic
                                //-fieldAccess: dynamic
+                               //-awaitableValuePlaceholder: dynamic
                                //-awaitExpression: dynamic
+                               //-awaitableValuePlaceholder: dynamic
                                //-awaitExpression: dynamic
 	}
 }";
@@ -802,36 +807,36 @@ class C
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
-                // (11,13): error CS0019: Operator '%' cannot be applied to operands of type 'method group' and 'dynamic'
+                // (10,13): error CS0019: Operator '%' cannot be applied to operands of type 'method group' and 'dynamic'
                 //             M % d1,
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "M % d1").WithArguments("%", "method group", "dynamic"),
-                // (12,13): error CS0019: Operator '+' cannot be applied to operands of type 'dynamic' and 'method group'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "M % d1").WithArguments("%", "method group", "dynamic").WithLocation(10, 13),
+                // (11,13): error CS0019: Operator '+' cannot be applied to operands of type 'dynamic' and 'method group'
                 //             d1 + M,
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 + M").WithArguments("+", "dynamic", "method group"),
-                // (13,13): error CS0019: Operator '-' cannot be applied to operands of type 'lambda expression' and 'dynamic'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 + M").WithArguments("+", "dynamic", "method group").WithLocation(11, 13),
+                // (12,13): error CS0019: Operator '-' cannot be applied to operands of type 'lambda expression' and 'dynamic'
                 //             ( ()=>{} ) - d1, 
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "( ()=>{} ) - d1").WithArguments("-", "lambda expression", "dynamic"),
-                // (14,13): error CS0019: Operator '>>' cannot be applied to operands of type 'dynamic' and 'lambda expression'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "( ()=>{} ) - d1").WithArguments("-", "lambda expression", "dynamic").WithLocation(12, 13),
+                // (13,13): error CS0019: Operator '>>' cannot be applied to operands of type 'dynamic' and 'lambda expression'
                 //             d1 >> ( ()=>{} ),
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 >> ( ()=>{} )").WithArguments(">>", "dynamic", "lambda expression"),
-                // (15,13): error CS0019: Operator '<<' cannot be applied to operands of type 'anonymous method' and 'dynamic'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 >> ( ()=>{} )").WithArguments(">>", "dynamic", "lambda expression").WithLocation(13, 13),
+                // (14,13): error CS0019: Operator '<<' cannot be applied to operands of type 'anonymous method' and 'dynamic'
                 //             delegate {} << d1,
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "delegate {} << d1").WithArguments("<<", "anonymous method", "dynamic"),
-                // (16,13): error CS0019: Operator '<<' cannot be applied to operands of type 'dynamic' and 'anonymous method'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "delegate {} << d1").WithArguments("<<", "anonymous method", "dynamic").WithLocation(14, 13),
+                // (15,13): error CS0019: Operator '<<' cannot be applied to operands of type 'dynamic' and 'anonymous method'
                 //             d1 << delegate {},
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 << delegate {}").WithArguments("<<", "dynamic", "anonymous method"),
-                // (17,13): error CS0019: Operator '>' cannot be applied to operands of type 'int*' and 'dynamic'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 << delegate {}").WithArguments("<<", "dynamic", "anonymous method").WithLocation(15, 13),
+                // (16,13): error CS0019: Operator '>' cannot be applied to operands of type 'int*' and 'dynamic'
                 //             (int*)null > d1,    
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(int*)null > d1").WithArguments(">", "int*", "dynamic"),
-                // (18,13): error CS0019: Operator '<' cannot be applied to operands of type 'dynamic' and 'int*'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(int*)null > d1").WithArguments(">", "int*", "dynamic").WithLocation(16, 13),
+                // (17,13): error CS0019: Operator '<' cannot be applied to operands of type 'dynamic' and 'int*'
                 //             d1 < (int*)null,
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 < (int*)null").WithArguments("<", "dynamic", "int*"),
-                // (19,13): error CS0019: Operator '>' cannot be applied to operands of type 'dynamic' and 'System.TypedReference'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 < (int*)null").WithArguments("<", "dynamic", "int*").WithLocation(17, 13),
+                // (18,13): error CS0019: Operator '>' cannot be applied to operands of type 'dynamic' and 'TypedReference'
                 //             d1 > tr,
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 > tr").WithArguments(">", "dynamic", "System.TypedReference"),
-                // (20,13): error CS0019: Operator '>' cannot be applied to operands of type 'System.TypedReference' and 'dynamic'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d1 > tr").WithArguments(">", "dynamic", "System.TypedReference").WithLocation(18, 13),
+                // (19,13): error CS0019: Operator '>' cannot be applied to operands of type 'TypedReference' and 'dynamic'
                 //             tr > d1
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "tr > d1").WithArguments(">", "System.TypedReference", "dynamic"));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "tr > d1").WithArguments(">", "System.TypedReference", "dynamic").WithLocation(19, 13));
         }
 
         [Fact]
@@ -972,7 +977,7 @@ public class C
             TestOperatorKinds(source);
         }
 
-        [Fact, WorkItem(27800, "https://github.com/dotnet/roslyn/issues/27800")]
+        [Fact, WorkItem(27800, "https://github.com/dotnet/roslyn/issues/27800"), WorkItem(32068, "https://github.com/dotnet/roslyn/issues/32068")]
         public void TestDynamicCompoundOperatorOrdering()
         {
             CompileAndVerify(@"
@@ -990,6 +995,12 @@ class DynamicTest
         }
     }
 
+    public event EventHandler<object> Event
+    {
+        add { Console.WriteLine(""add_Event""); }
+        remove { Console.WriteLine(""remove_Event""); }
+    }
+
     static dynamic GetDynamic()
     {
         Console.WriteLine(""GetDynamic"");
@@ -1002,12 +1013,22 @@ class DynamicTest
         return 1;
     }
 
+    static EventHandler<object> GetHandler()
+    {
+        Console.WriteLine(""GetHandler"");
+        return (object o1, object o2) => {};
+    }
+
     public static void Main()
     {
         Console.WriteLine(""Compound Add"");
         GetDynamic().Property += GetInt();
         Console.WriteLine(""Compound And"");
         GetDynamic().Property &= GetInt();
+        Console.WriteLine(""Compound Add Event"");
+        GetDynamic().Event += GetHandler();
+        Console.WriteLine(""Compound Remove Event"");
+        GetDynamic().Event -= GetHandler();
     }
 }", targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: @"
 Compound Add
@@ -1020,6 +1041,14 @@ GetDynamic
 get_Property
 GetInt
 set_Property
+Compound Add Event
+GetDynamic
+GetHandler
+add_Event
+Compound Remove Event
+GetDynamic
+GetHandler
+remove_Event
 ");
         }
 
@@ -1881,7 +1910,7 @@ unsafe public class C<X>
             var c = compilation.GlobalNamespace.GetMember<TypeSymbol>("C");
             var f = c.GetMember<FieldSymbol>("F");
             var eraser = new DynamicTypeEraser(compilation.GetSpecialType(SpecialType.System_Object));
-            var erasedType = eraser.EraseDynamic(f.Type.TypeSymbol);
+            var erasedType = eraser.EraseDynamic(f.Type);
 
             Assert.Equal("System.Func<A<System.Object, A<System.Object, System.Boolean>.E*[]>.B<X>, System.Collections.Generic.Dictionary<System.Object[], System.Int32>>", erasedType.ToTestDisplayString());
         }
@@ -2584,10 +2613,13 @@ class C
     static void M()
     {
         var x = new C          //-typeExpression: C
+                               //-objectOrCollectionValuePlaceholder: C
         {
             A =                //-objectInitializerMember: dynamic 
+                               //-objectOrCollectionValuePlaceholder: dynamic
             {                  
                 B =            //-dynamicObjectInitializerMember: dynamic 
+                               //-objectOrCollectionValuePlaceholder: dynamic
                 {              
                     C = 3      //-dynamicObjectInitializerMember: dynamic
                                //-literal: int
@@ -2626,11 +2658,12 @@ class C : List<int>
     {	
 		var z = new C()         //-typeExpression: C
 		{
-			{ d },              //-implicitReceiver: C
+			{ d },              //-objectOrCollectionValuePlaceholder: C
+                                //-objectOrCollectionValuePlaceholder: C
                                 //-fieldAccess: dynamic
                                 //-dynamicCollectionElementInitializer: dynamic
 
-			{ d, d, d },        //-implicitReceiver: C
+			{ d, d, d },        //-objectOrCollectionValuePlaceholder: C
                                 //-fieldAccess: dynamic
                                 //-fieldAccess: dynamic
                                 //-fieldAccess: dynamic
@@ -3750,10 +3783,10 @@ class Program
             var typeObject = comp.GetSpecialType(SpecialType.System_Object);
             var typeGConstructed = typeG.Construct(typeObject, typeObject);
 
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingTrue").Type.TypeSymbol);
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingFalse").Type.TypeSymbol);
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraTrue").Type.TypeSymbol);
-            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraFalse").Type.TypeSymbol);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingTrue").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("MissingFalse").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraTrue").Type);
+            Assert.Equal(typeGConstructed, typeD.GetMember<FieldSymbol>("ExtraFalse").Type);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -4030,7 +4063,7 @@ class C
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
-                // (8,17): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (8,17): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         d.M2(in x);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 17)
                 );
@@ -4055,10 +4088,10 @@ class C
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
-                // (8,20): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (8,20): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         d.M2(1, in d, 123, in x);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(8, 20),
-                // (8,31): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (8,31): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         d.M2(1, in d, 123, in x);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 31)
                 );
@@ -4098,16 +4131,16 @@ class C
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
-                // (11,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (11,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         M1(in d, d = 2, in d);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(11, 15),
-                // (11,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (11,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         M1(in d, d = 2, in d);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(11, 28),
-                // (23,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (23,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         M2(in d, d = 3, in d);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(23, 15),
-                // (23,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (23,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         M2(in d, d = 3, in d);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(23, 28)
                 );
@@ -4137,7 +4170,7 @@ class C
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
-                // (8,30): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (8,30): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         var y = new M2(d, in x);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 30)
                 );
@@ -4166,7 +4199,7 @@ class C
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
-                // (8,39): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                // (8,39): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
                 //         System.Console.WriteLine(d[in x]);
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 39)
                 );

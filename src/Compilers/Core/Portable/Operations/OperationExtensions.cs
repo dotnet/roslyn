@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         /// <summary>
-        /// Gets the variable initialzer for the given <paramref name="declarationOperation"/>, checking to see if there is a parent initializer
+        /// Gets the variable initializer for the given <paramref name="declarationOperation"/>, checking to see if there is a parent initializer
         /// if the single variable initializer is null.
         /// </summary>
         /// <param name="declarationOperation">Single variable declaration to retrieve initializer for.</param>
@@ -231,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Get an optional argument <see cref="RefKind"/> for an argument at the given <paramref name="index"/> to the given <paramref name="dynamicOperation"/>.
         /// Returns a non-null argument <see cref="RefKind"/> for C#.
-        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an the argument in VB.
+        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an argument in VB.
         /// </summary>
         /// <param name="dynamicOperation">Dynamic or late bound operation.</param>
         /// <param name="index">Argument index.</param>
@@ -248,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Get an optional argument <see cref="RefKind"/> for an argument at the given <paramref name="index"/> to the given <paramref name="dynamicOperation"/>.
         /// Returns a non-null argument <see cref="RefKind"/> for C#.
-        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an the argument in VB.
+        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an argument in VB.
         /// </summary>
         /// <param name="dynamicOperation">Dynamic or late bound operation.</param>
         /// <param name="index">Argument index.</param>
@@ -265,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Get an optional argument <see cref="RefKind"/> for an argument at the given <paramref name="index"/> to the given <paramref name="dynamicOperation"/>.
         /// Returns a non-null argument <see cref="RefKind"/> for C#.
-        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an the argument in VB.
+        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an argument in VB.
         /// </summary>
         /// <param name="dynamicOperation">Dynamic or late bound operation.</param>
         /// <param name="index">Argument index.</param>
@@ -364,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
 
-            return default;
+            return null;
         }
     }
 }

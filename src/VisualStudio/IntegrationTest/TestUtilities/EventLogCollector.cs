@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -89,6 +91,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 "MSBuildTaskHost.exe",
                 "mspdbsrv.exe",
                 "MStest.exe",
+                "RunTests.exe",
                 "ServiceHub.Host.CLR.exe",
                 "ServiceHub.Host.CLR.x64.exe",
                 "ServiceHub.Host.CLR.x86.exe",
@@ -97,7 +100,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 "ServiceHub.SettingsHost.exe",
                 "ServiceHub.VSDetouredHost.exe",
                 "vbc.exe",
-                "vbc2.exe",
                 "VBCSCompiler.exe",
                 "VStest.Console.Exe",
                 "VSTest.DiscoveryEngine.exe",
@@ -107,6 +109,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 "vstest.executionengine.clr20.exe",
                 "VSTest.executionEngine.exe",
                 "VSTest.executionEngine.x86.exe",
+                "xunit.console.exe",
+                "xunit.console.x86.exe",
             };
 
         /// <summary>

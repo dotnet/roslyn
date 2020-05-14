@@ -32,11 +32,6 @@
         <target state="translated">진단 속성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Could_not_find_project_0">
-        <source>Could not find project {0}.</source>
-        <target state="translated">{0} 프로젝트를 찾을 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="No_rule_set_file_is_specified_or_the_file_does_not_exist">
         <source>No rule set file is specified, or the file does not exist.</source>
         <target state="translated">규칙 설정 파일을 지정하지 않았거나 파일이 없습니다.</target>

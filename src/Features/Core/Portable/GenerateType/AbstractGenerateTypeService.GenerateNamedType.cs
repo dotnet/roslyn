@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -47,11 +49,11 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         DetermineAttributes(),
                         options.Accessibility,
                         DetermineModifiers(),
-                        DetermineReturnType(options),
+                        DetermineReturnType(),
                         RefKind.None,
                         name: options.TypeName,
-                        typeParameters: DetermineTypeParameters(options),
-                        parameters: DetermineParameters(options));
+                        typeParameters: DetermineTypeParametersWithDelegateChecks(),
+                        parameters: DetermineParameters());
                 }
 
                 return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     members: DetermineMembers(options));
             }
 
-            private ITypeSymbol DetermineReturnType(GenerateTypeOptionsResult options)
+            private ITypeSymbol DetermineReturnType()
             {
                 if (_state.DelegateMethodSymbol == null ||
                     _state.DelegateMethodSymbol.ReturnType == null ||
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            private ImmutableArray<ITypeParameterSymbol> DetermineTypeParameters(GenerateTypeOptionsResult options)
+            private ImmutableArray<ITypeParameterSymbol> DetermineTypeParametersWithDelegateChecks()
             {
                 if (_state.DelegateMethodSymbol != null)
                 {
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return DetermineTypeParameters();
             }
 
-            private ImmutableArray<IParameterSymbol> DetermineParameters(GenerateTypeOptionsResult options)
+            private ImmutableArray<IParameterSymbol> DetermineParameters()
             {
                 if (_state.DelegateMethodSymbol != null)
                 {
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // caller.
                 if (_state.IsException &&
                     _state.BaseTypeOrInterfaceOpt.InstanceConstructors.Any(
-                        c => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes)))
+                        c => c.Parameters.Select(p => p.Type).SequenceEqual(parameterTypes, SymbolEqualityComparer.Default)))
                 {
                     return;
                 }
@@ -203,12 +205,11 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 IList<TArgumentSyntax> argumentList, ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
             {
                 var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
-                var syntaxFactsService = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
 
                 var availableTypeParameters = _service.GetAvailableTypeParameters(_state, _semanticDocument.SemanticModel, _intoNamespace, _cancellationToken);
                 var parameterTypes = GetArgumentTypes(argumentList);
                 var parameterNames = _service.GenerateParameterNames(_semanticDocument.SemanticModel, argumentList, _cancellationToken);
-                var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
+                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
 
                 var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
                 var parameterToNewFieldMap = new Dictionary<string, string>();
@@ -243,16 +244,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (!(parameters.Count == 0 && options != null && (options.TypeKind == TypeKind.Struct || options.TypeKind == TypeKind.Structure)))
                 {
                     var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
-                        _semanticDocument.SemanticModel.Compilation,
+                        _semanticDocument.SemanticModel,
                         DetermineName(), null, parameters.ToImmutable(),
                         parameterToExistingFieldMap, parameterToNewFieldMap,
-                        addNullChecks: false, preferThrowExpression: false,
-                        cancellationToken: _cancellationToken);
+                        addNullChecks: false, preferThrowExpression: false);
                     members.AddRange(fields);
                     members.Add(constructor);
                 }
-
-                parameters.Free();
             }
 
             private void AddExceptionConstructors(ArrayBuilder<ISymbol> members)
@@ -291,14 +289,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private Accessibility DetermineAccessibility()
-            {
-                return _service.GetAccessibility(_state, _semanticDocument.SemanticModel, _intoNamespace, _cancellationToken);
-            }
+                => _service.GetAccessibility(_state, _semanticDocument.SemanticModel, _intoNamespace, _cancellationToken);
 
             private DeclarationModifiers DetermineModifiers()
-            {
-                return default;
-            }
+                => default;
 
             private INamedTypeSymbol DetermineBaseType()
             {
@@ -331,9 +325,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private string DetermineName()
-            {
-                return GetTypeName(_state);
-            }
+                => GetTypeName(_state);
 
             private ImmutableArray<ITypeParameterSymbol> DetermineTypeParameters()
                 => _service.GetTypeParameters(_state, _semanticDocument.SemanticModel, _cancellationToken);

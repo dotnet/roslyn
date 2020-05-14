@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -306,7 +309,7 @@ public class B
             Assert.Equal(1, countedTree.AccessCount);
 
             // Once we have the method, we shouldn't need to go back to syntax again.
-            var returnType = method.ReturnType;
+            var returnType = method.ReturnTypeWithAnnotations;
             Assert.Equal(1, countedTree.AccessCount);
 
             var parameterType = method.Parameters.Single();
@@ -422,6 +425,8 @@ public class B
                 get { return _underlyingTree.Length; }
             }
 
+            public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions => throw new NotImplementedException();
+
             public override SyntaxReference GetReference(SyntaxNode node)
             {
                 return new Reference(this, _underlyingTree.GetReference(node));
@@ -438,6 +443,11 @@ public class B
             }
 
             public override SyntaxTree WithFilePath(string path)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
             {
                 throw new NotImplementedException();
             }

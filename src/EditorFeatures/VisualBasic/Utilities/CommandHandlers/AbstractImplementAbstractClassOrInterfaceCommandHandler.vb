@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -13,11 +15,10 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
     Friend MustInherit Class AbstractImplementAbstractClassOrInterfaceCommandHandler
-        Implements VSCommanding.ICommandHandler(Of ReturnKeyCommandArgs)
+        Implements ICommandHandler(Of ReturnKeyCommandArgs)
 
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
 
@@ -36,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             typeSyntax As TypeSyntax,
             cancellationToken As CancellationToken) As Document
 
-        Private Function ExecuteCommand(args As ReturnKeyCommandArgs, context As CommandExecutionContext) As Boolean Implements VSCommanding.ICommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
+        Private Function ExecuteCommand(args As ReturnKeyCommandArgs, context As CommandExecutionContext) As Boolean Implements ICommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
             Dim caretPointOpt = args.TextView.GetCaretPoint(args.SubjectBuffer)
             If caretPointOpt Is Nothing Then
                 Return False
@@ -179,8 +180,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             Return True
         End Function
 
-        Private Function GetCommandState(args As ReturnKeyCommandArgs) As VSCommanding.CommandState Implements VSCommanding.ICommandHandler(Of ReturnKeyCommandArgs).GetCommandState
-            Return VSCommanding.CommandState.Unspecified
+        Private Function GetCommandState(args As ReturnKeyCommandArgs) As CommandState Implements ICommandHandler(Of ReturnKeyCommandArgs).GetCommandState
+            Return CommandState.Unspecified
         End Function
     End Class
 End Namespace

@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,34 +11,37 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteSymbolSearchUpdateEngine :
-        ServiceHubServiceBase, IRemoteSymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
+    internal partial class RemoteSymbolSearchUpdateEngine : ServiceBase, IRemoteSymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
     {
         private readonly SymbolSearchUpdateEngine _updateEngine;
 
-        public RemoteSymbolSearchUpdateEngine(Stream stream, IServiceProvider serviceProvider)
+        public RemoteSymbolSearchUpdateEngine(
+            Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
             _updateEngine = new SymbolSearchUpdateEngine(
                 logService: this, progressService: this);
 
-            Rpc.StartListening();
+            StartService();
         }
 
         public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
         {
-            return RunServiceAsync(_ =>
+            return RunServiceAsync(() =>
             {
-                return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
+                // In non-test scenarios, we're not cancellable.  Our lifetime will simply be that
+                // of the OOP process itself.  i.e. when it goes away, it will just tear down our
+                // update-loop itself.  So we don't need any additional controls over it.
+                return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, CancellationToken.None);
             }, CancellationToken.None);
         }
 
         public Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
                 var results = await _updateEngine.FindPackagesWithTypeAsync(
-                    source, name, arity, token).ConfigureAwait(false);
+                    source, name, arity, cancellationToken).ConfigureAwait(false);
 
                 return (IList<PackageWithTypeResult>)results;
             }, cancellationToken);
@@ -45,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
                 var results = await _updateEngine.FindPackagesWithAssemblyAsync(
-                    source, assemblyName, token).ConfigureAwait(false);
+                    source, assemblyName, cancellationToken).ConfigureAwait(false);
 
                 return (IList<PackageWithAssemblyResult>)results;
             }, cancellationToken);
@@ -56,10 +60,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
                 var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
-                    name, arity, token).ConfigureAwait(false);
+                    name, arity, cancellationToken).ConfigureAwait(false);
 
                 return (IList<ReferenceAssemblyWithTypeResult>)results;
             }, cancellationToken);
@@ -68,22 +72,22 @@ namespace Microsoft.CodeAnalysis.Remote
         #region Messages to forward from here to VS
 
         public Task LogExceptionAsync(string exception, string text)
-            => this.Rpc.InvokeAsync(nameof(LogExceptionAsync), exception, text);
+            => EndPoint.InvokeAsync(nameof(LogExceptionAsync), new object[] { exception, text }, CancellationToken.None);
 
         public Task LogInfoAsync(string text)
-            => this.Rpc.InvokeAsync(nameof(LogInfoAsync), text);
+            => EndPoint.InvokeAsync(nameof(LogInfoAsync), new object[] { text }, CancellationToken.None);
 
         public Task OnDownloadFullDatabaseStartedAsync(string title)
-            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), title);
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), new object[] { title }, CancellationToken.None);
 
         public Task OnDownloadFullDatabaseSucceededAsync()
-            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync));
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync), Array.Empty<object>(), CancellationToken.None);
 
         public Task OnDownloadFullDatabaseCanceledAsync()
-            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync));
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync), Array.Empty<object>(), CancellationToken.None);
 
         public Task OnDownloadFullDatabaseFailedAsync(string message)
-            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), message);
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), new object[] { message }, CancellationToken.None);
 
         #endregion
     }

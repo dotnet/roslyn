@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -318,11 +320,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            if (this.IsInterface)
-            {
-                yield break;
-            }
-
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
             foreach (var member in this.GetMembers())
@@ -339,6 +336,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
                         }
+                    }
+
+                    if (this.IsInterface)
+                    {
+                        continue;
                     }
 
                     if (method.RequiresExplicitOverride())
@@ -368,6 +370,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                 }
+            }
+
+            if (this.IsInterface)
+            {
+                yield break;
             }
 
             var syntheticMethods = moduleBeingBuilt.GetSynthesizedMethods(this);
@@ -400,6 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var f in GetFieldsToEmit())
             {
+                Debug.Assert((object)(f.TupleUnderlyingField ?? f) == f);
                 if (isStruct || f.ShouldInclude(context))
                 {
                     yield return f;
@@ -464,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics: context.Diagnostics,
                     fromImplements: true);
 
-                var type = TypeSymbolWithAnnotations.Create(@interface);
+                var type = TypeWithAnnotations.Create(@interface);
                 yield return type.GetTypeRefWithAttributes(
                     moduleBeingBuilt,
                     declaringSymbol: this,
@@ -504,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (seen == null)
                 {
                     // Don't allocate until we see at least one interface.
-                    seen = new HashSet<NamedTypeSymbol>();
+                    seen = new HashSet<NamedTypeSymbol>(Symbols.SymbolEqualityComparer.CLRSignature);
                 }
                 if (seen.Add(@interface))
                 {
@@ -587,6 +595,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        bool Cci.ITypeDefinition.IsDelegate
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return this.IsDelegateType();
+            }
+        }
+
         bool Cci.ITypeDefinition.IsRuntimeSpecial
         {
             get
@@ -645,10 +662,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
+            // All constructors in attributes should be emitted.
+            // Don't compute IsAttributeType if IncludePrivateMembers is true, as we'll include it anyway.
+            bool alwaysIncludeConstructors = context.IncludePrivateMembers || DeclaringCompilation.IsAttributeType(this);
+
             foreach (var method in this.GetMethodsToEmit())
             {
                 Debug.Assert((object)method != null);
-                if (method.ShouldInclude(context))
+
+                if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method.ShouldInclude(context))
                 {
                     yield return method;
                 }
@@ -660,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var m in generated)
                 {
-                    if (m.ShouldInclude(context))
+                    if ((alwaysIncludeConstructors && m.IsConstructor) || m.ShouldInclude(context))
                     {
                         yield return m;
                     }
@@ -681,22 +703,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (m.Kind == SymbolKind.Method)
                 {
                     var method = (MethodSymbol)m;
-
-                    if (method.IsPartialDefinition())
+                    if (method.ShouldEmit())
                     {
-                        // Don't emit partial methods without an implementation part.
-                        if ((object)method.PartialImplementationPart == null)
-                        {
-                            continue;
-                        }
+                        yield return method;
                     }
-                    // Don't emit the default value type constructor - the runtime handles that
-                    else if (method.IsDefaultValueTypeConstructor())
-                    {
-                        continue;
-                    }
-
-                    yield return method;
                 }
             }
         }
@@ -923,15 +933,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<Microsoft.Cci.ITypeReference>.GetInstance();
             Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
 
-            var arguments = this.TypeArgumentsNoUseSiteDiagnostics;
+            var arguments = this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                var arg = moduleBeingBuilt.Translate(arguments[i].TypeSymbol, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+                var arg = moduleBeingBuilt.Translate(arguments[i].Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
                 var modifiers = arguments[i].CustomModifiers;
                 if (!modifiers.IsDefaultOrEmpty)
                 {
-                    arg = new Cci.ModifiedTypeReference(arg, modifiers.As<Cci.ICustomModifier>());
+                    arg = new Cci.ModifiedTypeReference(arg, ImmutableArray<Cci.ICustomModifier>.CastUp(modifiers));
                 }
 
                 builder.Add(arg);

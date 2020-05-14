@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -266,11 +268,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var type1 = ns3.GetTypeMembers("EventProviderBase").Single() as NamedTypeSymbol;
             // EventData[]
-            var type2 = (type1.GetMembers("m_eventData").Single() as FieldSymbol).Type.TypeSymbol as ArrayTypeSymbol;
+            var type2 = (type1.GetMembers("m_eventData").Single() as FieldSymbol).Type as ArrayTypeSymbol;
             var member2 = type1.GetMembers("WriteTransferEventHelper").Single() as MethodSymbol;
             Assert.Equal(3, member2.Parameters.Length);
             // params object[]
-            var type3 = (member2.Parameters[2] as ParameterSymbol).Type.TypeSymbol as ArrayTypeSymbol;
+            var type3 = (member2.Parameters[2] as ParameterSymbol).Type as ArrayTypeSymbol;
 
             Assert.Equal(SymbolKind.ArrayType, type2.Kind);
             Assert.Equal(SymbolKind.ArrayType, type3.Kind);

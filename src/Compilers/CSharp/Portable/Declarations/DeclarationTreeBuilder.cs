@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -254,6 +256,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ContainsAlias(node.Name))
             {
                 diagnostics.Add(ErrorCode.ERR_UnexpectedAliasedName, node.Name.GetLocation());
+            }
+
+            if (node.AttributeLists.Count > 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadModifiersOnNamespace, node.AttributeLists[0].GetLocation());
+            }
+
+            if (node.Modifiers.Count > 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadModifiersOnNamespace, node.Modifiers[0].GetLocation());
             }
 
             // NOTE: *Something* has to happen for alias-qualified names.  It turns out that we

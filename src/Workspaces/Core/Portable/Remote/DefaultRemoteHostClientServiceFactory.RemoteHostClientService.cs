@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -31,11 +32,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 _lazyInstance = CreateNewLazyRemoteHostClient();
             }
 
+            public bool IsEnabled()
+                => !(_lazyInstance is null);
+
             public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
                 if (_lazyInstance == null)
                 {
-                    return SpecializedTasks.Default<RemoteHostClient>();
+                    return SpecializedTasks.Null<RemoteHostClient>();
                 }
 
                 return _lazyInstance.GetValueAsync(cancellationToken);
@@ -51,14 +55,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 _lazyInstance = CreateNewLazyRemoteHostClient();
 
-                // let people know this remote host client is being disconnected
-                instance.Shutdown();
+                instance.Dispose();
             }
 
             private AsyncLazy<RemoteHostClient> CreateNewLazyRemoteHostClient()
-            {
-                return new AsyncLazy<RemoteHostClient>(c => _remoteHostClientFactory.CreateAsync(_workspace, c), cacheResult: true);
-            }
+                => new AsyncLazy<RemoteHostClient>(c => _remoteHostClientFactory.CreateAsync(_workspace, c), cacheResult: true);
         }
     }
 }

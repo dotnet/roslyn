@@ -1,11 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
@@ -13,14 +18,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     [ExportHighlighter(LanguageNames.CSharp)]
     internal class LoopHighlighter : AbstractKeywordHighlighter
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public LoopHighlighter()
+        {
+        }
+
         protected override bool IsHighlightableNode(SyntaxNode node)
             => node.IsContinuableConstruct();
 
-        protected override IEnumerable<TextSpan> GetHighlightsForNode(
-            SyntaxNode node, CancellationToken cancellationToken)
+        protected override void AddHighlightsForNode(
+            SyntaxNode node, List<TextSpan> spans, CancellationToken cancellationToken)
         {
-            var spans = new List<TextSpan>();
-
             switch (node)
             {
                 case DoStatementSyntax doStatement:
@@ -38,8 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
             }
 
             HighlightRelatedKeywords(node, spans, highlightBreaks: true, highlightContinues: true);
-
-            return spans;
         }
 
         private void HighlightDoStatement(DoStatementSyntax statement, List<TextSpan> spans)
@@ -50,19 +57,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         }
 
         private void HighlightForStatement(ForStatementSyntax statement, List<TextSpan> spans)
-        {
-            spans.Add(statement.ForKeyword.Span);
-        }
+            => spans.Add(statement.ForKeyword.Span);
 
         private void HighlightForEachStatement(CommonForEachStatementSyntax statement, List<TextSpan> spans)
-        {
-            spans.Add(statement.ForEachKeyword.Span);
-        }
+            => spans.Add(statement.ForEachKeyword.Span);
 
         private void HighlightWhileStatement(WhileStatementSyntax statement, List<TextSpan> spans)
-        {
-            spans.Add(statement.WhileKeyword.Span);
-        }
+            => spans.Add(statement.WhileKeyword.Span);
 
         /// <summary>
         /// Finds all breaks and continues that are a child of this node, and adds the appropriate spans to the spans list.

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -27,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Dim root = SemanticDocument.Root
             Dim model = Me.SemanticDocument.SemanticModel
 
-            Dim selectionInfo = GetInitialSelectionInfo(root, cancellationToken)
+            Dim selectionInfo = GetInitialSelectionInfo(root)
             selectionInfo = AssignInitialFinalTokens(selectionInfo, root, cancellationToken)
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken)
             selectionInfo = AdjustFinalTokensIfNextStatement(selectionInfo, model, cancellationToken)
@@ -212,8 +214,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Continue For
                 End If
 
-                If result.WrittenOutside().Any(Function(s) s Is local) OrElse
-result.ReadOutside().Any(Function(s) s Is local) Then
+                If result.WrittenOutside().Any(Function(s) Equals(s, local)) OrElse
+result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                     Return False
                 End If
             Next
@@ -447,7 +449,7 @@ result.ReadOutside().Any(Function(s) s Is local) Then
             Return clone
         End Function
 
-        Private Function GetInitialSelectionInfo(root As SyntaxNode, cancellationToken As CancellationToken) As SelectionInfo
+        Private Function GetInitialSelectionInfo(root As SyntaxNode) As SelectionInfo
             Dim adjustedSpan = GetAdjustedSpan(root, Me.OriginalSpan)
             Dim firstTokenInSelection = root.FindTokenOnRightOfPosition(adjustedSpan.Start, includeSkipped:=False)
             Dim lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped:=False)

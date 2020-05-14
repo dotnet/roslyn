@@ -1,9 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
-Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -37,13 +39,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
 
                 Assert.NotNull(symbolInfo.Symbol)
 
+                Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
                 Dim presenter = New MockStreamingFindUsagesPresenter(Sub() Exit Sub)
 
                 WpfTestRunner.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.TryGoToDefinition)} assumes it's on the UI thread with a {NameOf(TaskExtensions.WaitAndGetResult)} call")
                 Dim success = GoToDefinitionHelpers.TryGoToDefinition(
-                    symbolInfo.Symbol, document.Project,
-                    {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)},
-                    thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False,
+                    symbolInfo.Symbol, document.Project.Solution,
+                    threadingContext,
+                    presenter,
+                    thirdPartyNavigationAllowed:=True,
                     cancellationToken:=CancellationToken.None)
 
                 Assert.Equal(expectSuccess, success)

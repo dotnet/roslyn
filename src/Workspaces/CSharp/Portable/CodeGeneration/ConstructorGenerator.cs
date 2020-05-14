@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
@@ -16,9 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal static class ConstructorGenerator
     {
         private static MemberDeclarationSyntax LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return LastConstructor(members) ?? LastField(members);
-        }
+            => LastConstructor(members) ?? LastField(members);
 
         internal static TypeDeclarationSyntax AddConstructorTo(
             TypeDeclarationSyntax destination,
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
         {
             var constructorDeclaration = GenerateConstructorDeclaration(
-                constructor, GetDestination(destination), workspace, options,
+                constructor, workspace, options,
                 destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             // Generate after the last constructor, or after the last field, or at the start of the
@@ -40,10 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal static ConstructorDeclarationSyntax GenerateConstructorDeclaration(
-            IMethodSymbol constructor, CodeGenerationDestination destination,
-            Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
+            IMethodSymbol constructor,
+            Workspace workspace,
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
 
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ConstructorDeclarationSyntax>(constructor, options);
             if (reusableSyntax != null)
@@ -103,9 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static ArgumentListSyntax GenerateArgumentList(ImmutableArray<SyntaxNode> arguments)
-        {
-            return SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments.Select(ArgumentGenerator.GenerateArgument)));
-        }
+            => SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments.Select(ArgumentGenerator.GenerateArgument)));
 
         private static BlockSyntax GenerateBlock(
             IMethodSymbol constructor)
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxTokenList GenerateModifiers(IMethodSymbol constructor, CodeGenerationOptions options)
         {
-            var tokens = new List<SyntaxToken>();
+            var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
             if (constructor.IsStatic)
             {
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, options, Accessibility.Private);
             }
 
-            return tokens.ToSyntaxTokenList();
+            return tokens.ToSyntaxTokenListAndFree();
         }
     }
 }

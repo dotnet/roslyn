@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -11,10 +13,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// 
     /// This works on data that belong to logically same source of items such as one particular analyzer or todo list analyzer.
     /// </summary>
-    internal abstract class AbstractTableEntriesSource<TData>
+    internal abstract class AbstractTableEntriesSource<TItem> where TItem : TableItem
     {
         public abstract object Key { get; }
-        public abstract ImmutableArray<TableItem<TData>> GetItems();
-        public abstract ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<TData>> items);
+        public abstract ImmutableArray<TItem> GetItems();
+        public abstract ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TItem> items);
     }
 }

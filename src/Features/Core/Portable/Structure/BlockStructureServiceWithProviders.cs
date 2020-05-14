@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -25,13 +27,11 @@ namespace Microsoft.CodeAnalysis.Structure
         /// This does not included providers imported via MEF composition.
         /// </summary>
         protected virtual ImmutableArray<BlockStructureProvider> GetBuiltInProviders()
-        {
-            return ImmutableArray<BlockStructureProvider>.Empty;
-        }
+            => ImmutableArray<BlockStructureProvider>.Empty;
 
         private ImmutableArray<BlockStructureProvider> GetImportedProviders()
         {
-            var language = this.Language;
+            var language = Language;
             var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
 
             var providers = mefExporter.GetExports<BlockStructureProvider, LanguageMetadata>()
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Structure
                 await provider.ProvideBlockStructureAsync(context).ConfigureAwait(false);
             }
 
-            return CreateBlockStructure(document, context);
+            return CreateBlockStructure(context);
         }
 
         public override BlockStructure GetBlockStructure(
@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Structure
                 provider.ProvideBlockStructure(context);
             }
 
-            return CreateBlockStructure(document, context);
+            return CreateBlockStructure(context);
         }
 
-        private static BlockStructure CreateBlockStructure(Document document, BlockStructureContext context)
+        private static BlockStructure CreateBlockStructure(BlockStructureContext context)
         {
             var options = context.Document.Project.Solution.Workspace.Options;
             var language = context.Document.Project.Language;

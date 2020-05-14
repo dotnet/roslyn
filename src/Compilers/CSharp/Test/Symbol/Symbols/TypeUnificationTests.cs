@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -44,20 +46,20 @@ class C
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var structType = @class.GetMember<FieldSymbol>("i").Type.TypeSymbol;
-            var classType = @class.GetMember<FieldSymbol>("s").Type.TypeSymbol;
-            var interfaceType = @class.GetMember<FieldSymbol>("f").Type.TypeSymbol;
-            var enumType = @class.GetMember<FieldSymbol>("e").Type.TypeSymbol;
-            var errorType = @class.GetMember<FieldSymbol>("err").Type.TypeSymbol;
-            var voidType = @class.GetMember<MethodSymbol>("M").ReturnType.TypeSymbol;
+            var structType = @class.GetMember<FieldSymbol>("i").Type;
+            var classType = @class.GetMember<FieldSymbol>("s").Type;
+            var interfaceType = @class.GetMember<FieldSymbol>("f").Type;
+            var enumType = @class.GetMember<FieldSymbol>("e").Type;
+            var errorType = @class.GetMember<FieldSymbol>("err").Type;
+            var voidType = @class.GetMember<MethodSymbol>("M").ReturnType;
 
-            var arrayType1 = @class.GetMember<FieldSymbol>("a1").Type.TypeSymbol;
-            var arrayType2 = @class.GetMember<FieldSymbol>("a2").Type.TypeSymbol;
-            var arrayType3 = @class.GetMember<FieldSymbol>("a3").Type.TypeSymbol;
-            var pointerType1 = @class.GetMember<FieldSymbol>("p1").Type.TypeSymbol;
-            var pointerType2 = @class.GetMember<FieldSymbol>("p2").Type.TypeSymbol;
-            var genericType1 = @class.GetMember<FieldSymbol>("g1").Type.TypeSymbol;
-            var genericType2 = @class.GetMember<FieldSymbol>("g2").Type.TypeSymbol;
+            var arrayType1 = @class.GetMember<FieldSymbol>("a1").Type;
+            var arrayType2 = @class.GetMember<FieldSymbol>("a2").Type;
+            var arrayType3 = @class.GetMember<FieldSymbol>("a3").Type;
+            var pointerType1 = @class.GetMember<FieldSymbol>("p1").Type;
+            var pointerType2 = @class.GetMember<FieldSymbol>("p2").Type;
+            var genericType1 = @class.GetMember<FieldSymbol>("g1").Type;
+            var genericType2 = @class.GetMember<FieldSymbol>("g2").Type;
 
             var types = new[]
             {
@@ -127,22 +129,22 @@ class C<T, U>
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var structType = @class.GetMember<FieldSymbol>("i").Type.TypeSymbol;
-            var classType = @class.GetMember<FieldSymbol>("s").Type.TypeSymbol;
-            var interfaceType = @class.GetMember<FieldSymbol>("f").Type.TypeSymbol;
-            var errorType = @class.GetMember<FieldSymbol>("e").Type.TypeSymbol;
-            var voidType = @class.GetMember<MethodSymbol>("M").ReturnType.TypeSymbol;
+            var structType = @class.GetMember<FieldSymbol>("i").Type;
+            var classType = @class.GetMember<FieldSymbol>("s").Type;
+            var interfaceType = @class.GetMember<FieldSymbol>("f").Type;
+            var errorType = @class.GetMember<FieldSymbol>("e").Type;
+            var voidType = @class.GetMember<MethodSymbol>("M").ReturnType;
 
-            var arrayType1 = @class.GetMember<FieldSymbol>("a1").Type.TypeSymbol;
-            var arrayType2 = @class.GetMember<FieldSymbol>("a2").Type.TypeSymbol;
-            var arrayType3 = @class.GetMember<FieldSymbol>("a3").Type.TypeSymbol;
-            var pointerType1 = @class.GetMember<FieldSymbol>("p1").Type.TypeSymbol;
-            var pointerType2 = @class.GetMember<FieldSymbol>("p2").Type.TypeSymbol;
-            var genericType1 = @class.GetMember<FieldSymbol>("g1").Type.TypeSymbol;
-            var genericType2 = @class.GetMember<FieldSymbol>("g2").Type.TypeSymbol;
+            var arrayType1 = @class.GetMember<FieldSymbol>("a1").Type;
+            var arrayType2 = @class.GetMember<FieldSymbol>("a2").Type;
+            var arrayType3 = @class.GetMember<FieldSymbol>("a3").Type;
+            var pointerType1 = @class.GetMember<FieldSymbol>("p1").Type;
+            var pointerType2 = @class.GetMember<FieldSymbol>("p2").Type;
+            var genericType1 = @class.GetMember<FieldSymbol>("g1").Type;
+            var genericType2 = @class.GetMember<FieldSymbol>("g2").Type;
 
-            var typeParam1 = @class.GetMember<FieldSymbol>("tp1").Type.TypeSymbol;
-            var typeParam2 = @class.GetMember<FieldSymbol>("tp2").Type.TypeSymbol;
+            var typeParam1 = @class.GetMember<FieldSymbol>("tp1").Type;
+            var typeParam2 = @class.GetMember<FieldSymbol>("tp2").Type;
 
             var substitutableTypes = new[]
             {
@@ -198,13 +200,13 @@ class C<T>
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var arrayType1 = @class.GetMember<FieldSymbol>("a1").Type.TypeSymbol;
-            var arrayType2 = @class.GetMember<FieldSymbol>("a2").Type.TypeSymbol;
-            var arrayType3 = @class.GetMember<FieldSymbol>("a3").Type.TypeSymbol;
+            var arrayType1 = @class.GetMember<FieldSymbol>("a1").Type;
+            var arrayType2 = @class.GetMember<FieldSymbol>("a2").Type;
+            var arrayType3 = @class.GetMember<FieldSymbol>("a3").Type;
 
-            var genericType1 = @class.GetMember<FieldSymbol>("g1").Type.TypeSymbol;
-            var genericType2 = @class.GetMember<FieldSymbol>("g2").Type.TypeSymbol;
-            var genericType3 = @class.GetMember<FieldSymbol>("g3").Type.TypeSymbol;
+            var genericType1 = @class.GetMember<FieldSymbol>("g1").Type;
+            var genericType2 = @class.GetMember<FieldSymbol>("g2").Type;
+            var genericType3 = @class.GetMember<FieldSymbol>("g3").Type;
 
             AssertCanUnify(genericType1, arrayType1);
             AssertCanUnify(genericType2, arrayType2);
@@ -240,13 +242,13 @@ class D<T>
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var type1 = @class.GetMember<FieldSymbol>("g1").Type.TypeSymbol;
-            var type2 = @class.GetMember<FieldSymbol>("g2").Type.TypeSymbol;
-            var type3 = @class.GetMember<FieldSymbol>("g3").Type.TypeSymbol;
-            var type4 = @class.GetMember<FieldSymbol>("g4").Type.TypeSymbol;
-            var type5 = @class.GetMember<FieldSymbol>("g5").Type.TypeSymbol;
-            var type6 = @class.GetMember<FieldSymbol>("g6").Type.TypeSymbol;
-            var type7 = @class.GetMember<FieldSymbol>("g7").Type.TypeSymbol;
+            var type1 = @class.GetMember<FieldSymbol>("g1").Type;
+            var type2 = @class.GetMember<FieldSymbol>("g2").Type;
+            var type3 = @class.GetMember<FieldSymbol>("g3").Type;
+            var type4 = @class.GetMember<FieldSymbol>("g4").Type;
+            var type5 = @class.GetMember<FieldSymbol>("g5").Type;
+            var type6 = @class.GetMember<FieldSymbol>("g6").Type;
+            var type7 = @class.GetMember<FieldSymbol>("g7").Type;
 
             var types1To4 = new[] { type1, type2, type3, type4 };
 
@@ -291,12 +293,12 @@ public class L<T>
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var type1 = @class.GetMember<FieldSymbol>("g1").Type.TypeSymbol;
-            var type2 = @class.GetMember<FieldSymbol>("g2").Type.TypeSymbol;
-            var type3 = @class.GetMember<FieldSymbol>("g3").Type.TypeSymbol;
-            var type4 = @class.GetMember<FieldSymbol>("g4").Type.TypeSymbol;
-            var type5 = @class.GetMember<FieldSymbol>("g5").Type.TypeSymbol;
-            var type6 = @class.GetMember<FieldSymbol>("g6").Type.TypeSymbol;
+            var type1 = @class.GetMember<FieldSymbol>("g1").Type;
+            var type2 = @class.GetMember<FieldSymbol>("g2").Type;
+            var type3 = @class.GetMember<FieldSymbol>("g3").Type;
+            var type4 = @class.GetMember<FieldSymbol>("g4").Type;
+            var type5 = @class.GetMember<FieldSymbol>("g5").Type;
+            var type6 = @class.GetMember<FieldSymbol>("g6").Type;
 
             var types1To4 = new[] { type1, type2, type3, type4 };
 
@@ -328,8 +330,8 @@ class C<T>
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var containedType = @class.GetMember<FieldSymbol>("contained").Type.TypeSymbol;
-            var containingType = @class.GetMember<FieldSymbol>("containing").Type.TypeSymbol;
+            var containedType = @class.GetMember<FieldSymbol>("contained").Type;
+            var containingType = @class.GetMember<FieldSymbol>("containing").Type;
 
             AssertCannotUnify(containedType, containingType);
         }
@@ -361,12 +363,12 @@ public class L<T>
 
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var type1 = @class.GetMember<FieldSymbol>("t1").Type.TypeSymbol;
-            var type2 = @class.GetMember<FieldSymbol>("t2").Type.TypeSymbol;
-            var type3 = @class.GetMember<FieldSymbol>("t3").Type.TypeSymbol;
-            var type4 = @class.GetMember<FieldSymbol>("t4").Type.TypeSymbol;
-            var type5 = @class.GetMember<FieldSymbol>("t5").Type.TypeSymbol;
-            var type6 = @class.GetMember<FieldSymbol>("t6").Type.TypeSymbol;
+            var type1 = @class.GetMember<FieldSymbol>("t1").Type;
+            var type2 = @class.GetMember<FieldSymbol>("t2").Type;
+            var type3 = @class.GetMember<FieldSymbol>("t3").Type;
+            var type4 = @class.GetMember<FieldSymbol>("t4").Type;
+            var type5 = @class.GetMember<FieldSymbol>("t5").Type;
+            var type6 = @class.GetMember<FieldSymbol>("t6").Type;
 
             AssertCanUnify(type1, type1);
             AssertCanUnify(type1, type2);

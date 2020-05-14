@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -30,9 +32,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
         protected abstract SeparatedSyntaxList<SyntaxNode> GetVariables(TLocalDeclarationStatement localDeclarationStatement);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            Diagnostic diagnostic = context.Diagnostics.First();
+            var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)), diagnostic);
             return Task.CompletedTask;
         }
@@ -152,8 +156,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             var candidateLocalDeclarationsToRemove = new HashSet<TLocalDeclarationStatement>();
             foreach (var variableDeclarator in nodesToRemove.OfType<TVariableDeclarator>())
             {
-                var localDeclaration = (TLocalDeclarationStatement)variableDeclarator.Parent.Parent;
-                candidateLocalDeclarationsToRemove.Add(localDeclaration);
+                // Parents of the variable declarator could be candaditaes for removal for example 
+                // if all declarators in a declaration will be removed.
+
+                if (variableDeclarator.Parent?.Parent is TLocalDeclarationStatement candidate)
+                {
+                    candidateLocalDeclarationsToRemove.Add(candidate);
+                }
             }
 
             foreach (var candidate in candidateLocalDeclarationsToRemove)
@@ -181,8 +190,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Remove_unused_variable, createChangedDocument, FeaturesResources.Remove_unused_variable)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Remove_unused_variable, createChangedDocument, FeaturesResources.Remove_unused_variable)
             {
             }
         }

@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -23,12 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     internal partial class DiagnosticsSuggestionTaggerProvider :
         AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
-        private static readonly IEnumerable<Option<bool>> s_tagSourceOptions =
+        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
 
-        protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
+        protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public DiagnosticsSuggestionTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
@@ -41,8 +47,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
             => diagnostic.Severity == DiagnosticSeverity.Info;
 
-        protected override IErrorTag CreateTag(DiagnosticData diagnostic) =>
-            new ErrorTag(PredefinedErrorTypeNames.HintedSuggestion, diagnostic.Message);
+        protected override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)
+            => new ErrorTag(
+                PredefinedErrorTypeNames.HintedSuggestion,
+                CreateToolTipContent(workspace, diagnostic));
 
         protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan, int minimumLength)
         {

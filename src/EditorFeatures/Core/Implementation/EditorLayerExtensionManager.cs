@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -27,8 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor
         private readonly List<IExtensionErrorHandler> _errorHandlers;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorLayerExtensionManager(
-            [ImportMany]IEnumerable<IExtensionErrorHandler> errorHandlers)
+            [ImportMany] IEnumerable<IExtensionErrorHandler> errorHandlers)
         {
             _errorHandlers = errorHandlers.ToList();
         }
@@ -94,24 +97,16 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             private void ShowDetailedErrorInfo(Exception exception)
-            {
-                _errorReportingService.ShowDetailedErrorInfo(exception);
-            }
+                => _errorReportingService.ShowDetailedErrorInfo(exception);
 
             private static void LogLeaveDisabled(object provider)
-            {
-                LogAction(CodefixInfobar_LeaveDisabled, provider);
-            }
+                => LogAction(CodefixInfobar_LeaveDisabled, provider);
 
             private static void LogEnableAndIgnoreProvider(object provider)
-            {
-                LogAction(CodefixInfobar_EnableAndIgnoreFutureErrors, provider);
-            }
+                => LogAction(CodefixInfobar_EnableAndIgnoreFutureErrors, provider);
 
             private static void LogEnableProvider(object provider)
-            {
-                LogAction(CodefixInfobar_Enable, provider);
-            }
+                => LogAction(CodefixInfobar_Enable, provider);
 
             private static void LogAction(FunctionId functionId, object provider)
             {

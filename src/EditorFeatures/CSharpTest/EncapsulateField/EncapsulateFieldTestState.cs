@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
 using Microsoft.CodeAnalysis.Editor.Shared;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 {
     internal class EncapsulateFieldTestState : IDisposable
     {
-        private TestHostDocument _testDocument;
+        private readonly TestHostDocument _testDocument;
         public TestWorkspace Workspace { get; }
         public Document TargetDocument { get; }
         public string NotificationMessage { get; private set; }
@@ -32,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                     typeof(CSharpEncapsulateFieldService),
                     typeof(EditorNotificationServiceFactory),
-                    typeof(DefaultDocumentSupportsFeatureService)));
+                    typeof(DefaultTextBufferSupportsFeatureService)));
 
         public EncapsulateFieldTestState(TestWorkspace workspace)
         {
@@ -49,17 +52,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
         {
             var exportProvider = s_exportProviderFactory.CreateExportProvider();
             var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
-            workspace.Options = workspace.Options
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement)
-                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement)));
             return new EncapsulateFieldTestState(workspace);
         }
 
         public void Encapsulate()
         {
             var args = new EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer());
-            var commandHandler = new EncapsulateFieldCommandHandler(Workspace.GetService<ITextBufferUndoManagerProvider>(),
-                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+            var commandHandler = new EncapsulateFieldCommandHandler(
+                Workspace.GetService<IThreadingContext>(),
+                Workspace.GetService<ITextBufferUndoManagerProvider>(),
+                Workspace.GetService<IAsynchronousOperationListenerProvider>());
             commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create());
         }
 

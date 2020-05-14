@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,11 +11,14 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Xaml;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -37,19 +42,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         private uint? _rdtEventsCookie;
         private readonly Dictionary<IVsHierarchy, VisualStudioProject> _xamlProjects = new Dictionary<IVsHierarchy, VisualStudioProject>();
 
-        internal ICommandHandlerServiceFactory CommandHandlerServiceFactory { get; }
-
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlTextViewCreationListener(
             [Import(typeof(SVsServiceProvider))] System.IServiceProvider services,
-            ICommandHandlerServiceFactory commandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IXamlDocumentAnalyzerService analyzerService,
             VisualStudioWorkspaceImpl vsWorkspace,
             VisualStudioProjectFactory visualStudioProjectFactory)
         {
             _serviceProvider = services;
-            CommandHandlerServiceFactory = commandHandlerServiceFactory;
             _editorAdaptersFactory = editorAdaptersFactoryService;
             _vsWorkspace = vsWorkspace;
             _visualStudioProjectFactory = visualStudioProjectFactory;
@@ -116,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             AttachRunningDocTableEvents();
 
             var wpfTextView = _editorAdaptersFactory.GetWpfTextView(vsTextView);
-            var target = new XamlOleCommandTarget(wpfTextView, CommandHandlerServiceFactory, _editorAdaptersFactory, _serviceProvider);
+            var target = new XamlOleCommandTarget(wpfTextView, (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel)));
             target.AttachToVsTextView();
         }
 
@@ -137,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             }
         }
 
-        private void OnDocumentMonikerChanged(IVsHierarchy hierarchy, string oldMoniker, string newMoniker)
+        private void OnDocumentMonikerChanged(uint docCookie, IVsHierarchy hierarchy, string oldMoniker, string newMoniker)
         {
             // If the moniker change only involves casing differences then the project system will
             // not remove & add the file again with the new name, so we should not clear any state.
@@ -161,7 +163,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 project.RemoveSourceFile(oldMoniker);
             }
 
-            project.AddSourceFile(newMoniker);
+            var info = _rdt.Value.GetDocumentInfo(docCookie);
+            var buffer = TryGetTextBufferFromDocData(info.DocData);
+
+            // If the file extension changed which causes the content type to change
+            // (e.g. from .xaml to .cs) we should not add the new document to Xaml project.
+            if (buffer != null && buffer.ContentType.IsOfType(ContentTypeNames.XamlContentType))
+            {
+                project.AddSourceFile(newMoniker);
+            }
         }
 
         private void OnDocumentClosed(uint docCookie)
@@ -173,6 +183,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 {
                     project.RemoveSourceFile(info.Moniker);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Tries to return an ITextBuffer representing the document from the document's DocData.
+        /// </summary>
+        /// <param name="docData">The DocData from the running document table.</param>
+        /// <returns>The ITextBuffer. If one could not be found, this returns null.</returns>
+        private ITextBuffer TryGetTextBufferFromDocData(object docData)
+        {
+            if (docData is IVsTextBuffer vsTestBuffer)
+            {
+                return _editorAdaptersFactory.GetDocumentBuffer(vsTestBuffer);
+            }
+            else
+            {
+                return null;
             }
         }
     }

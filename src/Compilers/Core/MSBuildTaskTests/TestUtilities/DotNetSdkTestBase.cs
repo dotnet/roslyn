@@ -1,4 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,9 +24,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         private static readonly string s_dotnetExeName;
-        private static readonly string s_dotnetInstallDir;
+        private static readonly string? s_dotnetInstallDir;
         private static readonly string s_dotnetSdkVersion;
-        private static readonly string s_dotnetSdkPath;
+        private static readonly string? s_dotnetSdkPath;
 
         private static string s_projectSource =
 @"<Project Sdk='Microsoft.NET.Sdk'>
@@ -84,7 +89,7 @@ public class TestClass
         private static void EmitTestHelperProps(
             string objDirectory,
             string projectFileName,
-            string content)
+            string? content)
         {
             // Common.props automatically import {project-name}.*.props files from MSBuildProjectExtensionsPath directory, 
             // which is by default set to the IntermediateOutputPath:
@@ -99,7 +104,7 @@ $@"<Project>
             string outputFile,
             string projectFileName,
             IEnumerable<string> expressions,
-            string additionalContent)
+            string? additionalContent)
         {
             // Common.targets automatically import {project-name}.*.targets files from MSBuildProjectExtensionsPath directory, 
             // which is by defautl set to the IntermediateOutputPath:
@@ -178,7 +183,7 @@ $@"<Project>
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, ProjectFileName + ".nuget.g.targets")));
         }
 
-        protected void VerifyValues(string customProps, string customTargets, string[] targets, string[] expressions, string[] expectedResults)
+        protected void VerifyValues(string? customProps, string? customTargets, string[] targets, string[] expressions, string[] expectedResults)
         {
             var evaluationResultsFile = Path.Combine(OutDir.Path, "EvaluationResult.txt");
 

@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -21,10 +25,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         private class QuickInfoSource : IAsyncQuickInfoSource
         {
             private readonly ITextBuffer _subjectBuffer;
+            private readonly IThreadingContext _threadingContext;
+            private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
-            public QuickInfoSource(ITextBuffer subjectBuffer)
+            public QuickInfoSource(
+                ITextBuffer subjectBuffer,
+                IThreadingContext threadingContext,
+                Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
             {
                 _subjectBuffer = subjectBuffer;
+                _threadingContext = threadingContext;
+                _streamingPresenter = streamingPresenter;
             }
 
             public async Task<IntellisenseQuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
@@ -59,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                         {
                             var textVersion = snapshot.Version;
                             var trackingSpan = textVersion.CreateTrackingSpan(item.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-                            return await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan, item, snapshot, document, cancellationToken).ConfigureAwait(false);
+                            return await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan, item, snapshot, document, _threadingContext, _streamingPresenter, cancellationToken).ConfigureAwait(false);
                         }
 
                         return null;

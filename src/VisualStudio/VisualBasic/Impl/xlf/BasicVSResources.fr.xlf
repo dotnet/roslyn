@@ -22,11 +22,6 @@
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
-        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
-        <target state="translated">_Déplacer la déclaration locale vers la méthode extraite si elle n'est pas utilisée ailleurs</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
         <target state="translated">_Insertion automatique des membres Interface et MustOverride</target>
@@ -34,12 +29,17 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="new">Never</target>
+        <target state="translated">Jamais</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
-        <target state="translated">Préférer 'Is Nothing' pour les contrôles d'égalité de référence</target>
+        <target state="translated">Préférer 'Is Nothing' pour les vérifications d'égalité de référence</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="translated">Afficher les éléments des espaces de noms qui ne sont pas importés (expérimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -109,7 +109,12 @@
       </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
-        <target state="translated">Normale</target>
+        <target state="translated">Normal</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="new">Show remarks in Quick Info</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">
@@ -264,12 +269,12 @@
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>
-        <target state="new">Unused local</target>
+        <target state="translated">Local inutilisé</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">
         <source>VB Coding Conventions</source>
-        <target state="new">VB Coding Conventions</target>
+        <target state="translated">Conventions de codage VB</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -75,16 +78,14 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-// (8,40): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
-//         var o1 = (D)(delegate{ var s = default(C).ToString();});
-Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"),
-
-// (9,42): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
-//         var o2 = new D(delegate{ var s = default(C).ToString();});
-Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C")
-                );
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (8,40): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
+                //         var o1 = (D)(delegate{ var s = default(C).ToString();});
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"),
+                // (9,42): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
+                //         var o2 = new D(delegate{ var s = default(C).ToString();});
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -704,7 +705,7 @@ class C
                 // (18,9): error CS1612: Cannot modify the return value of 'C.GetS(Q<string, double>?[][*,*][*,*,*], int?)' because it is not a variable
                 //         GetS(null, null).z = 123;
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "GetS(null, null)").WithArguments("C.GetS(N.Q<string, double>?[][*,*][*,*,*], int?)").WithLocation(18, 9),
-                // (24,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (24,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         instance_readonly = 123;
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "instance_readonly").WithLocation(24, 9),
                 // (31,18): error CS0029: Cannot implicitly convert type 'void' to 'int'
@@ -1464,7 +1465,7 @@ class C
             Assert.Equal(1, call.Arguments.Length);
             Assert.Equal(1, call.Constructor.Parameters.Length);
             Assert.Equal("a", call.Constructor.Parameters[0].Name);
-            Assert.Equal("Int32", call.Constructor.Parameters[0].Type.Name);
+            Assert.Equal("Int32", call.Constructor.Parameters[0].TypeWithAnnotations.Type.Name);
         }
 
         [Fact]
@@ -1499,7 +1500,7 @@ class C
             Assert.Equal(1, call.Arguments.Length);
             Assert.Equal(1, call.Constructor.Parameters.Length);
             Assert.Equal("a", call.Constructor.Parameters[0].Name);
-            Assert.Equal("String", call.Constructor.Parameters[0].Type.Name);
+            Assert.Equal("String", call.Constructor.Parameters[0].TypeWithAnnotations.Type.Name);
         }
 
         [Fact]
@@ -1534,7 +1535,7 @@ class C
             Assert.Equal(1, newExpr.Arguments.Length);
             Assert.Equal(1, newExpr.Constructor.Parameters.Length);
             Assert.Equal("a", newExpr.Constructor.Parameters[0].Name);
-            Assert.Equal("Int32", newExpr.Constructor.Parameters[0].Type.Name);
+            Assert.Equal("Int32", newExpr.Constructor.Parameters[0].TypeWithAnnotations.Type.Name);
         }
     }
 }

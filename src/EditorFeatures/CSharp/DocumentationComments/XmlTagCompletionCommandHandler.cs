@@ -1,27 +1,32 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(XmlTagCompletionCommandHandler))]
-    [Order(Before = PredefinedCommandHandlerNames.Completion)]
+    [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class XmlTagCompletionCommandHandler : AbstractXmlTagCompletionCommandHandler
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public XmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory)
             : base(undoHistory)
         {
@@ -34,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
             if (token.IsKind(SyntaxKind.GreaterThanToken))
             {
-                var parentStartTag = token.Parent as XmlElementStartTagSyntax;
-                if (parentStartTag == null)
+                if (!(token.Parent is XmlElementStartTagSyntax parentStartTag))
                 {
                     return;
                 }
@@ -65,14 +69,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 // We need to check for non-trivia XML text tokens after $$ that match the expected end tag text.
 
                 if (token.Parent.IsKind(SyntaxKind.XmlElementEndTag) &&
-                    token.Parent.IsParentKind(SyntaxKind.XmlElement))
+                    token.Parent.IsParentKind(SyntaxKind.XmlElement, out XmlElementSyntax parentElement) &&
+                    !HasFollowingEndTagTrivia(parentElement, token))
                 {
-                    var parentElement = token.Parent.Parent as XmlElementSyntax;
-
-                    if (!HasFollowingEndTagTrivia(parentElement, token))
-                    {
-                        CheckNameAndInsertText(textView, subjectBuffer, position, parentElement.StartTag, null, "{0}>");
-                    }
+                    CheckNameAndInsertText(textView, subjectBuffer, position, parentElement.StartTag, null, "{0}>");
                 }
             }
         }
@@ -120,8 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 return false;
             }
 
-            var parentElement = parentStartTag.Parent as XmlElementSyntax;
-            if (parentElement == null)
+            if (!(parentStartTag.Parent is XmlElementSyntax parentElement))
             {
                 return false;
             }

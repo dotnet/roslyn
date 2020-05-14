@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     typeSymbol = null;
                 }
 
-                if (Interlocked.CompareExchange(ref _lazySystemStringType, typeSymbol, ErrorTypeSymbol.UnknownResultType) == ErrorTypeSymbol.UnknownResultType)
+                if (TypeSymbol.Equals(Interlocked.CompareExchange(ref _lazySystemStringType, typeSymbol, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything2))
                 {
                     if (info != null)
                     {
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     // classes, and we can't emit a reference to the PIA. We don't actually need
                     // the class name at runtime: we will instead emit a reference to System.Object, as a placeholder.
                     return new SynthesizedAttributeData(ctor,
-                        ImmutableArray.Create(new TypedConstant(ctor.Parameters[0].Type.TypeSymbol, TypedConstantKind.Type, ctor.ContainingAssembly.GetSpecialType(SpecialType.System_Object))),
+                        ImmutableArray.Create(new TypedConstant(ctor.Parameters[0].Type, TypedConstantKind.Type, ctor.ContainingAssembly.GetSpecialType(SpecialType.System_Object))),
                         ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
 
                 default:
@@ -231,6 +233,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             switch (namedType.TypeKind)
             {
                 case TypeKind.Interface:
+                    foreach (Symbol member in namedType.GetMembersUnordered())
+                    {
+                        if (member.Kind != SymbolKind.NamedType)
+                        {
+                            if (!member.IsAbstract)
+                            {
+                                error = ErrorCode.ERR_DefaultInterfaceImplementationInNoPIAType;
+                                break;
+                            }
+                            else if (member.IsSealed)
+                            {
+                                error = ErrorCode.ERR_ReAbstractionInNoPIAType;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (error != ErrorCode.Unknown)
+                    {
+                        break;
+                    }
+
+                    goto case TypeKind.Struct;
                 case TypeKind.Struct:
                 case TypeKind.Delegate:
                 case TypeKind.Enum:

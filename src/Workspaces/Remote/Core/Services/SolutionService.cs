@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -14,20 +20,23 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// TODO: change this to workspace service
     /// </summary>
-    internal class SolutionService : ISolutionController
+    internal sealed class SolutionService
     {
+        /// <summary>
+        /// This object gates the construction of the singleton <see cref="RemoteWorkspace"/> instance.
+        /// </summary>
+        private static readonly object s_remoteWorkspaceGate = new object();
+
         private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
 
-        private readonly AssetService _assetService;
-
         // this simple cache hold onto the last and primary solution created
-        private volatile static Tuple<Checksum, Solution> s_primarySolution;
-        private volatile static Tuple<Checksum, Solution> s_lastSolution;
+        private static volatile Tuple<Checksum, Solution>? s_primarySolution;
+        private static volatile Tuple<Checksum, Solution>? s_lastSolution;
 
-        public SolutionService(AssetService assetService)
-        {
-            _assetService = assetService;
-        }
+        public AssetProvider AssetProvider { get; }
+
+        public SolutionService(AssetProvider assetProvider)
+            => AssetProvider = assetProvider;
 
         public static RemoteWorkspace PrimaryWorkspace
         {
@@ -37,24 +46,46 @@ namespace Microsoft.CodeAnalysis.Remote
                 var primaryWorkspace = exportProvider.GetExports<PrimaryWorkspace>().Single().Value;
                 if (primaryWorkspace.Workspace == null)
                 {
-                    // The Roslyn OOP service assumes a singleton workspace exists, but doesn't initialize it anywhere.
-                    // If we get here, code is asking for a workspace before it exists, so we create one on the fly.
-                    // The RemoteWorkspace constructor assigns itself as the new singleton instance.
-                    new RemoteWorkspace();
+                    lock (s_remoteWorkspaceGate)
+                    {
+                        if (primaryWorkspace.Workspace is null)
+                        {
+                            // The Roslyn OOP service assumes a singleton workspace exists, but doesn't initialize it anywhere.
+                            // If we get here, code is asking for a workspace before it exists, so we create one on the fly.
+                            // The RemoteWorkspace constructor assigns itself as the new singleton instance.
+                            _ = new RemoteWorkspace();
+                        }
+                    }
+
+                    // the above call initialized the workspace:
+                    Contract.ThrowIfNull(primaryWorkspace.Workspace);
                 }
 
                 return (RemoteWorkspace)primaryWorkspace.Workspace;
             }
         }
 
+        public static AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, AssetStorage assetStorage)
+        {
+            var serializerService = PrimaryWorkspace.Services.GetRequiredService<ISerializerService>();
+            return new AssetProvider(solutionInfo.ScopeId, assetStorage, serializerService);
+        }
+
         public Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             // this method is called by users which means we don't know whether the solution is from primary branch or not.
             // so we will be conservative and assume it is not. meaning it won't update any internal caches but only consume cache if possible.
-            return GetSolutionInternalAsync(solutionChecksum, fromPrimaryBranch: false, cancellationToken: cancellationToken);
+            return GetSolutionAsync(solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, cancellationToken);
         }
 
-        private async Task<Solution> GetSolutionInternalAsync(Checksum solutionChecksum, bool fromPrimaryBranch, CancellationToken cancellationToken)
+        public Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+            => GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
+
+        public async Task<Solution> GetSolutionAsync(
+            Checksum solutionChecksum,
+            bool fromPrimaryBranch,
+            int workspaceVersion,
+            CancellationToken cancellationToken)
         {
             var currentSolution = GetAvailableSolution(solutionChecksum);
             if (currentSolution != null)
@@ -71,7 +102,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     return currentSolution;
                 }
 
-                var solution = await CreateSolution_NoLockAsync(solutionChecksum, fromPrimaryBranch, PrimaryWorkspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+                var solution = await CreateSolution_NoLockAsync(
+                    solutionChecksum,
+                    fromPrimaryBranch,
+                    workspaceVersion,
+                    PrimaryWorkspace.CurrentSolution,
+                    cancellationToken).ConfigureAwait(false);
                 s_lastSolution = Tuple.Create(solutionChecksum, solution);
 
                 return solution;
@@ -100,53 +136,59 @@ namespace Microsoft.CodeAnalysis.Remote
         /// these 2 are complimentary to each other. #1 makes OOP's primary solution to be ready for next call (push), #2 makes OOP's primary
         /// solution be not stale as much as possible. (pull)
         /// </summary>
-        private async Task<Solution> CreateSolution_NoLockAsync(Checksum solutionChecksum, bool fromPrimaryBranch, Solution baseSolution, CancellationToken cancellationToken)
+        private async Task<Solution> CreateSolution_NoLockAsync(
+            Checksum solutionChecksum,
+            bool fromPrimaryBranch,
+            int workspaceVersion,
+            Solution baseSolution,
+            CancellationToken cancellationToken)
         {
-            var updater = new SolutionCreator(_assetService, baseSolution, cancellationToken);
-
-            // check whether solution is update to the given base solution
-            if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
+            try
             {
-                // create updated solution off the baseSolution
-                var solution = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
+                var updater = new SolutionCreator(AssetProvider, baseSolution, cancellationToken);
+
+                // check whether solution is update to the given base solution
+                if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
+                {
+                    // create updated solution off the baseSolution
+                    var solution = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
+
+                    if (fromPrimaryBranch)
+                    {
+                        // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
+                        return PrimaryWorkspace.UpdateSolutionIfPossible(solution, workspaceVersion);
+                    }
+
+                    // otherwise, just return the solution
+                    return solution;
+                }
+
+                // we need new solution. bulk sync all asset for the solution first.
+                await AssetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                // get new solution info and options
+                var (solutionInfo, options) = await AssetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
                 if (fromPrimaryBranch)
                 {
-                    // if the solutionChecksum is for primary branch, update primary workspace cache with the solution
-                    PrimaryWorkspace.UpdateSolution(solution);
-                    return PrimaryWorkspace.CurrentSolution;
+                    // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
+                    if (PrimaryWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion, options, out var solution))
+                    {
+                        return solution;
+                    }
                 }
 
-                // otherwise, just return the solution
-                return solution;
+                // otherwise, just return new solution
+                var workspace = new TemporaryWorkspace(solutionInfo, options);
+                return workspace.CurrentSolution;
             }
-
-            // we need new solution. bulk sync all asset for the solution first.
-            await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-
-            // get new solution info
-            var solutionInfo = await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false);
-
-            if (fromPrimaryBranch)
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
             {
-                // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
-                PrimaryWorkspace.ClearSolution();
-                PrimaryWorkspace.AddSolution(solutionInfo);
-
-                return PrimaryWorkspace.CurrentSolution;
+                throw ExceptionUtilities.Unreachable;
             }
-
-            // otherwise, just return new solution
-            var workspace = new TemporaryWorkspace(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
-            return workspace.CurrentSolution;
         }
 
-        Task<Solution> ISolutionController.GetSolutionAsync(Checksum solutionChecksum, bool primary, CancellationToken cancellationToken)
-        {
-            return GetSolutionInternalAsync(solutionChecksum, primary, cancellationToken);
-        }
-
-        async Task ISolutionController.UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        public async Task UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
         {
             var currentSolution = PrimaryWorkspace.CurrentSolution;
 
@@ -159,12 +201,12 @@ namespace Microsoft.CodeAnalysis.Remote
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 var primary = true;
-                var solution = await CreateSolution_NoLockAsync(solutionChecksum, primary, currentSolution, cancellationToken).ConfigureAwait(false);
+                var solution = await CreateSolution_NoLockAsync(solutionChecksum, primary, workspaceVersion, currentSolution, cancellationToken).ConfigureAwait(false);
                 s_primarySolution = Tuple.Create(solutionChecksum, solution);
             }
         }
 
-        private static Solution GetAvailableSolution(Checksum solutionChecksum)
+        private static Solution? GetAvailableSolution(Checksum solutionChecksum)
         {
             var currentSolution = s_primarySolution;
             if (currentSolution?.Item1 == solutionChecksum)

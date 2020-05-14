@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -371,12 +373,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(compilation IsNot Nothing)
 
             Dim returnType As TypeSymbol = method.ReturnType
-            If returnType = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) Then
+            If TypeSymbol.Equals(returnType, compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task), TypeCompareKind.ConsiderEverything) Then
                 Return AsyncMethodKind.TaskFunction
             End If
 
             If returnType.Kind = SymbolKind.NamedType AndAlso
-                    returnType.OriginalDefinition = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T) Then
+                    TypeSymbol.Equals(returnType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T), TypeCompareKind.ConsiderEverything) Then
                 Return AsyncMethodKind.GenericTaskFunction
             End If
 

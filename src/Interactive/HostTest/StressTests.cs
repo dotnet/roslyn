@@ -1,15 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
+
+extern alias InteractiveHost;
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
-using Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
+    using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+
     public sealed class StressTests : AbstractInteractiveHostTests
     {
         private readonly List<InteractiveHost> _processes = new List<InteractiveHost>();
@@ -37,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         private InteractiveHost CreateProcess()
         {
-            var p = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: 1);
+            var p = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: 1, joinOutputWritingThreadsOnDisposal: true);
             _processes.Add(p);
             return p;
         }
@@ -75,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
                 t.Start();
             });
 
-            p.ResetAsync(new InteractiveHostOptions()).Wait();
+            p.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory())).Wait();
 
             for (int j = 0; j < 10; j++)
             {

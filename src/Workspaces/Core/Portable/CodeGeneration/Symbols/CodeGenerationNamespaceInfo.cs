@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -14,9 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private readonly IList<ISymbol> _imports;
 
         private CodeGenerationNamespaceInfo(IList<ISymbol> imports)
-        {
-            _imports = imports;
-        }
+            => _imports = imports;
 
         public static void Attach(
             INamespaceSymbol @namespace,
@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public static IList<ISymbol> GetImports(INamespaceSymbol @namespace)
-        {
-            return GetImports(GetInfo(@namespace));
-        }
+            => GetImports(GetInfo(@namespace));
 
         private static IList<ISymbol> GetImports(CodeGenerationNamespaceInfo info)
         {

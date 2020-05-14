@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -18,7 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private readonly WorkspaceRegistration _workspaceRegistration;
         private readonly ITextBuffer _buffer;
 
-        private IActiveStatementTrackingService _trackingServiceOpt;
+        private IActiveStatementTrackingService? _trackingService;
+
+        public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
         public ActiveStatementTagger(IThreadingContext threadingContext, ITextBuffer buffer)
             : base(threadingContext)
@@ -33,21 +39,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             _buffer = buffer;
         }
 
-        private void OnWorkspaceChanged(object sender, EventArgs e)
+        private void OnWorkspaceChanged(object? sender, EventArgs e)
             => ConnectToWorkspace(_workspaceRegistration.Workspace);
 
-        private void ConnectToWorkspace(Workspace workspaceOpt)
+        private void ConnectToWorkspace(Workspace? workspace)
         {
-            var newServiceOpt = workspaceOpt?.Services.GetService<IActiveStatementTrackingService>();
-            if (newServiceOpt != null)
+            var newService = workspace?.Services.GetService<IActiveStatementTrackingService>();
+            if (newService != null)
             {
-                newServiceOpt.TrackingSpansChanged += OnTrackingSpansChanged;
+                newService.TrackingSpansChanged += OnTrackingSpansChanged;
             }
 
-            var previousServiceOpt = Interlocked.Exchange(ref _trackingServiceOpt, newServiceOpt);
-            if (previousServiceOpt != null)
+            var previousService = Interlocked.Exchange(ref _trackingService, newService);
+            if (previousService != null)
             {
-                previousServiceOpt.TrackingSpansChanged -= OnTrackingSpansChanged;
+                previousService.TrackingSpansChanged -= OnTrackingSpansChanged;
             }
         }
 
@@ -56,10 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             AssertIsForeground();
 
             _workspaceRegistration.WorkspaceChanged -= OnWorkspaceChanged;
-            ConnectToWorkspace(workspaceOpt: null);
+            ConnectToWorkspace(workspace: null);
         }
-
-        public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
         private void OnTrackingSpansChanged(bool leafChanged)
         {
@@ -76,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         {
             AssertIsForeground();
 
-            var service = _trackingServiceOpt;
+            var service = _trackingService;
             if (service == null)
             {
                 yield break;
@@ -84,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             var snapshot = spans.First().Snapshot;
 
-            foreach (ActiveStatementTextSpan asSpan in service.GetSpans(snapshot.AsText()))
+            foreach (var asSpan in service.GetSpans(snapshot.AsText()))
             {
                 if (asSpan.IsLeaf)
                 {

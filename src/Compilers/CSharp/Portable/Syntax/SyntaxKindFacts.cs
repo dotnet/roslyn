@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 
@@ -90,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LoadKeyword:
                 case SyntaxKind.NullableKeyword:
                 case SyntaxKind.EnableKeyword:
+                case SyntaxKind.WarningsKeyword:
+                case SyntaxKind.AnnotationsKeyword:
                     return true;
                 default:
                     return false;
@@ -117,6 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DisableKeyword:
                 case SyntaxKind.RestoreKeyword:
                 case SyntaxKind.EnableKeyword:
+                case SyntaxKind.WarningsKeyword:
+                case SyntaxKind.AnnotationsKeyword:
                     return false;
                 default:
                     return IsPreprocessorKeyword(kind);
@@ -309,22 +317,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static bool IsTypeDeclaration(SyntaxKind kind)
-        {
-            switch (kind)
-            {
-                case SyntaxKind.DelegateDeclaration:
-                case SyntaxKind.EnumDeclaration:
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
-
         /// <summary>
         /// Member declarations that can appear in global code (other than type declarations).
         /// </summary>
@@ -343,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public static bool IsNamespaceMemberDeclaration(SyntaxKind kind)
+        public static bool IsTypeDeclaration(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -352,12 +344,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.EnumDeclaration:
-                case SyntaxKind.NamespaceDeclaration:
                     return true;
+
                 default:
                     return false;
             }
         }
+
+        public static bool IsNamespaceMemberDeclaration(SyntaxKind kind)
+            => IsTypeDeclaration(kind) || (kind == SyntaxKind.NamespaceDeclaration);
 
         public static bool IsAnyUnaryExpression(SyntaxKind token)
         {
@@ -1059,6 +1054,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.NullableKeyword;
                 case "enable":
                     return SyntaxKind.EnableKeyword;
+                case "warnings":
+                    return SyntaxKind.WarningsKeyword;
+                case "annotations":
+                    return SyntaxKind.AnnotationsKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1066,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.WhenKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.NotKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1110,6 +1109,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AwaitKeyword:
                 case SyntaxKind.WhenKeyword:
                 case SyntaxKind.UnderscoreToken:
+                case SyntaxKind.VarKeyword:
+                case SyntaxKind.OrKeyword:
+                case SyntaxKind.AndKeyword:
+                case SyntaxKind.NotKeyword:
                     return true;
                 default:
                     return false;
@@ -1211,6 +1214,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.NameOfKeyword;
                 case "_":
                     return SyntaxKind.UnderscoreToken;
+                case "var":
+                    return SyntaxKind.VarKeyword;
+                case "and":
+                    return SyntaxKind.AndKeyword;
+                case "or":
+                    return SyntaxKind.OrKeyword;
+                case "not":
+                    return SyntaxKind.NotKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1548,6 +1559,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "nullable";
                 case SyntaxKind.EnableKeyword:
                     return "enable";
+                case SyntaxKind.WarningsKeyword:
+                    return "warnings";
+                case SyntaxKind.AnnotationsKeyword:
+                    return "annotations";
 
                 // contextual keywords
                 case SyntaxKind.YieldKeyword:
@@ -1620,8 +1635,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "$\"";
                 case SyntaxKind.InterpolatedStringEndToken:
                     return "\"";
+                case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                    return "$@\"";
                 case SyntaxKind.UnderscoreToken:
                     return "_";
+                case SyntaxKind.VarKeyword:
+                    return "var";
+                case SyntaxKind.AndKeyword:
+                    return "and";
+                case SyntaxKind.OrKeyword:
+                    return "or";
+                case SyntaxKind.NotKeyword:
+                    return "not";
                 default:
                     return string.Empty;
             }

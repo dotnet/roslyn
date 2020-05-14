@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -10,16 +12,21 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToDefinition)]
     internal class GoToDefinitionCommandHandler :
-        VSCommanding.ICommandHandler<GoToDefinitionCommandArgs>
+        ICommandHandler<GoToDefinitionCommandArgs>
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public GoToDefinitionCommandHandler()
+        {
+        }
+
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
         private (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)
@@ -28,19 +35,23 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return (document, document?.GetLanguageService<IGoToDefinitionService>());
         }
 
-        public VSCommanding.CommandState GetCommandState(GoToDefinitionCommandArgs args)
+        public CommandState GetCommandState(GoToDefinitionCommandArgs args)
         {
-            var (document, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
             return service != null
-                ? VSCommanding.CommandState.Available
-                : VSCommanding.CommandState.Unavailable;
+                ? CommandState.Available
+                : CommandState.Unspecified;
         }
 
         public bool ExecuteCommand(GoToDefinitionCommandArgs args, CommandExecutionContext context)
         {
             var subjectBuffer = args.SubjectBuffer;
             var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
-            if (service != null)
+
+            // In Live Share, typescript exports a gotodefinition service that returns no results and prevents the LSP client
+            // from handling the request.  So prevent the local service from handling goto def commands in the remote workspace.
+            // This can be removed once typescript implements LSP support for goto def.
+            if (service != null && document.Project.Solution.Workspace.Kind != WorkspaceKind.AnyCodeRoslynWorkspace)
             {
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
                 if (caretPos.HasValue && TryExecuteCommand(document, caretPos.Value, service, context))

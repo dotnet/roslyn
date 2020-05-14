@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -881,7 +883,7 @@ public class Derived : Base
             // No diagnostics - just choose the overload with fewer custom modifiers
             compilation.VerifyDiagnostics();
 
-            Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.TypeSymbol.CustomModifierCount() == c;
+            Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.CustomModifierCount() == c;
 
             var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
             var baseEvent1 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(1)).Single();
@@ -964,7 +966,7 @@ public class Derived : Base
                 //     public override event System.Action<int[]> E;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("Derived.E", "Base.E", "System.Action<char[]>"));
 
-            Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.TypeSymbol.CustomModifierCount() == c;
+            Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.CustomModifierCount() == c;
 
             var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
             var baseEvent1 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(1)).Single();

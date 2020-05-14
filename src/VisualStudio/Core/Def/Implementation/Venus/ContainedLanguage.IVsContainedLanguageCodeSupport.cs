@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -14,7 +16,7 @@ using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal partial class ContainedLanguage<TPackage, TLanguageService> : IVsContainedLanguageCodeSupport
+    internal partial class ContainedLanguage : IVsContainedLanguageCodeSupport
     {
         public int CreateUniqueEventName(string pszClassName, string pszObjectName, string pszNameOfEvent, out string pbstrEventHandlerName)
         {
@@ -176,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public int OnRenamed(ContainedLanguageRenameType clrt, string bstrOldID, string bstrNewID)
         {
-            int result = 0;
+            var result = 0;
 
             var waitIndicator = this.ComponentModel.GetService<IWaitIndicator>();
             waitIndicator.Wait(
@@ -214,9 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private const int FACILITY_ITF = 4;
         private static int MakeHResult(uint sev, uint facility, uint code)
-        {
-            return unchecked((int)((sev << 31) | (facility << 16) | code));
-        }
+            => unchecked((int)((sev << 31) | (facility << 16) | code));
 
         protected static void CreateBSTRArray(IntPtr dest, IEnumerable<string> source)
         {

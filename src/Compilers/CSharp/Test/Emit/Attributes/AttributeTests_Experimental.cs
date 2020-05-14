@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -223,6 +225,45 @@ class C
                 // (27,14): warning CS8305: 'A.B' is for evaluation purposes only and is subject to change or removal in future updates.
                 //         (new A.B()).ToString();
                 Diagnostic(ErrorCode.WRN_Experimental, "A.B").WithArguments("A.B").WithLocation(27, 14));
+        }
+
+        [Fact]
+        public void TestDeprecatedLocalFunctions()
+        {
+            var source =
+@"
+using Windows.Foundation.Metadata;
+class A
+{
+    void M()
+    {
+        local1(); // 1
+        local2(); // 2
+
+        [Deprecated("""", DeprecationType.Deprecate, 0)]
+        void local1() { }
+
+        [Deprecated("""", DeprecationType.Remove, 0)]
+        void local2() { }
+
+#pragma warning disable 8321 // Unreferenced local function
+        [Deprecated("""", DeprecationType.Deprecate, 0)]
+        void local3()
+        {
+            // No obsolete warnings expected inside a deprecated local function
+            local1();
+            local2();
+        }
+    }
+}";
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { DeprecatedAttributeSource, ExperimentalAttributeSource, source }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS0618: 'local1()' is obsolete: ''
+                //         local1(); // 1
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "local1()").WithArguments("local1()", "").WithLocation(7, 9),
+                // (8,9): error CS0619: 'local2()' is obsolete: ''
+                //         local2(); // 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "local2()").WithArguments("local2()", "").WithLocation(8, 9));
         }
 
         // Diagnostics for [Obsolete] members

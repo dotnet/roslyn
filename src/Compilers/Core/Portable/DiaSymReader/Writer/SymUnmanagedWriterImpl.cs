@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -42,7 +44,7 @@ namespace Microsoft.DiaSymReader
             => new SymUnmanagedWriterException(inner, _symWriterModuleName);
 
         /// <summary>
-        /// Writes teh content to the given stream. The writer is disposed and can't be used for further writing.
+        /// Writes the content to the given stream. The writer is disposed and can't be used for further writing.
         /// </summary>
         public override void WriteTo(Stream stream)
         {
@@ -84,7 +86,7 @@ namespace Microsoft.DiaSymReader
             }
             catch
             {
-                // Dipose shall not throw
+                // Dispose shall not throw
             }
 
             _disposed = true;
@@ -137,7 +139,7 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        public override int DefineDocument(string name, Guid language, Guid vendor, Guid type, Guid algorithmId, byte[] checksum, byte[] source)
+        public override int DefineDocument(string name, Guid language, Guid vendor, Guid type, Guid algorithmId, ReadOnlySpan<byte> checksum, ReadOnlySpan<byte> source)
         {
             if (name == null)
             {
@@ -164,7 +166,13 @@ namespace Microsoft.DiaSymReader
             {
                 try
                 {
-                    documentWriter.SetCheckSum(algorithmId, (uint)checksum.Length, checksum);
+                    unsafe
+                    {
+                        fixed (byte* bytes = checksum)
+                        {
+                            documentWriter.SetCheckSum(algorithmId, (uint)checksum.Length, bytes);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -176,7 +184,13 @@ namespace Microsoft.DiaSymReader
             {
                 try
                 {
-                    documentWriter.SetSource((uint)source.Length, source);
+                    unsafe
+                    {
+                        fixed (byte* bytes = source)
+                        {
+                            documentWriter.SetSource((uint)source.Length, bytes);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -456,8 +470,8 @@ namespace Microsoft.DiaSymReader
             int moveNextMethodToken,
             int kickoffMethodToken,
             int catchHandlerOffset,
-            int[] yieldOffsets,
-            int[] resumeOffsets)
+            ReadOnlySpan<int> yieldOffsets,
+            ReadOnlySpan<int> resumeOffsets)
         {
             if (yieldOffsets == null) throw new ArgumentNullException(nameof(yieldOffsets));
             if (resumeOffsets == null) throw new ArgumentNullException(nameof(resumeOffsets));
@@ -481,7 +495,15 @@ namespace Microsoft.DiaSymReader
 
                     try
                     {
-                        asyncMethodPropertyWriter.DefineAsyncStepInfo(count, yieldOffsets, resumeOffsets, methods);
+                        unsafe
+                        {
+                            fixed (int* yieldPtr = yieldOffsets)
+                            fixed (int* resumePtr = resumeOffsets)
+                            fixed (int* methodsPtr = methods)
+                            {
+                                asyncMethodPropertyWriter.DefineAsyncStepInfo(count, yieldPtr, resumePtr, methodsPtr);
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {

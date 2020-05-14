@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
@@ -90,7 +92,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             For i As Integer = 1 To SpecialType.Count Step 1
                 Dim type As NamedTypeSymbol = c1.Assembly.GetSpecialType(CType(i, SpecialType))
-                Assert.NotEqual(type.Kind, SymbolKind.ErrorType)
+
+                If i = SpecialType.System_Runtime_CompilerServices_RuntimeFeature Then
+                    Assert.Equal(type.Kind, SymbolKind.ErrorType) ' Not available
+                Else
+                    Assert.NotEqual(type.Kind, SymbolKind.ErrorType)
+                End If
+
                 Assert.Equal(CType(i, SpecialType), type.SpecialType)
             Next
 

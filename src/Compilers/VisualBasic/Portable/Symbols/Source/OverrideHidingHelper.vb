@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -520,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' If a method had an virtual inaccessible override, then an explicit override in metadata is needed
+        ''' If a method had a virtual inaccessible override, then an explicit override in metadata is needed
         ''' to make it really override what it intends to override, and "skip" the inaccessible virtual
         ''' method.
         ''' </summary>
@@ -826,7 +828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim memberContainingType As NamedTypeSymbol = member.ContainingType
             For i = 0 To builder.Count - 1
                 Dim exactMatchIgnoringCustomModifiers As Boolean = False
-                If builder(i).ContainingType <> memberContainingType AndAlso
+                If Not TypeSymbol.Equals(builder(i).ContainingType, memberContainingType, TypeCompareKind.ConsiderEverything) AndAlso
                         SignaturesMatch(builder(i), member, Nothing, exactMatchIgnoringCustomModifiers) AndAlso exactMatchIgnoringCustomModifiers Then
                     ' Do NOT add
                     Exit Sub
@@ -955,7 +957,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         ' Two original definitions with identical signatures in same containing types are compared by accessibility, and
                         ' more accessible wins.
-                        If originalSym.ContainingType = originalOther.ContainingType AndAlso
+                        If TypeSymbol.Equals(originalSym.ContainingType, originalOther.ContainingType, TypeCompareKind.ConsiderEverything) AndAlso
                            DetailedSignatureCompare(originalSym, originalOther, significantDifferences) = 0 AndAlso
                            LookupResult.CompareAccessibilityOfSymbolsConflictingInSameContainer(originalSym, originalOther) < 0 Then
                             ' sym is worse than otherSym

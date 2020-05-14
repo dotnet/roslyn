@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.[Text]
@@ -94,10 +96,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
                 Assert.NotSame(OldMsCorLib_debuggerTypeProxyAttributeType, NewMsCorLib_debuggerTypeProxyAttributeType)
 
                 OldMsCorLib_debuggerTypeProxyAttributeCtor = DirectCast(OldMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").
-                    Where(Function(m) DirectCast(m, MethodSymbol).ParameterCount = 1 AndAlso DirectCast(m, MethodSymbol).Parameters(0).Type = OldMsCorLib_systemType).[Single](), MethodSymbol)
+                    Where(Function(m) DirectCast(m, MethodSymbol).ParameterCount = 1 AndAlso TypeSymbol.Equals(DirectCast(m, MethodSymbol).Parameters(0).Type, OldMsCorLib_systemType, TypeCompareKind.ConsiderEverything)).[Single](), MethodSymbol)
 
                 NewMsCorLib_debuggerTypeProxyAttributeCtor = DirectCast(NewMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").
-                    Where(Function(m) DirectCast(m, MethodSymbol).ParameterCount = 1 AndAlso DirectCast(m, MethodSymbol).Parameters(0).Type = NewMsCorLib_systemType).[Single](), MethodSymbol)
+                    Where(Function(m) DirectCast(m, MethodSymbol).ParameterCount = 1 AndAlso TypeSymbol.Equals(DirectCast(m, MethodSymbol).Parameters(0).Type, NewMsCorLib_systemType, TypeCompareKind.ConsiderEverything)).[Single](), MethodSymbol)
 
                 Assert.NotSame(OldMsCorLib_debuggerTypeProxyAttributeCtor, NewMsCorLib_debuggerTypeProxyAttributeCtor)
             End Sub

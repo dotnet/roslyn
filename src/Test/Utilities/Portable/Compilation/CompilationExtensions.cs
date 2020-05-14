@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +17,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -35,7 +38,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Stream pdbStream = null,
             IMethodSymbol debugEntryPoint = null,
             Stream sourceLinkStream = null,
-            IEnumerable<EmbeddedText> embeddedTexts = null)
+            IEnumerable<EmbeddedText> embeddedTexts = null,
+            IEnumerable<ResourceDescription> manifestResources = null,
+            Stream metadataPEStream = null)
         {
             var peStream = new MemoryStream();
 
@@ -46,16 +51,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     options = (options ?? EmitOptions.Default).WithDebugInformationFormat(DebugInformationFormat.PortablePdb);
                 }
 
-                pdbStream = new MemoryStream();
+                var discretePdb = (object)options != null && options.DebugInformationFormat != DebugInformationFormat.Embedded;
+                pdbStream = discretePdb ? new MemoryStream() : null;
             }
 
             var emitResult = compilation.Emit(
                 peStream: peStream,
-                metadataPEStream: null,
+                metadataPEStream: metadataPEStream,
                 pdbStream: pdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: null,
-                manifestResources: null,
+                manifestResources: manifestResources,
                 options: options,
                 debugEntryPoint: debugEntryPoint,
                 sourceLinkStream: sourceLinkStream,
@@ -92,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this Compilation comp,
             EmitOptions options = null,
             bool embedInteropTypes = false,
-            ImmutableArray<string> aliases = default(ImmutableArray<string>),
+            ImmutableArray<string> aliases = default,
             DiagnosticDescription[] expectedWarnings = null)
         {
             var image = comp.EmitToArray(options, expectedWarnings: expectedWarnings);
@@ -113,34 +119,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<ISymbol> allAddedSymbols = null,
             CompilationTestData testData = null)
         {
-            testData = testData ?? new CompilationTestData();
+            testData ??= new CompilationTestData();
             var isAddedSymbol = new Func<ISymbol, bool>(s => allAddedSymbols?.Contains(s) ?? false);
 
-            var pdbName = Path.ChangeExtension(compilation.SourceModule.Name, "pdb");
+            using var mdStream = new MemoryStream();
+            using var ilStream = new MemoryStream();
+            using var pdbStream = new MemoryStream();
 
-            using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream())
-            {
-                var updatedMethods = new List<MethodDefinitionHandle>();
+            var updatedMethods = new List<MethodDefinitionHandle>();
 
-                var result = compilation.EmitDifference(
-                    baseline,
-                    edits,
-                    isAddedSymbol,
-                    mdStream,
-                    ilStream,
-                    pdbStream,
-                    updatedMethods,
-                    testData,
-                    default(CancellationToken));
+            var result = compilation.EmitDifference(
+                baseline,
+                edits,
+                isAddedSymbol,
+                mdStream,
+                ilStream,
+                pdbStream,
+                updatedMethods,
+                testData,
+                CancellationToken.None);
 
-                return new CompilationDifference(
-                    mdStream.ToImmutable(),
-                    ilStream.ToImmutable(),
-                    pdbStream.ToImmutable(),
-                    testData,
-                    result,
-                    updatedMethods.ToImmutableArray());
-            }
+            return new CompilationDifference(
+                mdStream.ToImmutable(),
+                ilStream.ToImmutable(),
+                pdbStream.ToImmutable(),
+                testData,
+                result,
+                updatedMethods.ToImmutableArray());
         }
 
         internal static void VerifyAssemblyVersionsAndAliases(this Compilation compilation, params string[] expectedAssembliesAndAliases)
@@ -292,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+            var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
             var visitor = TestOperationVisitor.Singleton;
 
             foreach (var root in roots)
@@ -305,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         try
                         {
-                            explictNodeMap.Add(operation.Syntax, operation);
+                            explicitNodeMap.Add(operation.Syntax, operation);
                         }
                         catch (ArgumentException)
                         {

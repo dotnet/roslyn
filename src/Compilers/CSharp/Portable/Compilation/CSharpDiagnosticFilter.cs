@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nullableOption">Whether Nullable Reference Types feature is enabled globally</param>
         /// <param name="specificDiagnosticOptions">How specific diagnostics should be reported</param>
         /// <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
-        public static Diagnostic Filter(Diagnostic d, int warningLevelOption, bool nullableOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
+        public static Diagnostic Filter(Diagnostic d, int warningLevelOption, NullableContextOptions nullableOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
         {
             if (d == null)
             {
@@ -91,8 +93,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return d.WithReportDiagnostic(reportAction);
         }
 
-        // Take a warning and return the final deposition of the given warning,
-        // based on both command line options and pragmas.
+        /// <summary>
+        /// Take a warning and return the final disposition of the given warning,
+        /// based on both command line options and pragmas. The diagnostic options
+        /// have precedence in the following order:
+        ///     1. Warning level
+        ///     2. Syntax tree level
+        ///     3. Compilation level
+        ///     4. Global warning level
+        ///
+        /// Pragmas are considered separately. If a diagnostic would not otherwise
+        /// be suppressed, but is suppressed by a pragma, <paramref name="hasPragmaSuppression"/>
+        /// is true but the diagnostic is not reported as suppressed.
+        /// </summary> 
         internal static ReportDiagnostic GetDiagnosticReport(
             DiagnosticSeverity severity,
             bool isEnabledByDefault,
@@ -101,45 +114,73 @@ namespace Microsoft.CodeAnalysis.CSharp
             Location location,
             string category,
             int warningLevelOption,
-            bool nullableOption,
+            NullableContextOptions nullableOption,
             ReportDiagnostic generalDiagnosticOption,
             IDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
             out bool hasPragmaSuppression)
         {
             hasPragmaSuppression = false;
 
-            // Read options (e.g., /nowarn or /warnaserror)
-            ReportDiagnostic report = ReportDiagnostic.Default;
-            var isSpecified = specificDiagnosticOptions.TryGetValue(id, out report);
-            if (!isSpecified)
+            Debug.Assert(location?.SourceTree is null || location.SourceTree is CSharpSyntaxTree);
+            var tree = location?.SourceTree as CSharpSyntaxTree;
+            var position = location.SourceSpan.Start;
+
+            bool isNullableFlowAnalysisWarning = ErrorFacts.NullableWarnings.Contains(id);
+            if (isNullableFlowAnalysisWarning)
             {
-                report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
+                Syntax.NullableContextState.State? warningsState = tree?.GetNullableContextState(position).WarningsState;
+                var nullableWarningsEnabled = warningsState switch
+                {
+                    Syntax.NullableContextState.State.Enabled => true,
+                    Syntax.NullableContextState.State.Disabled => false,
+                    _ => nullableOption == NullableContextOptions.Enable || nullableOption == NullableContextOptions.Warnings
+                };
+
+                if (!nullableWarningsEnabled)
+                {
+                    return ReportDiagnostic.Suppress;
+                }
             }
 
-            // Compute if the reporting should be suppressed.
+            // 1. Warning level
             if (diagnosticWarningLevel > warningLevelOption)  // honor the warning level
             {
                 return ReportDiagnostic.Suppress;
             }
 
-            bool isNullableFlowAnalysisWarning = ErrorFacts.NullableFlowAnalysisWarnings.Contains(id);
+            ReportDiagnostic report;
+            bool isSpecified = false;
 
-            if (report == ReportDiagnostic.Suppress && // check options (/nowarn)
-                !isNullableFlowAnalysisWarning)
+            if (tree != null && tree.DiagnosticOptions.TryGetValue(id, out var treeReport))
+            {
+                // 2. Syntax tree level
+                report = treeReport;
+                isSpecified = true;
+            }
+            else if (specificDiagnosticOptions.TryGetValue(id, out var specificReport))
+            {
+                // 3. Compilation level
+                report = specificReport;
+                isSpecified = true;
+            }
+            else
+            {
+                report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
+            }
+
+            if (report == ReportDiagnostic.Suppress)
             {
                 return ReportDiagnostic.Suppress;
             }
 
-            var pragmaWarningState = Syntax.PragmaWarningState.Default;
-
-            // If location is available, check out pragmas
-            if (location != null &&
-                location.SourceTree != null &&
-                (pragmaWarningState = location.SourceTree.GetPragmaDirectiveWarningState(id, location.SourceSpan.Start)) == Syntax.PragmaWarningState.Disabled)
+            // If location.SourceTree is available, check out pragmas
+            var pragmaWarningState = tree?.GetPragmaDirectiveWarningState(id, position) ?? Syntax.PragmaWarningState.Default;
+            if (pragmaWarningState == Syntax.PragmaWarningState.Disabled)
             {
                 hasPragmaSuppression = true;
             }
 
+            // NOTE: this may be removed as part of https://github.com/dotnet/roslyn/issues/36550
             if (pragmaWarningState == Syntax.PragmaWarningState.Enabled)
             {
                 switch (report)
@@ -172,14 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ReportDiagnostic.Suppress;
             }
 
-            // Nullable flow analysis warnings cannot be turned on by specific diagnostic options.
-            // They can be turned on by nullable options and specific diagnostic options
-            // can either turn them off, or adjust the way they are reported.
-            if (isNullableFlowAnalysisWarning && !nullableOption)
-            {
-                return ReportDiagnostic.Suppress;
-            }
-
+            // 4. Global options
             // Unless specific warning options are defined (/warnaserror[+|-]:<n> or /nowarn:<n>, 
             // follow the global option (/warnaserror[+|-] or /nowarn).
             if (report == ReportDiagnostic.Default)
@@ -198,10 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // display a lightbulb would stop working if someone has suppress-all-warnings (/nowarn) specified in their project.
                         if (severity == DiagnosticSeverity.Warning || severity == DiagnosticSeverity.Info)
                         {
-                            return ReportDiagnostic.Suppress;
+                            report = ReportDiagnostic.Suppress;
                         }
-                        break;
-                    default:
                         break;
                 }
             }

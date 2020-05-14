@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -199,14 +201,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _lazySyntaxTreesWithAnalysisData[tree] = AnalyzerStateData.FullyProcessedInstance;
             }
 
+            private Dictionary<int, DeclarationAnalyzerStateData> EnsureDeclarationDataMap_NoLock(ISymbol symbol, Dictionary<int, DeclarationAnalyzerStateData> declarationDataMap)
+            {
+                Debug.Assert(_pendingDeclarations[symbol] == declarationDataMap);
+
+                if (declarationDataMap == null)
+                {
+                    declarationDataMap = _currentlyAnalyzingDeclarationsMapPool.Allocate();
+                    _pendingDeclarations[symbol] = declarationDataMap;
+                }
+
+                return declarationDataMap;
+            }
+
             private bool TryStartAnalyzingDeclaration_NoLock(ISymbol symbol, int declarationIndex, out DeclarationAnalyzerStateData state)
             {
-                Dictionary<int, DeclarationAnalyzerStateData> declarationDataMap;
-                if (!_pendingDeclarations.TryGetValue(symbol, out declarationDataMap))
+                if (!_pendingDeclarations.TryGetValue(symbol, out var declarationDataMap))
                 {
                     state = null;
                     return false;
                 }
+
+                declarationDataMap = EnsureDeclarationDataMap_NoLock(symbol, declarationDataMap);
 
                 if (declarationDataMap.TryGetValue(declarationIndex, out state))
                 {
@@ -229,14 +245,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private void MarkDeclarationProcessed_NoLock(ISymbol symbol, int declarationIndex)
             {
-                Dictionary<int, DeclarationAnalyzerStateData> declarationDataMap;
-                if (!_pendingDeclarations.TryGetValue(symbol, out declarationDataMap))
+                if (!_pendingDeclarations.TryGetValue(symbol, out var declarationDataMap))
                 {
                     return;
                 }
 
-                DeclarationAnalyzerStateData state;
-                if (declarationDataMap.TryGetValue(declarationIndex, out state))
+                declarationDataMap = EnsureDeclarationDataMap_NoLock(symbol, declarationDataMap);
+
+                if (declarationDataMap.TryGetValue(declarationIndex, out var state))
                 {
                     FreeDeclarationAnalyzerState_NoLock(state);
                 }
@@ -246,18 +262,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private void MarkDeclarationsProcessed_NoLock(ISymbol symbol)
             {
-                Dictionary<int, DeclarationAnalyzerStateData> declarationDataMap;
-                if (_pendingDeclarations.TryGetValue(symbol, out declarationDataMap))
+                if (_pendingDeclarations.TryGetValue(symbol, out var declarationDataMap))
                 {
                     FreeDeclarationDataMap_NoLock(declarationDataMap);
                     _pendingDeclarations.Remove(symbol);
                 }
             }
 
-            private void FreeDeclarationDataMap_NoLock(Dictionary<int, DeclarationAnalyzerStateData> declarationDataMap)
+            private void FreeDeclarationDataMap_NoLock(Dictionary<int, DeclarationAnalyzerStateData> declarationDataMapOpt)
             {
-                declarationDataMap.Clear();
-                _currentlyAnalyzingDeclarationsMapPool.Free(declarationDataMap);
+                if (declarationDataMapOpt is object)
+                {
+                    declarationDataMapOpt.Clear();
+                    _currentlyAnalyzingDeclarationsMapPool.Free(declarationDataMapOpt);
+                }
             }
 
             private void FreeDeclarationAnalyzerState_NoLock(DeclarationAnalyzerStateData state)
@@ -299,14 +317,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private bool IsDeclarationComplete_NoLock(ISymbol symbol, int declarationIndex)
             {
-                Dictionary<int, DeclarationAnalyzerStateData> declarationDataMap;
-                if (!_pendingDeclarations.TryGetValue(symbol, out declarationDataMap))
+                if (!_pendingDeclarations.TryGetValue(symbol, out var declarationDataMap))
                 {
                     return true;
                 }
 
-                DeclarationAnalyzerStateData state;
-                if (!declarationDataMap.TryGetValue(declarationIndex, out state))
+                if (declarationDataMap == null ||
+                    !declarationDataMap.TryGetValue(declarationIndex, out var state))
                 {
                     return false;
                 }
@@ -316,13 +333,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private bool AreDeclarationsProcessed_NoLock(ISymbol symbol, int declarationsCount)
             {
-                Dictionary<int, DeclarationAnalyzerStateData> declarationDataMap;
-                if (!_pendingDeclarations.TryGetValue(symbol, out declarationDataMap))
+                Debug.Assert(declarationsCount > 0);
+                if (!_pendingDeclarations.TryGetValue(symbol, out var declarationDataMap))
                 {
                     return true;
                 }
 
-                return declarationDataMap.Count == declarationsCount &&
+                return declarationDataMap?.Count == declarationsCount &&
                     declarationDataMap.Values.All(state => state.StateKind == StateKind.FullyProcessed);
             }
 
@@ -429,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             actionCounts.HasAnyExecutableCodeActions)
                         {
                             needsAnalysis = true;
-                            _pendingDeclarations[symbol] = _currentlyAnalyzingDeclarationsMapPool.Allocate();
+                            _pendingDeclarations[symbol] = null;
                         }
 
                         if (actionCounts.SymbolStartActionsCount > 0 && (!skipSymbolAnalysis || !skipDeclarationAnalysis))

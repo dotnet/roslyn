@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -12,16 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
             Dim projectBinPath = Path.GetTempPath()
             Return New VisualBasicProject(projectName,
                                           If(compilerHost, MockCompilerHost.FullFrameworkCompilerHost),
-                                          environment.CreateHierarchy(projectName, projectBinPath, "VB"),
-                                          environment.ServiceProvider,
-                                          environment.ThreadingContext,
-                                          commandLineParserServiceOpt:=New VisualBasicCommandLineParserService())
-        End Function
-
-        Public Function CreateVisualBasicProjectWithNullBinPath(environment As TestEnvironment, projectName As String) As VisualBasicProject
-            Return New VisualBasicProject(projectName,
-                                          MockCompilerHost.FullFrameworkCompilerHost,
-                                          environment.CreateHierarchy(projectName, projectBinPath:=Nothing, projectCapabilities:="VB"),
+                                          environment.CreateHierarchy(projectName, projectBinPath, projectRefPath:=Nothing, "VB"),
                                           environment.ServiceProvider,
                                           environment.ThreadingContext,
                                           commandLineParserServiceOpt:=New VisualBasicCommandLineParserService())

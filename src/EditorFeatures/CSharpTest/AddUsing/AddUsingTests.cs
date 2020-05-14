@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,8 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
@@ -25,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAddImportCodeFixProvider());
+
+        private protected OptionsCollection SeparateGroups => Option(GenerationOptions.SeparateImportDirectiveGroups, true);
 
         protected async Task TestAsync(
             string initialMarkup,
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string expectedMarkup,
             int index = 0,
             CodeActionPriority? priority = null,
-            IDictionary<OptionKey, object> options = null)
+            OptionsCollection options = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: false);
             await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: true);
@@ -53,12 +56,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string expectedMarkup,
             int index,
             CodeActionPriority? priority,
-            IDictionary<OptionKey, object> options,
+            OptionsCollection options,
             bool outOfProcess)
         {
             await TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, priority,
-                parameters: new TestParameters(options: options, fixProviderData: outOfProcess));
+                initialMarkup, expectedMarkup, index,
+                parameters: new TestParameters(options: options, runProviderOutOfProc: outOfProcess, priority: priority));
         }
     }
 
@@ -67,10 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(
             Workspace workspace, TestParameters parameters)
         {
-            var outOfProcess = (bool)parameters.fixProviderData;
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
-                                                 .WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess)
-                                                 .WithChangedOption(RemoteFeatureOptions.AddImportEnabled, outOfProcess);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.CurrentSolution.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, parameters.runProviderOutOfProc)));
 
             return base.CreateDiagnosticProviderAndFixer(workspace, parameters);
         }
@@ -2135,7 +2136,7 @@ class Program
         public async Task TestAttribute()
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
-            await TestActionCountAsync(input, 1);
+            await TestActionCountAsync(input, 2);
 
             await TestAsync(
 input,
@@ -4988,6 +4989,541 @@ namespace B
         }
     }
 }");
+        }
+
+
+        [WorkItem(745490, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/745490")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddUsingForAwaitableReturningExtensionMethod()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    using System;
+    using System.Threading.Tasks;
+
+    class C
+    {
+        C Instance { get; } => null;
+
+        async Task M() => await Instance.[|Foo|]();
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Task Foo(this C instance) => null;
+    }
+}",
+@"
+namespace A
+{
+    using System;
+    using System.Threading.Tasks;
+    using B;
+
+    class C
+    {
+        C Instance { get; } => null;
+
+        async Task M() => await Instance.Foo();
+    }
+}
+
+namespace B
+{
+    using System;
+    using System.Threading.Tasks;
+    using A;
+
+    static class Extensions
+    {
+        public static Task Foo(this C instance) => null;
+    }
+}");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithStaticUsingInNamespace_WhenNoExistingUsings()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using static System.Math;
+
+    class C
+    {
+        public [|List<int>|] F;
+    }
+}
+",
+@"
+namespace N
+{
+    using System.Collections.Generic;
+    using static System.Math;
+
+    class C
+    {
+        public List<int> F;
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithStaticUsingInInnerNestedNamespace_WhenNoExistingUsings()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    namespace M
+    {
+        using static System.Math;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    namespace M
+    {
+        using System.Collections.Generic;
+        using static System.Math;
+
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithStaticUsingInOuterNestedNamespace_WhenNoExistingUsings()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using static System.Math;
+
+    namespace M
+    {
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    using System.Collections.Generic;
+    using static System.Math;
+
+    namespace M
+    {
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithExistingUsingInCompilationUnit_WhenStaticUsingInNamespace()
+        {
+            await TestAsync(
+@"
+using System;
+
+namespace N
+{
+    using static System.Math;
+
+    class C
+    {
+        public [|List<int>|] F;
+    }
+}
+",
+@"
+using System;
+using System.Collections.Generic;
+
+namespace N
+{
+    using static System.Math;
+
+    class C
+    {
+        public List<int> F;
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithExistingUsing_WhenStaticUsingInInnerNestedNamespace()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using System;
+
+    namespace M
+    {
+        using static System.Math;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    using System;
+    using System.Collections.Generic;
+
+    namespace M
+    {
+        using static System.Math;
+
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithExistingUsing_WhenStaticUsingInOuterNestedNamespace()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using static System.Math;
+
+    namespace M
+    {
+        using System;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    using static System.Math;
+
+    namespace M
+    {
+        using System;
+        using System.Collections.Generic;
+
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithUsingAliasInNamespace_WhenNoExistingUsing()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using SAction = System.Action;
+
+    class C
+    {
+        public [|List<int>|] F;
+    }
+}
+",
+@"
+namespace N
+{
+    using System.Collections.Generic;
+    using SAction = System.Action;
+
+    class C
+    {
+        public List<int> F;
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithUsingAliasInInnerNestedNamespace_WhenNoExistingUsing()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    namespace M
+    {
+        using SAction = System.Action;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    namespace M
+    {
+        using System.Collections.Generic;
+        using SAction = System.Action;
+
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}
+");
+        }
+
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithUsingAliasInOuterNestedNamespace_WhenNoExistingUsing()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using SAction = System.Action;
+
+    namespace M
+    {
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    using System.Collections.Generic;
+    using SAction = System.Action;
+
+    namespace M
+    {
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithExistingUsingInCompilationUnit_WhenUsingAliasInNamespace()
+        {
+            await TestAsync(
+@"
+using System;
+
+namespace N
+{
+    using SAction = System.Action;
+
+    class C
+    {
+        public [|List<int>|] F;
+    }
+}
+",
+@"
+using System;
+using System.Collections.Generic;
+
+namespace N
+{
+    using SAction = System.Action;
+
+    class C
+    {
+        public List<int> F;
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithExistingUsing_WhenUsingAliasInInnerNestedNamespace()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using System;
+
+    namespace M
+    {
+        using SAction = System.Action;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    using System;
+    using System.Collections.Generic;
+
+    namespace M
+    {
+        using SAction = System.Action;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task UsingPlacedWithExistingUsing_WhenUsingAliasInOuterNestedNamespace()
+        {
+            await TestAsync(
+@"
+namespace N
+{
+    using SAction = System.Action;
+
+    namespace M
+    {
+        using System;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+",
+@"
+namespace N
+{
+    using SAction = System.Action;
+
+    namespace M
+    {
+        using System;
+        using System.Collections.Generic;
+
+        class C
+        {
+            public [|List<int>|] F;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task KeepUsingsGrouped1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Goo|]
+    }
+}
+
+namespace Microsoft
+{
+    public class Goo
+    {
+    }
+}",
+@"
+using System;
+
+using Microsoft;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Goo
+    }
+}
+
+namespace Microsoft
+{
+    public class Goo
+    {
+    }
+}", options: SeparateGroups);
         }
     }
 }
