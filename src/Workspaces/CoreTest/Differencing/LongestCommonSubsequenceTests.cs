@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 {
     public class LongestCommonSubsequenceTests
     {
-        LongestCommonSubsequenceString lcs = new LongestCommonSubsequenceString();
+        private readonly LongestCommonSubsequenceString lcs = new LongestCommonSubsequenceString();
 
         private class LongestCommonSubsequenceString : LongestCommonSubsequence<string>
         {
@@ -310,7 +310,6 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             var x9 = new string('x', 9);
             var x10 = new string('x', 10);
             var x99 = new string('x', 99);
-            var x100 = new string('x', 100);
             var x1000 = new string('x', 1000);
 
             var y1000 = new string('y', 1000);

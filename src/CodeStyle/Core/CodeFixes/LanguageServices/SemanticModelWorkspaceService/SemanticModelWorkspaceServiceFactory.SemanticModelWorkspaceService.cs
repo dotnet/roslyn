@@ -7,6 +7,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                 // TODO: port the GetSemanticModelForNodeAsync implementation from Workspaces layer,
                 // which currently relies on a bunch of internal APIs.
                 // For now, we fall back to the public API to fetch document's SemanticModel.
-                return document.GetSemanticModelAsync(cancellationToken);
+                return document.GetRequiredSemanticModelAsync(cancellationToken);
             }
         }
     }

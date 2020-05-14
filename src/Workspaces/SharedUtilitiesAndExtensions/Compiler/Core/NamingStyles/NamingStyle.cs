@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NamingStyles
 {
-    internal partial struct NamingStyle
+    internal partial struct NamingStyle : IEquatable<NamingStyle>, IObjectWritable
     {
         public Guid ID { get; }
         public string Name { get; }
@@ -61,6 +61,32 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
             return new NamingStyle(this.ID,
                 newName, newPrefix, newSuffix, newWordSeparator, newCapitalizationScheme);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is NamingStyle other
+                && Equals(other);
+        }
+
+        public bool Equals(NamingStyle other)
+        {
+            return ID == other.ID
+                && Name == other.Name
+                && Prefix == other.Prefix
+                && Suffix == other.Suffix
+                && WordSeparator == other.WordSeparator
+                && CapitalizationScheme == other.CapitalizationScheme;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(ID.GetHashCode(),
+                Hash.Combine(Name?.GetHashCode() ?? 0,
+                    Hash.Combine(Prefix?.GetHashCode() ?? 0,
+                        Hash.Combine(Suffix?.GetHashCode() ?? 0,
+                            Hash.Combine(WordSeparator?.GetHashCode() ?? 0,
+                                (int)CapitalizationScheme)))));
         }
 
         public string CreateName(ImmutableArray<string> words)
@@ -182,10 +208,10 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         private static string Substring(string name, TextSpan wordSpan)
             => name.Substring(wordSpan.Start, wordSpan.Length);
 
-        private static Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsLower(val[span.Start]);
-        private static Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsUpper(val[span.Start]);
+        private static readonly Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsLower(val[span.Start]);
+        private static readonly Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsUpper(val[span.Start]);
 
-        private static Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
+        private static readonly Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
         {
             for (int i = span.Start, n = span.End; i < n; i++)
             {
@@ -198,7 +224,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             return true;
         };
 
-        private static Func<string, TextSpan, bool> s_wordIsAllLowerCase = (val, span) =>
+        private static readonly Func<string, TextSpan, bool> s_wordIsAllLowerCase = (val, span) =>
         {
             for (int i = span.Start, n = span.End; i < n; i++)
             {
@@ -467,5 +493,28 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 suffix: namingStyleElement.Attribute(nameof(Suffix)).Value,
                 wordSeparator: namingStyleElement.Attribute(nameof(WordSeparator)).Value,
                 capitalizationScheme: (Capitalization)Enum.Parse(typeof(Capitalization), namingStyleElement.Attribute(nameof(CapitalizationScheme)).Value));
+
+        public bool ShouldReuseInSerialization => false;
+
+        public void WriteTo(ObjectWriter writer)
+        {
+            writer.WriteGuid(ID);
+            writer.WriteString(Name);
+            writer.WriteString(Prefix ?? string.Empty);
+            writer.WriteString(Suffix ?? string.Empty);
+            writer.WriteString(WordSeparator ?? string.Empty);
+            writer.WriteInt32((int)CapitalizationScheme);
+        }
+
+        public static NamingStyle ReadFrom(ObjectReader reader)
+        {
+            return new NamingStyle(
+                reader.ReadGuid(),
+                reader.ReadString(),
+                reader.ReadString(),
+                reader.ReadString(),
+                reader.ReadString(),
+                (Capitalization)reader.ReadInt32());
+        }
     }
 }

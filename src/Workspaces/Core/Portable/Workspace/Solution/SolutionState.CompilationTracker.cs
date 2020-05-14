@@ -100,6 +100,16 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol)
+            {
+                Debug.Assert(symbol.Kind == SymbolKind.Assembly ||
+                             symbol.Kind == SymbolKind.NetModule ||
+                             symbol.Kind == SymbolKind.DynamicType);
+                var state = this.ReadState();
+                var unrootedSymbolSet = state.UnrootedSymbolSet;
+                return unrootedSymbolSet != null && unrootedSymbolSet.TryGetValue(symbol, out _);
+            }
+
             /// <summary>
             /// Creates a new instance of the compilation info, retaining any already built
             /// compilation state as the now 'old' state
@@ -188,7 +198,8 @@ namespace Microsoft.CodeAnalysis
                         new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                         inProgressCompilation,
                         generatorDriver: new TrackedGeneratorDriver(null),
-                        hasSuccessfullyLoaded: false));
+                        hasSuccessfullyLoaded: false,
+                        State.GetUnrootedSymbols(inProgressCompilation)));
             }
 
             /// <summary>
@@ -315,7 +326,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Gets the final compilation if it is available.
             /// </summary>
-            public bool TryGetCompilation([NotNullWhen(true)]out Compilation? compilation)
+            public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
             {
                 var state = ReadState();
                 if (state.FinalCompilation != null && state.FinalCompilation.TryGetValue(out var compilationOpt) && compilationOpt.HasValue)
@@ -698,7 +709,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (generatorDriver.GeneratorDriver != null)
                     {
-                        // PROTOTYPE: make an API to expose these diagnostics
+                        // https://github.com/dotnet/roslyn/issues/44163: make an API to expose these diagnostics
                         generatorDriver = new TrackedGeneratorDriver(generatorDriver.GeneratorDriver.RunFullGeneration(compilation, out compilation, out var diagnostics, cancellationToken));
                     }
 
@@ -710,7 +721,8 @@ namespace Microsoft.CodeAnalysis
                             State.CreateValueSource(compilationWithoutGeneratedFiles, solution.Services),
                             compilationWithoutGeneratedFiles,
                             generatorDriver,
-                            hasSuccessfullyLoaded),
+                            hasSuccessfullyLoaded,
+                            State.GetUnrootedSymbols(compilation)),
                         solution.Services);
 
                     return new CompilationInfo(compilation, hasSuccessfullyLoaded);
@@ -723,8 +735,7 @@ namespace Microsoft.CodeAnalysis
 
             private void RecordAssemblySymbols(Compilation compilation, Dictionary<MetadataReference, ProjectId> metadataReferenceToProjectId)
             {
-                // TODO: Record source assembly to project mapping
-                // RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
+                RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
 
                 foreach (var kvp in metadataReferenceToProjectId)
                 {

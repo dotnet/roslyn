@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         : AbstractKeywordHighlighterTests
     {
         protected override TestWorkspace CreateWorkspaceFromFile(string code, ParseOptions options)
-            => TestWorkspace.CreateCSharp(code, (CSharpParseOptions)options);
+            => TestWorkspace.CreateCSharp(code, (CSharpParseOptions)options, exportProvider: ExportProvider);
 
         protected override IEnumerable<ParseOptions> GetOptions()
         {

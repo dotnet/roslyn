@@ -8,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
@@ -221,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return null;
             }
 
-            var documentation = Shared.Utilities.DocumentationComment.FromXmlFragment(xmlText);
+            var documentation = CodeAnalysis.Shared.Utilities.DocumentationComment.FromXmlFragment(xmlText);
 
             var completionListType = documentation.CompletionListCref != null
                 ? DocumentationCommentId.GetSymbolsForDeclarationId(documentation.CompletionListCref, compilation).OfType<INamedTypeSymbol>().FirstOrDefault()

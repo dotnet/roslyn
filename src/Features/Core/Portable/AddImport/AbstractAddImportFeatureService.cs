@@ -552,6 +552,6 @@ namespace Microsoft.CodeAnalysis.AddImport
             => FirstAwaitExpressionAncestor(syntaxFactsService, node) != null;
 
         private SyntaxNode FirstAwaitExpressionAncestor(ISyntaxFacts syntaxFactsService, SyntaxNode node)
-            => node.FirstAncestorOrSelf<SyntaxNode>(n => syntaxFactsService.IsAwaitExpression(n));
+            => node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFacts>((n, syntaxFactsService) => syntaxFactsService.IsAwaitExpression(n), syntaxFactsService);
     }
 }

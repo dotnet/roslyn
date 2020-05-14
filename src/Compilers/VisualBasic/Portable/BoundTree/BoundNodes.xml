@@ -1434,7 +1434,7 @@
     </Node>
 
     <!-- 
-    This represents a the bound form of a label reference (i.e. in a goto).
+    This represents the bound form of a label reference (i.e. in a goto).
     It is only used for the SemanticModel API.
     -->
     <Node Name="BoundLabel" Base="BoundExpression">

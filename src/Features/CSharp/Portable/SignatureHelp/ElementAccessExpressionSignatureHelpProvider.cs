@@ -155,7 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (expression.Parent is ConditionalAccessExpressionSyntax)
             {
                 // The typed code looks like: <expression>?[
-                var conditional = (ConditionalAccessExpressionSyntax)expression.Parent;
                 var elementBinding = SyntaxFactory.ElementBindingExpression(newBracketedArgumentList);
                 var conditionalAccessExpression = SyntaxFactory.ConditionalAccessExpression(expression, elementBinding);
                 offset = expression.SpanStart - conditionalAccessExpression.SpanStart;
@@ -386,8 +385,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out ElementBindingExpressionSyntax elementBindingExpression))
                 {
                     // Find the first conditional access expression that starts left of our open bracket
-                    var conditionalAccess = elementBindingExpression.FirstAncestorOrSelf<ConditionalAccessExpressionSyntax>(
-                        c => c.SpanStart < elementBindingExpression.SpanStart);
+                    var conditionalAccess = elementBindingExpression.FirstAncestorOrSelf<ConditionalAccessExpressionSyntax, ElementBindingExpressionSyntax>(
+                        (c, elementBindingExpression) => c.SpanStart < elementBindingExpression.SpanStart, elementBindingExpression);
 
                     identifier = conditionalAccess.Expression;
                     openBrace = elementBindingExpression.ArgumentList.OpenBracketToken;

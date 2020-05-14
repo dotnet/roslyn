@@ -80,6 +80,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return SyntaxFactory.ParseLeadingTrivia(text)
         End Function
 
+        Public Function EscapeIdentifier(identifier As String) As String Implements ISyntaxFacts.EscapeIdentifier
+            Dim keywordKind = SyntaxFacts.GetKeywordKind(identifier)
+            Dim needsEscaping = keywordKind <> SyntaxKind.None
+
+            Return If(needsEscaping, "[" & identifier & "]", identifier)
+        End Function
+
         Public Function IsVerbatimIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsVerbatimIdentifier
             Return False
         End Function
@@ -143,6 +150,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 DirectCast(node.Parent, ObjectCreationExpressionSyntax).Type Is node
         End Function
 
+        Public Function IsDeclarationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclarationExpression
+            ' VB doesn't support declaration expressions
+            Return False
+        End Function
+
         Public Function IsAttributeName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAttributeName
             Return node.IsParentKind(SyntaxKind.Attribute) AndAlso
                 DirectCast(node.Parent, AttributeSyntax).Name Is node
@@ -169,7 +181,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
-        Public Function IsNamedParameter(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedParameter
+        Public Function IsNamedArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedArgument
+            Dim arg = TryCast(node, SimpleArgumentSyntax)
+            Return arg?.NameColonEquals IsNot Nothing
+        End Function
+
+        Public Function IsNameOfNamedArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfNamedArgument
             Return node.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is node)
         End Function
 
@@ -1104,7 +1121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Contract.ThrowIfFalse(index = memberId)
         End Sub
 
-        Public Function GetBindableParent(token As SyntaxToken) As SyntaxNode Implements ISyntaxFacts.GetBindableParent
+        Public Function TryGetBindableParent(token As SyntaxToken) As SyntaxNode Implements ISyntaxFacts.TryGetBindableParent
             Dim node = token.Parent
             While node IsNot Nothing
                 Dim parent = node.Parent
@@ -1481,6 +1498,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function IsBinaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBinaryExpression
             Return TypeOf node Is BinaryExpressionSyntax
+        End Function
+
+        Public Function IsIsExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsExpression
+            Return node.IsKind(SyntaxKind.TypeOfIsExpression)
         End Function
 
         Public Sub GetPartsOfBinaryExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfBinaryExpression
@@ -1896,6 +1917,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Overrides Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParameterNameXmlElementSyntax
+            Dim xmlElement = TryCast(node, XmlElementSyntax)
+            If xmlElement IsNot Nothing Then
+                Dim name = TryCast(xmlElement.StartTag.Name, XmlNameSyntax)
+                Return name?.LocalName.ValueText = DocumentationCommentXmlNames.ParameterElementName
+            End If
+
+            Return False
+        End Function
+
+        Public Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetContentFromDocumentationCommentTriviaSyntax
+            Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
+            If documentationCommentTrivia IsNot Nothing Then
+                Return documentationCommentTrivia.Content
+            End If
+
+            Return Nothing
+        End Function
+
         Public Overrides Function CanHaveAccessibility(declaration As SyntaxNode) As Boolean Implements ISyntaxFacts.CanHaveAccessibility
             Select Case declaration.Kind
                 Case SyntaxKind.ClassBlock,
@@ -2249,6 +2289,98 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                     End If
             End Select
             Return False
+        End Function
+
+        Public Function IsImplicitObjectCreation(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsImplicitObjectCreation
+            Return False
+        End Function
+
+        Public Function SupportsNotPattern(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsNotPattern
+            Return False
+        End Function
+
+        Public Function IsIsPatternExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsPatternExpression
+            Return False
+        End Function
+
+        Public Function IsAnyPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnyPattern
+            Return False
+        End Function
+
+        Public Function IsAndPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAndPattern
+            Return False
+        End Function
+
+        Public Function IsBinaryPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBinaryPattern
+            Return False
+        End Function
+
+        Public Function IsConstantPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsConstantPattern
+            Return False
+        End Function
+
+        Public Function IsDeclarationPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclarationPattern
+            Return False
+        End Function
+
+        Public Function IsNotPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNotPattern
+            Return False
+        End Function
+
+        Public Function IsOrPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOrPattern
+            Return False
+        End Function
+
+        Public Function IsParenthesizedPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParenthesizedPattern
+            Return False
+        End Function
+
+        Public Function IsRecursivePattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsRecursivePattern
+            Return False
+        End Function
+
+        Public Function IsUnaryPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUnaryPattern
+            Return False
+        End Function
+
+        Public Function IsTypePattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTypePattern
+            Return False
+        End Function
+
+        Public Function IsVarPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVarPattern
+            Return False
+        End Function
+
+        Public Sub GetPartsOfIsPatternExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef isToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfIsPatternExpression
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Function GetExpressionOfConstantPattern(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfConstantPattern
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Public Sub GetPartsOfParenthesizedPattern(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef pattern As SyntaxNode, ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfParenthesizedPattern
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Sub GetPartsOfBinaryPattern(node As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfBinaryPattern
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Sub GetPartsOfUnaryPattern(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef pattern As SyntaxNode) Implements ISyntaxFacts.GetPartsOfUnaryPattern
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Sub GetPartsOfDeclarationPattern(node As SyntaxNode, ByRef type As SyntaxNode, ByRef designation As SyntaxNode) Implements ISyntaxFacts.GetPartsOfDeclarationPattern
+            Throw New NotImplementedException()
+        End Sub
+
+        Public Sub GetPartsOfRecursivePattern(node As SyntaxNode, ByRef type As SyntaxNode, ByRef positionalPart As SyntaxNode, ByRef propertyPart As SyntaxNode, ByRef designation As SyntaxNode) Implements ISyntaxFacts.GetPartsOfRecursivePattern
+            Throw New NotImplementedException()
+        End Sub
+
+        Public Function GetTypeOfTypePattern(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetTypeOfTypePattern
+            Throw New NotImplementedException()
         End Function
     End Class
 End Namespace

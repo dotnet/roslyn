@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -35,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private delegate bool AttributePredicate(PEModule module, CustomAttributeHandle attribute);
         private delegate IEnumerable<string> AttributeLanguagesFunc(PEModule module, CustomAttributeHandle attribute);
 
-        private readonly string _fullPath;
+        public override string FullPath { get; }
+
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
         private readonly Extensions<DiagnosticAnalyzer> _diagnosticAnalyzers;
         private readonly Extensions<ISourceGenerator> _generators;
@@ -53,18 +55,59 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="assemblyLoader">Loader for obtaining the <see cref="Assembly"/> from the <paramref name="fullPath"/></param>
         public AnalyzerFileReference(string fullPath, IAnalyzerAssemblyLoader assemblyLoader)
         {
-            _fullPath = fullPath ?? throw new ArgumentNullException(nameof(fullPath));
+            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
+
+            FullPath = fullPath;
+            _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
+
             _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute, GetDiagnosticsAnalyzerSupportedLanguages);
             _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetGeneratorsSupportedLanguages);
-            _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
-            if (PathUtilities.IsAbsolute(fullPath))
-            {
-                assemblyLoader.AddDependencyLocation(fullPath);
-            }
+            assemblyLoader.AddDependencyLocation(fullPath);
         }
+
+        public IAnalyzerAssemblyLoader AssemblyLoader => _assemblyLoader;
+
+        public override bool Equals(object? obj)
+            => Equals(obj as AnalyzerFileReference);
+
+        public bool Equals(AnalyzerFileReference? other)
+        {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return other is object &&
+                ReferenceEquals(_assemblyLoader, other._assemblyLoader) &&
+                FullPath == other.FullPath;
+        }
+
+        // legacy, for backwards compat:
+        public bool Equals(AnalyzerReference? other)
+        {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (other is AnalyzerFileReference fileReference)
+            {
+                return Equals(fileReference);
+            }
+
+            return FullPath == other.FullPath;
+        }
+
+        public override int GetHashCode()
+            => Hash.Combine(RuntimeHelpers.GetHashCode(_assemblyLoader), FullPath.GetHashCode());
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
@@ -79,14 +122,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override ImmutableArray<ISourceGenerator> GetGenerators()
         {
             return _generators.GetExtensionsForAllLanguages();
-        }
-
-        public override string FullPath
-        {
-            get
-            {
-                return _fullPath;
-            }
         }
 
         public override string Display
@@ -123,17 +158,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // AssemblyName.GetAssemblyName(path) is not available on CoreCLR.
                 // Use our metadata reader to do the equivalent thing.
-                using (var reader = new PEReader(FileUtilities.OpenRead(_fullPath)))
-                {
-                    var metadataReader = reader.GetMetadataReader();
-                    var assemblyIdentity = metadataReader.ReadAssemblyIdentityOrThrow();
-                    _lazyDisplay = assemblyIdentity.Name;
-                    _lazyIdentity = assemblyIdentity;
-                }
+                using var reader = new PEReader(FileUtilities.OpenRead(FullPath));
+
+                var metadataReader = reader.GetMetadataReader();
+                var assemblyIdentity = metadataReader.ReadAssemblyIdentityOrThrow();
+                _lazyDisplay = assemblyIdentity.Name;
+                _lazyIdentity = assemblyIdentity;
             }
             catch
             {
-                _lazyDisplay = Path.GetFileNameWithoutExtension(_fullPath);
+                _lazyDisplay = FileNameUtilities.GetFileName(FullPath, includeExtension: false);
                 _lazyIdentity = _lazyDisplay;
             }
         }
@@ -337,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (_lazyExtensionTypeNameMap == null)
                 {
-                    var analyzerTypeNameMap = GetAnalyzerTypeNameMap(_reference._fullPath, _attributePredicate, _languagesFunc);
+                    var analyzerTypeNameMap = GetAnalyzerTypeNameMap(_reference.FullPath, _attributePredicate, _languagesFunc);
                     Interlocked.CompareExchange(ref _lazyExtensionTypeNameMap, analyzerTypeNameMap, null);
                 }
 
@@ -486,32 +520,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as AnalyzerFileReference);
-        }
-
-        public bool Equals(AnalyzerReference? other)
-        {
-            if (other != null)
-            {
-                return other.Display == this.Display &&
-                       other.FullPath == this.FullPath;
-            }
-
-            return base.Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(this.Display, this.FullPath.GetHashCode());
-        }
-
         public Assembly GetAssembly()
         {
             if (_lazyAssembly == null)
             {
-                _lazyAssembly = _assemblyLoader.LoadFromPath(_fullPath);
+                _lazyAssembly = _assemblyLoader.LoadFromPath(FullPath);
             }
 
             return _lazyAssembly;

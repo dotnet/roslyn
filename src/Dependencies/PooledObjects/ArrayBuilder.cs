@@ -390,12 +390,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            return GetEnumerator();
+            return _builder.GetEnumerator();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return _builder.GetEnumerator();
         }
 
         internal Dictionary<K, ImmutableArray<T>> ToDictionary<K>(Func<T, K> keySelector, IEqualityComparer<K> comparer = null)

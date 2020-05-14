@@ -77,5 +77,51 @@ class Goo
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestProperty3()
+        {
+            const string code = @"
+class C
+{
+    $${|#0:public int Goo{|textspan:
+    {
+        get { }
+        set { }
+    }|#0}
+|}
+    public int Goo2
+    {
+        get { }
+        set { }
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestProperty4()
+        {
+            const string code = @"
+class C
+{
+    $${|#0:public int Goo{|textspan:
+    {
+        get { }
+        set { }
+    }|#0}
+|}
+    public int this[int value]
+    {
+        get { }
+        set { }
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
     }
 }

@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public async Task<(SolutionInfo, SerializableOptionSet)> CreateSolutionInfoAndOptionsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
-            var solutionChecksumObject = await GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
-            var solutionInfo = await GetAssetAsync<SolutionInfo.SolutionAttributes>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
+            var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
 
             var projects = new List<ProjectInfo>();
-            foreach (var projectChecksum in solutionChecksumObject.Projects)
+            foreach (var projectChecksum in solutionChecksums.Projects)
             {
                 var projectInfo = await CreateProjectInfoAsync(projectChecksum, cancellationToken).ConfigureAwait(false);
                 if (projectInfo != null)
@@ -38,16 +38,18 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
-            var info = SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects);
-            var options = await GetAssetAsync<SerializableOptionSet>(solutionChecksumObject.Options, cancellationToken).ConfigureAwait(false);
+            var analyzerReferences = await CreateCollectionAsync<AnalyzerReference>(solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+
+            var info = SolutionInfo.Create(solutionAttributes.Id, solutionAttributes.Version, solutionAttributes.FilePath, projects, analyzerReferences);
+            var options = await GetAssetAsync<SerializableOptionSet>(solutionChecksums.Options, cancellationToken).ConfigureAwait(false);
             return (info, options);
         }
 
         public async Task<ProjectInfo> CreateProjectInfoAsync(Checksum projectChecksum, CancellationToken cancellationToken)
         {
-            var projectSnapshot = await GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
+            var projectChecksums = await GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
 
-            var projectInfo = await GetAssetAsync<ProjectInfo.ProjectAttributes>(projectSnapshot.Info, cancellationToken).ConfigureAwait(false);
+            var projectInfo = await GetAssetAsync<ProjectInfo.ProjectAttributes>(projectChecksums.Info, cancellationToken).ConfigureAwait(false);
             if (!RemoteSupportedLanguages.IsSupported(projectInfo.Language))
             {
                 // only add project our workspace supports. 
@@ -56,24 +58,36 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             var compilationOptions = projectInfo.FixUpCompilationOptions(
-                await GetAssetAsync<CompilationOptions>(projectSnapshot.CompilationOptions, cancellationToken).ConfigureAwait(false));
+                await GetAssetAsync<CompilationOptions>(projectChecksums.CompilationOptions, cancellationToken).ConfigureAwait(false));
 
-            var parseOptions = await GetAssetAsync<ParseOptions>(projectSnapshot.ParseOptions, cancellationToken).ConfigureAwait(false);
+            var parseOptions = await GetAssetAsync<ParseOptions>(projectChecksums.ParseOptions, cancellationToken).ConfigureAwait(false);
 
-            var p2p = await CreateCollectionAsync<ProjectReference>(projectSnapshot.ProjectReferences, cancellationToken).ConfigureAwait(false);
-            var metadata = await CreateCollectionAsync<MetadataReference>(projectSnapshot.MetadataReferences, cancellationToken).ConfigureAwait(false);
-            var analyzers = await CreateCollectionAsync<AnalyzerReference>(projectSnapshot.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+            var projectReferences = await CreateCollectionAsync<ProjectReference>(projectChecksums.ProjectReferences, cancellationToken).ConfigureAwait(false);
+            var metadataReferences = await CreateCollectionAsync<MetadataReference>(projectChecksums.MetadataReferences, cancellationToken).ConfigureAwait(false);
+            var analyzerReferences = await CreateCollectionAsync<AnalyzerReference>(projectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
-            var documentInfos = await CreateDocumentInfosAsync(projectSnapshot.Documents, cancellationToken).ConfigureAwait(false);
-            var additionalDocumentInfos = await CreateDocumentInfosAsync(projectSnapshot.AdditionalDocuments, cancellationToken).ConfigureAwait(false);
-            var analyzerConfigDocumentInfos = await CreateDocumentInfosAsync(projectSnapshot.AnalyzerConfigDocuments, cancellationToken).ConfigureAwait(false);
+            var documentInfos = await CreateDocumentInfosAsync(projectChecksums.Documents, cancellationToken).ConfigureAwait(false);
+            var additionalDocumentInfos = await CreateDocumentInfosAsync(projectChecksums.AdditionalDocuments, cancellationToken).ConfigureAwait(false);
+            var analyzerConfigDocumentInfos = await CreateDocumentInfosAsync(projectChecksums.AnalyzerConfigDocuments, cancellationToken).ConfigureAwait(false);
 
             return ProjectInfo.Create(
-                projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
-                projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
-                compilationOptions, parseOptions,
-                documentInfos, p2p, metadata, analyzers, additionalDocumentInfos, projectInfo.IsSubmission)
+                projectInfo.Id,
+                projectInfo.Version,
+                projectInfo.Name,
+                projectInfo.AssemblyName,
+                projectInfo.Language,
+                projectInfo.FilePath,
+                projectInfo.OutputFilePath,
+                compilationOptions,
+                parseOptions,
+                documentInfos,
+                projectReferences,
+                metadataReferences,
+                analyzerReferences,
+                additionalDocumentInfos,
+                projectInfo.IsSubmission)
                 .WithOutputRefFilePath(projectInfo.OutputRefFilePath)
+                .WithCompilationOutputFilePaths(projectInfo.CompilationOutputFilePaths)
                 .WithHasAllInformation(projectInfo.HasAllInformation)
                 .WithRunAnalyzers(projectInfo.RunAnalyzers)
                 .WithDefaultNamespace(projectInfo.DefaultNamespace)

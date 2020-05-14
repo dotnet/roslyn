@@ -310,7 +310,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var docVersion = document.GetTopLevelChangeTextVersionAsync().Result;
             var projVersion = document.Project.GetSemanticVersionAsync().Result;
 
-            var text = document.GetTextAsync().Result;
             var newDoc = document.WithText(newText);
 
             var newDocVersion = newDoc.GetTopLevelChangeTextVersionAsync().Result;
@@ -327,7 +326,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var docVersion = document.GetTopLevelChangeTextVersionAsync().Result;
             var projVersion = document.Project.GetSemanticVersionAsync().Result;
 
-            var text = document.GetTextAsync().Result;
             var newDoc = document.WithText(newText);
 
             var newDocVersion = newDoc.GetTopLevelChangeTextVersionAsync().Result;

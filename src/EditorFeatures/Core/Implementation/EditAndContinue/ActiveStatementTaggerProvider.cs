@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         public ActiveStatementTaggerProvider(IThreadingContext threadingContext)
             => _threadingContext = threadingContext;
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
             => new ActiveStatementTagger(_threadingContext, buffer) as ITagger<T>;
     }
 }

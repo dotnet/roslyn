@@ -8,13 +8,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -32,7 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private readonly IAsynchronousOperationListener _listener;
             private readonly Workspace _workspace;
-            private readonly HostDiagnosticAnalyzers _hostAnalyzers;
+
+            private GlobalNotificationRemoteDeliveryService? _globalNotificationDelivery;
 
             private readonly object _gate;
 
@@ -43,15 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             public RemoteHostClientService(
                 IThreadingContext threadingContext,
                 IAsynchronousOperationListener listener,
-                Workspace workspace,
-                HostDiagnosticAnalyzers hostAnalyzers)
+                Workspace workspace)
                 : base(threadingContext)
             {
                 _gate = new object();
 
                 _listener = listener;
                 _workspace = workspace;
-                _hostAnalyzers = hostAnalyzers;
             }
 
             public Workspace Workspace => _workspace;
@@ -93,8 +88,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     var token = _shutdownCancellationTokenSource.Token;
 
-                    // create solution checksum updater
-                    _checksumUpdater = new SolutionChecksumUpdater(this, token);
+                    _checksumUpdater = new SolutionChecksumUpdater(Workspace, Listener, token);
+                    _globalNotificationDelivery = new GlobalNotificationRemoteDeliveryService(Workspace.Services, token);
 
                     _remoteClientTask = Task.Run(() => EnableAsync(token), token);
                 }
@@ -117,13 +112,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     Contract.ThrowIfNull(_shutdownCancellationTokenSource);
                     Contract.ThrowIfNull(_checksumUpdater);
-
-                    RemoveGlobalAssets();
+                    Contract.ThrowIfNull(_globalNotificationDelivery);
 
                     _shutdownCancellationTokenSource.Cancel();
 
                     _checksumUpdater.Shutdown();
                     _checksumUpdater = null;
+
+                    _globalNotificationDelivery.Dispose();
 
                     try
                     {
@@ -196,7 +192,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = x64));
 
                 // set service bitness
-                WellKnownRemoteHostServices.Set64bit(x64);
                 WellKnownServiceHubServices.Set64bit(x64);
             }
 
@@ -208,60 +203,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 if (client != null)
                 {
                     client.StatusChanged += OnStatusChanged;
-
-                    // set global assets on remote host
-                    var checksums = AddGlobalAssets(cancellationToken);
-
-                    // send over global asset
-                    var success = await client.TryRunRemoteAsync(
-                        WellKnownRemoteHostServices.RemoteHostService,
-                        nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                        _workspace.CurrentSolution,
-                        new[] { (object)checksums },
-                        callbackTarget: null,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (success)
-                    {
-                        return client;
-                    }
+                    return client;
                 }
 
                 return null;
-            }
-
-            private Checksum[] AddGlobalAssets(CancellationToken cancellationToken)
-            {
-                var builder = ArrayBuilder<Checksum>.GetInstance();
-
-                using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
-                {
-                    var snapshotService = _workspace.Services.GetRequiredService<IRemotableDataService>();
-                    var assetBuilder = new CustomAssetBuilder(_workspace);
-
-                    foreach (var (_, reference) in _hostAnalyzers.GetHostAnalyzerReferencesMap())
-                    {
-                        var asset = assetBuilder.Build(reference, cancellationToken);
-
-                        builder.Add(asset.Checksum);
-                        snapshotService.AddGlobalAsset(reference, asset, cancellationToken);
-                    }
-                }
-
-                return builder.ToArrayAndFree();
-            }
-
-            private void RemoveGlobalAssets()
-            {
-                using (Logger.LogBlock(FunctionId.RemoteHostClientService_RemoveGlobalAssets, CancellationToken.None))
-                {
-                    var snapshotService = _workspace.Services.GetRequiredService<IRemotableDataService>();
-
-                    foreach (var (_, reference) in _hostAnalyzers.GetHostAnalyzerReferencesMap())
-                    {
-                        snapshotService.RemoveGlobalAsset(reference, CancellationToken.None);
-                    }
-                }
             }
 
             private void OnStatusChanged(object sender, bool started)

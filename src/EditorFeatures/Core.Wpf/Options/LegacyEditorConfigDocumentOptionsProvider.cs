@@ -7,10 +7,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -30,8 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         /// </summary>
         private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
 
+#pragma warning disable IDE0052 // Remove unread private members - Used in EditorFeatures project context
         private readonly Workspace _workspace;
         private readonly IAsynchronousOperationListener _listener;
+#pragma warning disable IDE0052
+
         private readonly ICodingConventionsManager _codingConventionsManager;
 
         internal LegacyEditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager, IAsynchronousOperationListenerProvider listenerProvider)

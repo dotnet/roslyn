@@ -5,17 +5,18 @@
 #nullable enable
 
 using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -178,14 +179,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken)
-            => TryNotifyForSpecificSymbol(symbol, project, cancellationToken);
+            => TryNotifyForSpecificSymbol(symbol, project.Solution, cancellationToken);
 
         private bool TryNotifyForSpecificSymbol(
-            ISymbol symbol, Project project, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
 
             if (!TryGetNavigationAPIRequiredArguments(

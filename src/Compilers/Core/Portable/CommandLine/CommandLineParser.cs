@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             return Directory.EnumerateFiles(directory, fileNamePattern, searchOption);
         }
 
-        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string? sdkDirectoryOpt, string additionalReferenceDirectories);
+        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string? sdkDirectory, string? additionalReferenceDirectories);
 
         /// <summary>
         /// Parses a command line.
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="sdkDirectory">The directory to search for mscorlib, or null if not available.</param>
         /// <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         /// <returns>a <see cref="CommandLineArguments"/> object representing the parsed command line.</returns>
-        public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string? sdkDirectory, string additionalReferenceDirectories)
+        public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string? sdkDirectory, string? additionalReferenceDirectories)
         {
             return CommonParse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
@@ -261,20 +261,27 @@ namespace Microsoft.CodeAnalysis
 
         protected ImmutableArray<KeyValuePair<string, string>> ParsePathMap(string pathMap, IList<Diagnostic> errors)
         {
-            var pathMapBuilder = ArrayBuilder<KeyValuePair<string, string>>.GetInstance();
             if (pathMap.IsEmpty())
             {
-                return pathMapBuilder.ToImmutableAndFree();
+                return ImmutableArray<KeyValuePair<string, string>>.Empty;
             }
 
-            foreach (var kEqualsV in pathMap.Split(','))
+            var pathMapBuilder = ArrayBuilder<KeyValuePair<string, string>>.GetInstance();
+
+            foreach (var kEqualsV in SplitWithDoubledSeparatorEscaping(pathMap, ','))
             {
-                var kv = kEqualsV.Split('=');
+                if (kEqualsV.IsEmpty())
+                {
+                    continue;
+                }
+
+                var kv = SplitWithDoubledSeparatorEscaping(kEqualsV, '=');
                 if (kv.Length != 2)
                 {
                     errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
                     continue;
                 }
+
                 var from = kv[0];
                 var to = kv[1];
 
@@ -291,6 +298,49 @@ namespace Microsoft.CodeAnalysis
             }
 
             return pathMapBuilder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Splits specified <paramref name="str"/> on <paramref name="separator"/>
+        /// treating two consecutive separators as if they were a single non-separating character.
+        /// E.g. "a,,b,c" split on ',' yields ["a,b", "c"].
+        /// </summary>
+        internal static string[] SplitWithDoubledSeparatorEscaping(string str, char separator)
+        {
+            if (str.Length == 0)
+            {
+                return Array.Empty<string>();
+            }
+
+            var result = ArrayBuilder<string>.GetInstance();
+            var pooledPart = PooledStringBuilder.GetInstance();
+            var part = pooledPart.Builder;
+
+            int i = 0;
+            while (i < str.Length)
+            {
+                char c = str[i++];
+                if (c == separator)
+                {
+                    if (i < str.Length && str[i] == separator)
+                    {
+                        i++;
+                    }
+                    else
+                    {
+                        result.Add(part.ToString());
+                        part.Clear();
+                        continue;
+                    }
+                }
+
+                part.Append(c);
+            }
+
+            result.Add(part.ToString());
+
+            pooledPart.Free();
+            return result.ToArrayAndFree();
         }
 
         internal void ParseOutputFile(

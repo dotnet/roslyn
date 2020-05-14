@@ -22,6 +22,11 @@
         <target state="translated">Um für eine interpolierte ausführliche Zeichenfolge "@$" anstelle von "$@" zu verwenden, benötigen Sie Sprachversion {0} oder höher.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnDefault">
+        <source>Operator '{0}' is ambiguous on operands '{1}' and '{2}'</source>
+        <target state="new">Operator '{0}' is ambiguous on operands '{1}' and '{2}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
         <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
         <target state="translated">Der Operator "{0}" kann nicht auf "default" und den Operanden vom Typ "{1}" angewendet werden, weil es sich um einen Typparameter handelt, der nicht als Verweistyp bekannt ist.</target>
@@ -82,6 +87,11 @@
         <target state="translated">Der typeof-Operator kann nicht für einen Verweistyp verwendet werden, der NULL-Werte zulässt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadOpOnNullOrDefaultOrNew">
+        <source>Operator '{0}' cannot be applied to operand '{1}'</source>
+        <target state="new">Operator '{0}' cannot be applied to operand '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Ungültiger Operand für die Musterübereinstimmung. Ein Wert ist erforderlich, gefunden wurde aber "{0}".</target>
@@ -130,6 +140,11 @@
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">Ein Standardliteral "default" ist als Muster ungültig. Verwenden Sie ggf. ein anderes Literal (z. B. 0 oder "null"). Verwenden Sie zum Abgleich aller Elemente ein discard-Muster "_".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
+        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
+        <target state="new">A variable may not be declared within a 'not' or 'or' pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -432,6 +447,11 @@
         <target state="translated">Die linke Seite einer ref-Zuweisung muss ein lokaler Verweis oder ein Parameter sein.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RelationalPatternWithNaN">
+        <source>Relational patterns may not be used for a floating-point NaN.</source>
+        <target state="new">Relational patterns may not be used for a floating-point NaN.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
         <target state="translated">Die Zugriffsoptionen "protected", "protected internal" oder "private protected" werden von der Zielruntime für einen Member einer Schnittstelle nicht unterstützt.</target>
@@ -463,13 +483,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
-        <source>The pattern has already been handled by a previous arm of the switch expression.</source>
-        <target state="translated">Das Muster wurde bereits durch einen vorherigen Zweig des switch-Ausdrucks verarbeitet.</target>
+        <source>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</source>
+        <target state="needs-review-translation">Das Muster wurde bereits durch einen vorherigen Zweig des switch-Ausdrucks verarbeitet.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchCaseSubsumed">
-        <source>The switch case has already been handled by a previous case.</source>
-        <target state="translated">Der Parameter wurde bereits von einem vorherigen Parameter verarbeitet.</target>
+        <source>The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.</source>
+        <target state="needs-review-translation">Der Parameter wurde bereits von einem vorherigen Parameter verarbeitet.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchExpressionNoBestType">
@@ -497,6 +517,21 @@
         <target state="translated">Tupeltypen, die als Operanden eines ==- oder !=-Operators verwendet werden, müssen übereinstimmende Kardinalitäten aufweisen. Dieser Operator enthält jedoch Tupeltypen der Kardinalität "{0}" auf der linken und "{1}" auf der rechten Seite.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TypelessNewIllegalTargetType">
+        <source>The type '{0}' may not be used as the target type of new()</source>
+        <target state="new">The type '{0}' may not be used as the target type of new()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypelessNewNoTargetType">
+        <source>There is no target type for '{0}'</source>
+        <target state="new">There is no target type for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypelessNewNotValid">
+        <source>Use of new() is not valid in this context</source>
+        <target state="new">Use of new() is not valid in this context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
         <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
         <target state="translated">"{0}": Eine Einschränkungsklasse kann nicht gleichzeitig mit einer unmanaged-Einschränkung angegeben werden.</target>
@@ -510,6 +545,11 @@
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
         <target state="translated">Der Typ "{2}" muss, ebenso wie sämtliche Felder auf jeder Schachtelungsebene, ein Non-Nullable-Typ sein, wenn er als {1}-Parameter im generischen Typ oder in der generischen Methode "{0}" verwendet werden soll.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedTypeForRelationalPattern">
+        <source>Relational patterns may not be used for a value of type '{0}'.</source>
+        <target state="new">Relational patterns may not be used for a value of type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
@@ -859,6 +899,11 @@
         <target state="translated">Alternative interpolierte ausführliche Zeichenfolgen</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAndPattern">
+        <source>and pattern</source>
+        <target state="new">and pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAsyncUsing">
         <source>asynchronous using</source>
         <target state="translated">asynchrone using-Anweisung</target>
@@ -949,6 +994,11 @@
         <target state="translated">notnull-Einschränkung für generischen Typ</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNotPattern">
+        <source>not pattern</source>
+        <target state="new">not pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
         <source>nullable reference types</source>
         <target state="translated">Nullable-Verweistypen</target>
@@ -957,6 +1007,16 @@
       <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
         <source>obsolete on property accessor</source>
         <target state="translated">veraltet für Eigenschaftenaccessor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureOrPattern">
+        <source>or pattern</source>
+        <target state="new">or pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureParenthesizedPattern">
+        <source>parenthesized pattern</source>
+        <target state="new">parenthesized pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnable">
@@ -999,6 +1059,11 @@
         <target state="translated">ref-Neuzuweisung</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRelationalPattern">
+        <source>relational pattern</source>
+        <target state="new">relational pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
         <source>stackalloc initializer</source>
         <target state="translated">stackalloc-Initialisierer</target>
@@ -1014,9 +1079,19 @@
         <target state="translated">&lt;switch-Ausdruck&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="new">target-typed object creation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="translated">Tupelgleichheit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureTypePattern">
+        <source>type pattern</source>
+        <target state="new">type pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
@@ -1504,6 +1579,16 @@
         <target state="translated">Der angegebene Ausdruck stimmt immer mit der angegebenen Konstante überein.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesPattern">
+        <source>The given expression always matches the provided pattern.</source>
+        <target state="new">The given expression always matches the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesPattern_Title">
+        <source>The given expression always matches the provided pattern.</source>
+        <target state="new">The given expression always matches the provided pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_GivenExpressionNeverMatchesPattern">
         <source>The given expression never matches the provided pattern.</source>
         <target state="translated">Der angegebene Ausdruck stimmt nie mit dem angegebenen Muster überein.</target>
@@ -1522,6 +1607,16 @@
       <trans-unit id="WRN_ImplicitCopyInReadOnlyMember_Title">
         <source>Call to non-readonly member from a 'readonly' member results in an implicit copy.</source>
         <target state="translated">Der Aufruf eines nicht schreibgeschützten Members aus einem readonly-Member führt zu einer impliziten Kopie.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsPatternAlways">
+        <source>An expression of type '{0}' always matches the provided pattern.</source>
+        <target state="new">An expression of type '{0}' always matches the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsPatternAlways_Title">
+        <source>The input always matches the provided pattern.</source>
+        <target state="new">The input always matches the provided pattern.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -2224,11 +2319,6 @@
         <target state="translated">Der {0}-Operator kann nicht auf einen Operanden vom Typ "{1}" angewendet werden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadOpOnNullOrDefault">
-        <source>Operator '{0}' cannot be applied to operand '{1}'</source>
-        <target state="translated">Der Operator "{0}" kann nicht auf den Operanden "{1}" angewendet werden.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ThisInStaticMeth">
         <source>Keyword 'this' is not valid in a static property, static method, or static field initializer</source>
         <target state="translated">Das this-Schlüsselwort ist in einer statischen Eigenschaft/Methode oder einem statischen Feldinitialisierer nicht gültig.</target>
@@ -2267,11 +2357,6 @@
       <trans-unit id="ERR_AmbigBinaryOps">
         <source>Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'</source>
         <target state="translated">Der {0}-Operator ist bei Operanden vom Typ "{1}" und "{2}" mehrdeutig.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AmbigBinaryOpsOnDefault">
-        <source>Operator '{0}' is ambiguous on operands 'default' and 'default'</source>
-        <target state="translated">Der Operator "{0}" ist mehrdeutig bei den Operanden "default" und "default".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigUnaryOp">
@@ -3745,8 +3830,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it is has 'in' parameters.</source>
-        <target state="translated">Der Attributkonstruktor "{0}" kann nicht verwendet werden, weil er in-Parameter aufweist.</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
+        <target state="needs-review-translation">Der Attributkonstruktor "{0}" kann nicht verwendet werden, weil er in-Parameter aufweist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
@@ -5588,8 +5673,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNewExpr">
-        <source>A new expression requires (), [], or {} after type</source>
-        <target state="translated">Für einen new-Ausdruck ist nach type (), [] oder {} erforderlich.</target>
+        <source>A new expression requires an argument list or (), [], or {} after type</source>
+        <target state="needs-review-translation">Für einen new-Ausdruck ist nach type (), [] oder {} erforderlich.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNamespacePrivate">
@@ -8803,11 +8888,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       <trans-unit id="ERR_FeatureNotAvailableInVersion7">
         <source>Feature '{0}' is not available in C# 7.0. Please use language version {1} or greater.</source>
         <target state="translated">Das Feature "{0}" ist in C# 7.0 nicht verfügbar. Verwenden Sie Sprachversion {1} oder höher.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureIsUnimplemented">
-        <source>Feature '{0}' is not implemented in this compiler.</source>
-        <target state="translated">Das Feature "{0}" ist in diesem Compiler nicht implementiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VersionExperimental">

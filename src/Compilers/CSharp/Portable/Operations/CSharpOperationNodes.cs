@@ -30,6 +30,24 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
 
+    internal sealed class CSharpLazyNonePatternOperation : LazyNoneOperation, IPatternOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundPattern _boundNode;
+
+        public CSharpLazyNonePatternOperation(CSharpOperationFactory operationFactory, BoundPattern boundNode, SemanticModel semanticModel, SyntaxNode node, bool isImplicit) :
+            base(semanticModel, node, constantValue: default, isImplicit: isImplicit)
+        {
+            _operationFactory = operationFactory;
+            _boundNode = boundNode;
+        }
+
+        public ITypeSymbol InputType => _boundNode.InputType.GetITypeSymbol(NullableAnnotation.None);
+
+        protected override ImmutableArray<IOperation> GetChildren() => _operationFactory.GetIOperationChildren(_boundNode);
+    }
+
+
     internal sealed class CSharpLazyAddressOfOperation : LazyAddressOfOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -1509,6 +1527,84 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
+    internal sealed class CSharpLazyRelationalPatternOperation : LazyRelationalPatternOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundNode _value;
+
+        internal CSharpLazyRelationalPatternOperation(ITypeSymbol inputType, CSharpOperationFactory operationFactory, BinaryOperatorKind operatorKind, BoundNode value, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit) :
+            base(operatorKind, inputType, semanticModel, syntax, type: null, constantValue: default, isImplicit)
+        {
+            _operationFactory = operationFactory;
+            _value = value;
+        }
+
+        protected override IOperation CreateValue()
+        {
+            return _operationFactory.Create(_value);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# negated pattern.
+    /// </summary>
+    internal sealed partial class CSharpLazyNegatedPatternOperation : LazyNegatedPatternOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundNegatedPattern _boundNegatedPattern;
+
+        public CSharpLazyNegatedPatternOperation(
+            CSharpOperationFactory operationFactory,
+            BoundNegatedPattern boundNegatedPattern,
+            SemanticModel semanticModel)
+            : base(inputType: boundNegatedPattern.InputType.GetPublicSymbol(),
+                   semanticModel: semanticModel,
+                   syntax: boundNegatedPattern.Syntax,
+                   type: null,
+                   constantValue: default,
+                   isImplicit: boundNegatedPattern.WasCompilerGenerated)
+        {
+            _operationFactory = operationFactory;
+            _boundNegatedPattern = boundNegatedPattern;
+        }
+        protected override IPatternOperation CreateNegatedPattern()
+        {
+            return (IPatternOperation)_operationFactory.Create(_boundNegatedPattern.Negated);
+        }
+    }
+    /// <summary>
+    /// Represents a C# binary pattern.
+    /// </summary>
+    internal sealed partial class CSharpLazyBinaryPatternOperation : LazyBinaryPatternOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundBinaryPattern _boundBinaryPattern;
+
+        public CSharpLazyBinaryPatternOperation(
+            CSharpOperationFactory operationFactory,
+            BoundBinaryPattern boundBinaryPattern,
+            SemanticModel semanticModel)
+            : base(operatorKind: boundBinaryPattern.Disjunction ? BinaryOperatorKind.Or : BinaryOperatorKind.And,
+                   inputType: boundBinaryPattern.InputType.GetPublicSymbol(),
+                   semanticModel: semanticModel,
+                   syntax: boundBinaryPattern.Syntax,
+                   type: null,
+                   constantValue: default,
+                   isImplicit: boundBinaryPattern.WasCompilerGenerated)
+        {
+            _operationFactory = operationFactory;
+            _boundBinaryPattern = boundBinaryPattern;
+        }
+        protected override IPatternOperation CreateLeftPattern()
+        {
+            return (IPatternOperation)_operationFactory.Create(_boundBinaryPattern.Left);
+        }
+        protected override IPatternOperation CreateRightPattern()
+        {
+            return (IPatternOperation)_operationFactory.Create(_boundBinaryPattern.Right);
+        }
+    }
+
     /// <summary>
     /// Represents a C# recursive pattern.
     /// </summary>
@@ -1538,12 +1634,12 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns()
         {
             return _boundRecursivePattern.Deconstruction.IsDefault ? ImmutableArray<IPatternOperation>.Empty :
-                _boundRecursivePattern.Deconstruction.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
+                _boundRecursivePattern.Deconstruction.SelectAsArray<BoundSubpattern, CSharpOperationFactory, IPatternOperation>((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
         }
         protected override ImmutableArray<IPropertySubpatternOperation> CreatePropertySubpatterns()
         {
             return _boundRecursivePattern.Properties.IsDefault ? ImmutableArray<IPropertySubpatternOperation>.Empty :
-                _boundRecursivePattern.Properties.SelectAsArray((p, recursivePattern) => recursivePattern._operationFactory.CreatePropertySubpattern(p, recursivePattern.MatchedType), this);
+                _boundRecursivePattern.Properties.SelectAsArray<BoundSubpattern, CSharpLazyRecursivePatternOperation, IPropertySubpatternOperation>((p, recursivePattern) => recursivePattern._operationFactory.CreatePropertySubpattern(p, recursivePattern.MatchedType), this);
         }
     }
 
@@ -1602,7 +1698,7 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns()
         {
             return _boundITuplePattern.Subpatterns.IsDefault ? ImmutableArray<IPatternOperation>.Empty :
-                _boundITuplePattern.Subpatterns.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
+                _boundITuplePattern.Subpatterns.SelectAsArray<BoundSubpattern, CSharpOperationFactory, IPatternOperation>((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
         }
         protected override ImmutableArray<IPropertySubpatternOperation> CreatePropertySubpatterns()
         {

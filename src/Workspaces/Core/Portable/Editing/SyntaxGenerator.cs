@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia Whitespace(string text);
         internal abstract SyntaxTrivia SingleLineComment(string text);
 
+        internal abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim);
+        internal abstract SyntaxToken CreateInterpolatedStringEndToken();
+
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
@@ -1380,7 +1383,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <see cref="LocalDeclarationStatement(ITypeSymbol, string, SyntaxNode, bool)"/>.
         /// <see langword="false"/> if the language allows the type node to be entirely elided.
         /// </summary>
-        internal abstract bool RequiresLocalDeclarationType();
+        internal bool RequiresLocalDeclarationType() => SyntaxGeneratorInternal.RequiresLocalDeclarationType();
 
         /// <summary>
         /// Creates a statement that declares a single local variable.
@@ -1533,12 +1536,18 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxToken NumericLiteralToken(string text, ulong value);
 
-        internal abstract SyntaxToken InterpolatedStringTextToken(string content);
-        internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
-        internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);
-        internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);
-        internal abstract SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment);
-        internal abstract SyntaxNode InterpolationFormatClause(string format);
+        internal SyntaxToken InterpolatedStringTextToken(string content)
+            => SyntaxGeneratorInternal.InterpolatedStringTextToken(content);
+        internal SyntaxNode InterpolatedStringText(SyntaxToken textToken)
+            => SyntaxGeneratorInternal.InterpolatedStringText(textToken);
+        internal SyntaxNode Interpolation(SyntaxNode syntaxNode)
+            => SyntaxGeneratorInternal.Interpolation(syntaxNode);
+        internal SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken)
+            => SyntaxGeneratorInternal.InterpolatedStringExpression(startToken, content, endToken);
+        internal SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment)
+            => SyntaxGeneratorInternal.InterpolationAlignmentClause(alignment);
+        internal SyntaxNode InterpolationFormatClause(string format)
+            => SyntaxGeneratorInternal.InterpolationFormatClause(format);
 
         /// <summary>
         /// An expression that represents the default value of a type.
@@ -1951,6 +1960,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode ObjectCreationExpression(SyntaxNode namedType, IEnumerable<SyntaxNode> arguments);
 
+        internal abstract SyntaxNode ObjectCreationExpression(
+            SyntaxNode namedType, SyntaxToken openParen, SeparatedSyntaxList<SyntaxNode> arguments, SyntaxToken closeParen);
+
         /// <summary>
         /// Creates an object creation expression.
         /// </summary>
@@ -2162,21 +2174,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         internal abstract SyntaxNode ParseExpression(string stringToParse);
 
-        internal abstract SyntaxToken CommaTokenWithElasticSpace();
-
         internal abstract SyntaxTrivia Trivia(SyntaxNode node);
 
         internal abstract SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString);
-
-        internal abstract bool IsNamedArgument(SyntaxNode syntaxNode);
-
-        internal abstract bool IsWhitespaceTrivia(SyntaxTrivia trivia);
-
-        internal abstract bool IsDocumentationCommentTriviaSyntax(SyntaxNode node);
-
-        internal abstract bool IsParameterNameXmlElementSyntax(SyntaxNode node);
-
-        internal abstract SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
 
         internal abstract SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content);
 
@@ -2185,9 +2185,15 @@ namespace Microsoft.CodeAnalysis.Editing
         #region Patterns
 
         internal abstract bool SupportsPatterns(ParseOptions options);
-        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern);
+        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isToken, SyntaxNode pattern);
+
+        internal abstract SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right);
         internal abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
         internal abstract SyntaxNode ConstantPattern(SyntaxNode expression);
+        internal abstract SyntaxNode NotPattern(SyntaxNode pattern);
+        internal abstract SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right);
+        internal abstract SyntaxNode ParenthesizedPattern(SyntaxNode pattern);
+        internal abstract SyntaxNode TypePattern(SyntaxNode type);
 
         #endregion
     }
