@@ -457,7 +457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
         Private Function GetDeclaringNamespace(containers As List(Of String), indexDone As Integer, compilationUnit As CompilationUnitSyntax) As NamespaceStatementSyntax
             For Each member In compilationUnit.Members
-                Dim namespaceDeclaration = GetDeclaringNamespace(containers, 0, member)
+                Dim namespaceDeclaration = GetDeclaringNamespace(containers, indexDone, member)
                 If namespaceDeclaration IsNot Nothing Then
                     Return namespaceDeclaration
                 End If

@@ -155,7 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             methodSymbol = GenerateMethodSymbol(typeToGenerateIn, parameterSymbol);
 
             if (!ValidateTypeToGenerateIn(
-                    document.Project.Solution,
                     typeToGenerateIn,
                     true,
                     classInterfaceModuleStructTypes))
@@ -187,7 +186,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             methodSymbol = GenerateMethodSymbol(typeToGenerateIn, parameterSymbol);
 
             if (!ValidateTypeToGenerateIn(
-                    document.Project.Solution,
                     typeToGenerateIn,
                     true,
                     classInterfaceModuleStructTypes))
