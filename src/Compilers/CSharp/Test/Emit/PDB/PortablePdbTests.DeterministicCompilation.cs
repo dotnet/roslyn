@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         }
 
         // Move this to a central location?
-        static ImmutableDictionary<string, string> ParserCompilerFlags(BlobReader blobReader)
+        static ImmutableDictionary<string, string> ParseCompilationOptions(BlobReader blobReader)
         {
 
             // Compiler flag bytes are UTF-8 null-terminated key-value pairs
@@ -171,11 +171,11 @@ public struct StructWithValue
                     var compilationOptionsReader = GetSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader);
 
                     var (timestamp, imageSize, name, mvid) = ParseMetadataReferenceInfo(metadataReferenceReader);
-                    var compilerFlags = ParserCompilerFlags(compilationOptionsReader);
+                    var compilationOptions = ParseCompilationOptions(compilationOptionsReader);
 
                     // Check version
                     var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-                    Assert.Equal(compilerVersion.ToString(), compilerFlags["compilerversion"]);
+                    Assert.Equal(compilerVersion.ToString(), compilationOptions["compilerversion"]);
 
                     // Check source encoding
                     //Assert.Equal("", compilerFlags["sourceencoding"]);
