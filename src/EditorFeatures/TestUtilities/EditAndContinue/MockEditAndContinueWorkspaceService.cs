@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken) => throw new NotImplementedException();
 
-        public Task<bool> HasChangesAsync(Solution solution, string sourceFilePath, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<bool> HasChangesAsync(Solution solution, string? sourceFilePath, CancellationToken cancellationToken) => throw new NotImplementedException();
 
         public Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken) => throw new NotImplementedException();
 

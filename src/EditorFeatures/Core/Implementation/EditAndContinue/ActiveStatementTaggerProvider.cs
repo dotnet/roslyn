@@ -26,10 +26,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
-    [Export(typeof(IViewTaggerProvider))]
-    [TagType(typeof(ITextMarkerTag))]
+    [Export(typeof(ITaggerProvider))]
+    [TagType(typeof(ActiveStatementTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class ActiveStatementViewTaggerProvider : AsynchronousViewTaggerProvider<ITextMarkerTag>
+    internal partial class ActiveStatementTaggerProvider : AsynchronousTaggerProvider<ITextMarkerTag>
     {
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ActiveStatementViewTaggerProvider(
+        public ActiveStatementTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
@@ -48,12 +48,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             AssertIsForeground();
-            const TaggerDelay Delay = TaggerDelay.Short;
 
             return TaggerEventSources.Compose(
-                new EventSource(subjectBuffer, Delay),
-                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
+                new EventSource(subjectBuffer, TaggerDelay.Short),
+                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
         }
 
         protected override async Task ProduceTagsAsync(TaggerContext<ITextMarkerTag> context)
