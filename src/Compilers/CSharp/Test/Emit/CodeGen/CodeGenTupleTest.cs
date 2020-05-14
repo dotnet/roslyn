@@ -27383,7 +27383,7 @@ namespace System
     {
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40, assemblyName: "emptyValueTuple");
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
             verifier.VerifyTypeIL("ValueTuple`2", @"
@@ -27394,6 +27394,22 @@ extends [mscorlib]System.ValueType
     .size 1
 } // end of class System.ValueTuple`2
 ");
+
+            var client = @"
+class C
+{
+    int M((int, int) t)
+    {
+        return t.Item1;
+    }
+}
+";
+            var comp2 = CreateCompilation(client, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Mscorlib40);
+            comp2.VerifyDiagnostics(
+                // (6,18): error CS8128: Member 'Item1' was not found on type '(T1, T2)' from assembly 'emptyValueTuple, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         return t.Item1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "Item1").WithArguments("Item1", "(T1, T2)", "emptyValueTuple, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 18)
+                );
 
             static void verifyModule(ModuleSymbol module)
             {
@@ -27613,6 +27629,47 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(44000, "https://github.com/dotnet/roslyn/issues/44000")]
+        public void TupleField_Item2()
+        {
+            var source =
+@"namespace System
+{
+    public struct ValueTuple<T1>
+    {
+        public T1 Item2;
+        public T1 Item13;
+        public T1 Rest;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+                var item2 = type.GetMember<FieldSymbol>("Item2");
+                verify(item2);
+
+                var item13 = type.GetMember<FieldSymbol>("Item13");
+                verify(item13);
+
+                var rest = type.GetMember<FieldSymbol>("Rest");
+                verify(rest);
+            }
+
+            static void verify(FieldSymbol field)
+            {
+                Assert.False(field.IsTupleElement());
+                Assert.False(field.IsDefaultTupleElement);
+                Assert.Equal(-1, field.TupleElementIndex);
+                Assert.Same(field, field.TupleUnderlyingField);
+                Assert.Null(field.CorrespondingTupleField);
+            }
         }
     }
 }
