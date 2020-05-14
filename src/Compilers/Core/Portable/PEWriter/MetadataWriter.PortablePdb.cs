@@ -835,6 +835,10 @@ namespace Microsoft.Cci
                 value: _debugMetadataOpt.GetOrAddBlob(bytes));
         }
 
+        /// <summary>
+        /// Capture the set of compilation options to allow a compilation 
+        /// to be reconstructed from the pdb
+        /// </summary>
         private void EmbedCompilationOptions(CommonPEModuleBuilder module)
         {
 
@@ -887,6 +891,10 @@ namespace Microsoft.Cci
             }
         }
 
+        /// <summary>
+        /// Writes information about metadata references to the pdb so the same
+        /// reference can be found on sourcelink to create the compilation again
+        /// </summary>
         private void EmbedMetadataReferenceInformation(CommonPEModuleBuilder module)
         {
             var builder = new BlobBuilder();
@@ -910,24 +918,27 @@ namespace Microsoft.Cci
                     var reference = module.CommonCompilation.GetAssemblyOrModuleSymbol(portableReference);
                     var peReader = GetReader(reference);
 
+                    if (peReader is null)
+                        continue;
+
                     builder.WriteInt32(peReader.GetTimestamp());
                     builder.WriteInt32(peReader.GetSizeOfImage());
                     builder.WriteGuid(peReader.GetMvid());
                 }
-
-                PEReader GetReader(ISymbol symbol)
-                 => symbol switch
-                 {
-                     IAssemblySymbol assemblySymbol => assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt,
-                     IModuleSymbol moduleSymbol => moduleSymbol.GetMetadata().Module.PEReaderOpt,
-                     _ => throw new Exception()
-                 };
             }
 
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.MetadataReferenceInfo),
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
+
+            static PEReader GetReader(ISymbol symbol)
+                => symbol switch
+                {
+                    IAssemblySymbol assemblySymbol => assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt,
+                    IModuleSymbol moduleSymbol => moduleSymbol.GetMetadata().Module.PEReaderOpt,
+                    _ => null
+                };
         }
     }
 }
