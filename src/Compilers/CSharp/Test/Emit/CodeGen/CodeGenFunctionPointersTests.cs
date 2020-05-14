@@ -5204,8 +5204,14 @@ unsafe class C
     public delegate*<out dynamic, object> F14;
 
     public D<delegate*<dynamic>[], dynamic> F15;
+
+    public delegate*<A<object>.B<dynamic>> F16;
 }
 class D<T, U> { }
+class A<T>
+{
+    public class B<U> {}
+}
 ", symbolValidator: symbolValidator);
 
             void symbolValidator(ModuleSymbol module)
@@ -5235,6 +5241,8 @@ class D<T, U> { }
 
                 // https://github.com/dotnet/roslyn/issues/44160 tracks fixing this. We're not encoding dynamic correctly for function pointers as type parameters
                 assertField("F15", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, true})", "D<delegate*<System.Object>[], System.Object>");
+
+                assertField("F16", "System.Runtime.CompilerServices.DynamicAttribute({false, false, false, true})", "delegate*<A<System.Object>.B<dynamic>>");
 
                 void assertField(string field, string? expectedAttribute, string expectedType)
                 {
