@@ -2,16 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Editing;
+
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     /// <summary>
-    /// Annotation placed if the code generator encounters a NullableAttribute or NullableContextAttribute while
-    /// generating the code.
+    /// Annotation placed on <see cref="ITypeSymbol"/>s that the <see cref="SyntaxGenerator"/> converts to a node. This
+    /// information tracks the original nullable state of the symbol and is used by metadata-as-source to determine if
+    /// it needs to add <c>#nullable</c> directives in the file.
     /// </summary>
     internal sealed class NullableSyntaxAnnotation
     {
-        public static readonly SyntaxAnnotation None = new SyntaxAnnotation($"{nameof(NullableAnnotation)}.{NullableAnnotation.None}");
-        public static readonly SyntaxAnnotation Annotated = new SyntaxAnnotation($"{nameof(NullableAnnotation)}.{NullableAnnotation.Annotated}");
-        public static readonly SyntaxAnnotation NotAnnotated = new SyntaxAnnotation($"{nameof(NullableAnnotation)}.{NullableAnnotation.NotAnnotated}");
+        public static readonly SyntaxAnnotation Oblivious = new SyntaxAnnotation($"{nameof(NullableSyntaxAnnotation)}.{Oblivious}");
+        public static readonly SyntaxAnnotation NotOblivious = new SyntaxAnnotation($"{nameof(NullableSyntaxAnnotation)}.{NotOblivious}");
     }
 }
