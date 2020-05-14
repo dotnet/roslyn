@@ -4,7 +4,7 @@ Compilation from portable PDBs today is not completely possible, but is desirabl
 
 This document is restricted to the following assumptions:
 
-1. Only builds using the `-deterministic` and published to the symbol server.
+1. The benefit is for builds with `-deterministic` and published to the symbol server.
 2. Source generator and analyzer references are not needed for this task. They may be useful, but are out of scope for this document.
 3. Any storage capacity used for PDBs and source should not impact this feature, such as compression algorithm.
 4. Only Portable PDB files will be included for this spec. We can expand this feature past these once it is implemented and proven needed elsewhere.
@@ -41,6 +41,8 @@ Lookup key: `foo.exe/542d574232000/foo.exe`
 To fully support metadata references, we'll need to be able to find the exact PE image that was used in the compilation. We'll do this by storing the parts that make up the symbol server key.
 
 We will also store the MVID of a reference since it's a GUID that represents the symbol. This is to future proof the information we will need to look up references.
+
+At this time, we'll only include external references for the compilation. Any other references may be added later in a separate blob.
 
 ## PDB Format Additions
 

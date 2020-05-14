@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -13,7 +12,6 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
@@ -840,12 +838,11 @@ namespace Microsoft.Cci
         {
 
             var builder = new BlobBuilder();
+            var compilationOptions = module.CommonCompilation.Options;
 
             // compilerversion
-            var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
             WriteValue("compilerversion", compilerVersion);
-
-            var compilationOptions = module.CommonCompilation.Options;
 
             // TODO: source encoding 
 
@@ -855,6 +852,7 @@ namespace Microsoft.Cci
             // TODO: unsafe
 
             // TODO: langversion
+            // langversion is in csharpcompilation, but we can't add that as a reference here
 
             // nullable
             string nullable;
