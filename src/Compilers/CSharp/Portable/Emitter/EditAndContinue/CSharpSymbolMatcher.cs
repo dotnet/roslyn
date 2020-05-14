@@ -783,11 +783,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var sig = type.Signature;
                 var otherSig = other.Signature;
 
-                ValidateFunctionPointerParamOrReturn(
-                    sig.ReturnTypeWithAnnotations, otherSig.ReturnTypeWithAnnotations,
-                    sig.RefKind, otherSig.RefKind,
-                    sig.RefCustomModifiers, otherSig.RefCustomModifiers,
-                    allowOut: false);
+                ValidateFunctionPointerParamOrReturn(sig.ReturnTypeWithAnnotations, sig.RefKind, sig.RefCustomModifiers, allowOut: false);
+                ValidateFunctionPointerParamOrReturn(otherSig.ReturnTypeWithAnnotations, otherSig.RefKind, otherSig.RefCustomModifiers, allowOut: false);
                 if (sig.RefKind != otherSig.RefKind || !AreTypesEqual(sig.ReturnTypeWithAnnotations, otherSig.ReturnTypeWithAnnotations))
                 {
                     return false;
@@ -798,23 +795,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private bool AreFunctionPointerParametersEqual(ParameterSymbol param, ParameterSymbol otherParam)
             {
-                ValidateFunctionPointerParamOrReturn(
-                    param.TypeWithAnnotations, otherParam.TypeWithAnnotations,
-                    param.RefKind, otherParam.RefKind,
-                    param.RefCustomModifiers, otherParam.RefCustomModifiers,
-                    allowOut: false);
+                ValidateFunctionPointerParamOrReturn(param.TypeWithAnnotations, param.RefKind, param.RefCustomModifiers, allowOut: true);
+                ValidateFunctionPointerParamOrReturn(otherParam.TypeWithAnnotations, otherParam.RefKind, otherParam.RefCustomModifiers, allowOut: true);
 
                 return param.RefKind == otherParam.RefKind && AreTypesEqual(param.TypeWithAnnotations, otherParam.TypeWithAnnotations);
             }
 
             [Conditional("DEBUG")]
-            private void ValidateFunctionPointerParamOrReturn(TypeWithAnnotations type, TypeWithAnnotations otherType, RefKind refKind, RefKind otherRefKind, ImmutableArray<CustomModifier> refCustomModifiers, ImmutableArray<CustomModifier> otherRefCustomModifiers, bool allowOut)
+            private static void ValidateFunctionPointerParamOrReturn(TypeWithAnnotations type, RefKind refKind, ImmutableArray<CustomModifier> refCustomModifiers, bool allowOut)
             {
-
                 Debug.Assert(type.CustomModifiers.IsEmpty);
-                Debug.Assert(otherType.CustomModifiers.IsEmpty);
                 Debug.Assert(verifyRefModifiers(refCustomModifiers, refKind, allowOut));
-                Debug.Assert(verifyRefModifiers(otherRefCustomModifiers, otherRefKind, allowOut));
 
                 static bool verifyRefModifiers(ImmutableArray<CustomModifier> modifiers, RefKind refKind, bool allowOut)
                 {
