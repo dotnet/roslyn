@@ -2189,5 +2189,48 @@ public class D { }
 
         End Function
 
+
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestNamedType_TypeOrNamespaceUsageInfo(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+        namespace N1
+        {
+            using Alias1 = N2.{|TypeOrNamespaceUsageInfo.Import:[|Class1|]|};
+        }
+
+        namespace N2
+        {
+            public interface I<T> { }
+
+            public class {|Definition:$$Class1|}
+            {
+                public static int Field;
+                public class Nested { }
+            }
+
+            public class Class2 : {|TypeOrNamespaceUsageInfo.Base:[|Class1|]|}, I<{|TypeOrNamespaceUsageInfo.TypeArgument:[|Class1|]|}>
+            {
+                public static int M() => {|TypeOrNamespaceUsageInfo.Qualified:[|Class1|]|}.Field;
+            }
+        }
+
+        namespace N2.N3
+        {
+            using Alias2 = N2.{|TypeOrNamespaceUsageInfo.Qualified,Import:[|Class1|]|}.Nested;
+
+            public class Class3: {|TypeOrNamespaceUsageInfo.Qualified,Base:[|Class1|]|}.Nested, I<{|TypeOrNamespaceUsageInfo.Qualified,TypeArgument:[|Class1|]|}.Nested>
+            {
+                public static [|Class1|] M2() => new {|TypeOrNamespaceUsageInfo.ObjectCreation:[|Class1|]|}();
+            }
+        }]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace
