@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// See SyntaxNode.GetCorrespondingLambdaBody.
         /// </summary>
-        internal static SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
+        internal static SyntaxNode? TryGetCorrespondingLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
         {
             switch (newLambda.Kind())
             {
@@ -275,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// If the specified node represents a lambda returns a node (or nodes) that represent its body (bodies).
         /// </summary>
-        public static bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode lambdaBody1, out SyntaxNode lambdaBody2)
+        public static bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode? lambdaBody1, out SyntaxNode? lambdaBody2)
         {
             lambdaBody1 = null;
             lambdaBody2 = null;

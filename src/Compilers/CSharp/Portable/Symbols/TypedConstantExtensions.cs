@@ -2,18 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+#nullable enable
+
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -55,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(constant.Kind == TypedConstantKind.Enum);
 
             // Create a ConstantValue of enum underlying type
-            SpecialType splType = ((INamedTypeSymbol)constant.Type).EnumUnderlyingType.SpecialType;
+            SpecialType splType = ((INamedTypeSymbol)constant.Type).EnumUnderlyingType!.SpecialType;
             ConstantValue valueConstant = ConstantValue.Create(constant.ValueInternal, splType);
 
             string typeName = constant.Type.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat);
@@ -78,8 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ulong curValue = 0;
 
             // Initialize the value string to empty
-            PooledStringBuilder pooledBuilder = null;
-            StringBuilder valueStringBuilder = null;
+            PooledStringBuilder? pooledBuilder = null;
+            StringBuilder? valueStringBuilder = null;
 
             // Iterate through all the constant members in the enum type
             var members = constant.Type.GetMembers();
@@ -87,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var field = member as IFieldSymbol;
 
-                if ((object)field != null && field.HasConstantValue)
+                if (field is object && field.HasConstantValue)
                 {
-                    ConstantValue memberConstant = ConstantValue.Create(field.ConstantValue, specialType);
+                    ConstantValue memberConstant = ConstantValue.Create(field.ConstantValue!, specialType); // use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
                     ulong memberValue = memberConstant.UInt64Value;
 
                     // Do we have an exact matching enum field
@@ -140,7 +134,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Unable to decode the enum constant, just display the integral value
-            return constant.ValueInternal.ToString();
+            var result = constant.ValueInternal.ToString();
+            Debug.Assert(result is object);
+            return result;
         }
 
         private static string DisplaySignedEnumConstant(TypedConstant constant, SpecialType specialType, long constantToDecode, string typeName)
@@ -152,17 +148,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             long curValue = 0;
 
             // Initialize the value string to empty
-            PooledStringBuilder pooledBuilder = null;
-            StringBuilder valueStringBuilder = null;
+            PooledStringBuilder? pooledBuilder = null;
+            StringBuilder? valueStringBuilder = null;
 
             // Iterate through all the constant members in the enum type
             var members = constant.Type.GetMembers();
             foreach (var member in members)
             {
                 var field = member as IFieldSymbol;
-                if ((object)field != null && field.HasConstantValue)
+                if (field is object && field.HasConstantValue)
                 {
-                    ConstantValue memberConstant = ConstantValue.Create(field.ConstantValue, specialType);
+                    ConstantValue memberConstant = ConstantValue.Create(field.ConstantValue!, specialType); // use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964 
                     long memberValue = memberConstant.Int64Value;
 
                     // Do we have an exact matching enum field
@@ -213,7 +209,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Unable to decode the enum constant, just display the integral value
-            return constant.ValueInternal.ToString();
+            var result = constant.ValueInternal.ToString();
+            Debug.Assert(result is object);
+            return result;
         }
     }
 }

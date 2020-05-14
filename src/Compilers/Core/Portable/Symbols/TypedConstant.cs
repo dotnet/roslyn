@@ -72,11 +72,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The value for a non-array constant.
         /// </summary>
-        public object? Value
+        public object Value
         {
             get
             {
-                object? result = ValueInternal;
+                object result = ValueInternal;
 
                 if (result is ISymbolInternal symbol)
                 {
