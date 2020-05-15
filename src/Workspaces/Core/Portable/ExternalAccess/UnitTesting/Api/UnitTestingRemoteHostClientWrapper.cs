@@ -19,13 +19,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         internal RemoteHostClient UnderlyingObject { get; }
 
-        public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateUnitTestingKeepAliveSessionWrapperAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateSessionAsync(string serviceName, CancellationToken cancellationToken)
+        {
+            var keepAliveSession = await UnderlyingObject.TryCreateKeepAliveSessionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
+            return new UnitTestingKeepAliveSessionWrapper(keepAliveSession);
+        }
+
+        public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateSessionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
             var keepAliveSession = await UnderlyingObject.TryCreateKeepAliveSessionAsync(serviceName, callbackTarget: callbackTarget, cancellationToken).ConfigureAwait(false);
             return new UnitTestingKeepAliveSessionWrapper(keepAliveSession);
         }
 
-        public async Task<UnitTestingSessionWithSolutionWrapper> TryCreateUnitingSessionWithSolutionWrapperAsync(string serviceName, Solution solution, CancellationToken cancellationToken)
+        public async Task<UnitTestingSessionWithSolutionWrapper> TryCreateSessionWithSolutionAsync(string serviceName, Solution solution, CancellationToken cancellationToken)
         {
             var keepAliveSession = await UnderlyingObject.TryCreateKeepAliveSessionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
             if (keepAliveSession == null)
