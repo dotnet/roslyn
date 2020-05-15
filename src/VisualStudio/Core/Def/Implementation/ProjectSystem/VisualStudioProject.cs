@@ -70,11 +70,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string? _defaultNamespace;
 
         /// <summary>
-        /// We store if this is a primary project or not as a tri-state.  Only <see langword="false"/> means that it's
-        /// not a primary project.  This way, if the value hasn't been set, or is never set, we still consider the
-        /// project to be a primary one.
+        /// If this project is the 'primary' project the project system cares about for a group of Roslyn projects that
+        /// correspond to different configurations of a single project system project. <see langword="true"/> by
+        /// default.
         /// </summary>
-        private bool? _isPrimary;
+        internal bool IsPrimary { get; set; } = true;
 
         // Actual property values for 'RunAnalyzers' and 'RunAnalyzersDuringLiveAnalysis' properties from the project file.
         // Both these properties can be used to configure running analyzers, with RunAnalyzers overriding RunAnalyzersDuringLiveAnalysis.
@@ -295,12 +295,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             get => _hasAllInformation;
             set => ChangeProjectProperty(ref _hasAllInformation, value, s => s.WithHasAllInformation(Id, value));
-        }
-
-        internal bool IsPrimary
-        {
-            get => _isPrimary != false;
-            set => _isPrimary = value;
         }
 
         internal bool? RunAnalyzers
