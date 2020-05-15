@@ -291,6 +291,8 @@ stages:
       enableSourceLinkValidation: false
       validateDependsOn:
         - SetValidateDependency
+      dependsOn:
+        - SetValidateDependency
       # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
       SDLValidationParameters:
         enable: true
