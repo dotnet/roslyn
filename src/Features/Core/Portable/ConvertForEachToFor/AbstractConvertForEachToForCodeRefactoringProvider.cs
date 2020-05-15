@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 
             var semanticFact = document.GetLanguageService<ISemanticFactsService>();
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var foreachInfo = GetForeachInfo(semanticFact, options, model, foreachStatement, cancellationToken);
+            var foreachInfo = GetForeachInfo(semanticFact, model, foreachStatement, cancellationToken);
             if (foreachInfo == null || !ValidLocation(foreachInfo))
             {
                 return;
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         }
 
         private ForEachInfo GetForeachInfo(
-            ISemanticFactsService semanticFact, OptionSet options, SemanticModel model,
+            ISemanticFactsService semanticFact, SemanticModel model,
             TForEachStatement foreachStatement, CancellationToken cancellationToken)
         {
             if (!(model.GetOperation(foreachStatement, cancellationToken) is IForEachLoopOperation operation) || operation.Locals.Length != 1)
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                 return null;
             }
 
-            GetInterfaceInfo(semanticFact, model, foreachVariable, foreachCollection,
+            GetInterfaceInfo(model, foreachVariable, foreachCollection,
                 out var explicitCastInterface, out var collectionNameSuggestion, out var countName);
             if (countName == null)
             {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         }
 
         private static void GetInterfaceInfo(
-            ISemanticFactsService semanticFact, SemanticModel model, ILocalSymbol foreachVariable, IOperation foreachCollection,
+            SemanticModel model, ILocalSymbol foreachVariable, IOperation foreachCollection,
             out ITypeSymbol explicitCastInterface, out string collectionNameSuggestion, out string countName)
         {
             explicitCastInterface = null;
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                     return;
                 }
 
-                if (!IsExchangable(semanticFact, array.ElementType, foreachType, model.Compilation))
+                if (!IsExchangable(array.ElementType, foreachType, model.Compilation))
                 {
                     return;
                 }
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             if (collectionType.SpecialType == SpecialType.System_String)
             {
                 var charType = model.Compilation.GetSpecialType(SpecialType.System_Char);
-                if (!IsExchangable(semanticFact, charType, foreachType, model.Compilation))
+                if (!IsExchangable(charType, foreachType, model.Compilation))
                 {
                     return;
                 }
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                 var indexer = GetInterfaceMember(collectionType, get_Item);
                 if (indexer != null)
                 {
-                    if (!IsExchangable(semanticFact, indexer.ReturnType, foreachType, model.Compilation))
+                    if (!IsExchangable(indexer.ReturnType, foreachType, model.Compilation))
                     {
                         return;
                     }
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             {
                 var indexer = GetInterfaceMember(collectionType, get_Item);
                 if (indexer != null &&
-                    IsExchangable(semanticFact, indexer.ReturnType, foreachType, model.Compilation))
+                    IsExchangable(indexer.ReturnType, foreachType, model.Compilation))
                 {
                     explicitCastInterface = null;
                     countName = Count;
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                     continue;
                 }
 
-                if (!IsExchangable(semanticFact, indexerImpl.ReturnType, foreachType, model.Compilation))
+                if (!IsExchangable(indexerImpl.ReturnType, foreachType, model.Compilation))
                 {
                     continue;
                 }
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         }
 
         private static bool IsExchangable(
-            ISemanticFactsService semanticFact, ITypeSymbol type1, ITypeSymbol type2, Compilation compilation)
+            ITypeSymbol type1, ITypeSymbol type2, Compilation compilation)
         {
             return compilation.HasImplicitConversion(type1, type2) ||
                    compilation.HasImplicitConversion(type2, type1);

@@ -249,14 +249,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                     // allocation.
                     var symbolInfo = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken);
                     var method = symbolInfo.Symbol;
-                    if (TryAnalyzeInvocation(stringLiteral, argumentNode, method, cancellationToken, out options))
+                    if (TryAnalyzeInvocation(argumentNode, method, cancellationToken, out options))
                     {
                         return true;
                     }
 
                     foreach (var candidate in symbolInfo.CandidateSymbols)
                     {
-                        if (TryAnalyzeInvocation(stringLiteral, argumentNode, candidate, cancellationToken, out options))
+                        if (TryAnalyzeInvocation(argumentNode, candidate, cancellationToken, out options))
                         {
                             return true;
                         }
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                         {
                             // Argument to "new Regex".  Need to do deeper analysis
                             return AnalyzeStringLiteral(
-                                stringLiteral, argumentNode, cancellationToken, out options);
+                                argumentNode, cancellationToken, out options);
                         }
                     }
                 }
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         private bool TryAnalyzeInvocation(
-            SyntaxToken stringLiteral, SyntaxNode argumentNode, ISymbol method,
+            SyntaxNode argumentNode, ISymbol method,
             CancellationToken cancellationToken, out RegexOptions options)
         {
             if (method != null &&
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 _regexType.Equals(method.ContainingType))
             {
                 return AnalyzeStringLiteral(
-                    stringLiteral, argumentNode, cancellationToken, out options);
+                    argumentNode, cancellationToken, out options);
             }
 
             options = default;
@@ -314,8 +314,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         private bool AnalyzeStringLiteral(
-            SyntaxToken stringLiteral, SyntaxNode argumentNode,
-            CancellationToken cancellationToken, out RegexOptions options)
+            SyntaxNode argumentNode,
+            CancellationToken cancellationToken,
+            out RegexOptions options)
         {
             options = default;
 

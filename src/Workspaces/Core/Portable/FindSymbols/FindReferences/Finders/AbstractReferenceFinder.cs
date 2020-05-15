@@ -194,14 +194,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return ImmutableArray<SyntaxToken>.Empty;
 
             var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
             SourceText text = null;
             if (!info.ProbablyContainsEscapedIdentifier(identifier))
                 text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             return FindReferenceCache.GetIdentifierOrGlobalNamespaceTokensWithText(
-                syntaxFacts, document, version, semanticModel, root, text, identifier, cancellationToken);
+                syntaxFacts, semanticModel, root, text, identifier, cancellationToken);
         }
 
         protected static Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> GetStandardSymbolsMatchFunction(

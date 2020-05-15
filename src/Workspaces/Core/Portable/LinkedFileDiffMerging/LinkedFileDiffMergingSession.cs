@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis
                 return;
             }
 
-            LinkedFileDiffMergingLogger.LogSession(this._newSolution.Workspace, sessionInfo);
+            LinkedFileDiffMergingLogger.LogSession(sessionInfo);
         }
 
         internal class LinkedFileDiffMergingSessionInfo

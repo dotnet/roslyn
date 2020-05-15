@@ -20,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
 
         Const NugetOrgSource = "nuget.org"
 
-        Private Shared ReadOnly NugetPackageSources As ImmutableArray(Of PackageSource) =
-            ImmutableArray.Create(New PackageSource(NugetOrgSource, "http://nuget.org"))
+        Private Shared ReadOnly NugetPackageSources As ValueTask(Of ImmutableArray(Of PackageSource)?) =
+            New ValueTask(Of ImmutableArray(Of PackageSource)?)(ImmutableArray.Create(New PackageSource(NugetOrgSource, "http://nuget.org")))
 
         Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
             Dim workspace = MyBase.CreateWorkspaceFromFile(initialMarkup, parameters)
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
             installerServiceMock.Setup(Function(i) i.IsInstalled(It.IsAny(Of Workspace), It.IsAny(Of ProjectId), "NuGetPackage")).Returns(False)
             installerServiceMock.Setup(Function(i) i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray(Of String).Empty)
-            installerServiceMock.Setup(Function(i) i.GetPackageSources()).Returns(NugetPackageSources)
+            installerServiceMock.Setup(Function(i) i.TryGetPackageSourcesAsync(It.IsAny(Of Boolean)(), It.IsAny(Of CancellationToken)())).Returns(NugetPackageSources)
             installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
                                  Returns(True)
 
@@ -81,7 +81,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
             installerServiceMock.Setup(Function(i) i.IsInstalled(It.IsAny(Of Workspace), It.IsAny(Of ProjectId), "NuGetPackage")).Returns(False)
             installerServiceMock.Setup(Function(i) i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray(Of String).Empty)
-            installerServiceMock.Setup(Function(i) i.GetPackageSources()).Returns(NugetPackageSources)
+            installerServiceMock.Setup(Function(i) i.TryGetPackageSourcesAsync(It.IsAny(Of Boolean)(), It.IsAny(Of CancellationToken)())).Returns(NugetPackageSources)
             installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
                                  Returns(True)
 
@@ -110,7 +110,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
             installerServiceMock.Setup(Function(i) i.IsInstalled(It.IsAny(Of Workspace), It.IsAny(Of ProjectId), "NuGetPackage")).Returns(False)
             installerServiceMock.Setup(Function(i) i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray(Of String).Empty)
-            installerServiceMock.Setup(Function(i) i.GetPackageSources()).Returns(NugetPackageSources)
+            installerServiceMock.Setup(Function(i) i.TryGetPackageSourcesAsync(It.IsAny(Of Boolean)(), It.IsAny(Of CancellationToken)())).Returns(NugetPackageSources)
             installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", It.IsAny(Of String), It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
                                  Returns(False)
 
@@ -135,7 +135,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
         Public Async Function TestMissingIfPackageAlreadyInstalled() As Task
             Dim installerServiceMock = New Mock(Of IPackageInstallerService)(MockBehavior.Strict)
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
-            installerServiceMock.Setup(Function(i) i.GetPackageSources()).Returns(NugetPackageSources)
+            installerServiceMock.Setup(Function(i) i.TryGetPackageSourcesAsync(It.IsAny(Of Boolean)(), It.IsAny(Of CancellationToken)())).Returns(NugetPackageSources)
             installerServiceMock.Setup(Function(s) s.IsInstalled(It.IsAny(Of Workspace)(), It.IsAny(Of ProjectId)(), "NuGetPackage")).
                 Returns(True)
 
@@ -160,7 +160,7 @@ New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object
             installerServiceMock.Setup(Function(i) i.IsInstalled(It.IsAny(Of Workspace), It.IsAny(Of ProjectId), "NuGetPackage")).Returns(False)
             installerServiceMock.Setup(Function(i) i.GetProjectsWithInstalledPackage(It.IsAny(Of Solution), "NuGetPackage", "1.0")).Returns(Enumerable.Empty(Of Project))
             installerServiceMock.Setup(Function(i) i.GetProjectsWithInstalledPackage(It.IsAny(Of Solution), "NuGetPackage", "2.0")).Returns(Enumerable.Empty(Of Project))
-            installerServiceMock.Setup(Function(i) i.GetPackageSources()).Returns(NugetPackageSources)
+            installerServiceMock.Setup(Function(i) i.TryGetPackageSourcesAsync(It.IsAny(Of Boolean)(), It.IsAny(Of CancellationToken)())).Returns(NugetPackageSources)
             installerServiceMock.Setup(Function(s) s.GetInstalledVersions("NuGetPackage")).
                 Returns(ImmutableArray.Create("1.0", "2.0"))
 
@@ -202,7 +202,7 @@ parameters:=New TestParameters(index:=2, fixProviderData:=data))
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
             installerServiceMock.Setup(Function(i) i.IsInstalled(It.IsAny(Of Workspace), It.IsAny(Of ProjectId), "NuGetPackage")).Returns(False)
             installerServiceMock.Setup(Function(i) i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray(Of String).Empty)
-            installerServiceMock.Setup(Function(i) i.GetPackageSources()).Returns(NugetPackageSources)
+            installerServiceMock.Setup(Function(i) i.TryGetPackageSourcesAsync(It.IsAny(Of Boolean)(), It.IsAny(Of CancellationToken)())).Returns(NugetPackageSources)
             installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", Nothing, It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
                                  Returns(True)
 
@@ -232,7 +232,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             installerServiceMock.Setup(Function(i) i.IsEnabled(It.IsAny(Of ProjectId))).Returns(True)
             installerServiceMock.Setup(Function(i) i.IsInstalled(It.IsAny(Of Workspace), It.IsAny(Of ProjectId), "NuGetPackage")).Returns(False)
             installerServiceMock.Setup(Function(i) i.GetProjectsWithInstalledPackage(It.IsAny(Of Solution), "NuGetPackage", "1.0")).Returns(Enumerable.Empty(Of Project))
-            installerServiceMock.Setup(Function(i) i.GetPackageSources()).Returns(NugetPackageSources)
+            installerServiceMock.Setup(Function(i) i.TryGetPackageSourcesAsync(It.IsAny(Of Boolean)(), It.IsAny(Of CancellationToken)())).Returns(NugetPackageSources)
             installerServiceMock.Setup(Function(s) s.GetInstalledVersions("NuGetPackage")).
                 Returns(ImmutableArray.Create("1.0"))
             installerServiceMock.Setup(Function(s) s.TryInstallPackage(It.IsAny(Of Workspace), It.IsAny(Of DocumentId), It.IsAny(Of String), "NuGetPackage", "1.0", It.IsAny(Of Boolean), It.IsAny(Of CancellationToken))).
