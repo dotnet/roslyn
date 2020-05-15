@@ -267,7 +267,7 @@ jobs:
       displayName: Build
 
     - task: RichCodeNavIndexer@0
-      displayName: RichCodeNav Upload
+      displayName: RichCodeNav Upload 
       inputs:
         languages: 'csharp'
         environment: production
