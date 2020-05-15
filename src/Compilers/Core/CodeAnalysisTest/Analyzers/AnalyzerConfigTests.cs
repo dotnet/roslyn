@@ -1998,6 +1998,30 @@ dotnet_diagnostic.cs000.severity = warning
             }, options.Select(o => o.TreeOptions).ToArray());
         }
 
+        [Fact]
+        public void GlobalKeyIsNotSkippedIfInSection()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+[/path/to/file.cs]
+is_global = true
+", "/.globalconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/file.cs", "/path/to/file.cs" },
+                configs);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+              new[]
+              {
+                    new (string,string)[] { },
+                    new[] { ("is_global", "true") }
+              },
+              options);
+        }
+
         #endregion
     }
 }

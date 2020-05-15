@@ -454,10 +454,10 @@ namespace Microsoft.CodeAnalysis
                     _duplicates = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>(Section.NameEqualityComparer);
                 }
 
-                MergeSection(config.PathToFile, config.GlobalSection);
+                MergeSection(config.PathToFile, config.GlobalSection, isGlobalSection: true);
                 foreach (var section in config.NamedSections)
                 {
-                    MergeSection(config.PathToFile, section);
+                    MergeSection(config.PathToFile, section, isGlobalSection: false);
                 }
             }
 
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis
                 return new Section(sectionName, result);
             }
 
-            private void MergeSection(string configPath, Section section)
+            private void MergeSection(string configPath, Section section, bool isGlobalSection)
             {
                 Debug.Assert(_values is object);
                 Debug.Assert(_duplicates is object);
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis
                 _duplicates.TryGetValue(section.Name, out var duplicateDict);
                 foreach ((var key, var value) in section.Properties)
                 {
-                    if (Section.PropertiesKeyComparer.Equals(key, GlobalKey))
+                    if (isGlobalSection && Section.PropertiesKeyComparer.Equals(key, GlobalKey))
                     {
                         continue;
                     }
