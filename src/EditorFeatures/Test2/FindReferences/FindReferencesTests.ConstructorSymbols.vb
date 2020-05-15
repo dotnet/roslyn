@@ -818,5 +818,80 @@ public class A
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestConstructor_TargetTypedNew_Local(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class D
+{
+    public {|Definition:$$D|}() { }
+}
+        </Document>
+        <Document>
+class C
+{
+    void M()
+    {
+        D d = [|new|]();
+        D d2 = [|new|]();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestConstructor_TargetTypedNew_Local_WithArguments(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class D
+{
+    public {|Definition:$$D|}(int i, int j) { }
+}
+        </Document>
+        <Document>
+class C
+{
+    void M()
+    {
+        D d = [|new|](1, 2);
+        D d2 = [|new|](3, 4);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestConstructor_TargetTypedNew_Field(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class D
+{
+    public {|Definition:$$D|}() { }
+}
+        </Document>
+        <Document>
+class C
+{
+    D d = [|new|]();
+    D d2 = [|new|]();
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

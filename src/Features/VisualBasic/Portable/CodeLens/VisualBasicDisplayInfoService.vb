@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeLens
             End If
 
             Dim symbol As ISymbol = semanticModel.GetDeclaredSymbol(node)
-            Dim symbolName As String = Nothing
+            Dim symbolName As String
 
             Select Case node.Kind()
                 Case SyntaxKind.GetAccessorBlock,

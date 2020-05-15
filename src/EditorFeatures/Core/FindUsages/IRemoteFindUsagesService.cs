@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     {
         public int DefinitionId;
         public SerializableDocumentSpan SourceSpan;
-        public SymbolUsageInfo SymbolUsageInfo;
+        public SerializableSymbolUsageInfo SymbolUsageInfo;
         public (string Key, string Value)[] AdditionalProperties;
 
         public static SerializableSourceReferenceItem Dehydrate(
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             {
                 DefinitionId = definitionId,
                 SourceSpan = SerializableDocumentSpan.Dehydrate(item.SourceSpan),
-                SymbolUsageInfo = item.SymbolUsageInfo,
+                SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(item.SymbolUsageInfo),
                 AdditionalProperties = item.AdditionalProperties.Select(kvp => (kvp.Key, kvp.Value)).ToArray(),
             };
         }
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return new SourceReferenceItem(
                 definition,
                 SourceSpan.Rehydrate(solution),
-                SymbolUsageInfo,
+                SymbolUsageInfo.Rehydrate(),
                 AdditionalProperties.ToImmutableDictionary(t => t.Key, t => t.Value));
         }
     }

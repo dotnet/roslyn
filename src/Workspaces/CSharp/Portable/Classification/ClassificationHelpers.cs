@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 {
                     FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.FieldName,
                     LocalDeclarationStatementSyntax localDeclarationStatement => localDeclarationStatement.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName,
-                    EventFieldDeclarationSyntax aventFieldDeclarationSyntax => ClassificationTypeNames.EventName,
+                    EventFieldDeclarationSyntax _ => ClassificationTypeNames.EventName,
                     _ => ClassificationTypeNames.LocalName,
                 };
             }

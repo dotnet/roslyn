@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;

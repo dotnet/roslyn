@@ -122,7 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
         protected override bool TryGetNameParts(ExpressionSyntax expression, out IList<string> nameParts)
         {
-            nameParts = new List<string>();
             return expression.TryGetNameParts(out nameParts);
         }
 
@@ -871,7 +870,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             CancellationToken cancellationToken,
             out IPropertySymbol property)
         {
-            property = null;
             var propertyType = GetPropertyType(propertyName, semanticModel, typeInference, cancellationToken);
             if (propertyType == null || propertyType is IErrorTypeSymbol)
             {

@@ -2291,6 +2291,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function IsImplicitObjectCreation(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsImplicitObjectCreation
+            Return False
+        End Function
+
         Public Function SupportsNotPattern(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsNotPattern
             Return False
         End Function
