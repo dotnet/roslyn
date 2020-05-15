@@ -1249,7 +1249,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override MethodSymbol ExplicitlyOverriddenClassMethod
+        /// <summary>
+        /// If a methodimpl record indicates a unique overridden method, that method. Otherwise null.
+        /// </summary>
+        internal MethodSymbol ExplicitlyOverriddenClassMethod
         {
             get
             {

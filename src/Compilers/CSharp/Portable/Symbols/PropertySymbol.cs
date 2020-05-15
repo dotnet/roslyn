@@ -231,11 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// If we know a specific overridden class property, that property.
-        /// </summary>
-        internal virtual PropertySymbol ExplicitlyOverriddenClassProperty => null;
-
         internal virtual OverriddenOrHiddenMembersResult OverriddenOrHiddenMembers
         {
             get

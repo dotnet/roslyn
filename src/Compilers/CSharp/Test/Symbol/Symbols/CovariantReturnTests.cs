@@ -5,6 +5,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -44,6 +46,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                     Assert.Equal(isCovariant, method.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
                     Assert.Equal(isCovariant, method.RequiresExplicitOverride()); // implies the presence of a methodimpl
                 }
+                switch (member)
+                {
+                    case RetargetingMethodSymbol m:
+                        Assert.Equal(!binaryCompat, overriddenMember.Equals(m.RetargetOverriddenMethod));
+                        break;
+                    case PEMethodSymbol m:
+                        MethodSymbol explicitlyOverriddenClassMethod = m.ExplicitlyOverriddenClassMethod;
+                        if (isCovariant)
+                        {
+                            Assert.Equal(!binaryCompat, overriddenMember.Equals(explicitlyOverriddenClassMethod));
+                        }
+                        else if (!binaryCompat)
+                        {
+                            Assert.Null(explicitlyOverriddenClassMethod);
+                        }
+                        break;
+                }
             }
             else if (member is PropertySymbol property && overriddenMember is PropertySymbol overriddenProperty)
             {
@@ -63,6 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                     Assert.False(setMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
                     Assert.False(setMethod.RequiresExplicitOverride());
                     Assert.Equal(!isCovariant, overriddenSetMethod.Equals(setMethod.GetOverriddenMember(), TypeCompareKind.AllIgnoreOptions));
+                }
+                if (member is RetargetingPropertySymbol p)
+                {
+                    Assert.Equal(!binaryCompat, overriddenMember.Equals(p.RetargetOverriddenProperty));
                 }
             }
             else if (member is EventSymbol eventSymbol && overriddenMember is EventSymbol overriddenEvent)
@@ -3199,6 +3222,122 @@ public interface IIn<in T> { }
                 VerifyOverride(comp, "Derived.M6", "IIn<System.Object> Derived.M6()", "IIn<System.String?> Base.M6()");
                 VerifyOverride(comp, "Derived.P6", "IIn<System.Object> Derived.P6 { get; }", "IIn<System.String?> Base.P6 { get; }");
             }
+        }
+
+        [Fact]
+        public void PEMethodSymbol_ExplicitlyOverriddenClassMethod_WhenAmbiguous()
+        {
+            // See also related scenario in ExplicitOverrideWithoutCSharpOverride
+
+            var ilSource = @"
+.class public auto ansi beforefieldinit Base
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig newslot virtual 
+          instance object  M1() cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  ret
+  } // end of method Base::M1
+
+  .method public hidebysig newslot virtual 
+          instance object  M2() cil managed
+  {
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  ret
+  } // end of method Base::M2
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Base::.ctor
+} // end of class Base
+
+.class public auto ansi beforefieldinit Derived
+       extends Base
+{
+  .method public hidebysig newslot virtual 
+          instance string  M3() cil managed
+  {
+    .override Base::M1
+    .override Base::M2
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  ldnull
+    IL_0001:  ret
+  } // end of method Derived::M3
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void Base::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method Derived::.ctor
+}
+";
+
+            var cSharpSource = @"
+public class Override : Derived
+{
+    public override string M1() => null;
+    public override string M2() => null;
+    public override string M3() => null;
+}
+
+public class Program
+{
+    public void M(Derived d, Override o)
+    {
+        object x1 = d.M1();
+        object x2 = d.M2();
+        string x3 = d.M3();
+        object x4 = o.M1();
+        object x5 = o.M2();
+        string x6 = o.M3();
+    }
+}
+";
+            CompileWithCustomILSource(cSharpSource, ilSource, comp =>
+            {
+                comp.VerifyDiagnostics();
+
+                VerifyNoOverride(comp, "Base.M1");
+                VerifyNoOverride(comp, "Base.M2");
+                VerifyNoOverride(comp, "Derived.M3");
+                grep("verify more overrides in Override");
+                VerifyAssignments(comp, 6);
+
+                var globalNamespace = compilation.GlobalNamespace;
+
+                var baseClass = globalNamespace.GetMember<NamedTypeSymbol>("Base");
+                var derivedClass = globalNamespace.GetMember<NamedTypeSymbol>("Derived");
+                var overrideClass = globalNamespace.GetMember<NamedTypeSymbol>("Override");
+                var invokeClass = globalNamespace.GetMember<NamedTypeSymbol>("Invoke");
+
+                var baseMethod = baseClass.GetMember<MethodSymbol>("Foo");
+                var derivedMethod = derivedClass.GetMember<MethodSymbol>("Bar");
+                var overrideMethod = overrideClass.GetMember<MethodSymbol>("Bar");
+
+                Assert.True(derivedMethod.IsOverride);
+                Assert.Null(derivedMethod.OverriddenMethod);
+
+                Assert.True(overrideMethod.IsOverride);
+                Assert.Equal(derivedMethod, overrideMethod.OverriddenMethod);
+            });
         }
     }
 }

@@ -387,8 +387,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// ignoring any other overriding methods in base classes.
         /// </summary>
         /// <param name="accessingTypeOpt">The search must respect accessibility from this type.</param>
-        /// <param name="withSameReturnType">The returned method must have the same return type.</param>
-        internal MethodSymbol GetLeastOverriddenMethod(NamedTypeSymbol accessingTypeOpt, bool withSameReturnType = false)
+        internal MethodSymbol GetLeastOverriddenMethod(NamedTypeSymbol accessingTypeOpt)
+        {
+            return GetLeastOverriddenMethodCore(accessingTypeOpt, requireSameReturnType: false);
+        }
+
+        /// <summary>
+        /// Returns the original virtual or abstract method which a given method symbol overrides,
+        /// ignoring any other overriding methods in base classes.
+        /// </summary>
+        /// <param name="accessingTypeOpt">The search must respect accessibility from this type.</param>
+        /// <param name="requireSameReturnType">The returned method must have the same return type.</param>
+        private MethodSymbol GetLeastOverriddenMethodCore(NamedTypeSymbol accessingTypeOpt, bool requireSameReturnType)
         {
             var accessingType = ((object)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
 
@@ -419,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 if ((object)overridden == null ||
                     !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref useSiteDiagnostics) ||
-                    (withSameReturnType && !this.ReturnType.Equals(overridden.ReturnType, TypeCompareKind.AllIgnoreOptions)))
+                    (requireSameReturnType && !this.ReturnType.Equals(overridden.ReturnType, TypeCompareKind.AllIgnoreOptions)))
                 {
                     break;
                 }
@@ -436,10 +446,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Also, if the given method symbol is generic then the resulting virtual or abstract method is constructed with the
         /// same type arguments as the given method.
         /// </summary>
-        /// <param name="withSameReturnType">The returned method must have the same return type.</param>
-        internal MethodSymbol GetConstructedLeastOverriddenMethod(NamedTypeSymbol accessingTypeOpt, bool withSameReturnType = false)
+        /// <param name="requireSameReturnType">The returned method must have the same return type.</param>
+        internal MethodSymbol GetConstructedLeastOverriddenMethod(NamedTypeSymbol accessingTypeOpt, bool requireSameReturnType)
         {
-            var m = this.ConstructedFrom.GetLeastOverriddenMethod(accessingTypeOpt, withSameReturnType);
+            var m = this.ConstructedFrom.GetLeastOverriddenMethodCore(accessingTypeOpt, requireSameReturnType);
             return m.IsGenericMethod ? m.Construct(this.TypeArgumentsWithAnnotations) : m;
         }
 
@@ -468,11 +478,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
         }
-
-        /// <summary>
-        /// If we know a specific overridden class method, that method.
-        /// </summary>
-        internal virtual MethodSymbol ExplicitlyOverriddenClassMethod => null;
 
         /// <summary>
         /// Returns true if calls to this method are omitted in this syntax tree. Calls are omitted

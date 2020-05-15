@@ -187,7 +187,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return builder.ToImmutableAndFree();
         }
 
-        internal override PropertySymbol ExplicitlyOverriddenClassProperty
+        /// <summary>
+        /// Retarget the underlying property's overridden property.
+        /// </summary>
+        internal PropertySymbol RetargetOverriddenProperty
         {
             get
             {

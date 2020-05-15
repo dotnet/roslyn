@@ -280,7 +280,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return builder.ToImmutableAndFree();
         }
 
-        internal override MethodSymbol ExplicitlyOverriddenClassMethod
+        /// <summary>
+        /// Retarget the underlying method's overridden method.
+        /// </summary>
+        internal MethodSymbol RetargetOverriddenMethod
         {
             get
             {

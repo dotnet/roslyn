@@ -115,14 +115,14 @@ class D : B<D>
             AssertSame(1, D_MofV.OverriddenOrHiddenMembers.OverriddenMembers.Length);
             Assert.Equal(D_MofV.OverriddenMethod, BofD_MofU);
             // ... but the "original" overridden method of D.M<V> is B<D>.M<V>
-            Assert.Equal(D_MofV.GetConstructedLeastOverriddenMethod(D), BofD_MofV);
+            Assert.Equal(D_MofV.GetConstructedLeastOverriddenMethod(D, requireSameReturnType: false), BofD_MofV);
 
             // D.M<D> overrides nothing, since it is constructed...
             Assert.Null(D_MofD.OverriddenMethod);
             // ... and the overridden members count is zero if the overridden method is null...
             AssertSame(0, D_MofD.OverriddenOrHiddenMembers.OverriddenMembers.Length);
             // ... but the original overridden method is B<D>.M<D>
-            Assert.Equal(D_MofD.GetConstructedLeastOverriddenMethod(D), BofD_MofD);
+            Assert.Equal(D_MofD.GetConstructedLeastOverriddenMethod(D, requireSameReturnType: false), BofD_MofD);
         }
 
         [Fact]

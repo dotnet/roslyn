@@ -1113,6 +1113,7 @@ class Test
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "Test of execution of explicitly ambiguous IL")]
+
         private void TestAmbiguousOverridesWarningCase()
         {
             // Tests:
@@ -3974,7 +3975,7 @@ class B : A
                 var fooA = classA.GetMember<MethodSymbol>("Foo");
                 var fooB = classB.GetMember<MethodSymbol>("Foo");
 
-                Assert.Equal(fooA, fooB.GetConstructedLeastOverriddenMethod(classB));
+                Assert.Equal(fooA, fooB.GetConstructedLeastOverriddenMethod(classB, requireSameReturnType: false));
 
                 Assert.Equal(1, fooA.ParameterCount);
                 var parameterA = fooA.Parameters[0];

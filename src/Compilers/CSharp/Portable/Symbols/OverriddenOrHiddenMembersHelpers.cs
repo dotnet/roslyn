@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -131,11 +132,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol bestMatch = null;
             ArrayBuilder<Symbol> hiddenBuilder = null;
 
-            // If the metadata indicates a specific override, use that.
-            Symbol explicitOverride = member switch
+            // A specific override exact match candidate, if one is known. This supports covariant returns, for which signature
+            // matching is not sufficient. This member is treated as being as good as an exact match.
+            Symbol knownOverriddenMember = member switch
             {
-                MethodSymbol method => method.ExplicitlyOverriddenClassMethod,
-                PropertySymbol property => property.ExplicitlyOverriddenClassProperty,
+                MethodSymbol method => KnownOverriddenClassMethod(method),
+                PEPropertySymbol { GetMethod: PEMethodSymbol { ExplicitlyOverriddenClassMethod: { AssociatedSymbol: PropertySymbol overriddenProperty } } } => overriddenProperty,
+                RetargetingPropertySymbol property => property.RetargetOverriddenProperty,
                 _ => null
             };
 
@@ -148,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     member,
                     memberIsFromSomeCompilation,
                     containingType,
-                    explicitOverride,
+                    knownOverriddenMember,
                     currType,
                     out bestMatch,
                     out unused,
@@ -164,6 +167,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
             return OverriddenOrHiddenMembersResult.Create(overriddenMembers, hiddenMembers, runtimeOverriddenMembers);
         }
+
+        /// <summary>
+        /// Compute a candidate overridden method when a method knows what method it is intended to
+        /// override. This makes a particular difference when covariant returns are used, in which
+        /// case the signature matching rules would not compute the correct overridden method.
+        /// </summary>
+        private static MethodSymbol KnownOverriddenClassMethod(MethodSymbol method) => method switch
+        {
+            PEMethodSymbol m => m.ExplicitlyOverriddenClassMethod,
+            RetargetingMethodSymbol m => m.RetargetOverriddenMethod,
+            _ => null
+        };
 
         /// <summary>
         /// In the CLI, accessors are just regular methods and their overriding/hiding rules are the same as for
@@ -262,8 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return MemberSignatureComparer.CSharpAccessorOverrideComparer.Equals(accessor, overriddenAccessor); //NB: custom comparer
                 }
 
-                if (accessor is MethodSymbol { ExplicitlyOverriddenClassMethod: MethodSymbol explicitlyOverriddenAccessor } &&
-                    overriddenAccessor.Equals(explicitlyOverriddenAccessor, TypeCompareKind.AllIgnoreOptions))
+                if (overriddenAccessor.Equals(KnownOverriddenClassMethod(accessor), TypeCompareKind.AllIgnoreOptions))
                 {
                     return true;
                 }
@@ -399,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     member,
                     memberIsFromSomeCompilation,
                     containingType,
-                    explicitOverride: null,
+                    knownOverriddenMember: null,
                     currType,
                     out currTypeBestMatch,
                     out currTypeHasSameKindNonMatch,
@@ -483,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="member">Member that is hiding or overriding.</param>
         /// <param name="memberIsFromSomeCompilation">True if member is from the current compilation.</param>
         /// <param name="memberContainingType">The type that contains member (member.ContainingType).</param>
-        /// <param name="explicitOverride">An explicitly overridden class member.</param>
+        /// <param name="knownOverriddenMember">An known candidate for the overridden class member, e.g. in the presence of covariant returns.</param>
         /// <param name="currType">The type to search.</param>
         /// <param name="currTypeBestMatch">
         /// A member with the same signature if currTypeHasExactMatch is true,
@@ -501,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol member,
             bool memberIsFromSomeCompilation,
             NamedTypeSymbol memberContainingType,
-            Symbol explicitOverride,
+            Symbol knownOverriddenMember,
             NamedTypeSymbol currType,
             out Symbol currTypeBestMatch,
             out bool currTypeHasSameKindNonMatch,
@@ -565,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
 
                         default:
-                            if (otherMember.Equals(explicitOverride, TypeCompareKind.AllIgnoreOptions) ||
+                            if (otherMember.Equals(knownOverriddenMember, TypeCompareKind.AllIgnoreOptions) ||
                                 exactMatchComparer.Equals(member, otherMember))
                             {
                                 currTypeHasExactMatch = true;
