@@ -299,6 +299,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return CreateCollectionValuePlaceholderOperation((BoundObjectOrCollectionValuePlaceholder)boundNode);
+                case BoundKind.FunctionPointerInvocation:
+                    return CreateBoundFunctionPointerInvocationOperation((BoundFunctionPointerInvocation)boundNode);
+                case BoundKind.UnconvertedAddressOfOperator:
+                    return CreateBoundUnconvertedAddressOfOperatorOperation((BoundUnconvertedAddressOfOperator)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -432,6 +436,44 @@ namespace Microsoft.CodeAnalysis.Operations
 
             bool isVirtual = IsCallVirtual(targetMethod, boundCall.ReceiverOpt);
             return new CSharpLazyInvocationOperation(this, boundCall, targetMethod.GetPublicSymbol(), isVirtual, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IOperation CreateBoundFunctionPointerInvocationOperation(BoundFunctionPointerInvocation boundFunctionPointerInvocation)
+        {
+            if (boundFunctionPointerInvocation.HasErrors)
+            {
+                return new CSharpLazyInvalidOperation(
+                    this,
+                    boundFunctionPointerInvocation,
+                    _semanticModel,
+                    boundFunctionPointerInvocation.Syntax,
+                    boundFunctionPointerInvocation.Type.GetPublicSymbol(),
+                    ConvertToOptional(boundFunctionPointerInvocation.ConstantValue),
+                    isImplicit: boundFunctionPointerInvocation.WasCompilerGenerated);
+            }
+
+            return new CSharpLazyInvocationOperation(
+                this,
+                boundFunctionPointerInvocation,
+                boundFunctionPointerInvocation.FunctionPointer.Signature.GetPublicSymbol(),
+                isVirtual: false,
+                _semanticModel,
+                boundFunctionPointerInvocation.Syntax,
+                boundFunctionPointerInvocation.Type.GetPublicSymbol(),
+                constantValue: default,
+                isImplicit: false);
+        }
+
+        private IOperation CreateBoundUnconvertedAddressOfOperatorOperation(BoundUnconvertedAddressOfOperator boundUnconvertedAddressOf)
+        {
+            return new CSharpLazyAddressOfOperation(
+                this,
+                boundUnconvertedAddressOf.Operand,
+                _semanticModel,
+                boundUnconvertedAddressOf.Syntax,
+                boundUnconvertedAddressOf.Type.GetPublicSymbol(),
+                ConvertToOptional(boundUnconvertedAddressOf.ConstantValue),
+                boundUnconvertedAddressOf.WasCompilerGenerated);
         }
 
         internal ImmutableArray<IOperation> CreateIgnoredDimensions(BoundNode declaration, SyntaxNode declarationSyntax)
@@ -900,6 +942,25 @@ namespace Microsoft.CodeAnalysis.Operations
             BoundExpression boundOperand = boundConversion.Operand;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
+                if (boundConversion is { Type: FunctionPointerTypeSymbol { Signature: var signature }, Syntax: PrefixUnaryExpressionSyntax addressOfExpression })
+                {
+                    return new AddressOfOperation(
+                        new MethodReferenceOperation(
+                            signature.GetPublicSymbol(),
+                            isVirtual: false,
+                            instance: null,
+                            _semanticModel,
+                            syntax: addressOfExpression.Operand,
+                            type: null,
+                            constantValue: default,
+                            isImplicit: false),
+                        _semanticModel,
+                        syntax: addressOfExpression,
+                        type: boundConversion.Type.GetPublicSymbol(),
+                        constantValue: default,
+                        isImplicit: false);
+                }
+
                 // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,
                 // overload resolution succeeded. The resulting method could be invalid for other reasons, but we don't
                 // hide the resolved method.

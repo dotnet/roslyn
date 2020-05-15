@@ -808,6 +808,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
         }
 
+        internal CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, BoundFunctionPointerInvocation invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            this(operationFactory, (BoundExpression)invocableExpression, targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+
         private CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, BoundExpression invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
@@ -817,18 +822,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IOperation CreateInstance()
         {
-            BoundExpression receiver;
-            switch (_invocableExpression)
+            BoundExpression receiver = _invocableExpression switch
             {
-                case BoundCall call:
-                    receiver = call.ReceiverOpt;
-                    break;
-                case BoundCollectionElementInitializer initializer:
-                    receiver = initializer.ImplicitReceiverOpt;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(_invocableExpression.Kind);
-            }
+                BoundCall { ReceiverOpt: var r } => r,
+                BoundCollectionElementInitializer { ImplicitReceiverOpt: var r } => r,
+                BoundFunctionPointerInvocation { InvokedExpression: var i } => i,
+                _ => throw ExceptionUtilities.UnexpectedValue(_invocableExpression.Kind)
+            };
+
             return _operationFactory.CreateReceiverOperation(receiver, TargetMethod.GetSymbol());
         }
 
