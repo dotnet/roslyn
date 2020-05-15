@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                     if (client != null)
                     {
-                        var result = await client.TryRunRemoteAsync<SerializableRenameLocations>(
+                        var result = await client.TryRunRemoteAsync<SerializableRenameLocations?>(
                             WellKnownServiceHubServices.CodeAnalysisService,
                             nameof(IRemoteRenamer.FindRenameLocationsAsync),
                             solution,
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Rename
                             callbackTarget: null,
                             cancellationToken).ConfigureAwait(false);
 
-                        if (result.HasValue)
+                        if (result.HasValue && result.Value != null)
                         {
                             var rehydrated = await RenameLocations.TryRehydrateAsync(
                                 solution, result.Value, cancellationToken).ConfigureAwait(false);

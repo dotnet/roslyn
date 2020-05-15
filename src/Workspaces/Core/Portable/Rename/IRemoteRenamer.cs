@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// forth marshaling) when the intermediary results of rename are not needed. To get the individual parts of
         /// rename remoted use <see cref="FindRenameLocationsAsync"/> and <see cref="ResolveConflictsAsync"/>.
         /// </summary>
-        Task<SerializableConflictResolution> RenameSymbolAsync(
+        Task<SerializableConflictResolution?> RenameSymbolAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId symbolAndProjectId,
             string replacementText,
@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Rename
             SerializableSymbolAndProjectId[] nonConflictSymbolIds,
             CancellationToken cancellationToken);
 
-        Task<SerializableRenameLocations> FindRenameLocationsAsync(
+        Task<SerializableRenameLocations?> FindRenameLocationsAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId symbolAndProjectId,
             SerializableRenameOptionSet options,
             CancellationToken cancellationToken);
 
-        Task<SerializableConflictResolution> ResolveConflictsAsync(
+        Task<SerializableConflictResolution?> ResolveConflictsAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableRenameLocations renameLocationSet,
             string replacementText,
