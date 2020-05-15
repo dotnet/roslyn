@@ -198,6 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureAndPattern = MessageBase + 12774,
         IDS_FeatureNotPattern = MessageBase + 12775,
         IDS_FeatureRelationalPattern = MessageBase + 12776,
+        IDS_FeatureExtensionGetEnumerator = MessageBase + 12777,
+        IDS_FeatureExtensionGetAsyncEnumerator = MessageBase + 12778,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -316,6 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureParenthesizedPattern:
                 case MessageID.IDS_FeatureTypePattern:
                 case MessageID.IDS_FeatureRelationalPattern:
+                case MessageID.IDS_FeatureExtensionGetEnumerator: // semantic check
+                case MessageID.IDS_FeatureExtensionGetAsyncEnumerator: // semantic check
                 case MessageID.IDS_FeatureNativeInt:
                     return LanguageVersion.Preview;
 

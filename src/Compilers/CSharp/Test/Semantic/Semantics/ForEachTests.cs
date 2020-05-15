@@ -245,8 +245,8 @@ class Enumerator
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,27): warning CS0279: 'Enumerable' does not implement the 'collection' pattern. 'Enumerable.GetEnumerator()' is either static or not public.
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new Enumerable()").WithArguments("Enumerable", "collection", "Enumerable.GetEnumerator()"),
+                // (6,27): warning CS0279: 'Enumerable' does not implement the 'collection' pattern. 'Enumerable.GetEnumerator()' is not a public instance or extension method.
+                Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "new Enumerable()").WithArguments("Enumerable", "collection", "Enumerable.GetEnumerator()"),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public definition for 'GetEnumerator'
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new Enumerable()").WithArguments("Enumerable", "GetEnumerator"));
         }
@@ -278,12 +278,12 @@ class Enumerator
 ";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-                // (6,27): warning CS0279: 'Enumerable' does not implement the 'collection' pattern. 'Enumerable.GetEnumerator()' is either static or not public.
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new Enumerable()").WithArguments("Enumerable", "collection", "Enumerable.GetEnumerator()"),
+                // (6,27): warning CS0279: 'Enumerable' does not implement the 'collection' pattern. 'Enumerable.GetEnumerator()' is not a public instance or extension method.
+                Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "new Enumerable()").WithArguments("Enumerable", "collection", "Enumerable.GetEnumerator()"),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public definition for 'GetEnumerator'
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new Enumerable()").WithArguments("Enumerable", "GetEnumerator"));
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public instance definition for 'GetEnumerator'
+                // (6,27): error CS1579: foreach statement cannot operate on variables of type 'Enumerable' because 'Enumerable' does not contain a public instance or extension definition for 'GetEnumerator'
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new Enumerable()").WithArguments("Enumerable", "GetEnumerator"));
         }
 
@@ -580,8 +580,10 @@ class Enumerator
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-            // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
-                Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()"));
+                // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+                //         foreach (int x in new Enumerable())
+                Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()").WithLocation(6, 27)
+                );
         }
 
         [Fact]
@@ -3548,7 +3550,7 @@ class C
                 // (17,41): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
                 //         var lazyNonsense = default(Lazy<Nonsense>);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(17, 41),
-                // (19,29): error CS1579: foreach statement cannot operate on variables of type 'Lazy<Nonsense>' because 'Lazy<Nonsense>' does not contain a public instance definition for 'GetEnumerator'
+                // (19,29): error CS1579: foreach statement cannot operate on variables of type 'Lazy<Nonsense>' because 'Lazy<Nonsense>' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach(var item in lazyNonsense) {}
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "lazyNonsense").WithArguments("System.Lazy<Nonsense>", "GetEnumerator").WithLocation(19, 29),
                 // (21,37): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
@@ -3569,7 +3571,7 @@ class C
                 // (41,34): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
                 //         var nonsenseTuple = (new Nonsense(), 42);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(41, 34),
-                // (43,29): error CS1579: foreach statement cannot operate on variables of type '(Nonsense, int)' because '(Nonsense, int)' does not contain a public instance definition for 'GetEnumerator'
+                // (43,29): error CS1579: foreach statement cannot operate on variables of type '(Nonsense, int)' because '(Nonsense, int)' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach(var item in nonsenseTuple) {}
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "nonsenseTuple").WithArguments("(Nonsense, int)", "GetEnumerator").WithLocation(43, 29));
         }

@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AccessModMissingAccessor = 276,
         ERR_UnimplementedInterfaceAccessor = 277,
         WRN_PatternIsAmbiguous = 278,
-        WRN_PatternStaticOrInaccessible = 279,
+        WRN_PatternNotPublicOrNotInstance = 279,
         WRN_PatternBadSignature = 280,
         ERR_FriendRefNotEqualToThis = 281,
         WRN_SequentialOnPartialClass = 282,

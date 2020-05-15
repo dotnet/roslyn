@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -200,7 +201,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindRValueWithoutTargetType(_syntax.Expression, diagnostics);
 
-            var builder = new ForEachEnumeratorInfo.Builder();
+            var builder = new ForEachEnumeratorInfo.Builder
+            {
+                Binder = this,
+            };
             TypeWithAnnotations inferredType;
             bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
 
@@ -212,6 +216,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (getEnumeratorMethod != null)
             {
                 originalBinder.CheckImplicitThisCopyInReadOnlyMember(collectionExpr, getEnumeratorMethod, diagnostics);
+
+                if (getEnumeratorMethod.IsExtensionMethod && !hasErrors)
+                {
+                    var messageId = IsAsync ? MessageID.IDS_FeatureExtensionGetAsyncEnumerator : MessageID.IDS_FeatureExtensionGetEnumerator;
+                    hasErrors |= !messageId.CheckFeatureAvailability(
+                        diagnostics,
+                        Compilation,
+                        collectionExpr.Syntax.Location);
+
+                    if (getEnumeratorMethod.ParameterRefKinds is { IsDefault: false } refKinds && refKinds[0] == RefKind.Ref)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefLvalueExpected, collectionExpr.Syntax);
+                        hasErrors = true;
+                    }
+                }
             }
             if (IsAsync)
             {
@@ -497,7 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.CollectionConversion.IsIdentity ||
                 (builder.CollectionConversion.IsImplicit &&
                  (IsIEnumerable(builder.CollectionType) ||
-                  IsIEnumerableT(builder.CollectionType.OriginalDefinition, IsAsync, Compilation))) ||
+                  IsIEnumerableT(builder.CollectionType.OriginalDefinition, IsAsync, Compilation) ||
+                  builder.GetEnumeratorMethod.IsExtensionMethod)) ||
                 // For compat behavior, we can enumerate over System.String even if it's not IEnumerable. That will
                 // result in an explicit reference conversion in the bound nodes, but that conversion won't be emitted.
                 (builder.CollectionConversion.Kind == ConversionKind.ExplicitReference && collectionExpr.Type.SpecialType == SpecialType.System_String));
@@ -719,25 +739,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return EnumeratorResult.Succeeded;
             }
 
-            bool foundMultipleGenericIEnumerableInterfaces;
-            if (SatisfiesGetEnumeratorPattern(ref builder, collectionExprType, isAsync, diagnostics))
+            if (SatisfiesGetEnumeratorPattern(ref builder, collectionExprType, isAsync, viaExtensionMethod: false, diagnostics))
             {
-                Debug.Assert((object)builder.GetEnumeratorMethod != null);
-
-                builder.CollectionType = collectionExprType;
-
-                if (SatisfiesForEachPattern(ref builder, isAsync, diagnostics))
-                {
-                    builder.ElementTypeWithAnnotations = ((PropertySymbol)builder.CurrentPropertyGetter.AssociatedSymbol).TypeWithAnnotations;
-
-                    GetDisposalInfoForEnumerator(ref builder, collectionExpr, isAsync, diagnostics);
-
-                    return EnumeratorResult.Succeeded;
-                }
-
-                MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
-                diagnostics.Add(isAsync ? ErrorCode.ERR_BadGetAsyncEnumerator : ErrorCode.ERR_BadGetEnumerator, _syntax.Expression.Location, getEnumeratorMethod.ReturnType, getEnumeratorMethod);
-                return EnumeratorResult.FailedAndReported;
+                return createPatternBasedEnumeratorResult(ref builder, collectionExpr, isAsync, viaExtensionMethod: false, diagnostics);
             }
 
             if (!isAsync && IsIEnumerable(collectionExprType))
@@ -753,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return EnumeratorResult.FailedAndReported;
             }
 
-            if (AllInterfacesContainsIEnumerable(ref builder, collectionExprType, isAsync, diagnostics, out foundMultipleGenericIEnumerableInterfaces))
+            if (AllInterfacesContainsIEnumerable(ref builder, collectionExprType, isAsync, diagnostics, out bool foundMultipleGenericIEnumerableInterfaces))
             {
                 CSharpSyntaxNode errorLocationSyntax = _syntax.Expression;
 
@@ -841,7 +845,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return EnumeratorResult.Succeeded;
             }
 
+            if (SatisfiesGetEnumeratorPattern(ref builder, collectionExprType, isAsync, viaExtensionMethod: true, diagnostics))
+            {
+                return createPatternBasedEnumeratorResult(ref builder, collectionExpr, isAsync, viaExtensionMethod: true, diagnostics);
+            }
+
             return EnumeratorResult.FailedNotReported;
+
+            EnumeratorResult createPatternBasedEnumeratorResult(ref ForEachEnumeratorInfo.Builder builder, BoundExpression collectionExpr, bool isAsync, bool viaExtensionMethod, DiagnosticBag diagnostics)
+            {
+                Debug.Assert((object)builder.GetEnumeratorMethod != null);
+
+                Debug.Assert(!(viaExtensionMethod && builder.GetEnumeratorMethod.Parameters.IsDefaultOrEmpty));
+
+                builder.CollectionType = viaExtensionMethod
+                    ? builder.GetEnumeratorMethod.Parameters[0].Type
+                    : collectionExpr.Type;
+
+                if (SatisfiesForEachPattern(ref builder, isAsync, diagnostics))
+                {
+                    builder.ElementTypeWithAnnotations = ((PropertySymbol)builder.CurrentPropertyGetter.AssociatedSymbol).TypeWithAnnotations;
+
+                    GetDisposalInfoForEnumerator(ref builder, collectionExpr, isAsync, diagnostics);
+
+                    return EnumeratorResult.Succeeded;
+                }
+
+                MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
+                diagnostics.Add(isAsync ? ErrorCode.ERR_BadGetAsyncEnumerator : ErrorCode.ERR_BadGetEnumerator, _syntax.Expression.Location, getEnumeratorMethod.ReturnType, getEnumeratorMethod);
+                return EnumeratorResult.FailedAndReported;
+            }
         }
 
         private void GetDisposalInfoForEnumerator(ref ForEachEnumeratorInfo.Builder builder, BoundExpression expr, bool isAsync, DiagnosticBag diagnostics)
@@ -945,11 +978,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Only adds warnings, so does not affect control flow (i.e. no need to check for failure).
         /// </remarks>
-        private bool SatisfiesGetEnumeratorPattern(ref ForEachEnumeratorInfo.Builder builder, TypeSymbol collectionExprType, bool isAsync, DiagnosticBag diagnostics)
+        private bool SatisfiesGetEnumeratorPattern(ref ForEachEnumeratorInfo.Builder builder, TypeSymbol collectionExprType, bool isAsync, bool viaExtensionMethod, DiagnosticBag diagnostics)
         {
             var lookupResult = LookupResult.GetInstance();
             string methodName = isAsync ? GetAsyncEnumeratorMethodName : GetEnumeratorMethodName;
-            MethodSymbol getEnumeratorMethod = FindForEachPatternMethod(collectionExprType, methodName, lookupResult, warningsOnly: true, diagnostics: diagnostics, isAsync: isAsync);
+            MethodSymbol getEnumeratorMethod = FindForEachPatternMethod(collectionExprType, methodName, lookupResult, warningsOnly: true, diagnostics, isAsync, viaExtensionMethod);
             lookupResult.Free();
 
             builder.GetEnumeratorMethod = getEnumeratorMethod;
@@ -966,23 +999,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="warningsOnly">True if failures should result in warnings; false if they should result in errors.</param>
         /// <param name="diagnostics">Populated with binding diagnostics.</param>
         /// <returns>The desired method or null.</returns>
-        private MethodSymbol FindForEachPatternMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync)
+        private MethodSymbol FindForEachPatternMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync, bool viaExtensionMethod)
         {
             Debug.Assert(lookupResult.IsClear);
 
             // Not using LookupOptions.MustBeInvocableMember because we don't want the corresponding lookup error.
             // We filter out non-methods below.
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupMembersInType(
-                lookupResult,
-                patternType,
-                methodName,
-                arity: 0,
-                basesBeingResolved: null,
-                options: LookupOptions.Default,
-                originalBinder: this,
-                diagnose: false,
-                useSiteDiagnostics: ref useSiteDiagnostics);
+
+            if (viaExtensionMethod)
+            {
+                this.LookupExtensionMethods(
+                    lookupResult,
+                    methodName,
+                    arity: 0,
+                    LookupOptions.IncludeExtensionMethods | LookupOptions.AllMethodsOnArityZero,
+                    useSiteDiagnostics: ref useSiteDiagnostics);
+            }
+            else
+            {
+                this.LookupMembersInType(
+                    lookupResult,
+                    patternType,
+                    methodName,
+                    arity: 0,
+                    basesBeingResolved: null,
+                    options: LookupOptions.Default,
+                    originalBinder: this,
+                    diagnose: false,
+                    useSiteDiagnostics: ref useSiteDiagnostics);
+            }
 
             diagnostics.Add(_syntax.Expression, useSiteDiagnostics);
 
@@ -1014,15 +1060,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we've found (so far) is that it only considers methods with expected number of parameters
                 // (i.e. doesn't work with "params" or optional parameters).
 
-                // Note: for pattern-based lookup for `await foreach` we accept `GetAsyncEnumerator` and
-                // `MoveNextAsync` methods with optional/params parameters.
-                if (method.ParameterCount == 0 || isAsync)
+                // Note: for pattern-based lookup (via instance or extension methods) for `await foreach`
+                // we accept `GetAsyncEnumerator` and `MoveNextAsync` methods with optional/params parameters.
+                // For pattern-based lookup via extension methods for `foreach`
+                // we accept `GetEnumerator` and `MoveAsync` methods with optional/params parameters
+                if (method.ParameterCount == 0 || isAsync || viaExtensionMethod)
                 {
                     candidateMethods.Add((MethodSymbol)member);
                 }
             }
 
-            MethodSymbol patternMethod = PerformForEachPatternOverloadResolution(patternType, candidateMethods, warningsOnly, diagnostics, isAsync);
+            MethodSymbol patternMethod = PerformForEachPatternOverloadResolution(patternType, candidateMethods, warningsOnly, diagnostics, isAsync, viaExtensionMethod);
 
             candidateMethods.Free();
 
@@ -1033,15 +1081,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The overload resolution portion of FindForEachPatternMethod.
         /// If no arguments are passed in, then an empty argument list will be used.
         /// </summary>
-        private MethodSymbol PerformForEachPatternOverloadResolution(TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync)
+        private MethodSymbol PerformForEachPatternOverloadResolution(TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods, bool warningsOnly, DiagnosticBag diagnostics, bool isAsync, bool viaExtensionMethod)
         {
+            // We create a dummy receiver of the invocation so MethodInvocationOverloadResolution knows it was invoked from an instance, not a type
+            var dummyReceiver = new BoundImplicitReceiver(_syntax.Expression, patternType);
+
             var analyzedArguments = AnalyzedArguments.GetInstance();
+            if (viaExtensionMethod)
+            {
+                analyzedArguments.IsExtensionMethodInvocation = true;
+                analyzedArguments.Arguments.Add(dummyReceiver);
+            }
             var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            // We create a dummy receiver of the invocation so MethodInvocationOverloadResolution knows it was invoked from an instance, not a type
-            var dummyReceiver = new BoundImplicitReceiver(_syntax.Expression, patternType);
+
             this.OverloadResolution.MethodInvocationOverloadResolution(
                 methods: candidateMethods,
                 typeArguments: typeArguments,
@@ -1057,12 +1112,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = overloadResolutionResult.ValidResult.Member;
 
-                if (result.IsStatic || result.DeclaredAccessibility != Accessibility.Public)
+                if (!viaExtensionMethod && (result.IsStatic || result.DeclaredAccessibility != Accessibility.Public))
                 {
                     if (warningsOnly)
                     {
                         MessageID patternName = isAsync ? MessageID.IDS_FeatureAsyncStreams : MessageID.IDS_Collection;
-                        diagnostics.Add(ErrorCode.WRN_PatternStaticOrInaccessible, _syntax.Expression.Location, patternType, patternName.Localize(), result);
+                        diagnostics.Add(ErrorCode.WRN_PatternNotPublicOrNotInstance, _syntax.Expression.Location, patternType, patternName.Localize(), result);
                     }
                     result = null;
                 }
@@ -1073,12 +1128,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = null;
                 }
             }
-            else if (overloadResolutionResult.Results.Length > 1)
+            else if (overloadResolutionResult.GetAllApplicableMembers() is var applicableMembers && applicableMembers.Length > 1)
             {
                 if (warningsOnly)
                 {
                     diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, _syntax.Expression.Location, patternType, MessageID.IDS_Collection.Localize(),
-                        overloadResolutionResult.Results[0].Member, overloadResolutionResult.Results[1].Member);
+                        applicableMembers[0], applicableMembers[1]);
                 }
             }
 
@@ -1188,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 MethodSymbol moveNextMethodCandidate = FindForEachPatternMethod(enumeratorType,
                     isAsync ? MoveNextAsyncMethodName : MoveNextMethodName,
-                    lookupResult, warningsOnly: false, diagnostics: diagnostics, isAsync: isAsync);
+                    lookupResult, warningsOnly: false, diagnostics, isAsync, viaExtensionMethod: false);
 
                 if ((object)moveNextMethodCandidate == null ||
                     moveNextMethodCandidate.IsStatic || moveNextMethodCandidate.DeclaredAccessibility != Accessibility.Public ||
