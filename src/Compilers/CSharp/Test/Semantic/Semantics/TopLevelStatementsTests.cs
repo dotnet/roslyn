@@ -7334,6 +7334,32 @@ return;
             Assert.True(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
             CompileAndVerify(comp, expectedOutput: "Return_01", args: new[] { "Return_01" });
+
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                _ = ConditionalSkipReason.NativePdbRequiresDesktop;
+
+                comp.VerifyPdb("$Program.$Main",
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <entryPoint declaringType=""$Program"" methodName=""$Main"" parameterNames=""args"" />
+  <methods>
+    <method containingType=""$Program"" name=""$Main"" parameterNames=""args"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""2"" startColumn=""1"" endLine=""2"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x9"" startLine=""3"" startColumn=""1"" endLine=""3"" endColumn=""8"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>", options: PdbValidationOptions.SkipConversionValidation);
+            }
         }
 
         [Fact]
@@ -7350,6 +7376,32 @@ return 10;
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
             CompileAndVerify(comp, expectedOutput: "Return_02", args: new[] { "Return_02" }, expectedReturnCode: 10);
+
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                _ = ConditionalSkipReason.NativePdbRequiresDesktop;
+
+                comp.VerifyPdb("$Program.$Main",
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <entryPoint declaringType=""$Program"" methodName=""$Main"" parameterNames=""args"" />
+  <methods>
+    <method containingType=""$Program"" name=""$Main"" parameterNames=""args"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""2"" startColumn=""1"" endLine=""2"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x9"" startLine=""3"" startColumn=""1"" endLine=""3"" endColumn=""11"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>", options: PdbValidationOptions.SkipConversionValidation);
+            }
         }
 
         [Fact]
@@ -7371,6 +7423,48 @@ return;
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
             CompileAndVerify(comp, expectedOutput: "hello Return_03", args: new[] { "Return_03" });
+
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                _ = ConditionalSkipReason.NativePdbRequiresDesktop;
+
+                comp.VerifyPdb("$Program+<$Main>d__0.MoveNext",
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <entryPoint declaringType=""$Program"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
+  <methods>
+    <method containingType=""$Program+&lt;$Main&gt;d__0"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""$Program+&lt;&gt;c"" methodName=""&lt;$Main&gt;b__0_0"" />
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""2"" />
+          <slot kind=""33"" offset=""76"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""5"" startColumn=""1"" endLine=""5"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x19"" startLine=""6"" startColumn=""1"" endLine=""6"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x48"" hidden=""true"" document=""1"" />
+        <entry offset=""0x99"" startLine=""7"" startColumn=""1"" endLine=""7"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xa7"" startLine=""8"" startColumn=""1"" endLine=""8"" endColumn=""8"" document=""1"" />
+        <entry offset=""0xa9"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc1"" hidden=""true"" document=""1"" />
+      </sequencePoints>
+      <asyncInfo>
+        <catchHandler offset=""0xa9"" />
+        <kickoffMethod declaringType=""$Program"" methodName=""$Main"" parameterNames=""args"" />
+        <await yield=""0x5a"" resume=""0x75"" declaringType=""$Program+&lt;$Main&gt;d__0"" methodName=""MoveNext"" />
+      </asyncInfo>
+    </method>
+  </methods>
+</symbols>", options: PdbValidationOptions.SkipConversionValidation);
+            }
         }
 
         [Fact]
@@ -7392,6 +7486,49 @@ return 11;
             Assert.False(entryPoint.ReturnsVoid);
             AssertEntryPointParameter(entryPoint);
             CompileAndVerify(comp, expectedOutput: "hello Return_04", args: new[] { "Return_04" }, expectedReturnCode: 11);
+
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                _ = ConditionalSkipReason.NativePdbRequiresDesktop;
+
+                comp.VerifyPdb("$Program+<$Main>d__0.MoveNext",
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <entryPoint declaringType=""$Program"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
+  <methods>
+    <method containingType=""$Program+&lt;$Main&gt;d__0"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""$Program+&lt;&gt;c"" methodName=""&lt;$Main&gt;b__0_0"" />
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""2"" />
+          <slot kind=""20"" offset=""2"" />
+          <slot kind=""33"" offset=""76"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""5"" startColumn=""1"" endLine=""5"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x19"" startLine=""6"" startColumn=""1"" endLine=""6"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x48"" hidden=""true"" document=""1"" />
+        <entry offset=""0x99"" startLine=""7"" startColumn=""1"" endLine=""7"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xa7"" startLine=""8"" startColumn=""1"" endLine=""8"" endColumn=""11"" document=""1"" />
+        <entry offset=""0xac"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc6"" hidden=""true"" document=""1"" />
+      </sequencePoints>
+      <asyncInfo>
+        <catchHandler offset=""0xac"" />
+        <kickoffMethod declaringType=""$Program"" methodName=""$Main"" parameterNames=""args"" />
+        <await yield=""0x5a"" resume=""0x75"" declaringType=""$Program+&lt;$Main&gt;d__0"" methodName=""MoveNext"" />
+      </asyncInfo>
+    </method>
+  </methods>
+</symbols>", options: PdbValidationOptions.SkipConversionValidation);
+            }
         }
 
         [Fact]
