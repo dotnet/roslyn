@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 #nullable enable
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1101,6 +1103,85 @@ unsafe class C
             Assert.Equal("delegate*<int>", f1.ToDisplayString());
             Assert.Equal("delegate*<ref System.Int32 modopt(System.Object)>", f2.ToTestDisplayString());
             Assert.Equal("delegate*<int>", f2.ToDisplayString());
+        }
+
+        [Fact]
+        public void PublicApi_CreateInvalidInputs()
+        {
+            var comp = (Compilation)CreateCompilation("");
+            var @string = comp.GetSpecialType(SpecialType.System_String);
+            Assert.Throws<ArgumentNullException>("returnType", () => comp.CreateFunctionPointerTypeSymbol(returnType: null!, RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty));
+            Assert.Throws<ArgumentNullException>("parameterTypes", () => comp.CreateFunctionPointerTypeSymbol(returnType: @string, RefKind.None, parameterTypes: default, parameterRefKinds: ImmutableArray<RefKind>.Empty));
+            Assert.Throws<ArgumentNullException>("parameterRefKinds", () => comp.CreateFunctionPointerTypeSymbol(returnType: @string, RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: default));
+            Assert.Throws<ArgumentException>(() => comp.CreateFunctionPointerTypeSymbol(returnType: @string, RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray.Create(RefKind.None)));
+            Assert.Throws<ArgumentException>(() => comp.CreateFunctionPointerTypeSymbol(returnType: @string, RefKind.Out, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty));
+        }
+
+        [Fact]
+        public void PublicApi_CreateTypeSymbolNoRefKinds()
+        {
+            var comp = (Compilation)CreateCompilation(@"class C {}");
+
+            var c = comp.GetTypeByMetadataName("C")!;
+
+            var ptr = comp.CreateFunctionPointerTypeSymbol(
+                c.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None),
+                RefKind.None,
+                ImmutableArray.Create(c.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.NotAnnotated), c.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated)),
+                ImmutableArray.Create(RefKind.None, RefKind.None));
+
+            Assert.Equal("delegate*<C!, C?, C>", ptr.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void PublicApi_CreateInRefReadonlyTypeSymbol()
+        {
+            var comp = (Compilation)CreateCompilation("");
+            var @string = comp.GetSpecialType(SpecialType.System_String);
+
+            var ptr = comp.CreateFunctionPointerTypeSymbol(
+                @string,
+                RefKind.RefReadOnly,
+                ImmutableArray.Create((ITypeSymbol)@string),
+                ImmutableArray.Create(RefKind.In));
+
+            Assert.Equal("delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.String, ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.String>",
+                         ptr.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void PublicApi_CreateOutTypeSymbol()
+        {
+            var comp = (Compilation)CreateCompilation("");
+            var @string = comp.GetSpecialType(SpecialType.System_String);
+            var @void = comp.GetSpecialType(SpecialType.System_Void);
+
+            var ptr = comp.CreateFunctionPointerTypeSymbol(
+                @void,
+                RefKind.None,
+                ImmutableArray.Create((ITypeSymbol)@string),
+                ImmutableArray.Create(RefKind.Out));
+
+            Assert.Equal("delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void>",
+                         ptr.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void PublicApi_InOutAttributeMissing()
+        {
+            var comp = (Compilation)CreateCompilation("");
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_OutAttribute);
+            var @string = comp.GetSpecialType(SpecialType.System_String);
+
+            var ptr = comp.CreateFunctionPointerTypeSymbol(
+                @string,
+                RefKind.RefReadOnly,
+                ImmutableArray.Create((ITypeSymbol)@string),
+                ImmutableArray.Create(RefKind.Out));
+
+            Assert.Equal("System.Runtime.InteropServices.InAttribute[missing]", ptr.Signature.RefCustomModifiers.Single().Modifier.ToTestDisplayString());
+            Assert.Equal("System.Runtime.InteropServices.OutAttribute[missing]", ptr.Signature.Parameters.Single().RefCustomModifiers.Single().Modifier.ToTestDisplayString());
         }
     }
 }

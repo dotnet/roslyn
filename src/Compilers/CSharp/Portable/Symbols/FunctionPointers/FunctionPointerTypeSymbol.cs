@@ -25,6 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     basesBeingResolved,
                     suppressUseSiteDiagnostics));
 
+        public static FunctionPointerTypeSymbol CreateFromParts(
+            TypeWithAnnotations returnType,
+            RefKind returnRefKind,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            CSharpCompilation compilation)
+            => new FunctionPointerTypeSymbol(FunctionPointerMethodSymbol.CreateFromParts(returnType, returnRefKind, parameterTypes, parameterRefKinds, compilation));
+
         public static FunctionPointerTypeSymbol CreateFromMetadata(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
             => new FunctionPointerTypeSymbol(
                 FunctionPointerMethodSymbol.CreateFromMetadata(callingConvention, retAndParamTypes));

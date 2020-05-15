@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 using static System.Linq.ImmutableArrayExtensions;
@@ -607,6 +608,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static IPointerTypeSymbol? GetPublicSymbol(this PointerTypeSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IPointerTypeSymbol>();
+        }
+
+        [return: NotNullIfNotNull("symbol")]
+        internal static IFunctionPointerTypeSymbol? GetPublicSymbol(this FunctionPointerTypeSymbol? symbol)
+        {
+            return symbol.GetPublicSymbol<IFunctionPointerTypeSymbol>();
         }
 
         [return: NotNullIfNotNull("symbol")]

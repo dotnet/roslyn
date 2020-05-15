@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -90,6 +91,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeBinder,
                 diagnostics,
                 suppressUseSiteDiagnostics);
+        }
+
+        internal static FunctionPointerMethodSymbol CreateFromParts(
+            TypeWithAnnotations returnType,
+            RefKind returnRefKind,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            CSharpCompilation compilation)
+        {
+            return new FunctionPointerMethodSymbol(
+                // https://github.com/dotnet/roslyn/issues/39865 allow setting this in creation
+                CallingConvention.Default,
+                returnRefKind,
+                returnType,
+                parameterTypes,
+                parameterRefKinds,
+                compilation);
         }
 
         public static FunctionPointerMethodSymbol CreateFromMetadata(CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
@@ -239,6 +257,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 _parameters = ImmutableArray<FunctionPointerParameterSymbol>.Empty;
+            }
+        }
+
+        private FunctionPointerMethodSymbol(
+            CallingConvention callingConvention,
+            RefKind refKind,
+            TypeWithAnnotations returnTypeWithAnnotations,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            CSharpCompilation compilation)
+        {
+            Debug.Assert(refKind != RefKind.Out);
+            RefCustomModifiers = getCustomModifierForRefKind(refKind, compilation);
+            RefKind = refKind;
+            CallingConvention = callingConvention;
+            ReturnTypeWithAnnotations = returnTypeWithAnnotations;
+            _parameters = parameterTypes.ZipAsArray(parameterRefKinds, (Method: this, Comp: compilation), (type, refKind, arg, i) =>
+                new FunctionPointerParameterSymbol(type, refKind, i, arg.Method, refCustomModifiers: getCustomModifierForRefKind(refKind, arg.Comp)));
+
+            static ImmutableArray<CustomModifier> getCustomModifierForRefKind(RefKind refKind, CSharpCompilation compilation)
+            {
+                var attributeType = refKind switch
+                {
+                    RefKind.In => compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute),
+                    RefKind.Out => compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_OutAttribute),
+                    _ => null
+                };
+
+                if (attributeType is null)
+                {
+                    Debug.Assert(refKind != RefKind.Out && refKind != RefKind.In);
+                    return ImmutableArray<CustomModifier>.Empty;
+                }
+
+                return ImmutableArray.Create(CSharpCustomModifier.CreateRequired(attributeType));
             }
         }
 

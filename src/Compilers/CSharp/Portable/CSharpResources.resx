@@ -6154,4 +6154,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnsupportedCallingConvention" xml:space="preserve">
     <value>The calling convention of '{0}' is not supported by the language.</value>
   </data>
+  <data name="NotSameNumberParameterTypesAndRefKinds" xml:space="preserve">
+    <value>Given {0} parameter types and {1} parameter ref kinds. These must be the same.</value>
+  </data>
+  <data name="OutIsNotValidForReturn" xml:space="preserve">
+    <value>'RefKind.Out' is not a valid ref kind for a return type.</value>
+  </data>
 </root>
