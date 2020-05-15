@@ -147,18 +147,14 @@ class C
         {
             var sourceV1 = "class C { void F() => G(1); void G(int a) => System.Console.WriteLine(1); }";
 
-            var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(MockEditAndContinueWorkspaceService.Factory)));
-
-            var exportProvider = exportProviderFactory.CreateExportProvider();
-            using var workspace = new TestWorkspace(exportProvider);
+            using var workspace = new TestWorkspace();
 
             var span11 = new LinePositionSpan(new LinePosition(0, 10), new LinePosition(0, 15));
             var span12 = new LinePositionSpan(new LinePosition(0, 20), new LinePosition(0, 25));
             var span21 = new LinePositionSpan(new LinePosition(0, 11), new LinePosition(0, 16));
             var span22 = new LinePositionSpan(new LinePosition(0, 21), new LinePosition(0, 26));
 
-            var encService = (MockEditAndContinueWorkspaceService)workspace.Services.GetService<IEditAndContinueWorkspaceService>();
+            var encService = new MockEditAndContinueWorkspaceService();
 
             encService.GetBaseActiveStatementSpansAsyncImpl = documentIds => ImmutableArray.Create(ImmutableArray.Create(
                 (span11, ActiveStatementFlags.IsNonLeafFrame),
@@ -168,7 +164,7 @@ class C
                 (span21, ActiveStatementFlags.IsNonLeafFrame),
                 (span22, ActiveStatementFlags.IsLeafFrame));
 
-            var testDocument = new TestHostDocument(text: sourceV1, exportProvider: exportProvider);
+            var testDocument = new TestHostDocument(text: sourceV1, exportProvider: workspace.ExportProvider);
             workspace.AddTestProject(new TestHostProject(workspace, testDocument));
             var textBuffer = testDocument.GetTextBuffer();
 
@@ -178,7 +174,7 @@ class C
             var snapshot = textBuffer.CurrentSnapshot;
             Assert.Same(snapshot, document.GetTextSynchronously(CancellationToken.None).FindCorrespondingEditorTextSnapshot());
 
-            var trackingSession = new ActiveStatementTrackingService.TrackingSession(workspace);
+            var trackingSession = new ActiveStatementTrackingService.TrackingSession(workspace, encService);
 
             if (scheduleInitialTrackingBeforeOpenDoc)
             {

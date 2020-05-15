@@ -17,19 +17,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     internal class MockEditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
-        [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService), WorkspaceKind.Test), Shared]
-        internal sealed class Factory : IWorkspaceServiceFactory
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
-            {
-            }
-
-            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new MockEditAndContinueWorkspaceService();
-        }
-
         public Func<ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>>? GetBaseActiveStatementSpansAsyncImpl;
         public Func<Solution, ActiveInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionAsyncImpl;
         public Func<Document, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>? GetDocumentActiveStatementSpansAsyncImpl;

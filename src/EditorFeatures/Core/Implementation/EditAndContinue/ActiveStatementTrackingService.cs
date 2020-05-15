@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         public void StartTracking()
         {
-            var newSession = new TrackingSession(_workspace);
+            var newSession = new TrackingSession(_workspace, _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>());
             if (Interlocked.CompareExchange(ref _session, newSession, null) != null)
             {
                 newSession.EndTracking();
@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         {
             private readonly Workspace _workspace;
             private readonly CancellationTokenSource _cancellationSource;
+            private readonly IEditAndContinueWorkspaceService _encService;
 
             #region lock(_trackingSpans)
 
@@ -111,11 +112,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             #endregion
 
-            public TrackingSession(Workspace workspace)
+            public TrackingSession(Workspace workspace, IEditAndContinueWorkspaceService encService)
             {
                 _workspace = workspace;
                 _trackingSpans = new Dictionary<DocumentId, ImmutableArray<ActiveStatementTrackingSpan>>();
                 _cancellationSource = new CancellationTokenSource();
+                _encService = encService;
 
                 _workspace.DocumentOpened += DocumentOpened;
                 _workspace.DocumentClosed += DocumentClosed;
@@ -192,8 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                         return;
                     }
 
-                    var encService = _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
-                    var baseActiveStatementSpans = await encService.GetBaseActiveStatementSpansAsync(openDocumentIds, cancellationToken).ConfigureAwait(false);
+                    var baseActiveStatementSpans = await _encService.GetBaseActiveStatementSpansAsync(openDocumentIds, cancellationToken).ConfigureAwait(false);
                     if (baseActiveStatementSpans.IsDefault)
                     {
                         // Edit session not in progress.
@@ -322,8 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     Debug.Assert(TryGetSnapshot(document, out var s) && s == snapshot);
 
-                    var encService = _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
-                    var activeStatementSpans = await encService.GetDocumentActiveStatementSpansAsync(document, cancellationToken).ConfigureAwait(false);
+                    var activeStatementSpans = await _encService.GetDocumentActiveStatementSpansAsync(document, cancellationToken).ConfigureAwait(false);
 
                     lock (_trackingSpans)
                     {
