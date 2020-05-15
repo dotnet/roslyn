@@ -5993,7 +5993,7 @@ namespace System
             var tupleWithSomeNames = comp.CreateTupleTypeSymbol(vt3, ImmutableArray.Create(null, "Item2", "Charlie"));
 
             Assert.True(tupleWithSomeNames.IsTupleType);
-            Assert.Equal("(System.Int32, System.String, System.Int32 Charlie)[missing]", tupleWithSomeNames.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String Item2, System.Int32 Charlie)[missing]", tupleWithSomeNames.ToTestDisplayString());
             Assert.Equal(new[] { null, "Item2", "Charlie" }, GetTupleElementNames(tupleWithSomeNames));
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32" }, ElementTypeNames(tupleWithSomeNames));
             Assert.Equal(SymbolKind.ErrorType, tupleWithSomeNames.Kind);
@@ -27680,13 +27680,15 @@ class C
             var comp = CreateCompilation(source);
             var m = (MethodSymbol)comp.GetMember("C.M");
             var tuple = m.ReturnType;
-            Assert.Equal("(System.Int32, System.Int32)", tuple.ToTestDisplayString());
+            Assert.Equal("(System.Int32 Item1, System.Int32 Item2)", tuple.ToTestDisplayString());
             Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
 
             var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
             Assert.Equal(0, item1.TupleElementIndex);
+
             var item1Underlying = item1.TupleUnderlyingField;
             Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
+            Assert.Equal("System.Int32 (System.Int32 Item1, System.Int32 Item2).Item1", item1Underlying.ToTestDisplayString());
             Assert.Equal(0, item1Underlying.TupleElementIndex);
             Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
 
