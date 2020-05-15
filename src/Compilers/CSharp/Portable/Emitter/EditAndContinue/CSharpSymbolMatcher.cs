@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         case RefKind.Out when allowOut:
                             return modifiers.Length == 1;
                         default:
-                            return modifiers.IsDefaultOrEmpty;
+                            return modifiers.IsEmpty;
                     }
                 }
             }
