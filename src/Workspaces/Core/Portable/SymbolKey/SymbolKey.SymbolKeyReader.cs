@@ -552,6 +552,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     var node = location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, CancellationToken);
                     var semanticModel = Compilation.GetSemanticModel(location.SourceTree);
+                    var symbol = semanticModel.GetDeclaredSymbol(node, CancellationToken);
+                    if (symbol != null)
+                        return new SymbolKeyResolution(symbol);
+
                     var info = semanticModel.GetSymbolInfo(node, CancellationToken);
                     if (info.Symbol != null)
                         return new SymbolKeyResolution(info.Symbol);

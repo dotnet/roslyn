@@ -30,14 +30,16 @@ namespace Microsoft.CodeAnalysis
                 var kind = symbol.Kind;
                 var localName = symbol.Name;
 
-                Contract.ThrowIfTrue(symbol.DeclaringSyntaxReferences.IsEmpty);
-                var syntaxRef = symbol.DeclaringSyntaxReferences[0].GetSyntax(visitor.CancellationToken);
-
                 visitor.WriteString(localName);
                 visitor.WriteInteger((int)kind);
 
-                // write out the location for precision
-                visitor.WriteLocation(syntaxRef.GetLocation());
+                // write out the locations for precision
+                Contract.ThrowIfTrue(symbol.DeclaringSyntaxReferences.IsEmpty && symbol.Locations.IsEmpty);
+
+                var locations = symbol.Locations.Concat(
+                    symbol.DeclaringSyntaxReferences.SelectAsArray(r => r.GetSyntax(visitor.CancellationToken).GetLocation()));
+
+                visitor.WriteLocationArray(locations);
 
                 // and the ordinal for resilience
                 visitor.WriteInteger(GetOrdinal());
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis
 
                 int GetOrdinal()
                 {
-                    var syntaxTree = syntaxRef.SyntaxTree;
+                    var syntaxTree = locations[0].SourceTree;
                     var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
 
                     // Ensure that the tree we're looking at is actually in this compilation.  It may not be in the
@@ -69,29 +71,39 @@ namespace Microsoft.CodeAnalysis
             {
                 var cancellationToken = reader.CancellationToken;
 
-                var localName = reader.ReadString();
+                var name = reader.ReadString();
                 var kind = (SymbolKind)reader.ReadInteger();
-                var location = reader.ReadLocation();
+                var locations = reader.ReadLocationArray();
                 var ordinal = reader.ReadInteger();
 
                 // First check if we can recover the symbol just through the original location.
-                var semanticModel = reader.Compilation.GetSemanticModel(location.SourceTree);
-                var declaredSymbol = semanticModel.GetDeclaredSymbol(location.FindNode(reader.CancellationToken));
-
-                if (declaredSymbol?.Name == localName && declaredSymbol?.Kind == kind)
-                    return new SymbolKeyResolution(declaredSymbol);
+                foreach (var loc in locations)
+                {
+                    var resolutionOpt = reader.ResolveLocation(loc);
+                    if (resolutionOpt.HasValue)
+                    {
+                        var resolution = resolutionOpt.Value;
+                        var symbol = resolution.GetAnySymbol();
+                        if (symbol?.Kind == kind &&
+                            SymbolKey.Equals(reader.Compilation, name, symbol.Name))
+                        {
+                            return resolution;
+                        }
+                    }
+                }
 
                 // Couldn't recover.  See if we can still find a match across the textual drift.
                 if (ordinal != int.MaxValue)
                 {
-                    foreach (var symbol in EnumerateSymbols(semanticModel, kind, localName, cancellationToken))
+                    var semanticModel = reader.Compilation.GetSemanticModel(locations[0].SourceTree);
+                    foreach (var symbol in EnumerateSymbols(semanticModel, kind, name, cancellationToken))
                     {
                         if (symbol.ordinal == ordinal)
                             return new SymbolKeyResolution(symbol.symbol);
                     }
                 }
 
-                return new SymbolKeyResolution();
+                return default;
             }
 
             private static IEnumerable<(ISymbol symbol, int ordinal)> EnumerateSymbols(
