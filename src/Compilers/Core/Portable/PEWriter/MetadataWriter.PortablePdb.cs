@@ -908,7 +908,7 @@ namespace Microsoft.Cci
                     // Always null terminate the extern alias list
                     builder.WriteByte(0);
 
-                    builder.WriteInt32((int)portableReference.Properties.Kind);
+                    builder.WriteByte((byte)portableReference.Properties.Kind);
                     builder.WriteBoolean(portableReference.Properties.EmbedInteropTypes);
                     builder.WriteInt32(peReader.GetTimestamp());
                     builder.WriteInt32(peReader.GetSizeOfImage());

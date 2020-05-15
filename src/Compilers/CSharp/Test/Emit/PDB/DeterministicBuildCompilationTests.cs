@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             // Skip the null terminator
             blobReader.ReadByte();
 
-            var kind = (MetadataImageKind)blobReader.ReadInt32();
+            var kind = (MetadataImageKind)blobReader.ReadByte();
             var embedInteropTypes = blobReader.ReadBoolean();
             var timestamp = blobReader.ReadInt32();
             var imageSize = blobReader.ReadInt32();

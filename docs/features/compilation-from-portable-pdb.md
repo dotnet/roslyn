@@ -48,37 +48,28 @@ At this time, we'll only include external references for the compilation. Any ot
 
 #### Metadata References
 
-Metadata references can be easily stored as binary. The binary encoding will be as follows:
+Metadata references can be easily stored as binary. The binary encoding will be as follows (order matters):
 
 Name: A UTF-8 string (null terminated)
+Aliases: UTF-8 Comma (,) separate list of aliases (null terminated). May be empty
+MetadataImageKind: byte value representing Microsoft.CodeAnalysis.MetadataImageKind
+EmbedInteropTypes: boolean
 Timestamp: 4 byte integer
 File Size: 4 byte integer
 MVID: 16 byte integer (GUID)
-
-Example:
-
-File name: `Foo.exe`
-
-COFF header Timestamp field: `0x542d5742`
-
-COFF header SizeOfImage field: `0x32000000`
-
-MVID: `0x24a44d8218894463807674caf3b1c19a`
-
-`Foo.exe542d5742320000000024a44d8218894463807674caf3b1c19a`
 
 #### Key Value Pairs
 
 The remaining values will be stored as key value pairs in the pdb. The storage format will be UTF8 encoded key value pairs that are null terminated. Order is not guaranteed. Any values left out can be assumed to be the default for the type.
 
-These are the known keys that will be used
+These are the known keys that will be used:
 
-1. "compilerversion" : string
-2. "sourceencoding" : string
-3. "checked" : bool
-4. "unsafe" : bool
-5. "langversion" : string
-6. "nullable" : string
-7. "define" : string
+1. "compilerversion"
+2. "sourceencoding"
+3. "checked"
+4. "unsafe"
+5. "langversion"
+6. "nullable"
+7. "define"
 
 `compilerversion\01.2.3\0sourceencoding\0utf-8\0checked\01\0unsafe\01\0langversion\0latest\0nullable\0enable`
