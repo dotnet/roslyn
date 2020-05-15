@@ -53,6 +53,23 @@ namespace Microsoft.CodeAnalysis
     public class FileTextLoader : TextLoader
     {
         /// <summary>
+        /// Guards access to <see cref="_workspace"/> and <see cref="_lazyTextAndVersion"/>.
+        /// </summary>
+        private readonly object _gate = new object();
+
+        /// <summary>
+        /// This is the workspace used to initialize <see cref="_lazyTextAndVersion"/>.
+        /// </summary>
+        private Workspace? _workspace;
+
+        /// <summary>
+        /// A lazy loader for the <see cref="TextAndVersion"/>. Concurrent requests to load the text and version share
+        /// a computation to avoid unnecessary memory overhead, but the computed value is not cached so the same lazy
+        /// loader instance can service independent load requests until the workspace changes.
+        /// </summary>
+        private AsyncLazy<TextAndVersion>? _lazyTextAndVersion;
+
+        /// <summary>
         /// Absolute path of the file.
         /// </summary>
         public string Path { get; }
@@ -93,11 +110,45 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Gets or creates an <see cref="AsyncLazy{T}"/> capable of loading the <see cref="TextAndVersion"/> for the
+        /// file <see cref="Path"/> in the workspace <paramref name="workspace"/>.
+        /// </summary>
+        /// <param name="workspace">The workspace.</param>
+        /// <returns>The <see cref="AsyncLazy{T}"/> which can be used to load the <see cref="TextAndVersion"/>.</returns>
+        private AsyncLazy<TextAndVersion> GetOrCreateLazyTextAndVersion(Workspace workspace)
+        {
+            lock (_gate)
+            {
+                if (_workspace != workspace)
+                {
+                    _workspace = workspace;
+                    _lazyTextAndVersion = new AsyncLazy<TextAndVersion>(
+                        cancellationToken => LoadTextAndVersionImplAsync(workspace, cancellationToken),
+                        cancellationToken => LoadTextAndVersionSynchronouslyImpl(workspace),
+                        cacheResult: false);
+                }
+                else
+                {
+                    // _workspace and _lazyTextAndVersion are initialized together
+                    RoslynDebug.AssertNotNull(_lazyTextAndVersion);
+                }
+
+                return _lazyTextAndVersion;
+            }
+        }
+
+        /// <summary>
         /// Load a text and a version of the document in the workspace.
         /// </summary>
         /// <exception cref="IOException"></exception>
         /// <exception cref="InvalidDataException"></exception>
-        public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        {
+            var lazyTextAndVersion = GetOrCreateLazyTextAndVersion(workspace);
+            return lazyTextAndVersion.GetValueAsync(cancellationToken);
+        }
+
+        private async Task<TextAndVersion> LoadTextAndVersionImplAsync(Workspace workspace, CancellationToken cancellationToken)
         {
             ValidateFileLength(workspace, Path);
 
@@ -202,6 +253,12 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="IOException"></exception>
         /// <exception cref="InvalidDataException"></exception>
         internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        {
+            var lazyTextAndVersion = GetOrCreateLazyTextAndVersion(workspace);
+            return lazyTextAndVersion.GetValue(cancellationToken);
+        }
+
+        private TextAndVersion LoadTextAndVersionSynchronouslyImpl(Workspace workspace)
         {
             ValidateFileLength(workspace, Path);
 
