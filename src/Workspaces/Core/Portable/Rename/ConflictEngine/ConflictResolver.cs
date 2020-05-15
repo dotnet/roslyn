@@ -219,10 +219,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             try
             {
-                var project = conflictResolution.CurrentSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
-                Contract.ThrowIfNull(project);
+                var projectOpt = conflictResolution.CurrentSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
                 if (renamedSymbol.ContainingSymbol.IsKind(SymbolKind.NamedType))
                 {
+                    Contract.ThrowIfNull(projectOpt);
                     var otherThingsNamedTheSame = renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name)
                                                            .Where(s => !s.Equals(renamedSymbol) &&
                                                                        string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     IEnumerable<ISymbol> otherThingsNamedTheSameExcludeMethodAndParameterizedProperty;
 
                     // Possibly overloaded symbols are excluded here and handled elsewhere
-                    var semanticFactsService = project.LanguageServices.GetRequiredService<ISemanticFactsService>();
+                    var semanticFactsService = projectOpt.LanguageServices.GetRequiredService<ISemanticFactsService>();
                     if (semanticFactsService.SupportsParameterizedProperties)
                     {
                         otherThingsNamedTheSameExcludeMethodAndParameterizedProperty = otherThingsNamedTheSame
@@ -245,7 +245,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     AddConflictingSymbolLocations(otherThingsNamedTheSameExcludeMethodAndParameterizedProperty, conflictResolution, reverseMappedLocations);
                 }
-
 
                 if (renamedSymbol.IsKind(SymbolKind.Namespace) && renamedSymbol.ContainingSymbol.IsKind(SymbolKind.Namespace))
                 {
@@ -275,8 +274,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // Some types of symbols (namespaces, cref stuff, etc) might not have ContainingAssemblies
                 if (renamedSymbol.ContainingAssembly != null)
                 {
+                    Contract.ThrowIfNull(projectOpt);
                     // There also might be language specific rules we need to include
-                    var languageRenameService = project.LanguageServices.GetRequiredService<IRenameRewriterLanguageService>();
+                    var languageRenameService = projectOpt.LanguageServices.GetRequiredService<IRenameRewriterLanguageService>();
                     var languageConflicts = await languageRenameService.ComputeDeclarationConflictsAsync(
                         conflictResolution.ReplacementText,
                         renamedSymbol,
