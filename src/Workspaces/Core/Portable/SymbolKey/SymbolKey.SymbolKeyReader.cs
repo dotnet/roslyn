@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis
                 _idToResult.Clear();
                 Compilation = null;
                 IgnoreAssemblyKey = false;
-                _resolveLocations = false;
+                _resolveLocations = true;
                 Comparer = null;
                 _methodSymbolStack.Clear();
 
