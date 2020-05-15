@@ -478,6 +478,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.True(missingAssembly.Equals(missingAssembly))
             Assert.NotEqual(New Object(), missingAssembly)
             Assert.False(missingAssembly.Equals(Nothing))
+
+            Assert.Empty(DirectCast(missingAssembly, IAssemblySymbol).GetForwardedTypes())
         End Sub
 
 
