@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and, for consistency, with other display options.
             if ((symbol as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol is SynthesizedSimpleProgramEntryPointSymbol)
             {
-                return ImmutableArray.Create<SymbolDisplayPart>(new SymbolDisplayPart(SymbolDisplayPartKind.MethodName, symbol, "<simple-program-entry-point>"));
+                return ImmutableArray.Create<SymbolDisplayPart>(new SymbolDisplayPart(SymbolDisplayPartKind.MethodName, symbol, "<top-level-statements-entry-point>"));
             }
 
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();

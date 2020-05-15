@@ -779,9 +779,9 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
 
                 compilation.VerifyDiagnostics(
-                    // (2,1): error CS1624: The body of '<simple-program-entry-point>' cannot be an iterator block because 'void' is not an iterator interface type
+                    // (2,1): error CS1624: The body of '<top-level-statements-entry-point>' cannot be an iterator block because 'void' is not an iterator interface type
                     // yield return (1 is int x1);
-                    Diagnostic(ErrorCode.ERR_BadIteratorReturn, "yield return (1 is int x1);").WithArguments("<simple-program-entry-point>", "void").WithLocation(2, 1),
+                    Diagnostic(ErrorCode.ERR_BadIteratorReturn, "yield return (1 is int x1);").WithArguments("<top-level-statements-entry-point>", "void").WithLocation(2, 1),
                     // (6,24): error CS0128: A local variable or function named 'x2' is already defined in this scope
                     // yield return (2 is int x2);
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(6, 24),
@@ -917,9 +917,9 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
 
                 compilation.VerifyDiagnostics(
-                    // (2,1): error CS1624: The body of '<simple-program-entry-point>' cannot be an iterator block because 'void' is not an iterator interface type
+                    // (2,1): error CS1624: The body of '<top-level-statements-entry-point>' cannot be an iterator block because 'void' is not an iterator interface type
                     // yield return (1 is var x1);
-                    Diagnostic(ErrorCode.ERR_BadIteratorReturn, "yield return (1 is var x1);").WithArguments("<simple-program-entry-point>", "void").WithLocation(2, 1),
+                    Diagnostic(ErrorCode.ERR_BadIteratorReturn, "yield return (1 is var x1);").WithArguments("<top-level-statements-entry-point>", "void").WithLocation(2, 1),
                     // (6,24): error CS0128: A local variable or function named 'x2' is already defined in this scope
                     // yield return (2 is var x2);
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(6, 24),

@@ -3840,7 +3840,7 @@ namespace N1
             Assert.Equal("System.Console.WriteLine(args)", nameRef.Parent.Parent.Parent.ToString());
             var parameter = model.GetSymbolInfo(nameRef).Symbol;
             Assert.Equal("System.String[] args", parameter.ToTestDisplayString());
-            Assert.Equal("<simple-program-entry-point>", parameter.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("<top-level-statements-entry-point>", parameter.ContainingSymbol.ToTestDisplayString());
 
             names = model.LookupNames(nameRef.SpanStart);
             Assert.Contains("args", names);
@@ -5431,9 +5431,9 @@ static void local()
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (1,1): error CS1624: The body of '<simple-program-entry-point>' cannot be an iterator block because 'void' is not an iterator interface type
+                // (1,1): error CS1624: The body of '<top-level-statements-entry-point>' cannot be an iterator block because 'void' is not an iterator interface type
                 // yield break;
-                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "yield break;").WithArguments("<simple-program-entry-point>", "void").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "yield break;").WithArguments("<top-level-statements-entry-point>", "void").WithLocation(1, 1)
                 );
         }
 
@@ -5445,9 +5445,9 @@ static void local()
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (1,1): error CS1624: The body of '<simple-program-entry-point>' cannot be an iterator block because 'void' is not an iterator interface type
+                // (1,1): error CS1624: The body of '<top-level-statements-entry-point>' cannot be an iterator block because 'void' is not an iterator interface type
                 // {yield return 0;}
-                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "{yield return 0;}").WithArguments("<simple-program-entry-point>", "void").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "{yield return 0;}").WithArguments("<top-level-statements-entry-point>", "void").WithLocation(1, 1)
                 );
         }
 
@@ -6208,7 +6208,7 @@ class B : A
                         break;
                 }
 
-                Assert.Equal("<simple-program-entry-point>", context.ContainingSymbol.ToTestDisplayString());
+                Assert.Equal("<top-level-statements-entry-point>", context.ContainingSymbol.ToTestDisplayString());
                 Assert.Same(globalStatement.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
                 Assert.True(syntaxTreeModel.TestOnlyMemberModels.ContainsKey(globalStatement.Parent));
 
@@ -6240,7 +6240,7 @@ class B : A
 
                 switch (context.ContainingSymbol.ToTestDisplayString())
                 {
-                    case "<simple-program-entry-point>":
+                    case "<top-level-statements-entry-point>":
                         Assert.Same(unit.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
                         Assert.True(syntaxTreeModel.TestOnlyMemberModels.ContainsKey(unit));
 
@@ -6299,7 +6299,7 @@ class B : A
 
             private void Handle(SymbolAnalysisContext context)
             {
-                Assert.Equal("<simple-program-entry-point>", context.Symbol.ToTestDisplayString());
+                Assert.Equal("<top-level-statements-entry-point>", context.Symbol.ToTestDisplayString());
 
                 switch (context.Symbol.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
                 {
@@ -6356,7 +6356,7 @@ class B : A
 
             private void Handle(SymbolStartAnalysisContext context)
             {
-                Assert.Equal("<simple-program-entry-point>", context.Symbol.ToTestDisplayString());
+                Assert.Equal("<top-level-statements-entry-point>", context.Symbol.ToTestDisplayString());
 
                 switch (context.Symbol.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
                 {
@@ -6420,7 +6420,7 @@ class B : A
 
             private void Handle1(OperationAnalysisContext context)
             {
-                Assert.Equal("<simple-program-entry-point>", context.ContainingSymbol.ToTestDisplayString());
+                Assert.Equal("<top-level-statements-entry-point>", context.ContainingSymbol.ToTestDisplayString());
                 Assert.Same(context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree, context.Operation.Syntax.SyntaxTree);
 
                 Assert.Equal(SyntaxKind.InvocationExpression, context.Operation.Syntax.Kind());
@@ -6441,7 +6441,7 @@ class B : A
 
             private void Handle2(OperationAnalysisContext context)
             {
-                Assert.Equal("<simple-program-entry-point>", context.ContainingSymbol.ToTestDisplayString());
+                Assert.Equal("<top-level-statements-entry-point>", context.ContainingSymbol.ToTestDisplayString());
                 Assert.Same(context.ContainingSymbol.DeclaringSyntaxReferences.Single().GetSyntax(), context.Operation.Syntax);
                 Assert.Equal(SyntaxKind.CompilationUnit, context.Operation.Syntax.Kind());
 
@@ -6500,7 +6500,7 @@ class B : A
 
             private void Handle(OperationBlockAnalysisContext context)
             {
-                Assert.Equal("<simple-program-entry-point>", context.OwningSymbol.ToTestDisplayString());
+                Assert.Equal("<top-level-statements-entry-point>", context.OwningSymbol.ToTestDisplayString());
                 Assert.Equal(SyntaxKind.CompilationUnit, context.OperationBlocks.Single().Syntax.Kind());
 
                 switch (context.OperationBlocks.Single().Syntax.ToString())
@@ -6558,7 +6558,7 @@ class B : A
 
             private void Handle(OperationBlockStartAnalysisContext context)
             {
-                Assert.Equal("<simple-program-entry-point>", context.OwningSymbol.ToTestDisplayString());
+                Assert.Equal("<top-level-statements-entry-point>", context.OwningSymbol.ToTestDisplayString());
                 Assert.Equal(SyntaxKind.CompilationUnit, context.OperationBlocks.Single().Syntax.Kind());
 
                 switch (context.OperationBlocks.Single().Syntax.ToString())
@@ -6616,7 +6616,7 @@ class B : A
 
             private void Handle(CodeBlockAnalysisContext context)
             {
-                Assert.Equal("<simple-program-entry-point>", context.OwningSymbol.ToTestDisplayString());
+                Assert.Equal("<top-level-statements-entry-point>", context.OwningSymbol.ToTestDisplayString());
                 Assert.Equal(SyntaxKind.CompilationUnit, context.CodeBlock.Kind());
 
                 switch (context.CodeBlock.ToString())
@@ -6684,7 +6684,7 @@ class B : A
 
             private void Handle(CodeBlockStartAnalysisContext<SyntaxKind> context)
             {
-                Assert.Equal("<simple-program-entry-point>", context.OwningSymbol.ToTestDisplayString());
+                Assert.Equal("<top-level-statements-entry-point>", context.OwningSymbol.ToTestDisplayString());
                 Assert.Equal(SyntaxKind.CompilationUnit, context.CodeBlock.Kind());
 
                 switch (context.CodeBlock.ToString())
@@ -6776,7 +6776,7 @@ class Test
                 {
                     case @"System.Console.WriteLine(""Hi!"")":
                         Interlocked.Increment(ref FireCount1);
-                        Assert.Equal("<simple-program-entry-point>", context.ContainingSymbol.ToTestDisplayString());
+                        Assert.Equal("<top-level-statements-entry-point>", context.ContainingSymbol.ToTestDisplayString());
                         break;
 
                     case "M()":
@@ -6808,7 +6808,7 @@ class Test
 
                 switch (context.ContainingSymbol.ToTestDisplayString())
                 {
-                    case @"<simple-program-entry-point>":
+                    case @"<top-level-statements-entry-point>":
                         Interlocked.Increment(ref FireCount3);
 
                         Assert.True(syntaxTreeModel.TestOnlyMemberModels.ContainsKey(node));
@@ -6928,7 +6928,7 @@ class MyAttribute : System.Attribute
             {
                 switch (context.ContainingSymbol.ToTestDisplayString())
                 {
-                    case @"<simple-program-entry-point>":
+                    case @"<top-level-statements-entry-point>":
                         Interlocked.Increment(ref FireCount4);
                         break;
 
@@ -6996,7 +6996,7 @@ class C1
             private void Handle1(SymbolAnalysisContext context)
             {
                 Interlocked.Increment(ref FireCount1);
-                Assert.Equal("<simple-program-entry-point>", context.Symbol.ToTestDisplayString());
+                Assert.Equal("<top-level-statements-entry-point>", context.Symbol.ToTestDisplayString());
             }
 
             private void Handle2(SymbolAnalysisContext context)
@@ -7061,7 +7061,7 @@ class C1
 
             private void Handle2(OperationBlockAnalysisContext context)
             {
-                Assert.Equal("<simple-program-entry-point>", context.OwningSymbol.ToTestDisplayString());
+                Assert.Equal("<top-level-statements-entry-point>", context.OwningSymbol.ToTestDisplayString());
                 Assert.Equal(SyntaxKind.CompilationUnit, context.OperationBlocks.Single().Syntax.Kind());
 
                 switch (context.OperationBlocks.Single().Syntax.ToString())
@@ -7128,7 +7128,7 @@ class C1
 
             private void Handle2(OperationAnalysisContext context)
             {
-                Assert.Equal("<simple-program-entry-point>", context.ContainingSymbol.ToTestDisplayString());
+                Assert.Equal("<top-level-statements-entry-point>", context.ContainingSymbol.ToTestDisplayString());
                 Assert.Same(context.ContainingSymbol.DeclaringSyntaxReferences.Single().GetSyntax(), context.Operation.Syntax);
                 Assert.Equal(SyntaxKind.CompilationUnit, context.Operation.Syntax.Kind());
 
@@ -7174,9 +7174,9 @@ class C1
             comp.VerifyEmitDiagnostics(
                 // error CS0518: Predefined type 'System.Threading.Tasks.Task' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Threading.Tasks.Task").WithLocation(1, 1),
-                // (1,1): warning CS0028: '<simple-program-entry-point>' has the wrong signature to be an entry point
+                // (1,1): warning CS0028: '<top-level-statements-entry-point>' has the wrong signature to be an entry point
                 // await Test();
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "await Test();").WithArguments("<simple-program-entry-point>").WithLocation(1, 1),
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "await Test();").WithArguments("<top-level-statements-entry-point>").WithLocation(1, 1),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
                 // (1,7): error CS0103: The name 'Test' does not exist in the current context
@@ -7225,11 +7225,11 @@ return 11;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Int32").WithLocation(1, 1),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
-                // (2,1): warning CS0028: '<simple-program-entry-point>' has the wrong signature to be an entry point
+                // (2,1): warning CS0028: '<top-level-statements-entry-point>' has the wrong signature to be an entry point
                 // await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, @"await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);
 return 11;
-").WithArguments("<simple-program-entry-point>").WithLocation(2, 1),
+").WithArguments("<top-level-statements-entry-point>").WithLocation(2, 1),
                 // (2,1): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 // await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);").WithArguments("System.Int32").WithLocation(2, 1),
@@ -7263,11 +7263,11 @@ return 11;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Threading.Tasks.Task`1").WithLocation(1, 1),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
-                // (2,1): warning CS0028: '<simple-program-entry-point>' has the wrong signature to be an entry point
+                // (2,1): warning CS0028: '<top-level-statements-entry-point>' has the wrong signature to be an entry point
                 // await System.Threading.Tasks.Task.Factory.StartNew(() => "5");
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, @"await System.Threading.Tasks.Task.Factory.StartNew(() => ""5"");
 return 11;
-").WithArguments("<simple-program-entry-point>").WithLocation(2, 1)
+").WithArguments("<top-level-statements-entry-point>").WithLocation(2, 1)
                 );
         }
 
@@ -7292,11 +7292,11 @@ return 11;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Int32").WithLocation(1, 1),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
-                // (2,1): warning CS0028: '<simple-program-entry-point>' has the wrong signature to be an entry point
+                // (2,1): warning CS0028: '<top-level-statements-entry-point>' has the wrong signature to be an entry point
                 // await System.Threading.Tasks.Task.Factory.StartNew(() => "5");
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, @"await System.Threading.Tasks.Task.Factory.StartNew(() => ""5"");
 return 11;
-").WithArguments("<simple-program-entry-point>").WithLocation(2, 1),
+").WithArguments("<top-level-statements-entry-point>").WithLocation(2, 1),
                 // (3,8): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 // return 11;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "11").WithArguments("System.Int32").WithLocation(3, 8)
@@ -7823,12 +7823,13 @@ System.Console.WriteLine(""Hi!"");
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp).VerifyIL("<simple-program-entry-point>", sequencePoints: "$Program.$Main", expectedIL:
+            CompileAndVerify(comp).VerifyIL("<top-level-statements-entry-point>", sequencePoints: "$Program.$Main", source: text, expectedIL:
 @"
 {
   // Code size        2 (0x2)
   .maxstack  1
- -IL_0000:  ldnull
+  // sequence point: throw null;
+  IL_0000:  ldnull
   IL_0001:  throw
 }
 ");
@@ -7900,25 +7901,31 @@ System.Console.WriteLine(i);
 ";
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<simple-program-entry-point>", sequencePoints: "$Program.$Main", expectedIL:
+            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: "$Program.$Main", source: text, expectedIL:
 @"
 {
   // Code size       20 (0x14)
   .maxstack  2
   .locals init (int V_0) //i
- -IL_0000:  ldc.i4.1
+  // sequence point: int i = 1;
+  IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
- -IL_0002:  ldloc.0
+  // sequence point: i++;
+  IL_0002:  ldloc.0
   IL_0003:  ldc.i4.1
   IL_0004:  add
   IL_0005:  stloc.0
- -IL_0006:  nop
- -IL_0007:  ldloc.0
+  // sequence point: {
+  IL_0006:  nop
+  // sequence point: i++;
+  IL_0007:  ldloc.0
   IL_0008:  ldc.i4.1
   IL_0009:  add.ovf
   IL_000a:  stloc.0
- -IL_000b:  nop
- -IL_000c:  ldloc.0
+  // sequence point: }
+  IL_000b:  nop
+  // sequence point: System.Console.WriteLine(i);
+  IL_000c:  ldloc.0
   IL_000d:  call       ""void System.Console.WriteLine(int)""
   IL_0012:  nop
   IL_0013:  ret
@@ -7941,25 +7948,31 @@ System.Console.WriteLine(i);
 ";
             var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithOverflowChecks(true), parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<simple-program-entry-point>", sequencePoints: "$Program.$Main", expectedIL:
+            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: "$Program.$Main", source: text, expectedIL:
 @"
 {
   // Code size       20 (0x14)
   .maxstack  2
   .locals init (int V_0) //i
- -IL_0000:  ldc.i4.1
+  // sequence point: int i = 1;
+  IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
- -IL_0002:  ldloc.0
+  // sequence point: i++;
+  IL_0002:  ldloc.0
   IL_0003:  ldc.i4.1
   IL_0004:  add.ovf
   IL_0005:  stloc.0
- -IL_0006:  nop
- -IL_0007:  ldloc.0
+  // sequence point: {
+  IL_0006:  nop
+  // sequence point: i++;
+  IL_0007:  ldloc.0
   IL_0008:  ldc.i4.1
   IL_0009:  add
   IL_000a:  stloc.0
- -IL_000b:  nop
- -IL_000c:  ldloc.0
+  // sequence point: }
+  IL_000b:  nop
+  // sequence point: System.Console.WriteLine(i);
+  IL_000c:  ldloc.0
   IL_000d:  call       ""void System.Console.WriteLine(int)""
   IL_0012:  nop
   IL_0013:  ret
