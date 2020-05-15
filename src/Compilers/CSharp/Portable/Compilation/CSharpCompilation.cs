@@ -3485,6 +3485,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol.GetPublicSymbol()));
         }
 
+        internal override ImmutableDictionary<string, string> SerializeForPdb()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+
+            builder.Add("checked", Options.CheckOverflow.ToString());
+            builder.Add("nullable", GetNullableString());
+            builder.Add("unsafe", Options.AllowUnsafe.ToString());
+            builder.Add("langversion", LanguageVersion.ToDisplayString());
+            //builder.Add("sourceencoding", Encoding)
+            // TODO: source encoding 
+
+            // TODO: define
+
+            return builder.ToImmutable();
+
+            string GetNullableString()
+            {
+                if (Options.NullableContextOptions.AnnotationsEnabled())
+                {
+                    return Options.NullableContextOptions.WarningsEnabled()
+                        ? "enable"
+                        : "annotations";
+                }
+                else
+                {
+                    return Options.NullableContextOptions.WarningsEnabled()
+                        ? "warnings"
+                        : "disable";
+                }
+            }
+        }
+
         /// <summary>
         /// Determine if enum arrays can be initialized using block initialization.
         /// </summary>

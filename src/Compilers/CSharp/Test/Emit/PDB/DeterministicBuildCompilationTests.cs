@@ -21,32 +21,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
-    public partial class PortablePdbTests
+    public partial class DeterministicBuildCompilationTests : CSharpPDBTestBase
     {
-        private class TestMetadataReferenceInfo
-        {
-            public readonly Compilation Compilation;
-            public readonly TestMetadataReference MetadataReference;
-            public int Timestamp;
-            public int SizeOfImage;
-            public Guid Mvid;
-            public string Name;
-
-            public TestMetadataReferenceInfo(string code, string fullPath)
-            {
-                Compilation = CreateCompilation(code, options: TestOptions.DebugDll);
-                using var referenceStream = Compilation.EmitToStream(EmitOptions.Default);
-
-                var metadata = AssemblyMetadata.CreateFromStream(referenceStream);
-                MetadataReference = new TestMetadataReference(metadata, fullPath: fullPath);
-
-                using var peReader = new PEReader(referenceStream);
-                Timestamp = peReader.GetTimestamp();
-                SizeOfImage = peReader.GetSizeOfImage();
-                Mvid = peReader.GetMvid();
-                Name = PathUtilities.GetFileName(fullPath);
-            }
-        }
         static BlobReader GetSingleBlob(Guid infoGuid, MetadataReader pdbReader)
         {
             return (from cdiHandle in pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
@@ -56,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         }
 
         // Move this to a central location?
-        static (int timestamp, int imageSize, string name, Guid mvid) ParseMetadataReferenceInfo(BlobReader blobReader)
+        static MetadataReferenceInfo ParseMetadataReferenceInfo(BlobReader blobReader)
         {
             // Name is first. UTF8 encoded null-terminated string
             var terminatorIndex = blobReader.IndexOf(0);
@@ -67,13 +43,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             // Skip the null terminator
             blobReader.ReadByte();
 
+            // Extern aliases are second
+            terminatorIndex = blobReader.IndexOf(0);
+            Assert.NotEqual(-1, terminatorIndex);
+
+            var externAliases = blobReader.ReadUTF8(terminatorIndex);
+
+            // Skip the null terminator
+            blobReader.ReadByte();
+
+            var kind = (MetadataImageKind)blobReader.ReadInt32();
+            var embedInteropTypes = blobReader.ReadBoolean();
             var timestamp = blobReader.ReadInt32();
             var imageSize = blobReader.ReadInt32();
             var mvid = blobReader.ReadGuid();
 
             Assert.Equal(0, blobReader.RemainingBytes);
 
-            return (timestamp, imageSize, name, mvid);
+            return new MetadataReferenceInfo(
+                timestamp,
+                imageSize,
+                name,
+                mvid,
+                externAliases.Split(',').ToImmutableArray(),
+                kind,
+                embedInteropTypes);
         }
 
         // Move this to a central location?
@@ -126,11 +120,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         {
             foreach (var reference in references)
             {
-                var (timestamp, imageSize, name, mvid) = ParseMetadataReferenceInfo(metadataReferenceReader);
-                Assert.Equal(reference.Timestamp, timestamp);
-                Assert.Equal(reference.SizeOfImage, imageSize);
-                Assert.Equal(reference.Name, name);
-                Assert.Equal(reference.Mvid, mvid);
+                var info = ParseMetadataReferenceInfo(metadataReferenceReader);
+                var originalInfo = reference.MetadataReferenceInfo;
+
+                originalInfo.AssertEqual(info);
             }
         }
 
@@ -178,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [Fact]
         public void PortablePdb_DeterministicCompilation1()
         {
+            // use non default values for compilation options and emit options
 
             string source = @"
 using System;
@@ -190,7 +184,7 @@ class C
     }
 }
 ";
-            var reference = new TestMetadataReferenceInfo(
+            var reference = TestMetadataReferenceInfo.Create(
 @"public struct StructWithReference
 {
     string PrivateData;
@@ -198,7 +192,9 @@ class C
 public struct StructWithValue
 {
     int PrivateData;
-}", fullPath: "abcd.dll");
+}",
+    fullPath: "abcd.dll",
+    emitOptions: EmitOptions.Default);
 
             TestDeterministicCompilation(Parse(source, "goo.cs"), reference);
         }

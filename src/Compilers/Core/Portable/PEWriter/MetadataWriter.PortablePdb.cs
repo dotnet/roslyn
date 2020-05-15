@@ -843,39 +843,15 @@ namespace Microsoft.Cci
         {
 
             var builder = new BlobBuilder();
-            var compilationOptions = module.CommonCompilation.Options;
 
             // compilerversion
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
             WriteValue("compilerversion", compilerVersion);
 
-            // TODO: source encoding 
-
-            // checked
-            WriteValue("checked", compilationOptions.CheckOverflow.ToString());
-
-            // TODO: unsafe
-
-            // TODO: langversion
-            // langversion is in csharpcompilation, but we can't add that as a reference here
-
-            // nullable
-            string nullable;
-            if (compilationOptions.NullableContextOptions.AnnotationsEnabled())
+            foreach (var (key, value) in module.CommonCompilation.SerializeForPdb())
             {
-                nullable = compilationOptions.NullableContextOptions.WarningsEnabled()
-                    ? "enable"
-                    : "annotations";
+                WriteValue(key, value);
             }
-            else
-            {
-                nullable = compilationOptions.NullableContextOptions.WarningsEnabled()
-                    ? "warnings"
-                    : "disable";
-            }
-            WriteValue("nullable", nullable);
-
-            // TODO: define
 
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
@@ -900,27 +876,40 @@ namespace Microsoft.Cci
             var builder = new BlobBuilder();
 
             // Order of information
-            // File name (null terminated): Foo.exe
-            // COFF header Timestamp field (4 bytes): 0x542d5742
-            // COFF header SizeOfImage field (4 bytes): 0x32000000
-            // MVID (Guid, 24 bytes): 0x24a44d8218894463807674caf3b1c19a
+            // File name (null terminated string): A.exe
+            // Extern Alias (null terminated string): a1,a2,a3
+            // MetadataImageKind (4 byte int)
+            // EmbedInteropTypes (boolean)
+            // COFF header Timestamp field (4 byte int)
+            // COFF header SizeOfImage field (4 byte int)
+            // MVID (Guid, 24 bytes)
             foreach (var metadataReference in module.CommonCompilation.ExternalReferences)
             {
                 if (metadataReference is PortableExecutableReference portableReference && portableReference.FilePath is object)
                 {
                     var fileName = PathUtilities.GetFileName(portableReference.FilePath);
-
-                    // Write file name first
-                    builder.WriteUTF8(fileName);
-                    // Make sure to add null terminator
-                    builder.WriteByte(0);
-
                     var reference = module.CommonCompilation.GetAssemblyOrModuleSymbol(portableReference);
                     var peReader = GetReader(reference);
 
+                    // Don't write before checking that we can get a peReader for the metadata reference
                     if (peReader is null)
                         continue;
 
+                    // Write file name first
+                    builder.WriteUTF8(fileName);
+
+                    // Make sure to add null terminator
+                    builder.WriteByte(0);
+
+                    // Extern alias
+                    if (portableReference.Properties.Aliases.Any())
+                        builder.WriteUTF8(string.Join(",", portableReference.Properties.Aliases));
+
+                    // Always null terminate the extern alias list
+                    builder.WriteByte(0);
+
+                    builder.WriteInt32((int)portableReference.Properties.Kind);
+                    builder.WriteBoolean(portableReference.Properties.EmbedInteropTypes);
                     builder.WriteInt32(peReader.GetTimestamp());
                     builder.WriteInt32(peReader.GetSizeOfImage());
                     builder.WriteGuid(peReader.GetMvid());

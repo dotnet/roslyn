@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
-    public partial class PortablePdbTests : CSharpPDBTestBase
+    public class PortablePdbTests : CSharpPDBTestBase
     {
         [Fact]
         public void SequencePointBlob()
