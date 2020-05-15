@@ -51,15 +51,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(referenceParams.Position), cancellationToken).ConfigureAwait(false);
 
-            var context = new FindUsagesLSPContext(
-                referenceParams.PartialResultToken, document, position, _metadataAsSourceFileService, cancellationToken);
+            var context = new FindUsagesLSPContext(document, position, _metadataAsSourceFileService, cancellationToken);
 
             // Finds the references for the symbol at the specific position in the document, reporting them via streaming to the LSP client.
             await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(false);
-            await context.OnCompletedAsync().ConfigureAwait(false);
 
-            // The results have already been reported to the client, so we don't need to return anything here.
-            return Array.Empty<LSP.VSReferenceItem>();
+            return context.GetReferences().ToArray();
         }
     }
 }
