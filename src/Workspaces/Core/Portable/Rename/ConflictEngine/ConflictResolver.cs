@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         internal static async Task<ConflictResolution> ResolveConflictsAsync(
             RenameLocations renameLocationSet,
             string replacementText,
-            ImmutableHashSet<ISymbol> nonConflictSymbols,
+            ImmutableHashSet<ISymbol>? nonConflictSymbols,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
