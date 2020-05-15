@@ -150,8 +150,10 @@ namespace Microsoft.CodeAnalysis.Rename
 
                         if (result.HasValue)
                         {
-                            return await RenameLocations.RehydrateAsync(
+                            var rehydrated = await RenameLocations.TryRehydrateAsync(
                                 solution, result.Value, cancellationToken).ConfigureAwait(false);
+                            if (rehydrated != null)
+                                return rehydrated;
                         }
                     }
                 }
