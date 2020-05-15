@@ -16,6 +16,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.CodeGeneration;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class ITypeSymbolExtensions
