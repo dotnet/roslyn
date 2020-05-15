@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static SymbolKeyResolution ResolveString(
             string symbolKey, Compilation compilation,
-            bool ignoreAssemblyKey = false, bool resolveLocations = false,
+            bool ignoreAssemblyKey = false, bool resolveLocations = true,
             CancellationToken cancellationToken = default)
         {
             using var reader = SymbolKeyReader.GetReader(
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis
         /// the locations resolved may not actually be correct in the final compilation.
         /// </summary>
         public SymbolKeyResolution Resolve(
-            Compilation compilation, bool ignoreAssemblyKey = false, bool resolveLocations = false, CancellationToken cancellationToken = default)
+            Compilation compilation, bool ignoreAssemblyKey = false, bool resolveLocations = true, CancellationToken cancellationToken = default)
         {
             return ResolveString(_symbolKeyData, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
         }
