@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (renameStringsAndPositions.Any())
                 {
                     AddLocationsToRenameInStringsAndComments(document, root.SyntaxTree, renameText,
-                        renameStringsAndPositions, renameLocations, isRenameInStrings: true, isRenameInComments: false);
+                        renameStringsAndPositions, renameLocations);
                 }
             }
 
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (renameStringsAndPositions.Any())
                 {
                     AddLocationsToRenameInStringsAndComments(document, root.SyntaxTree, renameText,
-                        renameStringsAndPositions, renameLocations, isRenameInStrings: false, isRenameInComments: true);
+                        renameStringsAndPositions, renameLocations);
                 }
             }
 
@@ -497,9 +497,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 SyntaxTree tree,
                 string renameText,
                 IEnumerable<Tuple<string, int, TextSpan>> renameStringsAndPositions,
-                ArrayBuilder<RenameLocation> renameLocations,
-                bool isRenameInStrings,
-                bool isRenameInComments)
+                ArrayBuilder<RenameLocation> renameLocations)
             {
                 var regex = GetRegexForMatch(renameText);
                 foreach (var renameStringAndPosition in renameStringsAndPositions)

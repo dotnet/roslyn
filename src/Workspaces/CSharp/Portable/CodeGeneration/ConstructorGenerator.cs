@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
         {
             var constructorDeclaration = GenerateConstructorDeclaration(
-                constructor, GetDestination(destination), workspace, options,
+                constructor, workspace, options,
                 destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             // Generate after the last constructor, or after the last field, or at the start of the
@@ -41,8 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal static ConstructorDeclarationSyntax GenerateConstructorDeclaration(
-            IMethodSymbol constructor, CodeGenerationDestination destination,
-            Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
+            IMethodSymbol constructor,
+            Workspace workspace,
+            CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             options ??= CodeGenerationOptions.Default;
 

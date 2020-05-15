@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return False
             End Function
 
-            Private Function OnPreprocessor(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean
+            Private Function OnPreprocessor(trivia As SyntaxTrivia) As Boolean
                 If Not SyntaxFacts.IsPreprocessorDirective(trivia.Kind) Then
                     Return False
                 End If
@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                        OnComment(trivia, index) OrElse
                        OnSkippedTokensOrText(trivia) OrElse
                        OnRegion(trivia, index) OrElse
-                       OnPreprocessor(trivia, index) Then
+                       OnPreprocessor(trivia) Then
                         Return True
                     End If
                 Next

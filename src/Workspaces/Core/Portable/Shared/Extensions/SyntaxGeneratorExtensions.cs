@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             bool addNullChecks,
             bool preferThrowExpression)
         {
-            var fields = factory.CreateFieldsForParameters(parameters, parameterToNewFieldMap);
+            var fields = CreateFieldsForParameters(parameters, parameterToNewFieldMap);
             var statements = factory.CreateAssignmentStatements(
                 semanticModel, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
                 addNullChecks, preferThrowExpression).SelectAsArray(
@@ -92,7 +92,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<IFieldSymbol> CreateFieldsForParameters(
-            this SyntaxGenerator factory,
             IList<IParameterSymbol> parameters,
             IDictionary<string, string> parameterToNewFieldMap)
         {
@@ -412,7 +411,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : body;
 
         public static IEventSymbol OverrideEvent(
-            this SyntaxGenerator codeFactory,
             IEventSymbol overriddenEvent,
             DeclarationModifiers modifiers,
             INamedTypeSymbol newContainingType)
@@ -448,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else if (symbol is IEventSymbol ev)
             {
-                return generator.OverrideEvent(ev, modifiers, containingType);
+                return OverrideEvent(ev, modifiers, containingType);
             }
             else
             {

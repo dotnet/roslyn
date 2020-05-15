@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SignatureHelp
@@ -16,8 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                                      semanticModel As SemanticModel,
                                                      anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                      documentationCommentFormattingService As IDocumentationCommentFormattingService,
-                                                     delegateType As INamedTypeSymbol,
-                                                     cancellationToken As CancellationToken) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
+                                                     delegateType As INamedTypeSymbol) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
             Dim invokeMethod = delegateType.DelegateInvokeMethod
             If invokeMethod Is Nothing Then
                 Return (Nothing, Nothing)
@@ -31,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 documentationFactory:=invokeMethod.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 prefixParts:=GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts:=GetSeparatorParts(),
-                suffixParts:=GetDelegateTypePostambleParts(invokeMethod),
-                parameters:=GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken))
+                suffixParts:=GetDelegateTypePostambleParts(),
+                parameters:=GetDelegateTypeParameters(invokeMethod, semanticModel, position))
 
             Return (SpecializedCollections.SingletonList(item), 0)
         End Function
@@ -44,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return result
         End Function
 
-        Private Function GetDelegateTypeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As IList(Of SignatureHelpSymbolParameter)
+        Private Function GetDelegateTypeParameters(invokeMethod As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SignatureHelpSymbolParameter)
             Const TargetName As String = "target"
 
             Dim parts = New List(Of SymbolDisplayPart)()
@@ -85,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 displayParts:=parts)}
         End Function
 
-        Private Function GetDelegateTypePostambleParts(invokeMethod As IMethodSymbol) As IList(Of SymbolDisplayPart)
+        Private Function GetDelegateTypePostambleParts() As IList(Of SymbolDisplayPart)
             Return {Punctuation(SyntaxKind.CloseParenToken)}
         End Function
     End Class
