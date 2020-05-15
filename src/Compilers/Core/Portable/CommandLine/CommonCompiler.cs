@@ -794,7 +794,8 @@ namespace Microsoft.CodeAnalysis
             // and add them in here.
             if (Arguments.AnalyzerConfigPaths.Length > 0 && generators.Length > 0)
             {
-                sourceFileAnalyzerConfigOptions = compilation.SyntaxTrees.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath));
+                var generatedOptions = compilation.SyntaxTrees.Skip(sourceFileAnalyzerConfigOptions.Length).Select(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath));
+                sourceFileAnalyzerConfigOptions = sourceFileAnalyzerConfigOptions.AddRange(generatedOptions);
             }
 
             CompileAndEmit(
