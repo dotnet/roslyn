@@ -3490,7 +3490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
 
             builder.Add("checked", Options.CheckOverflow.ToString());
-            builder.Add("nullable", GetNullableString());
+            builder.Add("nullable", Options.NullableContextOptions.ToString());
             builder.Add("unsafe", Options.AllowUnsafe.ToString());
             builder.Add("langversion", LanguageVersion.ToDisplayString());
             //builder.Add("sourceencoding", Encoding)
@@ -3499,22 +3499,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: define
 
             return builder.ToImmutable();
-
-            string GetNullableString()
-            {
-                if (Options.NullableContextOptions.AnnotationsEnabled())
-                {
-                    return Options.NullableContextOptions.WarningsEnabled()
-                        ? "enable"
-                        : "annotations";
-                }
-                else
-                {
-                    return Options.NullableContextOptions.WarningsEnabled()
-                        ? "warnings"
-                        : "disable";
-                }
-            }
         }
 
         /// <summary>

@@ -114,7 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                 imageSize,
                 name,
                 mvid,
-                externAliases.Split(',').ToImmutableArray(),
+                string.IsNullOrEmpty(externAliases)
+                    ? ImmutableArray<string>.Empty
+                    : externAliases.Split(',').ToImmutableArray(),
                 kind,
                 embedInteropTypes);
         }
@@ -226,7 +228,7 @@ class MainType
     }
 }
 ";
-            var reference = TestMetadataReferenceInfo.Create(
+            using var reference = TestMetadataReferenceInfo.Create(
 @"public struct StructWithReference
 {
     string PrivateData;

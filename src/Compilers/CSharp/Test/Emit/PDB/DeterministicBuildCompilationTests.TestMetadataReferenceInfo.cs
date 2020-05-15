@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
+using System.IO;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
@@ -16,45 +16,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public partial class DeterministicBuildCompilationTests
     {
-        private class TestMetadataReferenceInfo
+        private class TestMetadataReferenceInfo : IDisposable
         {
             public readonly Compilation Compilation;
             public readonly TestMetadataReference MetadataReference;
             public readonly MetadataReferenceInfo MetadataReferenceInfo;
+            private bool _disposedValue;
+            private readonly MemoryStream _emitStream;
+            private readonly PEReader _peReader;
 
             public TestMetadataReferenceInfo(
+                MemoryStream emitStream,
                 Compilation compilation,
                 TestMetadataReference metadataReference,
-                MetadataReferenceInfo metadataReferenceInfo)
+                string fullPath)
             {
+                _emitStream = emitStream;
+                _peReader = new PEReader(emitStream);
                 Compilation = compilation;
                 MetadataReference = metadataReference;
-                MetadataReferenceInfo = metadataReferenceInfo;
+                MetadataReferenceInfo = new MetadataReferenceInfo(
+                    _peReader.GetTimestamp(),
+                    _peReader.GetSizeOfImage(),
+                    PathUtilities.GetFileName(fullPath),
+                    _peReader.GetMvid(),
+                    metadataReference.Properties.Aliases,
+                    metadataReference.Properties.Kind,
+                    metadataReference.Properties.EmbedInteropTypes); ;
             }
 
             public static TestMetadataReferenceInfo Create(string code, string fullPath, EmitOptions emitOptions)
             {
                 var compilation = CreateCompilation(code, options: TestOptions.DebugDll);
-                using var referenceStream = compilation.EmitToStream(emitOptions);
+                var emitStream = compilation.EmitToStream(emitOptions);
 
-                var metadata = AssemblyMetadata.CreateFromStream(referenceStream);
+                var metadata = AssemblyMetadata.CreateFromStream(emitStream);
                 var metadataReference = new TestMetadataReference(metadata, fullPath: fullPath);
 
-                using var peReader = new PEReader(referenceStream);
-
-                var metadataReferenceInfo = new MetadataReferenceInfo(
-                    peReader.GetTimestamp(),
-                    peReader.GetSizeOfImage(),
-                    PathUtilities.GetFileName(fullPath),
-                    peReader.GetMvid(),
-                    metadataReference.Properties.Aliases,
-                    metadataReference.Properties.Kind,
-                    metadataReference.Properties.EmbedInteropTypes);
-
                 return new TestMetadataReferenceInfo(
+                    emitStream,
                     compilation,
                     metadataReference,
-                    metadataReferenceInfo);
+                    fullPath);
+            }
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!_disposedValue)
+                {
+                    if (disposing)
+                    {
+                        _peReader.Dispose();
+                        _emitStream.Dispose();
+                    }
+
+                    _disposedValue = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
             }
         }
     }
