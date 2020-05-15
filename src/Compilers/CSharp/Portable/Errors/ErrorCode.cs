@@ -1790,12 +1790,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region diagnostics introduced for C# 9
 
-        ERR_PartialMethodWithAccessibilityModsMustHaveImplementation = 8793,
-        ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods = 8794,
-        ERR_PartialMethodWithOutParamMustHaveAccessMods = 8795,
-        ERR_PartialMethodWithExtendedModMustHaveAccessMods = 8796,
-        ERR_PartialMethodAccessibilityDifference = 8797,
-        ERR_PartialMethodExtendedModDifference = 8798,
+        ERR_PartialMethodWithAccessibilityModsMustHaveImplementation = 8795,
+        ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods = 8796,
+        ERR_PartialMethodWithOutParamMustHaveAccessMods = 8797,
+        ERR_PartialMethodWithExtendedModMustHaveAccessMods = 8798,
+        ERR_PartialMethodAccessibilityDifference = 8799,
+        ERR_PartialMethodExtendedModDifference = 8800,
 
         #endregion
 
