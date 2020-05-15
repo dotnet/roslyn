@@ -893,7 +893,7 @@ public class Program
     [ModuleInitializer]
     public static void Init()
     {
-        Console.Write(1);
+        Console.Write(0);
     }
 
     public static void Main(string[] args)
@@ -904,7 +904,7 @@ public class Program
 }";
             var comp7 = CreateCompilation(s7, options: exeOptions, parseOptions: s_parseOptions, references: new[] { ref1, ref2 });
             comp7.VerifyDiagnostics();
-            CompileAndVerify(comp7, symbolValidator: validateModuleInitializer, expectedOutput: "123");
+            CompileAndVerify(comp7, symbolValidator: validateModuleInitializer, expectedOutput: "023");
 
             var s8 = @"
 using System;
@@ -932,12 +932,14 @@ public class Program
 
             void validateModuleInitializer(ModuleSymbol module)
             {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
                 var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
                 Assert.NotNull(moduleType.GetMember<MethodSymbol>(".cctor"));
             }
 
             void validateNoModuleInitializer(ModuleSymbol module)
             {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
                 var moduleType = module.ContainingAssembly.GetTypeByMetadataName("<Module>");
                 Assert.Null(moduleType.GetMember<MethodSymbol>(".cctor"));
             }
