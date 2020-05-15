@@ -10,11 +10,13 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.InternalUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -23,6 +25,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public partial class DeterministicBuildCompilationTests : CSharpPDBTestBase
     {
+        #region Options
+        // Provide non default options for both CSharp and VB to test that they are being serialized
+        // to the pdb correctly. It needs to produce a compilation to be emitted, but otherwise
+        // everything should be non-default if possible. Diagnostic settings are ignored
+        // because they won't be serialized. 
+        private static readonly CSharpParseOptions CSharpParseOptions = new CSharpParseOptions(
+            languageVersion: LanguageVersion.CSharp8,
+            kind: SourceCodeKind.Regular,
+            preprocessorSymbols: new[] { "PreOne", "PreTwo" });
+
+        private static readonly CSharpCompilationOptions CSharpCompilationOptions = new CSharpCompilationOptions(
+            OutputKind.ConsoleApplication,
+            moduleName: "Module",
+            mainTypeName: "MainType",
+            usings: new[] { "System", "System.Threading" },
+            optimizationLevel: OptimizationLevel.Debug,
+            checkOverflow: true,
+            allowUnsafe: true,
+            deterministic: true,
+            nullableContextOptions: NullableContextOptions.Enable);
+
+        private static readonly VisualBasicParseOptions VisualBasicParseOptions = new VisualBasicParseOptions(
+            VisualBasic.LanguageVersion.VisualBasic16,
+            documentationMode: DocumentationMode.Diagnose,
+            preprocessorSymbols: new[] { new KeyValuePair<string, object>("PreOne", "True"), new KeyValuePair<string, object>("PreTwo", "Test") });
+
+        private static readonly VisualBasicCompilationOptions VisualBasicCompilationOptions = new VisualBasicCompilationOptions(
+            OutputKind.ConsoleApplication,
+            moduleName: "Module",
+            mainTypeName: "MainType",
+            globalImports: GlobalImport.Parse("System", "System.Threading"),
+            rootNamespace: "RootNamespace",
+            optionStrict: OptionStrict.On,
+            optionInfer: false,
+            optionExplicit: false,
+            optionCompareText: true,
+            parseOptions: VisualBasicParseOptions,
+            embedVbCoreRuntime: true,
+            optimizationLevel: OptimizationLevel.Release,
+            checkOverflow: false,
+            deterministic: true);
+
+        private static readonly EmitOptions EmitOptions = new EmitOptions(
+            debugInformationFormat: DebugInformationFormat.Embedded,
+            pdbChecksumAlgorithm: HashAlgorithmName.SHA256);
+
+        #endregion
         static BlobReader GetSingleBlob(Guid infoGuid, MetadataReader pdbReader)
         {
             return (from cdiHandle in pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
@@ -127,21 +176,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             }
         }
 
-        private static void TestDeterministicCompilation(SyntaxTree syntaxTree, params TestMetadataReferenceInfo[] metadataReferences)
+        private static void TestDeterministicCompilationCSharp(string code, Encoding encoding, params TestMetadataReferenceInfo[] metadataReferences)
         {
+            var syntaxTree = Parse(code, "goo.cs", CSharpParseOptions, encoding);
+
             var originalCompilation = CreateCompilation(
                 syntaxTree,
                 references: metadataReferences.SelectAsArray(r => r.MetadataReference),
-                options: TestOptions.DebugDll.WithDeterministic(true));
+                options: CSharpCompilationOptions);
 
-            var originalCompilationOptions = originalCompilation.Options;
-            var originalEmitOptions = EmitOptions.Default;
-
-            var peBlob = originalCompilation.EmitToArray(
-                originalEmitOptions.
-                WithDebugInformationFormat(DebugInformationFormat.Embedded).
-                WithPdbChecksumAlgorithm(HashAlgorithmName.SHA384).
-                WithPdbFilePath(@"a/b/c/d.pdb"));
+            var peBlob = originalCompilation.EmitToArray(EmitOptions);
 
             using (var peReader = new PEReader(peBlob))
             {
@@ -162,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                     var metadataReferenceReader = GetSingleBlob(PortableCustomDebugInfoKinds.MetadataReferenceInfo, pdbReader);
                     var compilationOptionsReader = GetSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader);
 
-                    VerifyCompilationOptions(originalCompilationOptions, compilationOptionsReader);
+                    VerifyCompilationOptions(CSharpCompilationOptions, compilationOptionsReader);
                     VerifyReferenceInfo(metadataReferences, metadataReferenceReader);
                 }
             }
@@ -171,12 +215,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [Fact]
         public void PortablePdb_DeterministicCompilation1()
         {
-            // use non default values for compilation options and emit options
-
             string source = @"
 using System;
 
-class C
+class MainType
 {
     public static void Main()
     {
@@ -196,7 +238,7 @@ public struct StructWithValue
     fullPath: "abcd.dll",
     emitOptions: EmitOptions.Default);
 
-            TestDeterministicCompilation(Parse(source, "goo.cs"), reference);
+            TestDeterministicCompilationCSharp(source, Encoding.UTF7, reference);
         }
     }
 }
