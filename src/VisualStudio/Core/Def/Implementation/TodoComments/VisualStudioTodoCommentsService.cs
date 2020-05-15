@@ -198,18 +198,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public async Task OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken)
-        {
-            var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
-
-            // treat this as if we have no todo comments for this file. ProcessTodoCommentInfosAsync
-            // will handle actually clearing out the data.
-            workQueue.AddWork(new DocumentAndComments(documentId, ImmutableArray<TodoCommentData>.Empty));
-        }
-
-        /// <summary>
-        /// Callback from the OOP service back into us.
-        /// </summary>
         public async Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
         {
             var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
