@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!(this is TupleFieldSymbol));
+                Debug.Assert(!(this is TupleElementFieldSymbol));
                 return TupleElementIndex >= 0;
             }
         }
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!(this is TupleFieldSymbol));
+                Debug.Assert(!(this is TupleElementFieldSymbol));
                 return ContainingType.IsTupleType ? this : null;
             }
         }
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!(this is TupleFieldSymbol));
+                Debug.Assert(!(this is TupleElementFieldSymbol));
                 return TupleElementIndex >= 0 ? this : null;
             }
         }
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!(this is TupleFieldSymbol));
+                Debug.Assert(!(this is TupleElementFieldSymbol));
                 if (ContainingType.IsTupleType)
                 {
                     var i = NamedTypeSymbol.MatchesCanonicalElementName(Name);

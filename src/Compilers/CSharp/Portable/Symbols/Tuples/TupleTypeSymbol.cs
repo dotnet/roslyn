@@ -599,19 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var field = (FieldSymbol)member;
                             if (field is TupleVirtualElementFieldSymbol)
                             {
-                                continue;
-                            }
-
-                            if (this.IsDefinition)
-                            {
-                                // No need to wrap fields on System.ValueTuple definitions
-                                members.Add(field);
-                                int tupleFieldIndex2 = currentFieldsForElements.IndexOf(field, ReferenceEqualityComparer.Instance);
-                                if (tupleFieldIndex2 >= 0)
-                                {
-                                    elementsMatchedByFields[tupleFieldIndex2] = true; // mark as handled
-                                }
-
+                                // We will re-add all necessary virtual element field symbols below.
                                 continue;
                             }
 
@@ -624,8 +612,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else if (tupleFieldIndex >= 0)
                             {
-                                // This is a tuple backing field (ie. real)
-
                                 // adjust tuple index for nesting
                                 if (currentNestingLevel != 0)
                                 {
@@ -633,17 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
 
                                 var providedName = elementNames.IsDefault ? null : elementNames[tupleFieldIndex];
-
-                                ImmutableArray<Location> locations;
-                                if (elementLocations.IsDefault)
-                                {
-                                    locations = ImmutableArray<Location>.Empty;
-                                }
-                                else
-                                {
-                                    var elementLocation = elementLocations[tupleFieldIndex];
-                                    locations = elementLocation == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(elementLocation);
-                                }
+                                ImmutableArray<Location> locations = getElementLocations(ref elementLocations, tupleFieldIndex);
 
                                 var defaultName = TupleMemberName(tupleFieldIndex + 1);
                                 // if provided name does not match the default one,
@@ -651,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 var defaultImplicitlyDeclared = providedName != defaultName;
 
                                 // Add a field with default name. It should be present regardless.
-                                TupleElementFieldSymbol defaultTupleField;
+                                FieldSymbol defaultTupleField;
                                 var fieldSymbol = underlyingField.AsMember(currentValueTuple);
                                 if (currentNestingLevel != 0)
                                 {
@@ -669,14 +645,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 else
                                 {
                                     Debug.Assert(fieldSymbol.Name == defaultName, "top level underlying field must match default name");
-
-                                    // Add the underlying/real field as an element (wrapping mainly to capture location). It should have the default name.
-                                    defaultTupleField = new TupleElementFieldSymbol(this,
-                                                                                    fieldSymbol,
-                                                                                    tupleFieldIndex,
-                                                                                    locations,
-                                                                                    isImplicitlyDeclared: defaultImplicitlyDeclared,
-                                                                                    correspondingDefaultFieldOpt: null);
+                                    if (IsDefinition)
+                                    {
+                                        defaultTupleField = field;
+                                    }
+                                    else
+                                    {
+                                        // Add the underlying/real field as an element (wrapping mainly to capture location). It should have the default name.
+                                        defaultTupleField = new TupleElementFieldSymbol(this,
+                                                                                        fieldSymbol,
+                                                                                        tupleFieldIndex,
+                                                                                        locations,
+                                                                                        isImplicitlyDeclared: defaultImplicitlyDeclared);
+                                    }
                                 }
 
                                 members.Add(defaultTupleField);
@@ -690,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     // Add a virtual field with the given name
                                     members.Add(new TupleVirtualElementFieldSymbol(this,
                                         fieldSymbol,
-                                        providedName!,
+                                        providedName,
                                         tupleFieldIndex,
                                         locations,
                                         cannotUse: isError,
@@ -702,8 +683,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else if (currentNestingLevel == 0)
                             {
-                                // field at the top level didn't match a tuple backing field, simply add.
-                                members.Add(new TupleFieldSymbol(this, field, -members.Count - 1));
+                                // No need to wrap other real fields
+                                members.Add(field);
                             }
                             break;
 
@@ -864,6 +845,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 Debug.Assert(fields.All(f => f is object));
                 return fields.ToImmutableAndFree();
+            }
+
+            static ImmutableArray<Location> getElementLocations(ref ImmutableArray<Location?> elementLocations, int tupleFieldIndex)
+            {
+                if (elementLocations.IsDefault)
+                {
+                    return ImmutableArray<Location>.Empty;
+                }
+
+                var elementLocation = elementLocations[tupleFieldIndex];
+                return elementLocation == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(elementLocation);
             }
         }
 
@@ -1112,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 Symbol underlyingMemberDefinition = underlyingMemberOpt.OriginalDefinition;
-                if (underlyingMemberDefinition is TupleFieldSymbol tupleField)
+                if (underlyingMemberDefinition is TupleElementFieldSymbol tupleField)
                 {
                     underlyingMemberDefinition = tupleField.UnderlyingField;
                 }
