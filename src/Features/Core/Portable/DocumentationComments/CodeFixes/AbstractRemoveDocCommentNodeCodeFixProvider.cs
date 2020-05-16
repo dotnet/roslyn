@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             {
                 var previousNodeTextTrimmed = paramNodeSiblings[paramNodeIndex - 1].ToFullString().Trim();
 
-                if (previousNodeTextTrimmed == string.Empty ||
+                if (previousNodeTextTrimmed.Length == 0 ||
                     previousNodeTextTrimmed == DocCommentSignifierToken)
                 {
                     // Only remove the preceding /// if this param node is also the only thing on this line.

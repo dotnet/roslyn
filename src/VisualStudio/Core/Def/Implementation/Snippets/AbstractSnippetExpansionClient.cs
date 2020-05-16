@@ -168,7 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 var line = SubjectBuffer.CurrentSnapshot.GetLineFromPosition(endSnapshotSpan.Start.Position);
                 var lineText = line.GetText();
 
-                if (lineText.Trim() == string.Empty)
+                if (string.IsNullOrWhiteSpace(lineText))
                 {
                     indentCaretOnCommit = true;
 

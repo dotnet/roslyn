@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            if (type.IsErrorType() && (type.Name == "var" || type.Name == string.Empty))
+            if (type.IsErrorType() && (type.Name == "var" || type.Name.Length == 0))
             {
                 return false;
             }
