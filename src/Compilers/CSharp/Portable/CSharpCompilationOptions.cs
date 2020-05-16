@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -41,6 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Global Nullable context options.
         /// </summary>
         public override NullableContextOptions NullableContextOptions { get; protected set; }
+
+        /// <summary>
+        /// The encoding related to the CodePage option from command line arguments. SyntaxTrees
+        /// are attempted to be parsed as UTF-8 first, then use this encoding as a fallback. This
+        /// can only be specified in the command line
+        /// </summary>
+        internal Encoding? CodePage { get; set; }
 
         // Defaults correspond to the compiler's defaults or indicate that the user did not specify when that is significant.
         // That's significant when one option depends on another's setting. SubsystemVersion depends on Platform and Target.
@@ -603,6 +611,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new CSharpCompilationOptions(this) { StrongNameProvider = provider };
+        }
+
+        internal CSharpCompilationOptions WithCodePage(Encoding? codePage)
+        {
+            if (ReferenceEquals(codePage, this.CodePage))
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { CodePage = codePage };
         }
 
         protected override CompilationOptions CommonWithConcurrentBuild(bool concurrent) => WithConcurrentBuild(concurrent);

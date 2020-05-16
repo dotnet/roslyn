@@ -56,9 +56,7 @@ Public Class VisualBasicDeterministicBuildCompilationTests
 
         ' See VisualBasicCompilation.SerializeForPdb for options that are added
         Assert.Equal(compilerVersion.ToString(), pdbOptions("compilerversion"))
-        Assert.Equal(originalOptions.NullableContextOptions.ToString(), pdbOptions("nullable"))
         Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions("checked"))
-        Assert.Equal(Boolean.FalseString, pdbOptions("unsafe"))
         Assert.Equal(originalOptions.OptionStrict.ToString(), pdbOptions("optionstrict"))
 
         Dim preprocessorStrings = originalOptions.ParseOptions.PreprocessorSymbols.Select(Function(p)

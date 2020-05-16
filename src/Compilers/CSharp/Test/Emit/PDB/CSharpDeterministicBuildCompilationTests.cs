@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         // to the pdb correctly. It needs to produce a compilation to be emitted, but otherwise
         // everything should be non-default if possible. Diagnostic settings are ignored
         // because they won't be serialized. 
+
+        private static readonly Encoding DefaultEncoding = Encoding.UTF7;
         private static readonly CSharpParseOptions CSharpParseOptions = new CSharpParseOptions(
             languageVersion: LanguageVersion.CSharp8,
             kind: SourceCodeKind.Regular,
@@ -38,20 +40,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             checkOverflow: true,
             allowUnsafe: true,
             deterministic: true,
-            nullableContextOptions: NullableContextOptions.Enable);
+            nullableContextOptions: NullableContextOptions.Enable)
+            .WithCodePage(DefaultEncoding);
 
         private static readonly EmitOptions EmitOptions = new EmitOptions(
             debugInformationFormat: DebugInformationFormat.Embedded,
             pdbChecksumAlgorithm: HashAlgorithmName.SHA256);
 
-        private static void VerifyCompilationOptions(CompilationOptions originalOptions, BlobReader compilationOptionsBlobReader, string compilerVersion = null)
+        private static void VerifyCompilationOptions(CSharpCompilationOptions originalOptions, BlobReader compilationOptionsBlobReader, string compilerVersion = null)
         {
             var pdbOptions = DeterministicBuildCompilationTestHelpers.ParseCompilationOptions(compilationOptionsBlobReader);
             compilerVersion ??= DeterministicBuildCompilationTestHelpers.GetCurrentCompilerVersion();
 
+            // See CSharpCompilation.SerializeForPdb to see options that are included
             Assert.Equal(compilerVersion.ToString(), pdbOptions["compilerversion"]);
             Assert.Equal(originalOptions.NullableContextOptions.ToString(), pdbOptions["nullable"]);
             Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
+            Assert.Equal(originalOptions.CodePage.CodePage.ToString(), pdbOptions["codepage"]);
+            Assert.Equal(originalOptions.AllowUnsafe.ToString(), pdbOptions["unsafe"]);
         }
 
         private static void TestDeterministicCompilationCSharp(string code, Encoding encoding, params TestMetadataReferenceInfo[] metadataReferences)
@@ -120,7 +126,7 @@ public struct StructWithValue
                 fullPath: "abcd.dll",
                 emitOptions: EmitOptions.Default);
 
-            TestDeterministicCompilationCSharp(source, Encoding.UTF7, reference);
+            TestDeterministicCompilationCSharp(source, DefaultEncoding, reference);
         }
     }
 }

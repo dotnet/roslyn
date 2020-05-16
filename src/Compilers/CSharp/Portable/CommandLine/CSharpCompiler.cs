@@ -173,7 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WithAssemblyIdentityComparer(assemblyIdentityComparer).
                     WithXmlReferenceResolver(xmlFileResolver).
                     WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
-                    WithSourceReferenceResolver(sourceFileResolver));
+                    WithSourceReferenceResolver(sourceFileResolver).
+                    WithCodePage(Arguments.Encoding));
         }
 
         private SyntaxTree ParseFile(

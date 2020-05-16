@@ -3494,9 +3494,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add("unsafe", Options.AllowUnsafe.ToString());
             builder.Add("langversion", LanguageVersion.ToDisplayString());
 
-            // TODO: source encoding 
-            // where is the default encoding? 
-            // builder.Add("sourceencoding", Encoding)
+            if (Options.CodePage is object)
+            {
+                builder.Add("codepage", Options.CodePage.CodePage.ToString());
+            }
 
             // TODO: define
             // where are preprocessor options?

@@ -19,7 +19,7 @@ This will be a full compiler version, and if possible the commit SHA for the bui
 
 #### Source Encoding
 
-Encoding for source files that are not declared using BOM. Do we need this?
+Encoding for source files that are not declared using BOM. This 
 
 #### Metadata References
 
@@ -58,18 +58,33 @@ Timestamp: 4 byte integer
 File Size: 4 byte integer
 MVID: 16 byte integer (GUID)
 
-#### Key Value Pairs
+#### Compiler Flag Key Value Pairs
 
-The remaining values will be stored as key value pairs in the pdb. The storage format will be UTF8 encoded key value pairs that are null terminated. Order is not guaranteed. Any values left out can be assumed to be the default for the type.
+The remaining values will be stored as key value pairs in the pdb. The storage format will be UTF8 encoded key value pairs that are null terminated. Order is not guaranteed. Any values left out can be assumed to be the default for the type. Keys may be different for Visual Basic and CSharp. They are serialized to reflect the command line arguments representing the same values
 
-These are the known keys that will be used:
+Example: 
+
+
+`compilerversion\01.2.3\0sourceencoding\0utf-8\0checked\01\0unsafe\01\0langversion\0latest\0nullable\0Enable`
+
+##### Options For CSharp
+
+See [compiler options](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/listed-alphabetically) documentation
 
 1. "compilerversion"
-2. "sourceencoding"
-3. "checked"
-4. "unsafe"
-5. "langversion"
-6. "nullable"
-7. "define"
+2. "[codepage](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/codepage-compiler-option)"
+3. "[checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/checked-compiler-option)"
+4. "[unsafe](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/unsafe-compiler-option)"
+5. "[langversion](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/langversion-compiler-option)"
+6. "[nullable](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references)"
+7. "[define](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/define-compiler-option)"
 
-`compilerversion\01.2.3\0sourceencoding\0utf-8\0checked\01\0unsafe\01\0langversion\0latest\0nullable\0enable`
+##### Options For Visual Basic
+
+See [compiler options](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/compiler-options-listed-alphabetically) documentation
+
+1. "compilerversion"
+2. "[removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks)"
+3. "[langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion)"
+4. "[define](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/define)"
+5. "[optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict)"
