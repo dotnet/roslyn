@@ -46,7 +46,7 @@ Public Class VisualBasicDeterministicBuildCompilationTests
             pdbChecksumAlgorithm:=HashAlgorithmName.SHA256)
 
 
-    Private Sub VerifyCompilationOptions(originalOptions As CompilationOptions, compilationOptionsBlobReader As BlobReader, Optional compilerVersion As String = Nothing)
+    Private Sub VerifyCompilationOptions(originalOptions As VisualBasicCompilationOptions, compilationOptionsBlobReader As BlobReader, Optional compilerVersion As String = Nothing)
         Dim pdbOptions = DeterministicBuildCompilationTestHelpers.ParseCompilationOptions(compilationOptionsBlobReader)
 
         If (compilerVersion = Nothing) Then
@@ -59,6 +59,17 @@ Public Class VisualBasicDeterministicBuildCompilationTests
         Assert.Equal(originalOptions.NullableContextOptions.ToString(), pdbOptions("nullable"))
         Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions("checked"))
         Assert.Equal(Boolean.FalseString, pdbOptions("unsafe"))
+        Assert.Equal(originalOptions.OptionStrict.ToString(), pdbOptions("optionstrict"))
+
+        Dim preprocessorStrings = originalOptions.ParseOptions.PreprocessorSymbols.Select(Function(p)
+                                                                                              If (p.Value Is Nothing) Then
+                                                                                                  Return p.Key
+                                                                                              End If
+
+                                                                                              Return p.Key + "=" + p.Value.ToString()
+                                                                                          End Function)
+        Assert.Equal(String.Join(",", preprocessorStrings), pdbOptions("define"))
+
     End Sub
 
     Private Sub TestDeterministicCompilationVB(code As String, encoding As Encoding, ParamArray metadataReferences() As TestMetadataReferenceInfo)

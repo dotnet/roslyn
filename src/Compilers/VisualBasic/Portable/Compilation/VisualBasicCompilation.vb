@@ -715,6 +715,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             builder.Add("nullable", NullableContextOptions.Disable.ToString())
             builder.Add("unsafe", Boolean.FalseString)
             builder.Add("langversion", LanguageVersion.ToDisplayString())
+            builder.Add("optionstrict", Options.OptionStrict.ToString())
+
+            Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
+                                                                                          If (p.Value Is Nothing) Then
+                                                                                              Return p.Key
+                                                                                          End If
+
+                                                                                          Return p.Key + "=" + p.Value.ToString()
+                                                                                      End Function)
+            builder.Add("define", String.Join(",", preprocessorStrings))
 
             Return builder.ToImmutable()
         End Function

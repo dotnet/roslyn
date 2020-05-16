@@ -3493,10 +3493,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add("nullable", Options.NullableContextOptions.ToString());
             builder.Add("unsafe", Options.AllowUnsafe.ToString());
             builder.Add("langversion", LanguageVersion.ToDisplayString());
-            //builder.Add("sourceencoding", Encoding)
+
             // TODO: source encoding 
+            // where is the default encoding? 
+            // builder.Add("sourceencoding", Encoding)
 
             // TODO: define
+            // where are preprocessor options?
+            // builder.Add("define", Options)
 
             return builder.ToImmutable();
         }
