@@ -1069,7 +1069,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 // Issue https://github.com/dotnet/roslyn/issues/3260 tracks fixing this workaround.
                 if (originalMemberAccess.GetParentConditionalAccessExpression() == null)
                 {
-                    var expression = RewriteExtensionMethodInvocation(rewrittenNode, thisExpression, reducedExtensionMethod);
+                    var speculationPosition = originalNode.SpanStart;
+                    var expression = RewriteExtensionMethodInvocation(speculationPosition, rewrittenNode, thisExpression, reducedExtensionMethod);
 
                     // Let's rebind this and verify the original method is being called properly
                     var binding = _semanticModel.GetSpeculativeSymbolInfo(originalNode.SpanStart, expression, SpeculativeBindingOption.BindAsExpression);
@@ -1081,6 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             private InvocationExpressionSyntax RewriteExtensionMethodInvocation(
+                int speculationPosition,
                 InvocationExpressionSyntax originalNode,
                 ExpressionSyntax thisExpression,
                 IMethodSymbol reducedExtensionMethod)
@@ -1093,7 +1095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 // We use .ParseExpression here, and not .GenerateTypeSyntax as we want this to be a property
                 // MemberAccessExpression, and not a QualifiedNameSyntax.
                 var containingTypeSyntax = SyntaxFactory.ParseExpression(containingTypeString);
-                var newContainingType = _semanticModel.GetSpeculativeSymbolInfo(originalNode.SpanStart, containingTypeSyntax, SpeculativeBindingOption.BindAsExpression).Symbol;
+                var newContainingType = _semanticModel.GetSpeculativeSymbolInfo(speculationPosition, containingTypeSyntax, SpeculativeBindingOption.BindAsExpression).Symbol;
                 if (newContainingType == null || !newContainingType.Equals(reducedExtensionMethod.ContainingType))
                     return originalNode;
 
