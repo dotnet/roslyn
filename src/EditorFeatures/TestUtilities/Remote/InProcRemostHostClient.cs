@@ -105,7 +105,7 @@ namespace Roslyn.Test.Utilities.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName).ConfigureAwait(false);
 
-            return new JsonRpcConnection(Workspace, _inprocServices.Logger, callbackTarget, serviceStream);
+            return new JsonRpcConnection(Workspace.Services, _inprocServices.Logger, callbackTarget, serviceStream);
         }
 
         public override void Dispose()

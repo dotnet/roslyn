@@ -35,11 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             nameof(InternalFeatureOnOffOptions), nameof(SolutionChecksumMonitorBackOffTimeSpanInMS), defaultValue: 4000,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(SolutionChecksumMonitorBackOffTimeSpanInMS)));
 
-        // This options allow users to restart OOP when it is killed by users
-        public static readonly Option<bool> RestartRemoteHostAllowed = new Option<bool>(
-            nameof(InternalFeatureOnOffOptions), nameof(RestartRemoteHostAllowed), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(RestartRemoteHostAllowed)));
-
         // use 64bit OOP
         public static readonly Option<bool> OOP64Bit = new Option<bool>(
             nameof(InternalFeatureOnOffOptions), nameof(OOP64Bit), defaultValue: false,
@@ -75,7 +70,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             RemoteHostOptions.RemoteHost,
             RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS,
-            RemoteHostOptions.RestartRemoteHostAllowed,
             RemoteHostOptions.OOP64Bit,
             RemoteHostOptions.RemoteHostTest,
             RemoteHostOptions.EnableConnectionPool,

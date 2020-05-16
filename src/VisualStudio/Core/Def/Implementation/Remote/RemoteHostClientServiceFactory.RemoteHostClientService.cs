@@ -242,35 +242,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     // report NFW when connection is closed unless it is proper shutdown
                     FatalError.ReportWithoutCrash(new InvalidOperationException("Connection to remote host closed"));
 
-                    RemoteHostCrashInfoBar.ShowInfoBar(_workspace);
+                    RemoteHostCrashInfoBar.ShowInfoBar(_workspace.Services);
                 }
-            }
-
-            public async Task RequestNewRemoteHostAsync(CancellationToken cancellationToken)
-            {
-                var existingClient = await TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-                if (existingClient == null)
-                {
-                    return;
-                }
-
-                Contract.ThrowIfNull(_shutdownCancellationTokenSource);
-
-                // log that remote host is restarted
-                Logger.Log(FunctionId.RemoteHostClientService_Restarted, KeyValueLogMessage.NoProperty);
-
-                // we are going to kill the existing remote host, connection change is expected
-                existingClient.StatusChanged -= OnStatusChanged;
-
-                lock (_gate)
-                {
-                    // create new remote host client
-                    var token = _shutdownCancellationTokenSource.Token;
-                    _remoteClientTask = Task.Run(() => EnableAsync(token), token);
-                }
-
-                // shutdown 
-                existingClient.Dispose();
             }
         }
     }

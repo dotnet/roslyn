@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
@@ -59,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         }
 
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
-            => RemoteHostCrashInfoBar.ShowInfoBar(Workspace, unexpectedException);
+            => RemoteHostCrashInfoBar.ShowInfoBar(Workspace.Services, unexpectedException);
 
         public static async Task<RemoteHostClient?> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
@@ -74,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
                 WatsonReporter.InitializeLogger(hubClient.Logger);
 
-                var remoteHostStream = await RequestServiceAsync(workspace, hubClient, WellKnownServiceHubServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
+                var remoteHostStream = await RequestServiceAsync(workspace.Services, hubClient, WellKnownServiceHubServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
 
                 var client = new ServiceHubRemoteHostClient(workspace, hubClient, hostGroup, remoteHostStream);
 
@@ -106,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         }
 
         public static async Task<Stream> RequestServiceAsync(
-            Workspace workspace,
+            HostWorkspaceServices services,
             HubClient client,
             string serviceName,
             HostGroup hostGroup,
@@ -127,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // we can assume that these exceptions indicate a failure and should be reported to the user.
                 cancellationToken.ThrowIfCancellationRequested();
 
-                RemoteHostCrashInfoBar.ShowInfoBar(workspace, e);
+                RemoteHostCrashInfoBar.ShowInfoBar(services, e);
 
                 // TODO: Propagate the original exception (see https://github.com/dotnet/roslyn/issues/40476)
                 throw new SoftCrashException("Unexpected exception from HubClient", e, cancellationToken);
@@ -167,8 +168,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private async Task<Connection> CreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
-            var serviceStream = await RequestServiceAsync(Workspace, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
-            return new JsonRpcConnection(Workspace, _hubClient.Logger, callbackTarget, serviceStream);
+            var serviceStream = await RequestServiceAsync(Workspace.Services, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
+            return new JsonRpcConnection(Workspace.Services, _hubClient.Logger, callbackTarget, serviceStream);
         }
 
         public override void Dispose()
