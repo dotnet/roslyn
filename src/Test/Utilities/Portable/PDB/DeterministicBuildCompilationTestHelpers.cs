@@ -24,11 +24,14 @@ namespace Roslyn.Test.Utilities.PDB
         {
             foreach (var reference in references)
             {
-                var info = ParseMetadataReferenceInfo(metadataReferenceReader);
+                var info = ParseMetadataReferenceInfo(ref metadataReferenceReader);
                 var originalInfo = reference.MetadataReferenceInfo;
 
                 originalInfo.AssertEqual(info);
             }
+
+            // Make sure we read all the data
+            Assert.Equal(0, metadataReferenceReader.RemainingBytes);
         }
 
         public static BlobReader GetSingleBlob(Guid infoGuid, MetadataReader pdbReader)
@@ -39,9 +42,17 @@ namespace Roslyn.Test.Utilities.PDB
                     select pdbReader.GetBlobReader(cdi.Value)).Single();
         }
 
-        public static MetadataReferenceInfo ParseMetadataReferenceInfo(BlobReader blobReader)
+        public static MetadataReferenceInfo ParseMetadataReferenceInfo(ref BlobReader blobReader)
         {
-            // Name is first. UTF8 encoded null-terminated string
+            // Order of information
+            // File name (null terminated string): A.exe
+            // Extern Alias (null terminated string): a1,a2,a3
+            // MetadataImageKind (byte)
+            // EmbedInteropTypes (boolean)
+            // COFF header Timestamp field (4 byte int)
+            // COFF header SizeOfImage field (4 byte int)
+            // MVID (Guid, 24 bytes)
+
             var terminatorIndex = blobReader.IndexOf(0);
             Assert.NotEqual(-1, terminatorIndex);
 
@@ -50,7 +61,6 @@ namespace Roslyn.Test.Utilities.PDB
             // Skip the null terminator
             blobReader.ReadByte();
 
-            // Extern aliases are second
             terminatorIndex = blobReader.IndexOf(0);
             Assert.NotEqual(-1, terminatorIndex);
 
@@ -64,8 +74,6 @@ namespace Roslyn.Test.Utilities.PDB
             var timestamp = blobReader.ReadInt32();
             var imageSize = blobReader.ReadInt32();
             var mvid = blobReader.ReadGuid();
-
-            Assert.Equal(0, blobReader.RemainingBytes);
 
             return new MetadataReferenceInfo(
                 timestamp,

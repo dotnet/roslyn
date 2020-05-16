@@ -636,9 +636,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { CodePage = codePage };
         }
 
-        internal CSharpCompilationOptions WithPreprocessorSymbols(ImmutableArray<string> preprocessorSymbols)
+        internal CSharpCompilationOptions WithPreprocessorSymbols(IEnumerable<string>? preprocessorSymbols)
         {
-            return new CSharpCompilationOptions(this) { PreprocessorSymbols = preprocessorSymbols };
+            return new CSharpCompilationOptions(this) { PreprocessorSymbols = preprocessorSymbols.ToImmutableArrayOrEmpty() };
         }
 
         protected override CompilationOptions CommonWithConcurrentBuild(bool concurrent) => WithConcurrentBuild(concurrent);

@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -21,62 +23,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
-    public class CSharpDeterministicBuildCompilationTests : CSharpTestBase
+    public class CSharpDeterministicBuildCompilationTests : CSharpTestBase, IEnumerable<object[]>
     {
-        // Provide non default options for to test that they are being serialized
-        // to the pdb correctly. It needs to produce a compilation to be emitted, but otherwise
-        // everything should be non-default if possible. Diagnostic settings are ignored
-        // because they won't be serialized. 
-
-        private static readonly Encoding DefaultEncoding = Encoding.UTF7;
-        private static readonly string[] PreprocessorSymbols = new[] { "PreOne", "PreTwo" };
-
-        private static readonly CSharpParseOptions CSharpParseOptions = new CSharpParseOptions(
-            languageVersion: LanguageVersion.CSharp8,
-            kind: SourceCodeKind.Regular,
-            preprocessorSymbols: PreprocessorSymbols);
-
-        // Use constructor that requires all arguments. If new arguments are added, it's possible they need to be
-        // included in the pdb serialization and added to tests here
-        private static readonly CSharpCompilationOptions CSharpCompilationOptions = new CSharpCompilationOptions(
-            OutputKind.ConsoleApplication,
-            reportSuppressedDiagnostics: true,
-            moduleName: "Module",
-            mainTypeName: "MainType",
-            scriptClassName: null,
-            usings: new[] { "System", "System.Threading" },
-            optimizationLevel: OptimizationLevel.Debug,
-            checkOverflow: true,
-            allowUnsafe: true,
-            cryptoKeyContainer: null,
-            cryptoKeyFile: null,
-            cryptoPublicKey: ImmutableArray<byte>.Empty,
-            delaySign: null,
-            platform: Platform.AnyCpu,
-            generalDiagnosticOption: ReportDiagnostic.Default,
-            warningLevel: 4,
-            specificDiagnosticOptions: null,
-            concurrentBuild: false,
-            deterministic: true,
-            currentLocalTime: DateTime.Now,
-            debugPlusMode: false,
-            xmlReferenceResolver: null,
-            sourceReferenceResolver: null,
-            metadataReferenceResolver: null,
-            assemblyIdentityComparer: null,
-            strongNameProvider: null,
-            metadataImportOptions: MetadataImportOptions.Public,
-            referencesSupersedeLowerVersions: false,
-            publicSign: false,
-            topLevelBinderFlags: BinderFlags.None,
-            nullableContextOptions: NullableContextOptions.Enable,
-            codePage: DefaultEncoding,
-            preprocessorSymbols: PreprocessorSymbols);
-
-        private static readonly EmitOptions EmitOptions = new EmitOptions(
-            debugInformationFormat: DebugInformationFormat.Embedded,
-            pdbChecksumAlgorithm: HashAlgorithmName.SHA256);
-
         private static void VerifyCompilationOptions(CSharpCompilationOptions originalOptions, BlobReader compilationOptionsBlobReader, string compilerVersion = null)
         {
             var pdbOptions = DeterministicBuildCompilationTestHelpers.ParseCompilationOptions(compilationOptionsBlobReader);
@@ -86,21 +34,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             Assert.Equal(compilerVersion.ToString(), pdbOptions["compilerversion"]);
             Assert.Equal(originalOptions.NullableContextOptions.ToString(), pdbOptions["nullable"]);
             Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
-            Assert.Equal(originalOptions.CodePage.CodePage.ToString(), pdbOptions["codepage"]);
             Assert.Equal(originalOptions.AllowUnsafe.ToString(), pdbOptions["unsafe"]);
-            Assert.Equal(string.Join(",", originalOptions.PreprocessorSymbols), pdbOptions["define"]);
+
+            if (originalOptions.CodePage is null)
+            {
+                Assert.False(pdbOptions.ContainsKey("codepage"));
+            }
+            else
+            {
+                Assert.Equal(originalOptions.CodePage.CodePage.ToString(), pdbOptions["codepage"]);
+            }
+
+            if (originalOptions.PreprocessorSymbols.Any())
+            {
+                Assert.Equal(string.Join(",", originalOptions.PreprocessorSymbols), pdbOptions["define"]);
+            }
+            else
+            {
+                Assert.False(pdbOptions.ContainsKey("define"));
+            }
         }
 
-        private static void TestDeterministicCompilationCSharp(string code, Encoding encoding, params TestMetadataReferenceInfo[] metadataReferences)
+        private static void TestDeterministicCompilationCSharp(string code, CSharpParseOptions parseOptions, CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, params TestMetadataReferenceInfo[] metadataReferences)
         {
-            var syntaxTree = Parse(code, "goo.cs", CSharpParseOptions, encoding);
+            var syntaxTree = Parse(code, "goo.cs", parseOptions, compilationOptions.CodePage ?? Encoding.UTF8);
 
             var originalCompilation = CreateCompilation(
                 syntaxTree,
                 references: metadataReferences.SelectAsArray(r => r.MetadataReference),
-                options: CSharpCompilationOptions);
+                options: compilationOptions);
 
-            var peBlob = originalCompilation.EmitToArray(EmitOptions);
+            var peBlob = originalCompilation.EmitToArray(options: emitOptions);
 
             using (var peReader = new PEReader(peBlob))
             {
@@ -121,14 +85,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                     var metadataReferenceReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.MetadataReferenceInfo, pdbReader);
                     var compilationOptionsReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader);
 
-                    VerifyCompilationOptions(CSharpCompilationOptions, compilationOptionsReader);
+                    VerifyCompilationOptions(compilationOptions, compilationOptionsReader);
                     DeterministicBuildCompilationTestHelpers.VerifyReferenceInfo(metadataReferences, metadataReferenceReader);
                 }
             }
         }
 
-        [Fact]
-        public void PortablePdb_DeterministicCompilation1()
+        [Theory]
+        [ClassData(typeof(CSharpDeterministicBuildCompilationTests))]
+        public void PortablePdb_DeterministicCompilation1(CSharpCompilationOptions compilationOptions)
         {
             string source = @"
 using System;
@@ -141,7 +106,7 @@ class MainType
     }
 }
 ";
-            var referenceCompilation = CreateCompilation(
+            var referenceOneCompilation = CreateCompilation(
 @"public struct StructWithReference
 {
     string PrivateData;
@@ -152,12 +117,94 @@ public struct StructWithValue
 }",
             options: TestOptions.DebugDll);
 
-            using var reference = TestMetadataReferenceInfo.Create(
-                referenceCompilation,
-                fullPath: "abcd.dll",
-                emitOptions: EmitOptions.Default);
+            var referenceTwoCompilation = CreateCompilation(
+@"public class ReferenceTwo
+{
+}",
+            options: TestOptions.DebugDll);
 
-            TestDeterministicCompilationCSharp(source, DefaultEncoding, reference);
+            CSharpParseOptions parseOptions = new CSharpParseOptions(
+                languageVersion: LanguageVersion.CSharp8,
+                kind: SourceCodeKind.Regular,
+                preprocessorSymbols: compilationOptions.PreprocessorSymbols);
+
+            EmitOptions emitOptions = new EmitOptions(
+                debugInformationFormat: DebugInformationFormat.Embedded,
+                pdbChecksumAlgorithm: HashAlgorithmName.SHA256);
+
+
+            using var referenceOne = TestMetadataReferenceInfo.Create(
+                referenceOneCompilation,
+                fullPath: "abcd.dll",
+                emitOptions: emitOptions);
+
+            using var referenceTwo = TestMetadataReferenceInfo.Create(
+                referenceTwoCompilation,
+                fullPath: "efgh.dll",
+                emitOptions: emitOptions);
+
+            TestDeterministicCompilationCSharp(source, parseOptions, compilationOptions, emitOptions, referenceOne, referenceTwo);
+        }
+
+        public IEnumerator<object[]> GetEnumerator()
+        => GetData().Select(o => new object[] { o }).GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
+
+        private static IEnumerable<CSharpCompilationOptions> GetData()
+        {
+            // Provide non default options for to test that they are being serialized
+            // to the pdb correctly. It needs to produce a compilation to be emitted, but otherwise
+            // everything should be non-default if possible. Diagnostic settings are ignored
+            // because they won't be serialized. 
+
+            // Use constructor that requires all arguments. If new arguments are added, it's possible they need to be
+            // included in the pdb serialization and added to tests here
+            var defaultOptions = new CSharpCompilationOptions(
+                OutputKind.ConsoleApplication,
+                reportSuppressedDiagnostics: false,
+                moduleName: "Module",
+                mainTypeName: "MainType",
+                scriptClassName: null,
+                usings: new[] { "System", "System.Threading" },
+                optimizationLevel: OptimizationLevel.Debug,
+                checkOverflow: true,
+                allowUnsafe: true,
+                cryptoKeyContainer: null,
+                cryptoKeyFile: null,
+                cryptoPublicKey: default,
+                delaySign: null,
+                platform: Platform.AnyCpu,
+                generalDiagnosticOption: ReportDiagnostic.Default,
+                warningLevel: 4,
+                specificDiagnosticOptions: null,
+                concurrentBuild: true,
+                deterministic: true,
+                currentLocalTime: default,
+                debugPlusMode: false,
+                xmlReferenceResolver: null,
+                sourceReferenceResolver: null,
+                metadataReferenceResolver: null,
+                assemblyIdentityComparer: null,
+                strongNameProvider: null,
+                metadataImportOptions: MetadataImportOptions.Public,
+                referencesSupersedeLowerVersions: false,
+                publicSign: false,
+                topLevelBinderFlags: BinderFlags.None,
+                nullableContextOptions: NullableContextOptions.Enable,
+                codePage: Encoding.UTF7,
+                preprocessorSymbols: new[] { "PreOne", "PreTwo" });
+
+            yield return defaultOptions;
+            yield return defaultOptions.WithCodePage(Encoding.Default);
+            yield return defaultOptions.WithCodePage(Encoding.UTF32);
+            yield return defaultOptions.WithCodePage(null);
+            yield return defaultOptions.WithPreprocessorSymbols(new[] { "PreOne", "PreTwo", "PreThree" });
+            yield return defaultOptions.WithPreprocessorSymbols(null);
+            yield return defaultOptions.WithPreprocessorSymbols(new string[0]);
+            yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Disable);
+            yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Warnings);
         }
     }
 }

@@ -878,7 +878,7 @@ namespace Microsoft.Cci
             // Order of information
             // File name (null terminated string): A.exe
             // Extern Alias (null terminated string): a1,a2,a3
-            // MetadataImageKind (4 byte int)
+            // MetadataImageKind (byte)
             // EmbedInteropTypes (boolean)
             // COFF header Timestamp field (4 byte int)
             // COFF header SizeOfImage field (4 byte int)
