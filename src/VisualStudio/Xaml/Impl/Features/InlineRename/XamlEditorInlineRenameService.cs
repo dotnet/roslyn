@@ -67,7 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
             public TextSpan TriggerSpan => _renameInfo.TriggerSpan;
 
-            public ImmutableArray<CodeAnalysis.DocumentSpan> DefinitionLocations => _renameInfo.DefinitionLocations;
+            // This property isn't currently supported in XAML since it would involve modifying the IXamlRenameInfo interface.
+            public ImmutableArray<CodeAnalysis.DocumentSpan> DefinitionLocations => default;
 
             public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
             {

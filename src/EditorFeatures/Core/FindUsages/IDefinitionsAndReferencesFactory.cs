@@ -51,6 +51,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal static class DefinitionItemExtensions
     {
+        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
+            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
+
         public static DefinitionItem ToNonClassifiedDefinitionItem(
             this ISymbol definition,
             Solution solution,
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             var displayParts = GetDisplayParts(definition);
-            var nameDisplayParts = GetNameDisplayParts(definition);
+            var nameDisplayParts = definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
 
             var tags = GlyphTags.GetTags(definition.GetGlyph());
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
@@ -111,8 +114,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             using var sourceLocationsDisposer = ArrayBuilder<DocumentSpan>.GetInstance(out var sourceLocations);
 
             var properties = GetProperties(definition, isPrimary);
-
-            var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
 
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -158,6 +159,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     DefinitionItem.GetOriginationParts(definition),
                     properties, displayIfNoReferences);
             }
+
+            var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
 
             return DefinitionItem.Create(
                 tags, displayParts, sourceLocations.ToImmutable(),

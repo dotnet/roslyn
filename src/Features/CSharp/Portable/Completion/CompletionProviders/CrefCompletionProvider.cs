@@ -97,8 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language);
                 var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, hideAdvancedMembers.ToString());
 
-                var items = CreateCompletionItems(document.Project.Solution.Workspace,
-                    semanticModel, symbols, token, position, serializedOptions);
+                var items = CreateCompletionItems(semanticModel, symbols, token, position, serializedOptions);
 
                 context.AddItems(items);
             }
@@ -270,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private IEnumerable<CompletionItem> CreateCompletionItems(
-            Workspace workspace, SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, int position, ImmutableDictionary<string, string> options)
+            SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, int position, ImmutableDictionary<string, string> options)
         {
             var builder = SharedPools.Default<StringBuilder>().Allocate();
             try

@@ -346,10 +346,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return null;
             }
 
+            var state = __VSNEWDOCUMENTSTATE.NDS_Provisional;
+
             // If we're just opening the provisional tab, then do not "activate" the document
-            // (i.e. don't give it focus).  This way if a user is just arrowing through a set 
+            // (i.e. don't give it focus) unless specifically requested.  
+            // This way if a user is just arrowing through a set 
             // of FindAllReferences results, they don't have their cursor placed into the document.
-            var state = __VSNEWDOCUMENTSTATE.NDS_Provisional | __VSNEWDOCUMENTSTATE.NDS_NoActivate;
+            if (!options.GetOption(NavigationOptions.ActivateProvisionalTab))
+            {
+                state |= __VSNEWDOCUMENTSTATE.NDS_NoActivate;
+            }
+
             return new NewDocumentStateScope(state, VSConstants.NewDocumentStateReason.Navigation);
         }
     }

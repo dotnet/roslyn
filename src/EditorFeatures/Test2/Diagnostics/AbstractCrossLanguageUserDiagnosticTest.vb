@@ -119,19 +119,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Return hostDocument
         End Function
 
-        Private Class FromFileLoader
-            Implements IAnalyzerAssemblyLoader
-
-            Public Shared Instance As FromFileLoader = New FromFileLoader()
-
-            Public Sub AddDependencyLocation(fullPath As String) Implements IAnalyzerAssemblyLoader.AddDependencyLocation
-            End Sub
-
-            Public Function LoadFromPath(fullPath As String) As Assembly Implements IAnalyzerAssemblyLoader.LoadFromPath
-                Return Assembly.LoadFrom(fullPath)
-            End Function
-        End Class
-
         Shared Sub AddAnalyzerToWorkspace(workspace As Workspace, analyzer As DiagnosticAnalyzer)
             Dim analyzeReferences As AnalyzerReference()
             If analyzer IsNot Nothing Then
@@ -140,8 +127,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 ' create a serializable analyzer reference
                 analyzeReferences =
                 {
-                    New AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp).GetType().Assembly.Location, FromFileLoader.Instance),
-                    New AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic).GetType().Assembly.Location, FromFileLoader.Instance)
+                    New AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp).GetType().Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                    New AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic).GetType().Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
                 }
             End If
 

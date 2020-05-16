@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             foreach (var linkedDocumentId in linkedDocumentIds)
             {
                 var linkedDocument = document.Project.Solution.GetRequiredDocument(linkedDocumentId);
-                var linkedToken = await FindTokenInLinkedDocumentAsync(token, document, linkedDocument, cancellationToken).ConfigureAwait(false);
+                var linkedToken = await FindTokenInLinkedDocumentAsync(token, linkedDocument, cancellationToken).ConfigureAwait(false);
 
                 if (linkedToken != default)
                 {
@@ -126,7 +126,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
         private async Task<SyntaxToken> FindTokenInLinkedDocumentAsync(
             SyntaxToken token,
-            Document originalDocument,
             Document linkedDocument,
             CancellationToken cancellationToken)
         {
@@ -178,7 +177,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.Description, mainDescriptionTaggedParts);
             }
 
-            var documentedSymbol = symbols.FirstOrDefault()?.OriginalDefinition;
+            var documentedSymbol = symbols.FirstOrDefault();
 
             // if generating quick info for an attribute, bind to the class instead of the constructor
             if (syntaxFactsService.IsAttributeName(token.Parent) &&
@@ -418,8 +417,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             var symbols = GetSymbolsFromToken(token, document.Project.Solution.Workspace, semanticModel, cancellationToken);
 
-            var bindableParent = syntaxFacts.GetBindableParent(token);
-            var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
+            var bindableParent = syntaxFacts.TryGetBindableParent(token);
+            var overloads = bindableParent != null
+                ? semanticModel.GetMemberGroup(bindableParent, cancellationToken)
+                : ImmutableArray<ISymbol>.Empty;
 
             symbols = symbols.Where(IsOk)
                              .Where(s => IsAccessible(s, enclosingType))

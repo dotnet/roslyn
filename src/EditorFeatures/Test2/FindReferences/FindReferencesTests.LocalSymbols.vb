@@ -541,5 +541,38 @@ End Module
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestLocal_ValueUsageInfo(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            void Goo()
+            {
+                int {|Definition:$$i|} = 0;
+                Console.WriteLine({|ValueUsageInfo.Read:[|i|]|});
+                {|ValueUsageInfo.Write:[|i|]|} = 0;
+                {|ValueUsageInfo.ReadWrite:[|i|]|}++;
+                Goo2(in {|ValueUsageInfo.ReadableReference:[|i|]|}, ref {|ValueUsageInfo.ReadableWritableReference:[|i|]|});
+                Goo3(out {|ValueUsageInfo.WritableReference:[|i|]|});
+                Console.WriteLine(nameof({|ValueUsageInfo.Name:[|i|]|}));
+            }
+
+            void Goo2(in int j, ref int k)
+            {
+            }
+
+            void Goo3(out int i)
+            {
+                i = 0;
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

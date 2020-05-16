@@ -43,6 +43,9 @@
 
     <!-- Do not use generic CodeAction.Create to create CodeAction - not useful for tests -->
     <Rule Id="RS0005" Action="None" />
+
+    <!-- Do not call 'GetTestAccessor()' from production code: does not apply to tests -->
+    <Rule Id="RS0043" Action="None" />
   </Rules>
 
   <Rules AnalyzerId="Microsoft.CodeQuality.Analyzers.Exp" RuleNamespace="Microsoft.CodeQuality.Analyzers.Exp">

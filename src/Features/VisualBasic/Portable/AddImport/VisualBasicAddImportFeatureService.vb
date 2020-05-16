@@ -321,7 +321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                                                              semanticModel As SemanticModel,
                                                              syntaxFacts As ISyntaxFacts,
                                                              cancellationToken As CancellationToken) As Boolean
-            Dim leftExpressionType As ITypeSymbol = Nothing
+            Dim leftExpressionType As ITypeSymbol
             If syntaxFacts.IsInvocationExpression(expression) Then
                 leftExpressionType = semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken)
             Else
