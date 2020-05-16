@@ -155,7 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             out VariableDeclaratorSyntax declarator,
             out CastExpressionSyntax castExpression)
         {
-            ifStatement = null;
             localDeclarationStatement = null;
             declarator = null;
             castExpression = null;

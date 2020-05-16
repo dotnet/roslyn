@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
 #if !CODE_STYLE
 
-        public static bool CanRemoveParentheses(this ParenthesizedPatternSyntax node, SemanticModel semanticModel)
+        public static bool CanRemoveParentheses(this ParenthesizedPatternSyntax node)
         {
             if (node.OpenParenToken.IsMissing || node.CloseParenToken.IsMissing)
             {
@@ -716,11 +716,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.
             return node.Parent is PatternSyntax patternParent &&
-                   !RemovalChangesAssociation(node, patternParent, semanticModel);
+                   !RemovalChangesAssociation(node, patternParent);
         }
 
         private static bool RemovalChangesAssociation(
-            ParenthesizedPatternSyntax node, PatternSyntax parentPattern, SemanticModel semanticModel)
+            ParenthesizedPatternSyntax node, PatternSyntax parentPattern)
         {
             var pattern = node.Pattern;
             var precedence = pattern.GetOperatorPrecedence();

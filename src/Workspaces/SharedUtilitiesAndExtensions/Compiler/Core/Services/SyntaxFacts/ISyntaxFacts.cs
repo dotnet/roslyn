@@ -115,6 +115,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetObjectCreationInitializer(SyntaxNode node);
         SyntaxNode GetObjectCreationType(SyntaxNode node);
 
+        bool IsDeclarationExpression(SyntaxNode node);
+
         bool IsBinaryExpression(SyntaxNode node);
         bool IsIsExpression(SyntaxNode node);
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
@@ -480,6 +482,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// Gets the <see cref="DeclarationKind"/> for the declaration.
         /// </summary>
         DeclarationKind GetDeclarationKind(SyntaxNode declaration);
+
+        bool IsImplicitObjectCreation(SyntaxNode node);
     }
 
     [Flags]

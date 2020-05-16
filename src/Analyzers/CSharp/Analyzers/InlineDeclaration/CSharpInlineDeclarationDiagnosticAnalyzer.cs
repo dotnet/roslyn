@@ -221,8 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var allLocations = ImmutableArray.Create(
                 localDeclarator.GetLocation(),
                 identifierName.GetLocation(),
-                invocationOrCreation.GetLocation(),
-                containingStatement.GetLocation());
+                invocationOrCreation.GetLocation());
 
             // If the local variable only has one declarator, then report the suggestion on the whole
             // declaration.  Otherwise, return the suggestion only on the single declarator.

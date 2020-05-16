@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -430,6 +429,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (ReferenceEquals(this, other))
             {
                 return true;
+            }
+
+            if (other is NativeIntegerPropertySymbol nps)
+            {
+                return nps.Equals(this, compareKind);
             }
 
             // This checks if the property have the same definition and the type parameters on the containing types have been

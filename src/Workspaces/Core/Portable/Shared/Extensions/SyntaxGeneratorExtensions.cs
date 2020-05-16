@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             bool addNullChecks,
             bool preferThrowExpression)
         {
-            var fields = factory.CreateFieldsForParameters(parameters, parameterToNewFieldMap);
+            var fields = CreateFieldsForParameters(parameters, parameterToNewFieldMap);
             var statements = factory.CreateAssignmentStatements(
                 semanticModel, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
                 addNullChecks, preferThrowExpression).SelectAsArray(
@@ -92,7 +92,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<IFieldSymbol> CreateFieldsForParameters(
-            this SyntaxGenerator factory,
             IList<IParameterSymbol> parameters,
             IDictionary<string, string> parameterToNewFieldMap)
         {
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // For non-out parameters, create a field and assign the parameter to it.
                     // TODO: I'm not sure that's what we really want for ref parameters.
-                    if (TryGetValue(parameterToNewFieldMap, parameterName, out var fieldName))
+                    if (TryGetValue(parameterToNewFieldMap, parameterName, out _))
                     {
                         result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
                             attributes: default,
@@ -279,9 +278,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var getAccessibility = overriddenProperty.GetMethod.ComputeResultantAccessibility(containingType);
             var setAccessibility = overriddenProperty.SetMethod.ComputeResultantAccessibility(containingType);
 
-            SyntaxNode getBody = null;
-            SyntaxNode setBody = null;
-
+            SyntaxNode getBody;
+            SyntaxNode setBody;
             // Implement an abstract property by throwing not implemented in accessors.
             if (overriddenProperty.IsAbstract)
             {
@@ -413,7 +411,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : body;
 
         public static IEventSymbol OverrideEvent(
-            this SyntaxGenerator codeFactory,
             IEventSymbol overriddenEvent,
             DeclarationModifiers modifiers,
             INamedTypeSymbol newContainingType)
@@ -449,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else if (symbol is IEventSymbol ev)
             {
-                return generator.OverrideEvent(ev, modifiers, containingType);
+                return OverrideEvent(ev, modifiers, containingType);
             }
             else
             {

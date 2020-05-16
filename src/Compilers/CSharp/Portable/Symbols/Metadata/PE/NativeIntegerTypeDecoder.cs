@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
     internal struct NativeIntegerTypeDecoder
     {
+        private class ErrorTypeException : Exception { }
+
         internal static TypeSymbol TransformType(TypeSymbol type, EntityHandle handle, PEModuleSymbol containingModule)
         {
             return containingModule.Module.HasNativeIntegerAttribute(handle, out var transformFlags) ?
@@ -31,11 +33,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     return result;
                 }
+                else
+                {
+                    return new UnsupportedMetadataTypeSymbol();
+                }
             }
-            catch (ArgumentException)
+            catch (UnsupportedSignatureContent)
             {
+                return new UnsupportedMetadataTypeSymbol();
             }
-            return type;
+            catch (ErrorTypeException)
+            {
+                // If we failed to decode because there was an error type involved, marking the
+                // metadata as unsupported means that we'll cover up the error that would otherwise
+                // be reported for the type. This would likely lead to a worse error message as we
+                // would just report a BindToBogus, so return the type unchanged.
+                Debug.Assert(type.ContainsErrorType());
+                return type;
+            }
         }
 
         private readonly ImmutableArray<bool> _transformFlags;
@@ -62,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return TransformPointerType((PointerTypeSymbol)type);
                 case TypeKind.TypeParameter:
                 case TypeKind.Dynamic:
+                    IgnoreIndex();
                     return type;
                 case TypeKind.Class:
                 case TypeKind.Struct:
@@ -71,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return TransformNamedType((NamedTypeSymbol)type);
                 default:
                     Debug.Assert(type.TypeKind == TypeKind.Error);
-                    throw new ArgumentException();
+                    throw new ErrorTypeException();
             }
         }
 
@@ -82,6 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (!type.IsGenericType)
             {
                 return _transformFlags[index] ? TransformTypeDefinition(type) : type;
+            }
+
+            if (_transformFlags[index])
+            {
+                throw new UnsupportedSignatureContent();
             }
 
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
@@ -106,13 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ArrayTypeSymbol TransformArrayType(ArrayTypeSymbol type)
         {
-            Increment();
+            IgnoreIndex();
             return type.WithElementType(TransformTypeWithAnnotations(type.ElementTypeWithAnnotations));
         }
 
         private PointerTypeSymbol TransformPointerType(PointerTypeSymbol type)
         {
-            Increment();
+            IgnoreIndex();
             return type.WithPointedAtType(TransformTypeWithAnnotations(type.PointedAtTypeWithAnnotations));
         }
 
@@ -122,7 +143,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return _index++;
             }
-            throw new ArgumentException();
+            throw new UnsupportedSignatureContent();
+        }
+
+        private void IgnoreIndex()
+        {
+            var index = Increment();
+            if (_transformFlags[index])
+            {
+                throw new UnsupportedSignatureContent();
+            }
         }
 
         private static NamedTypeSymbol TransformTypeDefinition(NamedTypeSymbol type)
@@ -133,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 case SpecialType.System_UIntPtr:
                     return type.AsNativeInteger();
                 default:
-                    throw new ArgumentException();
+                    throw new UnsupportedSignatureContent();
             }
         }
     }

@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // We may be talking about different compilations.  So do not try to resolve locations.
             var result = new HashSet<TSymbol>();
-            var resolution = key.Resolve(compilation, resolveLocations: false, cancellationToken: cancellationToken);
+            var resolution = key.Resolve(compilation, cancellationToken: cancellationToken);
             foreach (var current in resolution.OfType<TSymbol>())
             {
                 result.Add(current);

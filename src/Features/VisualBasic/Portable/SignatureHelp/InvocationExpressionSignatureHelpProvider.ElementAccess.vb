@@ -30,15 +30,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             Return accessibleDefaultProperties.Select(
-                Function(s) ConvertIndexer(s, leftExpression.SpanStart, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken))
+                Function(s) ConvertIndexer(s, leftExpression.SpanStart, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService))
         End Function
 
         Private Function ConvertIndexer(indexer As IPropertySymbol,
                                         position As Integer,
                                         semanticModel As SemanticModel,
                                         anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                        documentationCommentFormattingService As IDocumentationCommentFormattingService,
-                                        cancellationToken As CancellationToken) As SignatureHelpItem
+                                        documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim item = CreateItem(
                 indexer, semanticModel, position,
                 anonymousTypeDisplayService,
@@ -47,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 GetIndexerPreambleParts(indexer, semanticModel, position),
                 GetSeparatorParts(),
                 GetIndexerPostambleParts(indexer, semanticModel, position),
-                indexer.Parameters.Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
+                indexer.Parameters.Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
             Return item
         End Function
 

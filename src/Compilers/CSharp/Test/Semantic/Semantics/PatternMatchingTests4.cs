@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3338,6 +3339,150 @@ public class A
                 // (16,18): error CS8651: It is not legal to use nullable reference type 'A[][]?' in an as expression; use the underlying type 'A[][]' instead.
                 //         _ = o as A[][]?;              // error 10 (can't 'as' nullable reference type)
                 Diagnostic(ErrorCode.ERR_AsNullableType, "A[][]?").WithArguments("A[][]").WithLocation(16, 18)
+                );
+        }
+
+        [Fact, WorkItem(43960, "https://github.com/dotnet/roslyn/issues/43960")]
+        public void NamespaceQualifiedEnumConstantInSwitchCase()
+        {
+            var source =
+@"enum E
+{
+    A, B, C
+}
+
+class Class1
+{
+    void M(E e)
+    {
+        switch (e)
+        {
+            case global::E.A: break;
+            case global::E.B: break;
+            case global::E.C: break;
+        }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedEnumConstantInIsPattern_01()
+        {
+            var source =
+@"enum E
+{
+    A, B, C
+}
+
+class Class1
+{
+    void M(object e)
+    {
+        if (e is global::E.A) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedTypeInIsType_02()
+        {
+            var source =
+@"enum E
+{
+    A, B, C
+}
+
+class Class1
+{
+    void M(object e)
+    {
+        if (e is global::E) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedTypeInIsType_03()
+        {
+            var source =
+@"namespace E
+{
+    public class A { }
+}
+
+class Class1
+{
+    void M(object e)
+    {
+        if (e is global::E.A) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedTypeInIsType_04()
+        {
+            var source =
+@"namespace E
+{
+    public class A<T> { }
+}
+
+class Class1
+{
+    void M<T>(object e)
+    {
+        if (e is global::E.A<int>) { }
+        if (e is global::E.A<object>) { }
+        if (e is global::E.A<T>) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(44019, "https://github.com/dotnet/roslyn/issues/44019")]
+        public void NamespaceQualifiedTypeInIsType_05()
+        {
+            var source =
+@"namespace E
+{
+    public class A<T>
+    {
+        public class B { }
+    }
+}
+
+class Class1
+{
+    void M<T>(object e)
+    {
+        if (e is global::E.A<int>.B) { }
+        if (e is global::E.A<object>.B) { }
+        if (e is global::E.A<T>.B) { }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 );
         }
     }

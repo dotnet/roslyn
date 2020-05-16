@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             IAssemblySymbol within,
             ITypeSymbol? throughType = null)
         {
-            return IsSymbolAccessibleCore(symbol, within, throughType, out var failedThroughTypeCheck);
+            return IsSymbolAccessibleCore(symbol, within, throughType, out _);
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             INamedTypeSymbol within,
             ITypeSymbol? throughType = null)
         {
-            return IsSymbolAccessible(symbol, within, throughType, out var failedThroughTypeCheck);
+            return IsSymbolAccessible(symbol, within, throughType, out _);
         }
 
         /// <summary>
@@ -170,7 +170,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return true;
             }
 
-            bool unused;
             if (!type.IsDefinition)
             {
                 // All type argument must be accessible.
@@ -180,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     // worth optimizing this).
                     if (typeArg.Kind != SymbolKind.TypeParameter &&
                         typeArg.TypeKind != TypeKind.Error &&
-                        !IsSymbolAccessibleCore(typeArg, within, null, out unused))
+                        !IsSymbolAccessibleCore(typeArg, within, null, out _))
                     {
                         return false;
                     }
@@ -190,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var containingType = type.ContainingType;
             return containingType == null
                 ? IsNonNestedTypeAccessible(type.ContainingAssembly, type.DeclaredAccessibility, within)
-                : IsMemberAccessible(type.ContainingType, type.DeclaredAccessibility, within, null, out unused);
+                : IsMemberAccessible(type.ContainingType, type.DeclaredAccessibility, within, null, out _);
         }
 
         // Is a top-level type with accessibility "declaredAccessibility" inside assembly "assembly"

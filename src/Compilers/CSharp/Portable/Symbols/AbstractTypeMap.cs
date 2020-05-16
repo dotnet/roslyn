@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Substitute for a type declaration.  May use alpha renaming if the container is substituted.
         /// </summary>
-        private NamedTypeSymbol SubstituteMemberType(NamedTypeSymbol previous)
+        internal virtual NamedTypeSymbol SubstituteTypeDeclaration(NamedTypeSymbol previous)
         {
             Debug.Assert((object)previous.ConstructedFrom == (object)previous);
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // construct operation here (as VB does), thereby avoiding alpha renaming in most cases.
             // Aleksey has shown that would reduce GC pressure if substitutions of deeply nested generics are common.
             NamedTypeSymbol oldConstructedFrom = previous.ConstructedFrom;
-            NamedTypeSymbol newConstructedFrom = SubstituteMemberType(oldConstructedFrom);
+            NamedTypeSymbol newConstructedFrom = SubstituteTypeDeclaration(oldConstructedFrom);
 
             ImmutableArray<TypeWithAnnotations> oldTypeArguments = previous.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             bool changed = !ReferenceEquals(oldConstructedFrom, newConstructedFrom);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return previous.SubstituteType(this);
         }
 
-        internal ImmutableArray<CustomModifier> SubstituteCustomModifiers(ImmutableArray<CustomModifier> customModifiers)
+        internal virtual ImmutableArray<CustomModifier> SubstituteCustomModifiers(ImmutableArray<CustomModifier> customModifiers)
         {
             if (customModifiers.IsDefaultOrEmpty)
             {
@@ -264,23 +264,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return result != null ? result.AsImmutableOrNull() : original;
-        }
-
-        internal ImmutableArray<TypeWithAnnotations> SubstituteTypes(ImmutableArray<TypeSymbol> original)
-        {
-            if (original.IsDefault)
-            {
-                return default(ImmutableArray<TypeWithAnnotations>);
-            }
-
-            var result = ArrayBuilder<TypeWithAnnotations>.GetInstance(original.Length);
-
-            foreach (TypeSymbol t in original)
-            {
-                result.Add(SubstituteType(t));
-            }
-
-            return result.ToImmutableAndFree();
         }
 
         internal ImmutableArray<TypeWithAnnotations> SubstituteTypes(ImmutableArray<TypeWithAnnotations> original)

@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor, CancellationToken cancellationToken)
         {
             var project = propertyDocument.Project;
-            var sourceText = await propertyDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
             var trailingTrivia = propertyDeclaration.GetTrailingTrivia();
 
             var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList))
