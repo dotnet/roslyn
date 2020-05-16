@@ -3499,9 +3499,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add("codepage", Options.CodePage.CodePage.ToString());
             }
 
-            // TODO: define
-            // where are preprocessor options?
-            // builder.Add("define", Options)
+            if (!Options.PreprocessorSymbols.IsEmpty)
+            {
+                builder.Add("define", string.Join(",", Options.PreprocessorSymbols));
+            }
 
             return builder.ToImmutable();
         }

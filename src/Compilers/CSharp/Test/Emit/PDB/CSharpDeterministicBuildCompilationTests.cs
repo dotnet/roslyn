@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.PDB;
 using Roslyn.Utilities;
@@ -26,22 +29,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         // because they won't be serialized. 
 
         private static readonly Encoding DefaultEncoding = Encoding.UTF7;
+        private static readonly string[] PreprocessorSymbols = new[] { "PreOne", "PreTwo" };
+
         private static readonly CSharpParseOptions CSharpParseOptions = new CSharpParseOptions(
             languageVersion: LanguageVersion.CSharp8,
             kind: SourceCodeKind.Regular,
-            preprocessorSymbols: new[] { "PreOne", "PreTwo" });
+            preprocessorSymbols: PreprocessorSymbols);
 
+        // Use constructor that requires all arguments. If new arguments are added, it's possible they need to be
+        // included in the pdb serialization and added to tests here
         private static readonly CSharpCompilationOptions CSharpCompilationOptions = new CSharpCompilationOptions(
             OutputKind.ConsoleApplication,
+            reportSuppressedDiagnostics: true,
             moduleName: "Module",
             mainTypeName: "MainType",
+            scriptClassName: null,
             usings: new[] { "System", "System.Threading" },
             optimizationLevel: OptimizationLevel.Debug,
             checkOverflow: true,
             allowUnsafe: true,
+            cryptoKeyContainer: null,
+            cryptoKeyFile: null,
+            cryptoPublicKey: ImmutableArray<byte>.Empty,
+            delaySign: null,
+            platform: Platform.AnyCpu,
+            generalDiagnosticOption: ReportDiagnostic.Default,
+            warningLevel: 4,
+            specificDiagnosticOptions: null,
+            concurrentBuild: false,
             deterministic: true,
-            nullableContextOptions: NullableContextOptions.Enable)
-            .WithCodePage(DefaultEncoding);
+            currentLocalTime: DateTime.Now,
+            debugPlusMode: false,
+            xmlReferenceResolver: null,
+            sourceReferenceResolver: null,
+            metadataReferenceResolver: null,
+            assemblyIdentityComparer: null,
+            strongNameProvider: null,
+            metadataImportOptions: MetadataImportOptions.Public,
+            referencesSupersedeLowerVersions: false,
+            publicSign: false,
+            topLevelBinderFlags: BinderFlags.None,
+            nullableContextOptions: NullableContextOptions.Enable,
+            codePage: DefaultEncoding,
+            preprocessorSymbols: PreprocessorSymbols);
 
         private static readonly EmitOptions EmitOptions = new EmitOptions(
             debugInformationFormat: DebugInformationFormat.Embedded,
@@ -58,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
             Assert.Equal(originalOptions.CodePage.CodePage.ToString(), pdbOptions["codepage"]);
             Assert.Equal(originalOptions.AllowUnsafe.ToString(), pdbOptions["unsafe"]);
+            Assert.Equal(string.Join(",", originalOptions.PreprocessorSymbols), pdbOptions["define"]);
         }
 
         private static void TestDeterministicCompilationCSharp(string code, Encoding encoding, params TestMetadataReferenceInfo[] metadataReferences)
