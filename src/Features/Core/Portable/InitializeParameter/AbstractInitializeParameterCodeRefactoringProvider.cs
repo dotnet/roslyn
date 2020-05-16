@@ -88,8 +88,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var parameterDefault = syntaxFacts.GetDefaultOfParameter(selectedParameter);
-
             // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
             // so first we have to get the parameter symbol and then its containing method symbol
             if (!TryGetParameterSymbol(selectedParameter, semanticModel, out var parameter, cancellationToken))
@@ -235,7 +233,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected static bool IsFieldOrPropertyReference(IOperation operation, INamedTypeSymbol containingType)
-            => IsFieldOrPropertyAssignment(operation, containingType, out var fieldOrProperty);
+            => IsFieldOrPropertyAssignment(operation, containingType, out _);
 
         protected static bool IsFieldOrPropertyReference(
             IOperation? operation, INamedTypeSymbol containingType,

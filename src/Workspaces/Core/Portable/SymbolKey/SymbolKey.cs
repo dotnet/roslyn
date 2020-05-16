@@ -77,11 +77,10 @@ namespace Microsoft.CodeAnalysis
     ///     The SymbolKey for both 'M' methods will be the same.  The SymbolKey will then resolve to both methods.
     /// </para>
     /// <para>
-    /// <see cref="SymbolKey"/>s are not guaranteed to work across different versions of Roslyn.
-    /// They can be persisted in their <see cref="ToString()"/> form and used across sessions with
-    /// the same version of Roslyn. However, future versions may change the encoded format and may
-    /// no longer be able to <see cref="Resolve(Compilation, bool, bool, CancellationToken)"/> previous
-    /// keys.  As such, only persist if using for a cache that can be regenerated if necessary.
+    /// <see cref="SymbolKey"/>s are not guaranteed to work across different versions of Roslyn. They can be persisted
+    /// in their <see cref="ToString()"/> form and used across sessions with the same version of Roslyn. However, future
+    /// versions may change the encoded format and may no longer be able to <see cref="Resolve"/> previous keys.  As
+    /// such, only persist if using for a cache that can be regenerated if necessary.
     /// </para>
     /// </summary>
     internal partial struct SymbolKey
@@ -128,11 +127,10 @@ namespace Microsoft.CodeAnalysis
 
         internal static SymbolKeyResolution ResolveString(
             string symbolKey, Compilation compilation,
-            bool ignoreAssemblyKey = false, bool resolveLocations = false,
-            CancellationToken cancellationToken = default)
+            bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default)
         {
             using var reader = SymbolKeyReader.GetReader(
-                symbolKey, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
+                symbolKey, compilation, ignoreAssemblyKey, cancellationToken);
             var version = reader.ReadFormatVersion();
             if (version != FormatVersion)
             {
@@ -158,15 +156,12 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Tries to resolve this <see cref="SymbolKey"/> in the given 
-        /// <paramref name="compilation"/> to a matching symbol.  <paramref name="resolveLocations"/>
-        /// should only be given <see langword="true"/> if the symbol was produced from a compilation
-        /// that has the exact same source as the compilation we're resolving against.  Otherwise
-        /// the locations resolved may not actually be correct in the final compilation.
+        /// <paramref name="compilation"/> to a matching symbol.
         /// </summary>
         public SymbolKeyResolution Resolve(
-            Compilation compilation, bool ignoreAssemblyKey = false, bool resolveLocations = false, CancellationToken cancellationToken = default)
+            Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default)
         {
-            return ResolveString(_symbolKeyData, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
+            return ResolveString(_symbolKeyData, compilation, ignoreAssemblyKey, cancellationToken);
         }
 
         /// <summary>

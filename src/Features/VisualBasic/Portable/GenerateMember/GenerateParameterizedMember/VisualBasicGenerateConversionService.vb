@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             End If
 
             methodSymbol = GenerateMethodSymbol(typeToGenerateIn, parameterSymbol)
-            If Not ValidateTypeToGenerateIn(document.Project.Solution, typeToGenerateIn, True, classInterfaceModuleStructTypes) Then
+            If Not ValidateTypeToGenerateIn(typeToGenerateIn, True, classInterfaceModuleStructTypes) Then
                 typeToGenerateIn = parameterSymbol
             End If
             Return True
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             End If
 
             methodSymbol = GenerateMethodSymbol(typeToGenerateIn, parameterSymbol)
-            If Not ValidateTypeToGenerateIn(document.Project.Solution, typeToGenerateIn, True, classInterfaceModuleStructTypes) Then
+            If Not ValidateTypeToGenerateIn(typeToGenerateIn, True, classInterfaceModuleStructTypes) Then
                 typeToGenerateIn = parameterSymbol
             End If
             Return True

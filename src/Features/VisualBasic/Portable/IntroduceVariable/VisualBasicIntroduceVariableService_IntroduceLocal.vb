@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Dim innermostStatements = New HashSet(Of StatementSyntax)(matches.Select(Function(expr) expr.GetAncestorOrThis(Of StatementSyntax)()))
             If innermostStatements.Count = 1 Then
                 Return IntroduceLocalForSingleOccurrenceIntoBlock(
-                    document, expression, newLocalName, declarationStatement, localAnnotation, allOccurrences, cancellationToken)
+                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken)
             End If
 
             Dim oldInnerMostCommonBlock = matches.FindInnermostCommonExecutableBlock()
@@ -164,7 +164,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 expression As ExpressionSyntax,
                 localName As NameSyntax,
                 localDeclaration As LocalDeclarationStatementSyntax,
-                localAnnotation As SyntaxAnnotation,
                 allOccurrences As Boolean,
                 cancellationToken As CancellationToken) As Document
 

@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             End If
 
             ' implicit line continuation case
-            If IsLineContinuable(token, trivia, position) Then
+            If IsLineContinuable(token, trivia) Then
                 Return GetIndentationFromTokenLineAfterLineContinuation(indenter, token, trivia)
             End If
 
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, extraSpaces, indenter.CancellationToken))
         End Function
 
-        Private Function IsLineContinuable(lastVisibleTokenOnPreviousLine As SyntaxToken, trivia As SyntaxTrivia, position As Integer) As Boolean
+        Private Function IsLineContinuable(lastVisibleTokenOnPreviousLine As SyntaxToken, trivia As SyntaxTrivia) As Boolean
             If trivia.Kind = SyntaxKind.LineContinuationTrivia OrElse
                 trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
                 Return True

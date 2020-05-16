@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
             End Function
 
             Public Overrides Function VisitImportsStatement(node As ImportsStatementSyntax) As SyntaxNode
-                Dim organizedImportsClauses = ImportsOrganizer.Organize(node.ImportsClauses, _placeSystemNamespaceFirst)
+                Dim organizedImportsClauses = ImportsOrganizer.Organize(node.ImportsClauses)
 
                 Dim result = node.WithImportsClauses(organizedImportsClauses)
                 If result IsNot node Then

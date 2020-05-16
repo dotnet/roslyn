@@ -155,7 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
             {
                 if (!CanFix(semanticModel, diagnostic, cancellationToken,
                         out var nameNode, out var matchingMember, out _))
+                {
                     continue;
+                }
 
                 var newNameNode = matchingMember.Name.ToIdentifierName();
                 var newExpr = (ExpressionSyntax)newNameNode;

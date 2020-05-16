@@ -68,15 +68,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return TextSpan.FromBounds(spanStart, nextToken.SpanStart)
         End Function
 
+#Disable Warning IDE0060 ' Remove unused parameter
         Protected Sub AddSuppressWrappingIfOnSingleLineOperation(operations As List(Of SuppressOperation), startToken As SyntaxToken, endToken As SyntaxToken)
             ' VB doesn't need to use this operation
-            throw ExceptionUtilities.Unreachable
+            Throw ExceptionUtilities.Unreachable
         End Sub
 
         Protected Sub AddSuppressAllOperationIfOnMultipleLine(operations As List(Of SuppressOperation), startToken As SyntaxToken, endToken As SyntaxToken)
             ' VB doesn't need to use this operation
-            throw ExceptionUtilities.Unreachable
+            Throw ExceptionUtilities.Unreachable
         End Sub
+#Enable Warning IDE0060 ' Remove unused parameter
 
         Protected Sub AddAnchorIndentationOperation(operations As List(Of AnchorIndentationOperation), startToken As SyntaxToken, endToken As SyntaxToken)
             If startToken.Kind = SyntaxKind.None OrElse endToken.Kind = SyntaxKind.None Then

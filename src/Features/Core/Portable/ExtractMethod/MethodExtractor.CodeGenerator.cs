@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             protected IEnumerable<TStatement> AddSplitOrMoveDeclarationOutStatementsToCallSite(
-                IEnumerable<TStatement> statements, CancellationToken cancellationToken)
+                CancellationToken cancellationToken)
             {
                 var list = new List<TStatement>();
 

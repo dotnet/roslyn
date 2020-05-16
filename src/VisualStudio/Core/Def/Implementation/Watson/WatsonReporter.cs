@@ -93,16 +93,19 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
                 {
-                    // add current process dump
-                    faultUtility.AddProcessDump(currentProcess.Id);
-
-                    // add ServiceHub log files:
-                    foreach (var path in CollectServiceHubLogFilePaths())
+                    if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
                     {
-                        faultUtility.AddFile(path);
+                        // add ServiceHub log files:
+                        foreach (var path in CollectServiceHubLogFilePaths())
+                        {
+                            faultUtility.AddFile(path);
+                        }
                     }
 
-                    // Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
+                    // Returning "0" signals that, if sampled, we should send data to Watson. 
+                    // Any other value will cancel the Watson report. We never want to trigger a process dump manually, 
+                    // we'll let TargetedNotifications determine if a dump should be collected.
+                    // See https://aka.ms/roslynnfwdocs for more details
                     return 0;
                 });
 
