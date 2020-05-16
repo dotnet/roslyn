@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             context.RegisterRefactoring(nestedCodeAction, selectedMemberNode.Span);
         }
 
+
         private ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
             ISymbol selectedMember,
             Solution solution,
