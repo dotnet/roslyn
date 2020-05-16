@@ -1,4 +1,8 @@
-﻿Imports System.Reflection.Metadata
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
+
+Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
 Imports System.Security.Cryptography
 Imports System.Text
@@ -50,9 +54,11 @@ Public Class VisualBasicDeterministicBuildCompilationTests
         End If
 
 
+        ' See VisualBasicCompilation.SerializeForPdb for options that are added
         Assert.Equal(compilerVersion.ToString(), pdbOptions("compilerversion"))
         Assert.Equal(originalOptions.NullableContextOptions.ToString(), pdbOptions("nullable"))
         Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions("checked"))
+        Assert.Equal(Boolean.FalseString, pdbOptions("unsafe"))
     End Sub
 
     Private Sub TestDeterministicCompilationVB(code As String, encoding As Encoding, ParamArray metadataReferences() As TestMetadataReferenceInfo)
