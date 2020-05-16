@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -33,7 +34,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             {
                 var solution = workspace.CurrentSolution;
 
-                var results = await GetVsSearchResultsAsync(solution, "met");
+                var results = await GetVsSearchResultsAsync(solution, workspace.Services, "met");
 
                 Assert.Equal(1, results.Count);
                 Assert.Equal(1, results[0].Symbols.Length);
@@ -58,7 +59,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             {
                 var solution = workspace.CurrentSolution;
 
-                var results = await GetVsSearchResultsAsync(solution, "met");
+                var results = await GetVsSearchResultsAsync(solution, workspace.Services, "met");
 
                 Assert.Equal(1, results.Count);
                 Assert.Equal(4, results[0].Symbols.Length);
@@ -78,7 +79,7 @@ End Class";
             {
                 var solution = workspace.CurrentSolution;
 
-                var results = await GetVsSearchResultsAsync(solution, "met");
+                var results = await GetVsSearchResultsAsync(solution, workspace.Services, "met");
 
                 Assert.Equal(1, results.Count);
                 Assert.Equal(1, results[0].Symbols.Length);
@@ -87,9 +88,9 @@ End Class";
             }
         }
 
-        private async Task<List<VSPublishSymbolParams>> GetVsSearchResultsAsync(Solution solution, string query)
+        private async Task<List<VSPublishSymbolParams>> GetVsSearchResultsAsync(Solution solution, HostWorkspaceServices services, string query)
         {
-            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(solution.Workspace, runCacheCleanup: false);
+            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(services, runCacheCleanup: false);
 
             var document = solution.Projects.First().Documents.First();
             await UpdatePrimaryWorkspace(client, solution.WithDocumentFilePath(document.Id, Path.Combine(TempRoot.Root, document.FilePath)));

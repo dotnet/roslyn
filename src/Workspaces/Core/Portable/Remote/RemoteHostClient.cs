@@ -27,15 +27,15 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal abstract class RemoteHostClient : IDisposable
     {
-        public readonly Workspace Workspace;
+        public readonly HostWorkspaceServices Services;
         public event EventHandler<bool>? StatusChanged;
 
         internal readonly IRemotableDataService RemotableDataService;
 
-        protected RemoteHostClient(Workspace workspace)
+        protected RemoteHostClient(HostWorkspaceServices services)
         {
-            Workspace = workspace;
-            RemotableDataService = workspace.Services.GetRequiredService<IRemotableDataService>();
+            Services = services;
+            RemotableDataService = services.GetRequiredService<IRemotableDataService>();
         }
 
         /// <summary>
@@ -186,8 +186,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public class NoOpClient : RemoteHostClient
         {
-            public NoOpClient(Workspace workspace)
-                : base(workspace)
+            public NoOpClient(HostWorkspaceServices services)
+                : base(services)
             {
             }
 

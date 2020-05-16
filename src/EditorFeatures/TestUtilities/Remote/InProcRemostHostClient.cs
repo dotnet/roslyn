@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Nerdbank;
@@ -27,14 +28,14 @@ namespace Roslyn.Test.Utilities.Remote
         private readonly InProcRemoteServices _inprocServices;
         private readonly RemoteEndPoint _endPoint;
 
-        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup)
+        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, bool runCacheCleanup)
         {
             var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubService.RemoteHost).ConfigureAwait(false);
 
             var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
-            var instance = new InProcRemoteHostClient(current, workspace, inprocServices, remoteHostStream);
+            var instance = new InProcRemoteHostClient(current, services, inprocServices, remoteHostStream);
 
             // make sure connection is done right
             string? telemetrySession = null;
@@ -57,10 +58,10 @@ namespace Roslyn.Test.Utilities.Remote
 
         private InProcRemoteHostClient(
             string clientId,
-            Workspace workspace,
+            HostWorkspaceServices services,
             InProcRemoteServices inprocServices,
             Stream stream)
-            : base(workspace)
+            : base(services)
         {
             ClientId = clientId;
 
@@ -85,7 +86,7 @@ namespace Roslyn.Test.Utilities.Remote
         /// Remote API.
         /// </summary>
         public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => Task.FromResult(Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+            => Task.FromResult(Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
@@ -104,7 +105,7 @@ namespace Roslyn.Test.Utilities.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName).ConfigureAwait(false);
 
-            return new JsonRpcConnection(Workspace.Services, _inprocServices.Logger, callbackTarget, serviceStream);
+            return new JsonRpcConnection(Services, _inprocServices.Logger, callbackTarget, serviceStream);
         }
 
         public override void Dispose()

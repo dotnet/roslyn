@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Test.Utilities.Remote;
@@ -22,9 +23,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
         {
         }
 
-        public Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        public Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
         {
-            return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
+            return InProcRemoteHostClient.CreateAsync(services, runCacheCleanup: false);
         }
     }
 }

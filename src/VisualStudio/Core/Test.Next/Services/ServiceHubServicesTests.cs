@@ -75,7 +75,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
+                var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
 
                 var solution = workspace.CurrentSolution;
 
@@ -97,7 +97,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
+                var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
 
                 var solution = workspace.CurrentSolution;
 
@@ -150,7 +150,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var callback = new TodoCommentsListener();
 
-            using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
+            using var client = await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
             using var session = await client.TryCreateKeepAliveSessionAsync(
                 WellKnownServiceHubService.RemoteTodoCommentsService,
                 callback,
@@ -235,7 +235,7 @@ class Test { }");
 
             var callback = new DesignerAttributeListener();
 
-            using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
+            using var client = await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
             using var session = await client.TryCreateKeepAliveSessionAsync(
                 WellKnownServiceHubService.RemoteDesignerAttributeService,
                 callback,
@@ -281,7 +281,7 @@ class Test { }");
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices());
             var solution = workspace.CurrentSolution.AddProject("unknown", "unknown", NoCompilationConstants.LanguageName).Solution;
 
-            var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
+            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
 
             await UpdatePrimaryWorkspace(client, solution);
             await VerifyAssetStorageAsync(client, solution);
@@ -309,7 +309,7 @@ class Test { }");
         {
             using var workspace = new TestWorkspace();
 
-            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
+            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
 
             var solution = Populate(workspace.CurrentSolution);
 
