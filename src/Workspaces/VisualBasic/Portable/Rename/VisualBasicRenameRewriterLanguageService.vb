@@ -463,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 If identifierToken <> Nothing AndAlso Not Me._annotatedIdentifierTokens.Contains(identifierToken) Then
                     Dim symbolInfo = Me._semanticModel.GetSymbolInfo(invocationExpression, Me._cancellationToken)
-                    Dim symbols As IEnumerable(Of ISymbol) = Nothing
+                    Dim symbols As IEnumerable(Of ISymbol)
                     If symbolInfo.Symbol Is Nothing Then
                         Return Nothing
                     Else

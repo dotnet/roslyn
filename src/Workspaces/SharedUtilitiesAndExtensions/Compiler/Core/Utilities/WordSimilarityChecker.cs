@@ -85,7 +85,7 @@ namespace Roslyn.Utilities
             => AreSimilar(originalText, candidateText, substringsAreSimilar: false);
 
         public static bool AreSimilar(string originalText, string candidateText, bool substringsAreSimilar)
-            => AreSimilar(originalText, candidateText, substringsAreSimilar, out var unused);
+            => AreSimilar(originalText, candidateText, substringsAreSimilar, out _);
 
         public static bool AreSimilar(string originalText, string candidateText, out double similarityWeight)
         {
@@ -112,7 +112,7 @@ namespace Roslyn.Utilities
             => value.Length <= 4 ? 1 : 2;
 
         public bool AreSimilar(string candidateText)
-            => AreSimilar(candidateText, out var similarityWeight);
+            => AreSimilar(candidateText, out _);
 
         public bool AreSimilar(string candidateText, out double similarityWeight)
         {

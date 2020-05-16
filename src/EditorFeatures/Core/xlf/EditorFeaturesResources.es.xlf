@@ -487,11 +487,6 @@
         <target state="translated">El área de trabajo dada no permite deshacer</target>
         <note />
       </trans-unit>
-      <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
-        <source>Document must be contained in the workspace that created this service</source>
-        <target state="translated">El documento debe estar contenido en el área de trabajo que creó este servicio</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Searching">
         <source>Searching...</source>
         <target state="translated">Buscando...</target>
@@ -655,11 +650,6 @@
       <trans-unit id="external">
         <source>(external)</source>
         <target state="new">(external)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="from_metadata">
-        <source>from metadata</source>
-        <target state="translated">de metadatos</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatic_Line_Ender">
@@ -1015,11 +1005,6 @@
       <trans-unit id="Peek">
         <source>Peek</source>
         <target state="translated">Ver</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="symbol_cannot_be_a_namespace">
-        <source>'symbol' cannot be a namespace.</source>
-        <target state="translated">'símbolo' no puede ser un espacio de nombres.</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply1">

@@ -37,7 +37,7 @@ param (
   [switch]$buildServerLog,
   [switch]$ci,
   [switch]$procdump,
-  [switch]$skipAnalyzers,
+  [switch][Alias('a')]$runAnalyzers,
   [switch][Alias('d')]$deployExtensions,
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
@@ -59,6 +59,7 @@ param (
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testIOperation,
+  [switch]$sequential,
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -97,7 +98,7 @@ function Print-Usage() {
   Write-Host "  -bootstrapConfiguration   Build configuration for bootstrap compiler: 'Debug' or 'Release'"
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -procdump                 Monitor test runs with procdump"
-  Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
+  Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
@@ -120,7 +121,7 @@ function Print-Usage() {
 # specified.
 #
 # In this function it's okay to use two arguments to extend the effect of another. For
-# example it's okay to look at $testVsi and infer $skipAnalyzers. It's not okay though to infer
+# example it's okay to look at $testVsi and infer $runAnalyzers. It's not okay though to infer
 # $build based on say $testDesktop. It's possible the developer wanted only for testing
 # to execute, not any build.
 function Process-Arguments() {
@@ -178,7 +179,7 @@ function Process-Arguments() {
 
   if ($testVsi) {
     # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
-    $script:skipAnalyzers = $true
+    $script:runAnalyzers = $false
     $script:bootstrap = $false
   }
 
@@ -215,7 +216,6 @@ function BuildSolution() {
   }
 
   $projects = Join-Path $RepoRoot $solution
-  $enableAnalyzers = !$skipAnalyzers
   $toolsetBuildProj = InitializeToolset
 
   $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.1" } else { "" }
@@ -258,7 +258,7 @@ function BuildSolution() {
       /p:Publish=$publish `
       /p:ContinuousIntegrationBuild=$ci `
       /p:OfficialBuildId=$officialBuildId `
-      /p:UseRoslynAnalyzers=$enableAnalyzers `
+      /p:UseRoslynAnalyzers=$runAnalyzers `
       /p:BootstrapBuildPath=$bootstrapDir `
       /p:TestTargetFrameworks=$testTargetFrameworks `
       /p:TreatWarningsAsErrors=true `
@@ -410,6 +410,14 @@ function TestUsingOptimizedRunner() {
   $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
   $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
+  if ($configuration -eq 'Debug') {
+    $excludedConfiguration = 'Release'
+  } else {
+    $excludedConfiguration = 'Debug'
+  }
+
+  $dlls = $dlls | ?{ -not (($_.FullName -match ".*\\$excludedConfiguration\\.*") -or ($_.FullName -match ".*/$excludedConfiguration/.*")) }
+
   if ($ci) {
     $args += " -xml"
     if ($testVsi) {
@@ -427,6 +435,10 @@ function TestUsingOptimizedRunner() {
 
   if ($test64) {
     $args += " -test64"
+  }
+
+  if ($sequential) {
+    $args += " -sequential"
   }
 
   foreach ($dll in $dlls) {

@@ -88,21 +88,24 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
             var faultEvent = new FaultEvent(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
-                description: "Roslyn NonFatal Watson",
+                description: GetDescription(exception),
                 FaultSeverity.Diagnostic,
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
                 {
-                    // add current process dump
-                    faultUtility.AddProcessDump(currentProcess.Id);
-
-                    // add ServiceHub log files:
-                    foreach (var path in CollectServiceHubLogFilePaths())
+                    if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
                     {
-                        faultUtility.AddFile(path);
+                        // add ServiceHub log files:
+                        foreach (var path in CollectServiceHubLogFilePaths())
+                        {
+                            faultUtility.AddFile(path);
+                        }
                     }
 
-                    // Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
+                    // Returning "0" signals that, if sampled, we should send data to Watson. 
+                    // Any other value will cancel the Watson report. We never want to trigger a process dump manually, 
+                    // we'll let TargetedNotifications determine if a dump should be collected.
+                    // See https://aka.ms/roslynnfwdocs for more details
                     return 0;
                 });
 
@@ -112,6 +115,39 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             faultEvent.SetExtraParameters(exception, emptyCallstack);
 
             session.PostEvent(faultEvent);
+        }
+
+        private static string GetDescription(Exception exception)
+        {
+            const string CodeAnalysisNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis);
+
+            // Be resilient to failing here.  If we can't get a suitable name, just fall back to the standard name we
+            // used to report.
+            try
+            {
+                // walk up the stack looking for the first call from a type that isn't in the ErrorReporting namespace.
+                foreach (var frame in new StackTrace(exception).GetFrames())
+                {
+                    var method = frame.GetMethod();
+                    var methodName = method?.Name;
+                    if (methodName == null)
+                        continue;
+
+                    var declaringTypeName = method?.DeclaringType?.FullName;
+                    if (declaringTypeName == null)
+                        continue;
+
+                    if (!declaringTypeName.StartsWith(CodeAnalysisNamespace))
+                        continue;
+
+                    return declaringTypeName + "." + methodName;
+                }
+            }
+            catch
+            {
+            }
+
+            return "Roslyn NonFatal Watson";
         }
 
         private static List<string> CollectServiceHubLogFilePaths()

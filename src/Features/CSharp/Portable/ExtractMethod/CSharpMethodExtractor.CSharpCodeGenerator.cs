@@ -161,9 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var semanticModel = SemanticDocument.SemanticModel;
                 var context = InsertionPoint.GetContext();
                 var postProcessor = new PostProcessor(semanticModel, context.SpanStart);
-                var statements = SpecializedCollections.EmptyEnumerable<StatementSyntax>();
 
-                statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(statements, cancellationToken);
+                var statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(cancellationToken);
                 statements = postProcessor.MergeDeclarationStatements(statements);
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken);
                 statements = await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);

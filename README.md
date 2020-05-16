@@ -49,7 +49,7 @@ Want to start developing in C# and Visual Basic? Download [Visual Studio 2019](h
 also [prebuilt Azure VM images](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/category/compute?search=visual%20studio%202019) available with 
 Visual Studio 2019 already installed.
 
-To install the latest release without Visual Studio, download the [].NET SDK nightlies](https://github.com/dotnet/installer/blob/master/README.md#installers-and-binaries).
+To install the latest release without Visual Studio, download the [.NET SDK nightlies](https://github.com/dotnet/installer/blob/master/README.md#installers-and-binaries).
 
 See [what's new with the C# and VB compilers](https://github.com/dotnet/roslyn/wiki/Changelog-for-C%23-and-VB-compilers).
 

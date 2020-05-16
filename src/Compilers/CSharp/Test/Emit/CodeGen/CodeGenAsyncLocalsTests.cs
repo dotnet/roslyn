@@ -333,39 +333,39 @@ class C
             });
 
             vd.VerifyPdb("C.M", @"
-<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
-  <methods>
-    <method containingType=""C"" name=""M"" parameterNames=""disposable"">
-      <customDebugInfo>
-        <forwardIterator name=""&lt;M&gt;d__3"" />
-        <encLocalSlotMap>
-          <slot kind=""6"" offset=""11"" />
-          <slot kind=""8"" offset=""11"" />
-          <slot kind=""0"" offset=""11"" />
-          <slot kind=""4"" offset=""53"" />
-          <slot kind=""6"" offset=""98"" />
-          <slot kind=""8"" offset=""98"" />
-          <slot kind=""0"" offset=""98"" />
-          <slot kind=""4"" offset=""151"" />
-          <slot kind=""4"" offset=""220"" />
-          <slot kind=""28"" offset=""281"" />
-          <slot kind=""28"" offset=""281"" ordinal=""1"" />
-          <slot kind=""28"" offset=""261"" />
-          <slot kind=""28"" offset=""281"" ordinal=""2"" />
-          <slot kind=""28"" offset=""281"" ordinal=""3"" />
-          <slot kind=""28"" offset=""281"" ordinal=""4"" />
-          <slot kind=""4"" offset=""307"" />
-          <slot kind=""4"" offset=""376"" />
-          <slot kind=""3"" offset=""410"" />
-          <slot kind=""2"" offset=""410"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-    </method>
-  </methods>
-</symbols>
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name=""M"" parameterNames=""disposable"">
+          <customDebugInfo>
+            <forwardIterator name=""&lt;M&gt;d__3"" />
+            <encLocalSlotMap>
+              <slot kind=""6"" offset=""11"" />
+              <slot kind=""8"" offset=""11"" />
+              <slot kind=""0"" offset=""11"" />
+              <slot kind=""4"" offset=""53"" />
+              <slot kind=""6"" offset=""98"" />
+              <slot kind=""8"" offset=""98"" />
+              <slot kind=""0"" offset=""98"" />
+              <slot kind=""4"" offset=""151"" />
+              <slot kind=""4"" offset=""220"" />
+              <slot kind=""28"" offset=""261"" />
+              <slot kind=""28"" offset=""261"" ordinal=""1"" />
+              <slot kind=""28"" offset=""261"" ordinal=""2"" />
+              <slot kind=""28"" offset=""281"" />
+              <slot kind=""28"" offset=""281"" ordinal=""1"" />
+              <slot kind=""28"" offset=""281"" ordinal=""2"" />
+              <slot kind=""4"" offset=""307"" />
+              <slot kind=""4"" offset=""376"" />
+              <slot kind=""3"" offset=""410"" />
+              <slot kind=""2"" offset=""410"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+        </method>
+      </methods>
+    </symbols>
 ");
         }
 

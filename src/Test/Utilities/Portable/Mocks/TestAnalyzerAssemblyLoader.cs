@@ -12,6 +12,12 @@ namespace Roslyn.Test.Utilities
 {
     public class TestAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
     {
+        public static readonly IAnalyzerAssemblyLoader LoadFromFile =
+            new TestAnalyzerAssemblyLoader();
+
+        public static readonly IAnalyzerAssemblyLoader LoadNotImplemented =
+            new TestAnalyzerAssemblyLoader(loadFromPath: _ => throw new NotImplementedException());
+
         private readonly Action<string>? _addDependencyLocation;
         private readonly Func<string, Assembly>? _loadFromPath;
 

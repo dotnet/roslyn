@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
 
-                if (!service.ValidateTypeToGenerateIn(
-                        document.Project.Solution, TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
+                if (!service.ValidateTypeToGenerateIn(TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
                 {
                     return false;
                 }
@@ -338,7 +337,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         if (syntaxFacts.IsSimpleAssignmentStatement(siblingNode))
                         {
                             syntaxFacts.GetPartsOfAssignmentStatement(
-                                siblingNode, out var left, out var right);
+                                siblingNode, out var left, out _);
 
                             var symbol = semanticDocument.SemanticModel.GetSymbolInfo(left, cancellationToken).Symbol;
                             if (symbol?.Kind == symbolKind &&

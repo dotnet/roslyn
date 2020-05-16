@@ -8,8 +8,8 @@
         <dependency id="Microsoft.CodeAnalysis.EditorFeatures.Text" version="$Version$" />
         <dependency id="Microsoft.CodeAnalysis.Features" version="$Version$" />
         <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="$Version$" />
-        <dependency id="Microsoft.CSharp" version="$Version$" />
-        <dependency id="Microsoft.VisualStudio.Composition" version="$Version$" />
+        <dependency id="Microsoft.CSharp" version="$MicrosoftCSharpVersion$" />
+        <dependency id="Microsoft.VisualStudio.Composition" version="$MicrosoftVisualStudioCompositionVersion$" />
         <dependency id="System.Threading.Tasks.Dataflow" version="$SystemThreadingTasksDataflowVersion$" />
       </group>
     </dependencies>

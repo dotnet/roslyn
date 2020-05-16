@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             string commandLine = @"goo.cs";
             var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices); // includes non-portable services too
-            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory", ws);
+            _ = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory", ws);
         }
 
         [Fact]

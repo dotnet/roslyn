@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return result
         End Function
 
-        Private Function GetPostambleParts(namedType As INamedTypeSymbol) As IList(Of SymbolDisplayPart)
+        Private Function GetPostambleParts() As IList(Of SymbolDisplayPart)
             Return {Punctuation(SyntaxKind.CloseParenToken)}
         End Function
     End Class

@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(TSyntaxNode node)
             where TSyntaxNode : SyntaxNode
         {
-            return GetNodeWithoutLeadingBlankLines(node, out var blankLines);
+            return GetNodeWithoutLeadingBlankLines(node, out _);
         }
 
         public TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             TSyntaxNode node)
             where TSyntaxNode : SyntaxNode
         {
-            return GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out var strippedTrivia);
+            return GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out _);
         }
 
         public TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(

@@ -180,12 +180,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         [InlineData(null)]
         public void SetProperty_MaxSupportedLangVersion(LanguageVersion? maxSupportedLangVersion)
         {
-            var catalog = TestEnvironment.s_exportCatalog.Value
-                .WithParts(
-                    typeof(CSharpParseOptionsChangingService));
-
-            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
-            using var environment = new TestEnvironment(exportProviderFactory: factory);
+            using var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService));
 
             var hierarchy = environment.CreateHierarchy("CSharpProject", "Bin", projectRefPath: null, projectCapabilities: "CSharp");
             var storage = Assert.IsAssignableFrom<IVsBuildPropertyStorage>(hierarchy);
@@ -220,12 +215,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         [WpfFact]
         public void SetProperty_MaxSupportedLangVersion_NotSet()
         {
-            var catalog = TestEnvironment.s_exportCatalog.Value
-                .WithParts(
-                    typeof(CSharpParseOptionsChangingService));
-
-            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
-            using var environment = new TestEnvironment(exportProviderFactory: factory);
+            using var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService));
 
             var hierarchy = environment.CreateHierarchy("CSharpProject", "Bin", projectRefPath: null, projectCapabilities: "CSharp");
             var storage = Assert.IsAssignableFrom<IVsBuildPropertyStorage>(hierarchy);

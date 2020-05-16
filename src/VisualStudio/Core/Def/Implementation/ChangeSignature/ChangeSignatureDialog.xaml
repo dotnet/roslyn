@@ -59,7 +59,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" Height="Auto" Width="Auto" Padding="0,4,0,0" Text="{Binding ElementName=dialog, Path=Parameters}"/>
+        <TextBlock x:Name="ParametersTextBlock" Grid.Row="0" Height="Auto" Width="Auto" Padding="0,4,0,0" Text="{Binding ElementName=dialog, Path=Parameters}"/>
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition MinHeight="220"/>
@@ -73,6 +73,7 @@
             <DataGrid 
                 x:Uid="MemberSelectionList"
                 x:Name="Members"
+                AutomationProperties.LabeledBy="{Binding ElementName=ParametersTextBlock}"
                 Grid.Row="0"
                 Grid.Column="0"
                 Margin="0, 3, 0, 0"

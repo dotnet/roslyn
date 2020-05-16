@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";
             public const string CodeActionsAddNew = "CodeActions.AddNew";
+            public const string CodeActionsRemoveNewModifier = "CodeActions.RemoveNewModifier";
             public const string CodeActionsAddObsoleteAttribute = "CodeActions.AddObsoleteAttribute";
             public const string CodeActionsAddOverload = "CodeActions.AddOverloads";
             public const string CodeActionsAddParameter = "CodeActions.AddParameter";
@@ -103,7 +104,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInlineTemporary = "CodeActions.InlineTemporary";
             public const string CodeActionsInlineTypeCheck = "CodeActions.InlineTypeCheck";
             public const string CodeActionsInsertBraces = "CodeActions.InsertBraces";
-            public const string CodeActionsInsertMissingCast = "CodeActions.InsertMissingCast";
             public const string CodeActionsInsertMissingTokens = "CodeActions.InsertMissingTokens";
             public const string CodeActionsIntroduceLocalForExpression = "CodeActions.IntroduceLocalForExpression";
             public const string CodeActionsIntroduceUsingStatement = "CodeActions.IntroduceUsingStatement";

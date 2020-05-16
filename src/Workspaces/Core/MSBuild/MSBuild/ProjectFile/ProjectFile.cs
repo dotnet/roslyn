@@ -444,7 +444,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void RemoveProjectReference(string projectName, string projectFilePath)
         {
-            var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, projectFilePath);
             var item = FindProjectReferenceItem(projectName, projectFilePath);
             if (item != null)
             {

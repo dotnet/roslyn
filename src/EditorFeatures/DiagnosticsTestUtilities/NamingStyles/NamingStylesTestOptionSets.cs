@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 
         public OptionKey2 OptionKey => _optionKey;
 
-        internal OptionsCollection MergeStyles(OptionsCollection first, OptionsCollection second, string languageName)
+        internal OptionsCollection MergeStyles(OptionsCollection first, OptionsCollection second)
         {
             var firstPreferences = (NamingStylePreferences)first.First().Value;
             var secondPreferences = (NamingStylePreferences)second.First().Value;
