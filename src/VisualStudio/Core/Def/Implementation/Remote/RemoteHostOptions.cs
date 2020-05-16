@@ -8,6 +8,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -53,9 +54,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             nameof(InternalFeatureOnOffOptions), nameof(MaxPoolConnection), defaultValue: 15,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(MaxPoolConnection)));
 
-        public static bool IsServiceHubProcess64Bit(Workspace workspace)
-            => workspace.Options.GetOption(OOP64Bit) ||
-               workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RoslynOOP64bit);
+        public static bool IsServiceHubProcess64Bit(HostWorkspaceServices services)
+            => services.GetRequiredService<IOptionService>().GetOption(OOP64Bit) ||
+               services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RoslynOOP64bit);
     }
 
     [ExportOptionProvider, Shared]

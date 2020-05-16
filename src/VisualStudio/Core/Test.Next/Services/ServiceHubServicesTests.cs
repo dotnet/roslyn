@@ -115,7 +115,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 // sync
                 _ = await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.RemoteHostService,
+                    WellKnownServiceHubService.RemoteHost,
                     nameof(IRemoteHostService.SynchronizeTextAsync),
                     solution: null,
                     new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) },
@@ -152,7 +152,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
             using var session = await client.TryCreateKeepAliveSessionAsync(
-                WellKnownServiceHubServices.RemoteTodoCommentsService,
+                WellKnownServiceHubService.RemoteTodoCommentsService,
                 callback,
                 cancellationTokenSource.Token);
 
@@ -237,7 +237,7 @@ class Test { }");
 
             using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
             using var session = await client.TryCreateKeepAliveSessionAsync(
-                WellKnownServiceHubServices.RemoteDesignerAttributeService,
+                WellKnownServiceHubService.RemoteDesignerAttributeService,
                 callback,
                 cancellationTokenSource.Token);
 
@@ -481,7 +481,7 @@ class Test { }");
         private async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
         {
             Assert.True(await client.TryRunRemoteAsync(
-                WellKnownServiceHubServices.RemoteHostService,
+                WellKnownServiceHubService.RemoteHost,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 solution,
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },

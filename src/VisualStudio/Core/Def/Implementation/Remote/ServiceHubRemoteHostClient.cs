@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
                 WatsonReporter.InitializeLogger(hubClient.Logger);
 
-                var remoteHostStream = await RequestServiceAsync(workspace.Services, hubClient, WellKnownServiceHubServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
+                var remoteHostStream = await RequestServiceAsync(workspace.Services, hubClient, WellKnownServiceHubService.RemoteHost, hostGroup, cancellationToken).ConfigureAwait(false);
 
                 var client = new ServiceHubRemoteHostClient(workspace, hubClient, hostGroup, remoteHostStream);
 
@@ -109,11 +109,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public static async Task<Stream> RequestServiceAsync(
             HostWorkspaceServices services,
             HubClient client,
-            string serviceName,
+            RemoteServiceName serviceName,
             HostGroup hostGroup,
             CancellationToken cancellationToken)
         {
-            var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
+            var is64bit = RemoteHostOptions.IsServiceHubProcess64Bit(services);
+
+            var descriptor = new ServiceDescriptor(serviceName.ToString(is64bit)) { HostGroup = hostGroup };
             try
             {
                 return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
@@ -150,20 +152,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public HostGroup HostGroup => _hostGroup;
 
         public override string ClientId => _hostGroup.Id;
-        public override bool IsRemoteHost64Bit => RemoteHostOptions.IsServiceHubProcess64Bit(Workspace);
 
-        protected override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+        protected override Task<Connection?> TryCreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
+            var serviceNameString = serviceName.ToString(RemoteHostOptions.IsServiceHubProcess64Bit(Workspace.Services));
+
             // When callbackTarget is given, we can't share/pool connection since callbackTarget attaches a state to connection.
             // so connection is only valid for that specific callbackTarget. it is up to the caller to keep connection open
             // if he wants to reuse same connection.
 
             if (callbackTarget == null && _connectionPool != null)
             {
-                return _connectionPool.GetOrCreateConnectionAsync(serviceName, cancellationToken).AsNullable();
+                return _connectionPool.GetOrCreateConnectionAsync(serviceNameString, cancellationToken).AsNullable();
             }
 
-            return CreateConnectionAsync(serviceName, callbackTarget, cancellationToken).AsNullable();
+            return CreateConnectionAsync(serviceNameString, callbackTarget, cancellationToken).AsNullable();
         }
 
         private async Task<Connection> CreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -63,8 +64,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }
 
                     // We enable the remote host if either RemoteHostTest or RemoteHost are on.
-                    if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest) &&
-                        !_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
+                    var optionsService = _workspace.Services.GetRequiredService<IOptionService>();
+                    if (!optionsService.GetOption(RemoteHostOptions.RemoteHostTest) &&
+                        !optionsService.GetOption(RemoteHostOptions.RemoteHost))
                     {
                         // not turned on
                         return;
@@ -80,8 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         return;
                     }
 
-                    // set bitness
-                    SetRemoteHostBitness();
+                    // log OOP bitness
+                    Logger.Log(FunctionId.RemoteHost_Bitness,
+                        KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = RemoteHostOptions.IsServiceHubProcess64Bit(_workspace.Services)));
 
                     // make sure we run it on background thread
                     _shutdownCancellationTokenSource = new CancellationTokenSource();
@@ -148,8 +151,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             bool IRemoteHostClientService.IsEnabled()
             {
                 // We enable the remote host if either RemoteHostTest or RemoteHost are on.
-                if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest)
-                    && !_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
+                var optionsService = _workspace.Services.GetRequiredService<IOptionService>();
+                if (!optionsService.GetOption(RemoteHostOptions.RemoteHostTest)
+                    && !optionsService.GetOption(RemoteHostOptions.RemoteHost))
                 {
                     // not turned on
                     return false;
@@ -182,17 +186,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
 
                 return remoteClientTask;
-            }
-
-            private void SetRemoteHostBitness()
-            {
-                bool x64 = RemoteHostOptions.IsServiceHubProcess64Bit(_workspace);
-
-                // log OOP bitness
-                Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = x64));
-
-                // set service bitness
-                WellKnownServiceHubServices.Set64bit(x64);
             }
 
             private async Task<RemoteHostClient?> EnableAsync(CancellationToken cancellationToken)
