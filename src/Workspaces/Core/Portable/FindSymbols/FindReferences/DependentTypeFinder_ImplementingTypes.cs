@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken);
         }
 
-        private static async Task<ImmutableArray<INamedTypeSymbol>> FindWithoutCachingImplementingTypesAsync(
+        private static async Task<ImmutableArray<(INamedTypeSymbol, Project)>> FindWithoutCachingImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -88,13 +90,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // FindDerivedInterfacesAsync.  Delegates/Enums only happen in a few corner cases.  For example, enums
                 // implement IComparable, and delegates implement ICloneable.
                 return allTypes.WhereAsArray(
-                    t => t.TypeKind == TypeKind.Class ||
-                         t.TypeKind == TypeKind.Struct ||
-                         t.TypeKind == TypeKind.Delegate ||
-                         t.TypeKind == TypeKind.Enum);
+                    t => t.type.TypeKind == TypeKind.Class ||
+                         t.type.TypeKind == TypeKind.Struct ||
+                         t.type.TypeKind == TypeKind.Delegate ||
+                         t.type.TypeKind == TypeKind.Enum);
             }
 
-            return ImmutableArray<INamedTypeSymbol>.Empty;
+            return ImmutableArray<(INamedTypeSymbol, Project)>.Empty;
         }
     }
 }

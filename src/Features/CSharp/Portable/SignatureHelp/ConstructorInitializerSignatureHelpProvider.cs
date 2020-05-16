@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo);
 
             return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(c =>
-                Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
+                Convert(c, constructorInitializer.ArgumentList.OpenParenToken, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
         }
 
@@ -126,8 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             SyntaxToken openToken,
             SemanticModel semanticModel,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
-            CancellationToken cancellationToken)
+            IDocumentationCommentFormattingService documentationCommentFormattingService)
         {
             var position = openToken.SpanStart;
             var item = CreateItem(
@@ -137,8 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(constructor, semanticModel, position),
                 GetSeparatorParts(),
-                GetPostambleParts(constructor),
-                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                GetPostambleParts(),
+                constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
             return item;
         }
 
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method)
+        private IList<SymbolDisplayPart> GetPostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseParenToken));

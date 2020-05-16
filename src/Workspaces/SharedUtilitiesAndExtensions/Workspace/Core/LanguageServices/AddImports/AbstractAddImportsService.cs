@@ -96,7 +96,8 @@ namespace Microsoft.CodeAnalysis.AddImports
 
             switch (import)
             {
-                case TExternSyntax e: return externContainer;
+                case TExternSyntax _:
+                    return externContainer;
                 case TUsingOrAliasSyntax u:
                     if (IsAlias(u))
                     {

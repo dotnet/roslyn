@@ -313,13 +313,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title));
         }
 
-        internal async Task TestInRegularAndScript1Async(
+        internal Task TestInRegularAndScript1Async(
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
             TestParameters parameters = default)
         {
-            parameters = parameters.WithIndex(index);
+            return TestInRegularAndScript1Async(initialMarkup, expectedMarkup, parameters.WithIndex(index));
+        }
+
+        internal async Task TestInRegularAndScript1Async(
+            string initialMarkup,
+            string expectedMarkup,
+            TestParameters parameters)
+        {
             await TestAsync(initialMarkup, expectedMarkup, WithRegularOptions(parameters));
             await TestAsync(initialMarkup, expectedMarkup, WithScriptOptions(parameters));
         }
@@ -472,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var operations = await VerifyActionAndGetOperationsAsync(workspace, action, parameters);
             return await TestOperationsAsync(
                 workspace, expected, operations, conflictSpans, renameSpans,
-                warningSpans, navigationSpans, expectedChangedDocumentId: null, parseOptions: parameters.parseOptions);
+                warningSpans, navigationSpans, expectedChangedDocumentId: null);
         }
 
         protected async Task<Tuple<Solution, Solution>> TestOperationsAsync(
@@ -483,8 +490,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<TextSpan> renameSpans,
             ImmutableArray<TextSpan> warningSpans,
             ImmutableArray<TextSpan> navigationSpans,
-            DocumentId expectedChangedDocumentId,
-            ParseOptions parseOptions = null)
+            DocumentId expectedChangedDocumentId)
         {
             var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
             var oldSolution = appliedChanges.Item1;

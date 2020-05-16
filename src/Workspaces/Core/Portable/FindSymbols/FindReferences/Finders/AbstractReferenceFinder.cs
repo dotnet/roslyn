@@ -194,14 +194,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return ImmutableArray<SyntaxToken>.Empty;
 
             var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
             SourceText text = null;
             if (!info.ProbablyContainsEscapedIdentifier(identifier))
                 text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             return FindReferenceCache.GetIdentifierOrGlobalNamespaceTokensWithText(
-                syntaxFacts, document, version, semanticModel, root, text, identifier, cancellationToken);
+                syntaxFacts, semanticModel, root, text, identifier, cancellationToken);
         }
 
         protected static Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> GetStandardSymbolsMatchFunction(
@@ -263,7 +262,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         var location = token.GetLocation();
                         var symbolUsageInfo = GetSymbolUsageInfo(token.Parent, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
 
-                        var isWrittenTo = symbolUsageInfo.IsWrittenTo();
                         locations.Add(new FinderLocation(token.Parent, new ReferenceLocation(
                             document, alias, location, isImplicit: false,
                             symbolUsageInfo, GetAdditionalFindUsagesProperties(token.Parent, semanticModel, syntaxFacts), candidateReason: reason)));
@@ -433,6 +431,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected Task<ImmutableArray<Document>> FindDocumentsWithAwaitExpressionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
             => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsAwait, cancellationToken);
 
+        protected Task<ImmutableArray<Document>> FindDocumentsWithImplicitObjectCreationExpressionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+            => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsImplicitObjectCreation, cancellationToken);
+
         /// <summary>
         /// If the `node` implicitly matches the `symbol`, then it will be added to `locations`.
         /// </summary>
@@ -554,6 +555,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var awaitExpressionMethod = semanticFacts.GetGetAwaiterMethod(semanticModel, node);
 
                 if (Matches(awaitExpressionMethod, originalUnreducedSymbolDefinition))
+                {
+                    var location = node.GetFirstToken().GetLocation();
+                    var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
+
+                    locations.Add(new FinderLocation(node, new ReferenceLocation(
+                        document, alias: null, location, isImplicit: true, symbolUsageInfo, GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts), CandidateReason.None)));
+                }
+            }
+        }
+
+        protected Task<ImmutableArray<FinderLocation>> FindReferencesInImplicitObjectCreationExpressionAsync(
+            ISymbol symbol,
+            Document document,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            return FindReferencesInDocumentAsync(symbol, document, IsRelevantDocument, CollectMatchingReferences, cancellationToken);
+
+            static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
+                => syntaxTreeInfo.ContainsImplicitObjectCreation;
+
+            void CollectMatchingReferences(ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
+                ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations)
+            {
+                var constructor = semanticModel.GetSymbolInfo(node).Symbol;
+
+                if (Matches(constructor, originalUnreducedSymbolDefinition))
                 {
                     var location = node.GetFirstToken().GetLocation();
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);

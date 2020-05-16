@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Debug.Assert(_applyChangesProjectFile != null);
 
             var project = this.CurrentSolution.GetProject(info.Id.ProjectId);
-            if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(project.FilePath, out var loader))
+            if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(project.FilePath, out _))
             {
                 var extension = _applyChangesProjectFile.GetDocumentExtension(info.SourceCodeKind);
                 var fileName = Path.ChangeExtension(info.Name, extension);

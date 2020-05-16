@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var generateIntoContaining = IsGeneratingIntoContainingNamespace(document, node, state, cancellationToken);
 
                 if ((isSimpleName || generateIntoContaining) &&
-                    CanGenerateIntoContainingNamespace(document, node, state, cancellationToken))
+                    CanGenerateIntoContainingNamespace(document, node, cancellationToken))
                 {
                     result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: false));
                 }
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             return result.ToImmutableAndFree();
         }
 
-        private bool CanGenerateIntoContainingNamespace(SemanticDocument semanticDocument, SyntaxNode node, State state, CancellationToken cancellationToken)
+        private bool CanGenerateIntoContainingNamespace(SemanticDocument semanticDocument, SyntaxNode node, CancellationToken cancellationToken)
         {
             var containingNamespace = semanticDocument.SemanticModel.GetEnclosingNamespace(node.SpanStart, cancellationToken);
 

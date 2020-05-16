@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             if (response.Type != BuildResponse.ResponseType.Completed)
             {
-                ValidateBootstrapUtil.AddFailedServerConnection();
+                ValidateBootstrapUtil.AddFailedServerConnection(response.Type, OutputAssembly?.ItemSpec);
             }
 
             switch (response.Type)

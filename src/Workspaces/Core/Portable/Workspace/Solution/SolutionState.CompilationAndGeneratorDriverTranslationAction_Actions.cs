@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis
             internal sealed class AddAdditionalDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
 #pragma warning disable IDE0052 // Remove unread private members
-                // PROTOTYPE: right now there is no way to tell a GeneratorDriver that an additional file has been added
+                // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an additional file has been added
                 private readonly ImmutableArray<TextDocumentState> _additionalDocuments;
 #pragma warning restore IDE0052 // Remove unread private members
 
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
 
                 public override TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
                 {
-                    // PROTOTYPE: right now there is no way to tell a GeneratorDriver that an additional file has been added
+                    // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an additional file has been added
                     // to allow for incremental updates: our only option is to recreate the generator driver from scratch.
                     // return generatorDriver.WithPendingEdits(_additionalDocuments.SelectAsArray(a => (PendingEdit)new AdditionalFileAddedEdit(new AdditionalTextWithState(a))));
                     return new TrackedGeneratorDriver(generatorDriver: null);
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis
             internal sealed class RemoveAdditionalDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
 #pragma warning disable IDE0052 // Remove unread private members
-                // PROTOTYPE: right now there is no way to tell a GeneratorDriver that an additional file has been added
+                // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an additional file has been added
                 private readonly ImmutableArray<TextDocumentState> _additionalDocuments;
 #pragma warning restore IDE0052 // Remove unread private members
 
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
 
                 public override TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
                 {
-                    // PROTOTYPE: right now there is no way to tell a GeneratorDriver that an additional file has been removed
+                    // https://github.com/dotnet/roslyn/issues/44161: right now there is no way to tell a GeneratorDriver that an additional file has been removed
                     // to allow for incremental updates: our only option is to recreate the generator driver from scratch.
                     // return generatorDriver.WithPendingEdits(_additionalDocuments.SelectAsArray(a => (PendingEdit)new AdditionalFileRemovedEdit(...)));
                     return new TrackedGeneratorDriver(generatorDriver: null);

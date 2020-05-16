@@ -72,8 +72,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
 
                 cancellationToken.ThrowIfCancellationRequested();
                 TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
-                if (!service.ValidateTypeToGenerateIn(
-                        document.Project.Solution, TypeToGenerateIn, true, EnumType))
+                if (!service.ValidateTypeToGenerateIn(TypeToGenerateIn, true, EnumType))
                 {
                     return false;
                 }

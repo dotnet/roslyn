@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static void LogActiveFileEnqueue(LogAggregator logAggregator)
             => logAggregator.IncreaseCount(ActiveFileEnqueue);
 
-        public static void LogWorkItemEnqueue(LogAggregator logAggregator, ProjectId projectId)
+        public static void LogWorkItemEnqueue(LogAggregator logAggregator, ProjectId _)
             => logAggregator.IncreaseCount(ProjectEnqueue);
 
         public static void LogWorkItemEnqueue(
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             logAggregator.IncreaseCount(ValueTuple.Create(OpenDocument, documentId));
         }
 
-        public static void LogProcessActiveFileDocument(LogAggregator logAggregator, Guid documentId, bool processed)
+        public static void LogProcessActiveFileDocument(LogAggregator logAggregator, Guid _, bool processed)
         {
             if (processed)
             {
