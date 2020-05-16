@@ -712,7 +712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim builder = ImmutableDictionary.CreateBuilder(Of String, String)()
 
             builder.Add("checked", Options.CheckOverflow.ToString())
-            builder.Add("nullable", "disable")
+            builder.Add("nullable", NullableContextOptions.Disable.ToString())
             builder.Add("unsafe", Boolean.FalseString)
             builder.Add("langversion", LanguageVersion.ToDisplayString())
 
