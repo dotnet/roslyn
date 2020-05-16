@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 });
 
             // Assert it's either cancellation or aggregate exception
-            Assert.True(thrownException is OperationCanceledException || ((AggregateException)thrownException).Flatten().InnerException is OperationCanceledException);
+            Assert.True(thrownException is OperationCanceledException || ((AggregateException)thrownException).InnerException is OperationCanceledException);
 
             // And a second request. We'll let this one complete normally.
             var secondRequestResult = doGetValue(lazy, CancellationToken.None);
@@ -73,6 +73,34 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var secondRequestResult = lazy.GetValue(CancellationToken.None);
 
             Assert.Same(secondRequestResult, firstRequestResult);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task AwaitingProducesCorrectException(bool producerAsync, bool consumerAsync)
+        {
+            var exception = new ArgumentException();
+            Func<CancellationToken, Task<object>> asynchronousComputeFunction =
+                async cancellationToken =>
+                {
+                    await Task.Yield();
+                    throw exception;
+                };
+            Func<CancellationToken, object> synchronousComputeFunction =
+                cancellationToken =>
+                {
+                    throw exception;
+                };
+
+            var lazy = producerAsync
+                ? new AsyncLazy<object>(asynchronousComputeFunction, cacheResult: true)
+                : new AsyncLazy<object>(asynchronousComputeFunction, synchronousComputeFunction, cacheResult: true);
+
+            var actual = consumerAsync
+                ? await Assert.ThrowsAsync<ArgumentException>(async () => await lazy.GetValueAsync(CancellationToken.None))
+                : Assert.Throws<ArgumentException>(() => lazy.GetValue(CancellationToken.None));
+
+            Assert.Same(exception, actual);
         }
     }
 }
