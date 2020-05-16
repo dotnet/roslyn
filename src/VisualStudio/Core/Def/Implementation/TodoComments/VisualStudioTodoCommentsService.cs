@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _ = ArrayBuilder<DocumentAndComments>.GetInstance(out var filteredArray);
+            using var _1 = ArrayBuilder<DocumentAndComments>.GetInstance(out var filteredArray);
             AddFilteredInfos(docAndCommentsArray, filteredArray);
 
             foreach (var docAndComments in filteredArray)
@@ -141,7 +141,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
                 // only one thread can be executing ProcessTodoCommentInfosAsync at a time,
                 // so it's safe to remove/add here.
-                _documentToInfos[documentId] = newComments;
+                if (newComments.IsEmpty)
+                {
+                    _documentToInfos.TryRemove(documentId, out _);
+                }
+                else
+                {
+                    _documentToInfos[documentId] = newComments;
+                }
 
                 // If we have someone listening for updates, and our new items are different from
                 // our old ones, then notify them of the change.
@@ -186,15 +193,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         {
             // Don't need to implement this.  OOP pushes all items over to VS.  So there's no need
             return SpecializedCollections.EmptyEnumerable<UpdatedEventArgs>();
-        }
-
-        /// <summary>
-        /// Callback from the OOP service back into us.
-        /// </summary>
-        public Task OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken)
-        {
-            _documentToInfos.TryRemove(documentId, out _);
-            return Task.CompletedTask;
         }
 
         /// <summary>
