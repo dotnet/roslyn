@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember
         };
 
         protected bool ValidateTypeToGenerateIn(
-            Solution solution,
             INamedTypeSymbol typeToGenerateIn,
             bool isStatic,
             ISet<TypeKind> typeKinds)

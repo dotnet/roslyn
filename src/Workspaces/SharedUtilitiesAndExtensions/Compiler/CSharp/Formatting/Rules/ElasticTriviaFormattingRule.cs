@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 basePropertyDeclaration.AccessorList.Accessors.All(a => a.Body == null) &&
                 basePropertyDeclaration.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Any())
             {
-                var tokens = basePropertyDeclaration.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
+                var (firstToken, lastToken) = basePropertyDeclaration.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
 
-                list.Add(FormattingOperations.CreateSuppressOperation(tokens.Item1, tokens.Item2, SuppressOption.NoWrapping | SuppressOption.IgnoreElasticWrapping));
+                list.Add(FormattingOperations.CreateSuppressOperation(firstToken, lastToken, SuppressOption.NoWrapping | SuppressOption.IgnoreElasticWrapping));
             }
         }
 

@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                                                                         .ToList();
 
                 var platformData = new SupportedPlatformData(invalidProjectsForCurrentSymbol, totalProjects, document.Project.Solution.Workspace);
-                finalItems.Add(UpdateItem(item, platformData, expectedSymbol));
+                finalItems.Add(UpdateItem(item, platformData));
             }
 
             return new SignatureHelpItems(
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return resultSets;
         }
 
-        private SignatureHelpItem UpdateItem(SignatureHelpItem item, SupportedPlatformData platformData, ISymbol symbol)
+        private SignatureHelpItem UpdateItem(SignatureHelpItem item, SupportedPlatformData platformData)
         {
             var platformParts = platformData.ToDisplayParts().ToTaggedText();
             if (platformParts.Length == 0)

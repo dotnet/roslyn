@@ -106,7 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             var declaratorLocation = diagnostic.AdditionalLocations[0];
             var identifierLocation = diagnostic.AdditionalLocations[1];
             var invocationOrCreationLocation = diagnostic.AdditionalLocations[2];
-            var outArgumentContainingStatementLocation = diagnostic.AdditionalLocations[3];
 
             var declarator = (VariableDeclaratorSyntax)declaratorLocation.FindNode(cancellationToken);
             var identifier = (IdentifierNameSyntax)identifierLocation.FindNode(cancellationToken);

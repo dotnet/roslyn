@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
         {
             if (trigger.Kind != CompletionTriggerKind.Snippets)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var token = tree
                     .FindTokenOnLeftOfPosition(position, cancellationToken)

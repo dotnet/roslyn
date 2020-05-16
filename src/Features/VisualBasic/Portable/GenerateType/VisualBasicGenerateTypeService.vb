@@ -457,7 +457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
         Private Function GetDeclaringNamespace(containers As List(Of String), indexDone As Integer, compilationUnit As CompilationUnitSyntax) As NamespaceStatementSyntax
             For Each member In compilationUnit.Members
-                Dim namespaceDeclaration = GetDeclaringNamespace(containers, 0, member)
+                Dim namespaceDeclaration = GetDeclaringNamespace(containers, indexDone, member)
                 If namespaceDeclaration IsNot Nothing Then
                     Return namespaceDeclaration
                 End If
@@ -711,8 +711,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                                                       typeInferenceService As ITypeInferenceService,
                                                       cancellationToken As CancellationToken,
                                                       ByRef propertySymbol As IPropertySymbol) As Boolean
-            propertySymbol = Nothing
-
             Dim typeSymbol = GetPropertyType(propertyName, semanticModel, typeInferenceService, cancellationToken)
             If typeSymbol Is Nothing OrElse TypeOf typeSymbol Is IErrorTypeSymbol Then
                 propertySymbol = GenerateProperty(propertyName, semanticModel.Compilation.ObjectType)

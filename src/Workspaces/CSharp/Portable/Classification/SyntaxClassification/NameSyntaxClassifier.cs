@@ -214,11 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForMethod(methodSymbol));
                     return true;
-                case IPropertySymbol propertySymbol:
+                case IPropertySymbol _:
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.PropertyName);
                     return true;
-                case IEventSymbol eventSymbol:
+                case IEventSymbol _:
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.EventName);
                     return true;
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForLocal(localSymbol));
                     return true;
-                case ILabelSymbol labelSymbol:
+                case ILabelSymbol _:
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.LabelName);
                     return true;

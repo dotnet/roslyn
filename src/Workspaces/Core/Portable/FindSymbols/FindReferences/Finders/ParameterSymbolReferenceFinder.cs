@@ -226,9 +226,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 if (containingMethod.AssociatedSymbol is IPropertySymbol property)
                 {
-                    AddParameterAtIndex(
-                        parameter, results,
-                        ordinal, property.Parameters);
+                    AddParameterAtIndex(results, ordinal, property.Parameters);
                 }
             }
             else if (containingSymbol is IPropertySymbol containingProperty)
@@ -261,24 +259,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         var beginInvokeMethod = containingType.GetMembers(WellKnownMemberNames.DelegateBeginInvokeName)
                                                               .OfType<IMethodSymbol>()
                                                               .FirstOrDefault();
-                        AddParameterAtIndex(
-                            parameter, results,
-                            ordinal, beginInvokeMethod?.Parameters);
+                        AddParameterAtIndex(results, ordinal, beginInvokeMethod?.Parameters);
                     }
                     else if (containingMethod.ContainingType.IsDelegateType() &&
                              containingMethod.Name == WellKnownMemberNames.DelegateBeginInvokeName)
                     {
                         // cascade to the corresponding parameter in the Invoke method.
-                        AddParameterAtIndex(
-                            parameter, results,
-                            ordinal, containingType.DelegateInvokeMethod?.Parameters);
+                        AddParameterAtIndex(results, ordinal, containingType.DelegateInvokeMethod?.Parameters);
                     }
                 }
             }
         }
 
         private static void AddParameterAtIndex(
-            IParameterSymbol parameter,
             ArrayBuilder<ISymbol> results,
             int ordinal,
             ImmutableArray<IParameterSymbol>? parameters)

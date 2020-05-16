@@ -116,10 +116,13 @@ namespace Microsoft.CodeAnalysis
             return new Project(solution, state);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter 'cancellationToken' - shipped public API
         /// <summary>
         /// Gets the <see cref="Project"/> associated with an assembly symbol.
         /// </summary>
-        public Project? GetProject(IAssemblySymbol assemblySymbol, CancellationToken cancellationToken = default)
+        public Project? GetProject(IAssemblySymbol assemblySymbol,
+            CancellationToken cancellationToken = default)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var projectState = _state.GetProjectState(assemblySymbol);
 

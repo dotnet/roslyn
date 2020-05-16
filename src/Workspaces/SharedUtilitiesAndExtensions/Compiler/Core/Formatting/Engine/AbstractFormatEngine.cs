@@ -209,14 +209,14 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // pre-allocate list once. this is cheaper than re-adjusting list as items are added.
                 var list = new TokenPairWithOperations[tokenStream.TokenCount - 1];
 
-                foreach (var pair in tokenStream.TokenIterator)
+                foreach (var (index, currentToken, nextToken) in tokenStream.TokenIterator)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var spaceOperation = _formattingRules.GetAdjustSpacesOperation(pair.Item2, pair.Item3);
-                    var lineOperation = _formattingRules.GetAdjustNewLinesOperation(pair.Item2, pair.Item3);
+                    var spaceOperation = _formattingRules.GetAdjustSpacesOperation(currentToken, nextToken);
+                    var lineOperation = _formattingRules.GetAdjustNewLinesOperation(currentToken, nextToken);
 
-                    list[pair.Item1] = new TokenPairWithOperations(tokenStream, pair.Item1, spaceOperation, lineOperation);
+                    list[index] = new TokenPairWithOperations(tokenStream, index, spaceOperation, lineOperation);
                 }
 
                 return list;
