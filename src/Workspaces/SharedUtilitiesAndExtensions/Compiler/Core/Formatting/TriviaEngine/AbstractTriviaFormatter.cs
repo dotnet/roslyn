@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var lines = GetRuleLines(rule, lineColumnAfterTrivia1, existingWhitespaceBetween);
-            var spaceOrIndentations = GetRuleSpacesOrIndentation(lineColumnBeforeTrivia1, trivia1, lineColumnAfterTrivia1, existingWhitespaceBetween, trivia2, rule);
+            var spaceOrIndentations = GetRuleSpacesOrIndentation(lineColumnBeforeTrivia1, lineColumnAfterTrivia1, existingWhitespaceBetween, trivia2, rule);
 
             return new LineColumnDelta(
                 lines,
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         private int GetRuleSpacesOrIndentation(
-            LineColumn lineColumnBeforeTrivia1, SyntaxTrivia trivia1, LineColumn lineColumnAfterTrivia1, LineColumnDelta existingWhitespaceBetween, SyntaxTrivia trivia2, LineColumnRule rule)
+            LineColumn lineColumnBeforeTrivia1, LineColumn lineColumnAfterTrivia1, LineColumnDelta existingWhitespaceBetween, SyntaxTrivia trivia2, LineColumnRule rule)
         {
             var lineColumnAfterExistingWhitespace = lineColumnAfterTrivia1.With(existingWhitespaceBetween);
 

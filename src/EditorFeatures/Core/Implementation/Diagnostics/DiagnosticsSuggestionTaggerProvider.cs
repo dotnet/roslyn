@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -45,8 +47,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
             => diagnostic.Severity == DiagnosticSeverity.Info;
 
-        protected override IErrorTag CreateTag(DiagnosticData diagnostic) =>
-            new ErrorTag(PredefinedErrorTypeNames.HintedSuggestion, diagnostic.Message);
+        protected override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)
+            => new ErrorTag(
+                PredefinedErrorTypeNames.HintedSuggestion,
+                CreateToolTipContent(workspace, diagnostic));
 
         protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan, int minimumLength)
         {

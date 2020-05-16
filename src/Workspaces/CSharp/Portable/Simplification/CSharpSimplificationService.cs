@@ -183,7 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 if (diagnostic.Id == s_CS8019_UnusedUsingDirective)
                 {
-
                     if (root.FindNode(diagnostic.Location.SourceSpan) is UsingDirectiveSyntax node)
                     {
                         namespaceImports.Add(node);

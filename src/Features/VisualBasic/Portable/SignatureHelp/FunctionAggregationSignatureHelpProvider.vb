@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
-                accessibleMethods.Select(Function(m) Convert(m, functionAggregation, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
+                accessibleMethods.Select(Function(m) Convert(m, functionAggregation, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
@@ -96,22 +96,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                            functionAggregation As FunctionAggregationSyntax,
                                            semanticModel As SemanticModel,
                                            anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                           documentationCommentFormattingService As IDocumentationCommentFormattingService,
-                                           cancellationToken As CancellationToken) As SignatureHelpItem
+                                           documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim position = functionAggregation.SpanStart
             Dim item = CreateItem(
                 method, semanticModel, position,
                 anonymousTypeDisplayService,
                 False,
                 method.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
-                GetPreambleParts(method, semanticModel, position),
+                GetPreambleParts(method),
                 GetSeparatorParts(),
                 GetPostambleParts(method, semanticModel, position),
-                GetParameterParts(method, semanticModel, position, documentationCommentFormattingService, cancellationToken))
+                GetParameterParts(method, semanticModel, position, documentationCommentFormattingService))
             Return item
         End Function
 
-        Private Function GetPreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+        Private Function GetPreambleParts(method As IMethodSymbol) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
             AddExtensionPreamble(method, result)
             result.AddMethodName(method.Name)
@@ -136,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         End Function
 
         Private Function GetParameterParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer,
-                                           documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As IList(Of SignatureHelpSymbolParameter)
+                                           documentationCommentFormattingService As IDocumentationCommentFormattingService) As IList(Of SignatureHelpSymbolParameter)
             ' Function <name>() As <type>
             If method.Parameters.Length <> 1 Then
                 Return SpecializedCollections.EmptyList(Of SignatureHelpSymbolParameter)()

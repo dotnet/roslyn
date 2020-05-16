@@ -4410,17 +4410,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDecisionDag : BoundNode
     {
-        public BoundDecisionDag(SyntaxNode syntax, BoundDecisionDagNode rootNode, bool hasErrors)
-            : base(BoundKind.DecisionDag, syntax, hasErrors)
-        {
-
-            RoslynDebug.Assert(rootNode is object, "Field 'rootNode' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-
-            this.RootNode = rootNode;
-        }
-
-        public BoundDecisionDag(SyntaxNode syntax, BoundDecisionDagNode rootNode)
-            : base(BoundKind.DecisionDag, syntax)
+        public BoundDecisionDag(SyntaxNode syntax, BoundDecisionDagNode rootNode, bool hasErrors = false)
+            : base(BoundKind.DecisionDag, syntax, hasErrors || rootNode.HasErrors())
         {
 
             RoslynDebug.Assert(rootNode is object, "Field 'rootNode' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4445,23 +4436,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal abstract partial class BoundDecisionDagNode  : BoundNode
+    internal abstract partial class BoundDecisionDagNode : BoundNode
     {
-        protected BoundDecisionDagNode (BoundKind kind, SyntaxNode syntax, bool hasErrors)
+        protected BoundDecisionDagNode(BoundKind kind, SyntaxNode syntax, bool hasErrors)
             : base(kind, syntax, hasErrors)
         {
         }
 
-        protected BoundDecisionDagNode (BoundKind kind, SyntaxNode syntax)
+        protected BoundDecisionDagNode(BoundKind kind, SyntaxNode syntax)
             : base(kind, syntax)
         {
         }
 
     }
 
-    internal sealed partial class BoundEvaluationDecisionDagNode : BoundDecisionDagNode 
+    internal sealed partial class BoundEvaluationDecisionDagNode : BoundDecisionDagNode
     {
-        public BoundEvaluationDecisionDagNode(SyntaxNode syntax, BoundDagEvaluation evaluation, BoundDecisionDagNode  next, bool hasErrors = false)
+        public BoundEvaluationDecisionDagNode(SyntaxNode syntax, BoundDagEvaluation evaluation, BoundDecisionDagNode next, bool hasErrors = false)
             : base(BoundKind.EvaluationDecisionDagNode, syntax, hasErrors || evaluation.HasErrors() || next.HasErrors())
         {
 
@@ -4475,11 +4466,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDagEvaluation Evaluation { get; }
 
-        public BoundDecisionDagNode  Next { get; }
+        public BoundDecisionDagNode Next { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitEvaluationDecisionDagNode(this);
 
-        public BoundEvaluationDecisionDagNode Update(BoundDagEvaluation evaluation, BoundDecisionDagNode  next)
+        public BoundEvaluationDecisionDagNode Update(BoundDagEvaluation evaluation, BoundDecisionDagNode next)
         {
             if (evaluation != this.Evaluation || next != this.Next)
             {
@@ -4491,9 +4482,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundTestDecisionDagNode : BoundDecisionDagNode 
+    internal sealed partial class BoundTestDecisionDagNode : BoundDecisionDagNode
     {
-        public BoundTestDecisionDagNode(SyntaxNode syntax, BoundDagTest test, BoundDecisionDagNode  whenTrue, BoundDecisionDagNode  whenFalse, bool hasErrors = false)
+        public BoundTestDecisionDagNode(SyntaxNode syntax, BoundDagTest test, BoundDecisionDagNode whenTrue, BoundDecisionDagNode whenFalse, bool hasErrors = false)
             : base(BoundKind.TestDecisionDagNode, syntax, hasErrors || test.HasErrors() || whenTrue.HasErrors() || whenFalse.HasErrors())
         {
 
@@ -4509,13 +4500,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDagTest Test { get; }
 
-        public BoundDecisionDagNode  WhenTrue { get; }
+        public BoundDecisionDagNode WhenTrue { get; }
 
-        public BoundDecisionDagNode  WhenFalse { get; }
+        public BoundDecisionDagNode WhenFalse { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTestDecisionDagNode(this);
 
-        public BoundTestDecisionDagNode Update(BoundDagTest test, BoundDecisionDagNode  whenTrue, BoundDecisionDagNode  whenFalse)
+        public BoundTestDecisionDagNode Update(BoundDagTest test, BoundDecisionDagNode whenTrue, BoundDecisionDagNode whenFalse)
         {
             if (test != this.Test || whenTrue != this.WhenTrue || whenFalse != this.WhenFalse)
             {
@@ -4527,9 +4518,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundWhenDecisionDagNode : BoundDecisionDagNode 
+    internal sealed partial class BoundWhenDecisionDagNode : BoundDecisionDagNode
     {
-        public BoundWhenDecisionDagNode(SyntaxNode syntax, ImmutableArray<BoundPatternBinding> bindings, BoundExpression? whenExpression, BoundDecisionDagNode  whenTrue, BoundDecisionDagNode ? whenFalse, bool hasErrors = false)
+        public BoundWhenDecisionDagNode(SyntaxNode syntax, ImmutableArray<BoundPatternBinding> bindings, BoundExpression? whenExpression, BoundDecisionDagNode whenTrue, BoundDecisionDagNode? whenFalse, bool hasErrors = false)
             : base(BoundKind.WhenDecisionDagNode, syntax, hasErrors || whenExpression.HasErrors() || whenTrue.HasErrors() || whenFalse.HasErrors())
         {
 
@@ -4547,13 +4538,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression? WhenExpression { get; }
 
-        public BoundDecisionDagNode  WhenTrue { get; }
+        public BoundDecisionDagNode WhenTrue { get; }
 
-        public BoundDecisionDagNode ? WhenFalse { get; }
+        public BoundDecisionDagNode? WhenFalse { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitWhenDecisionDagNode(this);
 
-        public BoundWhenDecisionDagNode Update(ImmutableArray<BoundPatternBinding> bindings, BoundExpression? whenExpression, BoundDecisionDagNode  whenTrue, BoundDecisionDagNode ? whenFalse)
+        public BoundWhenDecisionDagNode Update(ImmutableArray<BoundPatternBinding> bindings, BoundExpression? whenExpression, BoundDecisionDagNode whenTrue, BoundDecisionDagNode? whenFalse)
         {
             if (bindings != this.Bindings || whenExpression != this.WhenExpression || whenTrue != this.WhenTrue || whenFalse != this.WhenFalse)
             {
@@ -4565,7 +4556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundLeafDecisionDagNode : BoundDecisionDagNode 
+    internal sealed partial class BoundLeafDecisionDagNode : BoundDecisionDagNode
     {
         public BoundLeafDecisionDagNode(SyntaxNode syntax, LabelSymbol label, bool hasErrors)
             : base(BoundKind.LeafDecisionDagNode, syntax, hasErrors)
@@ -9005,7 +8996,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.VisitList(node.SwitchArms);
             return null;
         }
-        public override BoundNode? VisitDecisionDag(BoundDecisionDag node) => null;
+        public override BoundNode? VisitDecisionDag(BoundDecisionDag node)
+        {
+            this.Visit(node.RootNode);
+            return null;
+        }
         public override BoundNode? VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node)
         {
             this.Visit(node.Evaluation);
@@ -10048,25 +10043,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(naturalTypeOpt, node.WasTargetTyped, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, type);
         }
-        public override BoundNode? VisitDecisionDag(BoundDecisionDag node) => node;
+        public override BoundNode? VisitDecisionDag(BoundDecisionDag node)
+        {
+            BoundDecisionDagNode rootNode = (BoundDecisionDagNode)this.Visit(node.RootNode);
+            return node.Update(rootNode);
+        }
         public override BoundNode? VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node)
         {
             BoundDagEvaluation evaluation = (BoundDagEvaluation)this.Visit(node.Evaluation);
-            BoundDecisionDagNode  next = (BoundDecisionDagNode )this.Visit(node.Next);
+            BoundDecisionDagNode next = (BoundDecisionDagNode)this.Visit(node.Next);
             return node.Update(evaluation, next);
         }
         public override BoundNode? VisitTestDecisionDagNode(BoundTestDecisionDagNode node)
         {
             BoundDagTest test = (BoundDagTest)this.Visit(node.Test);
-            BoundDecisionDagNode  whenTrue = (BoundDecisionDagNode )this.Visit(node.WhenTrue);
-            BoundDecisionDagNode  whenFalse = (BoundDecisionDagNode )this.Visit(node.WhenFalse);
+            BoundDecisionDagNode whenTrue = (BoundDecisionDagNode)this.Visit(node.WhenTrue);
+            BoundDecisionDagNode whenFalse = (BoundDecisionDagNode)this.Visit(node.WhenFalse);
             return node.Update(test, whenTrue, whenFalse);
         }
         public override BoundNode? VisitWhenDecisionDagNode(BoundWhenDecisionDagNode node)
         {
             BoundExpression? whenExpression = (BoundExpression?)this.Visit(node.WhenExpression);
-            BoundDecisionDagNode  whenTrue = (BoundDecisionDagNode )this.Visit(node.WhenTrue);
-            BoundDecisionDagNode ? whenFalse = (BoundDecisionDagNode ?)this.Visit(node.WhenFalse);
+            BoundDecisionDagNode whenTrue = (BoundDecisionDagNode)this.Visit(node.WhenTrue);
+            BoundDecisionDagNode? whenFalse = (BoundDecisionDagNode?)this.Visit(node.WhenFalse);
             return node.Update(node.Bindings, whenExpression, whenTrue, whenFalse);
         }
         public override BoundNode? VisitLeafDecisionDagNode(BoundLeafDecisionDagNode node) => node;
@@ -13841,7 +13840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitDecisionDag(BoundDecisionDag node, object? arg) => new TreeDumperNode("decisionDag", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("rootNode", node.RootNode, null),
+            new TreeDumperNode("rootNode", null, new TreeDumperNode[] { Visit(node.RootNode, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );

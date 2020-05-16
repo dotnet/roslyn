@@ -150,6 +150,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 DirectCast(node.Parent, ObjectCreationExpressionSyntax).Type Is node
         End Function
 
+        Public Function IsDeclarationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclarationExpression
+            ' VB doesn't support declaration expressions
+            Return False
+        End Function
+
         Public Function IsAttributeName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAttributeName
             Return node.IsParentKind(SyntaxKind.Attribute) AndAlso
                 DirectCast(node.Parent, AttributeSyntax).Name Is node
@@ -2283,6 +2288,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                         Return p.ParameterList IsNot Nothing AndAlso p.ParameterList.Parameters.Count > 0 AndAlso p.Modifiers.Any(SyntaxKind.DefaultKeyword)
                     End If
             End Select
+            Return False
+        End Function
+
+        Public Function IsImplicitObjectCreation(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsImplicitObjectCreation
             Return False
         End Function
 

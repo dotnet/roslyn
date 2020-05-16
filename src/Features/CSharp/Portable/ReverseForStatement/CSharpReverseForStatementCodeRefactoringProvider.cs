@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             if (declaration == null ||
                 declaration.Variables.Count != 1 ||
                 forStatement.Incrementors.Count != 1)
+            {
                 return;
+            }
 
             var variable = declaration.Variables[0];
             var after = forStatement.Incrementors[0];

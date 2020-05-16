@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [JsonRpcMethod(Methods.InitializeName)]
-        public Task<InitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
+        public Task<InitializeResult> InitializeAsync(JToken _1, CancellationToken _2)
         {
             return Task.FromResult(new InitializeResult()
             {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
-        public void Shutdown(CancellationToken cancellationToken)
+        public void Shutdown(CancellationToken _)
         {
             // our language server shutdown when VS shutdown
             // we have this so that we don't get log file every time VS shutdown

@@ -98,8 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     if (!documentUpdateInfo.Source.IsParentKind(SyntaxKind.Block) &&
                         documentUpdateInfo.Destinations.Length > 1)
-
+                    {
                         documentUpdateInfo = new DocumentUpdateInfo(documentUpdateInfo.Source, SyntaxFactory.Block(documentUpdateInfo.Destinations));
+                    }
+
                     return true;
                 }
 
