@@ -10,6 +10,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    /// <summary>
+    /// Abstract the name of a remote service.
+    /// </summary>
+    /// <remarks>
+    /// Allows partner teams to specify bitness-specific service name, while we can use bitness agnostic id for well-known services.
+    /// TODO: Update LUT and SBD to use well-known ids and remove this abstraction (https://github.com/dotnet/roslyn/issues/44327).
+    /// </remarks>
     internal readonly struct RemoteServiceName : IEquatable<RemoteServiceName>
     {
         internal const string Prefix = "roslyn";
@@ -25,6 +32,9 @@ namespace Microsoft.CodeAnalysis.Remote
             CustomServiceName = null;
         }
 
+        /// <summary>
+        /// Exact service name - must be reflect the bitness of the ServiceHub process.
+        /// </summary>
         public RemoteServiceName(string customServiceName)
         {
             WellKnownService = WellKnownServiceHubService.None;
@@ -78,8 +88,5 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static implicit operator RemoteServiceName(WellKnownServiceHubService wellKnownService)
             => new RemoteServiceName(wellKnownService);
-
-        public static implicit operator RemoteServiceName(string customServiceName)
-            => new RemoteServiceName(customServiceName);
     }
 }

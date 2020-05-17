@@ -157,21 +157,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         protected override Task<Connection?> TryCreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
-            var serviceNameString = serviceName.ToString(RemoteHostOptions.IsServiceHubProcess64Bit(Services));
-
             // When callbackTarget is given, we can't share/pool connection since callbackTarget attaches a state to connection.
             // so connection is only valid for that specific callbackTarget. it is up to the caller to keep connection open
             // if he wants to reuse same connection.
 
             if (callbackTarget == null && _connectionPool != null)
             {
-                return _connectionPool.GetOrCreateConnectionAsync(serviceNameString, cancellationToken).AsNullable();
+                return _connectionPool.GetOrCreateConnectionAsync(serviceName, cancellationToken).AsNullable();
             }
 
-            return CreateConnectionAsync(serviceNameString, callbackTarget, cancellationToken).AsNullable();
+            return CreateConnectionAsync(serviceName, callbackTarget, cancellationToken).AsNullable();
         }
 
-        private async Task<Connection> CreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+        private async Task<Connection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             var serviceStream = await RequestServiceAsync(Services, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
             return new JsonRpcConnection(Services, _hubClient.Logger, callbackTarget, serviceStream);
