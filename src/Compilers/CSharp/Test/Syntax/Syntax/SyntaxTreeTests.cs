@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxTreeTests
     {
+        // Diagnostic options on syntax trees are now obsolete
+#pragma warning disable CS0618
         [Fact]
         public void CreateTreeWithDiagnostics()
         {
@@ -107,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(map, newTree.DiagnosticOptions);
             Assert.NotEqual(tree, newTree);
         }
+#pragma warning restore CS0618
 
         [Fact]
         public void WithRootAndOptions_ParsedTree()

@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Collections.Immutable;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -23,15 +22,15 @@ namespace Microsoft.CodeAnalysis.Host
         ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
 
         // new tree from root node
-        SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, Encoding? encoding, SyntaxNode root, AnalyzerConfigOptionsResult analyzerConfigOptionsResult);
+        SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, Encoding? encoding, SyntaxNode root);
 
         // new tree from text
-        SyntaxTree ParseSyntaxTree(string? filePath, ParseOptions options, SourceText text, AnalyzerConfigOptionsResult? analyzerConfigOptionsResult, CancellationToken cancellationToken);
+        SyntaxTree ParseSyntaxTree(string? filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
 
         bool CanCreateRecoverableTree(SyntaxNode root);
 
         // new recoverable tree from root node
-        SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string? filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding? encoding, SyntaxNode root, ImmutableDictionary<string, ReportDiagnostic>? treeDiagnosticReportingOptions);
+        SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string? filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding? encoding, SyntaxNode root);
 
         SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
     }

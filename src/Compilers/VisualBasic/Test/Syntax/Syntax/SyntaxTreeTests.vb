@@ -10,6 +10,8 @@ Imports Roslyn.Test.Utilities.TestHelpers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class VisualBasicSyntaxTreeTests
+        ' Diagnostic options on syntax trees are now obsolete
+#Disable warning BC40000
         <Fact>
         Public Sub CreateTreeWithDiagnosticOptions()
             Dim options = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))
@@ -93,6 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(map, newTree.DiagnosticOptions)
             Assert.NotEqual(tree, newTree)
         End Sub
+#Enable warning BC40000
 
         <Fact>
         Public Sub WithRootAndOptions_ParsedTree()

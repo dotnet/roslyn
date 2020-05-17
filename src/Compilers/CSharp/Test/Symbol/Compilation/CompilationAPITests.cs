@@ -26,21 +26,29 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 using System.Security.Cryptography;
 using static Roslyn.Test.Utilities.TestHelpers;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class CompilationAPITests : CSharpTestBase
     {
+        private CSharpCompilationOptions WithDiagnosticOptions(
+            SyntaxTree tree,
+            params (string, ReportDiagnostic)[] options)
+        => TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(new TestSyntaxTreeOptionsProvider(tree, options));
+
         [Fact]
         public void PerTreeVsGlobalSuppress()
         {
             var tree = SyntaxFactory.ParseSyntaxTree("class C { long _f = 0l;}");
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            var options = TestOptions.DebugDll
                 .WithGeneralDiagnosticOption(ReportDiagnostic.Suppress);
             var comp = CreateCompilation(tree, options: options);
             comp.VerifyDiagnostics();
 
-            tree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Warn)));
+            options = options.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider((tree, new[] { ("CS0078", ReportDiagnostic.Warn) })));
+
             comp = CreateCompilation(tree, options: options);
             // Syntax tree diagnostic options override global settting
             comp.VerifyDiagnostics(
@@ -67,15 +75,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // class C { long _f = 0l;}
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 16));
 
-            var newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress)));
+            var options = WithDiagnosticOptions(tree, ("CS0078", ReportDiagnostic.Suppress));
             // Diagnostic options on the syntax tree do not affect GetDiagnostics()
-            newTree.GetDiagnostics().Verify(
+            tree.GetDiagnostics().Verify(
                 // (1,22): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
                 // class C { long _f = 0l;}
                 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 22));
 
-            var comp2 = CreateCompilation(newTree);
-            comp2.VerifyDiagnostics(
+            comp = CreateCompilation(tree, options: options);
+            comp.VerifyDiagnostics(
                 // (1,16): warning CS0414: The field 'C._f' is assigned but its value is never used
                 // class C { long _f = 0l;}
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 16));
@@ -101,10 +109,10 @@ long _f = 0l;
                 // long _f = 0l;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(4, 6));
 
-            var newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Error)));
-            var comp2 = CreateCompilation(newTree);
+            var options = WithDiagnosticOptions(tree, ("CS0078", ReportDiagnostic.Error));
+            comp = CreateCompilation(tree, options: options);
             // Pragma should have precedence over per-tree options
-            comp2.VerifyDiagnostics(
+            comp.VerifyDiagnostics(
                 // (4,6): warning CS0414: The field 'C._f' is assigned but its value is never used
                 // long _f = 0l;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(4, 6));
@@ -113,25 +121,19 @@ long _f = 0l;
         [Fact]
         public void PerTreeDiagnosticOptionsVsSpecificOptions()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(@" class C { long _f = 0l; }")
-                .WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress)));
+            var tree = SyntaxFactory.ParseSyntaxTree(@" class C { long _f = 0l; }");
+            var options = WithDiagnosticOptions(tree, ("CS0078", ReportDiagnostic.Suppress));
 
-            tree.GetDiagnostics().Verify(
-                // (1,23): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                //  class C { long _f = 0l; }
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 23));
-
-            var comp = CreateCompilation(tree);
+            var comp = CreateCompilation(tree, options: options);
             comp.VerifyDiagnostics(
                 // (1,17): warning CS0414: The field 'C._f' is assigned but its value is never used
                 //  class C { long _f = 0l; }
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 17));
 
-            var newTree = tree.WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Error)));
-            var options = TestOptions.DebugDll.WithSpecificDiagnosticOptions(
-                CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress)));
+            options = options.WithSpecificDiagnosticOptions(
+                CreateImmutableDictionary(("CS0078", ReportDiagnostic.Error)));
 
-            var comp2 = CreateCompilation(newTree, options: options);
+            var comp2 = CreateCompilation(tree, options: options);
             // Per-tree options should have precedence over specific diagnostic options
             comp2.VerifyDiagnostics(
                 // (1,23): error CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
@@ -145,46 +147,59 @@ long _f = 0l;
         [Fact]
         public void DifferentDiagnosticOptionsForTrees()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(@" class C { long _f = 0l; }")
-                .WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress)));
-            var newTree = SyntaxFactory.ParseSyntaxTree(@" class D { long _f = 0l; }")
-                .WithDiagnosticOptions(CreateImmutableDictionary(("CS0078", ReportDiagnostic.Error)));
+            var tree = SyntaxFactory.ParseSyntaxTree(@" class C { long _f = 0l; }");
+            var newTree = SyntaxFactory.ParseSyntaxTree(@" class D { long _f = 0l; }");
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(
+                    (tree, new[] { ("CS0078", ReportDiagnostic.Suppress) }),
+                    (newTree, new[] { ("CS0078", ReportDiagnostic.Error) })
+                )
+            );
 
-            var comp = CreateCompilation(new[] { tree, newTree });
+            var comp = CreateCompilation(new[] { tree, newTree }, options: options);
             comp.VerifyDiagnostics(
                 // (1,23): error CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
                 //  class D { long _f = 0l; }
                 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 23).WithWarningAsError(true),
-                // (1,17): warning CS0414: The field 'C._f' is assigned but its value is never used
-                //  class C { long _f = 0l; }
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 17),
                 // (1,17): warning CS0414: The field 'D._f' is assigned but its value is never used
                 //  class D { long _f = 0l; }
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("D._f").WithLocation(1, 17));
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("D._f").WithLocation(1, 17),
+                // (1,17): warning CS0414: The field 'C._f' is assigned but its value is never used
+                //  class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 17)
+            );
         }
 
         [Fact]
         public void TreeOptionsComparerRespected()
         {
-            var options = CreateImmutableDictionary(StringOrdinalComparer.Instance, ("cs0078", ReportDiagnostic.Suppress));
+            var tree = SyntaxFactory.ParseSyntaxTree(@" class C { long _f = 0l; }");
 
-            var tree = SyntaxFactory.ParseSyntaxTree(@" class C { long _f = 0l; }")
-                .WithDiagnosticOptions(options);
+            // Default options have case insensitivity
+            var options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider((tree, new[] { ("cs0078", ReportDiagnostic.Suppress) }))
+            );
 
-            var newTree = SyntaxFactory.ParseSyntaxTree(@" class D { long _f = 0l; }")
-                .WithDiagnosticOptions(options.WithComparers(CaseInsensitiveComparison.Comparer));
+            CreateCompilation(tree, options: options).VerifyDiagnostics(
+                // (1,17): warning CS0414: The field 'C._f' is assigned but its value is never used
+                //  class C { long _f = 0l; }
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 17)
+            );
 
-            var comp = CreateCompilation(new[] { tree, newTree });
-            comp.VerifyDiagnostics(
+            options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
+                new TestSyntaxTreeOptionsProvider(
+                    StringComparer.Ordinal,
+                    (tree, new[] { ("cs0078", ReportDiagnostic.Suppress) }))
+            );
+
+            CreateCompilation(tree, options: options).VerifyDiagnostics(
                 // (1,23): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
                 //  class C { long _f = 0l; }
                 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 23),
                 // (1,17): warning CS0414: The field 'C._f' is assigned but its value is never used
                 //  class C { long _f = 0l; }
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 17),
-                // (1,17): warning CS0414: The field 'D._f' is assigned but its value is never used
-                //  class D { long _f = 0l; }
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("D._f").WithLocation(1, 17));
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "_f").WithArguments("C._f").WithLocation(1, 17)
+            );
         }
 
         [WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")]

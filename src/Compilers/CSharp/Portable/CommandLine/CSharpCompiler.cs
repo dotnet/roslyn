@@ -65,9 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         trees[i] = ParseFile(
                             parseOptions,
                             scriptParseOptions,
-                            analyzerConfigOptions.IsDefault
-                                ? (AnalyzerConfigOptionsResult?)null
-                                : analyzerConfigOptions[i],
                             ref hadErrors,
                             sourceFiles[i],
                             diagnosticBag,
@@ -87,9 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     trees[i] = ParseFile(
                         parseOptions,
                         scriptParseOptions,
-                        analyzerConfigOptions.IsDefault
-                            ? (AnalyzerConfigOptionsResult?)null
-                            : analyzerConfigOptions[i],
                         ref hadErrors,
                         sourceFiles[i],
                         diagnosticBag,
@@ -163,23 +157,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory);
+            var optionsProvider = new CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions);
 
             return CSharpCompilation.Create(
                 Arguments.CompilationName,
                 trees.WhereNotNull(),
                 resolvedReferences,
-                Arguments.CompilationOptions.
-                    WithMetadataReferenceResolver(referenceDirectiveResolver).
-                    WithAssemblyIdentityComparer(assemblyIdentityComparer).
-                    WithXmlReferenceResolver(xmlFileResolver).
-                    WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
-                    WithSourceReferenceResolver(sourceFileResolver));
+                Arguments.CompilationOptions
+                    .WithMetadataReferenceResolver(referenceDirectiveResolver)
+                    .WithAssemblyIdentityComparer(assemblyIdentityComparer)
+                    .WithXmlReferenceResolver(xmlFileResolver)
+                    .WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem))
+                    .WithSourceReferenceResolver(sourceFileResolver)
+                    .WithSyntaxTreeOptionsProvider(optionsProvider));
         }
 
         private SyntaxTree ParseFile(
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
-            AnalyzerConfigOptionsResult? analyzerConfigOptionsResult,
             ref bool addedDiagnostics,
             CommandLineSourceFile file,
             DiagnosticBag diagnostics,
@@ -201,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(fileDiagnostics.Count == 0);
-                return ParseFile(parseOptions, scriptParseOptions, content, file, analyzerConfigOptionsResult);
+                return ParseFile(parseOptions, scriptParseOptions, content, file);
             }
         }
 
@@ -209,28 +204,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
             SourceText content,
-            CommandLineSourceFile file,
-            AnalyzerConfigOptionsResult? analyzerConfigOptionsResult)
+            CommandLineSourceFile file)
         {
-            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions;
-            bool? isUserConfiguredGeneratedCode;
-            if (analyzerConfigOptionsResult.HasValue)
-            {
-                diagnosticOptions = analyzerConfigOptionsResult.Value.TreeOptions;
-                isUserConfiguredGeneratedCode = GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(analyzerConfigOptionsResult.Value.AnalyzerOptions);
-            }
-            else
-            {
-                diagnosticOptions = null;
-                isUserConfiguredGeneratedCode = null;
-            }
-
             var tree = SyntaxFactory.ParseSyntaxTree(
                 content,
                 file.IsScript ? scriptParseOptions : parseOptions,
-                file.Path,
-                diagnosticOptions,
-                isUserConfiguredGeneratedCode);
+                file.Path);
 
             // prepopulate line tables.
             // we will need line tables anyways and it is better to not wait until we are in emit

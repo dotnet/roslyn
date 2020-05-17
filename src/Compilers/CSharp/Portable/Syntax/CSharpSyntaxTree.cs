@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -491,7 +492,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Options,
                 compilationUnit,
                 parser.Directives,
+#pragma warning disable CS0618
                 DiagnosticOptions,
+#pragma warning restore CS0618
                 isGeneratedCode: _isGenerationConfigured ? (bool?)_lazyIsGeneratedCode.Value() : null,
                 cloneRoot: true);
             tree.VerifySource(changes);
@@ -634,32 +637,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyPragmaWarningStateMap.GetWarningState(id, position);
         }
 
-        private void EnsureNullableContextMapInitialized()
+        private NullableContextStateMap GetNullableContextStateMap()
         {
             if (_lazyNullableContextStateMap == null)
             {
                 // Create the #nullable directive map on demand.
-                Interlocked.CompareExchange(ref _lazyNullableContextStateMap, NullableContextStateMap.Create(this, IsGeneratedCode()), null);
+                Interlocked.CompareExchange(
+                    ref _lazyNullableContextStateMap,
+                    new StrongBox<NullableContextStateMap>(NullableContextStateMap.Create(this)),
+                    null);
             }
+            return _lazyNullableContextStateMap.Value;
         }
 
         internal NullableContextState GetNullableContextState(int position)
-        {
-            EnsureNullableContextMapInitialized();
-            return _lazyNullableContextStateMap!.GetContextState(position); // Use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
-        }
+        => GetNullableContextStateMap().GetContextState(position);
 
         /// <summary>
         /// Returns true if there are any nullable directives that enable annotations, warnings, or both.
         /// This does not include any restore directives.
         /// </summary>
-        internal bool HasNullableEnables()
+        internal bool HasNullableEnables() => GetNullableContextStateMap().HasNullableEnables();
+
+        internal bool IsGeneratedCode(SyntaxTreeOptionsProvider? provider)
         {
-            EnsureNullableContextMapInitialized();
-            return _lazyNullableContextStateMap!.HasNullableEnables(); // Use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
+            if (_isGenerationConfigured)
+            {
+                // If the syntax tree was explicitly configured for generation,
+                // respect that configuration over everything else
+                return IsGeneratedCode();
+            }
+
+            return provider?.IsGenerated(this) ?? IsGeneratedCode();
         }
 
-        internal bool IsGeneratedCode()
+        private bool IsGeneratedCode()
         {
             if (_lazyIsGeneratedCode == ThreeState.Unknown)
             {
@@ -676,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private CSharpLineDirectiveMap? _lazyLineDirectiveMap;
         private CSharpPragmaWarningStateMap? _lazyPragmaWarningStateMap;
-        private NullableContextStateMap? _lazyNullableContextStateMap;
+        private StrongBox<NullableContextStateMap>? _lazyNullableContextStateMap;
 
         /// <summary>
         /// True if this file was marked generated or not generated, in which

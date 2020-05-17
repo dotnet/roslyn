@@ -131,6 +131,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Using
 
             Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
+            ' Diagnostic options are obsolete, but preserved for compat
+#Disable Warning BC40000
             Dim tree = New ParsedSyntaxTree(
                 newText,
                 newText.Encoding,
@@ -140,6 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 root,
                 isMyTemplate:=False,
                 DiagnosticOptions)
+#Enable Warning BC40000
 
             tree.VerifySource(changes)
             Return tree

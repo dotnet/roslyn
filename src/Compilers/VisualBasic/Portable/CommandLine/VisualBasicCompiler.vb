@@ -54,7 +54,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ParseFile(consoleOutput As TextWriter,
                                    parseOptions As VisualBasicParseOptions,
                                    scriptParseOptions As VisualBasicParseOptions,
-                                   diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic),
                                    ByRef hadErrors As Boolean,
                                    file As CommandLineSourceFile,
                                    errorLogger As ErrorLogger) As SyntaxTree
@@ -72,8 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim tree = VisualBasicSyntaxTree.ParseText(
                 content,
                 If(file.IsScript, scriptParseOptions, parseOptions),
-                file.Path,
-                diagnosticOptions)
+                file.Path)
 
             ' prepopulate line tables.
             ' we will need line tables anyways and it is better to Not wait until we are in emit
@@ -109,9 +107,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 consoleOutput,
                                 parseOptions,
                                 scriptParseOptions,
-                                If(analyzerConfigOptions.IsDefault,
-                                    Nothing,
-                                    analyzerConfigOptions(i).TreeOptions),
                                 hadErrors,
                                 sourceFiles(i),
                                 errorLogger)
@@ -126,9 +121,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         consoleOutput,
                         parseOptions,
                         scriptParseOptions,
-                        If(analyzerConfigOptions.IsDefault,
-                            Nothing,
-                            analyzerConfigOptions(i).TreeOptions),
                         hadErrors,
                         sourceFiles(i),
                         errorLogger)
@@ -166,6 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
             Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory)
+            Dim syntaxTreeOptions = New CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions)
 
             Return VisualBasicCompilation.Create(
                  Arguments.CompilationName,
@@ -176,7 +169,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithXmlReferenceResolver(xmlFileResolver).
                      WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
-                     WithSourceReferenceResolver(sourceFileResolver))
+                     WithSourceReferenceResolver(sourceFileResolver).
+                     WithSyntaxTreeOptionsProvider(syntaxTreeOptions))
         End Function
 
         Private Sub PrintReferences(resolvedReferences As List(Of MetadataReference), consoleOutput As TextWriter)

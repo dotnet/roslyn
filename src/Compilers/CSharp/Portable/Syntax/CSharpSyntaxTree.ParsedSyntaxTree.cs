@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            [Obsolete]
             public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions => _diagnosticOptions;
 
             public override SyntaxReference GetReference(SyntaxNode node)
@@ -169,6 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     cloneRoot: true);
             }
 
+            [Obsolete]
             public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
             {
                 if (options is null)

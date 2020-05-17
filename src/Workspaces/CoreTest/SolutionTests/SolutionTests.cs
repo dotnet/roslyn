@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Fact]
         [WorkItem(37125, "https://github.com/dotnet/roslyn/issues/41940")]
-        public void WithDocumentSyntaxRoot_AnalyzerConfigWithoutFilePath()
+        public async Task WithDocumentSyntaxRoot_AnalyzerConfigWithoutFilePath()
         {
             var projectId = ProjectId.CreateNewId();
 
@@ -262,10 +262,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", "public class Goo { }")
                 .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From("config"));
 
-            var documentId = solution.Projects.Single().DocumentIds.Single();
-
-            var root = CS.SyntaxFactory.ParseSyntaxTree("class NewClass {}", path: "").GetRoot();
-            Assert.Throws<ArgumentException>(() => solution.WithDocumentSyntaxRoot(documentId, root));
+            var project = solution.GetProject(projectId)!;
+            var compilation = (await project.GetCompilationAsync())!;
+            var tree = compilation.SyntaxTrees.Single();
+            var provider = compilation.Options.SyntaxTreeOptionsProvider!;
+            Assert.Throws<ArgumentException>(() => provider.TryGetDiagnosticValue(tree, "CA1234", out _));
         }
 
         [Fact]
@@ -2597,7 +2598,7 @@ public class C : A {
             var factory = dummyProject.LanguageServices.SyntaxTreeFactory;
 
             // create the origin tree
-            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), analyzerConfigOptionsResult: null, CancellationToken.None);
+            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), CancellationToken.None);
 
             // create recoverable tree off the original tree
             var recoverableTree = factory.CreateRecoverableTree(
@@ -2606,8 +2607,7 @@ public class C : A {
                 strongTree.Options,
                 new ConstantValueSource<TextAndVersion>(TextAndVersion.Create(strongTree.GetText(), VersionStamp.Create(), strongTree.FilePath)),
                 strongTree.GetText().Encoding,
-                strongTree.GetRoot(),
-                strongTree.DiagnosticOptions);
+                strongTree.GetRoot());
 
             // create new tree before it ever getting root node
             var newTree = recoverableTree.WithFilePath("different/dummy");
@@ -2746,15 +2746,16 @@ public class C : A {
                     loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
 
             var newSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
-            var newCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+            var project = solution.GetProject(projectId);
+            var newCompilation = await project.GetCompilationAsync();
 
-            Assert.NotSame(originalSyntaxTree, newSyntaxTree);
+            Assert.Same(originalSyntaxTree, newSyntaxTree);
             Assert.NotSame(originalCompilation, newCompilation);
+            Assert.NotEqual(originalCompilation.Options, newCompilation.Options);
 
-            Assert.True(newCompilation.ContainsSyntaxTree(newSyntaxTree));
-
-            Assert.Single(newSyntaxTree.DiagnosticOptions);
-            Assert.Equal(ReportDiagnostic.Error, newSyntaxTree.DiagnosticOptions["CA1234"]);
+            var provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.True(provider.TryGetDiagnosticValue(newSyntaxTree, "CA1234", out var severity));
+            Assert.Equal(ReportDiagnostic.Error, severity);
         }
 
         [Theory]
@@ -2779,16 +2780,21 @@ public class C : A {
 
             var syntaxTreeAfterAddingEditorConfig = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
 
-            Assert.Single(syntaxTreeAfterAddingEditorConfig.DiagnosticOptions);
-            Assert.Equal(ReportDiagnostic.Error, syntaxTreeAfterAddingEditorConfig.DiagnosticOptions["CA1234"]);
+            var project = solution.GetProject(projectId);
+
+            var provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.True(provider.TryGetDiagnosticValue(syntaxTreeAfterAddingEditorConfig, "CA1234", out var severity));
+            Assert.Equal(ReportDiagnostic.Error, severity);
 
             solution = solution.RemoveAnalyzerConfigDocument(editorConfigDocumentId);
+            project = solution.GetProject(projectId);
 
             var syntaxTreeAfterRemovingEditorConfig = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
 
-            Assert.Empty(syntaxTreeAfterRemovingEditorConfig.DiagnosticOptions);
+            provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.False(provider.TryGetDiagnosticValue(syntaxTreeAfterAddingEditorConfig, "CA1234", out _));
 
-            var finalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+            var finalCompilation = await project.GetCompilationAsync();
 
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterRemovingEditorConfig));
         }
@@ -2815,8 +2821,10 @@ public class C : A {
 
             var syntaxTreeBeforeEditorConfigChange = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
 
-            Assert.Single(syntaxTreeBeforeEditorConfigChange.DiagnosticOptions);
-            Assert.Equal(ReportDiagnostic.Error, syntaxTreeBeforeEditorConfigChange.DiagnosticOptions["CA1234"]);
+            var project = solution.GetProject(projectId);
+            var provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.True(provider.TryGetDiagnosticValue(syntaxTreeBeforeEditorConfigChange, "CA1234", out var severity));
+            Assert.Equal(ReportDiagnostic.Error, severity);
 
             solution = solution.WithAnalyzerConfigDocumentTextLoader(
                 editorConfigDocumentId,
@@ -2825,10 +2833,12 @@ public class C : A {
 
             var syntaxTreeAfterEditorConfigChange = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
 
-            Assert.Single(syntaxTreeAfterEditorConfigChange.DiagnosticOptions);
-            Assert.Equal(ReportDiagnostic.Error, syntaxTreeAfterEditorConfigChange.DiagnosticOptions["CA6789"]);
+            project = solution.GetProject(projectId);
+            provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.True(provider.TryGetDiagnosticValue(syntaxTreeBeforeEditorConfigChange, "CA6789", out severity));
+            Assert.Equal(ReportDiagnostic.Error, severity);
 
-            var finalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+            var finalCompilation = await project.GetCompilationAsync();
 
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterEditorConfigChange));
         }
@@ -2855,8 +2865,10 @@ public class C : A {
 
             var syntaxTreeBeforeUpdateRoot = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
 
-            Assert.Single(syntaxTreeBeforeUpdateRoot.DiagnosticOptions);
-            Assert.Equal(ReportDiagnostic.Error, syntaxTreeBeforeUpdateRoot.DiagnosticOptions["CA1234"]);
+            var project = solution.GetProject(projectId);
+            var provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.True(provider.TryGetDiagnosticValue(syntaxTreeBeforeUpdateRoot, "CA1234", out var severity));
+            Assert.Equal(ReportDiagnostic.Error, severity);
 
             // We are adding a new line to the previously empty file
             var newRoot = syntaxTreeBeforeUpdateRoot.WithChangedText(SourceText.From("\r\n"));
@@ -2865,8 +2877,10 @@ public class C : A {
 
             var syntaxTreeAfterUpdateRoot = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
 
-            Assert.Single(syntaxTreeAfterUpdateRoot.DiagnosticOptions);
-            Assert.Equal(ReportDiagnostic.Error, syntaxTreeAfterUpdateRoot.DiagnosticOptions["CA1234"]);
+            project = solution.GetProject(projectId);
+            provider = project.CompilationOptions.SyntaxTreeOptionsProvider;
+            Assert.True(provider.TryGetDiagnosticValue(syntaxTreeAfterUpdateRoot, "CA1234", out severity));
+            Assert.Equal(ReportDiagnostic.Error, severity);
 
             var finalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
 
@@ -2913,12 +2927,12 @@ class C
             var newSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
             var newCompilation = await solution.GetProject(projectId).GetCompilationAsync();
 
-            Assert.NotSame(originalSyntaxTree, newSyntaxTree);
+            Assert.Same(originalSyntaxTree, newSyntaxTree);
             Assert.NotSame(originalCompilation, newCompilation);
+            Assert.NotEqual(originalCompilation.Options, newCompilation.Options);
 
-            Assert.True(newCompilation.ContainsSyntaxTree(newSyntaxTree));
-
-            // warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+            // warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
+            // Auto-generated code requires an explicit '#nullable' directive in source.
             diagnostics = newCompilation.GetDiagnostics();
             diagnostic = Assert.Single(diagnostics);
             Assert.Contains("CS8669", diagnostic.Id);

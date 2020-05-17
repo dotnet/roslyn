@@ -367,12 +367,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Compilation? compilation,
                 AnalyzerOptions? analyzerOptions)
             {
-                if (compilation != null)
+                if (compilation != null && compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
                 {
                     foreach (var tree in compilation.SyntaxTrees)
                     {
                         // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
-                        if (tree.DiagnosticOptions.TryGetValue(descriptor.Id, out var configuredValue) ||
+                        if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, out var configuredValue) ||
                             analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, out configuredValue))
                         {
                             if (configuredValue != ReportDiagnostic.Suppress && !severityFilter.Contains(configuredValue))

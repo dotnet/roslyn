@@ -204,6 +204,11 @@ namespace Microsoft.CodeAnalysis
         public ImmutableDictionary<string, ReportDiagnostic> SpecificDiagnosticOptions { get; protected set; }
 
         /// <summary>
+        /// Provider to retrieve options for particular syntax trees.
+        /// </summary>
+        public SyntaxTreeOptionsProvider? SyntaxTreeOptionsProvider { get; protected set; }
+
+        /// <summary>
         /// Whether diagnostics suppressed in source, i.e. <see cref="Diagnostic.IsSuppressed"/> is true, should be reported.
         /// </summary>
         public bool ReportSuppressedDiagnostics { get; protected set; }
@@ -289,6 +294,7 @@ namespace Microsoft.CodeAnalysis
             bool debugPlusMode,
             XmlReferenceResolver? xmlReferenceResolver,
             SourceReferenceResolver? sourceReferenceResolver,
+            SyntaxTreeOptionsProvider? syntaxTreeOptionsProvider,
             MetadataReferenceResolver? metadataReferenceResolver,
             AssemblyIdentityComparer? assemblyIdentityComparer,
             StrongNameProvider? strongNameProvider,
@@ -463,6 +469,11 @@ namespace Microsoft.CodeAnalysis
             return CommonWithSourceReferenceResolver(resolver);
         }
 
+        public CompilationOptions WithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider provider)
+        {
+            return CommonWithSyntaxTreeOptionsProvider(provider);
+        }
+
         public CompilationOptions WithMetadataReferenceResolver(MetadataReferenceResolver? resolver)
         {
             return CommonWithMetadataReferenceResolver(resolver);
@@ -528,6 +539,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value);
         protected abstract CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver? resolver);
         protected abstract CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver? resolver);
+        protected abstract CompilationOptions CommonWithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider resolver);
         protected abstract CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver? resolver);
         protected abstract CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer? comparer);
         protected abstract CompilationOptions CommonWithStrongNameProvider(StrongNameProvider? provider);
@@ -636,6 +648,7 @@ namespace Microsoft.CodeAnalysis
                    object.Equals(this.MetadataReferenceResolver, other.MetadataReferenceResolver) &&
                    object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver) &&
                    object.Equals(this.SourceReferenceResolver, other.SourceReferenceResolver) &&
+                   object.Equals(this.SyntaxTreeOptionsProvider, other.SyntaxTreeOptionsProvider) &&
                    object.Equals(this.StrongNameProvider, other.StrongNameProvider) &&
                    object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer) &&
                    this.PublicSign == other.PublicSign &&
@@ -671,10 +684,11 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.MetadataReferenceResolver,
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
+                   Hash.Combine(this.SyntaxTreeOptionsProvider,
                    Hash.Combine(this.StrongNameProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
                    Hash.Combine(this.PublicSign,
-                   Hash.Combine((int)this.NullableContextOptions, 0)))))))))))))))))))))))))));
+                   Hash.Combine((int)this.NullableContextOptions, 0))))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions? left, CompilationOptions? right)
