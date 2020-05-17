@@ -759,7 +759,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.AllowUnsafe == other.AllowUnsafe &&
                    this.TopLevelBinderFlags == other.TopLevelBinderFlags &&
                    (this.Usings == null ? other.Usings == null : this.Usings.SequenceEqual(other.Usings, StringComparer.Ordinal) &&
-                   this.NullableContextOptions == other.NullableContextOptions);
+                   this.NullableContextOptions == other.NullableContextOptions &&
+                   this.CodePage == other.CodePage &&
+                   this.PreprocessorSymbols.SequenceEqual(other.PreprocessorSymbols));
         }
 
         public override bool Equals(object? obj)
@@ -772,7 +774,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Hash.Combine(base.GetHashCodeHelper(),
                    Hash.Combine(this.AllowUnsafe,
                    Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal),
-                   Hash.Combine(TopLevelBinderFlags.GetHashCode(), this.NullableContextOptions.GetHashCode()))));
+                   Hash.Combine(TopLevelBinderFlags.GetHashCode(), 
+                   Hash.Combine(this.NullableContextOptions.GetHashCode(),
+                   Hash.Combine(this.CodePage?.GetHashCode() ?? 0, this.PreprocessorSymbols.GetHashCode()))))));
         }
 
         internal override Diagnostic FilterDiagnostic(Diagnostic diagnostic)
