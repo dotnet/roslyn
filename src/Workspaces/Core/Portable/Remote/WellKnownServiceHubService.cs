@@ -4,10 +4,6 @@
 
 #nullable enable
 
-using System;
-using System.Diagnostics.CodeAnalysis;
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal enum WellKnownServiceHubService

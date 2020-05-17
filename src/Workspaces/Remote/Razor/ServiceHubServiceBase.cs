@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Invoked remotely - <see cref="WellKnownServiceHubService.ServiceHubServiceBase_Initialize"/>
+        /// Invoked remotely.
         /// </summary>
         [Obsolete]
         public virtual void Initialize(PinnedSolutionInfo info)
