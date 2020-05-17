@@ -220,6 +220,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
             EnableAnalyzerReleaseTrackingRule,
             DefineDiagnosticTitleCorrectlyRule,
+            DefineDiagnosticMessageCorrectlyRule,
             DefineDiagnosticDescriptionCorrectlyRule);
 
         public override void Initialize(AnalysisContext context)
@@ -364,15 +365,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             IArgumentOperation titleArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("title", StringComparison.OrdinalIgnoreCase));
 
-            if (titleArgument != null &&
-                titleArgument.Parameter.Type != null &&
-                titleArgument.Parameter.Type.SpecialType == SpecialType.System_String)
+            if (titleArgument?.Parameter.Type.SpecialType == SpecialType.System_String)
             {
                 operationAnalysisContext.ReportDiagnostic(creation.Value.CreateDiagnostic(UseLocalizableStringsInDescriptorRule, WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString));
 
                 if (titleArgument.Value.ConstantValue.HasValue &&
                     titleArgument.Value.ConstantValue.Value is string title &&
-                    (title.Contains(".") || ContainsLineReturn(title)))
+                    title.Length > 0 &&
+                    (title.Contains(". ") || title[title.Length - 1].Equals('.') || ContainsLineReturn(title)))
                 {
                     operationAnalysisContext.ReportDiagnostic(titleArgument.CreateDiagnostic(DefineDiagnosticTitleCorrectlyRule));
                 }
@@ -383,14 +383,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             IArgumentOperation messageArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("messageFormat", StringComparison.OrdinalIgnoreCase));
 
-            if (messageArgument != null &&
-                messageArgument.Value.ConstantValue.HasValue &&
-                messageArgument.Value.ConstantValue.Value is string message)
+            if (messageArgument?.Value.ConstantValue.Value is string message &&
+                message.Length > 0)
             {
-                var splitPeriod = message.Split('.');
-                // Report if the message contains a line return or ends with '.' and is not a multi-sentences message
-                if ((splitPeriod.Length == 2 && splitPeriod[splitPeriod.Length - 1].Length == 0) ||
-                    ContainsLineReturn(message))
+                var isMultiSentenceMessage = message.Contains(". ");
+                var endsWithPeriod = message[message.Length - 1].Equals('.');
+                if ((isMultiSentenceMessage ^ endsWithPeriod) || ContainsLineReturn(message))
                 {
                     operationAnalysisContext.ReportDiagnostic(messageArgument.CreateDiagnostic(DefineDiagnosticMessageCorrectlyRule));
                 }
@@ -401,9 +399,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             IArgumentOperation descriptionArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("description", StringComparison.OrdinalIgnoreCase));
 
-            if (descriptionArgument != null &&
-                descriptionArgument.Value.ConstantValue.HasValue &&
-                descriptionArgument.Value.ConstantValue.Value is string description)
+            if (descriptionArgument?.Value.ConstantValue.Value is string description &&
+                description.Length > 0)
             {
                 var lastChar = description[description.Length - 1];
                 if (!lastChar.Equals('.') && !lastChar.Equals('!') && !lastChar.Equals('?'))

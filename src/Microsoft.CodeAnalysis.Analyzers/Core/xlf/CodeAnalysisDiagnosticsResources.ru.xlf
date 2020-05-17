@@ -73,8 +73,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyDescription">
-        <source>The diagnostic description is recommended to be a sentence or multi-sentences thus ending with a punctuation.</source>
-        <target state="new">The diagnostic description is recommended to be a sentence or multi-sentences thus ending with a punctuation.</target>
+        <source>The diagnostic description is recommended to be one or multiple sentences ending with a punctuation ('.', '!' or '?').</source>
+        <target state="new">The diagnostic description is recommended to be one or multiple sentences ending with a punctuation ('.', '!' or '?').</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
@@ -88,8 +88,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyDescription">
-        <source>The diagnostic message is recommended to be a sentence without any line return. It should end with a period only in case this is a multi sentences message.</source>
-        <target state="new">The diagnostic message is recommended to be a sentence without any line return. It should end with a period only in case this is a multi sentences message.</target>
+        <source>The diagnostic message is recommended to be either a single sentence not ending with a period ('.') or a multi-sentences message ending with a period ('.'). In both cases, the message should not contain any line return ('\r', '\n' or '\r\n').</source>
+        <target state="new">The diagnostic message is recommended to be either a single sentence not ending with a period ('.') or a multi-sentences message ending with a period ('.'). In both cases, the message should not contain any line return ('\r', '\n' or '\r\n').</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
@@ -103,8 +103,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyDescription">
-        <source>The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</source>
-        <target state="new">The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</target>
+        <source>The diagnostic title is recommended to be a short sentence without any period ('.)' nor any line return ('\r', '\n' or '\r\n').</source>
+        <target state="new">The diagnostic title is recommended to be a short sentence without any period ('.)' nor any line return ('\r', '\n' or '\r\n').</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">

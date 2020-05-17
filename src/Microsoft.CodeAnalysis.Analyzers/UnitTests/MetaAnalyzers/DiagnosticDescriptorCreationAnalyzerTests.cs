@@ -1692,7 +1692,7 @@ End Class",
         #region RS1031 (DefineDiagnosticTitleCorrectlyRule)
 
         [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
-        public async Task RS1031_TitleStringContainsPeriod_Diagnostic()
+        public async Task RS1031_TitleStringEndsWithPeriod_Diagnostic()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -1705,6 +1705,62 @@ class MyAnalyzer : DiagnosticAnalyzer
 {
     private static readonly DiagnosticDescriptor descriptor1 =
         {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:""MyDiagnosticTitle.""|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {
+        get
+        {
+            return ImmutableArray.Create(descriptor1);
+        }
+    }
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}",
+                GetRS1007ExpectedDiagnostic(0),
+                VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1));
+
+            await VerifyBasicAnalyzerAsync(@"
+Imports System
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+Class MyAnalyzer
+	Inherits DiagnosticAnalyzer
+
+    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:""MyDiagnosticTitle.""|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
+
+	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+		Get
+			Return ImmutableArray.Create(descriptor1)
+		End Get
+	End Property
+
+	Public Overrides Sub Initialize(context As AnalysisContext)
+	End Sub
+End Class
+",
+                GetRS1007ExpectedDiagnostic(0),
+                VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(1));
+        }
+
+        [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        public async Task RS1031_TitleIsMultiSentence_Diagnostic()
+        {
+            await VerifyCSharpAnalyzerAsync(@"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static readonly DiagnosticDescriptor descriptor1 =
+        {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:""MyDiagnostic. Title.""|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
 
     private static readonly DiagnosticDescriptor descriptor2 =
         {|#2:new DiagnosticDescriptor(""MyDiagnosticId"", {|#3:""MyDiagnostic. Title""|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
@@ -1736,7 +1792,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Class MyAnalyzer
 	Inherits DiagnosticAnalyzer
 
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:""MyDiagnosticTitle.""|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
+    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", {|#1:""MyDiagnostic. Title.""|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
 
     Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = {|#2:new DiagnosticDescriptor(""MyDiagnosticId"", {|#3:""MyDiagnostic. Title""|}, ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
 
@@ -1781,7 +1837,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
         get
         {
-            return ImmutableArray.Create(descriptor1, descriptor2);
+            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3);
         }
     }
 
@@ -1815,7 +1871,7 @@ Class MyAnalyzer
 
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
+			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3)
 		End Get
 	End Property
 
@@ -1846,11 +1902,17 @@ class MyAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor descriptor1 =
         {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
 
+    private static readonly DiagnosticDescriptor descriptor2 =
+        {|#1:new DiagnosticDescriptor(""MyDiagnosticId"", ""Title can contain A.B qualifications"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
+
+    private static readonly DiagnosticDescriptor descriptor3 =
+        {|#2:new DiagnosticDescriptor(""MyDiagnosticId"", ""Title can contain 'A.B' qualifications"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get
         {
-            return ImmutableArray.Create(descriptor1);
+            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3);
         }
     }
 
@@ -1858,7 +1920,9 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }",
-                GetRS1007ExpectedDiagnostic(0));
+                GetRS1007ExpectedDiagnostic(0),
+                GetRS1007ExpectedDiagnostic(1),
+                GetRS1007ExpectedDiagnostic(2));
 
             await VerifyBasicAnalyzerAsync(@"
 Imports System
@@ -1872,9 +1936,13 @@ Class MyAnalyzer
 
     Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
 
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = {|#1:new DiagnosticDescriptor(""MyDiagnosticId"", ""Title can contain A.B qualifications"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
+
+    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = {|#2:new DiagnosticDescriptor(""MyDiagnosticId"", ""Title can contain 'A.B' qualifications"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
+
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
-			Return ImmutableArray.Create(descriptor1)
+			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3)
 		End Get
 	End Property
 
@@ -1882,7 +1950,9 @@ Class MyAnalyzer
 	End Sub
 End Class
 ",
-                GetRS1007ExpectedDiagnostic(0));
+                GetRS1007ExpectedDiagnostic(0),
+                GetRS1007ExpectedDiagnostic(1),
+                GetRS1007ExpectedDiagnostic(2));
         }
 
         #endregion // RS1031 (DefineDiagnosticTitleCorrectlyRule)
@@ -1890,7 +1960,7 @@ End Class
         #region RS1032 (DefineDiagnosticMessageCorrectlyRule)
 
         [Fact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
-        public async Task RS1032_MessageStringEndsWithPeriod_Diagnostic()
+        public async Task RS1032_MessageStringEndsWithPeriodAndIsNotMultiSentence_Diagnostic()
         {
             await VerifyCSharpAnalyzerAsync(@"
 using System;
@@ -1903,6 +1973,71 @@ class MyAnalyzer : DiagnosticAnalyzer
 {
     private static readonly DiagnosticDescriptor descriptor1 =
         {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#1:""MyDiagnosticMessage.""|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
+
+    private static readonly DiagnosticDescriptor descriptor2 =
+        {|#2:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#3:""MyDiagnostic.Message.""|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {
+        get
+        {
+            return ImmutableArray.Create(descriptor1, descriptor2);
+        }
+    }
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}",
+                GetRS1007ExpectedDiagnostic(0),
+                VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1),
+                GetRS1007ExpectedDiagnostic(2),
+                VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(3));
+
+            await VerifyBasicAnalyzerAsync(@"
+Imports System
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+Class MyAnalyzer
+	Inherits DiagnosticAnalyzer
+
+    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#1:""MyDiagnosticMessage.""|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
+
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = {|#2:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#3:""MyDiagnostic.Message.""|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
+
+	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+		Get
+			Return ImmutableArray.Create(descriptor1, descriptor2)
+		End Get
+	End Property
+
+	Public Overrides Sub Initialize(context As AnalysisContext)
+	End Sub
+End Class
+",
+                GetRS1007ExpectedDiagnostic(0),
+                VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1),
+                GetRS1007ExpectedDiagnostic(2),
+                VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(3));
+        }
+
+        [Fact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
+        public async Task RS1032_MessageStringIsMultiSentenceAndDoesNotEndWithPeriod_Diagnostic()
+        {
+            await VerifyCSharpAnalyzerAsync(@"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static readonly DiagnosticDescriptor descriptor1 =
+        {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#1:""Message is. Multi-sentence""|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
@@ -1929,7 +2064,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Class MyAnalyzer
 	Inherits DiagnosticAnalyzer
 
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle."", {|#1:""MyDiagnosticMessage.""|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
+    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", {|#1:""Message is. Multi-sentence""|}, ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
 
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
@@ -1970,7 +2105,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
         get
         {
-            return ImmutableArray.Create(descriptor1, descriptor2);
+            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3);
         }
     }
 
@@ -2004,7 +2139,7 @@ Class MyAnalyzer
 
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
+			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3)
 		End Get
 	End Property
 
@@ -2036,13 +2171,19 @@ class MyAnalyzer : DiagnosticAnalyzer
         {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
 
     private static readonly DiagnosticDescriptor descriptor2 =
-        {|#1:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnostic.Message."", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
+        {|#1:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""Message is a. Multi-sentence."", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
+
+    private static readonly DiagnosticDescriptor descriptor3 =
+        {|#2:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""Message can contain A.B qualifications"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
+
+    private static readonly DiagnosticDescriptor descriptor4 =
+        {|#3:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""Message can contain 'A.B' qualifications"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """")|};
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get
         {
-            return ImmutableArray.Create(descriptor1);
+            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4);
         }
     }
 
@@ -2051,7 +2192,9 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }",
                 GetRS1007ExpectedDiagnostic(0),
-                GetRS1007ExpectedDiagnostic(1));
+                GetRS1007ExpectedDiagnostic(1),
+                GetRS1007ExpectedDiagnostic(2),
+                GetRS1007ExpectedDiagnostic(3));
 
             await VerifyBasicAnalyzerAsync(@"
 Imports System
@@ -2065,11 +2208,15 @@ Class MyAnalyzer
 
     Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
 
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = {|#1:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnostic.Message."", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = {|#1:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""Message is a. Multi-sentence."", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
+
+    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = {|#2:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""Message can contain A.B qualifications"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
+
+    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = {|#3:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""Message can contain 'A.B' qualifications"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
 
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
-			Return ImmutableArray.Create(descriptor1)
+			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3, descriptor4)
 		End Get
 	End Property
 
@@ -2078,7 +2225,9 @@ Class MyAnalyzer
 End Class
 ",
                 GetRS1007ExpectedDiagnostic(0),
-                GetRS1007ExpectedDiagnostic(1));
+                GetRS1007ExpectedDiagnostic(1),
+                GetRS1007ExpectedDiagnostic(2),
+                GetRS1007ExpectedDiagnostic(3));
         }
 
         #endregion // RS1032 (DefineDiagnosticMessageCorrectlyRule)
@@ -2154,19 +2303,22 @@ using Microsoft.CodeAnalysis.Diagnostics;
 class MyAnalyzer : DiagnosticAnalyzer
 {
     private static readonly DiagnosticDescriptor descriptor1 =
-        {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, description: ""MyDiagnosticDescription."", helpLinkUri: ""HelpLink"", customTags: """")|};
+        {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: ""MyDiagnosticDescription."", helpLinkUri: ""HelpLink"", customTags: """")|};
 
     private static readonly DiagnosticDescriptor descriptor2 =
-        {|#1:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, description: ""MyDiagnosticDescription!"", helpLinkUri: ""HelpLink"", customTags: """")|};
+        {|#1:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: ""MyDiagnosticDescription!"", helpLinkUri: ""HelpLink"", customTags: """")|};
 
     private static readonly DiagnosticDescriptor descriptor3 =
-        {|#2:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, description: ""MyDiagnosticDescription?"", helpLinkUri: ""HelpLink"", customTags: """")|};
+        {|#2:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: ""MyDiagnosticDescription?"", helpLinkUri: ""HelpLink"", customTags: """")|};
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get
         {
-            return ImmutableArray.Create(descriptor1);
+            return ImmutableArray.Create(descriptor1, descriptor2, descriptor3);
         }
     }
 
@@ -2189,15 +2341,18 @@ Imports Microsoft.VisualBasic
 Class MyAnalyzer
 	Inherits DiagnosticAnalyzer
 
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
+    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"",
+        DiagnosticSeverity.Warning, True, ""Description."", ""HelpLinkUrl"", ""Tag"")|}
 
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = {|#1:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description!"", ""HelpLinkUrl"", ""Tag"")|}
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = {|#1:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"",
+        DiagnosticSeverity.Warning, True, ""Description!"", ""HelpLinkUrl"", ""Tag"")|}
 
-    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = {|#2:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, ""Description?"", ""HelpLinkUrl"", ""Tag"")|}
+    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = {|#2:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"",
+        DiagnosticSeverity.Warning, True, ""Description?"", ""HelpLinkUrl"", ""Tag"")|}
 
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
-			Return ImmutableArray.Create(descriptor1, descriptor2)
+			Return ImmutableArray.Create(descriptor1, descriptor2, descriptor3)
 		End Get
 	End Property
 

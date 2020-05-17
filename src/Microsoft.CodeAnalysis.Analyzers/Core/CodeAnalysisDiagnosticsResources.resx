@@ -504,7 +504,7 @@
     <value>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</value>
   </data>
   <data name="DefineDiagnosticTitleCorrectlyDescription" xml:space="preserve">
-    <value>The diagnostic title is recommended to be a short sentence without any '.' nor any line return.</value>
+    <value>The diagnostic title is recommended to be a short sentence without any period ('.)' nor any line return ('\r', '\n' or '\r\n').</value>
   </data>
   <data name="DefineDiagnosticTitleCorrectlyMessage" xml:space="preserve">
     <value>Define diagnostic title correctly</value>
@@ -513,7 +513,7 @@
     <value>Define diagnostic title correctly</value>
   </data>
   <data name="DefineDiagnosticMessageCorrectlyDescription" xml:space="preserve">
-    <value>The diagnostic message is recommended to be a sentence without any line return. It should end with a period only in case this is a multi sentences message.</value>
+    <value>The diagnostic message is recommended to be either a single sentence not ending with a period ('.') or a multi-sentences message ending with a period ('.'). In both cases, the message should not contain any line return ('\r', '\n' or '\r\n').</value>
   </data>
   <data name="DefineDiagnosticMessageCorrectlyMessage" xml:space="preserve">
     <value>Define diagnostic message correctly</value>
@@ -522,7 +522,7 @@
     <value>Define diagnostic message correctly</value>
   </data>
   <data name="DefineDiagnosticDescriptionCorrectlyDescription" xml:space="preserve">
-    <value>The diagnostic description is recommended to be a sentence or multi-sentences thus ending with a punctuation.</value>
+    <value>The diagnostic description is recommended to be one or multiple sentences ending with a punctuation ('.', '!' or '?').</value>
   </data>
   <data name="DefineDiagnosticDescriptionCorrectlyMessage" xml:space="preserve">
     <value>Define diagnostic description correctly</value>
