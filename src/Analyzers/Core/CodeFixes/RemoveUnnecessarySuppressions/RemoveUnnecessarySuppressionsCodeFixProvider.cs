@@ -32,11 +32,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(
-                    CodeFixesResources.Remove_redundant_suppression,
-                    c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
+            foreach (var diagnostic in context.Diagnostics)
+            {
+                context.RegisterCodeFix(
+                    new MyCodeAction(c => FixAsync(context.Document, diagnostic, c)),
+                    diagnostic);
+            }
 
             return Task.CompletedTask;
         }
@@ -57,8 +58,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, equivalenceKey: title)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CodeFixesResources.Remove_redundant_suppression, createChangedDocument, nameof(RemoveUnnecessarySuppressionsCodeFixProvider))
             {
             }
         }
