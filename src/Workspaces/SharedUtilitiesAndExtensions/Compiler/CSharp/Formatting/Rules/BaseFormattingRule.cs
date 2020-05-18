@@ -172,8 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (node is MemberDeclarationSyntax memberDeclNode)
             {
-                var firstAndLastTokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
-                firstTokenOfNode = firstAndLastTokens.Item1;
+                (firstTokenOfNode, _) = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
             }
 
             if (node.IsLambdaBodyBlock())
@@ -191,8 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // suppress wrapping on whole construct that owns braces and also brace pair itself if 
             // it is on same line
-            AddSuppressWrappingIfOnSingleLineOperation(list, firstTokenOfNode, bracePair.Item2);
-            AddSuppressWrappingIfOnSingleLineOperation(list, bracePair.Item1, bracePair.Item2);
+            AddSuppressWrappingIfOnSingleLineOperation(list, firstTokenOfNode, bracePair.closeBrace);
+            AddSuppressWrappingIfOnSingleLineOperation(list, bracePair.openBrace, bracePair.closeBrace);
         }
     }
 }

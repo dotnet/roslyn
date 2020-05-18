@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             ' Handles or a comma
             If context.TargetToken.IsChildToken(Of HandlesClauseSyntax)(Function(hc) hc.HandlesKeyword) OrElse
                 context.TargetToken.IsChildSeparatorToken(Function(hc As HandlesClauseSyntax) hc.Events) Then
-                Return Task.FromResult(GetTopLevelIdentifiersAsync(vbContext, context.TargetToken, cancellationToken))
+                Return Task.FromResult(GetTopLevelIdentifiersAsync(vbContext, cancellationToken))
             End If
 
             ' Handles x. or , x.
@@ -60,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Function GetTopLevelIdentifiersAsync(
             context As VisualBasicSyntaxContext,
-            token As SyntaxToken,
             cancellationToken As CancellationToken
         ) As ImmutableArray(Of ISymbol)
 
@@ -126,21 +125,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End Select
 
             Return ImmutableArray(Of ISymbol).CastUp(result)
-        End Function
-
-        Private Function CreateCompletionItem(position As Integer,
-                                              symbol As ISymbol,
-                                              context As SyntaxContext) As CompletionItem
-
-            Dim texts = CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
-
-            Return SymbolCompletionItem.CreateWithSymbolId(
-                displayText:=texts.displayText,
-                displayTextSuffix:=texts.suffix,
-                insertionText:=texts.insertionText,
-                symbols:=ImmutableArray.Create(symbol),
-                contextPosition:=context.Position,
-                rules:=CompletionItemRules.Default)
         End Function
 
         Private Function IsWithEvents(s As ISymbol) As Boolean

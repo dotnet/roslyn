@@ -4,7 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
     Friend Module EmbeddedLanguageUtilities
-        Public Function EscapeText(text As String, token As SyntaxToken) As String
+        Public Function EscapeText(text As String) As String
             ' VB has no need to escape any regex characters that would be passed in through this API.
             Return text
         End Function

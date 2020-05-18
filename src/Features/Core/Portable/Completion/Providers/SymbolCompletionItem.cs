@@ -323,8 +323,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var position = GetDescriptionPosition(item);
             var supportedPlatforms = GetSupportedPlatforms(item, workspace);
 
-            var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
-
             if (symbols.Length != 0)
             {
                 return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);

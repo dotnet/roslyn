@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             if (boundSymbols.Length == 1)
             {
-                if (boundSymbols[0] is IAliasSymbol boundAlias && aliasReplacement.Target.Equals(symbol))
+                if (boundSymbols[0] is IAliasSymbol && aliasReplacement.Target.Equals(symbol))
                 {
                     return true;
                 }

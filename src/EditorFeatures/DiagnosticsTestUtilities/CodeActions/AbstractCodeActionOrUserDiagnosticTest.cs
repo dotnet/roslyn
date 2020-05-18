@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var operations = await VerifyActionAndGetOperationsAsync(workspace, action, parameters);
             return await TestOperationsAsync(
                 workspace, expected, operations, conflictSpans, renameSpans,
-                warningSpans, navigationSpans, expectedChangedDocumentId: null, parseOptions: parameters.parseOptions);
+                warningSpans, navigationSpans, expectedChangedDocumentId: null);
         }
 
         protected async Task<Tuple<Solution, Solution>> TestOperationsAsync(
@@ -490,8 +490,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<TextSpan> renameSpans,
             ImmutableArray<TextSpan> warningSpans,
             ImmutableArray<TextSpan> navigationSpans,
-            DocumentId expectedChangedDocumentId,
-            ParseOptions parseOptions = null)
+            DocumentId expectedChangedDocumentId)
         {
             var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
             var oldSolution = appliedChanges.Item1;

@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return -1;
         }
 
-        public IEnumerable<ValueTuple<int, SyntaxToken, SyntaxToken>> TokenIterator
+        public IEnumerable<(int index, SyntaxToken currentToken, SyntaxToken nextToken)> TokenIterator
         {
             get
             {
