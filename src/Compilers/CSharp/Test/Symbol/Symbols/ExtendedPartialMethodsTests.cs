@@ -5,6 +5,7 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2397,6 +2398,245 @@ public partial class C
                 // (8,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     public static partial async Task<int> Main()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(8, 43));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Override_CustomModifiers()
+        {
+            var source1 = @"
+public class C
+{
+    public virtual void M(in object x) { }
+}";
+            var comp1 = CreateCompilation(source1, assemblyName: "C");
+            comp1.VerifyDiagnostics();
+            verify(comp1.ToMetadataReference());
+            verify(comp1.EmitToImageReference());
+
+            void verify(MetadataReference reference)
+            {
+
+                var source2 = @"
+public partial class D : C
+{
+    public override partial void M(in object x);
+    public override partial void M(in object x) { x.ToString(); }
+}
+";
+                var verifier = CompileAndVerify(source2, references: new[] { reference }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+                verifier.VerifyTypeIL("D", @"
+.class public auto ansi beforefieldinit D
+        extends [C]C
+{
+        // Methods
+        .method public hidebysig virtual
+                instance void M (
+                        [in] object& modreq([netstandard]System.Runtime.InteropServices.InAttribute) x
+                ) cil managed
+        {
+                .param [1]
+                        .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+                                01 00 00 00
+                        )
+                // Method begins at RVA 0x2058
+                // Code size 9 (0x9)
+                .maxstack 8
+                IL_0000: ldarg.1
+                IL_0001: ldind.ref
+                IL_0002: callvirt instance string [netstandard]System.Object::ToString()
+                IL_0007: pop
+                IL_0008: ret
+        } // end of method D::M
+        .method public hidebysig specialname rtspecialname
+                instance void .ctor () cil managed
+        {
+                // Method begins at RVA 0x2062
+                // Code size 7 (0x7)
+                .maxstack 8
+                IL_0000: ldarg.0
+                IL_0001: call instance void [C]C::.ctor()
+                IL_0006: ret
+        } // end of method D::.ctor
+} // end of class D");
+            }
+        }
+
+        [Fact]
+        public void InterfaceImpl_InThunk()
+        {
+            var source = @"
+public interface I
+{
+    void M(in object obj);
+}
+
+public partial class C : I
+{
+    public partial void M(in object obj);
+    public partial void M(in object obj) { }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularWithExtendedPartialMethods,
+                symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            void verify(ModuleSymbol module)
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var cType = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.NotNull(cType.GetMethod("M"));
+                Assert.NotNull(cType.GetMethod("I.M"));
+            }
+        }
+
+        [Fact]
+        public void ConsumeExtendedPartialFromVB()
+        {
+            var csharp = @"
+public partial class C
+{
+    public virtual partial int M1();
+    public virtual partial int M1() => 42;
+}";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+
+            var vb = @"
+Public Class D
+    Inherits C
+
+    Public Overrides Function M1() As Integer
+        Return 123
+    End Function
+End Class
+";
+
+            var vbComp = CreateVisualBasicCompilation(vb, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard).Add(comp.EmitToImageReference()));
+            vbComp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Override_SingleDimensionArraySizesInMetadata()
+        {
+
+            var il = @"
+.class public auto ansi abstract beforefieldinit Base
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig newslot abstract virtual
+        void M1 (int32[0...] param) cil managed 
+    {
+    }
+    .method public hidebysig newslot abstract virtual
+        int32[0...] M2 () cil managed 
+    {
+    }
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+}";
+
+            var source = @"
+public partial class Derived : Base
+{
+    public override partial void M1(int[] param);
+    public override partial void M1(int[] param) { }
+
+    public override partial int[] M2();
+    public override partial int[] M2() => new int[0];
+}";
+
+            var comp = CreateCompilationWithIL(source, il, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (2,22): error CS0534: 'Derived' does not implement inherited abstract member 'Base.M1(int[*])'
+                // public partial class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.M1(int[*])").WithLocation(2, 22),
+                // (4,34): error CS0115: 'Derived.M1(int[])': no suitable method found to override
+                //     public override partial void M1(int[] param);
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("Derived.M1(int[])").WithLocation(4, 34),
+                // (7,35): error CS0508: 'Derived.M2()': return type must be 'int[*]' to match overridden member 'Base.M2()'
+                //     public override partial int[] M2();
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", "int[*]").WithLocation(7, 35)
+            );
+        }
+
+        [Fact]
+        public void Override_ArraySizesInMetadata()
+        {
+            var il = @"
+.class public auto ansi abstract beforefieldinit Base
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig newslot abstract virtual
+        void M1 (int32[5...5,2...4] param) cil managed 
+    {
+    }
+    .method public hidebysig newslot abstract virtual
+        int32[5...5,2...4] M2 () cil managed 
+    {
+    }
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+}";
+
+            var source = @"
+using System;
+partial class Derived : Base
+{
+    public override partial void M1(int[,] param);
+    public override partial int[,] M2();
+
+    public override partial void M1(int[,] param)
+    {
+        Console.Write(1);
+    }
+    public override partial int[,] M2()
+    {
+        Console.Write(2);
+        return null;
+    }
+
+    public static void Main()
+    {
+        var d = new Derived();
+        d.M1(null);
+        _ = d.M2();
+    }
+}";
+
+            var comp = CreateCompilationWithIL(source, il, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            CompileAndVerify(comp, expectedOutput: "12");
+
+            var m1 = comp.GetMember<MethodSymbol>("Derived.M1");
+            verifyArray(m1.Parameters[0].Type);
+
+            var m2 = comp.GetMember<MethodSymbol>("Derived.M2");
+            verifyArray(m2.ReturnType);
+
+            static void verifyArray(TypeSymbol type)
+            {
+                var array = (ArrayTypeSymbol)type;
+                Assert.False(array.IsSZArray);
+                Assert.Equal(2, array.Rank);
+                Assert.Equal(5, array.LowerBounds[0]);
+                Assert.Equal(1, array.Sizes[0]);
+                Assert.Equal(2, array.LowerBounds[1]);
+                Assert.Equal(3, array.Sizes[1]);
+            }
         }
     }
 }
