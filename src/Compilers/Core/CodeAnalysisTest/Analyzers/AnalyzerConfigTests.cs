@@ -1172,7 +1172,7 @@ build_property.name = value2
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"
 [*.cs]
-msbuild_property = value1
+build_property = value1
 build_property. = value2
 build_property.. = value3
 build_property..abc = value4
@@ -1189,7 +1189,7 @@ build_property..abc = value4
             }, options.Select(o => o.BuildProperties).ToArray());
 
             Assert.Equal(new[] {
-                CreateImmutableDictionary(("msbuild_property", "value1")),
+                CreateImmutableDictionary(("build_property", "value1")),
                 ImmutableDictionary<string, string>.Empty,
             }, options.Select(o => o.AnalyzerOptions).ToArray());
         }
@@ -1287,7 +1287,7 @@ build_metadata..abc = value5
             }, options.Select(o => o.BuildMetadata).ToArray());
 
             Assert.Equal(new[] {
-                CreateImmutableDictionary(("msbuild_metadata", "value1")),
+                CreateImmutableDictionary(("build_metadata", "value1")),
                 ImmutableDictionary<string, string>.Empty,
             }, options.Select(o => o.AnalyzerOptions).ToArray());
         }
