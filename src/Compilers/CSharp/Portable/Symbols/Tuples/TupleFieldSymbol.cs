@@ -66,24 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Otherwise returns -1
         /// </summary>
         public sealed override int TupleElementIndex
-        {
-            get
-            {
-                if (_tupleElementIndex < 0)
-                {
-                    return -1;
-                }
-
-                return _tupleElementIndex >> 1;
-            }
-        }
+            => _tupleElementIndex >> 1;
 
         public sealed override bool IsDefaultTupleElement
         {
             get
             {
-                // not negative and even
-                return (_tupleElementIndex & ((1 << 31) | 1)) == 0;
+                // even
+                return (_tupleElementIndex & 1) == 0;
             }
         }
 
@@ -273,6 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(name != underlyingField.Name || !container.Equals(underlyingField.ContainingType, TypeCompareKind.IgnoreDynamicAndTupleNames),
                                 "fields that map directly to underlying should not be represented by " + nameof(TupleVirtualElementFieldSymbol));
             Debug.Assert((correspondingDefaultFieldOpt is null) == (NamedTypeSymbol.TupleMemberName(tupleElementIndex + 1) == name));
+            Debug.Assert(!(correspondingDefaultFieldOpt is TupleErrorFieldSymbol));
 
             _name = name;
             _cannotUse = cannotUse;
