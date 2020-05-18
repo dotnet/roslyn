@@ -1117,29 +1117,12 @@ next:;
 
         private bool HasInstanceFields()
         {
-            var members = this.GetMembersUnordered();
-            for (var i = 0; i < members.Length; i++)
+            var fields = this.GetFieldsToEmit();
+            foreach (var field in fields)
             {
-                var m = members[i];
-                if (!m.IsStatic)
+                if (!field.IsStatic)
                 {
-                    switch (m.Kind)
-                    {
-                        case SymbolKind.Field:
-                            if (m is TupleErrorFieldSymbol)
-                            {
-                                break;
-                            }
-
-                            return true;
-
-                        case SymbolKind.Event:
-                            if (((EventSymbol)m).AssociatedField != null)
-                            {
-                                return true;
-                            }
-                            break;
-                    }
+                    return true;
                 }
             }
 

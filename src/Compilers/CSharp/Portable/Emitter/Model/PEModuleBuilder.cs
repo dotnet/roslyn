@@ -273,6 +273,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                         AddSymbolLocation(result, member);
                                         break;
                                     case SymbolKind.Field:
+                                        if (member is TupleErrorFieldSymbol)
+                                        {
+                                            break;
+                                        }
+
                                         // NOTE: Dev11 does not add synthesized backing fields for properties,
                                         //       but adds backing fields for events, Roslyn adds both
                                         AddSymbolLocation(result, member);
@@ -1006,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             bool needDeclaration = false)
         {
             Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
-            Debug.Assert(!fieldSymbol.IsVirtualTupleField, "virtual tuple fields should be rewritten to underlying by now");
+            Debug.Assert(!fieldSymbol.IsVirtualTupleField && !(fieldSymbol is TupleErrorFieldSymbol), "tuple fields should be rewritten to underlying by now");
 
             if (!fieldSymbol.IsDefinition)
             {

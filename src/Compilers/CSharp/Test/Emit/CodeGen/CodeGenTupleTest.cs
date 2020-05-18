@@ -27407,6 +27407,11 @@ class C
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "Item1").WithArguments("Item1", "(T1, T2)", "emptyValueTuple, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 18)
                 );
 
+            var comp3 = CreateCompilation("", references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
+            var retargetingValueTupleType = comp3.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+            Assert.IsType<RetargetingNamedTypeSymbol>(retargetingValueTupleType);
+            Assert.Empty(((NamedTypeSymbol)retargetingValueTupleType).GetFieldsToEmit());
+
             static void verifyModule(ModuleSymbol module)
             {
                 var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
@@ -27414,6 +27419,74 @@ class C
                 var fields = type.GetMembers().OfType<FieldSymbol>();
                 AssertEx.SetEqual(new[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2" }, fields.ToTestDisplayStrings());
                 Assert.All(fields, f => Assert.True(f.HasUseSiteError));
+
+                Assert.Equal(module is SourceModuleSymbol ? "SourceNamedTypeSymbol" : "PENamedTypeSymbolGeneric", type.GetType().Name);
+                Assert.Empty(type.GetFieldsToEmit());
+            }
+        }
+
+        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        public void EmptyValueTuple_WithCtor()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        ValueTuple(T1 item1, T2 item2) => throw null;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40, assemblyName: "emptyValueTuple");
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+            verifier.VerifyTypeIL("ValueTuple`2", @"
+ .class public sequential ansi sealed beforefieldinit System.ValueTuple`2<T1, T2>
+    extends [mscorlib]System.ValueType
+{
+    .pack 0
+    .size 1
+    // Methods
+    .method private hidebysig specialname rtspecialname
+    instance void .ctor (
+        !T1 item1,
+        !T2 item2
+        ) cil managed
+    {
+        // Method begins at RVA 0x2050
+        // Code size 2 (0x2)
+        .maxstack 8
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method ValueTuple`2::.ctor
+} // end of class System.ValueTuple`2
+");
+
+            var client = @"
+class C
+{
+    int M((int, int) t)
+    {
+        return t.Item1;
+    }
+}
+";
+            var comp2 = CreateCompilation(client, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Mscorlib40);
+            comp2.VerifyDiagnostics(
+                // (6,18): error CS8128: Member 'Item1' was not found on type '(T1, T2)' from assembly 'emptyValueTuple, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         return t.Item1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "Item1").WithArguments("Item1", "(T1, T2)", "emptyValueTuple, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 18)
+                );
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+                Assert.Equal("(T1, T2)", type.ToTestDisplayString());
+                var fields = type.GetMembers().OfType<FieldSymbol>();
+                AssertEx.SetEqual(new[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2" }, fields.ToTestDisplayStrings());
+                Assert.All(fields, f => Assert.True(f.HasUseSiteError));
+
+                Assert.Equal(module is SourceModuleSymbol ? "SourceNamedTypeSymbol" : "PENamedTypeSymbolGeneric", type.GetType().Name);
+                Assert.Empty(type.GetFieldsToEmit());
             }
         }
 
@@ -27441,6 +27514,9 @@ class C
                     "(T1, T2, T3, T4)", "(T1, T2, T3, T4, T5)", "(T1, T2, T3, T4, T5, T6)",
                     "(T1, T2, T3, T4, T5, T6, T7)", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>" },
                     valueTupleTypes.ToTestDisplayStrings());
+
+                AssertEx.SetEqual(new[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2" },
+                    ((NamedTypeSymbol)valueTupleTypes[0]).GetFieldsToEmit().ToTestDisplayStrings());
 
                 verify(valueTupleTypes[0], name: "Item1", display: "T1 (T1, T2).Item1", index: 0);
                 verify(valueTupleTypes[0], "Item2", "T2 (T1, T2).Item2", 1);
@@ -27483,6 +27559,9 @@ class C
 
                     var namedType = (NamedTypeSymbol)tuple;
                     Assert.True(namedType.IsTupleType);
+                    Assert.Equal(isSourceSymbol ? "SourceNamedTypeSymbol" : (retargeting ? "RetargetingNamedTypeSymbol" : "PENamedTypeSymbolGeneric"),
+                        namedType.GetType().Name);
+
                     var item = namedType.GetMember<FieldSymbol>(name);
                     if (retargeting)
                     {
@@ -27596,6 +27675,100 @@ class C
 
                     Assert.Null(item.TupleUnderlyingField);
                     Assert.Null(item.CorrespondingTupleField);
+                    Assert.Null(item.AssociatedSymbol);
+                }
+            }
+        }
+
+        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        public void TestValueTuple2Definition_WithExtraField()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public string field;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40, assemblyName: "customValueTuple");
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+
+            var comp3 = CreateCompilation("", references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
+            var retargetingValueTupleType = (NamedTypeSymbol)comp3.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+            Assert.IsType<RetargetingNamedTypeSymbol>(retargetingValueTupleType);
+            verifyTupleType(retargetingValueTupleType, retargeting: true);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+                verifyTupleType(type, retargeting: false);
+            }
+
+            static void verifyTupleType(NamedTypeSymbol namedType, bool retargeting)
+            {
+                Assert.Equal("(T1, T2)", namedType.ToTestDisplayString());
+                AssertEx.SetEqual(new[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2", "System.String (T1, T2).field" }, namedType.GetFieldsToEmit().ToTestDisplayStrings());
+
+                var fields = namedType.GetMembers().OfType<FieldSymbol>();
+                AssertEx.SetEqual(new[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2", "System.String (T1, T2).field" }, fields.ToTestDisplayStrings());
+                Assert.All(fields, f => Assert.False(f.HasUseSiteError));
+
+                verify("Item1", "T1 (T1, T2).Item1", isTupleElement: true);
+                verify("Item2", "T2 (T1, T2).Item2", true);
+                verify("field", "System.String (T1, T2).field", false);
+
+                void verify(string name, string display, bool isTupleElement)
+                {
+                    var isSourceSymbol = namedType.ContainingModule is SourceModuleSymbol;
+
+                    Assert.True(namedType.IsTupleType);
+                    var item = namedType.GetMember<FieldSymbol>(name);
+                    if (retargeting)
+                    {
+                        Assert.IsType<RetargetingFieldSymbol>(item);
+                    }
+                    else if (isSourceSymbol)
+                    {
+                        Assert.IsType<SourceMemberFieldSymbolFromDeclarator>(item);
+                    }
+                    else
+                    {
+                        Assert.IsType<PEFieldSymbol>(item);
+                    }
+
+                    Assert.Equal(isTupleElement, item.IsDefaultTupleElement);
+                    Assert.True(item.IsDefinition);
+
+                    Assert.False(item.IsImplicitlyDeclared);
+                    Assert.False(item.IsVirtualTupleField);
+
+                    Assert.Equal(display, item.ToTestDisplayString());
+                    Assert.Equal(name, item.Name);
+                    Assert.Equal(1, item.Locations.Length);
+                    if (retargeting || isSourceSymbol)
+                    {
+                        Assert.Equal(name, item.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+                    }
+                    else
+                    {
+                        Assert.Empty(item.DeclaringSyntaxReferences);
+                    }
+
+                    if (isTupleElement)
+                    {
+                        Assert.Same(item, item.CorrespondingTupleField);
+                    }
+                    else
+                    {
+                        Assert.Equal(-1, item.TupleElementIndex);
+                        Assert.Null(item.CorrespondingTupleField);
+                    }
+
+                    Assert.Same(item, item.TupleUnderlyingField);
                     Assert.Null(item.AssociatedSymbol);
                 }
             }

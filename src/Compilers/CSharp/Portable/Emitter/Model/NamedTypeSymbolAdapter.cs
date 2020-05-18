@@ -407,6 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var f in GetFieldsToEmit())
             {
+                Debug.Assert(!(f is TupleErrorFieldSymbol));
                 if (isStruct || f.ShouldInclude(context))
                 {
                     yield return f;

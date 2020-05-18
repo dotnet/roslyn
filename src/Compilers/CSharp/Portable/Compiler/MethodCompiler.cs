@@ -541,22 +541,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.Field:
                         {
-                            if (member is FieldSymbol fieldSymbol)
+                            var fieldSymbol = (FieldSymbol)member;
+                            if (member is TupleErrorFieldSymbol)
                             {
-                                if (fieldSymbol.IsConst)
-                                {
-                                    // We check specifically for constant fields with bad values because they never result
-                                    // in bound nodes being inserted into method bodies (in which case, they would be covered
-                                    // by the method-level check).
-                                    ConstantValue constantValue = fieldSymbol.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
-                                    SetGlobalErrorIfTrue(constantValue == null || constantValue.IsBad);
-                                }
+                                break;
 
-                                if (fieldSymbol.IsFixedSizeBuffer && compilationState.Emitting)
-                                {
-                                    // force the generation of implementation types for fixed-size buffers
-                                    TypeSymbol discarded = fieldSymbol.FixedImplementationType(compilationState.ModuleBuilderOpt);
-                                }
+                            }
+
+                            if (fieldSymbol.IsConst)
+                            {
+                                // We check specifically for constant fields with bad values because they never result
+                                // in bound nodes being inserted into method bodies (in which case, they would be covered
+                                // by the method-level check).
+                                ConstantValue constantValue = fieldSymbol.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
+                                SetGlobalErrorIfTrue(constantValue == null || constantValue.IsBad);
+                            }
+
+                            if (fieldSymbol.IsFixedSizeBuffer && compilationState.Emitting)
+                            {
+                                // force the generation of implementation types for fixed-size buffers
+                                TypeSymbol discarded = fieldSymbol.FixedImplementationType(compilationState.ModuleBuilderOpt);
                             }
                             break;
                         }

@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             else
             {
                 // If there are any non-event fields, they are at the very beginning.
-                IEnumerable<FieldSymbol> nonEventFields = GetMembers<FieldSymbol>(this.GetMembers(), SymbolKind.Field, offset: 0);
+                IEnumerable<FieldSymbol> nonEventFields = GetMembers<FieldSymbol>(this.GetMembers().WhereAsArray(m => !(m is TupleErrorFieldSymbol)), SymbolKind.Field, offset: 0);
 
                 // Event backing fields are not part of the set returned by GetMembers. Let's add them manually.
                 ArrayBuilder<FieldSymbol> eventFields = null;

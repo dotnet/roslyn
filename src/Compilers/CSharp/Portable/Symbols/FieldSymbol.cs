@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (ContainingType.IsTupleType)
                 {
                     var i = NamedTypeSymbol.MatchesCanonicalElementName(Name);
-                    if (i > 0 && i <= ContainingType.Arity && i <= NamedTypeSymbol.ValueTupleRestPosition - 1)
+                    if (i > 0 && i <= ContainingType.Arity && i < NamedTypeSymbol.ValueTupleRestPosition)
                     {
                         WellKnownMember wellKnownMember = NamedTypeSymbol.GetTupleTypeMember(ContainingType.Arity, i);
 
