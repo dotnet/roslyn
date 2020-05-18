@@ -113,6 +113,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             Assert.NotEmpty(analysis.Namespaces);
         }
 
-        public Task TestCancelledOption(string markup) => TestMoveToNamespaceAsync(markup, expectedMarkup: markup, optionCancelled: true);
+        public Task TestCancelledOptionAsync(string markup) => TestMoveToNamespaceAsync(markup, expectedMarkup: markup, optionCancelled: true);
     }
 }

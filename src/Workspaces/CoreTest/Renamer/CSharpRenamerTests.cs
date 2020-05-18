@@ -13,27 +13,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
         [Fact]
         public Task CSharp_TestEmptyDocument()
-            => TestRenameDocument(
+            => TestRenameDocumentAsync(
                 "",
                 "",
                 newDocumentName: "NewDocumentName");
 
         [Fact]
         public Task CSharp_TestNullDocumentName()
-        => TestEmptyActionSet(
+        => TestEmptyActionSetAsync(
             "class C {}",
             documentName: "C.cs");
 
         [Fact]
         public Task CSharp_RenameDocument_NoRenameType()
-        => TestEmptyActionSet(
+        => TestEmptyActionSetAsync(
             @"class C {}",
             documentName: "NotC.cs",
             newDocumentName: "C.cs");
 
         [Fact]
         public Task CSharp_RenameDocument_RenameType()
-        => TestRenameDocument(
+        => TestRenameDocumentAsync(
             @"class OriginalName {}",
             @"class NewDocumentName {}",
             documentName: "OriginalName.cs",
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
         [Fact]
         public Task CSharp_RenameDocument_RenameType_CaseInsensitive()
-        => TestRenameDocument(
+        => TestRenameDocumentAsync(
             @"class OriginalName {}",
             @"class NewDocumentName {}",
             documentName: "originalName.cs",
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
         [Fact]
         public Task CSharp_RenameDocument_RenameInterface()
-        => TestRenameDocument(
+        => TestRenameDocumentAsync(
             @"interface IInterface {}",
             @"interface IInterface2 {}",
             documentName: "IInterface.cs",
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
         [Fact]
         public Task CSharp_RenameDocument_RenameEnum()
-        => TestRenameDocument(
+        => TestRenameDocumentAsync(
             @"enum MyEnum {}",
             @"enum MyEnum2 {}",
             documentName: "MyEnum.cs",
@@ -128,12 +128,12 @@ namespace Test
                 }
             };
 
-            return TestRenameDocument(originalDocuments, expectedDocuments);
+            return TestRenameDocumentAsync(originalDocuments, expectedDocuments);
         }
 
         [Fact]
         public Task CSharp_RenameDocument_NoRenameNamespace()
-        => TestEmptyActionSet(
+        => TestEmptyActionSetAsync(
 @"namespace Test.Path
 {
     class C
@@ -145,7 +145,7 @@ namespace Test
 
         [Fact]
         public Task CSharp_RenameDocument_RenameNamespace()
-        => TestRenameDocument(
+        => TestRenameDocumentAsync(
 @"namespace Test.Path
 {
     class C
@@ -164,7 +164,7 @@ namespace Test
 
         [Fact]
         public Task CSharp_RenameDocument_RenameMultipleNamespaces()
-       => TestRenameDocument(
+       => TestRenameDocumentAsync(
 @"namespace Test.Path
 {
     class C
@@ -197,7 +197,7 @@ namespace Test.Path.After.Test
 
         [Fact]
         public Task CSharp_RenameDocument_RenameMultipleNamespaces2()
-       => TestRenameDocument(
+       => TestRenameDocumentAsync(
 @"namespace Test.Path
 {
     class C
@@ -244,7 +244,7 @@ namespace Other.Namespace
 
         [Fact]
         public Task CSharp_RenameDocument_RenameMultipleNamespaces3()
-       => TestRenameDocument(
+       => TestRenameDocumentAsync(
 @"namespace Test.Path
 {
     class C
@@ -291,7 +291,7 @@ namespace Test.Path.After.Test
 
         [Fact]
         public Task CSharp_RenameDocument_RenameMultipleNamespaces_Nested()
-=> TestRenameDocument(
+=> TestRenameDocumentAsync(
 @"namespace Test.Path
 {
     class C
@@ -330,7 +330,7 @@ newDocumentPath: @"Test\Path\After\Test\Document.cs");
 
         [Fact]
         public Task CSharp_RenameDocument_RenameNamespace2()
-        => TestRenameDocument(
+        => TestRenameDocumentAsync(
 @"namespace Test.Path
 {
     class C
@@ -349,7 +349,7 @@ newDocumentPath: @"Test\Path\After\Test\Document.cs");
 
         [Fact]
         public Task CSharp_RenameDocument_RenameNamespaceAndClass()
-        => TestRenameDocument(
+        => TestRenameDocumentAsync(
 @"namespace Test.Path
 {
     class C

@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
 
-            await AssertNetCoreMultiTFMProject(projectFilePath);
+            await AssertNetCoreMultiTFMProjectAsync(projectFilePath);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/42772")]
@@ -286,10 +286,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
 
-            await AssertNetCoreMultiTFMProject(projectFilePath);
+            await AssertNetCoreMultiTFMProjectAsync(projectFilePath);
         }
 
-        private async Task AssertNetCoreMultiTFMProject(string projectFilePath)
+        private async Task AssertNetCoreMultiTFMProjectAsync(string projectFilePath)
         {
             using (var workspace = CreateMSBuildWorkspace())
             {

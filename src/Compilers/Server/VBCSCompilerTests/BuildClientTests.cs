@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 base.Dispose();
             }
 
-            public static async Task<bool> TryConnectToNamedPipe(string pipeName, int timeoutMs, CancellationToken cancellationToken)
+            public static async Task<bool> TryConnectToNamedPipeAsync(string pipeName, int timeoutMs, CancellationToken cancellationToken)
             {
                 using (var pipeStream = await BuildServerConnection.TryConnectToServerAsync(pipeName, timeoutMs, cancellationToken))
                 {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             private ServerData CreateServer(string pipeName, ICompilerServerHost compilerServerHost = null)
             {
-                var serverData = ServerUtil.CreateServer(pipeName, compilerServerHost).GetAwaiter().GetResult();
+                var serverData = ServerUtil.CreateServerAsync(pipeName, compilerServerHost).GetAwaiter().GetResult();
                 _serverDataList.Add(serverData);
                 return serverData;
             }
@@ -147,11 +147,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 var oneSec = TimeSpan.FromSeconds(1);
 
-                Assert.False(await TryConnectToNamedPipe(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
+                Assert.False(await TryConnectToNamedPipeAsync(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
 
                 // Try again with infinite timeout and cancel
                 var cts = new CancellationTokenSource();
-                var connection = TryConnectToNamedPipe(pipeName, Timeout.Infinite, cts.Token);
+                var connection = TryConnectToNamedPipeAsync(pipeName, Timeout.Infinite, cts.Token);
                 Assert.False(connection.IsCompleted);
                 cts.Cancel();
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(
@@ -159,9 +159,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 // Create server and try again
                 Assert.True(TryCreateServer(pipeName));
-                Assert.True(await TryConnectToNamedPipe(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
+                Assert.True(await TryConnectToNamedPipeAsync(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
                 // With infinite timeout
-                Assert.True(await TryConnectToNamedPipe(pipeName, Timeout.Infinite, cancellationToken: default));
+                Assert.True(await TryConnectToNamedPipeAsync(pipeName, Timeout.Infinite, cancellationToken: default));
             }
 
             [ConditionalFact(typeof(DesktopOnly))]

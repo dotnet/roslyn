@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             utf8output: false,
             output: string.Empty);
 
-        private static async Task<(NamedPipeClientStream Client, NamedPipeServerStream Server)> CreateNamedPipePair()
+        private static async Task<(NamedPipeClientStream Client, NamedPipeServerStream Server)> CreateNamedPipePairAsync()
         {
             var pipeName = Guid.NewGuid().ToString("N").Substring(0, 10);
             var serverStream = NamedPipeUtil.CreateServer(pipeName);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return s_emptyBuildResponse;
             });
 
-            var (clientStream, serverStream) = await CreateNamedPipePair().ConfigureAwait(false);
+            var (clientStream, serverStream) = await CreateNamedPipePairAsync().ConfigureAwait(false);
             try
             {
                 var connection = new NamedPipeClientConnection(host, "identifier", serverStream);
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return s_emptyBuildResponse;
             });
 
-            var (clientStream, serverStream) = await CreateNamedPipePair().ConfigureAwait(false);
+            var (clientStream, serverStream) = await CreateNamedPipePairAsync().ConfigureAwait(false);
             try
             {
                 var connection = new NamedPipeClientConnection(host, "identifier", serverStream);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 throw null;
             });
 
-            var (clientStream, serverStream) = await CreateNamedPipePair().ConfigureAwait(false);
+            var (clientStream, serverStream) = await CreateNamedPipePairAsync().ConfigureAwait(false);
             try
             {
                 var connection = new NamedPipeClientConnection(host, "identifier", serverStream);
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 throw null;
             });
 
-            var (clientStream, serverStream) = await CreateNamedPipePair().ConfigureAwait(false);
+            var (clientStream, serverStream) = await CreateNamedPipePairAsync().ConfigureAwait(false);
             try
             {
                 var connection = new NamedPipeClientConnection(host, "identifier", serverStream);

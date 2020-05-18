@@ -74,7 +74,7 @@ namespace IdeCoreBenchmarks
         }
 
         [Benchmark]
-        public async Task RunAnalyzer()
+        public async Task RunAnalyzerAsync()
         {
             await _diagnosticAnalyzerRunner.RunAsync(CancellationToken.None).ConfigureAwait(false);
         }

@@ -47,15 +47,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             ConnectionCompletionCollection = connectionCompletionCollection;
         }
 
-        internal async Task<ServerStats> Complete()
+        internal async Task<ServerStats> CompleteAsync()
         {
             CancellationTokenSource.Cancel();
             return await ServerTask;
         }
 
-        internal async Task Verify(int connections, int completed)
+        internal async Task VerifyAsync(int connections, int completed)
         {
-            var stats = await Complete().ConfigureAwait(false);
+            var stats = await CompleteAsync().ConfigureAwait(false);
             Assert.Equal(connections, stats.Connections);
             Assert.Equal(completed, stats.CompletedConnections);
         }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 tempDir: tempDir);
         }
 
-        internal static async Task<ServerData> CreateServer(
+        internal static async Task<ServerData> CreateServerAsync(
             string pipeName = null,
             ICompilerServerHost compilerServerHost = null,
             bool failingServer = false,
@@ -145,12 +145,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// <summary>
         /// Create a compiler server that fails all connections.
         /// </summary>
-        internal static Task<ServerData> CreateServerFailsConnection(string pipeName = null)
+        internal static Task<ServerData> CreateServerFailsConnectionAsync(string pipeName = null)
         {
-            return CreateServer(pipeName, failingServer: true);
+            return CreateServerAsync(pipeName, failingServer: true);
         }
 
-        internal static async Task<BuildResponse> Send(string pipeName, BuildRequest request)
+        internal static async Task<BuildResponse> SendAsync(string pipeName, BuildRequest request)
         {
             using (var client = await BuildServerConnection.TryConnectToServerAsync(pipeName, Timeout.Infinite, cancellationToken: default).ConfigureAwait(false))
             {
@@ -159,9 +159,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
         }
 
-        internal static async Task<int> SendShutdown(string pipeName)
+        internal static async Task<int> SendShutdownAsync(string pipeName)
         {
-            var response = await Send(pipeName, BuildRequest.CreateShutdown());
+            var response = await SendAsync(pipeName, BuildRequest.CreateShutdown());
             return ((ShutdownBuildResponse)response).ServerProcessId;
         }
 

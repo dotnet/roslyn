@@ -22,7 +22,7 @@ namespace RunTests.Cache
 
         public string Name => "web";
 
-        public async Task AddCachedTestResult(AssemblyInfo assemblyInfo, ContentFile contentFile, CachedTestResult testResult)
+        public async Task AddCachedTestResultAsync(AssemblyInfo assemblyInfo, ContentFile contentFile, CachedTestResult testResult)
         {
             try
             {
@@ -46,7 +46,7 @@ namespace RunTests.Cache
             }
         }
 
-        public async Task<CachedTestResult?> TryGetCachedTestResult(string checksum)
+        public async Task<CachedTestResult?> TryGetCachedTestResultAsync(string checksum)
         {
             try
             {

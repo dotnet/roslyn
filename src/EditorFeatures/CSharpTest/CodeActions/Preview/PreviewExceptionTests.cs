@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         public async Task TestExceptionInComputePreview()
         {
             using var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters());
-            await GetPreview(workspace, new ErrorCases.ExceptionInCodeAction());
+            await GetPreviewAsync(workspace, new ErrorCases.ExceptionInCodeAction());
         }
 
         [WpfFact]
@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         public async Task TestExceptionInActionSets()
         {
             using var workspace = CreateWorkspaceFromFile("class D {}", new TestParameters());
-            await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction());
+            await ActionSetsAsync(workspace, new ErrorCases.ExceptionInCodeAction());
         }
 
-        private async Task GetPreview(TestWorkspace workspace, CodeRefactoringProvider provider)
+        private async Task GetPreviewAsync(TestWorkspace workspace, CodeRefactoringProvider provider)
         {
             var codeActions = new List<CodeAction>();
             RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             Assert.False(extensionManager.IsIgnored(provider));
         }
 
-        private async Task ActionSets(TestWorkspace workspace, CodeRefactoringProvider provider)
+        private async Task ActionSetsAsync(TestWorkspace workspace, CodeRefactoringProvider provider)
         {
             var codeActions = new List<CodeAction>();
             RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);

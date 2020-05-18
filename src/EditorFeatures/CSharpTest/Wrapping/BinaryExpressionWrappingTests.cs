@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.BeginningOfLine);
 
-        private Task TestEndOfLine(string markup, string expected)
+        private Task TestEndOfLineAsync(string markup, string expected)
             => TestInRegularAndScript1Async(markup, expected, parameters: new TestParameters(
                 options: EndOfLine));
 
-        private Task TestBeginningOfLine(string markup, string expected)
+        private Task TestBeginningOfLineAsync(string markup, string expected)
             => TestInRegularAndScript1Async(markup, expected, parameters: new TestParameters(
                 options: BeginningOfLine));
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestInIf()
         {
-            await TestEndOfLine(
+            await TestEndOfLineAsync(
 @"class C {
     void Bar() {
         if ([||]i && j) {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestInIf_IncludingOp()
         {
-            await TestBeginningOfLine(
+            await TestBeginningOfLineAsync(
 @"class C {
     void Bar() {
         if ([||]i && j) {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestInIf2()
         {
-            await TestEndOfLine(
+            await TestEndOfLineAsync(
 @"class C {
     void Bar() {
         if (i[||] && j) {
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestInIf3()
         {
-            await TestEndOfLine(
+            await TestEndOfLineAsync(
 @"class C {
     void Bar() {
         if (i [||]&& j) {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestInIf4()
         {
-            await TestEndOfLine(
+            await TestEndOfLineAsync(
 @"class C {
     void Bar() {
         if (i &&[||] j) {
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestInIf5()
         {
-            await TestEndOfLine(
+            await TestEndOfLineAsync(
 @"class C {
     void Bar() {
         if (i && [||]j) {
@@ -591,7 +591,7 @@ BeginningOfLine,
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestUnderscoreName_End()
         {
-            await TestEndOfLine(
+            await TestEndOfLineAsync(
 @"class C {
     void Bar() {
         if ([||]i is var _ && _ != null) {
@@ -610,7 +610,7 @@ BeginningOfLine,
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestUnderscoreName_Beginning()
         {
-            await TestBeginningOfLine(
+            await TestBeginningOfLineAsync(
 @"class C {
     void Bar() {
         if ([||]i is var _ && _ != null) {

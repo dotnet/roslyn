@@ -13,21 +13,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
         [Fact]
         public Task VisualBasic_TestEmptyDocument()
-        => TestRenameDocument(
+        => TestRenameDocumentAsync(
             "",
             "",
             newDocumentName: "NewDocumentName");
 
         [Fact]
         public Task VisualBasic_RenameDocument_NoRenameType()
-        => TestEmptyActionSet(
+        => TestEmptyActionSetAsync(
 @"Class C
 End Class",
         newDocumentName: "C.cs");
 
         [Fact]
         public Task VisualBasic_RenameDocument_RenameType()
-        => TestRenameDocument(
+        => TestRenameDocumentAsync(
 @"Class OriginalName
 End Class",
 @"Class NewDocumentName
@@ -37,7 +37,7 @@ End Class",
 
         [Fact]
         public Task VisualBasic_RenameDocument_RenameInterface()
-        => TestRenameDocument(
+        => TestRenameDocumentAsync(
 @"Interface IInterface
 End Interface",
 @"Interface IInterface2
@@ -47,7 +47,7 @@ End Interface",
 
         [Fact]
         public Task VisualBasic_RenameDocument_RenameEnum()
-        => TestRenameDocument(
+        => TestRenameDocumentAsync(
             @"enum MyEnum {}",
             @"enum MyEnum2 {}",
             documentName: "MyEnum.vb",
@@ -108,12 +108,12 @@ End Namespace",
                 }
             };
 
-            return TestRenameDocument(originalDocuments, expectedDocuments);
+            return TestRenameDocumentAsync(originalDocuments, expectedDocuments);
         }
 
         [Fact]
         public Task VisualBasic_RenameDocument_NoRenameNamespace()
-        => TestEmptyActionSet(
+        => TestEmptyActionSetAsync(
 @"Namespace Test.Path
     Class C
     End Class
@@ -124,7 +124,7 @@ End Namespace",
         [Fact]
         // https://github.com/dotnet/roslyn/issues/41841 tracks VB support
         public Task VisualBasic_RenameDocument_NamespaceNotSupported()
-        => TestEmptyActionSet(
+        => TestEmptyActionSetAsync(
 @"Namespace Test.Path
     Class C
     End Class

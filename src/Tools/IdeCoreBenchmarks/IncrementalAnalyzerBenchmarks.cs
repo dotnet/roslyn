@@ -72,7 +72,7 @@ namespace IdeCoreBenchmarks
         }
 
         [Benchmark]
-        public async Task RunIncrementalAnalyzer()
+        public async Task RunIncrementalAnalyzerAsync()
         {
             await _incrementalAnalyzerRunner.RunAsync(CancellationToken.None).ConfigureAwait(false);
         }

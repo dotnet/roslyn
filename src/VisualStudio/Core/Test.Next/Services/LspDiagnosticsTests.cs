@@ -524,7 +524,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             }
 
             [JsonRpcMethod(LSP.Methods.TextDocumentPublishDiagnosticsName)]
-            public Task OnDiagnosticsPublished(JToken input)
+            public Task OnDiagnosticsPublishedAsync(JToken input)
             {
                 lock (_lock)
                 {

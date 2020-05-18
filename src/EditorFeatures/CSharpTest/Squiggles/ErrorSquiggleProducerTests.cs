@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 </Workspace>";
 
             using var workspace = TestWorkspace.Create(workspaceXml);
-            var spans = (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
+            var spans = (await _producer.GetDiagnosticsAndErrorSpansAsync(workspace)).Item2;
 
             Assert.Equal(1, spans.Count());
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, spans.First().Tag.ErrorType);
@@ -129,7 +129,7 @@ class Program
                     }
                 };
 
-            var diagnosticsAndSpans = await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap);
+            var diagnosticsAndSpans = await _producer.GetDiagnosticsAndErrorSpansAsync(workspace, analyzerMap);
 
             var spans =
                 diagnosticsAndSpans.Item1
@@ -207,7 +207,7 @@ class Program
         {
             using var workspace = TestWorkspace.CreateCSharp("class C : Bar { }");
 
-            var spans = await _producer.GetDiagnosticsAndErrorSpans(workspace);
+            var spans = await _producer.GetDiagnosticsAndErrorSpansAsync(workspace);
 
             Assert.Equal(1, spans.Item2.Count());
 
@@ -233,7 +233,7 @@ class Program
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace);
             var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
             using var disposable = tagger as IDisposable;
-            await wrapper.WaitForTags();
+            await wrapper.WaitForTagsAsync();
 
             var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -245,7 +245,7 @@ class Program
             // Now remove the document.
             workspace.CloseDocument(workspace.Documents.First().Id);
             workspace.OnDocumentRemoved(workspace.Documents.First().Id);
-            await wrapper.WaitForTags();
+            await wrapper.WaitForTagsAsync();
             spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
             // And we should have no errors for this document.
@@ -259,7 +259,7 @@ class Program
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace);
             var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
             using var disposable = tagger as IDisposable;
-            await wrapper.WaitForTags();
+            await wrapper.WaitForTagsAsync();
 
             var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -272,7 +272,7 @@ class Program
             workspace.CloseDocument(workspace.Documents.First().Id);
             workspace.OnDocumentRemoved(workspace.Documents.First().Id);
             workspace.OnProjectRemoved(workspace.Projects.First().Id);
-            await wrapper.WaitForTags();
+            await wrapper.WaitForTagsAsync();
             spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
             // And we should have no errors for this document.
@@ -302,7 +302,7 @@ class Program
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
-            var spans = await _producer.GetErrorsFromUpdateSource(workspace, updateArgs);
+            var spans = await _producer.GetErrorsFromUpdateSourceAsync(workspace, updateArgs);
 
             Assert.Equal(1, spans.Count());
             var first = spans.First();
@@ -333,7 +333,7 @@ class Program
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
-            var spans = await _producer.GetErrorsFromUpdateSource(workspace, updateArgs);
+            var spans = await _producer.GetErrorsFromUpdateSourceAsync(workspace, updateArgs);
 
             Assert.Equal(2, spans.Count());
             var first = spans.First();
@@ -353,7 +353,7 @@ class Program
         private async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
         {
             using var workspace = TestWorkspace.CreateCSharp(content);
-            return (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
+            return (await _producer.GetDiagnosticsAndErrorSpansAsync(workspace)).Item2;
         }
 
         private sealed class ReportOnClassWithLink : DiagnosticAnalyzer

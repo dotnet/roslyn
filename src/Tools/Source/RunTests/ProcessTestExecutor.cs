@@ -72,18 +72,18 @@ namespace RunTests
 
         public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
         {
-            var result = await RunTestAsyncInternal(assemblyInfo, retry: false, cancellationToken);
+            var result = await RunTestInternalAsync(assemblyInfo, retry: false, cancellationToken);
 
             // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
             if (Options.TestVsi && !Options.UseHtml && !result.Succeeded)
             {
-                return await RunTestAsyncInternal(assemblyInfo, retry: true, cancellationToken);
+                return await RunTestInternalAsync(assemblyInfo, retry: true, cancellationToken);
             }
 
             return result;
         }
 
-        private async Task<TestResult> RunTestAsyncInternal(AssemblyInfo assemblyInfo, bool retry, CancellationToken cancellationToken)
+        private async Task<TestResult> RunTestInternalAsync(AssemblyInfo assemblyInfo, bool retry, CancellationToken cancellationToken)
         {
             try
             {

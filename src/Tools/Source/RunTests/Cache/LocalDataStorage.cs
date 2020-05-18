@@ -40,7 +40,7 @@ namespace RunTests.Cache
             CleanupStorage();
         }
 
-        public Task<CachedTestResult?> TryGetCachedTestResult(string checksum)
+        public Task<CachedTestResult?> TryGetCachedTestResultAsync(string checksum)
         {
             CachedTestResult? value = null;
             if (TryGetCachedTestResult(checksum, out var testResult))
@@ -87,7 +87,7 @@ namespace RunTests.Cache
             return false;
         }
 
-        public Task AddCachedTestResult(AssemblyInfo assemblyInfo, ContentFile contentFile, CachedTestResult testResult)
+        public Task AddCachedTestResultAsync(AssemblyInfo assemblyInfo, ContentFile contentFile, CachedTestResult testResult)
         {
             var checksum = contentFile.Checksum;
             var storagePath = Path.Combine(_storagePath, checksum);
