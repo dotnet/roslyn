@@ -38,14 +38,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Function GetMemberGroupItems(accessibleMembers As ImmutableArray(Of ISymbol),
                                              document As Document,
                                              invocationExpression As InvocationExpressionSyntax,
-                                             semanticModel As SemanticModel,
-                                             cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
+                                             semanticModel As SemanticModel) As IEnumerable(Of SignatureHelpItem)
             If accessibleMembers.Length = 0 Then
                 Return SpecializedCollections.EmptyEnumerable(Of SignatureHelpItem)()
             End If
 
             Return accessibleMembers.Select(
-                Function(s) ConvertMemberGroupMember(document, s, invocationExpression.SpanStart, semanticModel, cancellationToken))
+                Function(s) ConvertMemberGroupMember(document, s, invocationExpression.SpanStart, semanticModel))
         End Function
     End Class
 End Namespace
