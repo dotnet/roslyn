@@ -581,6 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var elementTypes = TupleElementTypesWithAnnotations;
             var elementsMatchedByFields = ArrayBuilder<bool>.GetInstance(elementTypes.Length, fillWithValue: false);
             var members = ArrayBuilder<Symbol>.GetInstance(currentMembers.Length);
+            var nonFieldMembers = ArrayBuilder<Symbol>.GetInstance();
             var unwrappedFieldsToIndexMap = new SmallDictionary<FieldSymbol, int>(SymbolEqualityComparer.ConsiderEverything);
 
             NamedTypeSymbol currentValueTuple = this;
@@ -703,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case SymbolKind.Event:
                             if (currentNestingLevel == 0)
                             {
-                                members.Add(member);
+                                nonFieldMembers.Add(member);
                             }
                             break;
 
@@ -792,6 +793,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             elementsMatchedByFields.Free();
+            members.AddRange(nonFieldMembers);
+            nonFieldMembers.Free();
             this.TupleData!.SetUnwrappedFieldsToIndexMap(unwrappedFieldsToIndexMap);
             return members;
 
