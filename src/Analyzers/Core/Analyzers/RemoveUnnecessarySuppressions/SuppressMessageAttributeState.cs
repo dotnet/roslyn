@@ -10,10 +10,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-
-#if NETSTANDARD2_0
 using Roslyn.Utilities;
-#endif
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -88,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool HasInvalidScope(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, out TargetScope targetScope)
         {
             if (!TryGetNamedArgument(namedAttributeArguments, SuppressMessageScope, out var scopeString) ||
-                string.IsNullOrEmpty(scopeString))
+                RoslynString.IsNullOrEmpty(scopeString))
             {
                 // Missing/Null/Empty scope values are treated equivalent to a compilation wide suppression.
                 targetScope = TargetScope.Module;
