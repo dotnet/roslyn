@@ -19,4 +19,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public void UpdateLastActivityTime()
             => UnderlyingObject.UpdateLastActivityTime();
     }
+
+    [Obsolete]
+    internal readonly struct UnitTestingAssetStorageWrappper
+    {
+        public static UnitTestingAssetStorageWrappper Instance { get; } = new UnitTestingAssetStorageWrappper(AssetStorage.Default);
+
+        internal AssetStorage UnderlyingObject { get; }
+
+        internal UnitTestingAssetStorageWrappper(AssetStorage underlyingObject)
+            => UnderlyingObject = underlyingObject ?? throw new ArgumentNullException(nameof(underlyingObject));
+
+        public void UpdateLastActivityTime()
+            => UnderlyingObject.UpdateLastActivityTime();
+    }
 }

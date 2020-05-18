@@ -4,8 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal static class UnitTestingWorkspaceKindUtilities
+    internal interface IUnitTestingRemoteSessionCallBack
     {
-        public const string RemoteWorkspace = WorkspaceKind.RemoteWorkspace;
     }
 }

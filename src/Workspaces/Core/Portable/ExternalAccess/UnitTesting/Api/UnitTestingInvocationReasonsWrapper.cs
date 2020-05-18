@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
@@ -11,8 +12,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public static readonly UnitTestingInvocationReasonsWrapper SemanticChanged = new UnitTestingInvocationReasonsWrapper(InvocationReasons.SemanticChanged);
         public static readonly UnitTestingInvocationReasonsWrapper Reanalyze = new UnitTestingInvocationReasonsWrapper(InvocationReasons.Reanalyze);
         public static readonly UnitTestingInvocationReasonsWrapper ProjectConfigurationChanged = new UnitTestingInvocationReasonsWrapper(InvocationReasons.ProjectConfigurationChanged);
-        public static readonly UnitTestingInvocationReasonsWrapper SyntaxChanged = new UnitTestingInvocationReasonsWrapper(InvocationReasons.SyntaxChanged);
-        public static readonly UnitTestingInvocationReasonsWrapper DocumentAdded = new UnitTestingInvocationReasonsWrapper(InvocationReasons.DocumentAdded);
+        public static readonly UnitTestingInvocationReasonsWrapper tSyntaxChanged = new UnitTestingInvocationReasonsWrapper(InvocationReasons.SyntaxChanged);
+        public static readonly UnitTestingInvocationReasonsWrapper PredefinedDocumentAdded = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.DocumentAdded);
+        public static readonly UnitTestingInvocationReasonsWrapper PredefinedReanalyze = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.Reanalyze);
+        public static readonly UnitTestingInvocationReasonsWrapper PredefinedSemanticChanged = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.SemanticChanged);
+        public static readonly UnitTestingInvocationReasonsWrapper PredefinedSyntaxChanged = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.SyntaxChanged);
+        public static readonly UnitTestingInvocationReasonsWrapper PredefinedProjectConfigurationChanged = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.ProjectConfigurationChanged);
+        public static readonly UnitTestingInvocationReasonsWrapper PredefinedDocumentOpened = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.DocumentOpened);
+        public static readonly UnitTestingInvocationReasonsWrapper PredefinedDocumentRemoved = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.DocumentRemoved);
+        public static readonly UnitTestingInvocationReasonsWrapper PredefinedDocumentClosed = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.DocumentClosed);
+        public static readonly UnitTestingInvocationReasonsWrapper PredefinedHighPriority = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.HighPriority);
+        public static readonly UnitTestingInvocationReasonsWrapper PredefinedProjectParseOptionsChanged = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.ProjectParseOptionsChanged);
+        public static readonly UnitTestingInvocationReasonsWrapper PredefinedSolutionRemoved = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.SolutionRemoved);
 
         internal InvocationReasons UnderlyingObject { get; }
 
@@ -20,6 +31,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             => UnderlyingObject = underlyingObject;
 
         public UnitTestingInvocationReasonsWrapper(string reason) : this(new InvocationReasons(reason)) { }
+
+        [Obsolete]
+        public bool Contains(string reason)
+            => UnderlyingObject.Contains(reason);
+
+        [Obsolete]
+        public UnitTestingInvocationReasonsWrapper With(string reason)
+            => new UnitTestingInvocationReasonsWrapper(UnderlyingObject.With(reason));
+
+        public UnitTestingInvocationReasonsWrapper With(UnitTestingInvocationReasonsWrapper reason)
+            => new UnitTestingInvocationReasonsWrapper(reason.UnderlyingObject.With(UnderlyingObject));
 
         public bool IsReanalyze()
             => UnderlyingObject.Contains(PredefinedInvocationReasons.Reanalyze);
@@ -29,38 +51,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         public bool HasProjectConfigurationChanged()
             => UnderlyingObject.Contains(PredefinedInvocationReasons.ProjectConfigurationChanged);
-
-        public UnitTestingInvocationReasonsWrapper WithReanalyze()
-            => new UnitTestingInvocationReasonsWrapper(UnderlyingObject.With(PredefinedInvocationReasons.Reanalyze));
-
-        public UnitTestingInvocationReasonsWrapper WithSemanticChanged()
-            => new UnitTestingInvocationReasonsWrapper(UnderlyingObject.With(PredefinedInvocationReasons.SemanticChanged));
-
-        public UnitTestingInvocationReasonsWrapper WithSyntaxChanged()
-            => new UnitTestingInvocationReasonsWrapper(UnderlyingObject.With(PredefinedInvocationReasons.SyntaxChanged));
-
-        public UnitTestingInvocationReasonsWrapper WithProjectConfigurationChanged()
-            => new UnitTestingInvocationReasonsWrapper(UnderlyingObject.With(PredefinedInvocationReasons.ProjectConfigurationChanged));
-
-        public UnitTestingInvocationReasonsWrapper WithDocumentAdded()
-            => new UnitTestingInvocationReasonsWrapper(UnderlyingObject.With(PredefinedInvocationReasons.DocumentAdded));
-
-        public UnitTestingInvocationReasonsWrapper WithDocumentOpened()
-            => new UnitTestingInvocationReasonsWrapper(UnderlyingObject.With(PredefinedInvocationReasons.DocumentOpened));
-
-        public UnitTestingInvocationReasonsWrapper WithDocumentRemoved()
-            => new UnitTestingInvocationReasonsWrapper(UnderlyingObject.With(PredefinedInvocationReasons.DocumentRemoved));
-
-        public UnitTestingInvocationReasonsWrapper WithDocumentClosed()
-            => new UnitTestingInvocationReasonsWrapper(UnderlyingObject.With(PredefinedInvocationReasons.DocumentClosed));
-
-        public UnitTestingInvocationReasonsWrapper WithHighPriority()
-            => new UnitTestingInvocationReasonsWrapper(UnderlyingObject.With(PredefinedInvocationReasons.HighPriority));
-
-        public UnitTestingInvocationReasonsWrapper WithProjectParseOptionsChanged()
-            => new UnitTestingInvocationReasonsWrapper(UnderlyingObject.With(PredefinedInvocationReasons.ProjectParseOptionsChanged));
-
-        public UnitTestingInvocationReasonsWrapper WithSolutionRemoved()
-            => new UnitTestingInvocationReasonsWrapper(UnderlyingObject.With(PredefinedInvocationReasons.SolutionRemoved));
     }
 }
