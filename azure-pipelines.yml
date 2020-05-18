@@ -261,6 +261,7 @@ jobs:
   variables:
     EnableRichCodeNavigation: true
   timeoutInMinutes: 200
+  condition: and(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranchName'], 'master'))
 
   steps:
     - script: eng/cibuild.cmd -configuration Debug -prepareMachine
