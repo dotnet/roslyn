@@ -715,14 +715,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             builder.Add("langversion", LanguageVersion.ToDisplayString())
             builder.Add("optionstrict", Options.OptionStrict.ToString())
 
-            Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
-                                                                                          If (p.Value Is Nothing) Then
-                                                                                              Return p.Key
-                                                                                          End If
+            If (Options.ParseOptions IsNot Nothing) Then
+                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
+                                                                                              If (p.Value Is Nothing) Then
+                                                                                                  Return p.Key
+                                                                                              End If
 
-                                                                                          Return p.Key + "=" + p.Value.ToString()
-                                                                                      End Function)
-            builder.Add("define", String.Join(",", preprocessorStrings))
+                                                                                              Return p.Key + "=" + p.Value.ToString()
+                                                                                          End Function)
+                builder.Add("define", String.Join(",", preprocessorStrings))
+            End If
 
             Return builder.ToImmutable()
         End Function
