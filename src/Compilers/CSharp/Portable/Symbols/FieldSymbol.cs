@@ -452,20 +452,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!(this is TupleElementFieldSymbol));
                 if (ContainingType.IsTupleType)
                 {
-                    var i = NamedTypeSymbol.MatchesCanonicalElementName(Name);
-                    if (i > 0 && i <= ContainingType.Arity && i < NamedTypeSymbol.ValueTupleRestPosition)
+                    var map = ContainingType.UnwrappedTupleFieldsToIndexMap;
+                    Debug.Assert(map is object);
+                    if (map.TryGetValue(this, out int index))
                     {
-                        WellKnownMember wellKnownMember = NamedTypeSymbol.GetTupleTypeMember(ContainingType.Arity, i);
-
-                        RuntimeMembers.MemberDescriptor relativeDescriptor = WellKnownMembers.GetDescriptor(wellKnownMember);
-                        var found = CSharpCompilation.GetRuntimeMember(ImmutableArray.Create<Symbol>(this.OriginalDefinition),
-                            relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
-                            accessWithinOpt: null); // force lookup of public members only
-
-                        if (found is object)
-                        {
-                            return i - 1;
-                        }
+                        return index;
                     }
                 }
 

@@ -565,6 +565,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<FieldSymbol> TupleElements
             => IsTupleType ? TupleData!.TupleElements(this) : default;
 
+        public SmallDictionary<FieldSymbol, int>? UnwrappedTupleFieldsToIndexMap
+            => IsTupleType ? TupleData!.GetUnwrappedFieldsToIndexMap(this) : null;
+
         public TMember? GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember underlyingMemberOpt) where TMember : Symbol
         {
             return IsTupleType ? TupleData!.GetTupleMemberSymbolForUnderlyingMember(underlyingMemberOpt) : null;
@@ -578,6 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var elementTypes = TupleElementTypesWithAnnotations;
             var elementsMatchedByFields = ArrayBuilder<bool>.GetInstance(elementTypes.Length, fillWithValue: false);
             var members = ArrayBuilder<Symbol>.GetInstance(currentMembers.Length);
+            var unwrappedFieldsToIndexMap = new SmallDictionary<FieldSymbol, int>(SymbolEqualityComparer.ConsiderEverything);
 
             NamedTypeSymbol currentValueTuple = this;
             int currentNestingLevel = 0;
@@ -648,6 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     if (IsDefinition)
                                     {
                                         defaultTupleField = field;
+                                        unwrappedFieldsToIndexMap.Add(field, tupleFieldIndex);
                                     }
                                     else
                                     {
@@ -657,6 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                         tupleFieldIndex,
                                                                                         locations,
                                                                                         isImplicitlyDeclared: defaultImplicitlyDeclared);
+                                        unwrappedFieldsToIndexMap.Add(fieldSymbol, tupleFieldIndex);
                                     }
                                 }
 
@@ -786,8 +792,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             elementsMatchedByFields.Free();
+            this.TupleData!.SetUnwrappedFieldsToIndexMap(unwrappedFieldsToIndexMap);
             return members;
-
 
             // Returns the nested type at a certain depth.
             //
@@ -917,6 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private ImmutableArray<TypeWithAnnotations> _lazyElementTypes;
 
             private ImmutableArray<FieldSymbol> _lazyDefaultElementFields;
+            private SmallDictionary<FieldSymbol, int>? _lazyUnwrappedFieldsToIndexMap;
             private SmallDictionary<Symbol, Symbol>? _lazyUnderlyingDefinitionToMemberMap;
 
             /// <summary>
@@ -1047,6 +1054,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return builder.ToImmutableAndFree();
                 }
+            }
+
+            internal SmallDictionary<FieldSymbol, int> GetUnwrappedFieldsToIndexMap(NamedTypeSymbol tuple)
+            {
+                Debug.Assert(tuple.IsTupleType);
+                if (_lazyUnwrappedFieldsToIndexMap is null)
+                {
+                    _ = tuple.GetMembers();
+                }
+
+                Debug.Assert(_lazyUnwrappedFieldsToIndexMap is object);
+                return _lazyUnwrappedFieldsToIndexMap;
+            }
+
+            internal void SetUnwrappedFieldsToIndexMap(SmallDictionary<FieldSymbol, int> map)
+            {
+                Interlocked.CompareExchange(ref _lazyUnwrappedFieldsToIndexMap, map, null);
             }
 
             internal SmallDictionary<Symbol, Symbol> UnderlyingDefinitionToMemberMap
