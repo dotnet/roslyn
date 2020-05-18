@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
-        public async Task FindReferencesAsync(
+        async Task IFindUsagesService.FindReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var definitionTrackingContext = new DefinitionTrackingContext(context);
@@ -46,6 +46,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 // Don't need ConfigureAwait(true) here 
                 await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
             }
+        }
+
+        Task IFindUsagesLSPService.FindReferencesAsync(
+            Document document, int position, IFindUsagesContext context)
+        {
+            // We don't need to get third party definitions when finding references in LSP.
+            // Currently, 3rd party definitions = XAML definitions, and XAML will provide
+            // references via LSP instead of hooking into Roslyn.
+            // This also means that we don't need to be on the UI thread.
+            return FindLiteralOrSymbolReferencesAsync(document, position, new DefinitionTrackingContext(context));
         }
 
         private async Task FindLiteralOrSymbolReferencesAsync(
