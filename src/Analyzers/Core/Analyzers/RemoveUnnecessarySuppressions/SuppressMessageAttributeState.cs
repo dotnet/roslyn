@@ -7,7 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 #if NETSTANDARD2_0
@@ -26,13 +27,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly Compilation _compilation;
         private readonly INamedTypeSymbol _suppressMessageAttributeType;
-        private readonly Lazy<ImmutableDictionary<SyntaxNode, AttributeData>> _lazySuppressMessageAttributesBySyntax;
 
         public SuppressMessageAttributeState(Compilation compilation, INamedTypeSymbol suppressMessageAttributeType)
         {
             _compilation = compilation;
             _suppressMessageAttributeType = suppressMessageAttributeType;
-            _lazySuppressMessageAttributesBySyntax = new Lazy<ImmutableDictionary<SyntaxNode, AttributeData>>(CreateAttributesBySyntaxMap);
         }
 
         private static ImmutableDictionary<string, TargetScope> CreateTargetScopesMap()
@@ -54,43 +53,47 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutable();
         }
 
-        private ImmutableDictionary<SyntaxNode, AttributeData> CreateAttributesBySyntaxMap()
+        public bool IsSuppressMessageAttributeWithNamedArguments(
+            SyntaxNode attributeSyntax,
+            SemanticModel model,
+            CancellationToken cancellationToken,
+            out ImmutableArray<(string name, IOperation value)> namedAttributeArguments)
         {
-            var builder = ImmutableDictionary.CreateBuilder<SyntaxNode, AttributeData>();
-            AddAttributes(_compilation.Assembly, _suppressMessageAttributeType, builder);
-            foreach (var module in _compilation.Assembly.Modules)
+            var attribute = model.GetOperation(attributeSyntax, cancellationToken);
+            if (attribute == null)
             {
-                AddAttributes(module, _suppressMessageAttributeType, builder);
+                namedAttributeArguments = ImmutableArray<(string name, IOperation value)>.Empty;
+                return false;
             }
 
-            return builder.ToImmutable();
-
-            // Local functions.
-            static void AddAttributes(ISymbol symbol, INamedTypeSymbol suppressMessageAttributeType, ImmutableDictionary<SyntaxNode, AttributeData>.Builder builder)
+            // Workaround for https://github.com/dotnet/roslyn/issues/18198
+            // Use 'IOperation.Children' to get named attribute arguments.
+            // Each named attribute argument is represented as an 'ISimpleAssignmentOperation'
+            // with a constant value assignment to an 'IPropertyReferenceOperation' in the operation tree.
+            using var _ = ArrayBuilder<(string name, IOperation value)>.GetInstance(out var builder);
+            foreach (var childOperation in attribute.Children)
             {
-                foreach (var attribute in symbol.GetAttributes())
+                if (childOperation is ISimpleAssignmentOperation simpleAssignment &&
+                    simpleAssignment.Target is IPropertyReferenceOperation propertyReference &&
+                    _suppressMessageAttributeType.Equals(propertyReference.Property.ContainingType))
                 {
-                    if (suppressMessageAttributeType.Equals(attribute.AttributeClass) &&
-                        attribute.ApplicationSyntaxReference?.GetSyntax() is SyntaxNode node)
-                    {
-                        builder.Add(node, attribute);
-                    }
+                    builder.Add((propertyReference.Property.Name, simpleAssignment.Value));
                 }
             }
+
+            namedAttributeArguments = builder.ToImmutable();
+            return namedAttributeArguments.Length > 0;
         }
 
-        public bool IsGlobalSuppressMessageAttribute(SyntaxNode attributeSyntax, [NotNullWhen(returnValue: true)] out AttributeData? attribute)
-            => _lazySuppressMessageAttributesBySyntax.Value.TryGetValue(attributeSyntax, out attribute);
-
-        public bool HasInvalidScope(AttributeData attribute, out TargetScope targetScope)
+        public bool HasInvalidScope(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, out TargetScope targetScope)
         {
-            if (!TryGetNamedArgument(attribute, SuppressMessageScope, out var scopeString) ||
+            if (!TryGetNamedArgument(namedAttributeArguments, SuppressMessageScope, out var scopeString) ||
                 string.IsNullOrEmpty(scopeString))
             {
                 // Missing/Null/Empty scope values are treated equivalent to a compilation wide suppression.
                 targetScope = TargetScope.Module;
             }
-            else if (!s_targetScopesMap.TryGetValue(scopeString!, out targetScope))
+            else if (!s_targetScopesMap.TryGetValue(scopeString, out targetScope))
             {
                 targetScope = TargetScope.None;
                 return true;
@@ -99,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public bool HasInvalidOrMissingTarget(AttributeData attribute, TargetScope targetScope)
+        public bool HasInvalidOrMissingTarget(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, TargetScope targetScope)
         {
             if (targetScope == TargetScope.Resource)
             {
@@ -107,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            if (!TryGetNamedArgument(attribute, SuppressMessageTarget, out var targetSymbolString))
+            if (!TryGetNamedArgument(namedAttributeArguments, SuppressMessageTarget, out var targetSymbolString))
             {
                 targetSymbolString = null;
             }
@@ -132,13 +135,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static bool TryGetNamedArgument(AttributeData attribute, string argumentName, out string? argumentValue)
+        private bool TryGetNamedArgument(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, string argumentName, out string? argumentValue)
         {
-            foreach (var (name, value) in attribute.NamedArguments)
+            foreach (var (name, value) in namedAttributeArguments)
             {
-                if (argumentName.Equals(name, StringComparison.OrdinalIgnoreCase) &&
-                    value.Kind == TypedConstantKind.Primitive &&
-                    value.Value is string stringValue)
+                if (name == argumentName &&
+                    value.ConstantValue.HasValue &&
+                    value.ConstantValue.Value is string stringValue)
                 {
                     argumentValue = stringValue;
                     return true;

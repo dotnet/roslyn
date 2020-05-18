@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions
                     Dim attribute = DirectCast(syntaxContext.Node, AttributeSyntax)
                     Select Case attribute.Target?.AttributeModifier.Kind()
                         Case SyntaxKind.AssemblyKeyword, SyntaxKind.ModuleKeyword
-                            compilationAnalyzer.AnalyzeAssemblyOrModuleAttribute(attribute, AddressOf syntaxContext.ReportDiagnostic)
+                            compilationAnalyzer.AnalyzeAssemblyOrModuleAttribute(attribute, syntaxContext.SemanticModel, AddressOf syntaxContext.ReportDiagnostic, syntaxContext.CancellationToken)
                     End Select
                 End Sub,
                 SyntaxKind.Attribute)

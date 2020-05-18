@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -58,20 +59,19 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 _state = new SuppressMessageAttributeState(compilation, suppressMessageAttributeType);
             }
 
-            public void AnalyzeAssemblyOrModuleAttribute(SyntaxNode attributeSyntax, Action<Diagnostic> reportDiagnostic)
+            public void AnalyzeAssemblyOrModuleAttribute(SyntaxNode attributeSyntax, SemanticModel model, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
             {
-                if (!_state.IsGlobalSuppressMessageAttribute(attributeSyntax, out var attribute) ||
-                    attribute.NamedArguments.IsEmpty)
+                if (!_state.IsSuppressMessageAttributeWithNamedArguments(attributeSyntax, model, cancellationToken, out var namedAttributeArguments))
                 {
                     return;
                 }
 
                 DiagnosticDescriptor rule;
-                if (_state.HasInvalidScope(attribute, out var targetScope))
+                if (_state.HasInvalidScope(namedAttributeArguments, out var targetScope))
                 {
                     rule = s_invalidScopeDescriptor;
                 }
-                else if (_state.HasInvalidOrMissingTarget(attribute, targetScope))
+                else if (_state.HasInvalidOrMissingTarget(namedAttributeArguments, targetScope))
                 {
                     rule = s_invalidOrMissingTargetDescriptor;
                 }

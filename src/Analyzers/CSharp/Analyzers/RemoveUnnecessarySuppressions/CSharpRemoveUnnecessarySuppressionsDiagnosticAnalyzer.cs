@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions
                     case SyntaxKind.ModuleKeyword:
                         foreach (var attribute in attributeList.Attributes)
                         {
-                            compilationAnalyzer.AnalyzeAssemblyOrModuleAttribute(attribute, context.ReportDiagnostic);
+                            compilationAnalyzer.AnalyzeAssemblyOrModuleAttribute(attribute, context.SemanticModel, context.ReportDiagnostic, context.CancellationToken);
                         }
 
                         break;
