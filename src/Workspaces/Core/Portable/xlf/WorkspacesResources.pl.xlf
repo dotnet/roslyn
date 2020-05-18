@@ -97,6 +97,11 @@
         <target state="translated">Usuwanie dokumentów z konfiguracją analizatora nie jest obsługiwane.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="new">Rename '{0}' to '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
         <source>Solution does not contain specified reference</source>
         <target state="new">Solution does not contain specified reference</target>
@@ -180,6 +185,11 @@
       <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
         <source>Symbol's project could not be found in the provided solution</source>
         <target state="new">Symbol's project could not be found in the provided solution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_namespace_to_folder_structure">
+        <source>Sync namespace to folder structure</source>
+        <target state="new">Sync namespace to folder structure</target>
         <note />
       </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">

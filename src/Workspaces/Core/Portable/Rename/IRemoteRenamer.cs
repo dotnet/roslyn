@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +13,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// forth marshaling) when the intermediary results of rename are not needed. To get the individual parts of
         /// rename remoted use <see cref="FindRenameLocationsAsync"/> and <see cref="ResolveConflictsAsync"/>.
         /// </summary>
-        Task<SerializableConflictResolution> RenameSymbolAsync(
+        Task<SerializableConflictResolution?> RenameSymbolAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId symbolAndProjectId,
             string replacementText,
@@ -30,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Rename
             SerializableSymbolAndProjectId[] nonConflictSymbolIds,
             CancellationToken cancellationToken);
 
-        Task<SerializableRenameLocations> FindRenameLocationsAsync(
+        Task<SerializableRenameLocations?> FindRenameLocationsAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId symbolAndProjectId,
             SerializableRenameOptionSet options,
             CancellationToken cancellationToken);
 
-        Task<SerializableConflictResolution> ResolveConflictsAsync(
+        Task<SerializableConflictResolution?> ResolveConflictsAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableRenameLocations renameLocationSet,
             string replacementText,
@@ -68,36 +72,35 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         // We use arrays so we can represent default immutable arrays.
 
-        public SerializableRenameLocation[] Locations;
-        public SerializableReferenceLocation[] ImplicitLocations;
-        public SerializableSymbolAndProjectId[] ReferencedSymbols;
+        public SerializableRenameLocation[]? Locations;
+        public SerializableReferenceLocation[]? ImplicitLocations;
+        public SerializableSymbolAndProjectId[]? ReferencedSymbols;
 
-        public static SerializableSearchResult Dehydrate(Solution solution, RenameLocations.SearchResult result, CancellationToken cancellationToken)
+        [return: NotNullIfNotNull("result")]
+        public static SerializableSearchResult? Dehydrate(Solution solution, RenameLocations.SearchResult? result, CancellationToken cancellationToken)
             => result == null ? null : new SerializableSearchResult
             {
-                Locations = result.Locations?.Select(loc => SerializableRenameLocation.Dehydrate(loc)).ToArray(),
+                Locations = result.Locations.Select(loc => SerializableRenameLocation.Dehydrate(loc)).ToArray(),
                 ImplicitLocations = result.ImplicitLocations.IsDefault ? null : result.ImplicitLocations.Select(loc => SerializableReferenceLocation.Dehydrate(loc, cancellationToken)).ToArray(),
                 ReferencedSymbols = result.ReferencedSymbols.IsDefault ? null : result.ReferencedSymbols.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
             };
 
         public async Task<RenameLocations.SearchResult> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            ImmutableHashSet<RenameLocation> locations = null;
             ImmutableArray<ReferenceLocation> implicitLocations = default;
             ImmutableArray<ISymbol> referencedSymbols = default;
 
-            if (Locations != null)
-            {
-                using var _ = ArrayBuilder<RenameLocation>.GetInstance(Locations.Length, out var builder);
-                foreach (var loc in Locations)
-                    builder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
+            Contract.ThrowIfNull(Locations);
 
-                locations = builder.ToImmutableHashSet();
-            }
+            using var _1 = ArrayBuilder<RenameLocation>.GetInstance(Locations.Length, out var locBuilder);
+            foreach (var loc in Locations)
+                locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
+
+            var locations = locBuilder.ToImmutableHashSet();
 
             if (ImplicitLocations != null)
             {
-                using var _ = ArrayBuilder<ReferenceLocation>.GetInstance(ImplicitLocations.Length, out var builder);
+                using var _2 = ArrayBuilder<ReferenceLocation>.GetInstance(ImplicitLocations.Length, out var builder);
                 foreach (var loc in ImplicitLocations)
                     builder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
@@ -106,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (ReferencedSymbols != null)
             {
-                using var _ = ArrayBuilder<ISymbol>.GetInstance(ReferencedSymbols.Length, out var builder);
+                using var _3 = ArrayBuilder<ISymbol>.GetInstance(ReferencedSymbols.Length, out var builder);
                 foreach (var symbol in ReferencedSymbols)
                     builder.AddIfNotNull(await symbol.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
@@ -141,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public async Task<RenameLocation> RehydrateAsync(Solution solution, CancellationToken cancellation)
         {
-            var document = solution.GetDocument(DocumentId);
-            var tree = await document.GetSyntaxTreeAsync(cancellation).ConfigureAwait(false);
+            var document = solution.GetRequiredDocument(DocumentId);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellation).ConfigureAwait(false);
 
             return new RenameLocation(
                 CodeAnalysis.Location.Create(tree, Location),
@@ -169,9 +172,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 CommentsResult = _commentsResult.IsDefault ? null : _commentsResult.Select(r => SerializableRenameLocation.Dehydrate(r)).ToArray(),
             };
 
-        internal static async Task<RenameLocations> RehydrateAsync(Solution solution, SerializableRenameLocations locations, CancellationToken cancellationToken)
+        internal static async Task<RenameLocations?> TryRehydrateAsync(Solution solution, SerializableRenameLocations locations, CancellationToken cancellationToken)
         {
             if (locations == null)
+                return null;
+
+            if (locations.Symbol == null)
                 return null;
 
             var symbol = await locations.Symbol.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
@@ -209,11 +215,17 @@ namespace Microsoft.CodeAnalysis.Rename
                 commentsResult = builder.ToImmutable();
             }
 
+            var originalSymbolResult = locations.OriginalSymbolResult == null
+                ? null
+                : await locations.OriginalSymbolResult.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+
+            Contract.ThrowIfNull(locations.MergedResult);
+
             return new RenameLocations(
                 symbol,
                 solution,
                 locations.Options.Rehydrate(),
-                await locations.OriginalSymbolResult.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false),
+                originalSymbolResult,
                 await locations.MergedResult.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false),
                 overloadsResult,
                 stringsResult,
@@ -223,15 +235,15 @@ namespace Microsoft.CodeAnalysis.Rename
 
     internal class SerializableRenameLocations
     {
-        public SerializableSymbolAndProjectId Symbol;
+        public SerializableSymbolAndProjectId? Symbol;
         public SerializableRenameOptionSet Options;
-        public SerializableSearchResult OriginalSymbolResult;
-        public SerializableSearchResult MergedResult;
+        public SerializableSearchResult? OriginalSymbolResult;
+        public SerializableSearchResult? MergedResult;
 
         // We use arrays so we can represent default immutable arrays.
-        public SerializableSearchResult[] OverloadsResult;
-        public SerializableRenameLocation[] StringsResult;
-        public SerializableRenameLocation[] CommentsResult;
+        public SerializableSearchResult[]? OverloadsResult;
+        public SerializableRenameLocation[]? StringsResult;
+        public SerializableRenameLocation[]? CommentsResult;
     }
 
     internal class SerializableComplexifiedSpan
@@ -257,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public TextSpan ConflictCheckSpan;
         public RelatedLocationType Type;
         public bool IsReference;
-        public DocumentId DocumentId;
+        public DocumentId? DocumentId;
         public TextSpan ComplexifiedTargetSpan;
 
         public RelatedLocation Rehydrate()
@@ -276,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
     internal class SerializableConflictResolution
     {
-        public string ErrorMessage;
+        public string? ErrorMessage;
 
         public bool ReplacementTextValid;
 
@@ -286,12 +298,12 @@ namespace Microsoft.CodeAnalysis.Rename
         //
         // We also flatten dictionaries into key/value tuples because jsonrpc only supports dictionaries with string keys.
 
-        public DocumentId[] DocumentIds;
-        public SerializableRelatedLocation[] RelatedLocations;
-        public (DocumentId, TextChange[])[] DocumentTextChanges;
-        public (DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>)[] DocumentToModifiedSpansMap;
-        public (DocumentId, ImmutableArray<SerializableComplexifiedSpan>)[] DocumentToComplexifiedSpansMap;
-        public (DocumentId, ImmutableArray<SerializableRelatedLocation>)[] DocumentToRelatedLocationsMap;
+        public DocumentId[]? DocumentIds;
+        public SerializableRelatedLocation[]? RelatedLocations;
+        public (DocumentId, TextChange[])[]? DocumentTextChanges;
+        public (DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>)[]? DocumentToModifiedSpansMap;
+        public (DocumentId, ImmutableArray<SerializableComplexifiedSpan>)[]? DocumentToComplexifiedSpansMap;
+        public (DocumentId, ImmutableArray<SerializableRelatedLocation>)[]? DocumentToRelatedLocationsMap;
 
         public async Task<ConflictResolution> RehydrateAsync(Solution oldSolution, CancellationToken cancellationToken)
         {
