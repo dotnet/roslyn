@@ -574,13 +574,11 @@ namespace Roslyn.Utilities
                 }
                 else if (task.IsFaulted)
                 {
-                    // TrySetException wraps its argument in an AggregateException. Since the input task is already
-                    // wrapped, we first unwrap it in the same way as TaskAwaiter so we get the expected async/await
-                    // behavior in the final task.
-                    // https://github.com/dotnet/runtime/blob/7d6a355059bf46994c921bdc1dbcfb162cddc713/src/libraries/System.Private.CoreLib/src/System/Runtime/CompilerServices/TaskAwaiter.cs#L176-L182
+                    // TrySetException wraps its argument in an AggregateException, so we pass the inner exceptions from
+                    // the antecedent to avoid wrapping in two layers of AggregateException.
                     RoslynDebug.AssertNotNull(task.Exception);
                     if (task.Exception.InnerExceptions.Count > 0)
-                        this.TrySetException(task.Exception.InnerExceptions[0]);
+                        this.TrySetException(task.Exception.InnerExceptions);
                     else
                         this.TrySetException(task.Exception);
                 }
