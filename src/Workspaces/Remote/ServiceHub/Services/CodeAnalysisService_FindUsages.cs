@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -103,9 +102,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public Task SetSearchTitleAsync(string title)
                 => _endPoint.InvokeAsync(nameof(SetSearchTitleAsync), new object[] { title }, CancellationToken);
-
-            public Task OnExternalReferenceFoundAsync(ExternalReferenceItem reference)
-                => throw ExceptionUtilities.Unreachable;
 
             public Task OnDefinitionFoundAsync(DefinitionItem definition)
             {
