@@ -572,15 +572,15 @@ namespace Analyzer.Utilities.Extensions
             return invocationOperation.TargetMethod.IsExtensionMethod && (invocationOperation.Language != LanguageNames.VisualBasic || invocationOperation.Instance == null);
         }
 
-        public static IOperation GetInstance(this IInvocationOperation invocationOperation)
+        public static IOperation? GetInstance(this IInvocationOperation invocationOperation)
             => invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value : invocationOperation.Instance;
 
-        public static SyntaxNode GetInstanceSyntax(this IInvocationOperation invocationOperation)
-            => invocationOperation.GetInstance().Syntax;
+        public static SyntaxNode? GetInstanceSyntax(this IInvocationOperation invocationOperation)
+            => invocationOperation.GetInstance()?.Syntax;
 
-        public static ITypeSymbol GetInstanceType(this IOperation operation)
+        public static ITypeSymbol? GetInstanceType(this IOperation operation)
         {
-            IOperation instance = operation switch
+            IOperation? instance = operation switch
             {
                 IInvocationOperation invocation => invocation.GetInstance(),
 
@@ -589,9 +589,7 @@ namespace Analyzer.Utilities.Extensions
                 _ => throw new NotImplementedException()
             };
 
-            instance = instance.WalkDownConversion();
-
-            return instance.Type;
+            return instance?.WalkDownConversion().Type;
         }
 
         public static ISymbol? GetReferencedMemberOrLocalOrParameter(this IOperation operation)
