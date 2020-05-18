@@ -83,13 +83,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 foreach (var item in group)
                 {
+                    string itemType = item.GetMetadata("ItemType");
                     string metadataName = item.GetMetadata("MetadataName");
-                    builder.Append("msbuild_item.")
-                           .Append(item.GetMetadata("ItemType"))
-                           .Append(".")
-                           .Append(metadataName)
-                           .Append(" = ")
-                           .AppendLine(item.GetMetadata(metadataName));
+                    if (!string.IsNullOrWhiteSpace(itemType) && !string.IsNullOrWhiteSpace(metadataName))
+                    {
+                        builder.Append("msbuild_item.")
+                               .Append(itemType)
+                               .Append(".")
+                               .Append(metadataName)
+                               .Append(" = ")
+                               .AppendLine(item.GetMetadata(metadataName));
+                    }
                 }
             }
 

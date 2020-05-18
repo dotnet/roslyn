@@ -107,7 +107,7 @@
       <!-- Collect the requested items and remember which metadata is wanted -->
       <_GeneratedAnalyzerConfigMetadata Include="@(%(AnalyzerItemMetadata.Identity))" Condition="'$(_GeneratedAnalyzerConfigHasItems)' == 'true'">
         <ItemType>%(Identity)</ItemType>
-        <MetadataName>%(MetadataName)</MetadataName>
+        <MetadataName>%(AnalyzerItemMetadata.MetadataName)</MetadataName>
       </_GeneratedAnalyzerConfigMetadata>
 
       <!-- Record that we'll write a file, and add it to the editorconfig inputs -->

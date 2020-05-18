@@ -159,9 +159,6 @@ msbuild_item.Compile.ToRetrieve =
             Assert.Equal(@"is_global = true
 
 [c:/file1.cs]
-msbuild_item.. = 
-msbuild_item.Compile. = 
-msbuild_item..ToRetrieve = 
 ", result);
         }
 
