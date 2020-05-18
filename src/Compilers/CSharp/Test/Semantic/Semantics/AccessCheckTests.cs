@@ -1502,5 +1502,26 @@ class A { }";
                 //         new A();
                 Diagnostic(ErrorCode.ERR_BadAccess, "A").WithArguments("A").WithLocation(5, 13));
         }
+
+        [Fact]
+        public void FunctionPointerTypesFromOtherInaccessibleAssembly()
+        {
+            var comp = CreateCompilation(@"
+unsafe class A
+{
+    internal delegate*<A> ptr1;
+    internal delegate*<A, object> ptr2;
+}", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+
+            var ptr1 = comp.GetMember<FieldSymbol>("A.ptr1").Type.GetPublicSymbol();
+            var ptr2 = comp.GetMember<FieldSymbol>("A.ptr2").Type.GetPublicSymbol();
+
+            var comp2 = CreateCompilation("class B {}");
+
+            var b = comp2.GetMember("B").GetPublicSymbol();
+
+            Assert.Throws<ArgumentException>(() => ((Compilation)comp2).IsSymbolAccessibleWithin(ptr1, b));
+            Assert.Throws<ArgumentException>(() => ((Compilation)comp2).IsSymbolAccessibleWithin(ptr2, b));
+        }
     }
 }

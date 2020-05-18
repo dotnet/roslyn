@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal int GetHashCodeNoParameters()
-            => Hash.Combine(ReturnType, Hash.Combine(CallingConvention.GetHashCode(), RefKind.GetHashCode()));
+            => Hash.Combine(ReturnType, Hash.Combine(CallingConvention.GetHashCode(), FunctionPointerTypeSymbol.GetRefKindForHashCode(RefKind).GetHashCode()));
 
         internal override CallingConvention CallingConvention { get; }
         public override bool ReturnsVoid => ReturnTypeWithAnnotations.IsVoidType();

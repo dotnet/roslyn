@@ -647,6 +647,37 @@ class C
         }
 
         [Fact]
+        public void Equality_DifferringRefKinds()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+unsafe class C
+{
+    delegate*<ref object> ptr1Ref;
+    delegate*<ref readonly object> ptr1RefReadonly;
+    delegate*<ref object, void> ptr2Ref;
+    delegate*<in object, void> ptr2In;
+    delegate*<out object, void> ptr2Out;
+}");
+
+            var ptr1Ref = comp.GetMember<FieldSymbol>("C.ptr1Ref").Type;
+            var ptr1RefReadonly = comp.GetMember<FieldSymbol>("C.ptr1RefReadonly").Type;
+            var ptr2Ref = comp.GetMember<FieldSymbol>("C.ptr2Ref").Type;
+            var ptr2In = comp.GetMember<FieldSymbol>("C.ptr2In").Type;
+            var ptr2Out = comp.GetMember<FieldSymbol>("C.ptr2Out").Type;
+
+            var symbolEqualityComparer = new SymbolEqualityComparer(
+                TypeCompareKind.ConsiderEverything | TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly | TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds);
+            Assert.Equal(ptr1Ref.GetPublicSymbol(), ptr1RefReadonly.GetPublicSymbol(), symbolEqualityComparer);
+            Assert.Equal(ptr2Ref.GetPublicSymbol(), ptr2In.GetPublicSymbol(), symbolEqualityComparer);
+            Assert.Equal(ptr2Ref.GetPublicSymbol(), ptr2Out.GetPublicSymbol(), symbolEqualityComparer);
+            Assert.Equal(ptr2In.GetPublicSymbol(), ptr2Out.GetPublicSymbol(), symbolEqualityComparer);
+
+            Assert.Equal(ptr1Ref.GetHashCode(), ptr1RefReadonly.GetHashCode());
+            Assert.Equal(ptr2Ref.GetHashCode(), ptr2In.GetHashCode());
+            Assert.Equal(ptr2Ref.GetHashCode(), ptr2Out.GetHashCode());
+        }
+
+        [Fact]
         public void NoInOutAttribute_NoInOutParameter()
         {
             var comp = CreateFunctionPointerCompilation(@"
