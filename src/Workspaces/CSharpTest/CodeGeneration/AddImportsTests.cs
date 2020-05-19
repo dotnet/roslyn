@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -55,6 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 
         private async Task TestAsync(string initialText, string importsAddedText, string simplifiedText, bool safe, bool useSymbolAnnotations, Func<OptionSet, OptionSet> optionsTransform = null)
         {
+            if (safe != useSymbolAnnotations)
+                return;
+
             var doc = await GetDocument(initialText, useSymbolAnnotations);
             OptionSet options = await doc.GetOptionsAsync();
             if (optionsTransform != null)
@@ -63,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             }
 
             var imported = useSymbolAnnotations
-                ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, safe, options)
-                : await ImportAdder.AddImportsFromSyntaxesAsync(doc, safe, options);
+                ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, options)
+                : await ImportAdder.AddImportsFromSyntaxesAsync(doc, options);
 
             if (importsAddedText != null)
             {
@@ -748,6 +750,9 @@ namespace N
         [WorkItem(9228, "https://github.com/dotnet/roslyn/issues/9228")]
         public async Task TestDoNotAddDuplicateImportIfNamespaceIsDefinedInSourceAndExternalAssembly(bool safe, bool useSymbolAnnotations)
         {
+            if (safe != useSymbolAnnotations)
+                return;
+
             var externalCode =
 @"namespace N.M { public class A : System.Attribute { } }";
 
@@ -800,12 +805,9 @@ class C
             var documentWithAttribute = editor.GetChangedDocument();
 
             // Add namespace import.
-            var imported =
-                useSymbolAnnotations
-                    ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(documentWithAttribute, safe, null,
-                        CancellationToken.None).ConfigureAwait(false)
-                    : await ImportAdder.AddImportsFromSyntaxesAsync(documentWithAttribute, safe, null,
-                        CancellationToken.None).ConfigureAwait(false);
+            var imported = useSymbolAnnotations
+                ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(documentWithAttribute, null, CancellationToken.None).ConfigureAwait(false)
+                : await ImportAdder.AddImportsFromSyntaxesAsync(documentWithAttribute, null, CancellationToken.None).ConfigureAwait(false);
 
             var formatted = await Formatter.FormatAsync(imported, options);
             var actualText = (await formatted.GetTextAsync()).ToString();
@@ -1600,102 +1602,102 @@ class C
 }", safe: true, useSymbolAnnotations);
         }
 
-        [Theory, InlineData(true), InlineData(false)]
-        public async Task TestWarnsWithMatchingExtensionMethodUsedAsDelegate(bool useSymbolAnnotations)
-        {
-            var source = @"using System;
-using B;
+        //        [Theory, InlineData(true), InlineData(false)]
+        //        public async Task TestWarnsWithMatchingExtensionMethodUsedAsDelegate(bool useSymbolAnnotations)
+        //        {
+        //            var source = @"using System;
+        //using B;
 
-namespace A
-{
-    static class AExtensions
-    {
-        public static void M(this int a){}
-    }
-    public class C1 {}
-}
+        //namespace A
+        //{
+        //    static class AExtensions
+        //    {
+        //        public static void M(this int a){}
+        //    }
+        //    public class C1 {}
+        //}
 
-namespace B
-{
-    static class BExtensions
-    {
-        public static void M(this object a){}
-    }
-}
+        //namespace B
+        //{
+        //    static class BExtensions
+        //    {
+        //        public static void M(this object a){}
+        //    }
+        //}
 
-class C
-{
-    Action M(A.C1 c1) => 42.M;
-}";
+        //class C
+        //{
+        //    Action M(A.C1 c1) => 42.M;
+        //}";
 
-            await TestAsync(
-                source,
-@"using System;
-using A;
-using B;
+        //            await TestAsync(
+        //                source,
+        //@"using System;
+        //using A;
+        //using B;
 
-namespace A
-{
-    static class AExtensions
-    {
-        public static void M(this int a){}
-    }
-    public class C1 {}
-}
+        //namespace A
+        //{
+        //    static class AExtensions
+        //    {
+        //        public static void M(this int a){}
+        //    }
+        //    public class C1 {}
+        //}
 
-namespace B
-{
-    static class BExtensions
-    {
-        public static void M(this object a){}
-    }
-}
+        //namespace B
+        //{
+        //    static class BExtensions
+        //    {
+        //        public static void M(this object a){}
+        //    }
+        //}
 
-class C
-{
-    Action M(A.C1 c1) => 42.M;
-}",
+        //class C
+        //{
+        //    Action M(A.C1 c1) => 42.M;
+        //}",
 
-@"using System;
-using A;
-using B;
+        //@"using System;
+        //using A;
+        //using B;
 
-namespace A
-{
-    static class AExtensions
-    {
-        public static void M(this int a){}
-    }
-    public class C1 {}
-}
+        //namespace A
+        //{
+        //    static class AExtensions
+        //    {
+        //        public static void M(this int a){}
+        //    }
+        //    public class C1 {}
+        //}
 
-namespace B
-{
-    static class BExtensions
-    {
-        public static void M(this object a){}
-    }
-}
+        //namespace B
+        //{
+        //    static class BExtensions
+        //    {
+        //        public static void M(this object a){}
+        //    }
+        //}
 
-class C
-{
-    Action M(C1 c1) => 42.M;
-}", safe: true, useSymbolAnnotations);
+        //class C
+        //{
+        //    Action M(C1 c1) => 42.M;
+        //}", safe: true, useSymbolAnnotations);
 
-            var doc = await GetDocument(source, useSymbolAnnotations);
-            OptionSet options = await doc.GetOptionsAsync();
+        //            var doc = await GetDocument(source, useSymbolAnnotations);
+        //            OptionSet options = await doc.GetOptionsAsync();
 
-            var imported = await ImportAdder.AddImportsFromSyntaxesAsync(doc, true, options);
-            var root = await imported.GetSyntaxRootAsync();
-            var nodeWithWarning = root.GetAnnotatedNodes(WarningAnnotation.Kind).Single();
+        //            var imported = await ImportAdder.AddImportsFromSyntaxesAsync(doc, true, options);
+        //            var root = await imported.GetSyntaxRootAsync();
+        //            var nodeWithWarning = root.GetAnnotatedNodes(WarningAnnotation.Kind).Single();
 
-            Assert.Equal("42.M", nodeWithWarning.ToFullString());
+        //            Assert.Equal("42.M", nodeWithWarning.ToFullString());
 
-            var warning = nodeWithWarning.GetAnnotations(WarningAnnotation.Kind).Single();
-            var expectedWarningMessage = string.Format(WorkspacesResources.Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access, "M");
+        //            var warning = nodeWithWarning.GetAnnotations(WarningAnnotation.Kind).Single();
+        //            var expectedWarningMessage = string.Format(WorkspacesResources.Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access, "M");
 
-            Assert.Equal(expectedWarningMessage, WarningAnnotation.GetDescription(warning));
-        }
+        //            Assert.Equal(expectedWarningMessage, WarningAnnotation.GetDescription(warning));
+        //        }
         #endregion
     }
 }
