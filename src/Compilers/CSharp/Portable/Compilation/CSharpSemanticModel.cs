@@ -3223,6 +3223,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.FunctionPointerInvocation:
+                    {
+                        var invocation = (BoundFunctionPointerInvocation)boundNode;
+                        symbols = ImmutableArray.Create<Symbol>(invocation.FunctionPointer.Signature);
+                        resultKind = invocation.ResultKind;
+                        break;
+                    }
+
                 case BoundKind.IndexerAccess:
                     {
                         // As for BoundCall, pull out stashed candidates if overload resolution failed.
@@ -3289,6 +3297,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert((object)symbol != null);
                             symbols = ImmutableArray.Create<Symbol>(ReducedExtensionMethodSymbol.Create(symbol));
                             resultKind = conversion.ResultKind;
+                        }
+                        else if (conversion.ConversionKind == ConversionKind.NoConversion && conversion.Operand is BoundUnconvertedAddressOfOperator unconvertedAddressOf)
+                        {
+                            symbols = GetMethodGroupSemanticSymbols(unconvertedAddressOf.Operand, boundNodeForSyntacticParent, binderOpt, out resultKind, out isDynamic, out memberGroup);
                         }
                         else if (conversion.ConversionKind.IsUserDefinedConversion())
                         {

@@ -1690,6 +1690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundExpression,
                     analyzedArguments.Arguments.SelectAsArray((expr, args) => args.binder.BindToNaturalType(expr, args.diagnostics), (binder: this, diagnostics)),
                     analyzedArguments.RefKinds.ToImmutableOrNull(),
+                    LookupResultKind.OverloadResolutionFailure,
                     funcPtr.Signature.ReturnType,
                     hasErrors: true);
             }
@@ -1724,6 +1725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundExpression,
                 args,
                 refKinds,
+                LookupResultKind.Viable,
                 funcPtr.Signature.ReturnType,
                 hasErrors);
         }

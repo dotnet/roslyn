@@ -1241,5 +1241,81 @@ unsafe class C
                     param1Type => Assert.Equal("C", param1Type.ToTestDisplayString()));
             }
         }
+
+        [Fact]
+        public void PublicApi_GetSymbolInfo()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+class C
+{
+    public static string M1(int i) => null;
+    public unsafe void M2()
+    {
+        delegate*<int, string> ptr = &M1;
+        delegate*<int, void> ptr2 = &M1;
+        _ = ptr(1);
+        _ = ptr();
+    }
+
+    public void M3()
+    {
+        delegate*<int, string> ptr = &M1;
+        _ = ptr(1);
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (8,38): error CS0407: 'string C.M1(int)' has the wrong return type
+                //         delegate*<int, void> ptr2 = &M1;
+                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("C.M1(int)", "string").WithLocation(8, 38),
+                // (10,13): error CS8756: Function pointer 'delegate*<int, string>' does not take 0 arguments
+                //         _ = ptr();
+                Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, "ptr()").WithArguments("delegate*<int, string>", "0").WithLocation(10, 13),
+                // (15,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         delegate*<int, string> ptr = &M1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(15, 9),
+                // (16,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = ptr(1);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ptr(1)").WithLocation(16, 13)
+            );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var methodDecls = syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToList();
+            var m2DeclSyntax = methodDecls.Skip(1).First();
+            var decls = m2DeclSyntax.DescendantNodes().OfType<VariableDeclaratorSyntax>().ToList();
+
+            var symbolInfo = model.GetSymbolInfo(decls[0].Initializer!.Value);
+            Assert.Equal("System.String C.M1(System.Int32 i)", symbolInfo.Symbol.ToTestDisplayString());
+
+            symbolInfo = model.GetSymbolInfo(decls[1].Initializer!.Value);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Single(symbolInfo.CandidateSymbols);
+            Assert.Equal("System.String C.M1(System.Int32 i)", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+
+            var invocations = m2DeclSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
+            Assert.Equal(2, invocations.Count);
+
+            symbolInfo = model.GetSymbolInfo(invocations[0]);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("delegate*<System.Int32, System.String>", symbolInfo.Symbol.ToTestDisplayString());
+
+            symbolInfo = model.GetSymbolInfo(invocations[1]);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal("delegate*<System.Int32, System.String>", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+
+            var m3DeclSyntax = methodDecls.Skip(2).Single();
+            symbolInfo = model.GetSymbolInfo(m3DeclSyntax.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("System.String C.M1(System.Int32 i)", symbolInfo.Symbol.ToTestDisplayString());
+
+            symbolInfo = model.GetSymbolInfo(m3DeclSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single());
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("delegate*<System.Int32, System.String>", symbolInfo.Symbol.ToTestDisplayString());
+        }
     }
 }
