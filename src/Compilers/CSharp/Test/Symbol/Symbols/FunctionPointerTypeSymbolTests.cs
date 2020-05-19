@@ -1183,5 +1183,63 @@ unsafe class C
             Assert.Equal("System.Runtime.InteropServices.InAttribute[missing]", ptr.Signature.RefCustomModifiers.Single().Modifier.ToTestDisplayString());
             Assert.Equal("System.Runtime.InteropServices.OutAttribute[missing]", ptr.Signature.Parameters.Single().RefCustomModifiers.Single().Modifier.ToTestDisplayString());
         }
+
+        [Fact]
+        public void PublicApi_GetTypeInfo()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+unsafe class C
+{
+    public static string M1(C c) => null;
+    public static void M2(string s, int it) {}
+    public delegate*<string, int, void> M(delegate*<C, string> ptr)
+    {
+        delegate*<string, int, void> ptr2 = &M2;
+        ptr = &M1;
+        ptr(null);
+        return &M2;
+    }
+}");
+
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var mDeclSyntax = syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Skip(2).Single();
+
+            verifyVoidReturn(mDeclSyntax.ReturnType, useConvertedType: false);
+            verifyStringReturn(mDeclSyntax.ParameterList.Parameters[0].Type!, useConvertedType: false);
+
+            var varDecl = mDeclSyntax.DescendantNodes().OfType<VariableDeclarationSyntax>().Single();
+            verifyVoidReturn(varDecl.Type, useConvertedType: false);
+            verifyVoidReturn(varDecl.Variables.Single().Initializer!.Value, useConvertedType: true);
+
+            var assignment = mDeclSyntax.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            verifyStringReturn(assignment, useConvertedType: false);
+            verifyStringReturn(assignment.Left, useConvertedType: false);
+            verifyStringReturn(assignment.Right, useConvertedType: true);
+
+            InvocationExpressionSyntax invocationExpressionSyntax = mDeclSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            verifyStringReturn(invocationExpressionSyntax.Expression, useConvertedType: false);
+
+            verifyVoidReturn(mDeclSyntax.DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression!, useConvertedType: true);
+
+            void verifyVoidReturn(SyntaxNode syntax, bool useConvertedType)
+            {
+                FunctionPointerUtilities.VerifyPublicFunctionPointerGetTypeInfo(model, syntax, useConvertedType,
+                    returnType => Assert.Equal(SpecialType.System_Void, returnType.SpecialType),
+                    param1Type => Assert.Equal(SpecialType.System_String, param1Type.SpecialType),
+                    param2Type => Assert.Equal(SpecialType.System_Int32, param2Type.SpecialType));
+            }
+
+            void verifyStringReturn(SyntaxNode syntax, bool useConvertedType)
+            {
+                FunctionPointerUtilities.VerifyPublicFunctionPointerGetTypeInfo(model, syntax, useConvertedType,
+                    returnType => Assert.Equal(SpecialType.System_String, returnType.SpecialType),
+                    param1Type => Assert.Equal("C", param1Type.ToTestDisplayString()));
+            }
+        }
     }
 }

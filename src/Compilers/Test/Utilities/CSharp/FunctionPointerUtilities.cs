@@ -4,8 +4,10 @@
 #nullable enable
 
 using System;
+using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -125,6 +127,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Empty(symbol.Locations);
                 Assert.Empty(symbol.DeclaringSyntaxReferences);
                 Assert.Empty(symbol.NotNullIfParameterNotNull);
+            }
+        }
+
+        public static void VerifyPublicFunctionPointerGetTypeInfo(SemanticModel model, SyntaxNode syntax, bool useConvertedType,
+            Action<ITypeSymbol> returnTypeVerifier,
+            params Action<ITypeSymbol>[] paramVerifiers)
+        {
+            var typeInfo = model.GetTypeInfo(syntax);
+            var typeSymbol = (IFunctionPointerTypeSymbol)(useConvertedType ? typeInfo.ConvertedType : typeInfo.Type)!;
+
+            if (!useConvertedType)
+            {
+                Assert.Equal(typeInfo.Type, typeInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability);
+            }
+
+            CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)((CSharp.Symbols.PublicModel.FunctionPointerTypeSymbol)typeSymbol).UnderlyingTypeSymbol);
+
+            returnTypeVerifier(typeSymbol.Signature.ReturnType);
+
+            Assert.Equal(paramVerifiers.Length, typeSymbol.Signature.Parameters.Length);
+
+            foreach (var (verifier, parameter) in paramVerifiers.Zip(typeSymbol.Signature.Parameters, (v, p) => (v, p)))
+            {
+                Assert.Empty(parameter.Name);
+                verifier(parameter.Type);
+            }
+
+            if (syntax is FunctionPointerTypeSyntax { Parameters: var parameterSyntaxes })
+            {
+                Assert.Equal(paramVerifiers.Length + 1, parameterSyntaxes.Count);
+                foreach (var (verifier, paramSyntax) in paramVerifiers.Append(returnTypeVerifier).Zip(parameterSyntaxes, (v, p) => (v, p)))
+                {
+                    var type = model.GetTypeInfo(paramSyntax.Type!).Type!;
+                    Assert.NotNull(type);
+                    verifier(type);
+                }
             }
         }
 
