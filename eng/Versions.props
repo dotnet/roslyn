@@ -295,6 +295,7 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.7.DesignTime" />
+    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.StaticReviews.Embeddable" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Telemetry" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.Data" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.Logic" />
