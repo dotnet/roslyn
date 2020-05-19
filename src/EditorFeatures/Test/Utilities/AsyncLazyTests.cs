@@ -45,15 +45,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 includeSynchronousComputation ? synchronousComputation : null,
                 cacheResult: true);
 
-            var thrownException = Assert.ThrowsAny<Exception>(() =>
+            var thrownException = Assert.Throws<OperationCanceledException>(() =>
                 {
                     // Do a first request. Even though we will get a cancellation during the evaluation,
                     // since we handed a result back, that result must be cached.
                     doGetValue(lazy, requestCancellationTokenSource.Token);
                 });
-
-            // Assert it's either cancellation or aggregate exception
-            Assert.True(thrownException is OperationCanceledException || ((AggregateException)thrownException).InnerException is OperationCanceledException);
 
             // And a second request. We'll let this one complete normally.
             var secondRequestResult = doGetValue(lazy, CancellationToken.None);
