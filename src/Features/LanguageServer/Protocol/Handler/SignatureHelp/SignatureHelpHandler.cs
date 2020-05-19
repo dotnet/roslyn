@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.SignatureHelp> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
             LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
+            var document = solution.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return new LSP.SignatureHelp();

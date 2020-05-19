@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var characterTyped = ";";
             var locationTyped = locations["type"].Single();
-            var documentText = await workspace.CurrentSolution.GetDocumentFromURI(locationTyped.Uri).GetTextAsync();
+            var documentText = await workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 
             var results = await RunFormatDocumentOnTypeAsync(workspace.CurrentSolution, characterTyped, locationTyped);
             var actualText = ApplyTextEdits(results, documentText);

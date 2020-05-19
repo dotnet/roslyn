@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,7 +21,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities.Internal;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -49,7 +47,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _protocol = protocol;
             _workspace = workspace;
 
-            _jsonRpc = new JsonRpc(outputStream, inputStream, this);
+            var jsonMessageFormatter = new JsonMessageFormatter();
+            jsonMessageFormatter.JsonSerializer.Converters.Add(new VSExtensionConverter<TextDocumentIdentifier, VSTextDocumentIdentifier>());
+            jsonMessageFormatter.JsonSerializer.Converters.Add(new VSExtensionConverter<ClientCapabilities, VSClientCapabilities>());
+
+            _jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
+            _jsonRpc.AddLocalRpcTarget(this);
             _jsonRpc.StartListening();
 
             _diagnosticService = diagnosticService;
@@ -64,15 +67,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// and responding with the server capabilities.
         /// The specification assures that the initialize request is sent only once.
         /// </summary>
-        [JsonRpcMethod(Methods.InitializeName)]
-        public async Task<InitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
+        [JsonRpcMethod(Methods.InitializeName, UseSingleObjectParameterDeserialization = true)]
+        public async Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
         {
-            // InitializeParams only references ClientCapabilities, but the VS LSP client
-            // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
-            // to avoid losing them.
-            _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
+            _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
+
             var serverCapabilities = await _protocol.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName,
-                _workspace.CurrentSolution, input.ToObject<InitializeParams>(), _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
+                _workspace.CurrentSolution, initializeParams, _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
+
             // Always support hover - if any LSP client for a content type advertises support,
             // then the liveshare provider is disabled.  So we must provide for both C# and razor
             // until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/ is fixed
@@ -175,6 +177,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public Task<SymbolInformation[]> GetWorkspaceSymbolsAsync(WorkspaceSymbolParams workspaceSymbolParams, CancellationToken cancellationToken)
             => _protocol.ExecuteRequestAsync<WorkspaceSymbolParams, SymbolInformation[]>(Methods.WorkspaceSymbolName,
                 _workspace.CurrentSolution, workspaceSymbolParams, _clientCapabilities, _clientName, cancellationToken);
+
+        [JsonRpcMethod(MSLSPMethods.ProjectContextsName, UseSingleObjectParameterDeserialization = true)]
+        public Task<ActiveProjectContexts?> GetProjectContextsAsync(GetTextDocumentWithContextParams textDocumentWithContextParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<GetTextDocumentWithContextParams, ActiveProjectContexts?>(MSLSPMethods.ProjectContextsName,
+                _workspace.CurrentSolution, textDocumentWithContextParams, _clientCapabilities, _clientName, cancellationToken);
 
 #pragma warning disable VSTHRD100 // Avoid async void methods
         private async void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)

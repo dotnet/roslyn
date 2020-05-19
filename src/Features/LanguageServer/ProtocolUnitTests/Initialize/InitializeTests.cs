@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
             Assert.True(actual.ImplementationProvider);
             Assert.True(actual.DocumentSymbolProvider);
             Assert.True(actual.WorkspaceSymbolProvider);
-            Assert.True(actual.DocumentFormattingProvider);
-            Assert.True(actual.DocumentRangeFormattingProvider);
+            Assert.True((bool)actual.DocumentFormattingProvider.Value);
+            Assert.True((bool)actual.DocumentRangeFormattingProvider.Value);
             Assert.True(actual.DocumentHighlightProvider);
 
             Assert.True(actual.CompletionProvider.ResolveProvider);

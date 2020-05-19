@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             var edits = ArrayBuilder<LSP.TextEdit>.GetInstance();
             var solution = requestContext.Context;
             var codeActions = await GetCodeActionsAsync(solution,
-                request.CodeActionParams.TextDocument.Uri,
+                request.CodeActionParams.TextDocument,
                 request.CodeActionParams.Range,
                 null, cancellationToken).ConfigureAwait(false);
 
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 var operations = await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                 var applyChangesOperation = operations.OfType<ApplyChangesOperation>().FirstOrDefault();
 
-                var document = solution.GetDocumentFromURI(request.CodeActionParams.TextDocument.Uri);
+                var document = solution.GetDocument(request.CodeActionParams.TextDocument);
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 if (applyChangesOperation != null && document != null)

@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -18,10 +17,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal abstract class FormatDocumentHandlerBase
     {
-        protected async Task<LSP.TextEdit[]> GetTextEditsAsync(Solution solution, Uri documentUri, string? clientName, CancellationToken cancellationToken, LSP.Range? range = null)
+        protected async Task<LSP.TextEdit[]> GetTextEditsAsync(Solution solution, LSP.TextDocumentIdentifier documentIdentifier, string? clientName, CancellationToken cancellationToken, LSP.Range? range = null)
         {
             var edits = new ArrayBuilder<LSP.TextEdit>();
-            var document = solution.GetDocumentFromURI(documentUri, clientName);
+            var document = solution.GetDocument(documentIdentifier, clientName);
 
             if (document != null)
             {

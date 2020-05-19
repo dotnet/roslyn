@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             var solution = requestContext.Context;
 
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = solution.GetDocument(request.TextDocument);
             if (document == null)
             {
                 return Array.Empty<LSP.Location>();
