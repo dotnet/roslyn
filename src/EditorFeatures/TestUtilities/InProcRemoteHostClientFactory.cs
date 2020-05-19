@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -44,11 +46,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
         {
         }
 
-        public Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        public Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
         {
-            if (workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest))
+            var optionService = services.GetRequiredService<IOptionService>();
+            if (optionService.GetOption(RemoteHostOptions.RemoteHostTest))
             {
-                return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
+                return InProcRemoteHostClient.CreateAsync(services, runCacheCleanup: false);
             }
 
             return SpecializedTasks.Null<RemoteHostClient>();

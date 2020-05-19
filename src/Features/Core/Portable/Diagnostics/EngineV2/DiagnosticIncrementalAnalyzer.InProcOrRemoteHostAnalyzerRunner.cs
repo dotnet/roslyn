@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 try
                 {
                     _ = await client.TryRunRemoteAsync(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                         solution: null,
                         new object[]
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     project.Id, analyzerMap.Keys.ToArray());
 
                 var result = await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
                     solution,
                     new object[] { argument },

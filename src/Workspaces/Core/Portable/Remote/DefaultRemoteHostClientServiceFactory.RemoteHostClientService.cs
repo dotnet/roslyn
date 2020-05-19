@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -12,21 +13,21 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public class RemoteHostClientService : IRemoteHostClientService
         {
-            private readonly Workspace _workspace;
+            private readonly HostWorkspaceServices _services;
             private readonly IRemoteHostClientFactory _remoteHostClientFactory;
 
             private AsyncLazy<RemoteHostClient> _lazyInstance;
 
-            public RemoteHostClientService(Workspace workspace)
+            public RemoteHostClientService(HostWorkspaceServices services)
             {
-                var remoteHostClientFactory = workspace.Services.GetService<IRemoteHostClientFactory>();
+                var remoteHostClientFactory = services.GetService<IRemoteHostClientFactory>();
                 if (remoteHostClientFactory == null)
                 {
                     // no implementation of remote host client
                     return;
                 }
 
-                _workspace = workspace;
+                _services = services;
                 _remoteHostClientFactory = remoteHostClientFactory;
 
                 _lazyInstance = CreateNewLazyRemoteHostClient();
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             private AsyncLazy<RemoteHostClient> CreateNewLazyRemoteHostClient()
-                => new AsyncLazy<RemoteHostClient>(c => _remoteHostClientFactory.CreateAsync(_workspace, c), cacheResult: true);
+                => new AsyncLazy<RemoteHostClient>(c => _remoteHostClientFactory.CreateAsync(_services, c), cacheResult: true);
         }
     }
 }

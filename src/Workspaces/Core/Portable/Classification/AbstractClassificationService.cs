@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 return false;
 
             var classifiedSpans = await client.TryRunRemoteAsync<SerializableClassifiedSpans>(
-                WellKnownServiceHubServices.CodeAnalysisService,
+                WellKnownServiceHubService.CodeAnalysis,
                 nameof(IRemoteSemanticClassificationService.GetSemanticClassificationsAsync),
                 document.Project.Solution,
                 new object[] { document.Id, textSpan },

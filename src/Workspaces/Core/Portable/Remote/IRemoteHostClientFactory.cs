@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal interface IRemoteHostClientFactory : IWorkspaceService
     {
-        Task<RemoteHostClient?> CreateAsync(Workspace workspace, CancellationToken cancellationToken);
+        Task<RemoteHostClient?> CreateAsync(HostWorkspaceServices services, CancellationToken cancellationToken);
     }
 }
