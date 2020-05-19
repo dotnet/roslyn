@@ -37,6 +37,10 @@ indent_size = 2
 
 # Dotnet code style settings:
 [*.{cs,vb}]
+
+# IDE0055: Fix formatting
+dotnet_diagnostic.IDE0055.severity = warning
+
 # Sort using and Import directives with System.* appearing first
 dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
@@ -220,3 +224,40 @@ dotnet_diagnostic.RS0037.severity = none
 [src/CodeStyle/**.{cs,vb}]
 # warning RS0005: Do not use generic CodeAction.Create to create CodeAction
 dotnet_diagnostic.RS0005.severity = none
+
+[src/{Analyzers,CodeStyle,Features,Workspaces}/**/*.{cs,vb}]
+# IDE0005: Remove unnecessary usings/imports
+dotnet_diagnostic.IDE0005.severity = warning
+
+# IDE0011: Add braces
+csharp_prefer_braces = when_multiline:warning
+# NOTE: We need the below severity entry for Add Braces due to https://github.com/dotnet/roslyn/issues/44201
+dotnet_diagnostic.IDE0011.severity = warning
+
+# IDE0035: Remove unreachable code
+dotnet_diagnostic.IDE0035.severity = warning
+
+# IDE0036: Order modifiers
+dotnet_diagnostic.IDE0036.severity = warning
+
+# IDE0040: Add accessibility modifiers
+dotnet_diagnostic.IDE0040.severity = warning
+
+# IDE0043: Format string contains invalid placeholder
+dotnet_diagnostic.IDE0043.severity = warning
+
+# IDE0044: Make field readonly
+dotnet_diagnostic.IDE0044.severity = warning
+
+# CONSIDER: Are IDE0051 and IDE0052 too noisy to be warnings for IDE editing scenarios? Should they be made build-only warnings?
+# IDE0051: Remove unused private member
+dotnet_diagnostic.IDE0051.severity = warning
+
+# IDE0052: Remove unread private member
+dotnet_diagnostic.IDE0052.severity = warning
+
+# IDE0059: Unnecessary assignment to a value
+dotnet_diagnostic.IDE0059.severity = warning
+
+# IDE0060: Remove unused parameter
+dotnet_diagnostic.IDE0060.severity = warning

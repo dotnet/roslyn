@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public CodeFixService(
             IThreadingContext threadingContext,
             IDiagnosticAnalyzerService service,
-            [ImportMany]IEnumerable<Lazy<IErrorLoggerService>> loggers,
-            [ImportMany]IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
-            [ImportMany]IEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> configurationProviders)
+            [ImportMany] IEnumerable<Lazy<IErrorLoggerService>> loggers,
+            [ImportMany] IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
+            [ImportMany] IEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> configurationProviders)
             : base(threadingContext, assertIsForeground: false)
         {
             _errorLoggers = loggers;
@@ -637,7 +637,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // Have to see if this fix is still applicable.  Jump to the foreground thread
                     // to make that check.
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                    cancellationToken.ThrowIfCancellationRequested();
 
                     var applicable = fix.Action.IsApplicable(document.Project.Solution.Workspace);
 
@@ -807,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var reference in project.AnalyzerReferences)
             {
                 var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
-                foreach (var fixer in projectCodeFixerProvider.GetFixers(project.Language))
+                foreach (var fixer in projectCodeFixerProvider.GetExtensions(project.Language))
                 {
                     var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
                     foreach (var id in fixableIds)

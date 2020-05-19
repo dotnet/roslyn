@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
@@ -62,6 +61,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 GenerateTypeOptionsResult generateTypeOptionsResult,
                 CancellationToken cancellationToken)
             {
+                // the document comes from the same snapshot as the project
+                Contract.ThrowIfFalse(document.Project.Solution == generateTypeOptionsResult.Project.Solution);
+
                 _service = service;
                 _semanticDocument = document;
                 _state = state;
@@ -535,7 +537,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private async Task<IEnumerable<CodeActionOperation>> GetGenerateIntoTypeOperationsAsync(INamedTypeSymbol namedType)
             {
-                var codeGenService = GetCodeGenerationService();
                 var solution = _semanticDocument.Project.Solution;
                 var codeGenResult = await CodeGenerator.AddNamedTypeDeclarationAsync(
                     solution,
@@ -559,14 +560,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 var compilation = _semanticDocument.SemanticModel.Compilation;
                 return typeSymbol.RemoveUnnamedErrorTypes(compilation);
-            }
-
-            private ICodeGenerationService GetCodeGenerationService()
-            {
-                var language = _state.TypeToGenerateInOpt == null
-                    ? _state.SimpleName.Language
-                    : _state.TypeToGenerateInOpt.Language;
-                return _semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(language).GetService<ICodeGenerationService>();
             }
 
             private bool TryFindMatchingField(

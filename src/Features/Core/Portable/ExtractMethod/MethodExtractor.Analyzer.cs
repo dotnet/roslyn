@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 Contract.ThrowIfNull(type);
 
                 if (!ExtractMethodMatrix.TryGetVariableStyle(
-                        bestEffort, captured, dataFlowIn, dataFlowOut, alwaysAssigned, variableDeclared,
+                        bestEffort, dataFlowIn, dataFlowOut, alwaysAssigned, variableDeclared,
                         readInside, writtenInside, readOutside, writtenOutside, unsafeAddressTaken,
                         out variableStyle))
                 {
@@ -669,27 +669,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 return style;
-            }
-
-            private bool IsParameterUsedOutside(ISymbol localOrParameter)
-            {
-                if (!(localOrParameter is IParameterSymbol parameter))
-                {
-                    return false;
-                }
-
-                return parameter.RefKind != RefKind.None;
-            }
-
-            private bool IsParameterAssigned(ISymbol localOrParameter)
-            {
-                // hack for now.
-                if (!(localOrParameter is IParameterSymbol parameter))
-                {
-                    return false;
-                }
-
-                return parameter.RefKind != RefKind.Out;
             }
 
             private static bool IsThisParameter(ISymbol localOrParameter)

@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbolAndProjectId(node);
+                    var symbol = graphBuilder.GetSymbol(node);
                     var references = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
                     foreach (var reference in references)

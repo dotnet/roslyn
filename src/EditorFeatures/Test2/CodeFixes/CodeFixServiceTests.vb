@@ -41,11 +41,15 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                        </Workspace>
 
             Using workspace = TestWorkspace.Create(test)
-                Dim project = workspace.CurrentSolution.Projects(0)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()
 
-                Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.CSharp, workspaceDiagnosticAnalyzer)
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(workspaceDiagnosticAnalyzer))
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
+
+                Dim project = workspace.CurrentSolution.Projects(0)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
                 Dim codefixService = New CodeFixService(
@@ -105,11 +109,15 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                        </Workspace>
 
             Using workspace = TestWorkspace.Create(test)
-                Dim project = workspace.CurrentSolution.Projects(0)
                 Dim workspaceDiagnosticAnalyzer = New WorkspaceDiagnosticAnalyzer()
                 Dim workspaceCodeFixProvider = New WorkspaceCodeFixProvider()
 
-                Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.VisualBasic, workspaceDiagnosticAnalyzer)
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(workspaceDiagnosticAnalyzer))
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
+
+                Dim project = workspace.CurrentSolution.Projects(0)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
                 Dim codefixService = New CodeFixService(

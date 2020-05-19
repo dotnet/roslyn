@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Peek;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             }
 
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
 
             if (symbolNavigationService.WouldNavigateToSymbol(
                     definitionItem, solution, cancellationToken,

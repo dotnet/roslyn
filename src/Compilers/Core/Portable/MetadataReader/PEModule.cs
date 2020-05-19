@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis
             string name = MetadataReader.GetString(typeDefinition.Name);
             Debug.Assert(name.Length == 0 || MetadataHelpers.IsValidMetadataIdentifier(name)); // Obfuscated assemblies can have types with empty names.
 
-            // The problem is that the mangled name for an static machine type looks like 
+            // The problem is that the mangled name for a static machine type looks like 
             // "<" + methodName + ">d__" + uniqueId.However, methodName will have dots in 
             // it for explicit interface implementations (e.g. "<I.F>d__0").  Unfortunately, 
             // the native compiler emits such names in a very strange way: everything before 
@@ -1035,26 +1035,46 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, description).Handle;
         }
 
-        private static readonly ImmutableArray<bool> s_simpleDynamicTransforms = ImmutableArray.Create(true);
+        private static readonly ImmutableArray<bool> s_simpleTransformFlags = ImmutableArray.Create(true);
 
-        internal bool HasDynamicAttribute(EntityHandle token, out ImmutableArray<bool> dynamicTransforms)
+        internal bool HasDynamicAttribute(EntityHandle token, out ImmutableArray<bool> transformFlags)
         {
             AttributeInfo info = FindTargetAttribute(token, AttributeDescription.DynamicAttribute);
             Debug.Assert(!info.HasValue || info.SignatureIndex == 0 || info.SignatureIndex == 1);
 
             if (!info.HasValue)
             {
-                dynamicTransforms = default(ImmutableArray<bool>);
+                transformFlags = default;
                 return false;
             }
 
             if (info.SignatureIndex == 0)
             {
-                dynamicTransforms = s_simpleDynamicTransforms;
+                transformFlags = s_simpleTransformFlags;
                 return true;
             }
 
-            return TryExtractBoolArrayValueFromAttribute(info.Handle, out dynamicTransforms);
+            return TryExtractBoolArrayValueFromAttribute(info.Handle, out transformFlags);
+        }
+
+        internal bool HasNativeIntegerAttribute(EntityHandle token, out ImmutableArray<bool> transformFlags)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NativeIntegerAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0 || info.SignatureIndex == 1);
+
+            if (!info.HasValue)
+            {
+                transformFlags = default;
+                return false;
+            }
+
+            if (info.SignatureIndex == 0)
+            {
+                transformFlags = s_simpleTransformFlags;
+                return true;
+            }
+
+            return TryExtractBoolArrayValueFromAttribute(info.Handle, out transformFlags);
         }
 
         internal bool HasTupleElementNamesAttribute(EntityHandle token, out ImmutableArray<string> tupleElementNames)

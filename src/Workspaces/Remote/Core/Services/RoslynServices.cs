@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.CodingConventions;
 using Microsoft.VisualStudio.Telemetry;
 
@@ -82,7 +81,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         internal readonly struct TestAccessor
         {
+#pragma warning disable IDE0052 // Remove unread private members - hold onto the Roslyn services.
             private readonly RoslynServices _roslynServices;
+#pragma warning restore IDE0052 // Remove unread private members
 
             public TestAccessor(RoslynServices roslynServices)
                 => _roslynServices = roslynServices;

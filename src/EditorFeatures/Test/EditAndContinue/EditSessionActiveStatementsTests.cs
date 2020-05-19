@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>();
-                var mockCompilationOutputsProvider = new MockCompilationOutputsProviderService();
+                var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
 
                 var debuggingSession = new DebuggingSession(Workspace, mockDebuggeModuleProvider.Object, mockCompilationOutputsProvider);
 

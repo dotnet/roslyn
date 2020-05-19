@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -20,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
 
-        public static Document GetDocumentFromURI(this Solution solution, Uri fileName)
+        public static Document? GetDocumentFromURI(this Solution solution, Uri fileName, string? clientName = null)
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
             //       right now, based on who calls this, solution might has "/" or "\\" as directory
@@ -28,7 +31,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var documentId = solution.GetDocumentIdsWithFilePath(fileName.AbsolutePath).FirstOrDefault() ??
                              solution.GetDocumentIdsWithFilePath(fileName.LocalPath).FirstOrDefault();
 
-            return solution.GetDocument(documentId);
+            var document = solution.GetDocument(documentId);
+
+            if (clientName != null)
+            {
+                var documentPropertiesService = document?.Services.GetService<DocumentPropertiesService>();
+                // When a client name is specified, only return documents that have a matching client name.
+                // Allows the razor lsp server to return results only for razor documents.
+                // This workaround should be removed when https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/
+                // is fixed (so that the razor language server is only asked about razor buffers).
+                if (!Equals(documentPropertiesService?.DiagnosticsLspClientName, clientName))
+                {
+                    return null;
+                }
+            }
+
+            return document;
+
         }
 
         public static async Task<int> GetPositionFromLinePositionAsync(this Document document, LinePosition linePosition, CancellationToken cancellationToken)

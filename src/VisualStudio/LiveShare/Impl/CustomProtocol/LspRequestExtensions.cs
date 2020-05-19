@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol
             => new LS.LspRequest<TIn, TOut>(lspRequest.Name);
 
         public static LSP.ClientCapabilities GetClientCapabilities(this LS.RequestContext requestContext)
-            => requestContext.ClientCapabilities?.ToObject<LSP.ClientCapabilities>(InProcLanguageServer.JsonSerializer) ?? new LSP.VSClientCapabilities();
+            => requestContext.ClientCapabilities?.ToObject<LSP.ClientCapabilities>() ?? new LSP.VSClientCapabilities();
 
     }
 }

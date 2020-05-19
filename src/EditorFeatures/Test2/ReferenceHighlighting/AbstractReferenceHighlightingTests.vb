@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.VisualStudio.Text
@@ -56,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim expectedTags As New List(Of String)
 
                 For Each hostDocument In workspace.Documents
-                    For Each nameAndSpans In hostDocument.AnnotatedSpans
+                    For Each nameAndSpans In hostDocument.AnnotatedSpans.OrderBy(Function(x) x.Value.First().Start)
                         For Each span In nameAndSpans.Value
                             expectedTags.Add(nameAndSpans.Key + ":" + span.ToString())
                         Next

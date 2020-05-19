@@ -1989,6 +1989,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public const string RuleId = "ID1";
+            public const string RuleCategory = "Category1";
             private readonly DiagnosticDescriptor _rule;
             private readonly AnalysisKind _analysisKind;
             private readonly GeneratedCodeAnalysisFlags _analysisFlags;
@@ -2005,7 +2006,7 @@ namespace Microsoft.CodeAnalysis
                     RuleId,
                     "Title1",
                     "Symbol: {0}",
-                    "Category1",
+                    RuleCategory,
                     defaultSeverity: DiagnosticSeverity.Warning,
                     isEnabledByDefault: true,
                     customTags: customTags);
@@ -2088,15 +2089,17 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class NamedTypeAnalyzerWithConfigurableEnabledByDefault : DiagnosticAnalyzer
         {
-            public NamedTypeAnalyzerWithConfigurableEnabledByDefault(bool isEnabledByDefault)
+            private readonly bool _throwOnAllNamedTypes;
+            public NamedTypeAnalyzerWithConfigurableEnabledByDefault(bool isEnabledByDefault, DiagnosticSeverity defaultSeverity, bool throwOnAllNamedTypes = false)
             {
                 Descriptor = new DiagnosticDescriptor(
                     "ID0001",
                     "Title1",
                     "Message1",
                     "Category1",
-                    defaultSeverity: DiagnosticSeverity.Warning,
+                    defaultSeverity,
                     isEnabledByDefault);
+                _throwOnAllNamedTypes = throwOnAllNamedTypes;
             }
 
             public DiagnosticDescriptor Descriptor { get; }
@@ -2104,8 +2107,15 @@ namespace Microsoft.CodeAnalysis
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
             public override void Initialize(AnalysisContext context)
             {
-                context.RegisterSymbolAction(
-                    context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0])),
+                context.RegisterSymbolAction(context =>
+                    {
+                        if (_throwOnAllNamedTypes)
+                        {
+                            throw new NotImplementedException();
+                        }
+
+                        context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0]));
+                    },
                     SymbolKind.NamedType);
             }
         }

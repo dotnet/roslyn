@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 return new ExtractInterfaceTypeAnalysisResult(errorMessage);
             }
 
-            return new ExtractInterfaceTypeAnalysisResult(this, document, typeNode, typeToExtractFrom, extractableMembers);
+            return new ExtractInterfaceTypeAnalysisResult(document, typeNode, typeToExtractFrom, extractableMembers);
         }
 
         public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(ExtractInterfaceTypeAnalysisResult refactoringResult, CancellationToken cancellationToken)
@@ -199,7 +199,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var completedUnformattedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
                 unformattedInterfaceDocument.Project.Solution,
                 symbolMapping.DocumentIds,
-                refactoringResult.DocumentToExtractFrom.Id,
                 symbolMapping.TypeNodeAnnotation,
                 refactoringResult.TypeToExtractFrom,
                 extractedInterfaceSymbol,
@@ -251,7 +250,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             // After the interface is inserted, update the original type to show it implements the new interface
             var unformattedSolutionWithUpdatedType = await GetSolutionWithOriginalTypeUpdatedAsync(
                 unformattedSolution, symbolMapping.DocumentIds,
-                refactoringResult.DocumentToExtractFrom.Id, symbolMapping.TypeNodeAnnotation,
+                symbolMapping.TypeNodeAnnotation,
                 refactoringResult.TypeToExtractFrom, extractedInterfaceSymbol,
                 extractInterfaceOptions.IncludedMembers, symbolMapping.SymbolToDeclarationAnnotationMap, cancellationToken).ConfigureAwait(false);
 
@@ -388,7 +387,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         private async Task<Solution> GetSolutionWithOriginalTypeUpdatedAsync(
             Solution solution,
             List<DocumentId> documentIds,
-            DocumentId invocationLocationDocumentId,
             SyntaxAnnotation typeNodeAnnotation,
             INamedTypeSymbol typeToExtractFrom,
             INamedTypeSymbol extractedInterfaceSymbol,

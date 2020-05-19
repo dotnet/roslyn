@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -675,8 +676,18 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, expectedOutput: "1");
+            var verifier = CompileAndVerify(
+                new string[] { source },
+                expectedOutput: "1",
+                symbolValidator: validator,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All));
             verifier.VerifyIL("Program.Main", expectedIL);
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Program");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
         [Fact]

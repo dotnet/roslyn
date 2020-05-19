@@ -8,49 +8,29 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class SpecialTypeExtensions
+    internal static partial class SpecialTypeExtensions
     {
         public static PredefinedType ToPredefinedType(this SpecialType specialType)
-        {
-            switch (specialType)
+            => specialType switch
             {
-                case SpecialType.System_Object:
-                    return PredefinedType.Object;
-                case SpecialType.System_Void:
-                    return PredefinedType.Void;
-                case SpecialType.System_Boolean:
-                    return PredefinedType.Boolean;
-                case SpecialType.System_Char:
-                    return PredefinedType.Char;
-                case SpecialType.System_SByte:
-                    return PredefinedType.SByte;
-                case SpecialType.System_Byte:
-                    return PredefinedType.Byte;
-                case SpecialType.System_Int16:
-                    return PredefinedType.Int16;
-                case SpecialType.System_UInt16:
-                    return PredefinedType.UInt16;
-                case SpecialType.System_Int32:
-                    return PredefinedType.Int32;
-                case SpecialType.System_UInt32:
-                    return PredefinedType.UInt32;
-                case SpecialType.System_Int64:
-                    return PredefinedType.Int64;
-                case SpecialType.System_UInt64:
-                    return PredefinedType.UInt64;
-                case SpecialType.System_Decimal:
-                    return PredefinedType.Decimal;
-                case SpecialType.System_Single:
-                    return PredefinedType.Single;
-                case SpecialType.System_Double:
-                    return PredefinedType.Double;
-                case SpecialType.System_String:
-                    return PredefinedType.String;
-                case SpecialType.System_DateTime:
-                    return PredefinedType.DateTime;
-                default:
-                    return PredefinedType.None;
-            }
-        }
+                SpecialType.System_Object => PredefinedType.Object,
+                SpecialType.System_Void => PredefinedType.Void,
+                SpecialType.System_Boolean => PredefinedType.Boolean,
+                SpecialType.System_Char => PredefinedType.Char,
+                SpecialType.System_SByte => PredefinedType.SByte,
+                SpecialType.System_Byte => PredefinedType.Byte,
+                SpecialType.System_Int16 => PredefinedType.Int16,
+                SpecialType.System_UInt16 => PredefinedType.UInt16,
+                SpecialType.System_Int32 => PredefinedType.Int32,
+                SpecialType.System_UInt32 => PredefinedType.UInt32,
+                SpecialType.System_Int64 => PredefinedType.Int64,
+                SpecialType.System_UInt64 => PredefinedType.UInt64,
+                SpecialType.System_Decimal => PredefinedType.Decimal,
+                SpecialType.System_Single => PredefinedType.Single,
+                SpecialType.System_Double => PredefinedType.Double,
+                SpecialType.System_String => PredefinedType.String,
+                SpecialType.System_DateTime => PredefinedType.DateTime,
+                _ => PredefinedType.None,
+            };
     }
 }

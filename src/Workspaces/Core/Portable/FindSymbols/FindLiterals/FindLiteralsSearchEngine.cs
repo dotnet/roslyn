@@ -59,10 +59,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     _longValue = BitConverter.DoubleToInt64Bits(f);
                     _searchKind = SearchKind.NumericLiterals;
                     break;
-                case decimal d: // unsupported
+                case decimal _: // unsupported
                     _searchKind = SearchKind.None;
                     break;
-                case char c:
+                case char _:
                     _longValue = IntegerUtilities.ToInt64(value);
                     _searchKind = SearchKind.CharacterLiterals;
                     break;

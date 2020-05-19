@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.VariableDeclarator:
                             {
                                 var variableDecl = (VariableDeclaratorSyntax)node.Parent;
-                                SourceMemberFieldSymbol fieldSymbol = GetDeclaredFieldSymbol(variableDecl);
+                                FieldSymbol fieldSymbol = GetDeclaredFieldSymbol(variableDecl);
 
                                 return InitializerSemanticModel.Create(
                                     this,
@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 containingModel?.GetRemappedSymbols());
         }
 
-        private SourceMemberFieldSymbol GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)
+        private FieldSymbol GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)
         {
             var declaredSymbol = GetDeclaredSymbol(variableDecl);
 
@@ -1203,10 +1203,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (variableDecl.Parent.Parent.Kind())
                 {
                     case SyntaxKind.FieldDeclaration:
-                        return declaredSymbol.GetSymbol<SourceMemberFieldSymbol>();
+                        return declaredSymbol.GetSymbol<FieldSymbol>();
 
                     case SyntaxKind.EventFieldDeclaration:
-                        return (SourceMemberFieldSymbol)(declaredSymbol.GetSymbol<EventSymbol>()).AssociatedField;
+                        return (declaredSymbol.GetSymbol<EventSymbol>()).AssociatedField;
                 }
             }
 
@@ -1370,7 +1370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given an member declaration syntax, get the corresponding symbol.
+        /// Given a member declaration syntax, get the corresponding symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares a member.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -1497,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         /// <summary>
-        /// Given an syntax node that declares a property or member accessor, get the corresponding symbol.
+        /// Given a syntax node that declares a property or member accessor, get the corresponding symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares an accessor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -1745,7 +1745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given an variable declarator syntax, get the corresponding symbol.
+        /// Given a variable declarator syntax, get the corresponding symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -2006,7 +2006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given an parameter declaration syntax node, get the corresponding symbol.
+        /// Given a parameter declaration syntax node, get the corresponding symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares a parameter.</param>
         /// <param name="cancellationToken">The cancellation token.</param>

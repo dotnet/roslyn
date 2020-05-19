@@ -22,9 +22,19 @@
         <target state="translated">Dekonstruovat deklaraci proměnné</target>
         <note />
       </trans-unit>
+      <trans-unit id="Delegate_invocation_can_be_simplified">
+        <source>Delegate invocation can be simplified.</source>
+        <target state="new">Delegate invocation can be simplified.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">Indexování se dá zjednodušit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_variable_declaration">
+        <source>Inline variable declaration</source>
+        <target state="new">Inline variable declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
@@ -162,6 +172,11 @@
         <target state="translated">Použít kontrolu „is null“</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_local_function">
+        <source>Use local function</source>
+        <target state="new">Use local function</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">Použít porovnávání vzorů</target>
@@ -195,6 +210,11 @@
       <trans-unit id="Variable_declaration_can_be_deconstructed">
         <source>Variable declaration can be deconstructed</source>
         <target state="translated">Deklaraci proměnné je možné dekonstruovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variable_declaration_can_be_inlined">
+        <source>Variable declaration can be inlined</source>
+        <target state="new">Variable declaration can be inlined</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">

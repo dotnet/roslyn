@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -22872,20 +22873,34 @@ class Program
 End Class
 "
 
-            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            Dim verifyField = Sub(comp As VisualBasicCompilation)
+                                  Dim field = comp.GetMember(Of FieldSymbol)("System.ValueTuple.F1")
+                                  Assert.Null(field.TupleUnderlyingField)
+                                  Dim toEmit = field.ContainingType.GetFieldsToEmit().Where(Function(f) f.Name = "F1").Single()
+                                  Assert.Same(field, toEmit)
+                              End Sub
+
+            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
             CompileAndVerify(comp1, expectedOutput:="123")
+            verifyField(comp1)
 
             Dim comp1Ref = {comp1.ToMetadataReference()}
             Dim comp1ImageRef = {comp1.EmitToImageReference()}
 
-            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
             CompileAndVerify(comp4, expectedOutput:="123")
 
-            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1Ref)
             CompileAndVerify(comp5, expectedOutput:="123")
+            verifyField(comp5)
 
-            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1ImageRef)
+            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1ImageRef)
             CompileAndVerify(comp6, expectedOutput:="123")
+            verifyField(comp6)
+
+            Dim comp7 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp7, expectedOutput:="123")
+            verifyField(comp7)
         End Sub
 
         <Fact>
@@ -22928,20 +22943,162 @@ class Program
 End Class
 "
 
-            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            Dim verifyField = Sub(comp As VisualBasicCompilation)
+                                  Dim field = comp.GetMember(Of FieldSymbol)("System.ValueTuple.F1")
+                                  Assert.Null(field.TupleUnderlyingField)
+                                  Dim toEmit = field.ContainingType.GetFieldsToEmit().Where(Function(f) f.Name = "F1").Single()
+                                  Assert.Same(field, toEmit)
+                              End Sub
+
+            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
             CompileAndVerify(comp1, expectedOutput:="123")
+            verifyField(comp1)
 
             Dim comp1Ref = {comp1.ToMetadataReference()}
             Dim comp1ImageRef = {comp1.EmitToImageReference()}
 
-            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
             CompileAndVerify(comp4, expectedOutput:="123")
 
-            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1Ref)
             CompileAndVerify(comp5, expectedOutput:="123")
+            verifyField(comp5)
 
-            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1ImageRef)
+            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1ImageRef)
             CompileAndVerify(comp6, expectedOutput:="123")
+            verifyField(comp6)
+
+            Dim comp7 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp7, expectedOutput:="123")
+            verifyField(comp7)
+        End Sub
+
+        <Fact>
+        <WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")>
+        <WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")>
+        Public Sub CustomFields_03()
+            Dim source0 = "
+namespace System
+    public structure ValueTuple
+        public shared readonly F1 As Integer = 4
+
+        public Shared Function CombineHashCodes(h1 As Integer, h2 As Integer) As Integer
+            return F1 + h1 + h2
+        End Function
+    End Structure
+End Namespace
+"
+
+            Dim source1 = "
+class Program
+    shared sub Main()
+        System.Console.WriteLine(System.ValueTuple.CombineHashCodes(2, 3))
+    End Sub
+End Class
+"
+
+            Dim source2 = "
+class Program
+    public shared Sub Main()
+        System.Console.WriteLine(System.ValueTuple.F1 + 2 + 3)
+    End Sub
+End Class
+"
+
+            Dim verifyField = Sub(comp As VisualBasicCompilation)
+                                  Dim field = comp.GetMember(Of FieldSymbol)("System.ValueTuple.F1")
+                                  Assert.Null(field.TupleUnderlyingField)
+                                  Dim toEmit = field.ContainingType.GetFieldsToEmit().Single()
+                                  Assert.Same(field, toEmit)
+                              End Sub
+
+            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="9")
+            verifyField(comp1)
+
+            Dim comp1Ref = {comp1.ToMetadataReference()}
+            Dim comp1ImageRef = {comp1.EmitToImageReference()}
+
+            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp4, expectedOutput:="9")
+
+            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp5, expectedOutput:="9")
+            verifyField(comp5)
+
+            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1ImageRef)
+            CompileAndVerify(comp6, expectedOutput:="9")
+            verifyField(comp6)
+
+            Dim comp7 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp7, expectedOutput:="9")
+            verifyField(comp7)
+        End Sub
+
+        <Fact>
+        <WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")>
+        <WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")>
+        Public Sub CustomFields_04()
+            Dim source0 = "
+namespace System
+    public structure ValueTuple
+        public F1 as Integer
+
+        public Function CombineHashCodes(h1 as Integer, h2 as Integer)  as Integer
+            return F1 + h1 + h2
+        End Function
+    End Structure
+End Namespace
+"
+
+            Dim source1 = "
+class Program
+    shared sub Main()
+        Dim tuple as System.ValueTuple = Nothing
+        tuple.F1 = 4
+        System.Console.WriteLine(tuple.CombineHashCodes(2, 3))
+    End Sub
+End Class
+"
+
+            Dim source2 = "
+class Program
+    public shared Sub Main()
+        Dim tuple as System.ValueTuple = Nothing
+        tuple.F1 = 4
+        System.Console.WriteLine(tuple.F1 + 2 + 3)
+    End Sub
+End Class
+"
+
+            Dim verifyField = Sub(comp As VisualBasicCompilation)
+                                  Dim field = comp.GetMember(Of FieldSymbol)("System.ValueTuple.F1")
+                                  Assert.Null(field.TupleUnderlyingField)
+                                  Dim toEmit = field.ContainingType.GetFieldsToEmit().Single()
+                                  Assert.Same(field, toEmit)
+                              End Sub
+
+            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="9")
+            verifyField(comp1)
+
+            Dim comp1Ref = {comp1.ToMetadataReference()}
+            Dim comp1ImageRef = {comp1.EmitToImageReference()}
+
+            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp4, expectedOutput:="9")
+
+            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp5, expectedOutput:="9")
+            verifyField(comp5)
+
+            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1ImageRef)
+            CompileAndVerify(comp6, expectedOutput:="9")
+            verifyField(comp6)
+
+            Dim comp7 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp7, expectedOutput:="9")
+            verifyField(comp7)
         End Sub
 
         <Fact>
@@ -23050,6 +23207,73 @@ End Class"
             End Select
         End Sub
 
+        <Fact>
+        <WorkItem(27322, "https://github.com/dotnet/roslyn/issues/27322")>
+        Public Sub Issue27322()
+            Dim source0 = "
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq.Expressions
+
+Module Module1
+
+    Sub Main()
+        Dim tupleA = (1, 3)
+        Dim tupleB = (1, ""123"".Length)
+
+        Dim ok1 As Expression(Of Func(Of Integer)) = Function() tupleA.Item1
+        Dim ok2 As Expression(Of Func(Of Integer)) = Function() tupleA.GetHashCode()
+        Dim ok3 As Expression(Of Func(Of Tuple(Of Integer, Integer))) = Function() tupleA.ToTuple()
+        Dim ok4 As Expression(Of Func(Of Boolean)) = Function() Equals(tupleA, tupleB)
+        Dim ok5 As Expression(Of Func(Of Integer)) = Function() Comparer(Of (Integer, Integer)).Default.Compare(tupleA, tupleB)
+        ok1.Compile()()
+        ok2.Compile()()
+        ok3.Compile()()
+        ok4.Compile()()
+        ok5.Compile()()
+
+        Dim err1 As Expression(Of Func(Of Boolean)) = Function() tupleA.Equals(tupleB)
+        Dim err2 As Expression(Of Func(Of Integer)) = Function() tupleA.CompareTo(tupleB)
+
+        err1.Compile()()
+        err2.Compile()()
+
+        System.Console.WriteLine(""Done"")
+    End Sub
+
+End Module
+"
+
+            Dim comp1 = CreateCompilation(source0, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="Done")
+        End Sub
+
+        <Fact>
+        <WorkItem(24517, "https://github.com/dotnet/roslyn/issues/24517")>
+        Public Sub Issue24517()
+            Dim source0 = "
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq.Expressions
+
+Module Module1
+
+    Sub Main()
+        Dim e1 As Expression(Of Func(Of ValueTuple(Of Integer, Integer))) = Function() new ValueTuple(Of Integer, Integer)(1, 2)
+        Dim e2 As Expression(Of Func(Of KeyValuePair(Of Integer, Integer))) = Function() new KeyValuePair(Of Integer, Integer)(1, 2)
+
+        e1.Compile()()
+        e2.Compile()()
+
+        System.Console.WriteLine(""Done"")
+    End Sub
+
+End Module
+"
+
+            Dim comp1 = CreateCompilation(source0, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="Done")
+        End Sub
     End Class
 
 End Namespace

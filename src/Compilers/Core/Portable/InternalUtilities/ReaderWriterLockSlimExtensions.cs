@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 
 namespace Roslyn.Utilities
@@ -17,6 +16,7 @@ namespace Roslyn.Utilities
             return new ReadLockExiter(@lock);
         }
 
+        [NonCopyable]
         internal readonly struct ReadLockExiter : IDisposable
         {
             private readonly ReaderWriterLockSlim _lock;
@@ -38,6 +38,7 @@ namespace Roslyn.Utilities
             return new UpgradeableReadLockExiter(@lock);
         }
 
+        [NonCopyable]
         internal readonly struct UpgradeableReadLockExiter : IDisposable
         {
             private readonly ReaderWriterLockSlim _lock;
@@ -69,6 +70,7 @@ namespace Roslyn.Utilities
             return new WriteLockExiter(@lock);
         }
 
+        [NonCopyable]
         internal readonly struct WriteLockExiter : IDisposable
         {
             private readonly ReaderWriterLockSlim _lock;

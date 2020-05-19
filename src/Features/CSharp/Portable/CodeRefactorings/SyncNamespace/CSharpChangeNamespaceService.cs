@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
         protected override string GetDeclaredNamespace(SyntaxNode container)
         {
-            if (container is CompilationUnitSyntax compilationUnit)
+            if (container is CompilationUnitSyntax)
             {
                 return string.Empty;
             }

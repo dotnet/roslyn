@@ -15,14 +15,20 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\Core\Def\Implementation\Watson\WatsonTraceListener.cs" Link="WatsonTraceListener.cs" />
+  </ItemGroup>
+  <ItemGroup Label="PkgDef">
+    <PkgDefPackageRegistration Include="{d02dac01-ddd0-4ecc-8687-79a554852b14}"
+                               Name="IntegrationTestServicePackage"
+                               Class="Microsoft.VisualStudio.IntegrationTest.Setup.IntegrationTestServicePackage"
+                               AllowsBackgroundLoad="true"/>
+    <PkgDefCodeBase Include="$(TargetPath)"/>
+    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\Setup\ProvideRoslynBindingRedirection.cs">
-      <Link>ProvideRoslynBindingRedirection.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="IntegrationTestServiceCommands.vsct">
@@ -54,6 +60,7 @@
       <Name>Diagnostics</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <PkgDefEntry>CodeBase</PkgDefEntry>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
       <Name>Workspaces</Name>
@@ -65,9 +72,10 @@
     </ProjectReference>
     <ProjectReference Include="..\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj">
       <Name>IntegrationService</Name>
+      <PkgDefEntry>CodeBase</PkgDefEntry>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Diagnostics.Runtime.dll" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.Diagnostics.Runtime" PkgDefEntry="CodeBase" />
   </ItemGroup>
 </Project>

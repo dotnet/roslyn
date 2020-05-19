@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -12855,6 +12856,9 @@ partial class C
                 // (35,12): warning CS0612: '(T1, T2)' is obsolete
                 //     static (int a, int b, int c, int d, int e, int f, int g, int h, int Item2) M103()
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(int a, int b, int c, int d, int e, int f, int g, int h, int Item2)").WithArguments("(T1, T2)").WithLocation(35, 12),
+                // (55,10): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
+                //         [System.Runtime.InteropServices.FieldOffsetAttribute(20)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "System.Runtime.InteropServices.FieldOffsetAttribute").WithLocation(55, 10),
                 // (78,10): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //         [System.Runtime.InteropServices.FieldOffsetAttribute(21)]
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "System.Runtime.InteropServices.FieldOffsetAttribute").WithLocation(78, 10),
@@ -15708,13 +15712,13 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,19): error CS1525: Invalid expression term 'int'
+                // (6,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 19),
-                // (6,24): error CS1525: Invalid expression term 'int'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(6, 19),
+                // (6,24): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 24),
-                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(6, 24),
+                // (6,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(6, 18)
                 );
@@ -15807,13 +15811,13 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,19): error CS1525: Invalid expression term 'int'
+                // (7,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 19),
-                // (7,24): error CS1525: Invalid expression term 'int'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(7, 19),
+                // (7,24): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 24),
-                // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(7, 24),
+                // (7,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(7, 18)
                );
@@ -24933,9 +24937,9 @@ class P
 }";
             var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,29): error CS1525: Invalid expression term 'int'
+                // (6,29): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 29),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(6, 29),
                 // (6,41): error CS1525: Invalid expression term ';'
                 //         var x1 = (1, 1) is (int, int a)?;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
@@ -24944,10 +24948,7 @@ class P
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(6, 41),
                 // (6,41): error CS1525: Invalid expression term ';'
                 //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
-                // (6,29): error CS0150: A constant value is expected
-                //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41)
                 );
         }
 
@@ -26462,6 +26463,7 @@ public class ClassB
         [Fact]
         [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
         [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_01()
         {
             var source0 = @"
@@ -26508,25 +26510,44 @@ class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "123");
+            verifyField(comp1);
 
             var comp1Ref = new[] { comp1.ToMetadataReference() };
             var comp1ImageRef = new[] { comp1.EmitToImageReference() };
 
-            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
             CompileAndVerify(comp4, expectedOutput: "123");
 
-            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1Ref);
             CompileAndVerify(comp5, expectedOutput: "123");
+            verifyField(comp5);
 
-            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1ImageRef);
+            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1ImageRef);
             CompileAndVerify(comp6, expectedOutput: "123");
+            verifyField(comp6);
+
+            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
+            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            //CompileAndVerify(comp7, expectedOutput: "123");
+            //verifyField(comp7);
+
+            void verifyField(CSharpCompilation comp)
+            {
+                var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
+                Assert.NotNull(field.TupleUnderlyingField);
+                Assert.NotSame(field, field.TupleUnderlyingField);
+                var toEmit = field.ContainingType.GetFieldsToEmit().Where(f => f.Name == "F1").Single();
+                Assert.Same(toEmit, toEmit.TupleUnderlyingField);
+                Assert.Same(field.TupleUnderlyingField, toEmit);
+            }
         }
 
         [Fact]
         [WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")]
         [WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
         public void CustomFields_02()
         {
             var source0 = @"
@@ -26574,20 +26595,224 @@ class Program
 }
 ";
 
-            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
             CompileAndVerify(comp1, expectedOutput: "123");
+            verifyField(comp1);
 
             var comp1Ref = new[] { comp1.ToMetadataReference() };
             var comp1ImageRef = new[] { comp1.EmitToImageReference() };
 
-            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe);
+            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
             CompileAndVerify(comp4, expectedOutput: "123");
 
-            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1Ref);
             CompileAndVerify(comp5, expectedOutput: "123");
+            verifyField(comp5);
 
-            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1ImageRef);
+            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1ImageRef);
             CompileAndVerify(comp6, expectedOutput: "123");
+            verifyField(comp6);
+
+            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
+            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            //CompileAndVerify(comp7, expectedOutput: "123");
+            //verifyField(comp7);
+
+            void verifyField(CSharpCompilation comp)
+            {
+                var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
+                Assert.NotNull(field.TupleUnderlyingField);
+                Assert.NotSame(field, field.TupleUnderlyingField);
+                var toEmit = field.ContainingType.GetFieldsToEmit().Where(f => f.Name == "F1").Single();
+                Assert.Same(toEmit, toEmit.TupleUnderlyingField);
+                Assert.Same(field.TupleUnderlyingField, toEmit);
+            }
+        }
+
+        [Fact]
+        [WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")]
+        [WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        public void CustomFields_03()
+        {
+            var source0 = @"
+namespace System
+{
+    public struct ValueTuple
+    {
+        public static readonly int F1 = 4;
+
+        public static int CombineHashCodes(int h1, int h2)
+        {
+            return F1 + h1 + h2;
+        }
+    }
+}
+";
+
+            var source1 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(System.ValueTuple.CombineHashCodes(2, 3));
+    }
+}
+";
+
+            var source2 = @"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(System.ValueTuple.F1 + 2 + 3);
+    }
+}
+";
+
+            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "9");
+            verifyField(comp1);
+
+            var comp1Ref = new[] { comp1.ToMetadataReference() };
+            var comp1ImageRef = new[] { comp1.EmitToImageReference() };
+
+            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
+            CompileAndVerify(comp4, expectedOutput: "9");
+
+            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp5, expectedOutput: "9");
+            verifyField(comp5);
+
+            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1ImageRef);
+            CompileAndVerify(comp6, expectedOutput: "9");
+            verifyField(comp6);
+
+            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
+            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            //CompileAndVerify(comp7, expectedOutput: "9");
+            //verifyField(comp7);
+
+            void verifyField(CSharpCompilation comp)
+            {
+                var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
+                Assert.NotNull(field.TupleUnderlyingField);
+                Assert.NotSame(field, field.TupleUnderlyingField);
+                var toEmit = field.ContainingType.GetFieldsToEmit().Single();
+                Assert.Same(toEmit, toEmit.TupleUnderlyingField);
+                Assert.Same(field.TupleUnderlyingField, toEmit);
+            }
+        }
+
+        [Fact]
+        [WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")]
+        [WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        public void CustomFields_04()
+        {
+            var source0 = @"
+namespace System
+{
+    public struct ValueTuple
+    {
+        public int F1;
+
+        public int CombineHashCodes(int h1, int h2)
+        {
+            return F1 + h1 + h2;
+        }
+    }
+}
+";
+
+            var source1 = @"
+class Program
+{
+    static void Main()
+    {
+        System.ValueTuple tuple = default;
+        tuple.F1 = 4;
+        System.Console.WriteLine(tuple.CombineHashCodes(2, 3));
+    }
+}
+";
+
+            var source2 = @"
+class Program
+{
+    public static void Main()
+    {
+        System.ValueTuple tuple = default;
+        tuple.F1 = 4;
+        System.Console.WriteLine(tuple.F1 + 2 + 3);
+    }
+}
+";
+
+            var comp1 = CreateCompilation(source0 + source1, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "9");
+            verifyField(comp1);
+
+            var comp1Ref = new[] { comp1.ToMetadataReference() };
+            var comp1ImageRef = new[] { comp1.EmitToImageReference() };
+
+            var comp4 = CreateCompilation(source0 + source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe);
+            CompileAndVerify(comp4, expectedOutput: "9");
+
+            var comp5 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp5, expectedOutput: "9");
+            verifyField(comp5);
+
+            var comp6 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.DebugExe, references: comp1ImageRef);
+            CompileAndVerify(comp6, expectedOutput: "9");
+            verifyField(comp6);
+
+            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
+            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            //CompileAndVerify(comp7, expectedOutput: "9");
+            //verifyField(comp7);
+
+            void verifyField(CSharpCompilation comp)
+            {
+                var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
+                Assert.NotNull(field.TupleUnderlyingField);
+                Assert.NotSame(field, field.TupleUnderlyingField);
+                var toEmit = field.ContainingType.GetFieldsToEmit().Single();
+                Assert.Same(toEmit, toEmit.TupleUnderlyingField);
+                Assert.Same(field.TupleUnderlyingField, toEmit);
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43621")]
+        [WorkItem(43621, "https://github.com/dotnet/roslyn/issues/43621")]
+        public void CustomFields_05()
+        {
+            var source0 = @"
+using System;
+
+namespace System
+{
+    public class C
+    {
+        public unsafe static void Main()
+        {
+            var s = new ValueTuple();
+            int* p = s.MessageType;
+            s.MessageType[0] = 12;
+            p[1] = p[0];
+            Console.WriteLine(s.MessageType[1]);
+        }
+    }
+
+    public unsafe struct ValueTuple
+    {
+        public fixed int MessageType[50];
+    }
+}
+";
+
+            var comp1 = CreateCompilation(source0, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp1, expectedOutput: "12");
         }
 
         [Fact]
@@ -26755,6 +26980,398 @@ public class Class
 
             var comp2 = CreateCompilation(source1, references: new[] { comp1.EmitToImageReference() }, options: TestOptions.DebugDll);
             CompileAndVerify(comp2);
+        }
+
+        [Fact]
+        [WorkItem(1090920, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090920")]
+        public void GetSymbolInfoOnInitializerOfValueTupleField()
+        {
+
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1>
+    {
+        public T1 Item1 = default;
+        public ValueTuple(T1 item1) { }
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { source }, options: TestOptions.DebugDll);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var literal = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            Assert.True(model.GetSymbolInfo(literal).IsEmpty);
+        }
+
+        [Fact, WorkItem(1090920, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090920")]
+        public void NameofFixedBuffer()
+        {
+            var source = @"
+namespace System
+{
+    public class C
+    {
+        public static void Main()
+        {
+            ValueTuple<int> myStruct = default;
+            Console.Write(myStruct.ToString());
+            char[] o;
+            myStruct.DoSomething(out o);
+            Console.Write(Other.GetFromExternal());
+        }
+    }
+
+    public unsafe struct ValueTuple<T1>
+    {
+        public fixed char MessageType[50];
+
+        public override string ToString()
+        {
+            return nameof(MessageType);
+        }
+
+        public void DoSomething(out char[] x)
+        {
+            x = new char[] { };
+            Action a = () => { System.Console.Write($"" {nameof(x)} ""); };
+            a();
+        }
+    }
+
+    class Other
+    {
+        public static string GetFromExternal()
+        {
+            ValueTuple<int> myStruct = default;
+            return nameof(myStruct.MessageType);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CompileAndVerify(compilation, expectedOutput:
+                "MessageType x MessageType").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(27322, "https://github.com/dotnet/roslyn/issues/27322")]
+        public void ExpressionTreeWithTuple()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+class C
+{
+    static void Main()
+    {
+        var tupleA = (1, 3);
+        var tupleB = (1, ""123"".Length);
+
+        Expression<Func<int>> ok1 = () => tupleA.Item1;
+        Expression<Func<int>> ok2 = () => tupleA.GetHashCode();
+        Expression<Func<Tuple<int, int>>> ok3 = () => tupleA.ToTuple();
+        Expression<Func<bool>> ok4 = () => Equals(tupleA, tupleB);
+        Expression<Func<int>> ok5 = () => Comparer<(int, int)>.Default.Compare(tupleA, tupleB);
+        ok1.Compile()();
+        ok2.Compile()();
+        ok3.Compile()();
+        ok4.Compile()();
+        ok5.Compile()();
+
+        Expression<Func<bool>> issue1 = () => tupleA.Equals(tupleB);
+        Expression<Func<int>> issue2 = () => tupleA.CompareTo(tupleB);
+        Console.WriteLine(""Done."");
+    }
+}";
+            var comp = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"Done.");
+            verifier.VerifyIL("C.Main", @"
+    {
+      // Code size      799 (0x31f)
+      .maxstack  7
+      .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                    System.Linq.Expressions.Expression<System.Func<int>> V_1, //ok1
+                    System.Linq.Expressions.Expression<System.Func<int>> V_2, //ok2
+                    System.Linq.Expressions.Expression<System.Func<System.Tuple<int, int>>> V_3, //ok3
+                    System.Linq.Expressions.Expression<System.Func<bool>> V_4) //ok4
+      IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+      IL_0005:  stloc.0
+      IL_0006:  ldloc.0
+      IL_0007:  ldc.i4.1
+      IL_0008:  ldc.i4.3
+      IL_0009:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+      IL_000e:  stfld      ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_0013:  ldloc.0
+      IL_0014:  ldc.i4.1
+      IL_0015:  ldstr      ""123""
+      IL_001a:  call       ""int string.Length.get""
+      IL_001f:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+      IL_0024:  stfld      ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleB""
+      IL_0029:  ldloc.0
+      IL_002a:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_002f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0034:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_0039:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_003e:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_0043:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_0048:  ldtoken    ""int System.ValueTuple<int, int>.Item1""
+      IL_004d:  ldtoken    ""System.ValueTuple<int, int>""
+      IL_0052:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle, System.RuntimeTypeHandle)""
+      IL_0057:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_005c:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_0061:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_0066:  stloc.1
+      IL_0067:  ldloc.0
+      IL_0068:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_006d:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0072:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_0077:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_007c:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_0081:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_0086:  ldtoken    ""int object.GetHashCode()""
+      IL_008b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+      IL_0090:  castclass  ""System.Reflection.MethodInfo""
+      IL_0095:  call       ""System.Linq.Expressions.Expression[] System.Array.Empty<System.Linq.Expressions.Expression>()""
+      IL_009a:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+      IL_009f:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_00a4:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_00a9:  stloc.2
+      IL_00aa:  ldnull
+      IL_00ab:  ldtoken    ""System.Tuple<int, int> System.TupleExtensions.ToTuple<int, int>(System.ValueTuple<int, int>)""
+      IL_00b0:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+      IL_00b5:  castclass  ""System.Reflection.MethodInfo""
+      IL_00ba:  ldc.i4.1
+      IL_00bb:  newarr     ""System.Linq.Expressions.Expression""
+      IL_00c0:  dup
+      IL_00c1:  ldc.i4.0
+      IL_00c2:  ldloc.0
+      IL_00c3:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_00c8:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_00cd:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_00d2:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_00d7:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_00dc:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_00e1:  stelem.ref
+      IL_00e2:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+      IL_00e7:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_00ec:  call       ""System.Linq.Expressions.Expression<System.Func<System.Tuple<int, int>>> System.Linq.Expressions.Expression.Lambda<System.Func<System.Tuple<int, int>>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_00f1:  stloc.3
+      IL_00f2:  ldnull
+      IL_00f3:  ldtoken    ""bool object.Equals(object, object)""
+      IL_00f8:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+      IL_00fd:  castclass  ""System.Reflection.MethodInfo""
+      IL_0102:  ldc.i4.2
+      IL_0103:  newarr     ""System.Linq.Expressions.Expression""
+      IL_0108:  dup
+      IL_0109:  ldc.i4.0
+      IL_010a:  ldloc.0
+      IL_010b:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_0110:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0115:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_011a:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_011f:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_0124:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_0129:  ldtoken    ""object""
+      IL_012e:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0133:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+      IL_0138:  stelem.ref
+      IL_0139:  dup
+      IL_013a:  ldc.i4.1
+      IL_013b:  ldloc.0
+      IL_013c:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_0141:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0146:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_014b:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleB""
+      IL_0150:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_0155:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_015a:  ldtoken    ""object""
+      IL_015f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0164:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+      IL_0169:  stelem.ref
+      IL_016a:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+      IL_016f:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_0174:  call       ""System.Linq.Expressions.Expression<System.Func<bool>> System.Linq.Expressions.Expression.Lambda<System.Func<bool>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_0179:  stloc.s    V_4
+      IL_017b:  ldnull
+      IL_017c:  ldtoken    ""System.Collections.Generic.Comparer<System.ValueTuple<int, int>> System.Collections.Generic.Comparer<System.ValueTuple<int, int>>.Default.get""
+      IL_0181:  ldtoken    ""System.Collections.Generic.Comparer<System.ValueTuple<int, int>>""
+      IL_0186:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+      IL_018b:  castclass  ""System.Reflection.MethodInfo""
+      IL_0190:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Property(System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+      IL_0195:  ldtoken    ""int System.Collections.Generic.Comparer<System.ValueTuple<int, int>>.Compare(System.ValueTuple<int, int>, System.ValueTuple<int, int>)""
+      IL_019a:  ldtoken    ""System.Collections.Generic.Comparer<System.ValueTuple<int, int>>""
+      IL_019f:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+      IL_01a4:  castclass  ""System.Reflection.MethodInfo""
+      IL_01a9:  ldc.i4.2
+      IL_01aa:  newarr     ""System.Linq.Expressions.Expression""
+      IL_01af:  dup
+      IL_01b0:  ldc.i4.0
+      IL_01b1:  ldloc.0
+      IL_01b2:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_01b7:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_01bc:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_01c1:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_01c6:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_01cb:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_01d0:  stelem.ref
+      IL_01d1:  dup
+      IL_01d2:  ldc.i4.1
+      IL_01d3:  ldloc.0
+      IL_01d4:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_01d9:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_01de:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_01e3:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleB""
+      IL_01e8:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_01ed:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_01f2:  stelem.ref
+      IL_01f3:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+      IL_01f8:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_01fd:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_0202:  ldloc.1
+      IL_0203:  callvirt   ""System.Func<int> System.Linq.Expressions.Expression<System.Func<int>>.Compile()""
+      IL_0208:  callvirt   ""int System.Func<int>.Invoke()""
+      IL_020d:  pop
+      IL_020e:  ldloc.2
+      IL_020f:  callvirt   ""System.Func<int> System.Linq.Expressions.Expression<System.Func<int>>.Compile()""
+      IL_0214:  callvirt   ""int System.Func<int>.Invoke()""
+      IL_0219:  pop
+      IL_021a:  ldloc.3
+      IL_021b:  callvirt   ""System.Func<System.Tuple<int, int>> System.Linq.Expressions.Expression<System.Func<System.Tuple<int, int>>>.Compile()""
+      IL_0220:  callvirt   ""System.Tuple<int, int> System.Func<System.Tuple<int, int>>.Invoke()""
+      IL_0225:  pop
+      IL_0226:  ldloc.s    V_4
+      IL_0228:  callvirt   ""System.Func<bool> System.Linq.Expressions.Expression<System.Func<bool>>.Compile()""
+      IL_022d:  callvirt   ""bool System.Func<bool>.Invoke()""
+      IL_0232:  pop
+      IL_0233:  callvirt   ""System.Func<int> System.Linq.Expressions.Expression<System.Func<int>>.Compile()""
+      IL_0238:  callvirt   ""int System.Func<int>.Invoke()""
+      IL_023d:  pop
+      IL_023e:  ldloc.0
+      IL_023f:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_0244:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0249:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_024e:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_0253:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_0258:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_025d:  ldtoken    ""bool System.ValueTuple<int, int>.Equals(System.ValueTuple<int, int>)""
+      IL_0262:  ldtoken    ""System.ValueTuple<int, int>""
+      IL_0267:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+      IL_026c:  castclass  ""System.Reflection.MethodInfo""
+      IL_0271:  ldc.i4.1
+      IL_0272:  newarr     ""System.Linq.Expressions.Expression""
+      IL_0277:  dup
+      IL_0278:  ldc.i4.0
+      IL_0279:  ldloc.0
+      IL_027a:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_027f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0284:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_0289:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleB""
+      IL_028e:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_0293:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_0298:  stelem.ref
+      IL_0299:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+      IL_029e:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_02a3:  call       ""System.Linq.Expressions.Expression<System.Func<bool>> System.Linq.Expressions.Expression.Lambda<System.Func<bool>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_02a8:  pop
+      IL_02a9:  ldloc.0
+      IL_02aa:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_02af:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_02b4:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_02b9:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_02be:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_02c3:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_02c8:  ldtoken    ""int System.ValueTuple<int, int>.CompareTo(System.ValueTuple<int, int>)""
+      IL_02cd:  ldtoken    ""System.ValueTuple<int, int>""
+      IL_02d2:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+      IL_02d7:  castclass  ""System.Reflection.MethodInfo""
+      IL_02dc:  ldc.i4.1
+      IL_02dd:  newarr     ""System.Linq.Expressions.Expression""
+      IL_02e2:  dup
+      IL_02e3:  ldc.i4.0
+      IL_02e4:  ldloc.0
+      IL_02e5:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_02ea:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_02ef:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_02f4:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleB""
+      IL_02f9:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_02fe:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_0303:  stelem.ref
+      IL_0304:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+      IL_0309:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_030e:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_0313:  pop
+      IL_0314:  ldstr      ""Done.""
+      IL_0319:  call       ""void System.Console.WriteLine(string)""
+      IL_031e:  ret
+    }
+");
+        }
+
+        [Fact]
+        [WorkItem(24517, "https://github.com/dotnet/roslyn/issues/24517")]
+        public void Issue24517()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+class C
+{
+    static void Main()
+    {
+        Expression<Func<ValueTuple<int, int>>> e1 = () => new ValueTuple<int, int>(1, 2);
+        Expression<Func<KeyValuePair<int, int>>> e2 = () => new KeyValuePair<int, int>(1, 2);
+
+        e1.Compile()();
+        e2.Compile()();
+
+        Console.WriteLine(""Done."");
+    }
+}";
+            var comp = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"Done.");
+        }
+
+        [Fact]
+        [WorkItem(44000, "https://github.com/dotnet/roslyn/issues/44000")]
+        public void TupleField_ForceComplete()
+        {
+            var source =
+@"namespace System
+{
+    public struct ValueTuple<T1>
+    {
+        public T1 Item1;
+        public ValueTuple(T1 item1)
+        {
+            Item1 = item1;
+        }
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
+            var type = (SourceNamedTypeSymbol)comp.GetMember("System.ValueTuple");
+            var field = (TupleFieldSymbol)type.GetMember("Item1");
+            var underlyingField = field.TupleUnderlyingField;
+
+            Assert.True(field.RequiresCompletion);
+            Assert.True(underlyingField.RequiresCompletion);
+            Assert.False(field.HasComplete(CompletionPart.All));
+            Assert.False(underlyingField.HasComplete(CompletionPart.All));
+
+            field.ForceComplete(null, default);
+
+            Assert.True(field.RequiresCompletion);
+            Assert.True(underlyingField.RequiresCompletion);
+            Assert.True(field.HasComplete(CompletionPart.All));
+            Assert.True(underlyingField.HasComplete(CompletionPart.All));
         }
     }
 }
