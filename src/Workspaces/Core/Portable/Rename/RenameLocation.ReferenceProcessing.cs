@@ -554,27 +554,40 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 if (subSpansToReplace == null)
                 {
+                    // We do not have already computed sub-spans to replace inside the string.
+                    // Get regex for matches within the string and replace all matches with replacementText.
                     var regex = GetRegexForMatch(matchText);
                     return regex.Replace(replaceInsideString, replacementText);
                 }
                 else
                 {
+                    // We are provided specific matches to replace inside the string.
+                    // Process the input string from start to end, replacing matchText with replacementText
+                    // at the provided sub-spans within the string for these matches.
                     var stringBuilder = new StringBuilder();
                     var startOffset = 0;
                     foreach (var subSpan in subSpansToReplace)
                     {
+                        // Assert that provided sub-span has a match with matchText.
                         Debug.Assert(subSpan.Length == matchText.Length);
                         Debug.Assert(subSpan.Start <= replaceInsideString.Length);
                         Debug.Assert(subSpan.End <= replaceInsideString.Length);
                         Debug.Assert(replaceInsideString.Substring(subSpan.Start, subSpan.Length) == matchText);
 
+                        // Append the sub-string from last match till the next match
                         var offset = subSpan.Start - startOffset;
                         stringBuilder.Append(replaceInsideString.Substring(startOffset, offset));
+
+                        // Append the replacementText
                         stringBuilder.Append(replacementText);
+
+                        // Update startOffset to process the next match.
                         startOffset += offset + subSpan.Length;
                     }
 
+                    // Append the remaining of the sub-string within replaceInsideString after the last match. 
                     stringBuilder.Append(replaceInsideString.Substring(startOffset));
+
                     return stringBuilder.ToString();
                 }
             }

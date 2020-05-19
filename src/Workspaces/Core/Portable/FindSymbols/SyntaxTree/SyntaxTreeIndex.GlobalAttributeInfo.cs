@@ -20,18 +20,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// <summary>
             /// Map from string literals inside global attributes to their positions inside the syntax tree.
             /// </summary>
-            public readonly ImmutableDictionary<string, ImmutableArray<int>> StringLiteralsToPositionsMap { get; }
+            public readonly ImmutableDictionary<string, ImmutableArray<int>> _docCommentIdStringLiteralsToPositionsInTreeMap { get; }
+
+            public bool IsEmpty => _docCommentIdStringLiteralsToPositionsInTreeMap.IsEmpty;
+
+            /// <summary>
+            /// Returns true if we have one or more instances of the given symbol documentation comment id string literal
+            /// within global attributes in this tree.
+            /// If true, it returns the <paramref name="positionsOfLiteralsInTree"/> for these references.
+            /// </summary>
+            public bool HasDocCommentIdStringLiterals(string docCommentIdStringLiteral, out ImmutableArray<int> positionsOfLiteralsInTree)
+                => _docCommentIdStringLiteralsToPositionsInTreeMap.TryGetValue(docCommentIdStringLiteral, out positionsOfLiteralsInTree);
 
             public GlobalAttributeInfo(ImmutableDictionary<string, ImmutableArray<int>> stringLiteralsToPositionsMap)
             {
-                StringLiteralsToPositionsMap = stringLiteralsToPositionsMap;
+                _docCommentIdStringLiteralsToPositionsInTreeMap = stringLiteralsToPositionsMap;
             }
 
             public void WriteTo(ObjectWriter writer)
             {
-                writer.WriteInt32(StringLiteralsToPositionsMap.Count);
+                writer.WriteInt32(_docCommentIdStringLiteralsToPositionsInTreeMap.Count);
 
-                foreach (var kvp in StringLiteralsToPositionsMap)
+                foreach (var kvp in _docCommentIdStringLiteralsToPositionsInTreeMap)
                 {
                     writer.WriteString(kvp.Key);
                     writer.WriteInt32(kvp.Value.Length);

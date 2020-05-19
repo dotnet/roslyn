@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Rename
         internal readonly ISymbol RenameSymbol;
         internal readonly string ReplacementText;
         internal readonly bool ReplacementTextValid;
-        internal readonly ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>> StringAndCommentTextSpans;
+        internal readonly ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>?> StringAndCommentTextSpans;
         internal readonly SyntaxNode SyntaxRoot;
         internal readonly Document Document;
         internal readonly SemanticModel SemanticModel;
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Rename
             string originalText,
             ICollection<string> possibleNameConflicts,
             Dictionary<TextSpan, RenameLocation> renameLocations,
-            ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>> stringAndCommentTextSpans,
+            ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>?> stringAndCommentTextSpans,
             ISet<TextSpan> conflictLocationSpans,
             Solution originalSolution,
             ISymbol renameSymbol,

@@ -421,35 +421,34 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 return;
             }
 
-            var pooledStringBuilder = PooledStringBuilder.GetInstance();
-            try
+            using var _ = PooledStringBuilder.GetInstance(out var stringBuilder);
+
+            // Now we add entries for all the containing symbols of the target symbol,
+            // starting from the outermost to innermost by parsing the documentation comment ID
+            // from start to end.
+            // For example, consider a field 'Field' defined inside a type 'C' in a namespace 'N'.
+            // This field's documentation comment ID is 'F:N.C.Field'.
+            // We process the string from left to right, starting after the ':' char at position 2.
+            var offset = 2;
+
+            // Iteratively find the next container symbol from current offset.
+            // For the field example above, the first invocation to 'TryProcessNextContainer'
+            // will add 'N' to the string builder and have 'newOffset' at the position after 'N.'
+            // The next invocation will have 'N.C' in the string builder 'newOffset' at the position after 'N.C.' and so on.
+            while (TryProcessNextContainer(stringBuilder, docCommentId, offset, syntaxFacts, out var newOffset))
             {
-                var stringBuilder = pooledStringBuilder.Builder;
+                // We do not know if the container is a namespace or a type, so we add entries for both.
+                // Only one will be valid as fully qualified names cannot be same, and invalid entry will be ignored.
+                var idWithoutPrefix = stringBuilder.ToString();
+                AddEntry($"N:{idWithoutPrefix}", offset, stringLiteral, globalAttributeInfoBuilder);
+                AddEntry($"T:{idWithoutPrefix}", offset, stringLiteral, globalAttributeInfoBuilder);
 
-                // Now we add entries for all the containing symbols of the target symbol,
-                // starting from the outermost to innermost by parsing the documentation comment ID
-                // from start to end.
-                var offset = 2;
-                while (TryProcessNextContainer(stringBuilder,
-                        docCommentId, offset, syntaxFacts, out var newOffset))
-                {
-                    // We do not know if the container is a namespace or a type, so we add entries for both.
-                    // Only one will be valid as fully qualified names cannot be same, and invalid entry will be ignored.
-                    var idWithoutPrefix = stringBuilder.ToString();
-                    AddEntry($"N:{idWithoutPrefix}", offset, stringLiteral, globalAttributeInfoBuilder);
-                    AddEntry($"T:{idWithoutPrefix}", offset, stringLiteral, globalAttributeInfoBuilder);
-
-                    offset = newOffset;
-                }
-
-                // Finally, add the entry for the target symbol of the attribute.
-                AddEntry(docCommentId, offset, stringLiteral, globalAttributeInfoBuilder);
-                stringBuilder.Clear();
+                offset = newOffset;
             }
-            finally
-            {
-                pooledStringBuilder.Free();
-            }
+
+            // Finally, add the entry for the target symbol of the attribute.
+            AddEntry(docCommentId, offset, stringLiteral, globalAttributeInfoBuilder);
+            stringBuilder.Clear();
 
             return;
 
@@ -464,7 +463,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                     return false;
                 }
 
-                var attributeNode = attributeArgument.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsAttribute);
+                var attributeNode = attributeArgument.Parent?.Parent;
                 return attributeNode != null && syntaxFacts.IsGlobalAttribute(attributeNode);
             }
 
@@ -475,9 +474,22 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 ISyntaxFacts syntaxFacts,
                 out int newOffset)
             {
+                // We are trying to identify the documentation ID substring for the next outermost containing symbol
+                // in the 'originalDocCommentId' starting at index 'offset' within 'originalDocCommentId'.
+                // For example, consider a field 'Field' defined inside a type 'C' in a namespace 'N'.
+                // This field's documentation comment ID is 'F:N.C.Field'.
+                // For the first call to 'TryProcessNextContainer', offset is just after the ':' token.
+                // We parse the string from left to right appending characters to the given stringBuilder
+                // until we reach a '.' character which indicates we have reached the end of documentation comment id
+                // for the next outermost containing symbol.
+                // For this example, we will popupate 'N' in the stringBuilder and 'newOffset' will be pointing to 'C'.
+
                 if (stringBuilder.Length != 0)
                 {
-                    // Append a '.' for the next container.
+                    // If this is not the first call, then we append the '.' char 
+                    // as a separator for the next containing symbol that we are going to process.
+                    // For the above example, if we processing offset 'C', the stringBuilder will
+                    // have 'N' from last invocation, so we append '.' and then process the rest of the string.
                     Debug.Assert(originalDocCommentId[offset - 1] == '.');
                     stringBuilder.Append('.');
                 }
@@ -489,17 +501,26 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                     switch (ch)
                     {
                         case '.':
+                            // We have found the separator char indicating the next containing symbol.
                             return true;
 
                         case '`':
+                            // '`' is used to specific arity of a generic type in symbol's documentation commend id.
+                            // We need to include this arity for a complete documentation commend id representation of the symbol.
+                            stringBuilder.Append(ch);
                             continue;
 
                         case '#':
                         case '(':
                         case '[':
+                            // These tokens indicate that we are now processing a member symbol such as
+                            // a constructor, method argument list, indexer argument list, etc.
+                            // We cannot have any more container symbols in the documentation commend id.
                             return false;
 
                         default:
+                            // Continue processing and appending characters as long as we see valid identifier part characters.
+                            // A non-identifier character indicates we do not have any more container symbols in the documentation commend id.
                             if (!syntaxFacts.IsIdentifierPartCharacter(ch))
                             {
                                 return false;
@@ -525,6 +546,10 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                     globalAttributeInfoBuilder.Add(key, positions);
                 }
 
+                // Add an entry to the 'globalAttributeInfoBuilder'
+                // - Key represents symbol's documentation comment id.
+                // - Value is the list of positions in syntax tree for the identifier reference to the symbol.
+                //   Documentation comment id has an option '~' prefix, so we account for it in computing the position.
                 var position = stringLiteral.SpanStart + offset;
                 if (stringLiteral.ValueText[0] == '~')
                     position++;

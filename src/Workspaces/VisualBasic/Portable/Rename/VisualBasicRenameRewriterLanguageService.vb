@@ -53,15 +53,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Private ReadOnly _renameSpansTracker As RenamedSpansTracker
             Private ReadOnly _isVerbatim As Boolean
             Private ReadOnly _replacementTextValid As Boolean
-            Private ReadOnly _isRenamingInStrings As Boolean
-            Private ReadOnly _isRenamingInComments As Boolean
-            Private ReadOnly _stringAndCommentTextSpans As ImmutableDictionary(Of TextSpan, ImmutableSortedSet(Of TextSpan))
             Private ReadOnly _simplificationService As ISimplificationService
             Private ReadOnly _annotatedIdentifierTokens As New HashSet(Of SyntaxToken)
             Private ReadOnly _invocationExpressionsNeedingConflictChecks As New HashSet(Of InvocationExpressionSyntax)
             Private ReadOnly _syntaxFactsService As ISyntaxFactsService
             Private ReadOnly _semanticFactsService As ISemanticFactsService
             Private ReadOnly _renameAnnotations As AnnotationTable(Of RenameAnnotation)
+
+            ''' <summary>
+            ''' Flag indicating if we should perform a rename inside string literals.
+            ''' </summary>
+            Private ReadOnly _isRenamingInStrings As Boolean
+
+            ''' <summary>
+            ''' Flag indicating if we should perform a rename inside comment trivia.
+            ''' </summary>
+            Private ReadOnly _isRenamingInComments As Boolean
+
+            ''' <summary>
+            ''' A map from spans of tokens needing rename within strings or comments to an optional
+            ''' set of specific sub-spans within the token span that
+            ''' have <see cref="_originalText"/> matches and should be renamed.
+            ''' If this sorted set is Nothing, it indicates that sub-spans to rename within the token span
+            ''' are not available, and a complete regex match should be performed to rename
+            ''' all <see cref="_originalText"/> matches within the span.
+            ''' </summary>
+            Private ReadOnly _stringAndCommentTextSpans As ImmutableDictionary(Of TextSpan, ImmutableSortedSet(Of TextSpan))
 
             Private ReadOnly Property AnnotateForComplexification As Boolean
                 Get
@@ -105,9 +122,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 _stringAndCommentTextSpans = parameters.StringAndCommentTextSpans
                 _aliasSymbol = TryCast(Me._renamedSymbol, IAliasSymbol)
                 _renamableDeclarationLocation = Me._renamedSymbol.Locations.Where(Function(loc) loc.IsInSource AndAlso loc.SourceTree Is _semanticModel.SyntaxTree).FirstOrDefault()
-                _simplificationService = parameters.Document.Project.LanguageServices.GetService(Of ISimplificationService)()
-                _syntaxFactsService = parameters.Document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
-                _semanticFactsService = parameters.Document.Project.LanguageServices.GetService(Of ISemanticFactsService)()
+                _simplificationService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISimplificationService)()
+                _syntaxFactsService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISyntaxFactsService)()
+                _semanticFactsService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISemanticFactsService)()
                 _isVerbatim = Me._syntaxFactsService.IsVerbatimIdentifier(_replacementText)
                 _renameAnnotations = parameters.RenameAnnotations
             End Sub

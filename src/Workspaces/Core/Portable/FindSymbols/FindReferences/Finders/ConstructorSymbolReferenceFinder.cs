@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var typeName = symbol.ContainingType.Name;
             var documentsWithName = await FindDocumentsAsync(project, documents, SupportsGlobalSuppression(symbol), cancellationToken, typeName).ConfigureAwait(false);
             var documentsWithType = await FindDocumentsAsync(project, documents, symbol.ContainingType.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
-            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(typeName, project.LanguageServices.GetService<ISyntaxFactsService>(), out var simpleName)
+            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(typeName, project.LanguageServices.GetRequiredService<ISyntaxFactsService>(), out var simpleName)
                 ? await FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, simpleName).ConfigureAwait(false)
                 : SpecializedCollections.EmptyEnumerable<Document>();
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             return TryGetNameWithoutAttributeSuffix(symbol.ContainingType.Name, syntaxFacts, out var simpleName)
                 ? FindReferencesInDocumentUsingIdentifierAsync(symbol, simpleName, document, semanticModel, cancellationToken)
                 : SpecializedTasks.EmptyImmutableArray<FinderLocation>();
