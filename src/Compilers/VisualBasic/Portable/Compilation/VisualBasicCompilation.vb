@@ -773,7 +773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides ReadOnly Property CommonScriptGlobalsType As ITypeSymbol
             Get
-                Throw New NotImplementedException()
+                Return Nothing
             End Get
         End Property
 
