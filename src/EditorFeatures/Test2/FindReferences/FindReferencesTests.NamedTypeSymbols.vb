@@ -2392,5 +2392,95 @@ namespace N
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem(44401, "https://github.com/dotnet/roslyn/issues/44401")>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/44401")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTypeReferenceInGlobalSuppressionParameter(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:N.D.M(N.[|C|])")]
+
+namespace N
+{
+    class D
+    {
+        void M([|C|] c)
+        {
+        }
+    }
+
+    class {|Definition:$$C|}
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem(44401, "https://github.com/dotnet/roslyn/issues/44401")>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/44401")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTypeReferenceInGlobalSuppressionParameter_GenericType(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:N.D.M(N.[|C|]{System.Int32})")]
+
+namespace N
+{
+    class D
+    {
+        void M([|C|]<int> c)
+        {
+        }
+    }
+
+    class {|Definition:$$C|}<T>
+    {
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WorkItem(44401, "https://github.com/dotnet/roslyn/issues/44401")>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/44401")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTypeReferenceInGlobalSuppressionTypeParameter_GenericType(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:N.[|D|].M(N.C{N.[|D|]})")]
+
+namespace N
+{
+    class {|Definition:$$D|}
+    {
+        void M(C<[|D|]> c)
+        {
+        }
+    }
+
+    class C<T>
+    {
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

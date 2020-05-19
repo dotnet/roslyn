@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, SupportsGlobalSuppression(symbol), cancellationToken, GetNamespaceIdentifierName(symbol));
+            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, GetNamespaceIdentifierName(symbol));
         }
 
         private static string GetNamespaceIdentifierName(INamespaceSymbol symbol)

@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             /// set of specific sub-spans within the token span that
             /// have <see cref="_originalText"/> matches and should be renamed.
             /// If this sorted set is null, it indicates that sub-spans to rename within the token span
-            /// are not available, and a complete regex match should be performed to rename
+            /// are not available, and a regex match should be performed to rename
             /// all <see cref="_originalText"/> matches within the span.
             /// </summary>
             private readonly ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>?> _stringAndCommentTextSpans;

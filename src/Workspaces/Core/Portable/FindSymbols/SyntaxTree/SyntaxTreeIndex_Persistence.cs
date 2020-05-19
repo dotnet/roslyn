@@ -136,7 +136,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var contextInfo = ContextInfo.TryReadFrom(reader);
             var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
             var extensionMethodInfo = ExtensionMethodInfo.TryReadFrom(reader);
-            var globalAttributeInfo = GlobalAttributeInfo.TryReadFrom(reader);
 
             if (literalInfo == null || identifierInfo == null || contextInfo == null || declarationInfo == null || extensionMethodInfo == null)
             {
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return new SyntaxTreeIndex(
-                checksum, literalInfo.Value, identifierInfo.Value, contextInfo.Value, declarationInfo.Value, extensionMethodInfo.Value, globalAttributeInfo.Value);
+                checksum, literalInfo.Value, identifierInfo.Value, contextInfo.Value, declarationInfo.Value, extensionMethodInfo.Value);
         }
     }
 }

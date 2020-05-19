@@ -28,16 +28,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ProbablyContainsStringValue(string value) => _literalInfo.ProbablyContainsStringValue(value);
         public bool ProbablyContainsInt64Value(long value) => _literalInfo.ProbablyContainsInt64Value(value);
 
-        public bool ContainsGlobalAttributeInfo => !_globalAttributeInfo.IsEmpty;
-
-        /// <summary>
-        /// Returns true if we have one or more instances of the given symbol documentation comment id string literal
-        /// within global attributes in this tree.
-        /// If true, it returns the <paramref name="positionsOfLiteralsInTree"/> for these references.
-        /// </summary>
-        public bool HasDocCommentIdStringLiteralsInGlobalAttributes(string docCommentIdStringLiteral, out ImmutableArray<int> positionsOfLiteralsInTree)
-            => _globalAttributeInfo.HasDocCommentIdStringLiterals(docCommentIdStringLiteral, out positionsOfLiteralsInTree);
-
         public bool ContainsForEachStatement => _contextInfo.ContainsForEachStatement;
         public bool ContainsDeconstruction => _contextInfo.ContainsDeconstruction;
         public bool ContainsAwait => _contextInfo.ContainsAwait;
@@ -50,5 +40,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsElementAccessExpression => _contextInfo.ContainsElementAccessExpression;
         public bool ContainsIndexerMemberCref => _contextInfo.ContainsIndexerMemberCref;
         public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
+        public bool ContainsGlobalAttributes => _contextInfo.ContainsGlobalAttributes;
     }
 }

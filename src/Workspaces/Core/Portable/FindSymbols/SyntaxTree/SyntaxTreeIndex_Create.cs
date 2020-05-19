@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -91,6 +90,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsAwait = false;
                 var containsTupleExpressionOrTupleType = false;
                 var containsImplicitObjectCreation = false;
+                bool containsGlobalAttributes = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
+                            containsGlobalAttributes = containsGlobalAttributes || syntaxFacts.IsGlobalAttribute(node);
 
                             if (syntaxFacts.IsUsingAliasDirective(node) && infoFactory.TryGetAliasesFromUsingDirective(node, out var aliases))
                             {
@@ -217,8 +218,6 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             if (syntaxFacts.IsStringLiteral(token))
                             {
                                 stringLiterals.Add(token.ValueText);
-
-                                ProcessStringLiteralForGlobalAttributeInfo(token, syntaxFacts, globalAttributeInfoBuilder);
                             }
 
                             if (syntaxFacts.IsCharacterLiteral(token))
@@ -270,14 +269,13 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsDeconstruction,
                             containsAwait,
                             containsTupleExpressionOrTupleType,
-                            containsImplicitObjectCreation),
+                            containsImplicitObjectCreation,
+                            containsGlobalAttributes),
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(
                         simpleExtensionMethodInfoBuilder.ToImmutableDictionary(s_getKey, s_getValuesAsImmutableArray),
-                        complexExtensionMethodInfoBuilder.ToImmutable()),
-                    new GlobalAttributeInfo(
-                        globalAttributeInfoBuilder.ToImmutableDictionary(s_getKey, s_getValuesAsImmutableArray)));
+                        complexExtensionMethodInfoBuilder.ToImmutable()));
             }
             finally
             {
@@ -393,168 +391,6 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
 
             SharedPools.StringHashSet.ClearAndFree(identifiers);
             SharedPools.StringHashSet.ClearAndFree(escapedIdentifiers);
-        }
-
-        private static void ProcessStringLiteralForGlobalAttributeInfo(
-            SyntaxToken stringLiteral,
-            ISyntaxFacts syntaxFacts,
-            PooledDictionary<string, ArrayBuilder<int>> globalAttributeInfoBuilder)
-        {
-            var text = stringLiteral.ValueText;
-            if (string.IsNullOrEmpty(text) ||
-                !IsTargetOfGlobalAttribute(stringLiteral, syntaxFacts))
-            {
-                return;
-            }
-
-            // Target string must contain a valid symbol DocumentationCommentId,
-            // with an optional '~' prefix.
-            // First walk past this optional prefix.
-            var docCommentId = text[0] == '~' ? text.Substring(1) : text;
-
-            // The first part of the string identifies the kind of member being documented,
-            // via a single character followed by a colon.
-            if (docCommentId.Length < 3 ||
-                !char.IsLetter(docCommentId[0]) ||
-                docCommentId[1] != ':')
-            {
-                return;
-            }
-
-            using var _ = PooledStringBuilder.GetInstance(out var stringBuilder);
-
-            // Now we add entries for all the containing symbols of the target symbol,
-            // starting from the outermost to innermost by parsing the documentation comment ID
-            // from start to end.
-            // For example, consider a field 'Field' defined inside a type 'C' in a namespace 'N'.
-            // This field's documentation comment ID is 'F:N.C.Field'.
-            // We process the string from left to right, starting after the ':' char at position 2.
-            var offset = 2;
-
-            // Iteratively find the next container symbol from current offset.
-            // For the field example above, the first invocation to 'TryProcessNextContainer'
-            // will add 'N' to the string builder and have 'newOffset' at the position after 'N.'
-            // The next invocation will have 'N.C' in the string builder 'newOffset' at the position after 'N.C.' and so on.
-            while (TryProcessNextContainer(stringBuilder, docCommentId, offset, syntaxFacts, out var newOffset))
-            {
-                // We do not know if the container is a namespace or a type, so we add entries for both.
-                // Only one will be valid as fully qualified names cannot be same, and invalid entry will be ignored.
-                var idWithoutPrefix = stringBuilder.ToString();
-                AddEntry($"N:{idWithoutPrefix}", offset, stringLiteral, globalAttributeInfoBuilder);
-                AddEntry($"T:{idWithoutPrefix}", offset, stringLiteral, globalAttributeInfoBuilder);
-
-                offset = newOffset;
-            }
-
-            // Finally, add the entry for the target symbol of the attribute.
-            AddEntry(docCommentId, offset, stringLiteral, globalAttributeInfoBuilder);
-            stringBuilder.Clear();
-
-            return;
-
-            // Local functions
-            static bool IsTargetOfGlobalAttribute(SyntaxToken stringLiteral, ISyntaxFacts syntaxFacts)
-            {
-                Debug.Assert(syntaxFacts.IsStringLiteral(stringLiteral));
-
-                var attributeArgument = stringLiteral.Parent?.Parent;
-                if (syntaxFacts.GetNameForAttributeArgument(attributeArgument) != "Target")
-                {
-                    return false;
-                }
-
-                var attributeNode = attributeArgument.Parent?.Parent;
-                return attributeNode != null && syntaxFacts.IsGlobalAttribute(attributeNode);
-            }
-
-            static bool TryProcessNextContainer(
-                StringBuilder stringBuilder,
-                string originalDocCommentId,
-                int offset,
-                ISyntaxFacts syntaxFacts,
-                out int newOffset)
-            {
-                // We are trying to identify the documentation ID substring for the next outermost containing symbol
-                // in the 'originalDocCommentId' starting at index 'offset' within 'originalDocCommentId'.
-                // For example, consider a field 'Field' defined inside a type 'C' in a namespace 'N'.
-                // This field's documentation comment ID is 'F:N.C.Field'.
-                // For the first call to 'TryProcessNextContainer', offset is just after the ':' token.
-                // We parse the string from left to right appending characters to the given stringBuilder
-                // until we reach a '.' character which indicates we have reached the end of documentation comment id
-                // for the next outermost containing symbol.
-                // For this example, we will popupate 'N' in the stringBuilder and 'newOffset' will be pointing to 'C'.
-
-                if (stringBuilder.Length != 0)
-                {
-                    // If this is not the first call, then we append the '.' char 
-                    // as a separator for the next containing symbol that we are going to process.
-                    // For the above example, if we processing offset 'C', the stringBuilder will
-                    // have 'N' from last invocation, so we append '.' and then process the rest of the string.
-                    Debug.Assert(originalDocCommentId[offset - 1] == '.');
-                    stringBuilder.Append('.');
-                }
-
-                newOffset = offset;
-                while (newOffset < originalDocCommentId.Length)
-                {
-                    var ch = originalDocCommentId[newOffset++];
-                    switch (ch)
-                    {
-                        case '.':
-                            // We have found the separator char indicating the next containing symbol.
-                            return true;
-
-                        case '`':
-                            // '`' is used to specific arity of a generic type in symbol's documentation commend id.
-                            // We need to include this arity for a complete documentation commend id representation of the symbol.
-                            stringBuilder.Append(ch);
-                            continue;
-
-                        case '#':
-                        case '(':
-                        case '[':
-                            // These tokens indicate that we are now processing a member symbol such as
-                            // a constructor, method argument list, indexer argument list, etc.
-                            // We cannot have any more container symbols in the documentation commend id.
-                            return false;
-
-                        default:
-                            // Continue processing and appending characters as long as we see valid identifier part characters.
-                            // A non-identifier character indicates we do not have any more container symbols in the documentation commend id.
-                            if (!syntaxFacts.IsIdentifierPartCharacter(ch))
-                            {
-                                return false;
-                            }
-
-                            stringBuilder.Append(ch);
-                            continue;
-                    }
-                }
-
-                return false;
-            }
-
-            static void AddEntry(
-                string key,
-                int offset,
-                SyntaxToken stringLiteral,
-                PooledDictionary<string, ArrayBuilder<int>> globalAttributeInfoBuilder)
-            {
-                if (!globalAttributeInfoBuilder.TryGetValue(key, out var positions))
-                {
-                    positions = ArrayBuilder<int>.GetInstance();
-                    globalAttributeInfoBuilder.Add(key, positions);
-                }
-
-                // Add an entry to the 'globalAttributeInfoBuilder'
-                // - Key represents symbol's documentation comment id.
-                // - Value is the list of positions in syntax tree for the identifier reference to the symbol.
-                //   Documentation comment id has an option '~' prefix, so we account for it in computing the position.
-                var position = stringLiteral.SpanStart + offset;
-                if (stringLiteral.ValueText[0] == '~')
-                    position++;
-                positions.Add(position);
-            }
         }
     }
 }

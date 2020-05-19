@@ -3246,6 +3246,7 @@ End Class
     <Project Language="C#" CommonReferences="true">
         <Document>
         [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:C.[|M|](System.String)")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:C.M(System.Int32)")]
 
         class C
         {
