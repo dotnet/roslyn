@@ -6272,13 +6272,7 @@ done:;
                 return this.ParseTupleType();
             }
 
-            var name = this.CreateMissingIdentifierName();
-            if (mode != ParseTypeMode.NewExpression)
-            {
-                return this.AddError(name, ErrorCode.ERR_TypeExpected);
-            }
-
-            return name;
+            return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TypeExpected);
         }
 
         private TypeSyntax ParsePointerTypeMods(TypeSyntax type)
@@ -10619,11 +10613,11 @@ tryAgain:
                 initializer = this.ParseObjectOrCollectionInitializer();
             }
 
-            // we need one or the other
+            // we need one or the other.  also, don't bother reporting this if we already complained about the new type.
             if (argumentList == null && initializer == null)
             {
                 argumentList = _syntaxFactory.ArgumentList(
-                    this.EatToken(SyntaxKind.OpenParenToken, ErrorCode.ERR_BadNewExpr),
+                    this.EatToken(SyntaxKind.OpenParenToken, ErrorCode.ERR_BadNewExpr, reportError: type?.ContainsDiagnostics == false),
                     default(SeparatedSyntaxList<ArgumentSyntax>),
                     SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken));
             }
