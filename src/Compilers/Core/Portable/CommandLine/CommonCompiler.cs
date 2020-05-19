@@ -789,9 +789,8 @@ namespace Microsoft.CodeAnalysis
             compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, additionalTexts, diagnostics);
 
             // https://github.com/dotnet/roslyn/issues/44087 
-            // Workaround by re-getting options for *all* the syntax trees including generated ones if there were
-            // any generators to run. We'll actually want to parse the generated files according to the rules of the config set
-            // and add them in here.
+            // Workaround by getting options for any generated trees that were produced.
+            // In the future we'll want to apply the config set rules at parse time, return the options, and add them in here
             if (!sourceFileAnalyzerConfigOptions.IsDefault && generators.Length > 0)
             {
                 var generatedOptions = compilation.SyntaxTrees.Skip(sourceFileAnalyzerConfigOptions.Length).Select(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath));
