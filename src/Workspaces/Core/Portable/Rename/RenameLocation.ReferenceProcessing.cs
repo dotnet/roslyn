@@ -550,9 +550,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 string replaceInsideString,
                 string matchText,
                 string replacementText,
-                ImmutableSortedSet<TextSpan> subSpansToReplaceOpt = null)
+                ImmutableSortedSet<TextSpan>? subSpansToReplace = null)
             {
-                if (subSpansToReplaceOpt == null)
+                if (subSpansToReplace == null)
                 {
                     var regex = GetRegexForMatch(matchText);
                     return regex.Replace(replaceInsideString, replacementText);
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     var stringBuilder = new StringBuilder();
                     var startOffset = 0;
-                    foreach (var subSpan in subSpansToReplaceOpt)
+                    foreach (var subSpan in subSpansToReplace)
                     {
                         Debug.Assert(subSpan.Length == matchText.Length);
                         Debug.Assert(subSpan.Start <= replaceInsideString.Length);
