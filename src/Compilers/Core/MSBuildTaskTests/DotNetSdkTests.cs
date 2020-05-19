@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 {
                     $@"{root2}: /_1/",
                     $@"{root1}: /_/",
-                    $@"{root1}sub1\: /_/sub1/",
-                    $@"{root1}sub2\: /_/sub2/",
+                    $@"{root1}sub1{Path.DirectorySeparatorChar}: /_/sub1/",
+                    $@"{root1}sub2{Path.DirectorySeparatorChar}: /_/sub2/",
                     "true",
                     $@"{escapedRoot2}=/_1/,{escapedRoot1}=/_/,PreviousPathMap",
                     "true"
@@ -322,9 +322,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 },
                 expectedResults: new[]
                 {
-                    @"X\",
-                    @"Y\",
-                    @"Z\",
+                    $"X{Path.DirectorySeparatorChar}",
+                    $"Y{Path.DirectorySeparatorChar}",
+                    $"Z{Path.DirectorySeparatorChar}",
                 });
         }
 
