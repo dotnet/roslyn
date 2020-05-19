@@ -12378,6 +12378,9 @@ key = value");
     {
         private readonly string _sourceToAdd;
 
+        /// <remarks>
+        /// Required for reflection based tests
+        /// </remarks>
         public SimpleGenerator()
         {
             _sourceToAdd = string.Empty;

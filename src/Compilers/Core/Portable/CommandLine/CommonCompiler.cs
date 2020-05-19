@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis
             // Workaround by re-getting options for *all* the syntax trees including generated ones if there were
             // any generators to run. We'll actually want to parse the generated files according to the rules of the config set
             // and add them in here.
-            if (Arguments.AnalyzerConfigPaths.Length > 0 && generators.Length > 0)
+            if (!sourceFileAnalyzerConfigOptions.IsDefault && generators.Length > 0)
             {
                 var generatedOptions = compilation.SyntaxTrees.Skip(sourceFileAnalyzerConfigOptions.Length).Select(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath));
                 sourceFileAnalyzerConfigOptions = sourceFileAnalyzerConfigOptions.AddRange(generatedOptions);
