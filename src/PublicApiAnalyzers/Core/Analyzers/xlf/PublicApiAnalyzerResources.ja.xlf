@@ -178,8 +178,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
-        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">すべてのパブリックの型とメンバーは、NULL 許容の注釈を付けて、PublicAPI.txt で宣言する必要があります。これにより、コード レビューとソース管理履歴で API の NULL 許容の変更に注意を引くことができ、破壊的変更を防ぐことができます。</target>
+        <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="translated">PublicAPI.txt ファイルでは、NULL 値の許容情報を追跡するために '#nullable enable' を指定する必要があります。指定されていない場合は、この診断を中止する必要があります。NULL 値の許容を有効にすると、PublicAPI.txt は、どの型が null 許容 (型にサフィックス '?' を含む) または null 非許容 (サフィックス '!') かを記録します。また、oblivious 参照型 (行にプレフィックス '~' を含む) を使用している API を追跡します。</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
@@ -188,8 +188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
-        <source>Annotate nullability of types and members in the declared API</source>
-        <target state="translated">宣言された API の型とメンバーの NULL 許容に注釈を付ける</target>
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">宣言された API 内で参照型の NULL 値の許容を追跡できるようにする</target>
         <note />
       </trans-unit>
     </body>

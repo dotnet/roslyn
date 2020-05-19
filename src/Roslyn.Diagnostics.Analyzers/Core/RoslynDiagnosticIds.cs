@@ -16,7 +16,7 @@ namespace Roslyn.Diagnostics.Analyzers
         // public const string DoNotUseVerbatimCrefsRuleId = "RS0010";                  // Now RS0010 => XmlDocumentationComments.Analyzers.AvoidUsingCrefTagsWithAPrefixAnalyzer
         // public const string CancellationTokenMustBeLastRuleId = "RS0011";            // Now CA1068 => Microsoft.ApiDesignGuidelines.Analyzers.CancellationTokenParametersMustComeLastAnalyzer
         // public const string DoNotCallToImmutableArrayRuleId = "RS0012";              // Now CA2009 => System.Collections.Immutable.Analyzers.DoNotCallToImmutableCollectionOnAnImmutableCollectionValueAnalyzer
-        public const string DoNotAccessDiagnosticDescriptorRuleId = "RS0013";
+        //public const string DoNotAccessDiagnosticDescriptorRuleId = "RS0013";         // Removed (see https://github.com/dotnet/roslyn-analyzers/issues/3560)
         // public const string DoNotCallLinqOnIndexable = "RS0014";                     // Now RS0014 => System.Runtime.Analyzers.DoNotUseEnumerableMethodsOnIndexableCollectionsInsteadUseTheCollectionDirectlyAnalyzer
         // public const string ConsumePreserveSigRuleId = "RS0015";                     // Now CA2010 => System.Runtime.InteropServices.Analyzers.AlwaysConsumeTheValueReturnedByMethodsMarkedWithPreserveSigAttributeAnalyzer
         public const string DeclarePublicApiRuleId = "RS0016";
@@ -45,8 +45,13 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string RelaxTestNamingSuppressionRuleId = "RS0039";
         public const string DefaultableTypeShouldHaveDefaultableFieldsRuleId = "RS0040";
         public const string ObliviousPublicApiRuleId = "RS0041";
+        public const string DoNotCopyValueRuleId = "RS0042";
         public const string DoNotCallGetTestAccessorRuleId = "RS0043";
         public const string CreateTestAccessorRuleId = "RS0044";
         public const string ExposeMemberForTestingRuleId = "RS0045";
+
+        public const string WrapStatementsRuleId = "RS0100";
+        public const string BlankLinesRuleId = "RS0101";
+        public const string BracePlacementRuleId = "RS0102";
     }
 }
