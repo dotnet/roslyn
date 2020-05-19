@@ -27,6 +27,11 @@
         <target state="translated">중복 할당 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_suppression">
+        <source>Remove redundant suppression</source>
+        <target state="new">Remove redundant suppression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_discard_underscore">
         <source>Use discard '_'</source>
         <target state="translated">무시 항목 '_' 사용</target>

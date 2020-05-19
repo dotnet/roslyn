@@ -27,6 +27,11 @@
         <target state="translated">Usuń nadmiarowe przypisanie</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_suppression">
+        <source>Remove redundant suppression</source>
+        <target state="new">Remove redundant suppression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_discard_underscore">
         <source>Use discard '_'</source>
         <target state="translated">Użyj odrzucenia „_”</target>
