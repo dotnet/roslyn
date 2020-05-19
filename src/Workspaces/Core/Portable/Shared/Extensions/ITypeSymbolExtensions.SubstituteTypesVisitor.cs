@@ -45,6 +45,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)
                 => VisitType(symbol);
 
+            public override ITypeSymbol VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                // TODO(https://github.com/dotnet/roslyn/issues/43890): also visit the underlying types of
+                // the parameters and return value
+                return VisitType(symbol);
+            }
+
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
             {
                 var mapped = VisitType(symbol);
