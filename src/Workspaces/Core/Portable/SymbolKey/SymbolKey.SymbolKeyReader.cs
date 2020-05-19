@@ -275,7 +275,6 @@ namespace Microsoft.CodeAnalysis
             public SymbolEquivalenceComparer Comparer { get; private set; }
 
             private readonly List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
-            private bool _resolveLocations;
 
             public SymbolKeyReader()
             {
@@ -289,7 +288,6 @@ namespace Microsoft.CodeAnalysis
                 _idToResult.Clear();
                 Compilation = null;
                 IgnoreAssemblyKey = false;
-                _resolveLocations = true;
                 Comparer = null;
                 _methodSymbolStack.Clear();
 
@@ -299,11 +297,11 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyReader GetReader(
                 string data, Compilation compilation,
-                bool ignoreAssemblyKey, bool resolveLocations,
+                bool ignoreAssemblyKey,
                 CancellationToken cancellationToken)
             {
                 var reader = s_readerPool.Allocate();
-                reader.Initialize(data, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
+                reader.Initialize(data, compilation, ignoreAssemblyKey, cancellationToken);
                 return reader;
             }
 
@@ -311,13 +309,11 @@ namespace Microsoft.CodeAnalysis
                 string data,
                 Compilation compilation,
                 bool ignoreAssemblyKey,
-                bool resolveLocations,
                 CancellationToken cancellationToken)
             {
                 base.Initialize(data, cancellationToken);
                 Compilation = compilation;
                 IgnoreAssemblyKey = ignoreAssemblyKey;
-                _resolveLocations = resolveLocations;
 
                 Comparer = ignoreAssemblyKey
                     ? SymbolEquivalenceComparer.IgnoreAssembliesInstance
@@ -508,15 +504,12 @@ namespace Microsoft.CodeAnalysis
                     var start = ReadInteger();
                     var length = ReadInteger();
 
-                    if (_resolveLocations)
+                    // The syntax tree can be null if we're resolving this location in a compilation
+                    // that does not contain this file.  In this case, just map this location to None.
+                    var syntaxTree = GetSyntaxTree(filePath);
+                    if (syntaxTree != null)
                     {
-                        // The syntax tree can be null if we're resolving this location in a compilation
-                        // that does not contain this file.  In this case, just map this location to None.
-                        var syntaxTree = GetSyntaxTree(filePath);
-                        if (syntaxTree != null)
-                        {
-                            return Location.Create(syntaxTree, new TextSpan(start, length));
-                        }
+                        return Location.Create(syntaxTree, new TextSpan(start, length));
                     }
                 }
                 else if (kind == LocationKind.MetadataFile)
@@ -524,20 +517,17 @@ namespace Microsoft.CodeAnalysis
                     var assemblyResolution = ReadSymbolKey();
                     var moduleName = ReadString();
 
-                    if (_resolveLocations)
+                    // We may be resolving in a compilation where we don't have a module
+                    // with this name.  In that case, just map this location to none.
+                    if (assemblyResolution.GetAnySymbol() is IAssemblySymbol assembly)
                     {
-                        // We may be resolving in a compilation where we don't have a module
-                        // with this name.  In that case, just map this location to none.
-                        if (assemblyResolution.GetAnySymbol() is IAssemblySymbol assembly)
+                        var module = GetModule(assembly.Modules, moduleName);
+                        if (module != null)
                         {
-                            var module = GetModule(assembly.Modules, moduleName);
-                            if (module != null)
+                            var location = FirstOrDefault(module.Locations);
+                            if (location != null)
                             {
-                                var location = FirstOrDefault(module.Locations);
-                                if (location != null)
-                                {
-                                    return location;
-                                }
+                                return location;
                             }
                         }
                     }

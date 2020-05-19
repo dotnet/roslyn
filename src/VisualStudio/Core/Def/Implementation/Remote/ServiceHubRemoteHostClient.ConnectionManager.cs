@@ -8,13 +8,14 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal sealed partial class ServiceHubRemoteHostClient
     {
-        private delegate Task<Connection> ConnectionFactory(string serviceName, CancellationToken cancellationToken);
+        private delegate Task<Connection> ConnectionFactory(RemoteServiceName serviceName, CancellationToken cancellationToken);
 
         private sealed partial class ConnectionPool : IDisposable
         {
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly int _maxPoolConnections;
 
             // keyed to serviceName. each connection is for specific service such as CodeAnalysisService
-            private readonly ConcurrentDictionary<string, ConcurrentQueue<Connection>> _pools;
+            private readonly ConcurrentDictionary<RemoteServiceName, ConcurrentQueue<Connection>> _pools;
 
             private bool _isDisposed;
 
@@ -34,12 +35,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // initial value 4 is chosen to stop concurrent dictionary creating too many locks.
                 // and big enough for all our services such as codeanalysis, remotehost, snapshot and etc services
-                _pools = new ConcurrentDictionary<string, ConcurrentQueue<Connection>>(concurrencyLevel: 4, capacity: 4);
+                _pools = new ConcurrentDictionary<RemoteServiceName, ConcurrentQueue<Connection>>(concurrencyLevel: 4, capacity: 4);
 
                 _shutdownLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
             }
 
-            public async Task<Connection> GetOrCreateConnectionAsync(string serviceName, CancellationToken cancellationToken)
+            public async Task<Connection> GetOrCreateConnectionAsync(RemoteServiceName serviceName, CancellationToken cancellationToken)
             {
                 var queue = _pools.GetOrAdd(serviceName, _ => new ConcurrentQueue<Connection>());
                 if (queue.TryDequeue(out var connection))
@@ -51,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return new PooledConnection(this, serviceName, newConnection);
             }
 
-            private void Free(string serviceName, Connection connection)
+            private void Free(RemoteServiceName serviceName, Connection connection)
             {
                 using (_shutdownLock.DisposableRead())
                 {

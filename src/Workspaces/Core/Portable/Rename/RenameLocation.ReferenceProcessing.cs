@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -32,14 +34,12 @@ namespace Microsoft.CodeAnalysis.Rename
             /// Given a symbol in a document, returns the "right" symbol that should be renamed in
             /// the case the name binds to things like aliases _and_ the underlying type at once.
             /// </summary>
-            public static async Task<ISymbol> GetRenamableSymbolAsync(
+            public static async Task<ISymbol?> TryGetRenamableSymbolAsync(
                 Document document, int position, CancellationToken cancellationToken)
             {
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (symbol == null)
-                {
                     return null;
-                }
 
                 var definitionSymbol = await FindDefinitionSymbolAsync(symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(definitionSymbol);
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
 
                 // in case this is e.g. an overridden property accessor, we'll treat the property itself as the definition symbol
-                var property = await GetPropertyFromAccessorOrAnOverrideAsync(bestSymbol, solution, cancellationToken).ConfigureAwait(false);
+                var property = await TryGetPropertyFromAccessorOrAnOverrideAsync(bestSymbol, solution, cancellationToken).ConfigureAwait(false);
 
                 return property ?? bestSymbol;
             }
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
 
-            internal static async Task<ISymbol> GetPropertyFromAccessorOrAnOverrideAsync(
+            internal static async Task<ISymbol?> TryGetPropertyFromAccessorOrAnOverrideAsync(
                 ISymbol symbol, Solution solution, CancellationToken cancellationToken)
             {
                 if (symbol.IsPropertyAccessor())
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
                     if (originalSourceSymbol != null)
                     {
-                        return await GetPropertyFromAccessorOrAnOverrideAsync(originalSourceSymbol, solution, cancellationToken).ConfigureAwait(false);
+                        return await TryGetPropertyFromAccessorOrAnOverrideAsync(originalSourceSymbol, solution, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
                     foreach (var methodImplementor in methodImplementors)
                     {
-                        var propertyAccessorOrAnOverride = await GetPropertyFromAccessorOrAnOverrideAsync(methodImplementor, solution, cancellationToken).ConfigureAwait(false);
+                        var propertyAccessorOrAnOverride = await TryGetPropertyFromAccessorOrAnOverrideAsync(methodImplementor, solution, cancellationToken).ConfigureAwait(false);
                         if (propertyAccessorOrAnOverride != null)
                         {
                             return propertyAccessorOrAnOverride;
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Rename
             private static async Task<bool> IsPropertyAccessorOrAnOverrideAsync(
                 ISymbol symbol, Solution solution, CancellationToken cancellationToken)
             {
-                var result = await GetPropertyFromAccessorOrAnOverrideAsync(
+                var result = await TryGetPropertyFromAccessorOrAnOverrideAsync(
                     symbol, solution, cancellationToken).ConfigureAwait(false);
                 return result != null;
             }
@@ -301,7 +301,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (originalSymbol.Kind == SymbolKind.Alias)
                 {
                     var location = originalSymbol.Locations.Single();
-                    results.Add(new RenameLocation(location, solution.GetDocument(location.SourceTree).Id));
+                    Contract.ThrowIfNull(location.SourceTree);
+                    results.Add(new RenameLocation(location, solution.GetRequiredDocument(location.SourceTree).Id));
                     return results.ToImmutableAndFree();
                 }
 
@@ -310,9 +311,10 @@ namespace Microsoft.CodeAnalysis.Rename
                 {
                     if (location.IsInSource)
                     {
+                        Contract.ThrowIfNull(location.SourceTree);
                         results.Add(new RenameLocation(
                             location,
-                            solution.GetDocument(location.SourceTree).Id,
+                            solution.GetRequiredDocument(location.SourceTree).Id,
                             isRenamableAccessor: isRenamableAccessor));
                     }
                 }
@@ -321,7 +323,10 @@ namespace Microsoft.CodeAnalysis.Rename
                 // destructors declarations that match the name
                 if (referencedSymbol.Kind == SymbolKind.NamedType && referencedSymbol.Locations.All(l => l.IsInSource))
                 {
-                    var syntaxFacts = solution.GetDocument(referencedSymbol.Locations[0].SourceTree).GetLanguageService<ISyntaxFactsService>();
+                    var firstLocation = referencedSymbol.Locations[0];
+                    Contract.ThrowIfNull(firstLocation.SourceTree);
+                    var syntaxFacts = solution.GetRequiredDocument(firstLocation.SourceTree)
+                                              .GetRequiredLanguageService<ISyntaxFactsService>();
 
                     var namedType = (INamedTypeSymbol)referencedSymbol;
                     foreach (var method in namedType.GetMembers().OfType<IMethodSymbol>())
@@ -338,7 +343,8 @@ namespace Microsoft.CodeAnalysis.Rename
                                     if (!syntaxFacts.IsReservedOrContextualKeyword(token) &&
                                         token.ValueText == referencedSymbol.Name)
                                     {
-                                        results.Add(new RenameLocation(location, solution.GetDocument(location.SourceTree).Id));
+                                        Contract.ThrowIfNull(location.SourceTree);
+                                        results.Add(new RenameLocation(location, solution.GetRequiredDocument(location.SourceTree).Id));
                                     }
                                 }
                             }
@@ -377,7 +383,8 @@ namespace Microsoft.CodeAnalysis.Rename
                         // We also need to add the location of the alias
                         // itself
                         var aliasLocation = location.Alias.Locations.Single();
-                        results.Add(new RenameLocation(aliasLocation, solution.GetDocument(aliasLocation.SourceTree).Id));
+                        Contract.ThrowIfNull(aliasLocation.SourceTree);
+                        results.Add(new RenameLocation(aliasLocation, solution.GetRequiredDocument(aliasLocation.SourceTree).Id));
                     }
                 }
                 else
@@ -395,7 +402,8 @@ namespace Microsoft.CodeAnalysis.Rename
 
                             // We also need to add the location of the alias itself
                             var aliasLocation = location.Alias.Locations.Single();
-                            results.Add(new RenameLocation(aliasLocation, solution.GetDocument(aliasLocation.SourceTree).Id));
+                            Contract.ThrowIfNull(aliasLocation.SourceTree);
+                            results.Add(new RenameLocation(aliasLocation, solution.GetRequiredDocument(aliasLocation.SourceTree).Id));
                         }
                     }
                     else if (location.ContainingStringLocation != Location.None)
@@ -468,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 Document document, string renameText, ISyntaxFactsService syntaxFactsService,
                 ArrayBuilder<RenameLocation> renameLocations, CancellationToken cancellationToken)
             {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var renameTextLength = renameText.Length;
 
                 var renameStringsAndPositions = root
@@ -486,7 +494,7 @@ namespace Microsoft.CodeAnalysis.Rename
             private static async Task AddLocationsToRenameInCommentsAsync(
                 Document document, string renameText, ArrayBuilder<RenameLocation> renameLocations, CancellationToken cancellationToken)
             {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var renameTextLength = renameText.Length;
 
                 var renameStringsAndPositions = root
@@ -517,8 +525,11 @@ namespace Microsoft.CodeAnalysis.Rename
 
                     var matches = regex.Matches(renameString);
 
-                    foreach (Match match in matches)
+                    foreach (Match? match in matches)
                     {
+                        if (match == null)
+                            continue;
+
                         var start = renameStringPosition + match.Index;
                         Debug.Assert(renameText.Length == match.Length);
                         var matchTextSpan = new TextSpan(start, renameText.Length);

@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
@@ -47,6 +48,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                 SyntaxFactory.CarriageReturnLineFeed})
 
             Return document.WithSyntaxRoot(newRoot)
+        End Function
+
+        Protected Overrides Function AddNullableRegionsAsync(document As Document, cancellationToken As CancellationToken) As Task(Of Document)
+            ' VB has no equivalent to #nullable enable
+            Return Task.FromResult(document)
         End Function
 
         Protected Overrides Async Function ConvertDocCommentsToRegularCommentsAsync(document As Document, docCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As Task(Of Document)
