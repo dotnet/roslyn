@@ -15,7 +15,7 @@ This document will provide the expanded specification to the Portable PDB format
 
 #### Compiler Version
 
-This will be a full compiler version, and if possible the commit SHA for the build of the compiler. This will be used since compilations accros compiler versions are not guaranteed to be the same.
+This will be a full compiler version, including commit SHA for the build of the compiler. This will be used since compilations across compiler versions are not guaranteed to be the same.
 
 #### Source Encoding
 
