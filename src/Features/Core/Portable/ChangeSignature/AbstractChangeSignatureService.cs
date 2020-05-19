@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             foreach (var docId in nodesToUpdate.Keys)
             {
                 var updatedDoc = currentSolution.GetRequiredDocument(docId).WithSyntaxRoot(updatedRoots[docId]);
-                var docWithImports = ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, safe: true, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+                var docWithImports = ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
                 var reducedDoc = Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
                 var formattedDoc = Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
 

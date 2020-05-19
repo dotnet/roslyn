@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Editing
             Document document,
             IEnumerable<TextSpan> spans,
             Strategy strategy,
-            bool safe,
             OptionSet? options,
             CancellationToken cancellationToken)
         {
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 return document.WithSyntaxRoot(root); //keep any added simplifier annotations
             }
 
-            if (safe)
+            if (strategy == Strategy.AddImportsFromSymbolAnnotations)
             {
                 // Mark the context with an annotation. 
                 // This will allow us to find it after we have called MakeSafeToAddNamespaces.
