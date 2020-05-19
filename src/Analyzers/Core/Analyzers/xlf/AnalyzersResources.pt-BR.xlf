@@ -97,6 +97,21 @@
         <target state="translated">Cadeia de formato inválida</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invalid_global_SuppressMessageAttribute">
+        <source>Invalid global 'SuppressMessageAttribute'</source>
+        <target state="new">Invalid global 'SuppressMessageAttribute'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_or_missing_target_for_SuppressMessageAttribute">
+        <source>Invalid or missing target for 'SuppressMessageAttribute'</source>
+        <target state="new">Invalid or missing target for 'SuppressMessageAttribute'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_scope_for_SuppressMessageAttribute">
+        <source>Invalid scope for 'SuppressMessageAttribute'</source>
+        <target state="new">Invalid scope for 'SuppressMessageAttribute'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_field_readonly">
         <source>Make field readonly</source>
         <target state="translated">Tornar campo somente leitura</target>

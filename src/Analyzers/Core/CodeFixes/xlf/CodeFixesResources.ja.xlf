@@ -27,6 +27,11 @@
         <target state="translated">冗長な代入を削除します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_suppression">
+        <source>Remove redundant suppression</source>
+        <target state="new">Remove redundant suppression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_discard_underscore">
         <source>Use discard '_'</source>
         <target state="translated">破棄 '_' を使用</target>
