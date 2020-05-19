@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -63,8 +64,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }
 
                     // We enable the remote host if either RemoteHostTest or RemoteHost are on.
-                    if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest) &&
-                        !_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
+                    var optionService = _workspace.Services.GetRequiredService<IOptionService>();
+                    if (!optionService.GetOption(RemoteHostOptions.RemoteHostTest) &&
+                        !optionService.GetOption(RemoteHostOptions.RemoteHost))
                     {
                         // not turned on
                         return;
@@ -72,6 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     // log that remote host is enabled
                     Logger.Log(FunctionId.RemoteHostClientService_Enabled, KeyValueLogMessage.NoProperty);
+                    Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = RemoteHostOptions.IsServiceHubProcess64Bit(_workspace.Services)));
 
                     var remoteHostClientFactory = _workspace.Services.GetService<IRemoteHostClientFactory>();
                     if (remoteHostClientFactory == null)
@@ -79,9 +82,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         // dev14 doesn't have remote host client factory
                         return;
                     }
-
-                    // set bitness
-                    SetRemoteHostBitness();
 
                     // make sure we run it on background thread
                     _shutdownCancellationTokenSource = new CancellationTokenSource();
@@ -148,8 +148,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             bool IRemoteHostClientService.IsEnabled()
             {
                 // We enable the remote host if either RemoteHostTest or RemoteHost are on.
-                if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest)
-                    && !_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
+                var optionService = _workspace.Services.GetRequiredService<IOptionService>();
+                if (!optionService.GetOption(RemoteHostOptions.RemoteHostTest)
+                    && !optionService.GetOption(RemoteHostOptions.RemoteHost))
                 {
                     // not turned on
                     return false;
@@ -184,22 +185,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return remoteClientTask;
             }
 
-            private void SetRemoteHostBitness()
-            {
-                bool x64 = RemoteHostOptions.IsServiceHubProcess64Bit(_workspace);
-
-                // log OOP bitness
-                Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = x64));
-
-                // set service bitness
-                WellKnownServiceHubServices.Set64bit(x64);
-            }
-
             private async Task<RemoteHostClient?> EnableAsync(CancellationToken cancellationToken)
             {
                 // if we reached here, IRemoteHostClientFactory must exist.
                 // this will make VS.Next dll to be loaded
-                var client = await _workspace.Services.GetRequiredService<IRemoteHostClientFactory>().CreateAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                var client = await _workspace.Services.GetRequiredService<IRemoteHostClientFactory>().CreateAsync(_workspace.Services, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
                     client.StatusChanged += OnStatusChanged;
@@ -235,42 +225,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                         // save NoOpRemoteHostClient to remoteClient so that all RemoteHost call becomes
                         // No Op. this basically have same effect as disabling all RemoteHost features
-                        _remoteClientTask = Task.FromResult<RemoteHostClient?>(new RemoteHostClient.NoOpClient(_workspace));
+                        _remoteClientTask = Task.FromResult<RemoteHostClient?>(new RemoteHostClient.NoOpClient(_workspace.Services));
                     }
 
                     // s_lastRemoteClientTask info should be saved in the dump
                     // report NFW when connection is closed unless it is proper shutdown
                     FatalError.ReportWithoutCrash(new InvalidOperationException("Connection to remote host closed"));
 
-                    RemoteHostCrashInfoBar.ShowInfoBar(_workspace);
+                    RemoteHostCrashInfoBar.ShowInfoBar(_workspace.Services);
                 }
-            }
-
-            public async Task RequestNewRemoteHostAsync(CancellationToken cancellationToken)
-            {
-                var existingClient = await TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-                if (existingClient == null)
-                {
-                    return;
-                }
-
-                Contract.ThrowIfNull(_shutdownCancellationTokenSource);
-
-                // log that remote host is restarted
-                Logger.Log(FunctionId.RemoteHostClientService_Restarted, KeyValueLogMessage.NoProperty);
-
-                // we are going to kill the existing remote host, connection change is expected
-                existingClient.StatusChanged -= OnStatusChanged;
-
-                lock (_gate)
-                {
-                    // create new remote host client
-                    var token = _shutdownCancellationTokenSource.Token;
-                    _remoteClientTask = Task.Run(() => EnableAsync(token), token);
-                }
-
-                // shutdown 
-                existingClient.Dispose();
             }
         }
     }

@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     if (client != null)
                     {
                         var result = await client.TryRunRemoteAsync<SerializableRenameLocations?>(
-                            WellKnownServiceHubServices.CodeAnalysisService,
+                            WellKnownServiceHubService.CodeAnalysis,
                             nameof(IRemoteRenamer.FindRenameLocationsAsync),
                             solution,
                             new object[]

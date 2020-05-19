@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
 
                         var success = await client.TryRunRemoteAsync(
-                            WellKnownServiceHubServices.CodeAnalysisService,
+                            WellKnownServiceHubService.CodeAnalysis,
                             nameof(IRemoteSymbolFinder.FindReferencesAsync),
                             solution,
                             new object[]

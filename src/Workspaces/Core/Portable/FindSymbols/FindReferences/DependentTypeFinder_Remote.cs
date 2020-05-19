@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     if (client != null)
                     {
                         var result = await client.TryRunRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
-                            WellKnownServiceHubServices.CodeAnalysisService,
+                            WellKnownServiceHubService.CodeAnalysis,
                             remoteFunctionName,
                             solution,
                             new object?[]

@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 var serverCallback = new FindUsagesServerCallback(solution, context);
 
                 var success = await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteFindUsagesService.FindReferencesAsync),
                     solution,
                     new object[]
