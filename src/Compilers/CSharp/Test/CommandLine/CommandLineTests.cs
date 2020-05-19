@@ -18,6 +18,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -9608,6 +9609,7 @@ public class Program
                                            int expectedWarningCount = 0,
                                            int expectedErrorCount = 0,
                                            bool errorlog = false,
+                                           IEnumerable<ISourceGenerator> generators = null,
                                            params DiagnosticAnalyzer[] analyzers)
         {
             var args = new[] {
@@ -9629,7 +9631,7 @@ public class Program
                 args = args.Append(additionalFlags);
             }
 
-            var csc = CreateCSharpCompiler(null, sourceDir.Path, args, analyzers: analyzers.ToImmutableArrayOrEmpty());
+            var csc = CreateCSharpCompiler(null, sourceDir.Path, args, analyzers: analyzers.ToImmutableArrayOrEmpty(), generators: generators.ToImmutableArrayOrEmpty());
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
             var output = outWriter.ToString();
@@ -12188,6 +12190,24 @@ generated_code = auto");
             }
         }
 
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44087")]
+        public void SourceGeneratorsAndAnalyzerConfig()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+key = value");
+
+            var generator = new SimpleGenerator("public class D {}");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: new HiddenDiagnosticAnalyzer());
+        }
+
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private sealed class FieldAnalyzer : DiagnosticAnalyzer
         {
@@ -12424,6 +12444,37 @@ option1 = def");
                 },
                 SyntaxKind.PragmaWarningDirectiveTrivia
                 );
+        }
+    }
+
+    [Generator]
+    internal class SimpleGenerator : ISourceGenerator
+    {
+        private readonly string _sourceToAdd;
+
+        /// <remarks>
+        /// Required for reflection based tests
+        /// </remarks>
+        public SimpleGenerator()
+        {
+            _sourceToAdd = string.Empty;
+        }
+
+        public SimpleGenerator(string sourceToAdd)
+        {
+            _sourceToAdd = sourceToAdd;
+        }
+
+        public void Execute(SourceGeneratorContext context)
+        {
+            if (!string.IsNullOrWhiteSpace(_sourceToAdd))
+            {
+                context.AddSource("addedSource.cs", SourceText.From(_sourceToAdd, Encoding.UTF8));
+            }
+        }
+
+        public void Initialize(InitializationContext context)
+        {
         }
     }
 }

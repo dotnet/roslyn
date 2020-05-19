@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -17,10 +18,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private class PooledConnection : Connection
             {
                 private readonly ConnectionPool _pool;
-                private readonly string _serviceName;
+                private readonly RemoteServiceName _serviceName;
                 private readonly Connection _connection;
 
-                public PooledConnection(ConnectionPool pool, string serviceName, Connection connection)
+                public PooledConnection(ConnectionPool pool, RemoteServiceName serviceName, Connection connection)
                 {
                     _pool = pool;
                     _serviceName = serviceName;

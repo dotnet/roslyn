@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     if (client != null)
                     {
                         var result = await client.TryRunRemoteAsync<SerializableConflictResolution?>(
-                            WellKnownServiceHubServices.CodeAnalysisService,
+                            WellKnownServiceHubService.CodeAnalysis,
                             nameof(IRemoteRenamer.RenameSymbolAsync),
                             solution,
                             new object?[]
