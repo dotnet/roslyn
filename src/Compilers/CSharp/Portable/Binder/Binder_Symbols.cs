@@ -1412,6 +1412,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// This is a layer on top of the Compilation version that generates a diagnostic if the special
+        /// member isn't found.
+        /// </summary>
+        internal Symbol GetWellKnownTypeMember(WellKnownMember member, DiagnosticBag diagnostics, SyntaxNode syntax)
+        {
+            return TryGetWellKnownTypeMember(this.Compilation, member, syntax, diagnostics, out Symbol memberSymbol)
+                ? memberSymbol
+                : null;
+        }
+
+        internal static bool TryGetWellKnownTypeMember<TSymbol>(CSharpCompilation compilation, WellKnownMember wellKnownMember, SyntaxNode syntax, DiagnosticBag diagnostics, out TSymbol symbol)
+            where TSymbol : Symbol
+        {
+            symbol = (TSymbol)compilation.GetWellKnownTypeMember(wellKnownMember);
+            if ((object)symbol == null)
+            {
+                MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(wellKnownMember);
+                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
+                return false;
+            }
+
+            var useSiteDiagnostic = symbol.GetUseSiteDiagnosticForSymbolOrContainingType();
+            if (useSiteDiagnostic != null)
+            {
+                Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, diagnostics, new SourceLocation(syntax));
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Reports use-site diagnostics for the specified symbol.
         /// </summary>
         /// <returns>

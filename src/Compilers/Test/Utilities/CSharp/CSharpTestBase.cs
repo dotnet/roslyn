@@ -1926,8 +1926,8 @@ namespace System.Runtime.CompilerServices
             return comp;
         }
 
-        protected static CSharpCompilation CreateCompilationWithSpan(string s, CSharpCompilationOptions options = null)
-            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s), options);
+        protected static CSharpCompilation CreateCompilationWithSpan(string s, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s, parseOptions), options);
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
@@ -2190,6 +2190,17 @@ namespace System
         protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpan(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range, TestSources.Span }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
+
+        protected static CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(new[] { TestSources.Span, TestSources.MemoryExtensions }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
             return CreateCompilation(
                 text,

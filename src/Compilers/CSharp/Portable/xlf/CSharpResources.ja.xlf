@@ -1024,6 +1024,11 @@
         <target state="translated">読み取り専用メンバー</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureReadOnlySpanCharConstantPattern">
+        <source>pattern matching ReadOnlySpan&lt;char&gt; on constant string</source>
+        <target state="new">pattern matching ReadOnlySpan&lt;char&gt; on constant string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRecursivePatterns">
         <source>recursive patterns</source>
         <target state="translated">再帰的パターン</target>

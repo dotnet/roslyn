@@ -19,4 +19,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.SetParameters(ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(paramType), 0, RefKind.None, "s")));
         }
     }
+
+    internal sealed partial class SynthesizedReadOnlySpanSwitchHashMethod : SynthesizedGlobalMethodSymbol
+    {
+        internal SynthesizedReadOnlySpanSwitchHashMethod(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, TypeSymbol paramType)
+            : base(containingModule, privateImplType, returnType, PrivateImplementationDetails.SynthesizedReadOnlySpanHashFunctionName)
+        {
+            this.SetParameters(ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(paramType), 0, RefKind.None, "s")));
+        }
+    }
 }

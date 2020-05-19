@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -116,6 +117,115 @@ start:
                                         F.Local(i),
                                         F.Call(F.Parameter(text), F.SpecialMethod(SpecialMember.System_String__Length))),
                                     F.Goto(again)))),
+                        F.Return(F.Local(hashCode))
+                    );
+
+                // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
+                F.CloseMethod(body);
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+            {
+                diagnostics.Add(ex.Diagnostic);
+                F.CloseMethod(F.ThrowNull());
+            }
+        }
+    }
+
+    internal sealed partial class SynthesizedReadOnlySpanSwitchHashMethod : SynthesizedGlobalMethodSymbol
+    {
+        /// <summary>
+        /// Compute the hashcode of a sub string using FNV-1a
+        /// See http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
+        /// </summary>
+        /// <remarks>
+        /// This method should be kept consistent with MethodBodySynthesizer.ConstructReadOnlySpanSwitchHashFunctionBody
+        /// The control flow in this method mimics lowered "for" loop. It is exactly what we want to emit
+        /// to ensure that JIT can do range check hoisting.
+        /// </remarks>
+        internal static uint ComputeReadOnlySpanHash(ReadOnlySpan<char> text)
+        {
+            uint hashCode = unchecked((uint)2166136261);
+
+            int i = 0;
+            goto start;
+
+again:
+            hashCode = unchecked((text[i] ^ hashCode) * 16777619);
+            i = i + 1;
+
+start:
+            if (i < text.Length)
+                goto again;
+
+            return hashCode;
+        }
+
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        {
+            SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            F.CurrentFunction = this;
+
+            try
+            {
+                NamedTypeSymbol readOnlySpanChar = F.WellKnownType(WellKnownType.System_ReadOnlySpan_T)
+                    .Construct(F.SpecialType(SpecialType.System_Char));
+
+                LocalSymbol i = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32));
+                LocalSymbol hashCode = F.SynthesizedLocal(F.SpecialType(SpecialType.System_UInt32));
+
+                LabelSymbol again = F.GenerateLabel("again");
+                LabelSymbol start = F.GenerateLabel("start");
+
+                ParameterSymbol text = this.Parameters[0];
+
+                //  This method should be kept consistent with ComputeReadOnlySpanHash
+
+                //  uint hashCode = unchecked((uint)2166136261);
+
+                //  int i = 0;
+                //  goto start;
+
+                //again:
+                //  hashCode = (text[i] ^ hashCode) * 16777619;
+                //  i = i + 1;
+
+                //start:
+                //  if (i < text.Length)
+                //      goto again;
+
+                //  return hashCode;
+
+                var body = F.Block(
+                        ImmutableArray.Create<LocalSymbol>(hashCode, i),
+                        F.Assignment(F.Local(hashCode), F.Literal((uint)2166136261)),
+                        F.Assignment(F.Local(i), F.Literal(0)),
+                        F.Goto(start),
+                        F.Label(again),
+                        F.Assignment(
+                            F.Local(hashCode),
+                            F.Binary(BinaryOperatorKind.Multiplication, hashCode.Type,
+                                F.Binary(BinaryOperatorKind.Xor, hashCode.Type,
+                                    F.Convert(hashCode.Type,
+                                        F.Call(
+                                            F.Parameter(text),
+                                            F.WellKnownMethod(WellKnownMember.System_ReadOnlySpan_T__get_Item).AsMember(readOnlySpanChar),
+                                            F.Local(i)),
+                                        Conversion.ImplicitNumeric),
+                                    F.Local(hashCode)),
+                                F.Literal(16777619))),
+                        F.Assignment(
+                            F.Local(i),
+                            F.Binary(BinaryOperatorKind.Addition, i.Type,
+                                F.Local(i),
+                                F.Literal(1))),
+                        F.Label(start),
+                        F.If(
+                            F.Binary(BinaryOperatorKind.LessThan, F.SpecialType(SpecialType.System_Boolean),
+                                F.Local(i),
+                                F.Call(
+                                    F.Parameter(text),
+                                    F.WellKnownMethod(WellKnownMember.System_ReadOnlySpan_T__get_Length).AsMember(readOnlySpanChar))),
+                            F.Goto(again)),
                         F.Return(F.Local(hashCode))
                     );
 

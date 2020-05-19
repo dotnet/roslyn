@@ -1340,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 RecordBranch(label);
             }
 
-            return node.Update(boundExpression, node.Cases, node.DefaultLabel, node.EqualityMethod);
+            return node.Update(boundExpression, node.Cases, node.DefaultLabel);
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)

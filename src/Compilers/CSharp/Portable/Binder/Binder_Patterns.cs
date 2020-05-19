@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -189,8 +190,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, ref hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
             if (wasExpression)
             {
+                var convertedType = convertedExpression.Type ?? inputType;
+                if (convertedType.SpecialType == SpecialType.System_String && inputType.IsReadOnlySpanChar())
+                {
+                    convertedType = inputType;
+                }
+
                 return new BoundConstantPattern(
-                    node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, convertedExpression.Type ?? inputType, hasErrors || constantValueOpt is null);
+                    node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, convertedType, hasErrors || constantValueOpt is null);
             }
             else
             {
@@ -355,6 +362,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var discardedDiagnostics = DiagnosticBag.GetInstance(); // We are not interested in the diagnostic that get created here
                         convertedExpression = CreateConversion(operand, inputType.GetNullableUnderlyingType(), discardedDiagnostics);
                         discardedDiagnostics.Free();
+                    }
+                    else if (expression.Type?.SpecialType == SpecialType.System_String
+                        && inputType.IsReadOnlySpanChar())
+                    {
+                        if (MessageID.IDS_FeatureReadOnlySpanCharConstantPattern.CheckFeatureAvailability(diagnostics, Compilation, node.Location))
+                        {
+                            // report missing member and use site diagnostics
+                            _ = GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__SequenceEqual_T, diagnostics, node);
+                            _ = GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__AsSpanString, diagnostics, node);
+                        }
+
+                        constantValue = expression.ConstantValue;
+                        return expression;
                     }
                     else if ((conversion.ConversionKind == ConversionKind.Boxing || conversion.ConversionKind == ConversionKind.ImplicitReference)
                         && operand.ConstantValue != null && convertedExpression.ConstantValue == null)

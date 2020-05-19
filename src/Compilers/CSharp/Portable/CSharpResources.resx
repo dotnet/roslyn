@@ -6106,4 +6106,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RelationalPatternWithNaN" xml:space="preserve">
     <value>Relational patterns may not be used for a floating-point NaN.</value>
   </data>
+  <data name="IDS_FeatureReadOnlySpanCharConstantPattern" xml:space="preserve">
+    <value>pattern matching ReadOnlySpan&lt;char&gt; on constant string</value>
+  </data>
 </root>

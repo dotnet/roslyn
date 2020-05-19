@@ -1024,6 +1024,11 @@
         <target state="translated">唯讀成員</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureReadOnlySpanCharConstantPattern">
+        <source>pattern matching ReadOnlySpan&lt;char&gt; on constant string</source>
+        <target state="new">pattern matching ReadOnlySpan&lt;char&gt; on constant string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRecursivePatterns">
         <source>recursive patterns</source>
         <target state="translated">遞迴模式</target>
