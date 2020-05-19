@@ -286,7 +286,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         internal async Task TestSpansAsync(
             string initialMarkup,
-            int index = 0,
             string diagnosticId = null,
             TestParameters parameters = default)
         {

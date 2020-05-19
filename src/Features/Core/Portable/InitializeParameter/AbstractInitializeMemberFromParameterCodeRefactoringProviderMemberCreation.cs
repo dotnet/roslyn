@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 return HandleExistingFieldOrProperty(
                     document, parameter, constructorDeclaration,
-                    method, blockStatementOpt, fieldOrProperty);
+                    blockStatementOpt, fieldOrProperty);
             }
 
             return await HandleNoExistingFieldOrPropertyAsync(
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return result.ToImmutable();
         }
 
-        private ImmutableArray<CodeAction> HandleExistingFieldOrProperty(Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt, ISymbol fieldOrProperty)
+        private ImmutableArray<CodeAction> HandleExistingFieldOrProperty(Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IBlockOperation? blockStatementOpt, ISymbol fieldOrProperty)
         {
             // Found a field/property that this parameter should be assigned to.
             // Just offer the simple assignment to it.
