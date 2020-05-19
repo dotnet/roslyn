@@ -302,8 +302,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var token = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-            // Local functions are always valid in a statement context
-            if (syntaxTree.IsStatementContext(position, leftToken, cancellationToken))
+            // Local functions are always valid in a statement context. They are also valid for top-level statements (as
+            // opposed to global functions which are defined in the global statement context of scripts).
+            if (syntaxTree.IsStatementContext(position, leftToken, cancellationToken)
+                || (!syntaxTree.IsScript() && syntaxTree.IsGlobalStatementContext(position, cancellationToken)))
             {
                 return true;
             }
@@ -327,7 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
                 token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
 
-                return syntaxTree.IsStatementContext(beforeModifiersPosition, token, cancellationToken);
+                return syntaxTree.IsStatementContext(beforeModifiersPosition, token, cancellationToken)
+                    || (!syntaxTree.IsScript() && syntaxTree.IsGlobalStatementContext(beforeModifiersPosition, cancellationToken));
             }
 
             return false;
