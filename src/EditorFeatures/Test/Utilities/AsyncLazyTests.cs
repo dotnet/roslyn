@@ -12,10 +12,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class AsyncLazyTests
+    public class AsyncLazyTests
     {
-        // This probably shouldn't need WpfFact, but the failure is being tracked by https://github.com/dotnet/roslyn/issues/7438
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void CancellationDuringInlinedComputationFromGetValueStillCachesResult()
         {
             CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: true);
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(1, computations);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void SynchronousRequestShouldCacheValueWithAsynchronousComputeFunction()
         {
             var lazy = new AsyncLazy<object>(c => Task.FromResult(new object()), cacheResult: true);
