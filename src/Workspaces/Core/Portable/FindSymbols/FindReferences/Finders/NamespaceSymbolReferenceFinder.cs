@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, cancellationToken, GetNamespaceIdentifierName(symbol));
+            return FindDocumentsAsync(project, documents, SupportsGlobalSuppression(symbol), cancellationToken, GetNamespaceIdentifierName(symbol));
         }
 
         private static string GetNamespaceIdentifierName(INamespaceSymbol symbol)
@@ -54,7 +54,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
 
             var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            return nonAliasReferences.Concat(aliasReferences);
+
+            var suppressionReferences = ShouldFindReferencesInGlobalSuppressions(symbol, out var getDocumentationCommentId)
+                ? await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel,
+                    syntaxFactsService, getDocumentationCommentId, cancellationToken).ConfigureAwait(false)
+                : ImmutableArray<FinderLocation>.Empty;
+
+            return nonAliasReferences.Concat(aliasReferences).Concat(suppressionReferences);
         }
     }
 }

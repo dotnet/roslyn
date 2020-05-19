@@ -28,6 +28,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ProbablyContainsStringValue(string value) => _literalInfo.ProbablyContainsStringValue(value);
         public bool ProbablyContainsInt64Value(long value) => _literalInfo.ProbablyContainsInt64Value(value);
 
+        public bool ContainsGlobalAttributeInfo => !_globalAttributeInfo.StringLiteralsToPositionsMap.IsEmpty;
+        public bool TryGetPositionsInGlobalAttributes(string stringLiteral, out ImmutableArray<int> positions)
+            => _globalAttributeInfo.StringLiteralsToPositionsMap.TryGetValue(stringLiteral, out positions);
+
         public bool ContainsForEachStatement => _contextInfo.ContainsForEachStatement;
         public bool ContainsDeconstruction => _contextInfo.ContainsDeconstruction;
         public bool ContainsAwait => _contextInfo.ContainsAwait;

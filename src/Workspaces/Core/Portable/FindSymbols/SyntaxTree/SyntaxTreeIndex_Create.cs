@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -73,6 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
             var complexExtensionMethodInfoBuilder = ArrayBuilder<int>.GetInstance();
             var simpleExtensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
+            var globalAttributeInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
             using var _ = PooledDictionary<string, string>.GetInstance(out var usingAliases);
 
             try
@@ -215,6 +217,8 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             if (syntaxFacts.IsStringLiteral(token))
                             {
                                 stringLiterals.Add(token.ValueText);
+
+                                ProcessStringLiteralForGlobalAttributeInfo(token, syntaxFacts, globalAttributeInfoBuilder);
                             }
 
                             if (syntaxFacts.IsCharacterLiteral(token))
@@ -271,7 +275,9 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(
                         simpleExtensionMethodInfoBuilder.ToImmutableDictionary(s_getKey, s_getValuesAsImmutableArray),
-                        complexExtensionMethodInfoBuilder.ToImmutable()));
+                        complexExtensionMethodInfoBuilder.ToImmutable()),
+                    new GlobalAttributeInfo(
+                        globalAttributeInfoBuilder.ToImmutableDictionary(s_getKey, s_getValuesAsImmutableArray)));
             }
             finally
             {
@@ -287,6 +293,13 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 simpleExtensionMethodInfoBuilder.Free();
                 complexExtensionMethodInfoBuilder.Free();
                 declaredSymbolInfos.Free();
+
+                foreach (var (_, builder) in globalAttributeInfoBuilder)
+                {
+                    builder.Free();
+                }
+
+                globalAttributeInfoBuilder.Free();
             }
         }
 
@@ -380,6 +393,143 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
 
             SharedPools.StringHashSet.ClearAndFree(identifiers);
             SharedPools.StringHashSet.ClearAndFree(escapedIdentifiers);
+        }
+
+        private static void ProcessStringLiteralForGlobalAttributeInfo(
+            SyntaxToken stringLiteral,
+            ISyntaxFacts syntaxFacts,
+            PooledDictionary<string, ArrayBuilder<int>> globalAttributeInfoBuilder)
+        {
+            var text = stringLiteral.ValueText;
+            if (string.IsNullOrEmpty(text) ||
+                !IsTargetOfGlobalAttribute(stringLiteral, syntaxFacts))
+            {
+                return;
+            }
+
+            // Target string must contain a valid symbol DocumentationCommentId,
+            // with an optional '~' prefix.
+            // First walk past this optional prefix.
+            var docCommentId = text[0] == '~' ? text.Substring(1) : text;
+
+            // The first part of the string identifies the kind of member being documented,
+            // via a single character followed by a colon.
+            if (docCommentId.Length < 3 ||
+                !char.IsLetter(docCommentId[0]) ||
+                docCommentId[1] != ':')
+            {
+                return;
+            }
+
+            var pooledStringBuilder = PooledStringBuilder.GetInstance();
+            try
+            {
+                var stringBuilder = pooledStringBuilder.Builder;
+
+                // Now we add entries for all the containing symbols of the target symbol,
+                // starting from the outermost to innermost by parsing the documentation comment ID
+                // from start to end.
+                var offset = 2;
+                while (TryProcessNextContainer(stringBuilder,
+                        docCommentId, offset, syntaxFacts, out var newOffset))
+                {
+                    // We do not know if the container is a namespace or a type, so we add entries for both.
+                    // Only one will be valid as fully qualified names cannot be same, and invalid entry will be ignored.
+                    var idWithoutPrefix = stringBuilder.ToString();
+                    AddEntry($"N:{idWithoutPrefix}", offset, stringLiteral, globalAttributeInfoBuilder);
+                    AddEntry($"T:{idWithoutPrefix}", offset, stringLiteral, globalAttributeInfoBuilder);
+
+                    offset = newOffset;
+                }
+
+                // Finally, add the entry for the target symbol of the attribute.
+                AddEntry(docCommentId, offset, stringLiteral, globalAttributeInfoBuilder);
+                stringBuilder.Clear();
+            }
+            finally
+            {
+                pooledStringBuilder.Free();
+            }
+
+            return;
+
+            // Local functions
+            static bool IsTargetOfGlobalAttribute(SyntaxToken stringLiteral, ISyntaxFacts syntaxFacts)
+            {
+                Debug.Assert(syntaxFacts.IsStringLiteral(stringLiteral));
+
+                var attributeArgument = stringLiteral.Parent?.Parent;
+                if (syntaxFacts.GetNameForAttributeArgument(attributeArgument) != "Target")
+                {
+                    return false;
+                }
+
+                var attributeNode = attributeArgument.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsAttribute);
+                return attributeNode != null && syntaxFacts.IsGlobalAttribute(attributeNode);
+            }
+
+            static bool TryProcessNextContainer(
+                StringBuilder stringBuilder,
+                string originalDocCommentId,
+                int offset,
+                ISyntaxFacts syntaxFacts,
+                out int newOffset)
+            {
+                if (stringBuilder.Length != 0)
+                {
+                    // Append a '.' for the next container.
+                    Debug.Assert(originalDocCommentId[offset - 1] == '.');
+                    stringBuilder.Append('.');
+                }
+
+                newOffset = offset;
+                while (newOffset < originalDocCommentId.Length)
+                {
+                    var ch = originalDocCommentId[newOffset++];
+                    switch (ch)
+                    {
+                        case '.':
+                            return true;
+
+                        case '`':
+                            continue;
+
+                        case '#':
+                        case '(':
+                        case '[':
+                            return false;
+
+                        default:
+                            if (!syntaxFacts.IsIdentifierPartCharacter(ch))
+                            {
+                                return false;
+                            }
+
+                            stringBuilder.Append(ch);
+                            continue;
+                    }
+                }
+
+                return false;
+            }
+
+            static void AddEntry(
+                string key,
+                int offset,
+                SyntaxToken stringLiteral,
+                PooledDictionary<string, ArrayBuilder<int>> globalAttributeInfoBuilder)
+            {
+                if (!globalAttributeInfoBuilder.TryGetValue(key, out var positions))
+                {
+                    positions = ArrayBuilder<int>.GetInstance();
+                    globalAttributeInfoBuilder.Add(key, positions);
+                }
+
+                var position = stringLiteral.SpanStart + offset;
+                if (stringLiteral.ValueText[0] == '~')
+                    position++;
+                positions.Add(position);
+            }
         }
     }
 }

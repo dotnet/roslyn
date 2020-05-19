@@ -782,8 +782,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var stringAndCommentTextSpansInSingleSourceTree = renameLocations
                             .Where(l => l.DocumentId == documentId && l.IsRenameInStringOrComment)
                             .GroupBy(l => l.ContainingLocationForStringOrComment)
-                            .Select(g => g.Key)
-                            .ToSet();
+                            .ToImmutableDictionary(
+                                g => g.Key,
+                                g => g.All(l => g.Key.Contains(l.Location.SourceSpan))
+                                     ? g.Select(l => new TextSpan(l.Location.SourceSpan.Start - g.Key.Start, l.Location.SourceSpan.Length)).ToImmutableSortedSet()
+                                     : null);
 
                         var conflictLocationSpans = _conflictLocations
                                                     .Where(t => t.DocumentId == documentId)

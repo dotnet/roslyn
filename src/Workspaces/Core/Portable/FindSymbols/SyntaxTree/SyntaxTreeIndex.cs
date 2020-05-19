@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly ContextInfo _contextInfo;
         private readonly DeclarationInfo _declarationInfo;
         private readonly ExtensionMethodInfo _extensionMethodInfo;
+        private readonly GlobalAttributeInfo _globalAttributeInfo;
 
         private SyntaxTreeIndex(
             Checksum checksum,
@@ -26,7 +27,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IdentifierInfo identifierInfo,
             ContextInfo contextInfo,
             DeclarationInfo declarationInfo,
-            ExtensionMethodInfo extensionMethodInfo)
+            ExtensionMethodInfo extensionMethodInfo,
+            GlobalAttributeInfo globalAttributeInfo)
         {
             this.Checksum = checksum;
             _literalInfo = literalInfo;
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _contextInfo = contextInfo;
             _declarationInfo = declarationInfo;
             _extensionMethodInfo = extensionMethodInfo;
+            _globalAttributeInfo = globalAttributeInfo;
         }
 
         private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex> s_documentToIndex = new ConditionalWeakTable<Document, SyntaxTreeIndex>();

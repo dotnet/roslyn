@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private readonly bool _replacementTextValid;
             private readonly bool _isRenamingInStrings;
             private readonly bool _isRenamingInComments;
-            private readonly ISet<TextSpan> _stringAndCommentTextSpans;
+            private readonly ImmutableDictionary<TextSpan, ImmutableSortedSet<TextSpan>> _stringAndCommentTextSpans;
             private readonly ISimplificationService _simplificationService;
             private readonly ISemanticFactsService _semanticFactsService;
             private readonly HashSet<SyntaxToken> _annotatedIdentifierTokens = new HashSet<SyntaxToken>();
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
-                var shouldCheckTrivia = _stringAndCommentTextSpans.Contains(token.Span);
+                var shouldCheckTrivia = _stringAndCommentTextSpans.ContainsKey(token.Span);
                 _isProcessingTrivia += shouldCheckTrivia ? 1 : 0;
                 var newToken = base.VisitToken(token);
                 _isProcessingTrivia -= shouldCheckTrivia ? 1 : 0;
@@ -594,10 +594,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return newToken;
             }
 
-            private SyntaxToken RenameInStringLiteral(SyntaxToken oldToken, SyntaxToken newToken, Func<SyntaxTriviaList, string, string, SyntaxTriviaList, SyntaxToken> createNewStringLiteral)
+            private SyntaxToken RenameInStringLiteral(SyntaxToken oldToken, SyntaxToken newToken, ImmutableSortedSet<TextSpan> subSpansToReplace, Func<SyntaxTriviaList, string, string, SyntaxTriviaList, SyntaxToken> createNewStringLiteral)
             {
                 var originalString = newToken.ToString();
-                var replacedString = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText);
+                var replacedString = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText, subSpansToReplace);
                 if (replacedString != originalString)
                 {
                     var oldSpan = oldToken.Span;
@@ -639,22 +639,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private SyntaxToken RenameWithinToken(SyntaxToken oldToken, SyntaxToken newToken)
             {
+                ImmutableSortedSet<TextSpan> subSpansToReplace = null;
                 if (_isProcessingComplexifiedSpans ||
                     (_isProcessingTrivia == 0 &&
-                    !_stringAndCommentTextSpans.Contains(oldToken.Span)))
+                    !_stringAndCommentTextSpans.TryGetValue(oldToken.Span, out subSpansToReplace)))
                 {
                     return newToken;
                 }
 
-                if (_isRenamingInStrings)
+                if (_isRenamingInStrings || subSpansToReplace?.Count > 0)
                 {
                     if (newToken.IsKind(SyntaxKind.StringLiteralToken))
                     {
-                        newToken = RenameInStringLiteral(oldToken, newToken, SyntaxFactory.Literal);
+                        newToken = RenameInStringLiteral(oldToken, newToken, subSpansToReplace, SyntaxFactory.Literal);
                     }
                     else if (newToken.IsKind(SyntaxKind.InterpolatedStringTextToken))
                     {
-                        newToken = RenameInStringLiteral(oldToken, newToken, (leadingTrivia, text, value, trailingTrivia) =>
+                        newToken = RenameInStringLiteral(oldToken, newToken, subSpansToReplace, (leadingTrivia, text, value, trailingTrivia) =>
                             SyntaxFactory.Token(newToken.LeadingTrivia, SyntaxKind.InterpolatedStringTextToken, text, value, newToken.TrailingTrivia));
                     }
                 }
@@ -663,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     if (newToken.IsKind(SyntaxKind.XmlTextLiteralToken))
                     {
-                        newToken = RenameInStringLiteral(oldToken, newToken, SyntaxFactory.XmlTextLiteral);
+                        newToken = RenameInStringLiteral(oldToken, newToken, subSpansToReplace, SyntaxFactory.XmlTextLiteral);
                     }
                     else if (newToken.IsKind(SyntaxKind.IdentifierToken) && newToken.Parent.IsKind(SyntaxKind.XmlName) && newToken.ValueText == _originalText)
                     {
