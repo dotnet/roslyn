@@ -1011,7 +1011,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             bool needDeclaration = false)
         {
             Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
-            Debug.Assert(!fieldSymbol.IsVirtualTupleField && !(fieldSymbol is TupleErrorFieldSymbol), "tuple fields should be rewritten to underlying by now");
+            Debug.Assert(!fieldSymbol.IsVirtualTupleField &&
+                (object)(fieldSymbol.TupleUnderlyingField ?? fieldSymbol) == fieldSymbol &&
+                !(fieldSymbol is TupleErrorFieldSymbol), "tuple fields should be rewritten to underlying by now");
 
             if (!fieldSymbol.IsDefinition)
             {

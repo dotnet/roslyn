@@ -545,7 +545,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (member is TupleErrorFieldSymbol)
                             {
                                 break;
-
                             }
 
                             if (fieldSymbol.IsConst)

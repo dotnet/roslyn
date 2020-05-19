@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return 0;
             }
 
-            return MatchesCanonicalElementName(name);
+            return matchesCanonicalElementName(name);
 
             static bool isElementNameForbidden(string name)
             {
@@ -463,27 +463,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return false;
                 }
             }
-        }
 
-        /// <summary>
-        /// Returns 3 for "Item3".
-        /// Returns -1 otherwise.
-        /// </summary>
-        internal static int MatchesCanonicalElementName(string name)
-        {
-            if (name.StartsWith("Item", StringComparison.Ordinal))
+            // Returns 3 for "Item3".
+            // Returns -1 otherwise.
+            static int matchesCanonicalElementName(string name)
             {
-                string tail = name.Substring(4);
-                if (int.TryParse(tail, out int number))
+                if (name.StartsWith("Item", StringComparison.Ordinal))
                 {
-                    if (number > 0 && string.Equals(name, TupleMemberName(number), StringComparison.Ordinal))
+                    string tail = name.Substring(4);
+                    if (int.TryParse(tail, out int number))
                     {
-                        return number;
+                        if (number > 0 && string.Equals(name, TupleMemberName(number), StringComparison.Ordinal))
+                        {
+                            return number;
+                        }
                     }
                 }
-            }
 
-            return -1;
+                return -1;
+            }
         }
 
         /// <summary>
@@ -604,6 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var field = (FieldSymbol)member;
                             if (field is TupleVirtualElementFieldSymbol)
                             {
+                                // In a long tuple situation where the nested tuple has names, we don't care about those names.
                                 // We will re-add all necessary virtual element field symbols below.
                                 continue;
                             }

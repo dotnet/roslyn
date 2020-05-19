@@ -12577,7 +12577,7 @@ class C
             AssertNonvirtualTupleElementField(m2Item1);
             AssertVirtualTupleElementField(m2a2);
 
-            Assert.NotSame(m1Item1, m1Item1.OriginalDefinition);
+            Assert.Same(m1Item1, m1Item1.OriginalDefinition);
             Assert.True(m1Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m1Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
             Assert.True(m1Item1.Equals(m1Item1));
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m1Item1.TupleUnderlyingField.ToTestDisplayString());
@@ -27411,20 +27411,33 @@ class C
                 );
 
             var comp3 = CreateCompilation("", references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
-            var retargetingValueTupleType = comp3.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+            var retargetingValueTupleType = (NamedTypeSymbol)comp3.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
             Assert.IsType<RetargetingNamedTypeSymbol>(retargetingValueTupleType);
-            Assert.Empty(((NamedTypeSymbol)retargetingValueTupleType).GetFieldsToEmit());
+            Assert.Empty(retargetingValueTupleType.GetFieldsToEmit());
+            verify(retargetingValueTupleType.GetMember<FieldSymbol>("Item1"), retargeting: true, index: 0);
+            verify(retargetingValueTupleType.GetMember<FieldSymbol>("Item2"), retargeting: true, index: 1);
 
             static void verifyModule(ModuleSymbol module)
             {
                 var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
-                Assert.Equal("(T1, T2)", type.ToTestDisplayString());
-                var fields = type.GetMembers().OfType<FieldSymbol>();
-                AssertEx.SetEqual(new[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2" }, fields.ToTestDisplayStrings());
-                Assert.All(fields, f => Assert.True(f.HasUseSiteError));
-
-                Assert.Equal(module is SourceModuleSymbol ? "SourceNamedTypeSymbol" : "PENamedTypeSymbolGeneric", type.GetType().Name);
                 Assert.Empty(type.GetFieldsToEmit());
+
+                var item1 = type.GetMember<FieldSymbol>("Item1");
+                verify(item1, retargeting: false, index: 0);
+
+                var item2 = type.GetMember<FieldSymbol>("Item2");
+                verify(item2, retargeting: false, index: 1);
+            }
+
+            static void verify(FieldSymbol field, bool retargeting, int index)
+            {
+                Assert.True(field.IsDefinition);
+                Assert.True(field.HasUseSiteError); // TODO2
+                Assert.True(field.IsTupleElement());
+                Assert.True(field.IsDefaultTupleElement);
+                Assert.Equal(index, field.TupleElementIndex);
+                //Assert.Null(field.TupleUnderlyingField); // TODO2
+                Assert.Same(field, field.CorrespondingTupleField);
             }
         }
 
@@ -27490,6 +27503,88 @@ class C
 
                 Assert.Equal(module is SourceModuleSymbol ? "SourceNamedTypeSymbol" : "PENamedTypeSymbolGeneric", type.GetType().Name);
                 Assert.Empty(type.GetFieldsToEmit());
+            }
+        }
+
+        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        public void EmptyValueTuple_WithTupleSyntaxInside()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public (T1, T2) M() => throw null;
+        public (T1 Item1, T2 Item2) M2() => throw null;
+        public (T1, T2 Item2) M3() => throw null;
+    }
+}";
+            var comp = CreateCompilation(source + tupleattributes_cs, targetFramework: TargetFramework.Mscorlib40);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var isSourceSymbol = module is SourceModuleSymbol;
+
+                var tuple1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M").ReturnType;
+                if (isSourceSymbol)
+                    Assert.Equal("SourceNamedTypeSymbol: (T1, T2)", print(tuple1));
+                else
+                    Assert.Equal("PENamedTypeSymbolGeneric: (T1, T2)", print(tuple1));
+
+                var tuple2 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M2").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (T1 Item1, T2 Item2)", print(tuple2));
+
+                var tuple3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M3").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (T1, T2 Item2)", print(tuple3));
+            }
+
+            static string print(NamedTypeSymbol s)
+            {
+                return s.GetType().Name + ": " + s.ToTestDisplayString();
+            }
+        }
+
+        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        public void ValueTuple_WithTupleSyntaxInside()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public (T1, T2) M() => throw null;
+        public (T1 Item1, T2 Item2) M2() => throw null;
+        public (T1, T2 Item2) M3() => throw null;
+    }
+}";
+            var comp = CreateCompilation(source + tupleattributes_cs, targetFramework: TargetFramework.Mscorlib40);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var isSourceSymbol = module is SourceModuleSymbol;
+
+                var tuple1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M").ReturnType;
+                if (isSourceSymbol)
+                    Assert.Equal("SourceNamedTypeSymbol: (T1, T2)", print(tuple1));
+                else
+                    Assert.Equal("PENamedTypeSymbolGeneric: (T1, T2)", print(tuple1));
+
+                var tuple2 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M2").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (T1 Item1, T2 Item2)", print(tuple2));
+
+                var tuple3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M3").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (T1, T2 Item2)", print(tuple3));
+            }
+
+            static string print(NamedTypeSymbol s)
+            {
+                return s.GetType().Name + ": " + s.ToTestDisplayString();
             }
         }
 
@@ -27946,6 +28041,7 @@ namespace System
                 var isSourceSymbol = module is SourceModuleSymbol;
 
                 var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+                assertValueTupleUnderlyingFields(type, isSourceSymbol);
                 if (isSourceSymbol)
                 {
                     Assert.Equal("SourceNamedTypeSymbol: (T1, T2)", print(type));
@@ -27969,6 +28065,9 @@ namespace System
                     "SubstitutedFieldSymbol: field",
                     "TupleElementFieldSymbol: Item1",
                     "TupleElementFieldSymbol: Item2" }, printFields(tuple1));
+                assertTupleUnderlyingFields(tuple1);
+                // The tuple syntax introduces new locations for Item1 and Item2, so we're dealing with a definition
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item1").IsDefinition);
 
                 var tuple2 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M2").ReturnType;
                 Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 Item1, System.Int32 Item2)", print(tuple2));
@@ -27976,6 +28075,9 @@ namespace System
                     "SubstitutedFieldSymbol: field",
                     "TupleElementFieldSymbol: Item1",
                     "TupleElementFieldSymbol: Item2" }, printFields(tuple2));
+                assertTupleUnderlyingFields(tuple2);
+                // The tuple syntax introduces new locations for Item1 and Item2, so we're dealing with a definition
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item1").IsDefinition);
 
                 var tuple3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M3").ReturnType;
                 Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 a, System.Int32 b)", print(tuple3));
@@ -27985,12 +28087,38 @@ namespace System
                     "TupleVirtualElementFieldSymbol: a",
                     "TupleElementFieldSymbol: Item2",
                     "TupleVirtualElementFieldSymbol: b", }, printFields(tuple3));
+                assertTupleUnderlyingFields(tuple3);
+                // The tuple syntax introduces new locations for Item1 and Item2, so we're dealing with a definition
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item1").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("a").IsDefinition);
 
                 Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32, System.Int32)", print(tuple3.TupleUnderlyingType));
                 AssertEx.SetEqual(new[] {
                     "SubstitutedFieldSymbol: field",
                     "TupleElementFieldSymbol: Item1",
                     "TupleElementFieldSymbol: Item2" }, printFields(tuple3.TupleUnderlyingType));
+            }
+
+            static void assertValueTupleUnderlyingFields(NamedTypeSymbol type, bool isSourceSymbol)
+            {
+                var fields = type.GetMembers().OfType<FieldSymbol>();
+                foreach (var field in fields)
+                {
+                    var underlying = field.TupleUnderlyingField;
+                    Assert.Equal(isSourceSymbol ? "SourceMemberFieldSymbolFromDeclarator" : "PEFieldSymbol", underlying.GetType().Name);
+                    Assert.Equal(isSourceSymbol ? "SourceNamedTypeSymbol" : "PENamedTypeSymbolGeneric", underlying.ContainingType.GetType().Name);
+                }
+            }
+
+            static void assertTupleUnderlyingFields(NamedTypeSymbol type)
+            {
+                var fields = type.GetMembers().OfType<FieldSymbol>();
+                foreach (var field in fields)
+                {
+                    var underlying = field.TupleUnderlyingField;
+                    Assert.Equal("SubstitutedFieldSymbol", underlying.GetType().Name);
+                    Assert.Equal("ConstructedNamedTypeSymbol", underlying.ContainingType.GetType().Name);
+                }
             }
 
             static IEnumerable<string> printFields(NamedTypeSymbol type)
@@ -28014,6 +28142,7 @@ public class C
     public (int, int, int, int, int, int, int, int) M() => throw null;
     public (int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M2() => throw null;
     public (int a, int b, int c, int d, int e, int f, int g, int h) M3() => throw null;
+    public System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>> M4() => throw null;
 }
 ";
             var comp = CreateCompilation(source + trivialRemainingTuples);
@@ -28033,6 +28162,7 @@ public class C
                     "TupleElementFieldSymbol: Item6",
                     "TupleElementFieldSymbol: Item7",
                     "TupleVirtualElementFieldSymbol: Item8" }, printFields(tuple1));
+                assertUnderlying(tuple1);
 
                 var tuple2 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M2").ReturnType;
                 Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)", print(tuple2));
@@ -28045,8 +28175,9 @@ public class C
                     "TupleElementFieldSymbol: Item5",
                     "TupleElementFieldSymbol: Item6",
                     "TupleElementFieldSymbol: Item7",
-                    "TupleVirtualElementFieldSymbol: Item8"
-                }, printFields(tuple2));
+                    "TupleVirtualElementFieldSymbol: Item8" }, printFields(tuple2));
+                assertUnderlying(tuple1);
+                Assert.True(tuple2.TupleUnderlyingType.Equals(tuple1, TypeCompareKind.ConsiderEverything));
 
                 var tuple3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M3").ReturnType;
                 Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e, System.Int32 f, System.Int32 g, System.Int32 h)", print(tuple3));
@@ -28068,6 +28199,8 @@ public class C
                     "TupleVirtualElementFieldSymbol: f",
                     "TupleVirtualElementFieldSymbol: g",
                     "TupleVirtualElementFieldSymbol: h", }, printFields(tuple3));
+                assertUnderlying(tuple1);
+                Assert.True(tuple2.TupleUnderlyingType.Equals(tuple1, TypeCompareKind.ConsiderEverything));
 
                 Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)", print(tuple3.TupleUnderlyingType));
                 AssertEx.SetEqual(new[] {
@@ -28080,6 +28213,33 @@ public class C
                     "TupleElementFieldSymbol: Item6",
                     "TupleElementFieldSymbol: Item7",
                     "TupleVirtualElementFieldSymbol: Item8" }, printFields(tuple3.TupleUnderlyingType));
+                assertUnderlying(tuple1);
+
+                var tuple4 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M4").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)", print(tuple4));
+                AssertEx.SetEqual(new[] {
+                    "SubstitutedFieldSymbol: Rest",
+                    "TupleElementFieldSymbol: Item1",
+                    "TupleElementFieldSymbol: Item2",
+                    "TupleElementFieldSymbol: Item3",
+                    "TupleElementFieldSymbol: Item4",
+                    "TupleElementFieldSymbol: Item5",
+                    "TupleElementFieldSymbol: Item6",
+                    "TupleElementFieldSymbol: Item7",
+                    "TupleVirtualElementFieldSymbol: Item8" }, printFields(tuple4));
+                assertUnderlying(tuple1);
+                Assert.True(tuple4.TupleUnderlyingType.Equals(tuple1, TypeCompareKind.ConsiderEverything));
+            }
+
+            static void assertUnderlying(NamedTypeSymbol type)
+            {
+                var fields = type.GetMembers().OfType<FieldSymbol>();
+                foreach (var field in fields)
+                {
+                    var underlying = field.TupleUnderlyingField;
+                    Assert.Equal("SubstitutedFieldSymbol", underlying.GetType().Name);
+                    Assert.Equal("ConstructedNamedTypeSymbol", underlying.ContainingType.GetType().Name);
+                }
             }
 
             static IEnumerable<string> printFields(NamedTypeSymbol type)
@@ -28088,7 +28248,7 @@ public class C
                 return fields.Select(s => s.GetType().Name + ": " + s.Name);
             }
 
-            static string print(Symbol s)
+            static string print(NamedTypeSymbol s)
             {
                 return s.GetType().Name + ": " + s.ToTestDisplayString();
             }

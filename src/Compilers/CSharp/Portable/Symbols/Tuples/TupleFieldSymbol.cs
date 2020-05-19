@@ -102,12 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                NamedTypeSymbol originalContainer = ContainingType.OriginalDefinition;
-                if (!originalContainer.IsTupleType || ContainingType.IsDefinition)
-                {
-                    return this;
-                }
-                return originalContainer.GetTupleMemberSymbolForUnderlyingMember(_underlyingField.OriginalDefinition)!;
+                return this;
             }
         }
 
@@ -132,15 +127,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
             return _underlyingField.GetUseSiteDiagnostic();
-        }
-
-        internal sealed override bool RequiresCompletion => _underlyingField.RequiresCompletion;
-
-        internal sealed override bool HasComplete(CompletionPart part) => _underlyingField.HasComplete(part);
-
-        internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
-        {
-            _underlyingField.ForceComplete(locationOpt, cancellationToken);
         }
 
         public override sealed int GetHashCode()
@@ -301,14 +287,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return null;
-            }
-        }
-
-        public override FieldSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
             }
         }
 
