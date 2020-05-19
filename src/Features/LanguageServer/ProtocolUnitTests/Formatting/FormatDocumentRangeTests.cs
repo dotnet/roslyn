@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var rangeToFormat = locations["format"].Single();
-            var documentText = await workspace.CurrentSolution.GetDocumentFromURI(rangeToFormat.Uri).GetTextAsync();
+            var documentText = await workspace.CurrentSolution.GetDocuments(rangeToFormat.Uri).Single().GetTextAsync();
 
             var results = await RunFormatDocumentRangeAsync(workspace.CurrentSolution, rangeToFormat);
             var actualText = ApplyTextEdits(results, documentText);

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
+            var document = solution.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return locations.ToArrayAndFree();

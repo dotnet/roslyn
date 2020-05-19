@@ -8,7 +8,7 @@
     <MajorVersion>3</MajorVersion>
     <MinorVersion>7</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>3</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
@@ -33,7 +33,7 @@
     <CodeStyleAnalyzerVersion>3.7.0-1.20210.7</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.4.248</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
-    <MicrosoftVisualStudioLanguageServerPackagesVersion>16.7.12-g74a1f6f85d</MicrosoftVisualStudioLanguageServerPackagesVersion>
+    <MicrosoftVisualStudioLanguageServerPackagesVersion>16.7.29</MicrosoftVisualStudioLanguageServerPackagesVersion>
   </PropertyGroup>
   <!--
     Dependency versions

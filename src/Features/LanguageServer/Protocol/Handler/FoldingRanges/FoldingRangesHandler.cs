@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
 
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
+            var document = solution.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return foldingRanges.ToArrayAndFree();
