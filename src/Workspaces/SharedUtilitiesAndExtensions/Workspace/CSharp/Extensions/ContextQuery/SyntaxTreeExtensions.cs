@@ -1880,11 +1880,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsGlobalStatementContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            if (!syntaxTree.IsScript())
-            {
-                return false;
-            }
-
 #if false
             if (syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken))
             {
