@@ -196,7 +196,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
-            // Always prefer non-expanded item regardless of the pattern matching result.
+            // Almost always prefer non-expanded item regardless of the pattern matching result,
+            // (except when all of the non-expanded items are worse than prefix matching and there's
+            // a complete match from expanded ones.)
             // This currently means unimported types will be treated as "2nd tier" results,
             // which forces users to be more explicit about selecting them.
             var expandedDiff = CompareExpandedItem(item1, match1, item2, match2);
@@ -268,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // then we prefer non-expanded item over expanded one.
             // 
             // For example, suppose we have two types `Namespace1.Cafe` and `Namespace2.Cafe`, and import completion is enabled.
-            // In the scenarios below, `Namespace1.Cafe` would be selected over `Namespace2.Cafe`
+            // In both of the scenarios below, `Namespace1.Cafe` would be selected over `Namespace2.Cafe`
 
             //  using Namespace1;
             //  class C
@@ -289,23 +291,31 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             // We prefer expanded item over non-expanded one iff the expanded item 
-            // is an exact match whereas the non-expanded one isn't.
+            // is an exact match whereas the non-expanded one is worse than prefix match.
             // 
-            // For example, suppose we have two types `Namespace1.Cafe1` and `Namespace2.Cafe`, and import completion is enabled.
-            // In the scenarios below, `Namespace2.Cafe` would be selected over `Namespace1.Cafe1`
-
+            // For example, suppose we have two items `Namespace1.Designer` and `Namespace2.DES`.
+            // In the scenarios below, `Namespace1.Designer` would be selected over `Namespace2.DES`.
+            //
             //  using Namespace1;
             //  class C
             //  {
-            //      cafe$$
+            //      des$$
+            //  }
+            //
+            // Or, if we have `Namespace1.MyTask` and `Namespace2.Task` in the example below, `Namespace2.Task` would be selected.
+            //
+            //  using Namespace1;
+            //  class C
+            //  {
+            //      task$$
             //  }
             if (isItem1Expanded && isItem1ExactMatch)
             {
-                return -1;
+                return match2.Kind != PatternMatchKind.Prefix ? -1 : 1;
             }
             else if (isItem2Expanded && isItem2ExactMatch)
             {
-                return 1;
+                return match1.Kind != PatternMatchKind.Prefix ? 1 : -1;
             }
 
             // Non-expanded item is the only exact match, so we definitely prefer it.
