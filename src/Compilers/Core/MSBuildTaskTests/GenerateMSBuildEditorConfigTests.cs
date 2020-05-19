@@ -18,12 +18,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
-    public class GenerateMSBuildAnalyzerConfigTests
+    public class GenerateMSBuildEditorConfigTests
     {
         [Fact]
         public void GlobalPropertyIsGeneratedIfEmpty()
         {
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig();
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig();
             configTask.Execute();
 
             var result = configTask.ConfigFileContents;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             TaskItem property1 = new TaskItem("Property1", new Dictionary<string, string> { { "Value", "abc123" } });
             TaskItem property2 = new TaskItem("Property2", new Dictionary<string, string> { { "Value", "def456" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 PropertyItems = new[] { property1, property2 }
             };
@@ -56,7 +56,7 @@ build_property.Property2 = def456
         {
             TaskItem item1 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1 }
             };
@@ -78,7 +78,7 @@ build_metadata.Compile.ToRetrieve = abc123
             TaskItem item2 = new TaskItem("c:\\file2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
             TaskItem item3 = new TaskItem("c:\\file3.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFiles" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "ghi789" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2, item3 }
             };
@@ -105,7 +105,7 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
             TaskItem item1 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
             TaskItem item2 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2 }
             };
@@ -126,7 +126,7 @@ build_metadata.AdditionalFile.ToRetrieve = def456
         {
             TaskItem item1 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1 }
             };
@@ -148,7 +148,7 @@ build_metadata.Compile.ToRetrieve =
             TaskItem item2 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" } });
             TaskItem item3 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "MetadataName", "ToRetrieve" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2, item3 }
             };
@@ -176,7 +176,7 @@ build_metadata..ToRetrieve =
             TaskItem property1 = new TaskItem("Property1", new Dictionary<string, string> { { "Value", "abc123" } });
             TaskItem property2 = new TaskItem("Property2", new Dictionary<string, string> { { "Value", "def456" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2, item3, item4 },
                 PropertyItems = new[] { property1, property2 }
@@ -208,7 +208,7 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
             TaskItem item2 = new TaskItem("subDir\\file2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
             TaskItem item3 = new TaskItem("someDir\\otherDir\\thirdDir\\..\\file3.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2, item3 }
             };
@@ -242,7 +242,7 @@ build_metadata.Compile.ToRetrieve = abc123
             TaskItem item1 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
             TaskItem item2 = new TaskItem("c:\\someDir\\..\\file1.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2 }
             };
@@ -280,7 +280,7 @@ values
             TaskItem property1 = new TaskItem("Property1", new Dictionary<string, string> { { "Value", longPropertyValue } });
             TaskItem property2 = new TaskItem("Property2", new Dictionary<string, string> { { "Value", "def456" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 PropertyItems = new[] { property1, property2 }
             };

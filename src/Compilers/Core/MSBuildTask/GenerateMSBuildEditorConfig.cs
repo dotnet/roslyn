@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// The Microsoft.Managed.Core.targets calls this task with the collected results of the <c>AnalyzerProperty</c> and 
     /// <c>AnalyzerItemMetadata</c> item groups. 
     /// </remarks>
-    public sealed class GenerateMSBuildAnalyzerConfig : Task
+    public sealed class GenerateMSBuildEditorConfig : Task
     {
         [Output]
         public string ConfigFileContents { get; set; }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Required]
         public ITaskItem[] PropertyItems { get; set; }
 
-        public GenerateMSBuildAnalyzerConfig()
+        public GenerateMSBuildEditorConfig()
         {
             ConfigFileContents = string.Empty;
             MetadataItems = Array.Empty<ITaskItem>();
