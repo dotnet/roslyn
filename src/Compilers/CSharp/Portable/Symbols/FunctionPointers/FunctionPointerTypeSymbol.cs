@@ -175,11 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// for types that only differ by the type of ref they have.
         /// </summary>
         internal static RefKind GetRefKindForHashCode(RefKind refKind)
-            => refKind switch
-            {
-                RefKind.Out => RefKind.Ref,
-                RefKind.In => RefKind.Ref,
-                _ => refKind
-            };
+            => refKind == RefKind.None ? RefKind.None : RefKind.Ref;
     }
 }
