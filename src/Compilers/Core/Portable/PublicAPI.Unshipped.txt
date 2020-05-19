@@ -1,6 +1,7 @@
 Microsoft.CodeAnalysis.Compilation.CreateNativeIntegerTypeSymbol(bool signed) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AssemblyLoader.get -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference other) -> bool
+Microsoft.CodeAnalysis.IAssemblySymbol.GetForwardedTypes() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol>
 Microsoft.CodeAnalysis.INamedTypeSymbol.NativeIntegerUnderlyingType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.ITypeSymbol.IsNativeIntegerType.get -> bool
 Microsoft.CodeAnalysis.OperationKind.BinaryPattern = 110 -> Microsoft.CodeAnalysis.OperationKind
