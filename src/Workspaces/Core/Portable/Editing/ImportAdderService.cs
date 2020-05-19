@@ -5,8 +5,6 @@
 #nullable enable
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
@@ -51,52 +48,15 @@ namespace Microsoft.CodeAnalysis.Editing
             var nodes = root.DescendantNodesAndSelf().Where(
                 n => spansTree.HasIntervalThatOverlapsWith(n.FullSpan.Start, n.FullSpan.Length));
 
-            var (importDirectivesToAdd, namespaceSymbols, context, newRoot) = strategy switch
-            {
-                Strategy.AddImportsFromSymbolAnnotations => GetImportDirectivesFromAnnotatedNodes(model, nodes, root, addImportsService, generator, cancellationToken),
-                Strategy.AddImportsFromSyntaxes => GetImportDirectivesFromSyntaxes(model, nodes, root, addImportsService, generator, cancellationToken),
-                _ => throw new InvalidEnumArgumentException(nameof(strategy), (int)strategy, typeof(Strategy)),
-            };
-
-            // If the previous call provided a new root, use it.
-            root = newRoot ?? root;
-
-            if (importDirectivesToAdd.Length == 0)
-            {
-                return document.WithSyntaxRoot(root); //keep any added simplifier annotations
-            }
-
-            if (strategy == Strategy.AddImportsFromSymbolAnnotations)
-            {
-                // Mark the context with an annotation. 
-                // This will allow us to find it after we have called MakeSafeToAddNamespaces.
-                var annotation = new SyntaxAnnotation();
-                RoslynDebug.Assert(context is object);
-                document = document.WithSyntaxRoot(root.ReplaceNode(context, context.WithAdditionalAnnotations(annotation)));
-                root = (await document.GetSyntaxRootAsync().ConfigureAwait(false))!;
-
-                model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfNull(model);
-
-                // Make Safe to add namespaces
-                document = document.WithSyntaxRoot(
-                   MakeSafeToAddNamespaces(root, namespaceSymbols, model, document.Project.Solution.Workspace, cancellationToken));
-                root = (await document.GetSyntaxRootAsync().ConfigureAwait(false))!;
-
-                model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfNull(model);
-
-                // Find the context. It might be null if we have removed the context in the process of complexifying the tree.
-                context = root.DescendantNodesAndSelf().FirstOrDefault(x => x.HasAnnotation(annotation)) ?? root;
-            }
-
-            model ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
             var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
 
-            root = addImportsService.AddImports(model.Compilation, root, context, importDirectivesToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
+            if (strategy == Strategy.AddImportsFromSymbolAnnotations)
+                return await AddImportDirectivesFromSymbolAnnotationsAsync(document, nodes, addImportsService, generator, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
-            return document.WithSyntaxRoot(root);
+            if (strategy == Strategy.AddImportsFromSyntaxes)
+                return await AddImportDirectivesFromSyntaxesAsync(document, nodes, addImportsService, generator, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+
+            throw ExceptionUtilities.UnexpectedValue(strategy);
         }
 
         protected abstract INamespaceSymbol? GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model);
@@ -137,26 +97,25 @@ namespace Microsoft.CodeAnalysis.Editing
                 .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
         }
 
-        /// <param name="root">ref as we add simplifier annotations to nodes with explicit namespaces</param>
-        /// <returns></returns>
-        private (ImmutableArray<SyntaxNode> imports, HashSet<INamespaceSymbol> namespaceSymbols, SyntaxNode? context, SyntaxNode newRoot) GetImportDirectivesFromSyntaxes(
-            SemanticModel model,
+        private async Task<Document> AddImportDirectivesFromSyntaxesAsync(
+            Document document,
             IEnumerable<SyntaxNode> syntaxNodes,
-            SyntaxNode root,
             IAddImportsService addImportsService,
             SyntaxGenerator generator,
+            bool placeSystemNamespaceFirst,
             CancellationToken cancellationToken)
         {
-            var importsToAdd = ArrayBuilder<SyntaxNode>.GetInstance();
+            using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var importsToAdd);
+            using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var nodesToSimplify);
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var nodesWithExplicitNamespaces = syntaxNodes
                 .Select(n => (syntaxnode: n, namespaceSymbol: GetExplicitNamespaceSymbol(n, model)))
                 .Where(x => x.namespaceSymbol != null);
 
-            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var nodesToSimplify);
-
             var addedSymbols = new HashSet<INamespaceSymbol>();
-
             foreach (var (node, namespaceSymbol) in nodesWithExplicitNamespaces)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -178,33 +137,42 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             if (nodesToSimplify.Count == 0)
-                return (importsToAdd.ToImmutableAndFree(), addedSymbols, null, root);
+                return document;
 
             var annotation = new SyntaxAnnotation();
 
             root = root.ReplaceNodes(
-                    nodesToSimplify,
-                    (o, r) => r.WithAdditionalAnnotations(Simplifier.Annotation, annotation));
+                nodesToSimplify,
+                (o, r) => r.WithAdditionalAnnotations(Simplifier.Annotation, annotation));
 
             var first = root.DescendantNodesAndSelf().First(x => x.HasAnnotation(annotation));
             var last = root.DescendantNodesAndSelf().Last(x => x.HasAnnotation(annotation));
 
-            return (importsToAdd.ToImmutableAndFree(), addedSymbols, first.GetCommonRoot(last), root);
+            var context = first.GetCommonRoot(last);
+
+            root = addImportsService.AddImports(model.Compilation, root, context, importsToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
+
+            return document.WithSyntaxRoot(root);
+
         }
 
-        private (ImmutableArray<SyntaxNode> imports, HashSet<INamespaceSymbol> namespaceSymbols, SyntaxNode? context, SyntaxNode newRoot) GetImportDirectivesFromAnnotatedNodes(
-            SemanticModel model,
+        private async Task<Document> AddImportDirectivesFromSymbolAnnotationsAsync(
+            Document document,
             IEnumerable<SyntaxNode> syntaxNodes,
-            SyntaxNode root,
             IAddImportsService addImportsService,
             SyntaxGenerator generator,
+            bool placeSystemNamespaceFirst,
             CancellationToken cancellationToken)
         {
-            (SyntaxNode first, SyntaxNode last)? nodes = null;
-            var importsToAdd = ArrayBuilder<SyntaxNode>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var importsToAdd);
 
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            SyntaxNode? first = null, last = null;
             var annotatedNodes = syntaxNodes.Where(x => x.HasAnnotations(SymbolAnnotation.Kind));
             var addedSymbols = new HashSet<INamespaceSymbol>();
+
             foreach (var annotatedNode in annotatedNodes)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -227,7 +195,9 @@ namespace Microsoft.CodeAnalysis.Editing
                         if (namespaceSymbol is null || namespaceSymbol.IsGlobalNamespace)
                             continue;
 
-                        nodes = (first: nodes?.first ?? annotatedNode, last: annotatedNode);
+                        first ??= annotatedNode;
+                        last = annotatedNode;
+
                         if (addedSymbols.Contains(namespaceSymbol))
                             continue;
 
@@ -244,11 +214,32 @@ namespace Microsoft.CodeAnalysis.Editing
                 }
             }
 
-            // we don't add simplifier annotations here, 
-            // since whatever added the symbol annotation probably also added simplifier annotations,
-            // and if not they probably didn't for a reason
+            if (importsToAdd.Count == 0)
+                return document;
 
-            return (importsToAdd.ToImmutableAndFree(), addedSymbols, nodes is var (first, last) ? first.GetCommonRoot(last) : null, root);
+            var context = first == null || last == null ? null : first.GetCommonRoot(last);
+
+            {
+                // Mark the context with an annotation. 
+                // This will allow us to find it after we have called MakeSafeToAddNamespaces.
+                var annotation = new SyntaxAnnotation();
+                RoslynDebug.Assert(context is object);
+                document = document.WithSyntaxRoot(root.ReplaceNode(context, context.WithAdditionalAnnotations(annotation)));
+                root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                // Make Safe to add namespaces
+                document = document.WithSyntaxRoot(
+                   MakeSafeToAddNamespaces(root, addedSymbols, model, document.Project.Solution.Workspace, cancellationToken));
+                root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                // Find the context. It might be null if we have removed the context in the process of complexifying the tree.
+                context = root.DescendantNodesAndSelf().FirstOrDefault(x => x.HasAnnotation(annotation)) ?? root;
+            }
+
+            root = addImportsService.AddImports(model.Compilation, root, context, importsToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
+            return document.WithSyntaxRoot(root);
         }
 
         /// <summary>
