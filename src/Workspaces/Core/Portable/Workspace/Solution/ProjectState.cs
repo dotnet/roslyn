@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis
                 latestDocumentTopLevelChangeVersion: dependentSemanticVersion);
         }
 
-        public ProjectState UpdateAnalyzerConfigDocument(AnalyzerConfigDocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
+        public ProjectState UpdateAnalyzerConfigDocument(AnalyzerConfigDocumentState newDocument)
         {
             Debug.Assert(this.ContainsAnalyzerConfigDocument(newDocument.Id));
 

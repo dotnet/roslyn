@@ -250,22 +250,22 @@ delegate int Del(int x);
                 if (actualType is { })
                 {
                     Assert.NotEmpty(expectedDiagnostics);
-                    Assert.Equal("?", model.GetTypeInfo(conditionalExpr).Type.ToTestDisplayString());
+                    Assert.Equal("?", actualType.ToTestDisplayString(includeNonNullable: false));
                 }
             }
             else
             {
-                Assert.Equal(naturalType, model.GetTypeInfo(conditionalExpr).Type.ToTestDisplayString());
+                Assert.Equal(naturalType, model.GetTypeInfo(conditionalExpr).Type.ToTestDisplayString(includeNonNullable: false));
             }
 
             var convertedType = targetType switch { "void*" => "System.Void*", _ => targetType };
-            Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr).ConvertedType.ToTestDisplayString());
+            Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr).ConvertedType.ToTestDisplayString(includeNonNullable: false));
 
             if (!expectedDiagnostics.Any())
             {
                 Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(conditionalExpr.Condition).Type!.SpecialType);
-                Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr.WhenTrue).ConvertedType.ToTestDisplayString()); //in parent to catch conversion
-                Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr.WhenFalse).ConvertedType.ToTestDisplayString()); //in parent to catch conversion
+                Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr.WhenTrue).ConvertedType.ToTestDisplayString(includeNonNullable: false)); //in parent to catch conversion
+                Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr.WhenFalse).ConvertedType.ToTestDisplayString(includeNonNullable: false)); //in parent to catch conversion
             }
         }
     }

@@ -66,7 +66,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
 
                 Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
-                Dim workspace = document.Project.Solution.Workspace
 
                 Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
                 If Not symbols.Any() Then
@@ -75,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
                 Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
-                Dim items = CreateCompletionItems(workspace, semanticModel, symbols, position)
+                Dim items = CreateCompletionItems(semanticModel, symbols, position)
                 context.AddItems(items)
 
                 If IsFirstCrefParameterContext(token) Then
@@ -186,14 +185,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Private Iterator Function CreateCompletionItems(
-                workspace As Workspace, semanticModel As SemanticModel,
+                semanticModel As SemanticModel,
                 symbols As IEnumerable(Of ISymbol), position As Integer) As IEnumerable(Of CompletionItem)
 
             Dim builder = SharedPools.Default(Of StringBuilder).Allocate()
             Try
                 For Each symbol In symbols
                     builder.Clear()
-                    Yield CreateCompletionItem(workspace, semanticModel, symbol, position, builder)
+                    Yield CreateCompletionItem(semanticModel, symbol, position, builder)
                 Next
             Finally
                 SharedPools.Default(Of StringBuilder).ClearAndFree(builder)
@@ -201,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Private Function CreateCompletionItem(
-                workspace As Workspace, semanticModel As SemanticModel,
+                semanticModel As SemanticModel,
                 symbol As ISymbol, position As Integer, builder As StringBuilder) As CompletionItem
 
             If symbol.IsUserDefinedOperator() Then
