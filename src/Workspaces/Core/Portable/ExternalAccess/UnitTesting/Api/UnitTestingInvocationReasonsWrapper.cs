@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public static readonly UnitTestingInvocationReasonsWrapper SemanticChanged = new UnitTestingInvocationReasonsWrapper(InvocationReasons.SemanticChanged);
         public static readonly UnitTestingInvocationReasonsWrapper Reanalyze = new UnitTestingInvocationReasonsWrapper(InvocationReasons.Reanalyze);
         public static readonly UnitTestingInvocationReasonsWrapper ProjectConfigurationChanged = new UnitTestingInvocationReasonsWrapper(InvocationReasons.ProjectConfigurationChanged);
-        public static readonly UnitTestingInvocationReasonsWrapper tSyntaxChanged = new UnitTestingInvocationReasonsWrapper(InvocationReasons.SyntaxChanged);
+        public static readonly UnitTestingInvocationReasonsWrapper SyntaxChanged = new UnitTestingInvocationReasonsWrapper(InvocationReasons.SyntaxChanged);
         public static readonly UnitTestingInvocationReasonsWrapper PredefinedDocumentAdded = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.DocumentAdded);
         public static readonly UnitTestingInvocationReasonsWrapper PredefinedReanalyze = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.Reanalyze);
         public static readonly UnitTestingInvocationReasonsWrapper PredefinedSemanticChanged = new UnitTestingInvocationReasonsWrapper(PredefinedInvocationReasons.SemanticChanged);

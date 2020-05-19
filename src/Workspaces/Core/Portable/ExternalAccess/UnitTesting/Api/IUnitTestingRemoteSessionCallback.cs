@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal interface IUnitTestingRemoteSessionCallBack
+    internal interface IUnitTestingRemoteSessionCallback
     {
     }
 }
