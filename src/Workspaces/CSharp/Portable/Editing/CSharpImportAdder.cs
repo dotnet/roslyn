@@ -98,7 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                 _conflictNamespaces = conflictNamespaces;
 
                 foreach (var member in namespaceMembers)
-                    _namespaceMembers.Add((member.Name, member.GetArity()), member.ContainingNamespace);
+                {
+                    if (member is INamedTypeSymbol namedType)
+                        _namespaceMembers.Add((namedType.Name, namedType.Arity), member.ContainingNamespace);
+                }
 
                 foreach (var method in extensionMethods)
                     _extensionMethods.Add(method.Name, method.ContainingNamespace);
