@@ -101,11 +101,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                         var docCommentId = DocumentationCommentId.CreateDeclarationId(resolvedSymbols[0]);
                         if (!string.IsNullOrEmpty(docCommentId))
                         {
+                            // Suppression target has an optional "~" prefix to distinguish it from legacy FxCop suppressions.
+                            // IDE suppression code fixes emit this prefix, so we we also add this prefix to new suppression target string.
                             properties = properties.Add(DocCommentIdKey, "~" + docCommentId);
                         }
                     }
 
+#pragma warning disable CS8620 // Mismatch in nullability of 'properties' parameter and argument types - Parameter type for 'properties' has been updated to 'ImmutableDictionary<string, string?>?' in newer version of Microsoft.CodeAnalysis (3.7.x).
                     reportDiagnostic(Diagnostic.Create(LegacyFormatTargetDescriptor, targetValueOperation.Syntax.GetLocation(), properties, targetSymbolString));
+#pragma warning restore CS8620
+
                     return;
                 }
             }
