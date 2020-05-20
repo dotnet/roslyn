@@ -47,8 +47,7 @@ namespace Roslyn.Test.Utilities.PDB
             // Order of information
             // File name (null terminated string): A.exe
             // Extern Alias (null terminated string): a1,a2,a3
-            // MetadataImageKind (byte)
-            // EmbedInteropTypes (boolean)
+            // EmbedInteropTypes/MetadataImageKind (byte)
             // COFF header Timestamp field (4 byte int)
             // COFF header SizeOfImage field (4 byte int)
             // MVID (Guid, 24 bytes)
@@ -69,8 +68,12 @@ namespace Roslyn.Test.Utilities.PDB
             // Skip the null terminator
             blobReader.ReadByte();
 
-            var kind = (MetadataImageKind)blobReader.ReadByte();
-            var embedInteropTypes = blobReader.ReadBoolean();
+            var embedInteropTypesAndKind = blobReader.ReadByte();
+            var embedInteropTypes = (embedInteropTypesAndKind & 0b10) == 0b10;
+            var kind = (embedInteropTypesAndKind & 0b1) == 0b1
+                ? MetadataImageKind.Assembly
+                : MetadataImageKind.Module;
+
             var timestamp = blobReader.ReadInt32();
             var imageSize = blobReader.ReadInt32();
             var mvid = blobReader.ReadGuid();

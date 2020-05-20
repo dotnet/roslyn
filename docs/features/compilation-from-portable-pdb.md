@@ -163,11 +163,23 @@ At this time, we'll only include external references for the compilation. Any ot
 Metadata references can be easily stored as binary. The binary encoding will be as follows (order matters):
 
 Name: A UTF-8 string (null terminated)
+
 Aliases: UTF-8 Comma (, ) separate list of aliases (null terminated). May be empty
+
 MetadataImageKind: byte value representing Microsoft. CodeAnalysis. MetadataImageKind
-EmbedInteropTypes: boolean
+
+EmbedInteropTypes/MetadataImageKind: byte, reads as binary values starting in order from right to left
+    
+    MetadataImageKind: 1 if Assembly, 0 if Module
+    EmbedInteropTypes: 1 if true
+    Examples:
+        0b11, MetadataImageKind.Assembly and EmbedInteropTypes = true
+        0b01, MetadataImageKind.Module and EmbedInteropTypes = true
+
 Timestamp: 4 byte integer
+
 File Size: 4 byte integer
+
 MVID: 16 byte integer (GUID)
 
 #### Compiler Flag Key Value Pairs

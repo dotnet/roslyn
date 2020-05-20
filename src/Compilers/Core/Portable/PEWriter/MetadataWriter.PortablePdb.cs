@@ -904,8 +904,18 @@ namespace Microsoft.Cci
                     // Always null terminate the extern alias list
                     builder.WriteByte(0);
 
-                    builder.WriteByte((byte)portableReference.Properties.Kind);
-                    builder.WriteBoolean(portableReference.Properties.EmbedInteropTypes);
+                    byte kindAndEmbedInteropTypes = (byte)(portableReference.Properties.EmbedInteropTypes
+                        ? 0b10
+                        : 0b0);
+
+                    kindAndEmbedInteropTypes += portableReference.Properties.Kind switch
+                    {
+                        MetadataImageKind.Assembly => 1,
+                        MetadataImageKind.Module => 0,
+                        _ => throw ExceptionUtilities.UnexpectedValue(portableReference.Properties.Kind)
+                    };
+
+                    builder.WriteByte(kindAndEmbedInteropTypes);
                     builder.WriteInt32(peReader.PEHeaders.CoffHeader.TimeDateStamp);
                     builder.WriteInt32(peReader.PEHeaders.PEHeader.SizeOfImage);
 
