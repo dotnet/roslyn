@@ -1503,6 +1503,101 @@ Class C
 End Class", safe:=True, useSymbolAnnotations:=True)
         End Function
 
+        <Fact, WorkItem(39592, "https://github.com/dotnet/roslyn/issues/39592")>
+        public async function TestSafeWithLambdaExtensionMethodAmbiguity() As Task
+            Await TestAsync(
+"Imports System
+Imports System.Runtime.CompilerServices
+
+Class C
+    ' Don't add a using for N even though it is used here.
+    Public x As N.Other
+
+    Public Sub Main()
+        M(Sub(x) x.M1())
+    End Sub
+
+    Public Shared Sub M(a As Action(Of C))
+    End Sub
+    Public Shared Sub M(a As Action(Of Integer))
+    End Sub
+
+    Public Sub M1()
+    End Sub
+End Class
+
+Namespace N
+    Public Class Other
+    End Class
+
+    Public Module Extensions
+        <Extension>
+        Public Sub M1(a As Integer)
+        End Sub
+    End Module
+End Namespace",
+"Imports System
+Imports System.Runtime.CompilerServices
+
+Class C
+    ' Don't add a using for N even though it is used here.
+    Public x As N.Other
+
+    Public Sub Main()
+        M(Sub(x) x.M1())
+    End Sub
+
+    Public Shared Sub M(a As Action(Of C))
+    End Sub
+    Public Shared Sub M(a As Action(Of Integer))
+    End Sub
+
+    Public Sub M1()
+    End Sub
+End Class
+
+Namespace N
+    Public Class Other
+    End Class
+
+    Public Module Extensions
+        <Extension>
+        Public Sub M1(a As Integer)
+        End Sub
+    End Module
+End Namespace",
+"Imports System
+Imports System.Runtime.CompilerServices
+
+Class C
+    ' Don't add a using for N even though it is used here.
+    Public x As N.Other
+
+    Public Sub Main()
+        M(Sub(x) x.M1())
+    End Sub
+
+    Public Shared Sub M(a As Action(Of C))
+    End Sub
+    Public Shared Sub M(a As Action(Of Integer))
+    End Sub
+
+    Public Sub M1()
+    End Sub
+End Class
+
+Namespace N
+    Public Class Other
+    End Class
+
+    Public Module Extensions
+        <Extension>
+        Public Sub M1(a As Integer)
+        End Sub
+    End Module
+End Namespace", safe:=True, useSymbolAnnotations:=True)
+        End function
+
 #End Region
 
     End Class

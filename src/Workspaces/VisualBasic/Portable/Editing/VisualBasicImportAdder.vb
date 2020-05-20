@@ -81,6 +81,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
 
             Private ReadOnly _conflictNamespaces As HashSet(Of INamespaceSymbol)
 
+            ''' <summary>
+            ''' Track if we're in an anonymous method or not.  If so, because of how the language binds lambdas and
+            ''' overloads, we'll assume any method access we see inside (instance or otherwise) could end up conflicting
+            ''' with an extension method we might pull in.
+            ''' </summary>
+            Private _inAnonymousMethod As Boolean
+
             Public Sub New(
                     model As SemanticModel,
                     namespaceSymbols As ImmutableArray(Of INamespaceSymbol),
@@ -108,6 +115,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                 Next
             End Sub
 
+            Public Overrides Sub VisitMultiLineLambdaExpression(node As MultiLineLambdaExpressionSyntax)
+
+                ' lambdas are interesting.  Say you have
+                '
+                '      Goo(sub (x) x.M())
+                '
+                '      sub Goo(act as Action(of C))
+                '      sub Goo(act as Action(of integer))
+                '
+                '      class C : public sub M()
+                '
+                ' This Is legal code where the lambda body Is calling the instance method.  However, if we introduce a
+                ' using that brings in an extension method 'M' on 'int', then the above will become ambiguous.  This is
+                ' because lambda binding will try each interpretation separately And eliminate the ones that fail.
+                ' Adding the import will make the int form succeed, causing ambiguity.
+                '
+                ' To deal with that, we keep track of if we're in a lambda, and we conservatively assume that a method
+                ' access (even to a non-extension method) could conflict with an extension method brought in.
+
+                Dim previousInAnonymousMethod = _inAnonymousMethod
+                _inAnonymousMethod = True
+                MyBase.VisitMultiLineLambdaExpression(node)
+                _inAnonymousMethod = previousInAnonymousMethod
+            End Sub
+
+            Public Overrides Sub VisitSingleLineLambdaExpression(node As SingleLineLambdaExpressionSyntax)
+                Dim previousInAnonymousMethod = _inAnonymousMethod
+                _inAnonymousMethod = True
+                MyBase.VisitSingleLineLambdaExpression(node)
+                _inAnonymousMethod = previousInAnonymousMethod
+            End Sub
 
             Private Sub CheckName(node As NameSyntax)
                 ' Check to see if we have an standalone identifier (Or identifier on the left of a dot). If so, if that
@@ -147,15 +185,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                 ' bring in an extension that conflicts with that.
 
                 Dim method = TryCast(_model.GetSymbolInfo(node.Name, _cancellationToken).GetAnySymbol(), IMethodSymbol)
-                If method Is Nothing Then
-                    Return
+                If method IsNot Nothing Then
+                    ' see explanation in VisitSimpleLambdaExpression for the _inAnonymousMethod check
+                    If method.IsReducedExtension() OrElse _inAnonymousMethod Then
+                        _conflictNamespaces.AddRange(_extensionMethods(method.Name))
+                    End If
                 End If
-
-                If Not method.IsReducedExtension() Then
-                    Return
-                End If
-
-                _conflictNamespaces.AddRange(_extensionMethods(method.Name))
             End Sub
         End Class
     End Class
