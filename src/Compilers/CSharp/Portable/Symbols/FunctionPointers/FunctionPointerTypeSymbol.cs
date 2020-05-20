@@ -157,5 +157,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this;
         }
 
+        /// <summary>
+        /// For scenarios such as overriding with differing ref kinds (such as out vs in or ref)
+        /// we need to compare function pointer parameters assuming that Ref matches RefReadonly/In
+        /// and Out. This is done because you cannot overload on ref vs out vs in in regular method
+        /// signatures, and we are disallowing similar overloads in source with function pointers.
+        /// </summary>
+        internal static bool RefKindEquals(TypeCompareKind compareKind, RefKind refKind1, RefKind refKind2)
+            => (compareKind & TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly) != 0
+               ? (refKind1 == RefKind.None) == (refKind2 == RefKind.None)
+               : refKind1 == refKind2;
+
+        /// <summary>
+        /// For scenarios such as overriding with differing ref kinds (such as out vs in or ref)
+        /// we need to compare function pointer parameters assuming that Ref matches RefReadonly/In
+        /// and Out. For that reason, we must also ensure that GetHashCode returns equal hashcodes
+        /// for types that only differ by the type of ref they have.
+        /// </summary>
+        internal static RefKind GetRefKindForHashCode(RefKind refKind)
+            => refKind == RefKind.None ? RefKind.None : RefKind.Ref;
     }
 }

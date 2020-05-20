@@ -1232,7 +1232,7 @@ class Caller
 }}";
 
             var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub, expectedOutput: "Hello World");
-            // PROTOTYPE(func-ptr): Add calling convention when the formatter supports it
+            // https://github.com/dotnet/roslyn/issues/39865: Add calling convention when the formatter supports it
             verifier.VerifyIL($"Caller.Call(delegate*<string, string, string>)", @"
 {
   // Code size       24 (0x18)
@@ -5569,6 +5569,1122 @@ unsafe class C
   IL_0012:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void Overloading_ReturnTypes()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void M(delegate*<void> ptr) => ptr();
+    static void M(delegate*<object> ptr) => Console.WriteLine(ptr());
+    static void M(delegate*<string> ptr) => Console.WriteLine(ptr());
+    static void Ptr_Void() => Console.WriteLine(""Void"");
+    static object Ptr_Obj() => ""Object"";
+    static string Ptr_Str() => ""String"";
+
+    static void Main()
+    {
+        M(&Ptr_Void);
+        M(&Ptr_Obj);
+        M(&Ptr_Str);
+    }
+}
+", expectedOutput: @"
+Void
+Object
+String");
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  IL_0000:  ldftn      ""void C.Ptr_Void()""
+  IL_0006:  call       ""void C.M(delegate*<void>)""
+  IL_000b:  ldftn      ""object C.Ptr_Obj()""
+  IL_0011:  call       ""void C.M(delegate*<object>)""
+  IL_0016:  ldftn      ""string C.Ptr_Str()""
+  IL_001c:  call       ""void C.M(delegate*<string>)""
+  IL_0021:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Overloading_ValidReturnRefness()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static object field = ""R"";
+    static void M(delegate*<object> ptr) => Console.WriteLine(ptr());
+    static void M(delegate*<ref object> ptr)
+    {
+        Console.Write(field);
+        ref var local = ref ptr();
+        local = ""ef"";
+        Console.WriteLine(field);
+    }
+    static object Ptr_NonRef() => ""NonRef"";
+    static ref object Ptr_Ref() => ref field;
+
+    static void Main()
+    {
+        M(&Ptr_NonRef);
+        M(&Ptr_Ref);
+    }
+}
+", expectedOutput: @"
+NonRef
+Ref");
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  ldftn      ""object C.Ptr_NonRef()""
+  IL_0006:  call       ""void C.M(delegate*<object>)""
+  IL_000b:  ldftn      ""ref object C.Ptr_Ref()""
+  IL_0011:  call       ""void C.M(delegate*<ref object>)""
+  IL_0016:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Overloading_InvalidReturnRefness()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C<T>
+{
+    static void M1(delegate*<ref readonly object> ptr) => throw null;
+    static void M1(delegate*<ref object> ptr) => throw null;
+
+    static void M2(C<delegate*<ref readonly object>[]> c) => throw null;
+    static void M2(C<delegate*<ref object>[]> c) => throw null;
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (5,17): error CS0111: Type 'C<T>' already defines a member called 'M1' with the same parameter types
+                //     static void M1(delegate*<ref object> ptr) => throw null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "C<T>").WithLocation(5, 17),
+                // (8,17): error CS0111: Type 'C<T>' already defines a member called 'M2' with the same parameter types
+                //     static void M2(C<delegate*<ref object>[]> c) => throw null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "C<T>").WithLocation(8, 17)
+            );
+        }
+
+        [Fact]
+        public void Overloading_ReturnNoBetterFunction()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+interface I1 {}
+interface I2 {}
+unsafe class C : I1, I2
+{
+    static void M1(delegate*<I1> ptr) => throw null;
+    static void M1(delegate*<I2> ptr) => throw null;
+
+    static void M2(delegate*<C> ptr)
+    {
+        M1(ptr);
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(delegate*<I1>)' and 'C.M1(delegate*<I2>)'
+                //         M1(ptr);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(delegate*<I1>)", "C.M1(delegate*<I2>)").WithLocation(11, 9)
+            );
+        }
+
+        [Fact]
+        public void Overloading_ParameterTypes()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void M(delegate*<object, void> ptr) => ptr(""Object"");
+    static void M(delegate*<string, void> ptr) => ptr(""String"");
+
+    static void Main()
+    {
+        delegate*<object, void> ptr1 = &Console.WriteLine;
+        delegate*<string, void> ptr2 = &Console.WriteLine;
+        M(ptr1);
+        M(ptr2);
+    }
+}
+", expectedOutput: @"
+Object
+String");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (delegate*<string, void> V_0) //ptr2
+  IL_0000:  ldftn      ""void System.Console.WriteLine(object)""
+  IL_0006:  ldftn      ""void System.Console.WriteLine(string)""
+  IL_000c:  stloc.0
+  IL_000d:  call       ""void C.M(delegate*<object, void>)""
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""void C.M(delegate*<string, void>)""
+  IL_0018:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Overloading_ValidParameterRefness()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static object field = ""R"";
+    static void M(delegate*<ref object, void> ptr)
+    {
+        Console.Write(field);
+        ref var local = ref field;
+        ptr(ref local);
+        Console.WriteLine(field);
+    }
+    static void M(delegate*<object, void> ptr) => ptr(""NonRef"");
+
+    static void Ptr(ref object param) => param = ""ef"";
+
+    static void Main()
+    {
+        M(&Console.WriteLine);
+        M(&Ptr);
+    }
+}
+", expectedOutput: @"
+NonRef
+Ref");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  ldftn      ""void System.Console.WriteLine(object)""
+  IL_0006:  call       ""void C.M(delegate*<object, void>)""
+  IL_000b:  ldftn      ""void C.Ptr(ref object)""
+  IL_0011:  call       ""void C.M(delegate*<ref object, void>)""
+  IL_0016:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData("ref", "out")]
+        [InlineData("ref", "in")]
+        [InlineData("out", "in")]
+        public void Overloading_InvalidParameterRefness(string refKind1, string refKind2)
+        {
+            var comp = CreateCompilationWithFunctionPointers($@"
+unsafe class C<T>
+{{
+    static void M1(delegate*<{refKind1} object, void> ptr) => throw null;
+    static void M1(delegate*<{refKind2} object, void> ptr) => throw null;
+
+    static void M2(C<delegate*<{refKind1} object, void>[]> c) => throw null;
+    static void M2(C<delegate*<{refKind2} object, void>[]> c) => throw null;
+}}
+");
+
+            comp.VerifyDiagnostics(
+                // (5,17): error CS0111: Type 'C<T>' already defines a member called 'M1' with the same parameter types
+                //     static void M1(delegate*<{refKind2} object, void> ptr) => throw null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "C<T>").WithLocation(5, 17),
+                // (8,17): error CS0111: Type 'C<T>' already defines a member called 'M2' with the same parameter types
+                //     static void M2(C<delegate*<{refKind2} object, void>[]> c) => throw null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "C<T>").WithLocation(8, 17)
+            );
+        }
+
+        [Fact]
+        public void Overloading_ParameterTypesNoBetterFunctionMember()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+interface I1 {}
+interface I2 {}
+unsafe class C : I1, I2
+{
+    static void M1(delegate*<delegate*<I1, void>, void> ptr) => throw null;
+    static void M1(delegate*<delegate*<I2, void>, void> ptr) => throw null;
+
+    static void M2(delegate*<delegate*<C, void>, void> ptr)
+    {
+        M1(ptr);
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1(delegate*<delegate*<I1, void>, void>)' and 'C.M1(delegate*<delegate*<I2, void>, void>)'
+                //         M1(ptr);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1(delegate*<delegate*<I1, void>, void>)", "C.M1(delegate*<delegate*<I2, void>, void>)").WithLocation(11, 9)
+            );
+        }
+
+        [Fact]
+        public void Override_CallingConventionMustMatch()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class Base
+{
+    protected virtual void M1(delegate*<void> ptr) {}
+    protected virtual delegate*<void> M2() => throw null;
+}
+unsafe class Derived : Base
+{
+    protected override void M1(delegate* cdecl<void> ptr) {}
+    protected override delegate* cdecl<void> M2() => throw null;
+}");
+
+            comp.VerifyDiagnostics(
+                // (9,29): error CS0115: 'Derived.M1(delegate*<void>)': no suitable method found to override
+                //     protected override void M1(delegate* cdecl<void> ptr) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("Derived.M1(delegate*<void>)").WithLocation(9, 29),
+                // (10,46): error CS0508: 'Derived.M2()': return type must be 'delegate*<void>' to match overridden member 'Base.M2()'
+                //     protected override delegate* cdecl<void> M2() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", "delegate*<void>").WithLocation(10, 46)
+            );
+        }
+
+        [Theory]
+        [InlineData("", "ref ")]
+        [InlineData("", "out ")]
+        [InlineData("", "in ")]
+        [InlineData("ref ", "")]
+        [InlineData("ref ", "out ")]
+        [InlineData("ref ", "in ")]
+        [InlineData("out ", "")]
+        [InlineData("out ", "ref ")]
+        [InlineData("out ", "in ")]
+        [InlineData("in ", "")]
+        [InlineData("in ", "ref ")]
+        [InlineData("in ", "out ")]
+        public void Override_RefnessMustMatch_Parameters(string refKind1, string refKind2)
+        {
+            var comp = CreateCompilationWithFunctionPointers(@$"
+unsafe class Base
+{{
+    protected virtual void M1(delegate*<{refKind1}string, void> ptr) {{}}
+    protected virtual delegate*<{refKind1}string, void> M2() => throw null;
+}}
+unsafe class Derived : Base
+{{
+    protected override void M1(delegate*<{refKind2}string, void> ptr) {{}}
+    protected override delegate*<{refKind2}string, void> M2() => throw null;
+}}");
+
+            comp.VerifyDiagnostics(
+                // (9,29): error CS0115: 'Derived.M1(delegate*<{refKind2} string, void>)': no suitable method found to override
+                //     protected override void M1(delegate*<{refKind2} string, void> ptr) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments($"Derived.M1(delegate*<{refKind2}string, void>)").WithLocation(9, 29),
+                // (10,49): error CS0508: 'Derived.M2()': return type must be 'delegate*<{refKind1} string, void>' to match overridden member 'Base.M2()'
+                //     protected override delegate*<{refKind2} string, void> M2() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", $"delegate*<{refKind1}string, void>").WithLocation(10, 48 + refKind2.Length)
+            );
+        }
+
+        [Theory]
+        [InlineData(" ", "ref ")]
+        [InlineData(" ", "ref readonly ")]
+        [InlineData("ref ", " ")]
+        [InlineData("ref ", "ref readonly ")]
+        [InlineData("ref readonly ", " ")]
+        [InlineData("ref readonly ", "ref ")]
+        public void Override_RefnessMustMatch_Returns(string refKind1, string refKind2)
+        {
+            var comp = CreateCompilationWithFunctionPointers(@$"
+unsafe class Base
+{{
+    protected virtual void M1(delegate*<{refKind1}string> ptr) {{}}
+    protected virtual delegate*<{refKind1}string> M2() => throw null;
+}}
+unsafe class Derived : Base
+{{
+    protected override void M1(delegate*<{refKind2}string> ptr) {{}}
+    protected override delegate*<{refKind2}string> M2() => throw null;
+}}");
+
+            comp.VerifyDiagnostics(
+                // (9,29): error CS0115: 'Derived.M1(delegate*<{refKind2} string>)': no suitable method found to override
+                //     protected override void M1(delegate*<{refKind2} string> ptr) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments($"Derived.M1(delegate*<string>)").WithLocation(9, 29),
+                // (10,49): error CS0508: 'Derived.M2()': return type must be 'delegate*<{refKind1} string>' to match overridden member 'Base.M2()'
+                //     protected override delegate*<{refKind2} string> M2() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", $"delegate*<string>").WithLocation(10, 42 + refKind2.Length)
+            );
+        }
+
+        [Fact]
+        public void Override_ParameterTypesMustMatch()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class Base
+{
+    protected virtual void M1(delegate*<object, void> ptr) {{}}
+    protected virtual delegate*<object, void> M2() => throw null;
+}
+unsafe class Derived : Base
+{
+    protected override void M1(delegate*<string, void> ptr) {{}}
+    protected override delegate*<string, void> M2() => throw null;
+}");
+
+            comp.VerifyDiagnostics(
+                // (9,29): error CS0115: 'Derived.M1(delegate*<string, void>)': no suitable method found to override
+                //     protected override void M1(delegate*<string, void> ptr) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("Derived.M1(delegate*<string, void>)").WithLocation(9, 29),
+                // (10,48): error CS0508: 'Derived.M2()': return type must be 'delegate*<object, void>' to match overridden member 'Base.M2()'
+                //     protected override delegate*<string, void> M2() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", "delegate*<object, void>").WithLocation(10, 48)
+            );
+        }
+
+        [Fact]
+        public void Override_ReturnTypesMustMatch()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class Base
+{
+    protected virtual void M1(delegate*<object> ptr) {{}}
+    protected virtual delegate*<object> M2() => throw null;
+}
+unsafe class Derived : Base
+{
+    protected override void M1(delegate*<string> ptr) {{}}
+    protected override delegate*<string> M2() => throw null;
+}");
+
+            comp.VerifyDiagnostics(
+                // (9,29): error CS0115: 'Derived.M1(delegate*<string>)': no suitable method found to override
+                //     protected override void M1(delegate*<string> ptr) {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("Derived.M1(delegate*<string>)").WithLocation(9, 29),
+                // (10,42): error CS0508: 'Derived.M2()': return type must be 'delegate*<object>' to match overridden member 'Base.M2()'
+                //     protected override delegate*<string> M2() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", "delegate*<object>").WithLocation(10, 42)
+            );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44358")]
+        public void Override_NintIntPtrDifferences()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class Base
+{
+    protected virtual void M1(delegate*<nint> ptr) {}
+    protected virtual delegate*<nint> M2() => throw null;
+    protected virtual void M3(delegate*<nint, void> ptr) {}
+    protected virtual delegate*<nint, void> M4() => throw null;
+    protected virtual void M5(delegate*<System.IntPtr> ptr) {}
+    protected virtual delegate*<System.IntPtr> M6() => throw null;
+    protected virtual void M7(delegate*<System.IntPtr, void> ptr) {}
+    protected virtual delegate*<System.IntPtr, void> M8() => throw null;
+}
+unsafe class Derived : Base
+{
+    protected override void M1(delegate*<System.IntPtr> ptr) {}
+    protected override delegate*<System.IntPtr> M2() => throw null;
+    protected override void M3(delegate*<System.IntPtr, void> ptr) {}
+    protected override delegate*<System.IntPtr, void> M4() => throw null;
+    protected override void M5(delegate*<nint> ptr) {}
+    protected override delegate*<nint> M6() => throw null;
+    protected override void M7(delegate*<nint, void> ptr) {}
+    protected override delegate*<nint, void> M8() => throw null;
+}");
+
+            comp.VerifyDiagnostics(
+            );
+
+            assertMethods(comp.SourceModule);
+            CompileAndVerify(comp, symbolValidator: assertMethods);
+
+            static void assertMethods(ModuleSymbol module)
+            {
+                var derived = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+                assertMethod(derived, "M1", "void Derived.M1(delegate*<System.IntPtr> ptr)");
+                assertMethod(derived, "M2", "delegate*<System.IntPtr> Derived.M2()");
+                assertMethod(derived, "M3", "void Derived.M3(delegate*<System.IntPtr, System.Void> ptr)");
+                assertMethod(derived, "M4", "delegate*<System.IntPtr, System.Void> Derived.M4()");
+                assertMethod(derived, "M5", "void Derived.M5(delegate*<nint> ptr)");
+                assertMethod(derived, "M6", "delegate*<nint> Derived.M6()");
+                assertMethod(derived, "M7", "void Derived.M7(delegate*<nint, System.Void> ptr)");
+                assertMethod(derived, "M8", "delegate*<nint, System.Void> Derived.M8()");
+            }
+
+            static void assertMethod(NamedTypeSymbol derived, string methodName, string expectedSignature)
+            {
+                var m = derived.GetMember<MethodSymbol>(methodName);
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, m.ToTestDisplayString(includeNonNullable: true));
+            }
+        }
+
+        [Fact]
+        public void Override_ObjectDynamicDifferences()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class Base
+{
+    protected virtual void M1(delegate*<dynamic> ptr) {}
+    protected virtual delegate*<dynamic> M2() => throw null;
+    protected virtual void M3(delegate*<dynamic, void> ptr) {}
+    protected virtual delegate*<dynamic, void> M4() => throw null;
+    protected virtual void M5(delegate*<object> ptr) {}
+    protected virtual delegate*<object> M6() => throw null;
+    protected virtual void M7(delegate*<object, void> ptr) {}
+    protected virtual delegate*<object, void> M8() => throw null;
+}
+unsafe class Derived : Base
+{
+    protected override void M1(delegate*<object> ptr) {}
+    protected override delegate*<object> M2() => throw null;
+    protected override void M3(delegate*<object, void> ptr) {}
+    protected override delegate*<object, void> M4() => throw null;
+    protected override void M5(delegate*<dynamic> ptr) {}
+    protected override delegate*<dynamic> M6() => throw null;
+    protected override void M7(delegate*<dynamic, void> ptr) {}
+    protected override delegate*<dynamic, void> M8() => throw null;
+}");
+
+            comp.VerifyDiagnostics(
+            );
+
+            assertMethods(comp.SourceModule);
+            CompileAndVerify(comp, symbolValidator: assertMethods);
+
+            static void assertMethods(ModuleSymbol module)
+            {
+                var derived = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+                assertMethod(derived, "M1", "void Derived.M1(delegate*<System.Object> ptr)");
+                assertMethod(derived, "M2", "delegate*<System.Object> Derived.M2()");
+                assertMethod(derived, "M3", "void Derived.M3(delegate*<System.Object, System.Void> ptr)");
+                assertMethod(derived, "M4", "delegate*<System.Object, System.Void> Derived.M4()");
+                assertMethod(derived, "M5", "void Derived.M5(delegate*<dynamic> ptr)");
+                assertMethod(derived, "M6", "delegate*<dynamic> Derived.M6()");
+                assertMethod(derived, "M7", "void Derived.M7(delegate*<dynamic, System.Void> ptr)");
+                assertMethod(derived, "M8", "delegate*<dynamic, System.Void> Derived.M8()");
+            }
+
+            static void assertMethod(NamedTypeSymbol derived, string methodName, string expectedSignature)
+            {
+                var m = derived.GetMember<MethodSymbol>(methodName);
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, m.ToTestDisplayString(includeNonNullable: true));
+            }
+        }
+
+        [Fact]
+        public void Override_TupleNameChanges()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class Base
+{
+    protected virtual void M1(delegate*<(int, string)> ptr) {}
+    protected virtual delegate*<(int, string)> M2() => throw null;
+    protected virtual void M3(delegate*<(int, string), void> ptr) {}
+    protected virtual delegate*<(int, string), void> M4() => throw null;
+    protected virtual void M5(delegate*<(int i, string s)> ptr) {}
+    protected virtual delegate*<(int i, string s)> M6() => throw null;
+    protected virtual void M7(delegate*<(int i, string s), void> ptr) {}
+    protected virtual delegate*<(int i, string s), void> M8() => throw null;
+}
+unsafe class Derived : Base
+{
+    protected override void M1(delegate*<(int i, string s)> ptr) {}
+    protected override delegate*<(int i, string s)> M2() => throw null;
+    protected override void M3(delegate*<(int i, string s), void> ptr) {}
+    protected override delegate*<(int i, string s), void> M4() => throw null;
+    protected override void M5(delegate*<(int, string)> ptr) {}
+    protected override delegate*<(int, string)> M6() => throw null;
+    protected override void M7(delegate*<(int, string), void> ptr) {}
+    protected override delegate*<(int, string), void> M8() => throw null;
+}");
+
+            comp.VerifyDiagnostics(
+                // (15,29): error CS8139: 'Derived.M1(delegate*<(int i, string s)>)': cannot change tuple element names when overriding inherited member 'Base.M1(delegate*<(int, string)>)'
+                //     protected override void M1(delegate*<(int i, string s)> ptr) {}
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M1").WithArguments("Derived.M1(delegate*<(int i, string s)>)", "Base.M1(delegate*<(int, string)>)").WithLocation(15, 29),
+                // (16,53): error CS8139: 'Derived.M2()': cannot change tuple element names when overriding inherited member 'Base.M2()'
+                //     protected override delegate*<(int i, string s)> M2() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()").WithLocation(16, 53),
+                // (17,29): error CS8139: 'Derived.M3(delegate*<(int i, string s), void>)': cannot change tuple element names when overriding inherited member 'Base.M3(delegate*<(int, string), void>)'
+                //     protected override void M3(delegate*<(int i, string s), void> ptr) {}
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M3").WithArguments("Derived.M3(delegate*<(int i, string s), void>)", "Base.M3(delegate*<(int, string), void>)").WithLocation(17, 29),
+                // (18,59): error CS8139: 'Derived.M4()': cannot change tuple element names when overriding inherited member 'Base.M4()'
+                //     protected override delegate*<(int i, string s), void> M4() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M4").WithArguments("Derived.M4()", "Base.M4()").WithLocation(18, 59)
+            );
+
+            assertMethod("M1", "void Derived.M1(delegate*<(System.Int32 i, System.String s)> ptr)");
+            assertMethod("M2", "delegate*<(System.Int32 i, System.String s)> Derived.M2()");
+            assertMethod("M3", "void Derived.M3(delegate*<(System.Int32 i, System.String s), System.Void> ptr)");
+            assertMethod("M4", "delegate*<(System.Int32 i, System.String s), System.Void> Derived.M4()");
+            assertMethod("M5", "void Derived.M5(delegate*<(System.Int32, System.String)> ptr)");
+            assertMethod("M6", "delegate*<(System.Int32, System.String)> Derived.M6()");
+            assertMethod("M7", "void Derived.M7(delegate*<(System.Int32, System.String), System.Void> ptr)");
+            assertMethod("M8", "delegate*<(System.Int32, System.String), System.Void> Derived.M8()");
+
+            void assertMethod(string methodName, string expectedSignature)
+            {
+                var m = comp.GetMember<MethodSymbol>($"Derived.{methodName}");
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Override_NullabilityChanges_NoRefs()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+#nullable enable
+unsafe class Base
+{
+    protected virtual void M1(delegate*<string?> ptr) {}
+    protected virtual delegate*<string?> M2() => throw null!;
+    protected virtual void M3(delegate*<string?, void> ptr) {}
+    protected virtual delegate*<string?, void> M4() => throw null!;
+    protected virtual void M5(delegate*<string> ptr) {}
+    protected virtual delegate*<string> M6() => throw null!;
+    protected virtual void M7(delegate*<string, void> ptr) {}
+    protected virtual delegate*<string, void> M8() => throw null!;
+}
+unsafe class Derived : Base
+{
+    protected override void M1(delegate*<string> ptr) {}
+    protected override delegate*<string> M2() => throw null!;
+    protected override void M3(delegate*<string, void> ptr) {}
+    protected override delegate*<string, void> M4() => throw null!;
+    protected override void M5(delegate*<string?> ptr) {}
+    protected override delegate*<string?> M6() => throw null!;
+    protected override void M7(delegate*<string?, void> ptr) {}
+    protected override delegate*<string?, void> M8() => throw null!;
+}");
+
+            comp.VerifyDiagnostics(
+                // (16,29): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
+                //     protected override void M1(delegate*<string> ptr) {}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("ptr").WithLocation(16, 29),
+                // (19,48): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     protected override delegate*<string, void> M4() => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(19, 48),
+                // (21,43): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     protected override delegate*<string?> M6() => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M6").WithLocation(21, 43),
+                // (22,29): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
+                //     protected override void M7(delegate*<string?, void> ptr) {}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M7").WithArguments("ptr").WithLocation(22, 29)
+            );
+
+            assertMethods(comp.SourceModule);
+            CompileAndVerify(comp, symbolValidator: assertMethods);
+
+            static void assertMethods(ModuleSymbol module)
+            {
+                var derived = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+                assertMethod(derived, "M1", "void Derived.M1(delegate*<System.String!> ptr)");
+                assertMethod(derived, "M2", "delegate*<System.String!> Derived.M2()");
+                assertMethod(derived, "M3", "void Derived.M3(delegate*<System.String!, System.Void> ptr)");
+                assertMethod(derived, "M4", "delegate*<System.String!, System.Void> Derived.M4()");
+                assertMethod(derived, "M5", "void Derived.M5(delegate*<System.String?> ptr)");
+                assertMethod(derived, "M6", "delegate*<System.String?> Derived.M6()");
+                assertMethod(derived, "M7", "void Derived.M7(delegate*<System.String?, System.Void> ptr)");
+                assertMethod(derived, "M8", "delegate*<System.String?, System.Void> Derived.M8()");
+            }
+
+            static void assertMethod(NamedTypeSymbol derived, string methodName, string expectedSignature)
+            {
+                var m = derived.GetMember<MethodSymbol>(methodName);
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, m.ToTestDisplayString(includeNonNullable: true));
+            }
+        }
+
+        [Fact]
+        public void Override_NullabilityChanges_RefsInParameterReturnTypes()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+#nullable enable
+unsafe class Base
+{
+    protected virtual void M1(delegate*<ref string?> ptr) {}
+    protected virtual delegate*<ref string?> M2() => throw null!;
+    protected virtual void M3(delegate*<ref string?, void> ptr) {}
+    protected virtual delegate*<ref string?, void> M4() => throw null!;
+    protected virtual void M5(delegate*<ref string> ptr) {}
+    protected virtual delegate*<ref string> M6() => throw null!;
+    protected virtual void M7(delegate*<ref string, void> ptr) {}
+    protected virtual delegate*<ref string, void> M8() => throw null!;
+}
+unsafe class Derived : Base
+{
+    protected override void M1(delegate*<ref string> ptr) {}
+    protected override delegate*<ref string> M2() => throw null!;
+    protected override void M3(delegate*<ref string, void> ptr) {}
+    protected override delegate*<ref string, void> M4() => throw null!;
+    protected override void M5(delegate*<ref string?> ptr) {}
+    protected override delegate*<ref string?> M6() => throw null!;
+    protected override void M7(delegate*<ref string?, void> ptr) {}
+    protected override delegate*<ref string?, void> M8() => throw null!;
+}");
+
+            comp.VerifyDiagnostics(
+                // (16,29): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
+                //     protected override void M1(delegate*<ref string> ptr) {}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("ptr").WithLocation(16, 29),
+                // (17,46): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     protected override delegate*<ref string> M2() => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M2").WithLocation(17, 46),
+                // (18,29): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
+                //     protected override void M3(delegate*<ref string, void> ptr) {}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("ptr").WithLocation(18, 29),
+                // (19,52): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     protected override delegate*<ref string, void> M4() => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(19, 52),
+                // (20,29): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
+                //     protected override void M5(delegate*<ref string?> ptr) {}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("ptr").WithLocation(20, 29),
+                // (21,47): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     protected override delegate*<ref string?> M6() => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M6").WithLocation(21, 47),
+                // (22,29): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
+                //     protected override void M7(delegate*<ref string?, void> ptr) {}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M7").WithArguments("ptr").WithLocation(22, 29),
+                // (23,53): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     protected override delegate*<ref string?, void> M8() => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M8").WithLocation(23, 53)
+            );
+
+            assertMethods(comp.SourceModule);
+            CompileAndVerify(comp, symbolValidator: assertMethods);
+
+            static void assertMethods(ModuleSymbol module)
+            {
+                var derived = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+                assertMethod(derived, "M1", "void Derived.M1(delegate*<ref System.String!> ptr)");
+                assertMethod(derived, "M2", "delegate*<ref System.String!> Derived.M2()");
+                assertMethod(derived, "M3", "void Derived.M3(delegate*<ref System.String!, System.Void> ptr)");
+                assertMethod(derived, "M4", "delegate*<ref System.String!, System.Void> Derived.M4()");
+                assertMethod(derived, "M5", "void Derived.M5(delegate*<ref System.String?> ptr)");
+                assertMethod(derived, "M6", "delegate*<ref System.String?> Derived.M6()");
+                assertMethod(derived, "M7", "void Derived.M7(delegate*<ref System.String?, System.Void> ptr)");
+                assertMethod(derived, "M8", "delegate*<ref System.String?, System.Void> Derived.M8()");
+            }
+
+            static void assertMethod(NamedTypeSymbol derived, string methodName, string expectedSignature)
+            {
+                var m = derived.GetMember<MethodSymbol>(methodName);
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, m.ToTestDisplayString(includeNonNullable: true));
+            }
+        }
+
+        [Fact]
+        public void Override_NullabilityChanges_PointerByRef()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+#nullable enable
+public unsafe class Base
+{
+    public virtual void M1(ref delegate*<string?> ptr) {}
+    public virtual ref delegate*<string?> M2() => throw null!;
+    public virtual void M3(ref delegate*<string?, void> ptr) {}
+    public virtual ref delegate*<string?, void> M4() => throw null!;
+    public virtual void M5(ref delegate*<string> ptr) {}
+    public virtual ref delegate*<string> M6() => throw null!;
+    public virtual void M7(ref delegate*<string, void> ptr) {}
+    public virtual ref delegate*<string, void> M8() => throw null!;
+}
+public unsafe class Derived : Base
+{
+    public override void M1(ref delegate*<string> ptr) {}
+    public override ref delegate*<string> M2() => throw null!;
+    public override void M3(ref delegate*<string, void> ptr) {}
+    public override ref delegate*<string, void> M4() => throw null!;
+    public override void M5(ref delegate*<string?> ptr) {}
+    public override ref delegate*<string?> M6() => throw null!;
+    public override void M7(ref delegate*<string?, void> ptr) {}
+    public override ref delegate*<string?, void> M8() => throw null!;
+}");
+
+            comp.VerifyDiagnostics(
+                // (16,26): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
+                //     public override void M1(ref delegate*<string> ptr) {}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("ptr").WithLocation(16, 26),
+                // (17,43): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override ref delegate*<string> M2() => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M2").WithLocation(17, 43),
+                // (18,26): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
+                //     public override void M3(ref delegate*<string, void> ptr) {}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("ptr").WithLocation(18, 26),
+                // (19,49): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override ref delegate*<string, void> M4() => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(19, 49),
+                // (20,26): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
+                //     public override void M5(ref delegate*<string?> ptr) {}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("ptr").WithLocation(20, 26),
+                // (21,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override ref delegate*<string?> M6() => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M6").WithLocation(21, 44),
+                // (22,26): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
+                //     public override void M7(ref delegate*<string?, void> ptr) {}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M7").WithArguments("ptr").WithLocation(22, 26),
+                // (23,50): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override ref delegate*<string?, void> M8() => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M8").WithLocation(23, 50)
+            );
+
+            assertMethods(comp.SourceModule);
+            CompileAndVerify(comp, symbolValidator: assertMethods);
+
+            static void assertMethods(ModuleSymbol module)
+            {
+                var derived = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+                assertMethod(derived, "M1", "void Derived.M1(ref delegate*<System.String!> ptr)");
+                assertMethod(derived, "M2", "ref delegate*<System.String!> Derived.M2()");
+                assertMethod(derived, "M3", "void Derived.M3(ref delegate*<System.String!, System.Void> ptr)");
+                assertMethod(derived, "M4", "ref delegate*<System.String!, System.Void> Derived.M4()");
+                assertMethod(derived, "M5", "void Derived.M5(ref delegate*<System.String?> ptr)");
+                assertMethod(derived, "M6", "ref delegate*<System.String?> Derived.M6()");
+                assertMethod(derived, "M7", "void Derived.M7(ref delegate*<System.String?, System.Void> ptr)");
+                assertMethod(derived, "M8", "ref delegate*<System.String?, System.Void> Derived.M8()");
+
+            }
+
+            static void assertMethod(NamedTypeSymbol derived, string methodName, string expectedSignature)
+            {
+                var m = derived.GetMember<MethodSymbol>(methodName);
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, m.ToTestDisplayString(includeNonNullable: true));
+            }
+        }
+
+        [Fact]
+        public void Override_SingleDimensionArraySizesInMetadata()
+        {
+            var il = @"
+.class public auto ansi abstract beforefieldinit Base
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig newslot abstract virtual
+        void M1 (method void *(int32[0...]) param) cil managed 
+    {
+    }
+
+    .method public hidebysig newslot abstract virtual
+        method void *(int32[0...]) M2 () cil managed 
+    {
+    }
+
+    .method public hidebysig newslot abstract virtual
+        void M3 (method int32[0...] *() param) cil managed 
+    {
+    }
+
+    .method public hidebysig newslot abstract virtual
+        method int32[0...] *() M4 () cil managed 
+    {
+    }
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+}";
+
+            var source = @"
+unsafe class Derived : Base
+{
+    public override void M1(delegate*<int[], void> param) => throw null;
+    public override delegate*<int[], void> M2() => throw null;
+    public override void M3(delegate*<int[]> param) => throw null;
+    public override delegate*<int[]> M4() => throw null;
+}";
+
+            var comp = CreateCompilationWithFunctionPointersAndIl(source, il);
+            comp.VerifyDiagnostics(
+                // (2,14): error CS0534: 'Derived' does not implement inherited abstract member 'Base.M1(delegate*<int[*], void>)'
+                // unsafe class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.M1(delegate*<int[*], void>)").WithLocation(2, 14),
+                // (2,14): error CS0534: 'Derived' does not implement inherited abstract member 'Base.M3(delegate*<int[*]>)'
+                // unsafe class Derived : Base
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.M3(delegate*<int[*]>)").WithLocation(2, 14),
+                // (4,26): error CS0115: 'Derived.M1(delegate*<int[], void>)': no suitable method found to override
+                //     public override void M1(delegate*<int[], void> param) => throw null;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("Derived.M1(delegate*<int[], void>)").WithLocation(4, 26),
+                // (5,44): error CS0508: 'Derived.M2()': return type must be 'delegate*<int[*], void>' to match overridden member 'Base.M2()'
+                //     public override delegate*<int[], void> M2() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", "delegate*<int[*], void>").WithLocation(5, 44),
+                // (6,26): error CS0115: 'Derived.M3(delegate*<int[]>)': no suitable method found to override
+                //     public override void M3(delegate*<int[]> param) => throw null;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("Derived.M3(delegate*<int[]>)").WithLocation(6, 26),
+                // (7,38): error CS0508: 'Derived.M4()': return type must be 'delegate*<int[*]>' to match overridden member 'Base.M4()'
+                //     public override delegate*<int[]> M4() => throw null;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M4").WithArguments("Derived.M4()", "Base.M4()", "delegate*<int[*]>").WithLocation(7, 38)
+            );
+        }
+
+        [Fact]
+        public void Override_ArraySizesInMetadata()
+        {
+            var il = @"
+.class public auto ansi abstract beforefieldinit Base
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig newslot abstract virtual
+        void M1 (method void *(int32[5...5,2...4]) param) cil managed 
+    {
+    }
+
+    .method public hidebysig newslot abstract virtual
+        method void *(int32[5...5,2...4]) M2 () cil managed 
+    {
+    }
+
+    .method public hidebysig newslot abstract virtual
+        void M3 (method int32[5...5,2...4] *() param) cil managed 
+    {
+    }
+
+    .method public hidebysig newslot abstract virtual
+        method int32[5...5,2...4] *() M4 () cil managed 
+    {
+    }
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+}";
+
+            var source = @"
+using System;
+unsafe class Derived : Base
+{
+    private static void MultiDimensionParamFunc(int[,] param) { }
+    private static int[,] MultiDimensionReturnFunc() => null;
+
+    public override void M1(delegate*<int[,], void> param)
+    {
+        Console.WriteLine(""Multi-dimension array param as param"");
+        param(null);
+    }
+
+    public override delegate*<int[,], void> M2()
+    {
+        Console.WriteLine(""Multi-dimension array param as return"");
+        return &MultiDimensionParamFunc;
+    }
+
+    public override void M3(delegate*<int[,]> param)
+    {
+        Console.WriteLine(""Multi-dimension array return as param"");
+        _ = param();
+    }
+
+    public override delegate*<int[,]> M4()
+    {
+        Console.WriteLine(""Multi-dimension array return as return"");
+        return &MultiDimensionReturnFunc;
+    }
+
+    public static void Main()
+    {
+        var d = new Derived();
+        d.M1(&MultiDimensionParamFunc);
+        var ptr1 = d.M2();
+        ptr1(null);
+        d.M3(&MultiDimensionReturnFunc);
+        var ptr2 = d.M4();
+        _ = ptr2();
+    }
+}";
+
+            var verifier = CompileAndVerifyFunctionPointersWithIl(source, il, expectedOutput: @"
+Multi-dimension array param as param
+Multi-dimension array param as return
+Multi-dimension array return as param
+Multi-dimension array return as return
+");
+
+            verifier.VerifyIL("Derived.M1", expectedIL: @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (delegate*<int[,], void> V_0)
+  IL_0000:  ldstr      ""Multi-dimension array param as param""
+  IL_0005:  call       ""void System.Console.WriteLine(string)""
+  IL_000a:  ldarg.1
+  IL_000b:  stloc.0
+  IL_000c:  ldnull
+  IL_000d:  ldloc.0
+  IL_000e:  calli      ""delegate*<int[,], void>""
+  IL_0013:  ret
+}
+");
+
+            verifier.VerifyIL("Derived.M2", expectedIL: @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldstr      ""Multi-dimension array param as return""
+  IL_0005:  call       ""void System.Console.WriteLine(string)""
+  IL_000a:  ldftn      ""void Derived.MultiDimensionParamFunc(int[,])""
+  IL_0010:  ret
+}
+");
+
+            verifier.VerifyIL("Derived.M3", expectedIL: @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldstr      ""Multi-dimension array return as param""
+  IL_0005:  call       ""void System.Console.WriteLine(string)""
+  IL_000a:  ldarg.1
+  IL_000b:  calli      ""delegate*<int[,]>""
+  IL_0010:  pop
+  IL_0011:  ret
+}
+");
+
+            verifier.VerifyIL("Derived.M4", expectedIL: @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldstr      ""Multi-dimension array return as return""
+  IL_0005:  call       ""void System.Console.WriteLine(string)""
+  IL_000a:  ldftn      ""int[,] Derived.MultiDimensionReturnFunc()""
+  IL_0010:  ret
+}
+");
+
+            verifier.VerifyIL("Derived.Main", expectedIL: @"
+{
+  // Code size       55 (0x37)
+  .maxstack  3
+  .locals init (delegate*<int[,], void> V_0)
+  IL_0000:  newobj     ""Derived..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldftn      ""void Derived.MultiDimensionParamFunc(int[,])""
+  IL_000c:  callvirt   ""void Base.M1(delegate*<int[,], void>)""
+  IL_0011:  dup
+  IL_0012:  callvirt   ""delegate*<int[,], void> Base.M2()""
+  IL_0017:  stloc.0
+  IL_0018:  ldnull
+  IL_0019:  ldloc.0
+  IL_001a:  calli      ""delegate*<int[,], void>""
+  IL_001f:  dup
+  IL_0020:  ldftn      ""int[,] Derived.MultiDimensionReturnFunc()""
+  IL_0026:  callvirt   ""void Base.M3(delegate*<int[,]>)""
+  IL_002b:  callvirt   ""delegate*<int[,]> Base.M4()""
+  IL_0030:  calli      ""delegate*<int[,]>""
+  IL_0035:  pop
+  IL_0036:  ret
+}
+");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+
+            var m1 = comp.GetMember<MethodSymbol>("Derived.M1");
+            var m2 = comp.GetMember<MethodSymbol>("Derived.M2");
+            var m3 = comp.GetMember<MethodSymbol>("Derived.M3");
+            var m4 = comp.GetMember<MethodSymbol>("Derived.M4");
+
+            var funcPtr = (FunctionPointerTypeSymbol)m1.Parameters.Single().Type;
+            CommonVerifyFunctionPointer(funcPtr);
+            verifyArray(funcPtr.Signature.Parameters.Single().Type);
+
+            funcPtr = (FunctionPointerTypeSymbol)m2.ReturnType;
+            CommonVerifyFunctionPointer(funcPtr);
+            verifyArray(funcPtr.Signature.Parameters.Single().Type);
+
+            funcPtr = (FunctionPointerTypeSymbol)m3.Parameters.Single().Type;
+            CommonVerifyFunctionPointer(funcPtr);
+            verifyArray(funcPtr.Signature.ReturnType);
+
+            funcPtr = (FunctionPointerTypeSymbol)m4.ReturnType;
+            CommonVerifyFunctionPointer(funcPtr);
+            verifyArray(funcPtr.Signature.ReturnType);
+
+            static void verifyArray(TypeSymbol type)
+            {
+                var array = (ArrayTypeSymbol)type;
+                Assert.False(array.IsSZArray);
+                Assert.Equal(2, array.Rank);
+                Assert.Equal(5, array.LowerBounds[0]);
+                Assert.Equal(1, array.Sizes[0]);
+                Assert.Equal(2, array.LowerBounds[1]);
+                Assert.Equal(3, array.Sizes[1]);
+            }
+        }
+
+        [Fact]
+        public void NullableUsageWarnings()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+#nullable enable
+unsafe public class C
+{
+    static void M1(delegate*<string, string?, string?> ptr1)
+    {
+        _ = ptr1(null, null);
+        _ = ptr1("""", null).ToString();
+        delegate*<string?, string?, string?> ptr2 = ptr1;
+        delegate*<string, string?, string> ptr3 = ptr1;
+    }
+
+    static void M2(delegate*<ref string, ref string> ptr1)
+    {
+        string? str1 = null;
+        ptr1(ref str1);
+        string str2 = """";
+        ref string? str3 = ref ptr1(ref str2);
+        delegate*<ref string?, ref string> ptr2 = ptr1;
+        delegate*<ref string, ref string?> ptr3 = ptr1;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (7,18): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         _ = ptr1(null, null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 18),
+                // (8,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = ptr1("", null).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"ptr1("""", null)").WithLocation(8, 13),
+                // (9,53): warning CS8619: Nullability of reference types in value of type 'delegate*<string, string?, string?>' doesn't match target type 'delegate*<string?, string?, string?>'.
+                //         delegate*<string?, string?, string?> ptr2 = ptr1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<string, string?, string?>", "delegate*<string?, string?, string?>").WithLocation(9, 53),
+                // (10,51): warning CS8619: Nullability of reference types in value of type 'delegate*<string, string?, string?>' doesn't match target type 'delegate*<string, string?, string>'.
+                //         delegate*<string, string?, string> ptr3 = ptr1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<string, string?, string?>", "delegate*<string, string?, string>").WithLocation(10, 51),
+                // (16,18): warning CS8601: Possible null reference assignment.
+                //         ptr1(ref str1);
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "str1").WithLocation(16, 18),
+                // (18,32): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
+                //         ref string? str3 = ref ptr1(ref str2);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1(ref str2)").WithArguments("string", "string?").WithLocation(18, 32),
+                // (19,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, string>' doesn't match target type 'delegate*<ref string?, string>'.
+                //         delegate*<ref string?, ref string> ptr2 = ptr1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, string>", "delegate*<ref string?, string>").WithLocation(19, 51),
+                // (20,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, string>' doesn't match target type 'delegate*<ref string, string?>'.
+                //         delegate*<ref string, ref string?> ptr3 = ptr1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, string>", "delegate*<ref string, string?>").WithLocation(20, 51)
+            );
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");

@@ -270,7 +270,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (boundExpression.Type?.Kind == SymbolKind.FunctionPointer)
             {
-                // PROTOTYPE(func-ptr): Test nullable related features
                 ReportSuppressionIfNeeded(boundExpression, diagnostics);
                 result = BindFunctionPointerInvocation(node, boundExpression, analyzedArguments, diagnostics);
             }
