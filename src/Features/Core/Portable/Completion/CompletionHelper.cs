@@ -197,11 +197,42 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
-            // Almost always prefer non-expanded item regardless of the pattern matching result,
-            // (except when all of the non-expanded items are worse than prefix matching and there's
-            // a complete match from expanded ones.)
-            // This currently means unimported types will be treated as "2nd tier" results,
-            // which forces users to be more explicit about selecting them.
+            // *Almost* always prefer non-expanded item regardless of the pattern matching result.
+            // Except when all non-expanded items are worse than prefix matching and there's
+            // a complete match from expanded ones. 
+            //
+            // For example, In the scenarios below, `NS2.Designer` would be selected over `System.Security.Cryptography.DES`
+            //
+            //  namespace System.Security.Cryptography
+            //  {
+            //      class DES {}
+            //  }
+            //  namespace NS2
+            //  {
+            //      class Designer {}
+            //      class C
+            //      {
+            //          des$$
+            //      }
+            //  }
+            //
+            // But in this case, `System.Security.Cryptography.DES` would be selected over `NS2.MyDesigner`
+            //
+            //  namespace System.Security.Cryptography
+            //  {
+            //      class DES {}
+            //  }
+            //  namespace NS2
+            //  {
+            //      class MyDesigner {}
+            //      class C
+            //      {
+            //          des$$
+            //      }
+            //  }
+            //
+            // This currently means items from unimported namespaces (those are the only expanded items now) 
+            // are treated as "2nd tier" results, which forces users to be more explicit about selecting them.
             var expandedDiff = CompareExpandedItem(item1, match1, item2, match2);
             if (expandedDiff != 0)
             {
