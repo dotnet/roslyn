@@ -204,10 +204,6 @@
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
             },
             {
-              "filename": "/DesktopHost/System.Memory.dll",
-              "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
-            },
-            {
               "filename": "/Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
               "testCases":[ "WinForms.OptProfTests.winforms_largeform_vb" ]
             },
@@ -391,7 +387,7 @@
             },
             {
               "filename": "/Microsoft.VisualStudio.LanguageServices.CodeLens.dll",
-              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug"  ]
+              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing" ]
             },
             {
               "filename": "/Microsoft.CodeAnalysis.Features.dll",
@@ -411,7 +407,7 @@
             },
             {
               "filename": "/DesktopHost/System.Text.Encoding.CodePages.dll",
-              "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment" ]
+              "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment" ]
             },
             {
               "filename": "/Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
@@ -423,7 +419,7 @@
             },
             {
               "filename": "/DesktopHost/System.Memory.dll",
-              "testCases":[ "VSPE.OptProfTests.vs_asl_cs_scenario", "VSPE.OptProfTests.vs_asl_vb_scenario", "VSPE.OptProfTests.vs_perf_DesignTime_solution_loadclose_cs_picasso", "VSPE.OptProfTests.vs_perf_designtime_editor_intellisense_globalcompletionlist_cs", "VSPE.OptProfTests.vs_perf_designtime_ide_searchtest", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.vs_perf_designtime_solution_loadclose_vb_australiangovernment" ]
+              "testCases":[ "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug", "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment" ]
             },
             {
               "filename": "/Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
@@ -528,7 +524,7 @@
             },
             {
               "filename": "/Contents/MSBuild/Current/Bin/Roslyn/System.Text.Encoding.CodePages.dll",
-              "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+              "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
             },
             {
               "filename": "/Contents/MSBuild/Current/Bin/Roslyn/Microsoft.CodeAnalysis.VisualBasic.dll",
@@ -536,7 +532,7 @@
             },
             {
               "filename": "/Contents/MSBuild/Current/Bin/Roslyn/System.Memory.dll",
-              "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+              "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
             },
             {
               "filename": "/Contents/MSBuild/Current/Bin/Roslyn/System.Collections.Immutable.dll",
@@ -544,7 +540,7 @@
             },
             {
               "filename": "/Contents/MSBuild/Current/Bin/Roslyn/VBCSCompiler.exe",
-              "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Typing", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
+              "testCases":[ "VSPE.OptProfTests.vs_perf_designtime_solution_build_vb_australiangovernment", "VSPE.OptProfTests.DDRIT_RPS_ManagedLangs_Debug" ]
             },
             {
               "filename": "/Contents/MSBuild/Current/Bin/Roslyn/System.Runtime.CompilerServices.Unsafe.dll",
