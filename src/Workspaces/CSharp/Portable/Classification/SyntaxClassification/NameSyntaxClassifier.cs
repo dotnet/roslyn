@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 : ClassificationTypeNames.MethodName;
         }
 
-        private bool IsInVarContext(NameSyntax name)
+        private static bool IsInVarContext(NameSyntax name)
         {
             return
                 name.CheckParent<RefTypeSyntax>(v => v.Type == name) ||
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 name.CheckParent<DeclarationExpressionSyntax>(f => f.Type == name);
         }
 
-        private bool TryClassifyFromIdentifier(
+        private static bool TryClassifyFromIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
             ArrayBuilder<ClassifiedSpan> result)
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private bool TryClassifyValueIdentifier(
+        private static bool TryClassifyValueIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
             ArrayBuilder<ClassifiedSpan> result)
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private bool TryClassifyNameOfIdentifier(
+        private static bool TryClassifyNameOfIdentifier(
             NameSyntax name, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
         {
             if (name is IdentifierNameSyntax identifierName &&
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private bool IsSymbolWithName([NotNullWhen(returnValue: true)] ISymbol? symbol, string name)
+        private static bool IsSymbolWithName([NotNullWhen(returnValue: true)] ISymbol? symbol, string name)
         {
             if (symbol is null || symbol.Name != name)
             {

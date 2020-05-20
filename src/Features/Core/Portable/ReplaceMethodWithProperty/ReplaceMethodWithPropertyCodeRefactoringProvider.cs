@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private static bool HasPrefix(string text, string prefix)
             => text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
 
-        private IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
+        private static IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
         {
             var containingType = getMethod.ContainingType;
             var setMethodName = "Set" + getMethod.Name.Substring(GetPrefix.Length);
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution;
         }
 
-        private async Task<Solution> UpdateReferencesInDocumentAsync(
+        private static async Task<Solution> UpdateReferencesInDocumentAsync(
             string propertyName,
             bool nameChanged,
             Solution updatedSolution,
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return originalDefinition.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol() as TSymbol;
         }
 
-        private async Task<SyntaxNode> GetMethodDeclarationAsync(IMethodSymbol method, CancellationToken cancellationToken)
+        private static async Task<SyntaxNode> GetMethodDeclarationAsync(IMethodSymbol method, CancellationToken cancellationToken)
         {
             if (method == null)
             {
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<MultiDictionary<DocumentId, IMethodSymbol>> GetDefinitionsByDocumentIdAsync(
+        private static async Task<MultiDictionary<DocumentId, IMethodSymbol>> GetDefinitionsByDocumentIdAsync(
             Solution originalSolution,
             IEnumerable<ReferencedSymbol> referencedSymbols,
             CancellationToken cancellationToken)
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter - Method not completely implemented.
-        private string GetDefinitionIssues(IEnumerable<ReferencedSymbol> getMethodReferences)
+        private static string GetDefinitionIssues(IEnumerable<ReferencedSymbol> getMethodReferences)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             // TODO: add things to be concerned about here.  For example:

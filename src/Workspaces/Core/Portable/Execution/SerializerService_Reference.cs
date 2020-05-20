@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         private static bool IsAnalyzerReferenceWithShadowCopyLoader(AnalyzerFileReference reference)
             => reference.AssemblyLoader is ShadowCopyAnalyzerAssemblyLoader;
 
-        public Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
+        public static Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        public void WriteTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public static void WriteTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        private void WriteMvidTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
+        private static void WriteMvidTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
-        private void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer, CancellationToken cancellationToken)
+        private static void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteBoolean(properties.EmbedInteropTypes);
         }
 
-        private MetadataReferenceProperties ReadMetadataReferencePropertiesFrom(ObjectReader reader, CancellationToken cancellationToken)
+        private static MetadataReferenceProperties ReadMetadataReferencePropertiesFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
-        private void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object lifeTimeObject)
+        private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object lifeTimeObject)
         {
             if (stream is ISupportDirectMemoryAccess directAccess)
             {
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             lifeTimeObject = pinnedObject;
         }
 
-        private void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
+        private static void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             WriteTo(metadata.GetMetadataReader(), writer, cancellationToken);
         }
 
-        private unsafe void WriteTo(MetadataReader reader, ObjectWriter writer, CancellationToken cancellationToken)
+        private static unsafe void WriteTo(MetadataReader reader, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

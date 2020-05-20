@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        private void ReportNonFatalWatson(Exception exception)
+        private static void ReportNonFatalWatson(Exception exception)
         {
             FatalError.ReportWithoutCrash(exception);
         }

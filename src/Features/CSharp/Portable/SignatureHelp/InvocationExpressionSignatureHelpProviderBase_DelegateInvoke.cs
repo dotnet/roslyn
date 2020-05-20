@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return SpecializedCollections.SingletonList(item);
         }
 
-        private IList<SymbolDisplayPart> GetDelegateInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+        private static IList<SymbolDisplayPart> GetDelegateInvokePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
         {
             var displayParts = new List<SymbolDisplayPart>();
             displayParts.AddRange(invokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position));
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return displayParts;
         }
 
-        private IList<SignatureHelpSymbolParameter> GetDelegateInvokeParameters(
+        private static IList<SignatureHelpSymbolParameter> GetDelegateInvokeParameters(
             IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formattingService, CancellationToken cancellationToken)
         {
             var result = new List<SignatureHelpSymbolParameter>();
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetDelegateInvokePostambleParts()
+        private static IList<SymbolDisplayPart> GetDelegateInvokePostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseParenToken));

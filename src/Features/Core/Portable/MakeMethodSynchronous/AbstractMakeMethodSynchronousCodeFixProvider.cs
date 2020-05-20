@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             return currentSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
         }
 
-        private void RemoveAwaitFromCallerIfPresent(
+        private static void RemoveAwaitFromCallerIfPresent(
             SyntaxEditor editor, ISyntaxFactsService syntaxFacts,
             SyntaxNode root, ReferenceLocation referenceLocation,
             CancellationToken cancellationToken)

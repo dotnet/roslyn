@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 selectedDisplayParts: GetSelectedDisplayParts(parameter, semanticModel, position));
         }
 
-        private IList<SymbolDisplayPart> GetSelectedDisplayParts(
+        private static IList<SymbolDisplayPart> GetSelectedDisplayParts(
             ITypeParameterSymbol typeParam,
             SemanticModel semanticModel,
             int position)

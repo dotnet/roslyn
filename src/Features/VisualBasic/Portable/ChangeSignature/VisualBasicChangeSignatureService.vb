@@ -148,12 +148,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return parameters.CloseParenToken.SpanStart
         End Function
 
-        Private Function TryGetSelectedIndexFromDeclaration(position As Integer, matchingNode As SyntaxNode) As Integer
+        Private Shared Function TryGetSelectedIndexFromDeclaration(position As Integer, matchingNode As SyntaxNode) As Integer
             Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
             Return If(parameters Is Nothing, 0, GetParameterIndex(parameters.Parameters, position))
         End Function
 
-        Private Function GetMatchingNode(node As SyntaxNode, restrictToDeclarations As Boolean) As SyntaxNode
+        Private Shared Function GetMatchingNode(node As SyntaxNode, restrictToDeclarations As Boolean) As SyntaxNode
             Dim current = node
             While current IsNot Nothing
                 If restrictToDeclarations Then
@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return Nothing
         End Function
 
-        Private Function IsInSymbolHeader(matchingNode As SyntaxNode, position As Integer) As Boolean
+        Private Shared Function IsInSymbolHeader(matchingNode As SyntaxNode, position As Integer) As Boolean
             ' Caret has to be after the attributes if the symbol has any.
             Dim lastAttributes = matchingNode.ChildNodes().LastOrDefault(
                 Function(n) TypeOf n Is AttributeListSyntax)
@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return True
         End Function
 
-        Private Function TryGetDeclaredSymbol(semanticModel As SemanticModel,
+        Private Shared Function TryGetDeclaredSymbol(semanticModel As SemanticModel,
                                               matchingNode As SyntaxNode,
                                               cancellationToken As CancellationToken) As ISymbol
             Select Case matchingNode.Kind()
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
         End Function
 
-        Private Function GetUpdatableNode(matchingNode As SyntaxNode) As SyntaxNode
+        Private Shared Function GetUpdatableNode(matchingNode As SyntaxNode) As SyntaxNode
             If _nodeKindsToIgnore.Contains(matchingNode.Kind()) Then
                 Return Nothing
             End If
@@ -502,7 +502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return IsParamsArrayExpandedHelper(symbolInfo.Symbol, argumentCount, lastArgumentIsNamed, semanticModel, lastArgumentExpression, cancellationToken)
         End Function
 
-        Private Sub GetArgumentListDetailsRegardingParamsArrays(
+        Private Shared Sub GetArgumentListDetailsRegardingParamsArrays(
             argumentList As ArgumentListSyntax,
             ByRef argumentCount As Integer,
             ByRef lastArgumentIsNamed As Boolean,
@@ -584,7 +584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return GetPermutedDocCommentTrivia(document, node, permutedParamNodes)
         End Function
 
-        Private Function VerifyAndPermuteParamNodes(paramNodes As ImmutableArray(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxNode)
+        Private Shared Function VerifyAndPermuteParamNodes(paramNodes As ImmutableArray(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxNode)
             ' Only reorder if count and order match originally.
 
             Dim originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters()

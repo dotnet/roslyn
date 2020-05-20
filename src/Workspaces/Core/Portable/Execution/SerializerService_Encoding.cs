@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteValue(value.AsSpan());
         }
 
-        private void WriteNoEncodingTo(Encoding? encoding, ObjectWriter writer, CancellationToken cancellationToken)
+        private static void WriteNoEncodingTo(Encoding? encoding, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return ReadEncodingFrom(serialized, reader, cancellationToken);
         }
 
-        private Encoding? ReadEncodingFrom(byte serialized, ObjectReader reader, CancellationToken cancellationToken)
+        private static Encoding? ReadEncodingFrom(byte serialized, ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

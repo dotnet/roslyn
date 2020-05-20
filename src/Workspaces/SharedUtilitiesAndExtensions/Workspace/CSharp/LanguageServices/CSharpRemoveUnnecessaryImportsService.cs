@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             }
         }
 
-        private int GetEndPosition(SyntaxNode container, SyntaxList<MemberDeclarationSyntax> list)
+        private static int GetEndPosition(SyntaxNode container, SyntaxList<MemberDeclarationSyntax> list)
             => list.Count > 0 ? list[0].SpanStart : container.Span.End;
     }
 }

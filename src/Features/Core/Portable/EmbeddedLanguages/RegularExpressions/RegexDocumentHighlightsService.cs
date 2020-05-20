@@ -104,10 +104,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             return ImmutableArray.Create(CreateHighlightSpan(node.GetSpan()), CreateHighlightSpan(captureSpan));
         }
 
-        private HighlightSpan CreateHighlightSpan(TextSpan textSpan)
+        private static HighlightSpan CreateHighlightSpan(TextSpan textSpan)
             => new HighlightSpan(textSpan, HighlightSpanKind.None);
 
-        private RegexToken GetCaptureToken(RegexEscapeNode node)
+        private static RegexToken GetCaptureToken(RegexEscapeNode node)
             => node switch
             {
                 RegexBackreferenceEscapeNode backReference => backReference.NumberToken,

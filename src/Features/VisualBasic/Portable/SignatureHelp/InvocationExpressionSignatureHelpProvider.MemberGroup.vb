@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class InvocationExpressionSignatureHelpProvider
 
-        Private Function GetAccessibleMembers(invocationExpression As InvocationExpressionSyntax,
+        Private Shared Function GetAccessibleMembers(invocationExpression As InvocationExpressionSyntax,
                                              semanticModel As SemanticModel,
                                              within As ISymbol,
                                              memberGroup As IEnumerable(Of ISymbol),

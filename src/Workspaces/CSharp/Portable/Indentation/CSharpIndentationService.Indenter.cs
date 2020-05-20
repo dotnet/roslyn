@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             => TryGetDesiredIndentation(indenter, triviaOpt) ??
                TryGetDesiredIndentation(indenter, tokenOpt);
 
-        private IndentationResult? TryGetDesiredIndentation(Indenter indenter, SyntaxTrivia? triviaOpt)
+        private static IndentationResult? TryGetDesiredIndentation(Indenter indenter, SyntaxTrivia? triviaOpt)
         {
             // If we have a // comment, and it's the only thing on the line, then if we hit enter, we should align to
             // that.  This helps for cases like:
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return indenter.GetIndentationOfToken(queryBody.Parent.GetFirstToken(includeZeroWidth: true));
         }
 
-        private SyntaxNode GetQueryExpressionClause(SyntaxToken token)
+        private static SyntaxNode GetQueryExpressionClause(SyntaxToken token)
         {
             var clause = token.GetAncestors<SyntaxNode>().FirstOrDefault(n => n is QueryClauseSyntax || n is SelectOrGroupClauseSyntax);
 
@@ -357,13 +357,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return null;
         }
 
-        private bool IsPartOfQueryExpression(SyntaxToken token)
+        private static bool IsPartOfQueryExpression(SyntaxToken token)
         {
             var queryExpression = token.GetAncestor<QueryExpressionSyntax>();
             return queryExpression != null;
         }
 
-        private IndentationResult GetDefaultIndentationFromTokenLine(
+        private static IndentationResult GetDefaultIndentationFromTokenLine(
             Indenter indenter, SyntaxToken token, int? additionalSpace = null)
         {
             var spaceToAdd = additionalSpace ?? indenter.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language);

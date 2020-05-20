@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 return (id, debugName);
             }
 
-            protected void WriteToJsonObject(JsonWriter writer, Guid id, string debugName)
+            protected static void WriteToJsonObject(JsonWriter writer, Guid id, string debugName)
             {
                 writer.WriteStartObject();
                 WriteIdAndName(writer, id, debugName);
                 writer.WriteEndObject();
             }
 
-            protected (Guid, string) ReadIdAndName(JsonReader reader)
+            protected static (Guid, string) ReadIdAndName(JsonReader reader)
             {
                 var id = new Guid(ReadProperty<string>(reader));
                 var debugName = ReadProperty<string>(reader);

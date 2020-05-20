@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             }
         }
 
-        private bool IsUnsignedBoundary(
+        private static bool IsUnsignedBoundary(
             SemanticModel semanticModel, VariableDeclaratorSyntax variable,
             ExpressionSyntax start, ExpressionSyntax end, CancellationToken cancellationToken)
         {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
                    IsDecrementAfter(variable, after);
         }
 
-        private bool IsIncrementInitializer(VariableDeclaratorSyntax variable, [NotNullWhen(true)] out ExpressionSyntax? start)
+        private static bool IsIncrementInitializer(VariableDeclaratorSyntax variable, [NotNullWhen(true)] out ExpressionSyntax? start)
         {
             start = variable.Initializer?.Value;
             return start != null;
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
         private static bool IsLiteralOne(ExpressionSyntax expression)
             => expression.WalkDownParentheses() is LiteralExpressionSyntax literal && literal.Token.Value is 1;
 
-        private bool IsDecrementInitializer(
+        private static bool IsDecrementInitializer(
             VariableDeclaratorSyntax variable, [NotNullWhen(true)] out ExpressionSyntax? end)
         {
             end = variable.Initializer?.Value;
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             return false;
         }
 
-        private bool IsVariableReference(VariableDeclaratorSyntax variable, ExpressionSyntax expr)
+        private static bool IsVariableReference(VariableDeclaratorSyntax variable, ExpressionSyntax expr)
             => expr.WalkDownParentheses() is IdentifierNameSyntax identifier &&
                identifier.Identifier.ValueText == variable.Identifier.ValueText;
 
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             return SyntaxFactory.BinaryExpression(newExpressionKind, left, newOperator, right);
         }
 
-        private ExpressionSyntax InvertAfter(ExpressionSyntax after)
+        private static ExpressionSyntax InvertAfter(ExpressionSyntax after)
         {
             var opToken = after switch
             {

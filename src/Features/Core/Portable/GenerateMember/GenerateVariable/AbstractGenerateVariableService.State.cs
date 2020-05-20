@@ -352,10 +352,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return null;
             }
 
-            private bool FieldIsReadOnly(ISymbol symbol)
+            private static bool FieldIsReadOnly(ISymbol symbol)
                 => symbol is IFieldSymbol field && field.IsReadOnly;
 
-            private int GetStatementIndex(ChildSyntaxList children, SyntaxNode statement)
+            private static int GetStatementIndex(ChildSyntaxList children, SyntaxNode statement)
             {
                 var index = 0;
                 foreach (var child in children)

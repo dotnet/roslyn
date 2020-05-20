@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return newDocument.Project;
         }
 
-        private bool DoesNotAddReference(AddImportFixData fixData, ProjectId currentProjectId)
+        private static bool DoesNotAddReference(AddImportFixData fixData, ProjectId currentProjectId)
         {
             return (fixData.ProjectReferenceToAdd is null || fixData.ProjectReferenceToAdd == currentProjectId)
                 && (fixData.PortableExecutableReferenceProjectId is null || fixData.PortableExecutableReferenceProjectId == currentProjectId)
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 .ToImmutableArray();
         }
 
-        private async Task<ImmutableArray<AddImportFixData>> GetUnambiguousFixesAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<AddImportFixData>> GetUnambiguousFixesAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var symbolSearchService = solution.Workspace.Services.GetService<ISymbolSearchService>();
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return newDocument;
         }
 
-        private async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, ISyntaxFormattingService languageFormatter, OptionSet optionSet, CancellationToken cancellationToken)
+        private static async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, ISyntaxFormattingService languageFormatter, OptionSet optionSet, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return document.WithText(newText);
         }
 
-        private async Task<(ProjectChanges, IEnumerable<TextChange>)> GetChangesForCodeActionAsync(
+        private static async Task<(ProjectChanges, IEnumerable<TextChange>)> GetChangesForCodeActionAsync(
             Document document,
             CodeAction codeAction,
             ProgressTracker progressTracker,

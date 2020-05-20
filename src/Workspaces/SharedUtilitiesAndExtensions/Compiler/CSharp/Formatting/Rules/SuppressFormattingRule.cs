@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
         }
 
-        private void AddFormatSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddFormatSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             if (!node.ContainsDirectives)
             {
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private InitializerExpressionSyntax? GetInitializerNode(SyntaxNode node)
+        private static InitializerExpressionSyntax? GetInitializerNode(SyntaxNode node)
             => node switch
             {
                 ObjectCreationExpressionSyntax objectCreationNode => objectCreationNode.Initializer,

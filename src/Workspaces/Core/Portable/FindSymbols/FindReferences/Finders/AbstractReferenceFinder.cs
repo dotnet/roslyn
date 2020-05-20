@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return name.TryGetWithoutAttributeSuffix(syntaxFacts.IsCaseSensitive, out result);
         }
 
-        protected async Task<ImmutableArray<Document>> FindDocumentsAsync(Project project, IImmutableSet<Document> scope, Func<Document, CancellationToken, Task<bool>> predicateAsync, CancellationToken cancellationToken)
+        protected static async Task<ImmutableArray<Document>> FindDocumentsAsync(Project project, IImmutableSet<Document> scope, Func<Document, CancellationToken, Task<bool>> predicateAsync, CancellationToken cancellationToken)
         {
             // special case for HR
             if (scope != null && scope.Count == 1)
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private delegate void CollectMatchingReferences(ISymbol symbol, SyntaxNode node,
             ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations);
 
-        private async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        private static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol,
             Document document,
             Func<SyntaxTreeIndex, bool> isRelevantDocument,
@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 findParentNode: null, cancellationToken: cancellationToken);
         }
 
-        protected ImmutableArray<FinderLocation> FindReferencesInTokens(
+        protected static ImmutableArray<FinderLocation> FindReferencesInTokens(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,

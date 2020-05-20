@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Get the proper start position based on the span marker type.
         /// </summary>
-        private int GetPreviousTokenStartPosition(SpanMarkerType spanMarkerType, SyntaxToken previousToken)
+        private static int GetPreviousTokenStartPosition(SpanMarkerType spanMarkerType, SyntaxToken previousToken)
         {
             Contract.ThrowIfTrue(spanMarkerType == SpanMarkerType.EndOfFile);
             Contract.ThrowIfTrue(previousToken.RawKind == 0);
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Get the proper end position based on the span marker type.
         /// </summary>
-        private int GetNextTokenEndPosition(SpanMarkerType spanMarkerType, SyntaxToken nextToken)
+        private static int GetNextTokenEndPosition(SpanMarkerType spanMarkerType, SyntaxToken nextToken)
         {
             Contract.ThrowIfTrue(spanMarkerType == SpanMarkerType.BeginningOfFile);
             Contract.ThrowIfTrue(nextToken.RawKind == 0);
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Find closest token (including one in structured trivia) right of given position
         /// </summary>
-        private SyntaxToken FindTokenOnRightOfPosition(ISyntaxFactsService syntaxFactsService, SyntaxNode root, int position)
+        private static SyntaxToken FindTokenOnRightOfPosition(ISyntaxFactsService syntaxFactsService, SyntaxNode root, int position)
         {
             var token = syntaxFactsService.FindTokenOnRightOfPosition(root, position, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
             if (token.RawKind == 0)
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Find closest token (including one in structured trivia) left of given position
         /// </summary>
-        private SyntaxToken FindTokenOnLeftOfPosition(ISyntaxFactsService syntaxFactsService, SyntaxNode root, int position)
+        private static SyntaxToken FindTokenOnLeftOfPosition(ISyntaxFactsService syntaxFactsService, SyntaxNode root, int position)
         {
             // find token on left
             var token = syntaxFactsService.FindTokenOnLeftOfPosition(root, position, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             return token;
         }
 
-        private bool CleanupWholeNode(List<(SyntaxAnnotation previous, SyntaxAnnotation next)> annotations)
+        private static bool CleanupWholeNode(List<(SyntaxAnnotation previous, SyntaxAnnotation next)> annotations)
         {
             if (annotations.Count != 1)
             {
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             return startMarker.Type == SpanMarkerType.BeginningOfFile && endMarker.Type == SpanMarkerType.EndOfFile;
         }
 
-        private bool CleanupWholeNode(TextSpan nodeSpan, ImmutableArray<TextSpan> spans)
+        private static bool CleanupWholeNode(TextSpan nodeSpan, ImmutableArray<TextSpan> spans)
         {
             if (spans.Length > 1)
             {
@@ -592,13 +592,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private string GetCodeCleanerTypeName(ICodeCleanupProvider codeCleaner)
             => codeCleaner.ToString();
 
-        private SyntaxNode InjectAnnotations(SyntaxNode node, Dictionary<SyntaxToken, List<SyntaxAnnotation>> map)
+        private static SyntaxNode InjectAnnotations(SyntaxNode node, Dictionary<SyntaxToken, List<SyntaxAnnotation>> map)
         {
             var tokenMap = map.ToDictionary(p => p.Key, p => p.Value);
             return node.ReplaceTokens(tokenMap.Keys, (o, n) => o.WithAdditionalAnnotations(tokenMap[o].ToArray()));
         }
 
-        private bool TryCreateTextSpan(int start, int end, out TextSpan span)
+        private static bool TryCreateTextSpan(int start, int end, out TextSpan span)
         {
             span = default;
 

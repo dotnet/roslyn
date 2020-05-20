@@ -171,10 +171,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return statements;
             }
 
-            private bool IsExpressionBodiedMember(SyntaxNode node)
+            private static bool IsExpressionBodiedMember(SyntaxNode node)
                 => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;
 
-            private bool IsExpressionBodiedAccessor(SyntaxNode node)
+            private static bool IsExpressionBodiedAccessor(SyntaxNode node)
                 => node is AccessorDeclarationSyntax accessor && accessor.ExpressionBody != null;
 
             private SimpleNameSyntax CreateMethodNameForInvocation()
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return statements;
             }
 
-            private OperationStatus CheckActiveStatements(IEnumerable<StatementSyntax> statements)
+            private static OperationStatus CheckActiveStatements(IEnumerable<StatementSyntax> statements)
             {
                 var count = statements.Count();
                 if (count == 0)
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             /// which needs to be removed, we will annotate it as a conflict, since we don't have
             /// a better refactoring.
             /// </summary>
-            private StatementSyntax FixDeclarationExpressionsAndDeclarationPatterns(StatementSyntax statement,
+            private static StatementSyntax FixDeclarationExpressionsAndDeclarationPatterns(StatementSyntax statement,
                 HashSet<SyntaxAnnotation> variablesToRemove)
             {
                 var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return declStatements.Concat(statements);
             }
 
-            private ExpressionSyntax CreateAssignmentExpression(SyntaxToken identifier, ExpressionSyntax rvalue)
+            private static ExpressionSyntax CreateAssignmentExpression(SyntaxToken identifier, ExpressionSyntax rvalue)
             {
                 return SyntaxFactory.AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,

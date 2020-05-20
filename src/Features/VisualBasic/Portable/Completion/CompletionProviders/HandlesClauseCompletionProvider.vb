@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return symbols.WhereAsArray(Function(s) IsWithEvents(s))
         End Function
 
-        Private Function LookUpEventsAsync(
+        Private Shared Function LookUpEventsAsync(
             context As VisualBasicSyntaxContext,
             token As SyntaxToken,
             cancellationToken As CancellationToken
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ImmutableArray(Of ISymbol).CastUp(result)
         End Function
 
-        Private Function IsWithEvents(s As ISymbol) As Boolean
+        Private Shared Function IsWithEvents(s As ISymbol) As Boolean
             Dim [property] = TryCast(s, IPropertySymbol)
             If [property] IsNot Nothing Then
                 Return [property].IsWithEvents

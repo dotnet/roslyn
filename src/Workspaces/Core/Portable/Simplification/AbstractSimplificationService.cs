@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         // find any namespace imports / using directives marked for simplification in the specified spans
         // and add removeIfUnused annotation
-        private SyntaxNode PrepareNamespaceImportsForRemovalIfUnused(
+        private static SyntaxNode PrepareNamespaceImportsForRemovalIfUnused(
             Document document,
             SyntaxNode root,
             SyntaxAnnotation removeIfUnusedAnnotation,

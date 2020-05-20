@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return (lrdb / rowKNeighborsIndices.Count) / lrda;
             }
 
-            private double GetReachabilityDistance(
+            private static double GetReachabilityDistance(
                 List<List<double>> allDistances, List<double> kDistances, int analyzerIndex1, int analyzerIndex2)
             {
                 return Math.Max(allDistances[analyzerIndex1][analyzerIndex2], kDistances[analyzerIndex2]);

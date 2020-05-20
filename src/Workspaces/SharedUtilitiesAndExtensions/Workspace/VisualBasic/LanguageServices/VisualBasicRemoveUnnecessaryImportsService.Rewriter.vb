@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 Return compilationUnit.WithImports(newImports)
             End Function
 
-            Private Function ShouldPreserveTrivia(trivia As SyntaxTriviaList) As Boolean
+            Private Shared Function ShouldPreserveTrivia(trivia As SyntaxTriviaList) As Boolean
                 Return trivia.Any(Function(t) Not t.IsWhitespaceOrEndOfLine())
             End Function
 

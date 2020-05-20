@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             return default;
         }
 
-        private bool IsInDirective(SyntaxNode node)
+        private static bool IsInDirective(SyntaxNode node)
         {
             while (node != null)
             {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             return false;
         }
 
-        private VirtualCharSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
+        private static VirtualCharSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
             => TryConvertSimpleDoubleQuoteString(token, startDelimiter, endDelimiter, escapeBraces);
 
         private VirtualCharSequence TryConvertStringToVirtualChars(
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             return false;
         }
 
-        private bool TryAddSingleCharacterEscape(
+        private static bool TryAddSingleCharacterEscape(
             ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
         {
             // Copied from Lexer.ScanEscapeSequence.
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             return true;
         }
 
-        private bool TryAddMultiCharacterEscape(
+        private static bool TryAddMultiCharacterEscape(
             ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
         {
             // Copied from Lexer.ScanEscapeSequence.
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             }
         }
 
-        private bool TryAddMultiCharacterEscape(
+        private static bool TryAddMultiCharacterEscape(
             ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index, char character)
         {
             var startIndex = index;

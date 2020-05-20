@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                                            cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Function GetControlFlowSpan(selectionInfo As SelectionInfo) As TextSpan
+        Private Shared Function GetControlFlowSpan(selectionInfo As SelectionInfo) As TextSpan
             Return TextSpan.FromBounds(selectionInfo.FirstTokenInFinalSpan.SpanStart, selectionInfo.LastTokenInFinalSpan.Span.End)
         End Function
 
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return clone
         End Function
 
-        Private Function SelectionChanged(selectionInfo As SelectionInfo) As Boolean
+        Private Shared Function SelectionChanged(selectionInfo As SelectionInfo) As Boolean
             ' get final token that doesn't pointing to empty token
             Dim finalFirstToken = If(selectionInfo.FirstTokenInFinalSpan.Width = 0,
                                      selectionInfo.FirstTokenInFinalSpan.GetNextToken(),
@@ -227,11 +227,11 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             Return GetCommonRoot(selection.FirstTokenInFinalSpan, selection.LastTokenInFinalSpan)
         End Function
 
-        Private Function GetCommonRoot(token1 As SyntaxToken, token2 As SyntaxToken) As SyntaxNode
+        Private Shared Function GetCommonRoot(token1 As SyntaxToken, token2 As SyntaxToken) As SyntaxNode
             Return token1.GetCommonRoot(token2)
         End Function
 
-        Private Function FixUpFinalTokensAndAssignFinalSpan(selectionInfo As SelectionInfo,
+        Private Shared Function FixUpFinalTokensAndAssignFinalSpan(selectionInfo As SelectionInfo,
                                                             root As SyntaxNode,
                                                             cancellationToken As CancellationToken) As SelectionInfo
             If selectionInfo.Status.Failed() Then
@@ -256,7 +256,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             Return clone
         End Function
 
-        Private Function AdjustFinalTokensIfNextStatement(selectionInfo As SelectionInfo,
+        Private Shared Function AdjustFinalTokensIfNextStatement(selectionInfo As SelectionInfo,
                                                           semanticModel As SemanticModel,
                                                           cancellationToken As CancellationToken) As SelectionInfo
             If selectionInfo.Status.Failed() Then
@@ -351,7 +351,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             Return clone
         End Function
 
-        Private Function AssignInitialFinalTokens(selectionInfo As SelectionInfo, root As SyntaxNode, cancellationToken As CancellationToken) As SelectionInfo
+        Private Shared Function AssignInitialFinalTokens(selectionInfo As SelectionInfo, root As SyntaxNode, cancellationToken As CancellationToken) As SelectionInfo
             If selectionInfo.Status.Failed() Then
                 Return selectionInfo
             End If

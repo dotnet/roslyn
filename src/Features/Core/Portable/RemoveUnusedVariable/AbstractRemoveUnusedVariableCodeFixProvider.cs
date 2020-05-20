@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             editor.RemoveNode(node, removeOptions);
         }
 
-        private SyntaxRemoveOptions CreateSyntaxRemoveOptions(TLocalDeclarationStatement localDeclaration, ISyntaxFactsService syntaxFacts)
+        private static SyntaxRemoveOptions CreateSyntaxRemoveOptions(TLocalDeclarationStatement localDeclaration, ISyntaxFactsService syntaxFacts)
         {
             var removeOptions = SyntaxGenerator.DefaultRemoveOptions;
 

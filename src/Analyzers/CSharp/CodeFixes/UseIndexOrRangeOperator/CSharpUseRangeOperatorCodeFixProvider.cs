@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             }
         }
 
-        private RangeExpressionSyntax CreateRangeExpression(Result result, SyntaxGenerator generator)
+        private static RangeExpressionSyntax CreateRangeExpression(Result result, SyntaxGenerator generator)
             => result.Kind switch
             {
                 ResultKind.Computed => CreateComputedRange(result),
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
-        private RangeExpressionSyntax CreateComputedRange(Result result)
+        private static RangeExpressionSyntax CreateComputedRange(Result result)
         {
             // We have enough information now to generate `start..end`.  However, this will often
             // not be what the user wants.  For example, generating `start..expr.Length` is not as

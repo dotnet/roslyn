@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             };
         }
 
-        private SyntaxNode? GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)
+        private static SyntaxNode? GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)
         {
             var matchKinds = restrictToDeclarations
                 ? _declarationKinds
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return null;
         }
 
-        private bool InSymbolHeader(SyntaxNode matchingNode, int position)
+        private static bool InSymbolHeader(SyntaxNode matchingNode, int position)
         {
             // Caret has to be after the attributes if the symbol has any.
             var lastAttributes = matchingNode.ChildNodes().LastOrDefault(n => n is AttributeListSyntax);
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return node.AncestorsAndSelf().Any(n => n == nodeContainingOriginal) ? matchingNode : null;
         }
 
-        private SyntaxNode? GetNodeContainingTargetNode(SyntaxNode matchingNode)
+        private static SyntaxNode? GetNodeContainingTargetNode(SyntaxNode matchingNode)
         {
             switch (matchingNode.Kind())
             {
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return GetPermutedDocCommentTrivia(document, node, permutedParamNodes);
         }
 
-        private ImmutableArray<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
+        private static ImmutableArray<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
         {
             // Only reorder if count and order match originally.
             var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();

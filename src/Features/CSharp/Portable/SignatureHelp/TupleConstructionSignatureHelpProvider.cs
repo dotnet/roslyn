@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     descriptionParts: null);
         }
 
-        private IEnumerable<SignatureHelpParameter> ConvertTupleMembers(INamedTypeSymbol tupleType, SemanticModel semanticModel, int position)
+        private static IEnumerable<SignatureHelpParameter> ConvertTupleMembers(INamedTypeSymbol tupleType, SemanticModel semanticModel, int position)
         {
             var spacePart = Space();
             var result = new List<SignatureHelpParameter>();

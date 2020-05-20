@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             => symbols.Length > 0
                 && !ErrorVisitor.ContainsError(symbols.FirstOrDefault());
 
-        private async Task<SyntaxToken> FindTokenInLinkedDocumentAsync(
+        private static async Task<SyntaxToken> FindTokenInLinkedDocumentAsync(
             SyntaxToken token,
             Document linkedDocument,
             CancellationToken cancellationToken)
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return QuickInfoItem.Create(token.Span, tags, sections.ToImmutable());
         }
 
-        private ImmutableArray<TaggedText> GetDocumentationContent(
+        private static ImmutableArray<TaggedText> GetDocumentationContent(
             ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return default;
         }
 
-        private ImmutableArray<TaggedText> GetRemarksDocumentationContent(
+        private static ImmutableArray<TaggedText> GetRemarksDocumentationContent(
             Workspace workspace,
             ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return default;
         }
 
-        private ImmutableArray<TaggedText> GetReturnsDocumentationContent(
+        private static ImmutableArray<TaggedText> GetReturnsDocumentationContent(
             ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return default;
         }
 
-        private ImmutableArray<TaggedText> GetValueDocumentationContent(
+        private static ImmutableArray<TaggedText> GetValueDocumentationContent(
             ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,

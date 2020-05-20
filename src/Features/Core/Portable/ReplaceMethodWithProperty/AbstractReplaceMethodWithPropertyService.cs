@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
     internal abstract class AbstractReplaceMethodWithPropertyService<TMethodDeclarationSyntax> where TMethodDeclarationSyntax : SyntaxNode
     {
-        public async Task<SyntaxNode> GetMethodDeclarationAsync(CodeRefactoringContext context)
+        public static async Task<SyntaxNode> GetMethodDeclarationAsync(CodeRefactoringContext context)
             => await context.TryGetRelevantNodeAsync<TMethodDeclarationSyntax>().ConfigureAwait(false);
 
         protected static string GetWarning(GetAndSetMethods getAndSetMethods)

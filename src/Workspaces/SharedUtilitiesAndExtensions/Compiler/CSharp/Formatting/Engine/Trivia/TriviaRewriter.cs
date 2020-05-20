@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return TextSpan.FromBounds(pair.Item1.Span.End, pair.Item2.SpanStart);
         }
 
-        private int GetFirstEndOfLineIndexOrRightBeforeComment(SyntaxTriviaList triviaList)
+        private static int GetFirstEndOfLineIndexOrRightBeforeComment(SyntaxTriviaList triviaList)
         {
             for (var i = 0; i < triviaList.Count; i++)
             {

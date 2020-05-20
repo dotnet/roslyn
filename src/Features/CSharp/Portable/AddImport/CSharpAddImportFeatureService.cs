@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return semanticModel.GetTypeInfo(fromClause.Expression, cancellationToken).Type;
         }
 
-        private bool InfoBoundSuccessfully(SymbolInfo symbolInfo)
+        private static bool InfoBoundSuccessfully(SymbolInfo symbolInfo)
             => InfoBoundSuccessfully(symbolInfo.Symbol);
 
         private bool InfoBoundSuccessfully(QueryClauseInfo semanticInfo)
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 : (usingDirectiveString, hasExistingUsing);
         }
 
-        private string GetUsingDirectiveString(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
+        private static string GetUsingDirectiveString(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
         {
             var displayString = namespaceOrTypeSymbol.ToDisplayString();
             return namespaceOrTypeSymbol.IsKind(SymbolKind.Namespace)
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return nameSyntax;
         }
 
-        private bool ConflictsWithExistingMember(
+        private static bool ConflictsWithExistingMember(
             SemanticModel semanticModel,
             NamespaceDeclarationSyntax namespaceToAddTo,
             string rightOfAliasName)

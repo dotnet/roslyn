@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return OperationStatus.Succeeded;
             }
 
-            private Task<SemanticDocument> CreateDocumentWithAnnotationsAsync(SemanticDocument document, IList<VariableInfo> variables, CancellationToken cancellationToken)
+            private static Task<SemanticDocument> CreateDocumentWithAnnotationsAsync(SemanticDocument document, IList<VariableInfo> variables, CancellationToken cancellationToken)
             {
                 var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>(variables.Count);
                 variables.Do(v => v.AddIdentifierTokenAnnotationPair(annotations, cancellationToken));
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return symbolMap;
             }
 
-            private bool ContainsVariableUnsafeAddressTaken(DataFlowAnalysis dataFlowAnalysisData, IEnumerable<ISymbol> symbols)
+            private static bool ContainsVariableUnsafeAddressTaken(DataFlowAnalysis dataFlowAnalysisData, IEnumerable<ISymbol> symbols)
             {
                 // check whether the selection contains "&" over a symbol exist
                 var map = new HashSet<ISymbol>(dataFlowAnalysisData.UnsafeAddressTaken);
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            private void AddVariableToMap(IDictionary<ISymbol, VariableInfo> variableInfoMap, ISymbol localOrParameter, VariableInfo variableInfo)
+            private static void AddVariableToMap(IDictionary<ISymbol, VariableInfo> variableInfoMap, ISymbol localOrParameter, VariableInfo variableInfo)
                 => variableInfoMap.Add(localOrParameter, variableInfo);
 
             private bool TryGetVariableStyle(
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return type.OriginalDefinition.SpecialType == SpecialType.None && !WellKnownFrameworkValueType(compilation, type);
             }
 
-            private bool WellKnownFrameworkValueType(Compilation compilation, ITypeSymbol type)
+            private static bool WellKnownFrameworkValueType(Compilation compilation, ITypeSymbol type)
             {
                 if (!type.IsValueType)
                 {
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                 };
 
-            protected VariableStyle AlwaysReturn(VariableStyle style)
+            protected static VariableStyle AlwaysReturn(VariableStyle style)
             {
                 if (style == VariableStyle.InputOnly)
                 {
@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return parameter.IsThis;
             }
 
-            private bool IsInteractiveSynthesizedParameter(ISymbol localOrParameter)
+            private static bool IsInteractiveSynthesizedParameter(ISymbol localOrParameter)
             {
                 if (!(localOrParameter is IParameterSymbol parameter))
                 {
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            private void AddTypeParameterToMap(ITypeParameterSymbol typeParameter, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static void AddTypeParameterToMap(ITypeParameterSymbol typeParameter, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 if (typeParameter == null ||
                     typeParameter.DeclaringMethod == null ||
@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            private void AppendMethodTypeParameterUsedDirectly(IDictionary<ISymbol, List<SyntaxToken>> symbolMap, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static void AppendMethodTypeParameterUsedDirectly(IDictionary<ISymbol, List<SyntaxToken>> symbolMap, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.TypeParameter))
                 {
@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return OperationStatus.Succeeded;
             }
 
-            protected VariableInfo CreateFromSymbolCommon<T>(
+            protected static VariableInfo CreateFromSymbolCommon<T>(
                 Compilation compilation,
                 ISymbol symbol,
                 ITypeSymbol type,

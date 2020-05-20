@@ -50,14 +50,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return item
         End Function
 
-        Private Function GetIndexerPreambleParts(symbol As IPropertySymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+        Private Shared Function GetIndexerPreambleParts(symbol As IPropertySymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
             result.AddRange(symbol.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
             Return result
         End Function
 
-        Private Function GetIndexerPostambleParts(symbol As IPropertySymbol,
+        Private Shared Function GetIndexerPostambleParts(symbol As IPropertySymbol,
                                                   semanticModel As SemanticModel,
                                                   position As Integer) As IList(Of SymbolDisplayPart)
             Dim parts = New List(Of SymbolDisplayPart)

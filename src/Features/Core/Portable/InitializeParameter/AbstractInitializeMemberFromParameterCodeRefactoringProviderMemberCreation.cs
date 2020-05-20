@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
-        private ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)
+        private static ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)
         {
             using var _ = ArrayBuilder<(IParameterSymbol, bool before)>.GetInstance(out var siblings);
 
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private IOperation? TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
             => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatementOpt, out _);
 
-        private IOperation? TryFindFieldOrPropertyAssignmentStatement(
+        private static IOperation? TryFindFieldOrPropertyAssignmentStatement(
             IParameterSymbol parameter, IBlockOperation? blockStatementOpt, out ISymbol? fieldOrProperty)
         {
             if (blockStatementOpt != null)
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return null;
         }
 
-        private bool ContainsMemberAssignment(
+        private static bool ContainsMemberAssignment(
             IBlockOperation? blockStatementOpt, ISymbol member)
         {
             if (blockStatementOpt != null)

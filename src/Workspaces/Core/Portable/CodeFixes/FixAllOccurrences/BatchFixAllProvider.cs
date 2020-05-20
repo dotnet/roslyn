@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return documentIdToFinalText;
         }
 
-        private async Task GetFinalDocumentTextAsync(
+        private static async Task GetFinalDocumentTextAsync(
             Solution oldSolution,
             Dictionary<CodeAction, int> codeActionToDiagnosticLocation,
             ConcurrentDictionary<DocumentId, SourceText> documentIdToFinalText,
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static readonly Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
             _ => new ConcurrentBag<(CodeAction, Document)>();
 
-        private async Task GetChangedDocumentsAsync(
+        private static async Task GetChangedDocumentsAsync(
             Solution oldSolution,
             ConcurrentDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>> documentIdToChangedDocuments,
             CodeAction codeAction,

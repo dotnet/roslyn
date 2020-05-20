@@ -40,11 +40,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 Not IsInImplementsClause(node)
         End Function
 
-        Private Function IsInImplementsClause(node As SyntaxNode) As Boolean
+        Private Shared Function IsInImplementsClause(node As SyntaxNode) As Boolean
             Return node.AncestorsAndSelf.Where(Function(n) n.IsKind(SyntaxKind.ImplementsClause)).Where(Function(n) n.Span.Contains(node.Span)).Any
         End Function
 
-        Private Function IsInMemberAccessExpression(node As SyntaxNode) As Boolean
+        Private Shared Function IsInMemberAccessExpression(node As SyntaxNode) As Boolean
             Return node.AncestorsAndSelf.Where(Function(n) n.IsKind(SyntaxKind.SimpleMemberAccessExpression)).Where(Function(n) n.Span.Contains(node.Span)).Any
         End Function
 
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             Return True
         End Function
 
-        Private Function GenerateMethodSymbol(typeToGenerateIn As INamedTypeSymbol, parameterSymbol As INamedTypeSymbol) As IMethodSymbol
+        Private Shared Function GenerateMethodSymbol(typeToGenerateIn As INamedTypeSymbol, parameterSymbol As INamedTypeSymbol) As IMethodSymbol
             If typeToGenerateIn.IsGenericType Then
                 typeToGenerateIn = typeToGenerateIn.ConstructUnboundGenericType.ConstructedFrom
             End If

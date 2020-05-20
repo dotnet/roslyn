@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class FindReferencesTests : ServicesTestBase
     {
-        private Solution CreateSolution()
+        private static Solution CreateSolution()
             => new AdhocWorkspace().CurrentSolution;
 
         private Solution GetSingleDocumentSolution(string sourceText)

@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                    text);
         }
 
-        private TextSpan GetControlFlowSpan(SelectionInfo selectionInfo)
+        private static TextSpan GetControlFlowSpan(SelectionInfo selectionInfo)
             => TextSpan.FromBounds(selectionInfo.FirstTokenInFinalSpan.SpanStart, selectionInfo.LastTokenInFinalSpan.Span.End);
 
         private SelectionInfo AdjustFinalTokensBasedOnContext(
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 .With(s => s.LastTokenInFinalSpan = statement2.GetLastToken(includeZeroWidth: true));
         }
 
-        private SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo, SourceText text)
+        private static SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo, SourceText text)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
             {

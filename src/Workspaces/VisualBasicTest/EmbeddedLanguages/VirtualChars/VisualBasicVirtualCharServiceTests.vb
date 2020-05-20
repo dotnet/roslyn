@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
     Public Class VisualBasicVirtualCharServiceTests
         Private Const _statementPrefix As String = "dim v = "
 
-        Private Function GetStringToken(text As String) As SyntaxToken
+        Private Shared Function GetStringToken(text As String) As SyntaxToken
             Dim statement = _statementPrefix + text
             Dim parsedStatement = DirectCast(SyntaxFactory.ParseExecutableStatement(statement), LocalDeclarationStatementSyntax)
             Dim expression = parsedStatement.Declarators(0).Initializer.Value
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
             Return $"[{ConvertToString(ChrW(vc.Rune.Value))},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]"
         End Function
 
-        Private Function ConvertToString(c As Char) As String
+        Private Shared Function ConvertToString(c As Char) As String
             Return "'" + c + "'"
         End Function
     End Class

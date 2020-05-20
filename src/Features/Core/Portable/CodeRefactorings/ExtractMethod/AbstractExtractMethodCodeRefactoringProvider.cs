@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             return null;
         }
 
-        private async Task<Document> AddRenameAnnotationAsync(Document document, SyntaxToken invocationNameToken, CancellationToken cancellationToken)
+        private static async Task<Document> AddRenameAnnotationAsync(Document document, SyntaxToken invocationNameToken, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

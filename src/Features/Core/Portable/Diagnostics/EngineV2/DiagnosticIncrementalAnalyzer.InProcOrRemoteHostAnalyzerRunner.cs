@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result.HasValue ? result.Value : DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
             }
 
-            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
+            private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
             {
                 // handling of cancellation and exception
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);

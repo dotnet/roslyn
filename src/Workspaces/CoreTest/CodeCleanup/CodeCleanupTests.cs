@@ -310,7 +310,7 @@ End Module";
             VerifyRange(codeWithoutMarker, ImmutableArray.Create(transformer), namedSpans["b"], ref expectedResult, language);
         }
 
-        private void VerifyRange(string code, ImmutableArray<ICodeCleanupProvider> codeCleanups, ImmutableArray<TextSpan> spans, ref IEnumerable<TextSpan> expectedResult, string language)
+        private static void VerifyRange(string code, ImmutableArray<ICodeCleanupProvider> codeCleanups, ImmutableArray<TextSpan> spans, ref IEnumerable<TextSpan> expectedResult, string language)
         {
             var result = (IEnumerable<TextSpan>)null;
             var spanCodeCleanup = new SimpleCodeCleanupProvider("TestCodeCleanup", (d, s, c) =>

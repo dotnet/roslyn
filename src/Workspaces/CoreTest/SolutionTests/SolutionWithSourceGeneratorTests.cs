@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             private void AddSourceForAdditionalFile(SourceGeneratorContext context, AdditionalText file) => context.AddSource(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
 
-            private string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path)}.generated";
+            private static string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path)}.generated";
         }
     }
 }

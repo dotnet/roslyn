@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        private bool TryGetProvider(
+        private static bool TryGetProvider(
             string kind,
             ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> lazyProviders,
             out Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata> lazyProvider)

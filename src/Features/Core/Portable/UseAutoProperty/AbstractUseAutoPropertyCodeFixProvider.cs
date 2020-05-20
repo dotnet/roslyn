@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
         }
 
-        private SyntaxRemoveOptions CreateSyntaxRemoveOptions(SyntaxNode nodeToRemove)
+        private static SyntaxRemoveOptions CreateSyntaxRemoveOptions(SyntaxNode nodeToRemove)
         {
             var syntaxRemoveOptions = SyntaxGenerator.DefaultRemoveOptions;
             var hasDirective = nodeToRemove.GetLeadingTrivia().Any(t => t.IsDirective);
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return syntaxRemoveOptions;
         }
 
-        private bool WillRemoveFirstFieldInTypeDirectlyAboveProperty(
+        private static bool WillRemoveFirstFieldInTypeDirectlyAboveProperty(
             ISyntaxFactsService syntaxFacts, TPropertyDeclaration property, SyntaxNode fieldToRemove)
         {
             if (fieldToRemove.Parent == property.Parent &&
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return false;
         }
 
-        private bool CanEditDocument(
+        private static bool CanEditDocument(
             Solution solution, SyntaxTree sourceTree,
             HashSet<DocumentId> linkedDocuments,
             Dictionary<SyntaxTree, bool> canEdit)

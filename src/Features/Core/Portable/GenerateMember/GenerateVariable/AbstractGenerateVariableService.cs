@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             }
         }
 
-        private void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
         {
             result.Add(new GenerateVariableCodeAction(
                 document, state, generateProperty: false, isReadonly: false, isConstant: false, refKind: RefKind.None));
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             }
         }
 
-        private void AddParameterCodeActions(ArrayBuilder<CodeAction> result, Document document, State state)
+        private static void AddParameterCodeActions(ArrayBuilder<CodeAction> result, Document document, State state)
         {
             if (state.CanGenerateParameter())
             {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             }
         }
 
-        private RefKind GetRefKindFromContext(State state)
+        private static RefKind GetRefKindFromContext(State state)
         {
             if (state.IsInRefContext)
             {

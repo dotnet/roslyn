@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
         }
 
-        private Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+        private static Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {
             var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
 

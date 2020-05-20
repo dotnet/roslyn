@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 return base.DefaultVisit(node);
             }
 
-            private void ProcessUsings(
+            private static void ProcessUsings(
                 SyntaxList<UsingDirectiveSyntax> usings,
                 ISet<UsingDirectiveSyntax> usingsToRemove,
                 out SyntaxList<UsingDirectiveSyntax> finalUsings,
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 finalUsings = currentUsings.WhereNotNull().ToSyntaxList();
             }
 
-            private bool ShouldPreserveTrivia(SyntaxTriviaList trivia)
+            private static bool ShouldPreserveTrivia(SyntaxTriviaList trivia)
                 => trivia.Any(t => !t.IsWhitespaceOrEndOfLine());
 
             private ISet<UsingDirectiveSyntax> GetUsingsToRemove(

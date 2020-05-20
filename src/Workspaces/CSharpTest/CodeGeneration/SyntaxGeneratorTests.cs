@@ -34,21 +34,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private SyntaxGenerator Generator
             => _generator ??= SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
-        public Compilation Compile(string code)
+        public static Compilation Compile(string code)
         {
             return CSharpCompilation.Create("test")
                 .AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib)
                 .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code));
         }
 
-        private void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
+        private static void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom<TSyntax>(node);
             var normalized = node.NormalizeWhitespace().ToFullString();
             Assert.Equal(expectedText, normalized);
         }
 
-        private void VerifySyntaxRaw<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
+        private static void VerifySyntaxRaw<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom<TSyntax>(node);
             var normalized = node.ToFullString();

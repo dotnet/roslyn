@@ -70,7 +70,7 @@ End Class
             AssertFormat(expected, tree);
         }
 
-        private void AssertFormat(string expected, SyntaxTree tree)
+        private static void AssertFormat(string expected, SyntaxTree tree)
         {
             using var workspace = new AdhocWorkspace();
             var formattedRoot = Formatter.Format(tree.GetRoot(), workspace);

@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 HasAnyMatchingSetMethods(property, name);
         }
 
-        private bool HasAnyMatchingGetMethods(IPropertySymbol property, string name)
+        private static bool HasAnyMatchingGetMethods(IPropertySymbol property, string name)
         {
             return property.GetMethod != null &&
                    property.ContainingType.GetMembers(GetPrefix + name)
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                                           .Any(m => m.Parameters.Length == 0);
         }
 
-        private bool HasAnyMatchingSetMethods(IPropertySymbol property, string name)
+        private static bool HasAnyMatchingSetMethods(IPropertySymbol property, string name)
         {
             var comparer = SymbolEquivalenceComparer.Instance.SignatureTypeEquivalenceComparer;
             return property.SetMethod != null &&
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter - Method not completely implemented.
-        private string GetDefinitionIssues(IEnumerable<ReferencedSymbol> getMethodReferences)
+        private static string GetDefinitionIssues(IEnumerable<ReferencedSymbol> getMethodReferences)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             // TODO: add things to be concerned about here.  For example:
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             return updatedSolution;
         }
-        private async Task<Solution> UpdateReferencesInDocumentAsync(
+        private static async Task<Solution> UpdateReferencesInDocumentAsync(
             Solution updatedSolution,
             Document originalDocument,
             IEnumerable<(IPropertySymbol property, ReferenceLocation location)> references,
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             return updatedSolution;
         }
 
-        private async Task<MultiDictionary<DocumentId, IPropertySymbol>> GetDefinitionsByDocumentIdAsync(
+        private static async Task<MultiDictionary<DocumentId, IPropertySymbol>> GetDefinitionsByDocumentIdAsync(
            Solution originalSolution,
            IEnumerable<ReferencedSymbol> referencedSymbols,
            CancellationToken cancellationToken)
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             return result;
         }
 
-        private async Task<SyntaxNode> GetPropertyDeclarationAsync(
+        private static async Task<SyntaxNode> GetPropertyDeclarationAsync(
             IPropertySymbol property, CancellationToken cancellationToken)
         {
             if (property == null)

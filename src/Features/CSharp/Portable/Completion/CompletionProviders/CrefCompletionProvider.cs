@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CharacterSetModificationRule s_WithoutOpenBrace = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '{');
         private static readonly CharacterSetModificationRule s_WithoutOpenParen = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '(');
 
-        private CompletionItemRules GetRules(string displayText)
+        private static CompletionItemRules GetRules(string displayText)
         {
             var commitRules = ImmutableArray<CharacterSetModificationRule>.Empty;
 

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             public override TypeSyntax DefaultVisit(ISymbol node)
                 => throw new NotImplementedException();
 
-            private TTypeSyntax AddInformationTo<TTypeSyntax>(TTypeSyntax syntax, ISymbol symbol)
+            private static TTypeSyntax AddInformationTo<TTypeSyntax>(TTypeSyntax syntax, ISymbol symbol)
                 where TTypeSyntax : TypeSyntax
             {
                 syntax = syntax.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker);
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            private TupleTypeSyntax CreateTupleTypeSyntax(INamedTypeSymbol symbol)
+            private static TupleTypeSyntax CreateTupleTypeSyntax(INamedTypeSymbol symbol)
             {
                 var list = new SeparatedSyntaxList<TupleElementSyntax>();
 
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             /// will then be trimmed off if possible by calls to 
             /// <see cref="Simplifier.ReduceAsync(Document, OptionSet, CancellationToken)"/>
             /// </summary>
-            private TypeSyntax AddGlobalAlias(INamespaceOrTypeSymbol symbol, SimpleNameSyntax syntax)
+            private static TypeSyntax AddGlobalAlias(INamespaceOrTypeSymbol symbol, SimpleNameSyntax syntax)
             {
                 return AddInformationTo(
                     SyntaxFactory.AliasQualifiedName(

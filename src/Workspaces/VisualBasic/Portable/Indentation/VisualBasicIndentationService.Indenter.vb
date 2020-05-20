@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return Nothing
         End Function
 
-        Private Function GetTokenOnLeft(trivia As SyntaxTrivia) As SyntaxToken
+        Private Shared Function GetTokenOnLeft(trivia As SyntaxTrivia) As SyntaxToken
             Dim token = trivia.Token
             If token.Span.End <= trivia.SpanStart AndAlso Not token.IsMissing Then
                 Return token
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return GetIndentationOfCurrentPosition(indenter, token, position, extraSpaces:=0)
         End Function
 
-        Private Function GetIndentationOfCurrentPosition(indenter As Indenter, token As SyntaxToken, position As Integer, extraSpaces As Integer) As IndentationResult
+        Private Shared Function GetIndentationOfCurrentPosition(indenter As Indenter, token As SyntaxToken, position As Integer, extraSpaces As Integer) As IndentationResult
             ' special case for multi-line string
             Dim containingToken = indenter.Tree.FindTokenOnLeftOfPosition(position, indenter.CancellationToken)
             If containingToken.IsKind(SyntaxKind.InterpolatedStringTextToken) OrElse
@@ -175,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return False
         End Function
 
-        Private Function IsCloseBraceOfInitializerSyntax(visibleTokenOnCurrentLine As SyntaxToken) As Boolean
+        Private Shared Function IsCloseBraceOfInitializerSyntax(visibleTokenOnCurrentLine As SyntaxToken) As Boolean
             If visibleTokenOnCurrentLine.IsKind(SyntaxKind.CloseBraceToken) Then
                 Dim visibleTokenOnCurrentLineParent = visibleTokenOnCurrentLine.Parent
                 If TypeOf visibleTokenOnCurrentLineParent Is ObjectCreationInitializerSyntax OrElse
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return False
         End Function
 
-        Private Function ContainingStatementHasDiagnostic(node As SyntaxNode) As Boolean
+        Private Shared Function ContainingStatementHasDiagnostic(node As SyntaxNode) As Boolean
             If node Is Nothing Then
                 Return False
             End If
@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return containingStatement.ContainsDiagnostics()
         End Function
 
-        Private Function GetIndentationFromOperationService(indenter As Indenter, token As SyntaxToken, position As Integer) As IndentationResult?
+        Private Shared Function GetIndentationFromOperationService(indenter As Indenter, token As SyntaxToken, position As Integer) As IndentationResult?
             ' check operation service to see whether we can determine indentation from it
             If token.Kind = SyntaxKind.None Then
                 Return Nothing
@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return GetIndentationFromTwoLines(indenter, firstTokenLine, currentTokenLine, token, position)
         End Function
 
-        Private Function IsCommaInParameters(token As SyntaxToken) As Boolean
+        Private Shared Function IsCommaInParameters(token As SyntaxToken) As Boolean
             Return token.Kind = SyntaxKind.CommaToken AndAlso
                 (TypeOf token.Parent Is ParameterListSyntax OrElse
                     TypeOf token.Parent Is ArgumentListSyntax OrElse
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return indenter.GetIndentationOfLine(secondLine)
         End Function
 
-        Private Function HasLinesBetween(lineNumber1 As Integer, lineNumber2 As Integer) As Boolean
+        Private Shared Function HasLinesBetween(lineNumber1 As Integer, lineNumber2 As Integer) As Boolean
             Return lineNumber1 + 1 < lineNumber2
         End Function
     End Class

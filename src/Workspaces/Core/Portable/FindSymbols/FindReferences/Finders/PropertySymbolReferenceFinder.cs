@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsIndexerMemberCref, cancellationToken);
         }
 
-        private async Task<ImmutableArray<FinderLocation>> FindIndexerReferencesAsync(
+        private static async Task<ImmutableArray<FinderLocation>> FindIndexerReferencesAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {

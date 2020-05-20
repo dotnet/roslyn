@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
         }
 
-        private ImmutableArray<CodeAction> CreateCodeActions(Document document, State state)
+        private static ImmutableArray<CodeAction> CreateCodeActions(Document document, State state)
         {
             var result = ArrayBuilder<CodeAction>.GetInstance();
             var containingType = state.ContainingType;

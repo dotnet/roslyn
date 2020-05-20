@@ -696,7 +696,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             verifyOptionValues(recoveredSolution.Options);
         }
 
-        private async Task<Solution> GetSolutionAsync(IRemotableDataService service, PinnedRemotableDataScope syncScope)
+        private static async Task<Solution> GetSolutionAsync(IRemotableDataService service, PinnedRemotableDataScope syncScope)
         {
             var (solutionInfo, _) = await new TestAssetProvider(service).CreateSolutionInfoAndOptionsAsync(syncScope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
 

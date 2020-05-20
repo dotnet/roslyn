@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static readonly MetadataReference s_mscorlib = TestReferences.NetFx.v4_0_30319.mscorlib;
         private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
-        private Solution CreateSolution()
+        private static Solution CreateSolution()
             => new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly))).CurrentSolution;
 
         private Solution CreateSolutionWithProjectAndDocuments()
@@ -1345,7 +1345,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                        .AddDocument(DocumentId.CreateNewId(pm2), "bar.vb", "Public Class Y\r\nInherits X\r\nEnd Class");
         }
 
-        private async Task ValidateSolutionAndCompilationsAsync(Solution solution)
+        private static async Task ValidateSolutionAndCompilationsAsync(Solution solution)
         {
             foreach (var project in solution.Projects)
             {
@@ -1819,7 +1819,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text1, observedText2.ToString());
         }
 
-        private Solution CreateNotKeptAliveSolution()
+        private static Solution CreateNotKeptAliveSolution()
         {
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), "NotKeptAlive");
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
@@ -2048,7 +2048,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference<SourceText> GetObservedText(Solution solution, DocumentId documentId, string expectedText = null)
+        private static ObjectReference<SourceText> GetObservedText(Solution solution, DocumentId documentId, string expectedText = null)
         {
             var observedText = solution.GetDocument(documentId).GetTextAsync().Result;
 
@@ -2078,7 +2078,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference<SourceText> GetObservedTextAsync(Solution solution, DocumentId documentId, string expectedText = null)
+        private static ObjectReference<SourceText> GetObservedTextAsync(Solution solution, DocumentId documentId, string expectedText = null)
         {
             var observedText = solution.GetDocument(documentId).GetTextAsync().Result;
 
@@ -2109,7 +2109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference<SyntaxNode> GetObservedSyntaxTreeRoot(Solution solution, DocumentId documentId)
+        private static ObjectReference<SyntaxNode> GetObservedSyntaxTreeRoot(Solution solution, DocumentId documentId)
         {
             var observedTree = solution.GetDocument(documentId).GetSyntaxRootAsync().Result;
             return new ObjectReference<SyntaxNode>(observedTree);
@@ -2134,7 +2134,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference<SyntaxNode> GetObservedSyntaxTreeRootAsync(Solution solution, DocumentId documentId)
+        private static ObjectReference<SyntaxNode> GetObservedSyntaxTreeRootAsync(Solution solution, DocumentId documentId)
         {
             var observedTree = solution.GetDocument(documentId).GetSyntaxRootAsync().Result;
             return new ObjectReference<SyntaxNode>(observedTree);
@@ -2246,7 +2246,7 @@ End Class";
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference<Compilation> GetObservedCompilationAsync(Solution solution, ProjectId projectId)
+        private static ObjectReference<Compilation> GetObservedCompilationAsync(Solution solution, ProjectId projectId)
         {
             var observed = solution.GetProject(projectId).GetCompilationAsync().Result;
             return new ObjectReference<Compilation>(observed);
@@ -2270,7 +2270,7 @@ End Class";
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference<Compilation> GetObservedCompilation(Solution solution, ProjectId projectId)
+        private static ObjectReference<Compilation> GetObservedCompilation(Solution solution, ProjectId projectId)
         {
             var observed = solution.GetProject(projectId).GetCompilationAsync().Result;
             return new ObjectReference<Compilation>(observed);

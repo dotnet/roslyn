@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private bool TryAddData<T>(Workspace workspace, T key, Data data, Func<Data, T> keyGetter, List<Data> result) where T : class
+        private static bool TryAddData<T>(Workspace workspace, T key, Data data, Func<Data, T> keyGetter, List<Data> result) where T : class
         {
             if (key == null)
             {
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         [Conditional("DEBUG")]
-        private void AssertIfNull<T>(T obj) where T : class
+        private static void AssertIfNull<T>(T obj) where T : class
         {
             if (obj == null)
             {

@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
           WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
-        private async Task<IEnumerable<CompletionItem>> GetSnippetCompletionItemsAsync(
+        private static async Task<IEnumerable<CompletionItem>> GetSnippetCompletionItemsAsync(
             Workspace workspace, SemanticModel semanticModel, bool isPreProcessorContext, bool isTupleContext, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();

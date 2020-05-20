@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return FatalError.ReportWithoutCrashUnlessCanceled(e);
         }
 
-        internal Dictionary<SyntaxNode, EditKind> BuildEditMap(EditScript<SyntaxNode> editScript)
+        internal static Dictionary<SyntaxNode, EditKind> BuildEditMap(EditScript<SyntaxNode> editScript)
         {
             var map = new Dictionary<SyntaxNode, EditKind>(editScript.Edits.Length);
 
@@ -2620,7 +2620,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private Diagnostic? GetFirstDeclarationError(SemanticModel primaryModel, ISymbol symbol, CancellationToken cancellationToken)
+        private static Diagnostic? GetFirstDeclarationError(SemanticModel primaryModel, ISymbol symbol, CancellationToken cancellationToken)
         {
             foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
             {
@@ -2752,7 +2752,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #endregion
 
-        private INamedTypeSymbol? TryGetPartnerType(SyntaxNode typeSyntax, Match<SyntaxNode> topMatch, SemanticModel partnerModel, CancellationToken cancellationToken)
+        private static INamedTypeSymbol? TryGetPartnerType(SyntaxNode typeSyntax, Match<SyntaxNode> topMatch, SemanticModel partnerModel, CancellationToken cancellationToken)
         {
             SyntaxNode partner;
             if (topMatch.OldRoot.SyntaxTree == typeSyntax.SyntaxTree)
@@ -3407,13 +3407,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        protected SyntaxNode GetSymbolSyntax(ISymbol local, CancellationToken cancellationToken)
+        protected static SyntaxNode GetSymbolSyntax(ISymbol local, CancellationToken cancellationToken)
             => local.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
 
-        private TextSpan GetThisParameterDiagnosticSpan(ISymbol member)
+        private static TextSpan GetThisParameterDiagnosticSpan(ISymbol member)
             => member.Locations.First().SourceSpan;
 
-        private TextSpan GetVariableDiagnosticSpan(ISymbol local)
+        private static TextSpan GetVariableDiagnosticSpan(ISymbol local)
         {
             // Note that in VB implicit value parameter in property setter doesn't have a location.
             // In C# its location is the location of the setter.
@@ -3436,7 +3436,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private bool TryMapParameter((SyntaxNode? Node, int Ordinal) parameterKey, IReadOnlyDictionary<SyntaxNode, SyntaxNode> map, out (SyntaxNode? Node, int Ordinal) mappedParameterKey)
+        private static bool TryMapParameter((SyntaxNode? Node, int Ordinal) parameterKey, IReadOnlyDictionary<SyntaxNode, SyntaxNode> map, out (SyntaxNode? Node, int Ordinal) mappedParameterKey)
         {
             var containingLambdaSyntax = parameterKey.Node;
 
@@ -3815,7 +3815,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private bool AreEquivalentClosureScopes(SyntaxNode oldScopeOpt, SyntaxNode newScopeOpt, IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap)
+        private static bool AreEquivalentClosureScopes(SyntaxNode oldScopeOpt, SyntaxNode newScopeOpt, IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap)
         {
             if (oldScopeOpt == null || newScopeOpt == null)
             {

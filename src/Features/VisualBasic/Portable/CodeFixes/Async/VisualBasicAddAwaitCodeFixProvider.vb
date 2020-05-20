@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return typeArguments.Any(Function(ta) inferredTypes.Any(Function(it) compilation.ClassifyConversion(it, ta).Exists))
         End Function
 
-        Private Function IsInAsyncBlock(expression As ExpressionSyntax) As Boolean
+        Private Shared Function IsInAsyncBlock(expression As ExpressionSyntax) As Boolean
 
             For Each ancestor In expression.Ancestors
                 Select Case ancestor.Kind
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return False
         End Function
 
-        Private Function DoesExpressionReturnTask(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
+        Private Shared Function DoesExpressionReturnTask(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
             Dim taskType As INamedTypeSymbol = Nothing
             Dim returnType As INamedTypeSymbol = Nothing
             Return TryGetTaskType(semanticModel, taskType) AndAlso

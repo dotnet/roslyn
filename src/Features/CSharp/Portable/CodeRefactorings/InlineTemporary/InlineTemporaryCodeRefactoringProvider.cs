@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 variableDeclarator.Span);
         }
 
-        private async Task<IEnumerable<ReferenceLocation>> GetReferencesAsync(
+        private static async Task<IEnumerable<ReferenceLocation>> GetReferencesAsync(
             Document document,
             VariableDeclaratorSyntax variableDeclarator,
             CancellationToken cancellationToken)
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             }
         }
 
-        private SyntaxNode GetScope(VariableDeclaratorSyntax variableDeclarator)
+        private static SyntaxNode GetScope(VariableDeclaratorSyntax variableDeclarator)
         {
             var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
             var localDeclaration = (LocalDeclarationStatementSyntax)variableDeclaration.Parent;
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             return scope;
         }
 
-        private VariableDeclaratorSyntax FindDeclarator(SyntaxNode node)
+        private static VariableDeclaratorSyntax FindDeclarator(SyntaxNode node)
         {
             var annotatedNodesOrTokens = node.GetAnnotatedNodesAndTokens(DefinitionAnnotation).ToList();
             Debug.Assert(annotatedNodesOrTokens.Count == 1, "Only a single variable declarator should have been annotated.");
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             return newScope.RemoveNode(newLocalDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
         }
 
-        private ExpressionSyntax SkipRedundantExteriorParentheses(ExpressionSyntax expression)
+        private static ExpressionSyntax SkipRedundantExteriorParentheses(ExpressionSyntax expression)
         {
             while (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesized))
             {

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         /// method to exist.
         /// </summary>
         [Obsolete("Expected to exist by IntelliCode. This can be removed once their unnecessary use of this is removed.")]
-        protected IList<TaggedText> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
+        protected static IList<TaggedText> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
             => SpecializedCollections.EmptyList<TaggedText>();
     }
 }

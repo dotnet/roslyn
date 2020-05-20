@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypeInArgument(index, parameterizedSymbols, name, RefKind.None);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInArgument(
+            private static IEnumerable<TypeInferenceInfo> InferTypeInArgument(
                 int index,
                 IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 ArgumentSyntax argumentOpt)
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypeInArgument(index, parameterizedSymbols, name, refKind);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInArgument(
+            private static IEnumerable<TypeInferenceInfo> InferTypeInArgument(
                 int index,
                 IEnumerable<ImmutableArray<IParameterSymbol>> parameterizedSymbols,
                 string name,
@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            private int GetArgumentListIndex(BaseArgumentListSyntax argumentList, SyntaxToken previousToken)
+            private static int GetArgumentListIndex(BaseArgumentListSyntax argumentList, SyntaxToken previousToken)
             {
                 if (previousToken == argumentList.GetOpenToken())
                 {
@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (tokenIndex + 1) / 2;
             }
 
-            private int GetArgumentListIndex(AttributeArgumentListSyntax attributeArgumentList, SyntaxToken previousToken)
+            private static int GetArgumentListIndex(AttributeArgumentListSyntax attributeArgumentList, SyntaxToken previousToken)
             {
                 if (previousToken == attributeArgumentList.OpenParenToken)
                 {

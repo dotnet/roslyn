@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return (argumentType, refKind);
         }
 
-        private async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(
+        private static async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(
             Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
         {
             var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();

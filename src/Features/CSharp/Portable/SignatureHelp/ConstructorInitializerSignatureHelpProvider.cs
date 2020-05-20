@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return item;
         }
 
-        private IList<SymbolDisplayPart> GetPreambleParts(
+        private static IList<SymbolDisplayPart> GetPreambleParts(
             IMethodSymbol method,
             SemanticModel semanticModel,
             int position)
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts()
+        private static IList<SymbolDisplayPart> GetPostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseParenToken));

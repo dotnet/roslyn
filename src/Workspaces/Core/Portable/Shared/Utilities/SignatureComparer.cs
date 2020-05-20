@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 this.ParameterEquivalenceComparer);
         }
 
-        private bool BadPropertyAccessor(IMethodSymbol method1, IMethodSymbol method2)
+        private static bool BadPropertyAccessor(IMethodSymbol method1, IMethodSymbol method2)
         {
             return method1 != null &&
                 (method2 == null || method2.DeclaredAccessibility != Accessibility.Public);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return HaveSameSignature(method1.Parameters, method2.Parameters, compareParameterName, isParameterCaseSensitive);
         }
 
-        private bool IdentifiersMatch(string identifier1, string identifier2, bool caseSensitive)
+        private static bool IdentifiersMatch(string identifier1, string identifier2, bool caseSensitive)
         {
             return caseSensitive
                 ? identifier1 == identifier2

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             AssemblyPath = assemblyPath;
         }
 
-        public CompilationOutputFilePaths WithAssemblyPath(string? path)
+        public static CompilationOutputFilePaths WithAssemblyPath(string? path)
             => new CompilationOutputFilePaths(assemblyPath: path);
 
         public override bool Equals(object? obj)

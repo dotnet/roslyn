@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private ITypeSymbol GetContainingType(IMethodSymbol method)
+        private static ITypeSymbol GetContainingType(IMethodSymbol method)
         {
             var result = method.ReceiverType;
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
+        private static IList<SymbolDisplayPart> GetPostambleParts(IMethodSymbol method, SemanticModel semanticModel, int position)
         {
             var result = new List<SymbolDisplayPart>
             {

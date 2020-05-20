@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
             End If
         End Function
 
-        Private Function DeclarationsExistAfterImports(node As SyntaxNode, root As CompilationUnitSyntax) As Boolean
+        Private Shared Function DeclarationsExistAfterImports(node As SyntaxNode, root As CompilationUnitSyntax) As Boolean
             Return root.Members.Any(
                 Function(m) m IsNot node AndAlso
                         Not m.IsKind(SyntaxKind.OptionStatement, SyntaxKind.AttributesStatement) AndAlso
@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
             }
         End Function
 
-        Private Function FindLastContiguousStatement(nodes As IEnumerable(Of SyntaxNode), trivia As IEnumerable(Of SyntaxTrivia)) As Integer
+        Private Shared Function FindLastContiguousStatement(nodes As IEnumerable(Of SyntaxNode), trivia As IEnumerable(Of SyntaxTrivia)) As Integer
             If Not nodes.Any() Then
                 Dim lastBannerText = trivia.LastOrDefault(Function(t) t.IsKind(SyntaxKind.CommentTrivia))
                 If lastBannerText = Nothing Then
@@ -184,15 +184,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
             Return expectedLine
         End Function
 
-        Private Function MoveStatement(kind As String, line As Integer) As String
+        Private Shared Function MoveStatement(kind As String, line As Integer) As String
             Return String.Format(VBFeaturesResources.Move_the_0_statement_to_line_1, kind, line + 1)
         End Function
 
-        Private Function DeleteStatement(kind As String) As String
+        Private Shared Function DeleteStatement(kind As String) As String
             Return String.Format(VBFeaturesResources.Delete_the_0_statement2, kind)
         End Function
 
-        Private Function DestinationPositionIsHidden(root As CompilationUnitSyntax, destinationLine As Integer, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function DestinationPositionIsHidden(root As CompilationUnitSyntax, destinationLine As Integer, cancellationToken As CancellationToken) As Boolean
             Dim text = root.GetText()
             Dim position = text.Lines(destinationLine).Start
             Return root.SyntaxTree.IsHiddenPosition(destinationLine, cancellationToken)

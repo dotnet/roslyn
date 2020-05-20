@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 rules:=GetRules(displayString))
         End Function
 
-        Private Function CreateOfCompletionItem() As CompletionItem
+        Private Shared Function CreateOfCompletionItem() As CompletionItem
             Return CommonCompletionItem.Create(
                 "Of", displayTextSuffix:="", CompletionItemRules.Default, Glyph.Keyword,
                 description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Shared ReadOnly s_defaultRules As CompletionItemRules = CompletionItemRules.Default
 #End If
 
-        Private Function GetRules(displayText As String) As CompletionItemRules
+        Private Shared Function GetRules(displayText As String) As CompletionItemRules
             Dim commitRules = s_defaultRules.CommitCharacterRules
 
             If displayText.Contains("(") Then

@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return Nothing
         End Function
 
-        Private Function TryGetGenericName(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef genericName As GenericNameSyntax) As Boolean
+        Private Shared Function TryGetGenericName(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef genericName As GenericNameSyntax) As Boolean
             If Not CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, AddressOf IsTriggerToken, AddressOf IsArgumentListToken, cancellationToken, genericName) Then
                 Return False
             End If
@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 displayParts:=parts)
         End Function
 
-        Private Function AddConstraints(typeParam As ITypeParameterSymbol,
+        Private Shared Function AddConstraints(typeParam As ITypeParameterSymbol,
                                         parts As List(Of SymbolDisplayPart),
                                         semanticModel As SemanticModel,
                                         position As Integer) As IList(Of SymbolDisplayPart)

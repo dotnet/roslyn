@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
         }
 
-        private IEnumerable<TSymbol> TryFindMembersInThisOrBaseTypes<TSymbol>(
+        private static IEnumerable<TSymbol> TryFindMembersInThisOrBaseTypes<TSymbol>(
             INamedTypeSymbol containingType, ITypeSymbol type, string memberName) where TSymbol : class, ISymbol
         {
             var methods = type.GetAccessibleMembersInThisAndBaseTypes<TSymbol>(containingType);

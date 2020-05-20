@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 New MyCodeAction(VBFeaturesResources.Inline_temporary_variable, Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c)), variableDeclarator.Span)
         End Function
 
-        Private Async Function GetReferencesAsync(
+        Private Shared Async Function GetReferencesAsync(
             document As Document,
             modifiedIdentifier As ModifiedIdentifierSyntax,
             cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ReferenceLocation))
@@ -274,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return localDeclaration.Parent
         End Function
 
-        Private Function GetUpdatedDeclaration(modifiedIdentifier As ModifiedIdentifierSyntax) As LocalDeclarationStatementSyntax
+        Private Shared Function GetUpdatedDeclaration(modifiedIdentifier As ModifiedIdentifierSyntax) As LocalDeclarationStatementSyntax
             Dim variableDeclarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
             Dim localDeclaration = DirectCast(variableDeclarator.Parent, LocalDeclarationStatementSyntax)
 

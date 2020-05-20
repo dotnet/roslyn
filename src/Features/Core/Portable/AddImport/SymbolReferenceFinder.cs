@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     .ToImmutableArray();
             }
 
-            private void CalculateContext(
+            private static void CalculateContext(
                 TSimpleNameSyntax nameNode, ISyntaxFactsService syntaxFacts, out string name, out int arity,
                 out bool inAttributeContext, out bool hasIncompleteParentMember, out bool looksGeneric)
             {
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return references.ToImmutableAndFree();
             }
 
-            private ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol
+            private static ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol
             {
                 return symbols.WhereAsArray(s => s.Symbol is T)
                               .SelectAsArray(s => s.WithSymbol((T)s.Symbol));

@@ -1568,7 +1568,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [Conditional("DEBUG")]
-        private void CheckNoChanges(Solution oldSolution, Solution newSolution)
+        private static void CheckNoChanges(Solution oldSolution, Solution newSolution)
         {
             var changes = newSolution.GetChanges(oldSolution);
             Contract.ThrowIfTrue(changes.GetAddedProjects().Any());
@@ -1603,7 +1603,7 @@ namespace Microsoft.CodeAnalysis
         private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
             => CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(doc.GetTextSynchronously(CancellationToken.None), VersionStamp.Create(), doc.FilePath)));
 
-        internal DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
+        internal static DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
         {
             var sourceDoc = doc as Document;
             return DocumentInfo.Create(
@@ -1983,7 +1983,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Throws an exception if a project already has a specific analyzer reference.
         /// </summary>
-        internal void CheckSolutionHasAnalyzerReference(Solution solution, AnalyzerReference analyzerReference)
+        internal static void CheckSolutionHasAnalyzerReference(Solution solution, AnalyzerReference analyzerReference)
         {
             if (!solution.AnalyzerReferences.Contains(analyzerReference))
             {
@@ -1994,7 +1994,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Throws an exception if a project already has a specific analyzer reference.
         /// </summary>
-        internal void CheckSolutionDoesNotHaveAnalyzerReference(Solution solution, AnalyzerReference analyzerReference)
+        internal static void CheckSolutionDoesNotHaveAnalyzerReference(Solution solution, AnalyzerReference analyzerReference)
         {
             if (solution.AnalyzerReferences.Contains(analyzerReference))
             {

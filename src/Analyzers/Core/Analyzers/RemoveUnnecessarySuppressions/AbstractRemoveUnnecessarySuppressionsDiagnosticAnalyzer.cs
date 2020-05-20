@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                 }
 
                 DiagnosticDescriptor rule;
-                if (_state.HasInvalidScope(namedAttributeArguments, out var targetScope))
+                if (SuppressMessageAttributeState.HasInvalidScope(namedAttributeArguments, out var targetScope))
                 {
                     rule = s_invalidScopeDescriptor;
                 }

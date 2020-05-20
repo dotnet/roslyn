@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return false;
         }
 
-        private bool IsHiddenBy(IMethodSymbol method1, IMethodSymbol method2)
+        private static bool IsHiddenBy(IMethodSymbol method1, IMethodSymbol method2)
         {
             // If they have the same parameter types and the same parameter names, then the 
             // constructed method is hidden by the unconstructed one.

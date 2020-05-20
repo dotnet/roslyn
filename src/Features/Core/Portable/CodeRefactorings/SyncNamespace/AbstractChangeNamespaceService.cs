@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// <summary>
         /// Mark container nodes with our annotation so we can keep track of them across syntax modifications.
         /// </summary>
-        protected async Task<Solution> AnnotateContainersAsync(Solution solution, ImmutableArray<(DocumentId, SyntaxNode)> containers, CancellationToken cancellationToken)
+        protected static async Task<Solution> AnnotateContainersAsync(Solution solution, ImmutableArray<(DocumentId, SyntaxNode)> containers, CancellationToken cancellationToken)
         {
             var solutionEditor = new SolutionEditor(solution);
             foreach (var (id, container) in containers)
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return builder.ToImmutableAndFree();
         }
 
-        private ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
+        private static ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             using var builderDisposer = ArrayBuilder<SyntaxNode>.GetInstance(names.Length, out var builder);
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         ///     2. find and mark the qualified reference for simplification.
         /// Otherwise, there would be no namespace replacement.
         /// </summary>
-        private async Task<(Document, ImmutableArray<SyntaxNode>)> FixReferencesAsync(
+        private static async Task<(Document, ImmutableArray<SyntaxNode>)> FixReferencesAsync(
             Document document,
             IChangeNamespaceService changeNamespaceService,
             IAddImportsService addImportService,

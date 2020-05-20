@@ -104,15 +104,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return Nothing
         End Function
 
-        Private Function GetSimpleName(simpleName As SimpleNameSyntax) As String
+        Private Shared Function GetSimpleName(simpleName As SimpleNameSyntax) As String
             Return simpleName.Identifier.ValueText
         End Function
 
-        Private Function GetContainerDisplayName(node As SyntaxNode) As String
+        Private Shared Function GetContainerDisplayName(node As SyntaxNode) As String
             Return VisualBasicSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters)
         End Function
 
-        Private Function GetFullyQualifiedContainerName(node As SyntaxNode, rootNamespace As String) As String
+        Private Shared Function GetFullyQualifiedContainerName(node As SyntaxNode, rootNamespace As String) As String
             Return VisualBasicSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces, rootNamespace)
         End Function
 
@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return False
         End Function
 
-        Private Function IsExtensionMethod(node As MethodBlockSyntax) As Boolean
+        Private Shared Function IsExtensionMethod(node As MethodBlockSyntax) As Boolean
             Dim parameterCount = node.SubOrFunctionStatement.ParameterList?.Parameters.Count
 
             ' Extension method must have at least one parameter and declared inside a module
@@ -322,11 +322,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return False
         End Function
 
-        Private Function IsNestedType(node As DeclarationStatementSyntax) As Boolean
+        Private Shared Function IsNestedType(node As DeclarationStatementSyntax) As Boolean
             Return TypeOf node.Parent Is TypeBlockSyntax
         End Function
 
-        Private Function GetAccessibility(node As SyntaxNode, modifiers As SyntaxTokenList) As Accessibility
+        Private Shared Function GetAccessibility(node As SyntaxNode, modifiers As SyntaxTokenList) As Accessibility
             Dim sawFriend = False
 
             For Each modifier In modifiers
@@ -386,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return GetSuffix([property].ParameterList)
         End Function
 
-        Private Function GetTypeParameterSuffix(typeParameterList As TypeParameterListSyntax) As String
+        Private Shared Function GetTypeParameterSuffix(typeParameterList As TypeParameterListSyntax) As String
             If typeParameterList Is Nothing Then
                 Return Nothing
             End If
@@ -441,7 +441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return pooledBuilder.ToStringAndFree()
         End Function
 
-        Private Sub AppendParameters(parameters As SeparatedSyntaxList(Of ParameterSyntax), builder As StringBuilder)
+        Private Shared Sub AppendParameters(parameters As SeparatedSyntaxList(Of ParameterSyntax), builder As StringBuilder)
             Dim First = True
             For Each parameter In parameters
                 If Not First Then

@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             return property.WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        private SyntaxToken GetPropertyName(SyntaxToken identifier, string propertyName, bool nameChanged)
+        private static SyntaxToken GetPropertyName(SyntaxToken identifier, string propertyName, bool nameChanged)
         {
             return nameChanged
                 ? SyntaxFactory.Identifier(propertyName)
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         public void ReplaceSetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged)
             => ReplaceInvocation(editor, nameToken, propertyName, nameChanged, s_replaceSetReferenceInvocation);
 
-        public void ReplaceInvocation(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged,
+        public static void ReplaceInvocation(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged,
             Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> replace)
         {
             if (nameToken.Kind() != SyntaxKind.IdentifierToken)

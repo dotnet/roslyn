@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis
             return NormalizeChanges(combinedChanges);
         }
 
-        private IEnumerable<TextChange> NormalizeChanges(IEnumerable<TextChange> changes)
+        private static IEnumerable<TextChange> NormalizeChanges(IEnumerable<TextChange> changes)
         {
             if (changes.Count() <= 1)
             {

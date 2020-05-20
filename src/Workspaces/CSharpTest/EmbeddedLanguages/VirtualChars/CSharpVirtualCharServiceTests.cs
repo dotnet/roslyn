@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
     {
         private const string _statementPrefix = "var v = ";
 
-        private SyntaxToken GetStringToken(string text, bool allowFailure)
+        private static SyntaxToken GetStringToken(string text, bool allowFailure)
         {
             var statement = _statementPrefix + text;
             var parsedStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(statement);
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         private string ConvertToString(VirtualChar vc)
             => $"[{ConvertRuneToString(vc)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]";
 
-        private string ConvertRuneToString(VirtualChar c)
+        private static string ConvertRuneToString(VirtualChar c)
             => PrintAsUnicodeEscape(c)
                 ? c <= char.MaxValue ? $"'\\u{(int)c.Value:X4}'" : $"'\\U{(int)c.Value:X8}'"
                 : $"'{(char)c.Value}'";

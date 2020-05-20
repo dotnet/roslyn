@@ -254,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         ''' must be parented by an namespace declaration and the node itself must be equal to the declaration's Name
         ''' property.
         ''' </summary>
-        Private Function IsPartOfNamespaceDeclarationName(node As SyntaxNode) As Boolean
+        Private Shared Function IsPartOfNamespaceDeclarationName(node As SyntaxNode) As Boolean
 
             Dim nextNode As SyntaxNode = node
 
@@ -308,12 +308,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return Not (invalidTransformation1 OrElse invalidTransformation2 OrElse invalidTransformation3)
         End Function
 
-        Private Function IsNonNameSyntaxInImportsDirective(expression As ExpressionSyntax, simplifiedNode As ExpressionSyntax) As Boolean
+        Private Shared Function IsNonNameSyntaxInImportsDirective(expression As ExpressionSyntax, simplifiedNode As ExpressionSyntax) As Boolean
             Return TypeOf expression.Parent Is ImportsClauseSyntax AndAlso
                 Not TypeOf simplifiedNode Is NameSyntax
         End Function
 
-        Private Function IsNullableTypeSyntaxLeftOfDotInMemberAccess(expression As ExpressionSyntax, simplifiedNode As ExpressionSyntax) As Boolean
+        Private Shared Function IsNullableTypeSyntaxLeftOfDotInMemberAccess(expression As ExpressionSyntax, simplifiedNode As ExpressionSyntax) As Boolean
             Return expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso
                 simplifiedNode.Kind = SyntaxKind.NullableType
         End Function
@@ -390,7 +390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, optionSet As OptionSet) As Boolean
+        Private Shared Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, optionSet As OptionSet) As Boolean
             Return (Not IsDirectChildOfMemberAccessExpression(name)) AndAlso
                    (Not InsideCrefReference(name)) AndAlso
                    (Not InsideNameOfExpression(name)) AndAlso

@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return succeeded;
         }
 
-        private SyntaxNode? GetDeclaration(SyntaxNode node, UseExpressionBodyHelper helper)
+        private static SyntaxNode? GetDeclaration(SyntaxNode node, UseExpressionBodyHelper helper)
         {
             for (SyntaxNode? current = node; current != null; current = current.Parent)
             {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return null;
         }
 
-        private async Task<Document> UpdateDocumentAsync(
+        private static async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, SyntaxNode declaration,
             UseExpressionBodyHelper helper, bool useExpressionBody,
             CancellationToken cancellationToken)

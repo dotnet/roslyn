@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
             }
 
-            private bool TypeArgumentsAndParametersAreSame(INamedTypeSymbol symbol)
+            private static bool TypeArgumentsAndParametersAreSame(INamedTypeSymbol symbol)
             {
                 var typeArguments = symbol.GetAllTypeArguments().ToList();
                 var typeParameters = symbol.GetAllTypeParameters().ToList();
@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected IEnumerable<SymbolDisplayPart> Keyword(string text)
                 => Part(SymbolDisplayPartKind.Keyword, text);
 
-            protected IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)
+            protected static IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)
             {
                 for (var i = 0; i < count; i++)
                 {
@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected IEnumerable<SymbolDisplayPart> Punctuation(string text)
                 => Part(SymbolDisplayPartKind.Punctuation, text);
 
-            protected IEnumerable<SymbolDisplayPart> Space(int count = 1)
+            protected static IEnumerable<SymbolDisplayPart> Space(int count = 1)
             {
                 yield return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, new string(' ', count));
             }
@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 return symbol.ToMinimalDisplayParts(_semanticModel, _position, format);
             }
 
-            private IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
+            private static IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
             {
                 yield return new SymbolDisplayPart(kind, symbol, text);
             }

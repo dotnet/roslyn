@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return resolvedCompletionItem;
         }
 
-        private LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)
+        private static LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)
         {
             return new LSP.VSCompletionItem
             {

@@ -253,10 +253,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return names.Select(name => CreateCompletionItem(FormatParameter(tagName, name)));
         }
 
-        private string FormatParameter(string kind, string name)
+        private static string FormatParameter(string kind, string name)
             => $"{kind} {NameAttributeName}=\"{name}\"";
 
-        private string FormatParameterRefTag(string kind, string name)
+        private static string FormatParameterRefTag(string kind, string name)
             => $"<{kind} {NameAttributeName}=\"{name}\"/>";
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = null, CancellationToken cancellationToken = default)

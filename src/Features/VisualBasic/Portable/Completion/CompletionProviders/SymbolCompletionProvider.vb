@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return IsValidTriggerToken(token)
         End Function
 
-        Private Function IsValidTriggerToken(token As SyntaxToken) As Boolean
+        Private Shared Function IsValidTriggerToken(token As SyntaxToken) As Boolean
             If token.Kind <> SyntaxKind.DotToken Then
                 Return False
             End If

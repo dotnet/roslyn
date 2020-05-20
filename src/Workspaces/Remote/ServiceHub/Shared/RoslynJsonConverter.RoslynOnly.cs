@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class AggregateJsonConverter : JsonConverter
     {
-        partial void AppendRoslynSpecificJsonConverters(ImmutableDictionary<Type, JsonConverter>.Builder builder)
+        static partial void AppendRoslynSpecificJsonConverters(ImmutableDictionary<Type, JsonConverter>.Builder builder)
         {
             Add(builder, new HighlightSpanJsonConverter());
             Add(builder, new TaggedTextJsonConverter());

@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                         method, explicitInterfaceImplementations:=updatedImplementations))
         End Function
 
-        Private Function UpdateExplicitInterfaceImplementation(
+        Private Shared Function UpdateExplicitInterfaceImplementation(
                 [property] As IPropertySymbol,
                 explicitInterfaceImplMethod As IMethodSymbol,
                 desiredName As String) As IMethodSymbol
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 propertyStatement.GetLeadingTrivia().Select(Function(trivia) ConvertTrivia(trivia, documentationCommentRewriter)))
         End Function
 
-        Private Function ConvertTrivia(trivia As SyntaxTrivia, documentationCommentRewriter As VisualBasicSyntaxRewriter) As SyntaxTrivia
+        Private Shared Function ConvertTrivia(trivia As SyntaxTrivia, documentationCommentRewriter As VisualBasicSyntaxRewriter) As SyntaxTrivia
             If trivia.Kind() = SyntaxKind.DocumentationCommentTrivia Then
                 Dim converted = documentationCommentRewriter.Visit(trivia.GetStructure())
                 Return SyntaxFactory.Trivia(DirectCast(converted, StructuredTriviaSyntax))

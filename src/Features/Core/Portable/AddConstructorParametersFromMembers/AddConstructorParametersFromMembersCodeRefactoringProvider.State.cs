@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             ///  - deserialization constructor
             ///  - implicit default constructor
             /// </summary>
-            private async Task<ImmutableArray<ConstructorCandidate>> GetConstructorCandidatesInfoAsync(
+            private static async Task<ImmutableArray<ConstructorCandidate>> GetConstructorCandidatesInfoAsync(
                 INamedTypeSymbol containingType,
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,

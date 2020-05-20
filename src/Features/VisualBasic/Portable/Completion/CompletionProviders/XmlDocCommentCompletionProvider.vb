@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                       token)
         End Function
 
-        Private Function IsText(token As SyntaxToken) As Boolean
+        Private Shared Function IsText(token As SyntaxToken) As Boolean
             Return token.IsKind(SyntaxKind.XmlNameToken, SyntaxKind.XmlTextLiteralToken, SyntaxKind.IdentifierToken)
         End Function
 
@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return attributeValues
         End Function
 
-        Private Function GetElementNameAndAttributes(node As XmlNodeSyntax) As (Name As String, Attributes As SyntaxList(Of XmlNodeSyntax))
+        Private Shared Function GetElementNameAndAttributes(node As XmlNodeSyntax) As (Name As String, Attributes As SyntaxList(Of XmlNodeSyntax))
             Dim nameSyntax As XmlNameSyntax = Nothing
             Dim attributes As SyntaxList(Of XmlNodeSyntax) = Nothing
 

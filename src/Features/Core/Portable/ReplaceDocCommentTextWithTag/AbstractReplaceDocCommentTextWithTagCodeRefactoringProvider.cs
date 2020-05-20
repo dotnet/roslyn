@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return true;
         }
 
-        private ISymbol GetEnclosingSymbol(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private static ISymbol GetEnclosingSymbol(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
             var token = root.FindToken(position);
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
                 expandedSpan);
         }
 
-        private async Task<Document> ReplaceTextAsync(
+        private static async Task<Document> ReplaceTextAsync(
             Document document, TextSpan span, string replacement, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return TextSpan.FromBounds(startInclusive, endExclusive);
         }
 
-        private bool ShouldExpandSpanForwardOneCharacter(
+        private static bool ShouldExpandSpanForwardOneCharacter(
             SourceText sourceText, int endExclusive, bool fullyQualifiedName)
         {
             var currentChar = sourceText[endExclusive];
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return false;
         }
 
-        private bool ShouldExpandSpanBackwardOneCharacter(
+        private static bool ShouldExpandSpanBackwardOneCharacter(
             SourceText sourceText, int startInclusive, bool fullyQualifiedName)
         {
             Debug.Assert(startInclusive > 0);

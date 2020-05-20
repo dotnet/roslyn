@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return (newGetAccessor: newGetter, newSetAccessor: newSetter);
         }
 
-        private (AccessorDeclarationSyntax getAccessor, AccessorDeclarationSyntax setAccessor)
+        private static (AccessorDeclarationSyntax getAccessor, AccessorDeclarationSyntax setAccessor)
             GetExistingAccessors(AccessorListSyntax accessorListSyntax)
             => (accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)),
                 accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)));
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 .WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        internal SyntaxNode AddStatement(SyntaxNode accessor, SyntaxNode statement)
+        internal static SyntaxNode AddStatement(SyntaxNode accessor, SyntaxNode statement)
         {
             var blockSyntax = SyntaxFactory.Block(
                 SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
@@ -136,10 +136,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return propertyDeclaration.WithSemicolonToken(default);
         }
 
-        internal ExpressionBodyPreference GetAccessorExpressionBodyPreference(DocumentOptionSet options)
+        internal static ExpressionBodyPreference GetAccessorExpressionBodyPreference(DocumentOptionSet options)
             => options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
 
-        internal ExpressionBodyPreference GetPropertyExpressionBodyPreference(DocumentOptionSet options)
+        internal static ExpressionBodyPreference GetPropertyExpressionBodyPreference(DocumentOptionSet options)
             => options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
 
 

@@ -2679,7 +2679,7 @@ class C1
             return new FileSet(result.ToArray());
         }
 
-        private string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)
+        private static string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)
         {
             var document = XDocument.Parse(projectFileText);
             var projectReferenceItems = document.Descendants(XName.Get("ProjectReference", MSBuildNamespace));

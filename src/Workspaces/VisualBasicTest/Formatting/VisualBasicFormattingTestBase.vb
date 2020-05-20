@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
             Return AssertFormatAsync(expected, code, spans, LanguageNames.VisualBasic, debugMode, changedOptionSet, testWithTransformation, parseOptions)
         End Function
 
-        Private Function StringFromLines(ParamArray lines As String()) As String
+        Private Shared Function StringFromLines(ParamArray lines As String()) As String
             Return String.Join(Environment.NewLine, lines)
         End Function
     End Class

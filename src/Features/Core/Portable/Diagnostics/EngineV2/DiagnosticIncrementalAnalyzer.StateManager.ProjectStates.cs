@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     new ProjectAnalyzerReferenceChangedEventArgs(project, addedStates, removedStates));
             }
 
-            private ImmutableArray<StateSet> DiffStateSets(
+            private static ImmutableArray<StateSet> DiffStateSets(
                 IEnumerable<AnalyzerReference> references,
                 ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> mapPerReference,
                 ImmutableDictionary<DiagnosticAnalyzer, StateSet> map)

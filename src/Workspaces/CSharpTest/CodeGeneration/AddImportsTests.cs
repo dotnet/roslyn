@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     [UseExportProvider]
     public class AddImportsTests
     {
-        private async Task<Document> GetDocument(string code, bool withAnnotations)
+        private static async Task<Document> GetDocument(string code, bool withAnnotations)
         {
             var ws = new AdhocWorkspace();
             var emptyProject = ws.AddProject(

@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return AddParameterListTransform(node, rewrittenLambdaHeader, Function(n) True)
             End Function
 
-            Private Function TryFixupTrivia(Of T As SyntaxNode)(node As T, previousToken As SyntaxToken, lastToken As SyntaxToken, ByRef newNode As T) As Boolean
+            Private Shared Function TryFixupTrivia(Of T As SyntaxNode)(node As T, previousToken As SyntaxToken, lastToken As SyntaxToken, ByRef newNode As T) As Boolean
                 ' initialize to initial value
                 newNode = Nothing
 
@@ -358,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return DirectCast(node, T)
             End Function
 
-            Private Function CheckSkippedTriviaForMissingToken(node As SyntaxNode, ParamArray kinds As SyntaxKind()) As Boolean
+            Private Shared Function CheckSkippedTriviaForMissingToken(node As SyntaxNode, ParamArray kinds As SyntaxKind()) As Boolean
                 Dim lastToken = node.GetLastToken(includeZeroWidth:=True)
                 If lastToken.TrailingTrivia.Count = 0 Then
                     Return True
@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Function
 
 
-            Private Function IsOmitted(token As SyntaxToken) As Boolean
+            Private Shared Function IsOmitted(token As SyntaxToken) As Boolean
                 Return token.Kind = SyntaxKind.None
             End Function
 
@@ -541,7 +541,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return token
             End Function
 
-            Private Function InvalidOmittedToken(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
+            Private Shared Function InvalidOmittedToken(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
                 ' if previous token has a problem, don't bother
                 If previousToken.IsMissing OrElse previousToken.IsSkipped OrElse previousToken.Kind = 0 Then
                     Return True
@@ -562,7 +562,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return False
             End Function
 
-            Private Function Exist(node As SyntaxNode) As Boolean
+            Private Shared Function Exist(node As SyntaxNode) As Boolean
                 Return node IsNot Nothing AndAlso node.Span.Length > 0
             End Function
 

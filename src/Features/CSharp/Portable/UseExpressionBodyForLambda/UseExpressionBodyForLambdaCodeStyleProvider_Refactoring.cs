@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             return result.ToImmutable();
         }
 
-        private async Task<Document> UpdateDocumentAsync(
+        private static async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

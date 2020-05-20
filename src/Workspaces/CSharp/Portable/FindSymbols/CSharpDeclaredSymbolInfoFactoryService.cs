@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             return false;
         }
 
-        private bool IsNestedType(BaseTypeDeclarationSyntax typeDecl)
+        private static bool IsNestedType(BaseTypeDeclarationSyntax typeDecl)
             => typeDecl.Parent is BaseTypeDeclarationSyntax;
 
         private string GetConstructorSuffix(ConstructorDeclarationSyntax constructor)
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         private string GetIndexerSuffix(IndexerDeclarationSyntax indexer)
             => GetSuffix('[', ']', indexer.ParameterList.Parameters);
 
-        private string GetTypeParameterSuffix(TypeParameterListSyntax typeParameterList)
+        private static string GetTypeParameterSuffix(TypeParameterListSyntax typeParameterList)
         {
             if (typeParameterList == null)
             {
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             return pooledBuilder.ToStringAndFree();
         }
 
-        private void AppendParameters(SeparatedSyntaxList<ParameterSyntax> parameters, StringBuilder builder)
+        private static void AppendParameters(SeparatedSyntaxList<ParameterSyntax> parameters, StringBuilder builder)
         {
             var first = true;
             foreach (var parameter in parameters)
@@ -421,13 +421,13 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        private string GetContainerDisplayName(SyntaxNode node)
+        private static string GetContainerDisplayName(SyntaxNode node)
             => CSharpSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters);
 
-        private string GetFullyQualifiedContainerName(SyntaxNode node)
+        private static string GetFullyQualifiedContainerName(SyntaxNode node)
             => CSharpSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces);
 
-        private Accessibility GetAccessibility(SyntaxNode node, SyntaxTokenList modifiers)
+        private static Accessibility GetAccessibility(SyntaxNode node, SyntaxTokenList modifiers)
         {
             var sawInternal = false;
             foreach (var modifier in modifiers)
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        private string GetTypeName(TypeSyntax type)
+        private static string GetTypeName(TypeSyntax type)
         {
             if (type is SimpleNameSyntax simpleName)
             {
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         private static string GetSimpleTypeName(SimpleNameSyntax name)
             => name.Identifier.ValueText;
 
-        private bool IsExtensionMethod(MethodDeclarationSyntax method)
+        private static bool IsExtensionMethod(MethodDeclarationSyntax method)
             => method.ParameterList.Parameters.Count > 0 &&
                method.ParameterList.Parameters[0].Modifiers.Any(SyntaxKind.ThisKeyword);
 

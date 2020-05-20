@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private string GetArgumentName(TArgumentSyntax argument, ISyntaxFacts syntaxFacts)
+        private static string GetArgumentName(TArgumentSyntax argument, ISyntaxFacts syntaxFacts)
             => syntaxFacts.GetNameForArgument(argument);
 
         private SyntaxNode GetParamsArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return expandedArguments;
         }
 
-        private SyntaxNode VisitArguments(
+        private static SyntaxNode VisitArguments(
             ImmutableArray<TExpressionSyntax> expandedArguments,
             SyntaxNode interpolatedString,
             ISyntaxFactsService syntaxFactsService)
