@@ -32,6 +32,11 @@
         <target state="new">Remove redundant suppression</target>
         <note />
       </trans-unit>
+      <trans-unit id="Switch_suppression_format">
+        <source>Switch suppression format</source>
+        <target state="new">Switch suppression format</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_discard_underscore">
         <source>Use discard '_'</source>
         <target state="new">Use discard '_'</target>

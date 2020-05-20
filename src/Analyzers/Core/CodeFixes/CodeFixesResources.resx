@@ -141,4 +141,7 @@
   <data name="Remove_redundant_suppression" xml:space="preserve">
     <value>Remove redundant suppression</value>
   </data>
+  <data name="Switch_suppression_format" xml:space="preserve">
+    <value>Switch suppression format</value>
+  </data>
 </root>
