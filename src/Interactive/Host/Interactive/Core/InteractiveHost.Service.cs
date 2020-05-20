@@ -183,7 +183,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 NamedPipeServerStream serverStream = new NamedPipeServerStream(GenerateUniqueChannelLocalName(), PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
                 await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
-                var jsonRPC = JsonRpc.Attach(serverStream);
+                // (miziga) should there be a target? 
+                var jsonRPC = JsonRpc.Attach(serverStream, new Service());
+                // (miziga) should this be here or in RunServer? 
+                await jsonRPC.Completion.ConfigureAwait(false);
 
                 // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(
@@ -359,20 +362,24 @@ namespace Microsoft.CodeAnalysis.Interactive
             // Used by ResetInteractive - consider improving (we should remember the parameters for auto-reset, e.g.)
 
             public void SetPaths(
-                RemoteAsyncOperation<RemoteExecutionResult> operation,
+                TaskCompletionSource<RemoteExecutionResult> completionSource,
                 string[] referenceSearchPaths,
                 string[] sourceSearchPaths,
                 string baseDirectory)
             {
+                Debug.Assert(completionSource != null);
+                Debug.Assert(referenceSearchPaths != null);
+                Debug.Assert(sourceSearchPaths != null);
+                Debug.Assert(baseDirectory != null);
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = SetPathsAsync(_lastTask, operation, referenceSearchPaths, sourceSearchPaths, baseDirectory);
+                    _lastTask = SetPathsAsync(_lastTask, completionSource, referenceSearchPaths, sourceSearchPaths, baseDirectory);
                 }
             }
 
             private async Task<EvaluationState> SetPathsAsync(
                 Task<EvaluationState> lastTask,
-                RemoteAsyncOperation<RemoteExecutionResult> operation,
+                TaskCompletionSource<RemoteExecutionResult> completionSource,
                 string[] referenceSearchPaths,
                 string[] sourceSearchPaths,
                 string baseDirectory)
@@ -394,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    state = CompleteExecution(state, operation, success: true);
+                    state = CompleteExecution(state, completionSource, success: true);
                 }
 
                 return state;
@@ -404,11 +411,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Reads given initialization file (.rsp) and loads and executes all assembly references and files, respectively specified in it.
             /// Execution is performed on the UI thread.
             /// </summary>
-            public void InitializeContext(RemoteAsyncOperation<RemoteExecutionResult> operation, string? initializationFile, bool isRestarting)
-            {
+			public void InitializeContext(TaskCompletionSource<RemoteExecutionResult> completionSource, string initializationFile, bool isRestarting)            {
+                Debug.Assert(completionSource != null);
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = InitializeContextAsync(_lastTask, operation, initializationFile, isRestarting);
+                    _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFile, isRestarting);
                 }
             }
 
@@ -458,13 +465,16 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// </summary>
             public void Execute(RemoteAsyncOperation<RemoteExecutionResult> operation, string text)
             {
+                var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
+
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = ExecuteAsync(_lastTask, operation, text);
+                    _lastTask = ExecuteAsync(completionSource, _lastTask, text);
                 }
             }
 
-            private async Task<EvaluationState> ExecuteAsync(Task<EvaluationState> lastTask, RemoteAsyncOperation<RemoteExecutionResult> operation, string text)
+            // remote api
+            private async Task<EvaluationState> ExecuteAsync(TaskCompletionSource<RemoteExecutionResult> completionSource, Task<EvaluationState> lastTask, string text)
             {
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
 
@@ -490,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    state = CompleteExecution(state, operation, success);
+                    state = CompleteExecution(state, completionSource, success);
                 }
 
                 return state;
@@ -509,17 +519,23 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
 
             /// <summary>
-            /// Executes given script file on the UI thread in the context of the current session.
+            /// Remote API. Executes given script file on the UI thread in the context of the current session.
             /// </summary>
-            public void ExecuteFile(RemoteAsyncOperation<RemoteExecutionResult> operation, string path)
+            public async Task<RemoteExecutionResult> ExecuteFileAsync(string path)
             {
-				Debug.Assert(path != null);                lock (_lastTaskGuard)
-                {
-                    _lastTask = ExecuteFileAsync(operation, _lastTask, path);
+                //(miziga) method to be used in jsonRpc invoke call? is this method necessary or just a helper?
+                Debug.Assert(path != null);
+
+                var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
+
+				lock (_lastTaskGuard)                {
+                    _lastTask = ExecuteFileAsync(completionSource, _lastTask, path);
                 }
+
+                return await completionSource.Task.ConfigureAwait(false);
             }
 
-            private EvaluationState CompleteExecution(EvaluationState state, RemoteAsyncOperation<RemoteExecutionResult> operation, bool success)
+            private EvaluationState CompleteExecution(EvaluationState state, TaskCompletionSource<RemoteExecutionResult> completionSource, bool success)
             {
                 // send any updates to the host object and current directory back to the client:
                 var globals = GetServiceState().Globals;
@@ -531,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var changedReferencePaths = currentReferencePaths.SequenceEqual(state.ReferenceSearchPaths) ? null : currentReferencePaths;
                 var changedWorkingDirectory = currentWorkingDirectory == state.WorkingDirectory ? null : currentWorkingDirectory;
 
-                operation.Completed(new RemoteExecutionResult(success, changedSourcePaths, changedReferencePaths, changedWorkingDirectory));
+                completionSource.TrySetResult(new RemoteExecutionResult(success, changedSourcePaths, changedReferencePaths, changedWorkingDirectory));
 
                 // no changes in resolvers:
                 if (changedReferencePaths == null && changedSourcePaths == null && changedWorkingDirectory == null)
@@ -593,7 +609,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// </summary>
             private async Task<EvaluationState> InitializeContextAsync(
                 Task<EvaluationState> lastTask,
-                RemoteAsyncOperation<RemoteExecutionResult> operation,
+                TaskCompletionSource<RemoteExecutionResult> completionSource,
                 string? initializationFile,
                 bool isRestarting)
             {
@@ -694,7 +710,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    state = CompleteExecution(state, operation, success: true);
+                    state = CompleteExecution(state, completionSource, success: true);
                 }
 
                 return state;
@@ -757,8 +773,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return (Script<object>)script;
             }
 
+            //(miziga): file to be used in json RPC? requires operation: refactor to only need path? 
             private async Task<EvaluationState> ExecuteFileAsync(
-                RemoteAsyncOperation<RemoteExecutionResult> operation,
+                TaskCompletionSource<RemoteExecutionResult> completionSource,
                 Task<EvaluationState> lastTask,
                 string path)
             {
@@ -769,11 +786,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                     var newScriptState = await TryExecuteFileAsync(state, fullPath).ConfigureAwait(false);
                     if (newScriptState != null)
                     {
-                        return CompleteExecution(state.WithScriptState(newScriptState), operation, success: newScriptState.Exception == null);
+                        return CompleteExecution(state.WithScriptState(newScriptState), completionSource, success: newScriptState.Exception == null);
                     }
                 }
 
-                return CompleteExecution(state, operation, success: false);
+                return CompleteExecution(state, completionSource, success: false);
             }
 
             /// <summary>
