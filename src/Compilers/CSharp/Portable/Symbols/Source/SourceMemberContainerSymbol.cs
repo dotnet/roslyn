@@ -1683,11 +1683,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // UNDONE: Consider adding a secondary location pointing to the second method.
         private void ReportMethodSignatureCollision(DiagnosticBag diagnostics, SourceMemberMethodSymbol method1, SourceMemberMethodSymbol method2)
         {
-            // Partial methods are allowed to collide by signature.
-            if ((method1.IsPartial && method2.IsPartial) ||
-                (method1 is SynthesizedSimpleProgramEntryPointSymbol && method2 is SynthesizedSimpleProgramEntryPointSymbol))
+            switch (method1, method2)
             {
-                return;
+                case (SourceOrdinaryMethodSymbol { IsPartialDefinition: true }, SourceOrdinaryMethodSymbol { IsPartialImplementation: true }):
+                case (SourceOrdinaryMethodSymbol { IsPartialImplementation: true }, SourceOrdinaryMethodSymbol { IsPartialDefinition: true }):
+                    // these could be 2 parts of the same partial method.
+                    // Partial methods are allowed to collide by signature.
+                    return;
+                case (SynthesizedSimpleProgramEntryPointSymbol, SynthesizedSimpleProgramEntryPointSymbol):
+                    return;
             }
 
             // If method1 is a constructor only because its return type is missing, then
@@ -2567,6 +2571,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if ((object)method.OtherPartOfPartial != null && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(method, method.OtherPartOfPartial))
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, method.Locations[0], method, method.OtherPartOfPartial);
+                    }
+                    else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessModifier: true })
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.Locations[0], method);
                     }
                 }
             }
