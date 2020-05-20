@@ -59,6 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
                     editor.ReplaceNode(node, ((AssignmentExpressionSyntax)node).Right);
                     return;
                 default:
+                    if (node.Parent.Kind() == SyntaxKind.GlobalStatement)
+                    {
+                        node = node.Parent;
+                    }
                     RemoveNode(editor, node, syntaxFacts);
                     return;
             }

@@ -58,7 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
 
             foreach (var localFunction in localFunctions)
             {
-                editor.RemoveNode(localFunction);
+                SyntaxNode nodeToRemove = localFunction;
+                if (localFunction.Parent.Kind() == SyntaxKind.GlobalStatement)
+                {
+                    nodeToRemove = localFunction.Parent;
+                }
+                editor.RemoveNode(nodeToRemove);
             }
 
             return Task.CompletedTask;

@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -702,6 +703,17 @@ class C
         }
     }
 }");
+        }
+
+        [WorkItem(44273, "https://github.com/dotnet/roslyn/issues/44273")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task TopLevelStatement()
+        {
+            await TestAsync(@"
+[|int i = 0|];
+",
+@"
+", TestOptions.Regular);
         }
     }
 }
