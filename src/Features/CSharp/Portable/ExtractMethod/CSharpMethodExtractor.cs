@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
             }
 
-            var memberNode = basePosition.GetAncestor<MemberDeclarationSyntax>();
             Contract.ThrowIfNull(memberNode);
             Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
 
+            var memberNode = basePosition.GetAncestor<MemberDeclarationSyntax>();
             if (LocalFunction && memberNode is BasePropertyDeclarationSyntax propertyDeclaration)
             {
                 var accessorNode = basePosition.GetAncestor<AccessorDeclarationSyntax>();
