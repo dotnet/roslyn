@@ -259,6 +259,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         continue;
                 }
+                var annotations = (field.IsImplicitlyDeclared ? field.AssociatedSymbol : field).GetFlowAnalysisAnnotations();
+                if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
+                {
+                    continue;
+                }
                 if (field.IsConst)
                 {
                     continue;
