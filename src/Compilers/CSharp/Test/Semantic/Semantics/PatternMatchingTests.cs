@@ -7690,7 +7690,7 @@ class C
     static void Test(ReadOnlySpan<char> chars)
     {
         Console.WriteLine(""or: "" + (chars is ""string 1"" or ""string 2""));
-        Console.WriteLine(""and: "" + (chars is ""string 1"" and ""string 2""));
+        Console.WriteLine(""and: "" + (chars is ""string 1"" and { Length: 7 }));
         Console.WriteLine(""not: "" + (chars is not ""string 1""));
     }
 }
@@ -7708,7 +7708,7 @@ and: False
 not: True")
                 .VerifyIL("C.Test", @"
 {
-  // Code size      167 (0xa7)
+  // Code size      161 (0xa1)
   .maxstack  3
   .locals init (bool V_0)
   IL_0000:  nop
@@ -7735,33 +7735,33 @@ not: True")
   IL_0044:  ldstr      ""string 1""
   IL_0049:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_004e:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0053:  brfalse.s  IL_0067
-  IL_0055:  ldarg.0
-  IL_0056:  ldstr      ""string 2""
-  IL_005b:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0060:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0065:  br.s       IL_0068
-  IL_0067:  ldc.i4.0
-  IL_0068:  stloc.0
-  IL_0069:  ldloca.s   V_0
-  IL_006b:  call       ""string bool.ToString()""
-  IL_0070:  call       ""string string.Concat(string, string)""
-  IL_0075:  call       ""void System.Console.WriteLine(string)""
-  IL_007a:  nop
-  IL_007b:  ldstr      ""not: ""
-  IL_0080:  ldarg.0
-  IL_0081:  ldstr      ""string 1""
-  IL_0086:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_008b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0090:  ldc.i4.0
-  IL_0091:  ceq
-  IL_0093:  stloc.0
-  IL_0094:  ldloca.s   V_0
-  IL_0096:  call       ""string bool.ToString()""
-  IL_009b:  call       ""string string.Concat(string, string)""
-  IL_00a0:  call       ""void System.Console.WriteLine(string)""
-  IL_00a5:  nop
-  IL_00a6:  ret
+  IL_0053:  brfalse.s  IL_0061
+  IL_0055:  ldarga.s   V_0
+  IL_0057:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_005c:  ldc.i4.7
+  IL_005d:  ceq
+  IL_005f:  br.s       IL_0062
+  IL_0061:  ldc.i4.0
+  IL_0062:  stloc.0
+  IL_0063:  ldloca.s   V_0
+  IL_0065:  call       ""string bool.ToString()""
+  IL_006a:  call       ""string string.Concat(string, string)""
+  IL_006f:  call       ""void System.Console.WriteLine(string)""
+  IL_0074:  nop
+  IL_0075:  ldstr      ""not: ""
+  IL_007a:  ldarg.0
+  IL_007b:  ldstr      ""string 1""
+  IL_0080:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0085:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_008a:  ldc.i4.0
+  IL_008b:  ceq
+  IL_008d:  stloc.0
+  IL_008e:  ldloca.s   V_0
+  IL_0090:  call       ""string bool.ToString()""
+  IL_0095:  call       ""string string.Concat(string, string)""
+  IL_009a:  call       ""void System.Console.WriteLine(string)""
+  IL_009f:  nop
+  IL_00a0:  ret
 }");
         }
 
@@ -7934,6 +7934,153 @@ class C
                     // (5,63): error CS0037: Cannot convert null to 'ReadOnlySpan<char>' because it is a non-nullable value type
                     //     static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
                     Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 63));
+        }
+
+        [Fact]
+        public void MatchReadonlySpanCharOnImpossiblePatterns()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void M(ReadOnlySpan<char> chars)
+    {
+        _ = chars is """" and "" "";
+        _ = chars is """" and not """";
+        _ = chars is """" and ("" "" or not """");
+    }
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (7,13): error CS8518: An expression of type 'ReadOnlySpan<char>' can never match the provided pattern.
+                    //         _ = chars is "" and " ";
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and "" """).WithArguments("System.ReadOnlySpan<char>").WithLocation(7, 13),
+                    // (8,13): error CS8518: An expression of type 'ReadOnlySpan<char>' can never match the provided pattern.
+                    //         _ = chars is "" and not "";
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and not """"").WithArguments("System.ReadOnlySpan<char>").WithLocation(8, 13),
+                    // (9,13): error CS8518: An expression of type 'ReadOnlySpan<char>' can never match the provided pattern.
+                    //         _ = chars is "" and (" " or not "");
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and ("" "" or not """")").WithArguments("System.ReadOnlySpan<char>").WithLocation(9, 13));
+        }
+
+        [Fact]
+        public void PatternMatchReadonlySpanCharOnPossiblePatterns()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Test("""");
+        Test("" "");
+        Test(""  "");
+    }
+    static void Test(ReadOnlySpan<char> chars)
+    {
+        Console.WriteLine(""1."" + (chars is """" and not "" ""));
+        Console.WriteLine(""2."" + (chars is """" and ("" "" or """")));
+        Console.WriteLine(""3."" + (chars is """" or """"));
+        Console.WriteLine(""4."" + (chars is """" or not """"));
+    }
+}
+";
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (16,35): warning CS8794: An expression of type 'ReadOnlySpan<char>' always matches the provided pattern.
+                    //         Console.WriteLine("4." + (chars is "" or not ""));
+                    Diagnostic(ErrorCode.WRN_IsPatternAlways, @"chars is """" or not """"").WithArguments("System.ReadOnlySpan<char>").WithLocation(16, 35));
+            CompileAndVerify(compilation, expectedOutput: @"1.True
+2.True
+3.True
+4.True
+1.False
+2.False
+3.False
+4.True
+1.False
+2.False
+3.False
+4.True")
+                .VerifyIL("C.Test", @"
+{
+  // Code size      169 (0xa9)
+  .maxstack  3
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldstr      ""1.""
+  IL_0006:  ldarg.0
+  IL_0007:  ldstr      """"
+  IL_000c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0011:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""string bool.ToString()""
+  IL_001e:  call       ""string string.Concat(string, string)""
+  IL_0023:  call       ""void System.Console.WriteLine(string)""
+  IL_0028:  nop
+  IL_0029:  ldstr      ""2.""
+  IL_002e:  ldarg.0
+  IL_002f:  ldstr      """"
+  IL_0034:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0039:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_003e:  stloc.0
+  IL_003f:  ldloca.s   V_0
+  IL_0041:  call       ""string bool.ToString()""
+  IL_0046:  call       ""string string.Concat(string, string)""
+  IL_004b:  call       ""void System.Console.WriteLine(string)""
+  IL_0050:  nop
+  IL_0051:  ldstr      ""3.""
+  IL_0056:  ldarg.0
+  IL_0057:  ldstr      """"
+  IL_005c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0061:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0066:  stloc.0
+  IL_0067:  ldloca.s   V_0
+  IL_0069:  call       ""string bool.ToString()""
+  IL_006e:  call       ""string string.Concat(string, string)""
+  IL_0073:  call       ""void System.Console.WriteLine(string)""
+  IL_0078:  nop
+  IL_0079:  ldarg.0
+  IL_007a:  ldstr      """"
+  IL_007f:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0084:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0089:  brtrue.s   IL_008d
+  IL_008b:  br.s       IL_008d
+  IL_008d:  ldc.i4.1
+  IL_008e:  stloc.0
+  IL_008f:  br.s       IL_0091
+  IL_0091:  ldstr      ""4.""
+  IL_0096:  ldloca.s   V_0
+  IL_0098:  call       ""string bool.ToString()""
+  IL_009d:  call       ""string string.Concat(string, string)""
+  IL_00a2:  call       ""void System.Console.WriteLine(string)""
+  IL_00a7:  nop
+  IL_00a8:  ret
+}");
+        }
+
+        [Fact]
+        public void SwitchReadonlySpanCharOnDuplicateString()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch {
+        """" => true,
+        """" => false,
+        _ => false,
+    };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (7,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                    //         "" => false,
+                    Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(7, 9));
         }
     }
 }

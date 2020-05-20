@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IValueSetFactory? ForType(TypeSymbol type)
         {
+            if (type.IsReadOnlySpanChar())
+                return ForString;
             return ForSpecialType(type.SpecialType, type.IsNativeIntegerType);
         }
     }
