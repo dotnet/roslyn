@@ -1294,7 +1294,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract TNode ClearTrivia<TNode>(TNode node) where TNode : SyntaxNode;
 
-        protected static int IndexOf<T>(IReadOnlyList<T> list, T element)
+#pragma warning disable CA1822 // Mark members as static - shipped public API
+        protected int IndexOf<T>(IReadOnlyList<T> list, T element)
+#pragma warning restore CA1822 // Mark members as static
         {
             for (int i = 0, count = list.Count; i < count; i++)
             {
