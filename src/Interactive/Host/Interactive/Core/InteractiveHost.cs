@@ -498,15 +498,15 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// This method is thread safe but operations are sent to the remote process
         /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
-        public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
+        public async Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
             Contract.ThrowIfNull(path);
             //(miziga) this is where the jsonrpc will be used
             //(miziga) what is the target name of the method to be referenced with the parameters? 
             var jsonRpc = JsonRpc.Attach(_clientStream);
-            //return await jsonRpc.InvokeAsync<RemoteExecutionResult>("", path).ConfigureAwait(false);
+            return await jsonRpc.InvokeAsync<RemoteExecutionResult>("ExecuteFileAsync", path).ConfigureAwait(false);
             //TODO(miziga): delete 
-            return Async<RemoteExecutionResult>((service, operation) => service.ExecuteFile(operation, path));
+            //return Async<RemoteExecutionResult>((service, operation) => service.ExecuteFile(operation, path));
         }
 
         /// <summary>
