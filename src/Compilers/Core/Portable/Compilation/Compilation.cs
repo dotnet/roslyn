@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract string Language { get; }
 
-        internal abstract ImmutableDictionary<string, string> SerializeForPdb();
+        internal abstract void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder);
 
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
         {

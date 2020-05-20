@@ -3485,26 +3485,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol.GetPublicSymbol()));
         }
 
-        internal override ImmutableDictionary<string, string> SerializeForPdb()
+        internal override void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder)
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
-
-            builder.Add("checked", Options.CheckOverflow.ToString());
-            builder.Add("nullable", Options.NullableContextOptions.ToString());
-            builder.Add("unsafe", Options.AllowUnsafe.ToString());
-            builder.Add("langversion", LanguageVersion.ToDisplayString());
+            WriteValue("checked", Options.CheckOverflow.ToString());
+            WriteValue("nullable", Options.NullableContextOptions.ToString());
+            WriteValue("unsafe", Options.AllowUnsafe.ToString());
+            WriteValue("langversion", LanguageVersion.ToDisplayString());
 
             if (Options.CodePage is object)
             {
-                builder.Add("codepage", Options.CodePage.CodePage.ToString());
+                WriteValue("codepage", Options.CodePage.CodePage.ToString());
             }
 
             if (!Options.PreprocessorSymbols.IsEmpty)
             {
-                builder.Add("define", string.Join(",", Options.PreprocessorSymbols));
+                WriteValue("define", string.Join(",", Options.PreprocessorSymbols));
             }
 
-            return builder.ToImmutable();
+            void WriteValue(string key, string value)
+            {
+                builder.WriteUTF8(key);
+                builder.WriteByte(0);
+                builder.WriteUTF8(value);
+                builder.WriteByte(0);
+            }
         }
 
         /// <summary>

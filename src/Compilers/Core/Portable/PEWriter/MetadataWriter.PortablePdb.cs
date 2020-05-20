@@ -844,14 +844,10 @@ namespace Microsoft.Cci
 
             var builder = new BlobBuilder();
 
-            // compilerversion
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
             WriteValue("compilerversion", compilerVersion);
 
-            foreach (var (key, value) in module.CommonCompilation.SerializeForPdb())
-            {
-                WriteValue(key, value);
-            }
+            module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
 
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,

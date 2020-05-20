@@ -708,12 +708,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 eventQueue:=eventQueue)
         End Function
 
-        Friend Overrides Function SerializeForPdb() As ImmutableDictionary(Of String, String)
-            Dim builder = ImmutableDictionary.CreateBuilder(Of String, String)()
-
-            builder.Add("checked", Options.CheckOverflow.ToString())
-            builder.Add("langversion", LanguageVersion.ToDisplayString())
-            builder.Add("optionstrict", Options.OptionStrict.ToString())
+        Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)
+            WriteValue(builder, "checked", Options.CheckOverflow.ToString())
+            WriteValue(builder, "langversion", LanguageVersion.ToDisplayString())
+            WriteValue(builder, "optionstrict", Options.OptionStrict.ToString())
 
             If (Options.ParseOptions IsNot Nothing) Then
                 Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
@@ -723,11 +721,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                                                                               Return p.Key + "=" + p.Value.ToString()
                                                                                           End Function)
-                builder.Add("define", String.Join(",", preprocessorStrings))
+                WriteValue(builder, "define", String.Join(",", preprocessorStrings))
             End If
+        End Sub
 
-            Return builder.ToImmutable()
-        End Function
+        Private Sub WriteValue(builder As BlobBuilder, key As String, value As String)
+            builder.WriteUTF8(key)
+            builder.WriteByte(0)
+            builder.WriteUTF8(value)
+            builder.WriteByte(0)
+        End Sub
 #End Region
 
 #Region "Submission"
