@@ -229,6 +229,9 @@ namespace Analyzer.Utilities.Extensions
                 method.ReturnsVoid && method.Parameters.IsEmpty;
         }
 
+        private static bool HasDisposeCloseAsyncMethodSignature(this IMethodSymbol method, INamedTypeSymbol? taskType)
+            => taskType != null && method.Parameters.IsEmpty && method.Name == "CloseAsync" && method.ReturnType.Equals(taskType);
+
         /// <summary>
         /// Checks if the given method has the signature "Task DisposeAsync()" or "ValueTask DisposeAsync()".
         /// </summary>
@@ -306,6 +309,10 @@ namespace Analyzer.Utilities.Extensions
                 else if (method.HasDisposeCloseMethodSignature())
                 {
                     return DisposeMethodKind.Close;
+                }
+                else if (method.HasDisposeCloseAsyncMethodSignature(task))
+                {
+                    return DisposeMethodKind.CloseAsync;
                 }
             }
 
