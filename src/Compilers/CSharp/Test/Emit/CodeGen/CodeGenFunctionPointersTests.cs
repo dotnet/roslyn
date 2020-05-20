@@ -6008,7 +6008,7 @@ unsafe class Derived : Base
             comp.VerifyDiagnostics(
             );
 
-            assertMethods(comp.SourceModule); 
+            assertMethods(comp.SourceModule);
             CompileAndVerify(comp, symbolValidator: assertMethods);
 
             static void assertMethods(ModuleSymbol module)
@@ -6172,7 +6172,7 @@ unsafe class Derived : Base
 
             comp.VerifyDiagnostics(
                 // (16,29): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
-                //     protected override void M1(delegate*<string> ptr) {{}}
+                //     protected override void M1(delegate*<string> ptr) {}
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("ptr").WithLocation(16, 29),
                 // (19,48): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     protected override delegate*<string, void> M4() => throw null!;
@@ -6181,7 +6181,7 @@ unsafe class Derived : Base
                 //     protected override delegate*<string?> M6() => throw null!;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M6").WithLocation(21, 43),
                 // (22,29): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
-                //     protected override void M7(delegate*<string?, void> ptr) {{}}
+                //     protected override void M7(delegate*<string?, void> ptr) {}
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M7").WithArguments("ptr").WithLocation(22, 29)
             );
 
@@ -6238,25 +6238,25 @@ unsafe class Derived : Base
 
             comp.VerifyDiagnostics(
                 // (16,29): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
-                //     protected override void M1(delegate*<ref string> ptr) {{}}
+                //     protected override void M1(delegate*<ref string> ptr) {}
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("ptr").WithLocation(16, 29),
                 // (17,46): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     protected override delegate*<ref string> M2() => throw null!;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M2").WithLocation(17, 46),
                 // (18,29): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
-                //     protected override void M3(delegate*<ref string, void> ptr) {{}}
+                //     protected override void M3(delegate*<ref string, void> ptr) {}
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("ptr").WithLocation(18, 29),
                 // (19,52): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     protected override delegate*<ref string, void> M4() => throw null!;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(19, 52),
                 // (20,29): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
-                //     protected override void M5(delegate*<ref string?> ptr) {{}}
+                //     protected override void M5(delegate*<ref string?> ptr) {}
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("ptr").WithLocation(20, 29),
                 // (21,47): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     protected override delegate*<ref string?> M6() => throw null!;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M6").WithLocation(21, 47),
                 // (22,29): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
-                //     protected override void M7(delegate*<ref string?, void> ptr) {{}}
+                //     protected override void M7(delegate*<ref string?, void> ptr) {}
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M7").WithArguments("ptr").WithLocation(22, 29),
                 // (23,53): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     protected override delegate*<ref string?, void> M8() => throw null!;
@@ -6316,25 +6316,25 @@ public unsafe class Derived : Base
 
             comp.VerifyDiagnostics(
                 // (16,26): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
-                //     public override void M1(ref delegate*<string> ptr) {{}}
+                //     public override void M1(ref delegate*<string> ptr) {}
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("ptr").WithLocation(16, 26),
                 // (17,43): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     public override ref delegate*<string> M2() => throw null!;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M2").WithLocation(17, 43),
                 // (18,26): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
-                //     public override void M3(ref delegate*<string, void> ptr) {{}}
+                //     public override void M3(ref delegate*<string, void> ptr) {}
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("ptr").WithLocation(18, 26),
                 // (19,49): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     public override ref delegate*<string, void> M4() => throw null!;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(19, 49),
                 // (20,26): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
-                //     public override void M5(ref delegate*<string?> ptr) {{}}
+                //     public override void M5(ref delegate*<string?> ptr) {}
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("ptr").WithLocation(20, 26),
                 // (21,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     public override ref delegate*<string?> M6() => throw null!;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M6").WithLocation(21, 44),
                 // (22,26): warning CS8610: Nullability of reference types in type of parameter 'ptr' doesn't match overridden member.
-                //     public override void M7(ref delegate*<string?, void> ptr) {{}}
+                //     public override void M7(ref delegate*<string?, void> ptr) {}
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M7").WithArguments("ptr").WithLocation(22, 26),
                 // (23,50): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     public override ref delegate*<string?, void> M8() => throw null!;
