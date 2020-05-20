@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Tags;
@@ -258,68 +259,64 @@ namespace Microsoft.CodeAnalysis.Completion
             var isItem1Expanded = item1.Flags.IsExpanded();
             var isItem2Expanded = item2.Flags.IsExpanded();
 
+            // Consider them equal if both items are of the same kind (i.e. both expanded or non-expanded)
             if (isItem1Expanded == isItem2Expanded)
             {
                 return 0;
             }
 
-            var isItem1ExactMatch = match1.Kind == PatternMatchKind.Exact;
-            var isItem2ExactMatch = match2.Kind == PatternMatchKind.Exact;
-
-            // If neither of the items is an exact match, or both are exact matches,
-            // then we prefer non-expanded item over expanded one.
-            // 
-            // For example, suppose we have two types `Namespace1.Cafe` and `Namespace2.Cafe`, and import completion is enabled.
-            // In both of the scenarios below, `Namespace1.Cafe` would be selected over `Namespace2.Cafe`
-
-            //  using Namespace1;
-            //  class C
+            // Now we have two items of different kind.
+            // If neither item is exact match, we always prefer non-expanded one.
+            // For example, `NS2.MyTask` would be selected over `NS1.Tasks` 
+            //
+            //  namespace NS1
             //  {
-            //      cafe$$
+            //      class Tasks {}
             //  }
-
-            //  using Namespace1;
-            //  class C
+            //  namespace NS2
             //  {
-            //      caf$$
+            //      class MyTask {}
+            //      class C
+            //      {
+            //          task$$
+            //      }
             //  }
-
-            if (!isItem1ExactMatch && !isItem2ExactMatch
-                || match1.Kind == match2.Kind)
+            if (match1.Kind != PatternMatchKind.Exact && match2.Kind != PatternMatchKind.Exact)
             {
                 return isItem1Expanded ? 1 : -1;
             }
 
-            // We prefer expanded item over non-expanded one iff the expanded item 
-            // is an exact match whereas the non-expanded one is worse than prefix match.
-            // 
-            // For example, suppose we have two items `Namespace1.Designer` and `Namespace2.DES`.
-            // In the scenarios below, `Namespace1.Designer` would be selected over `Namespace2.DES`.
+            // Now we have two items of different kind and at least one is exact match.
+            // Prefer non-expanded item if it is prefix match or better.
+            // In the scenarios below, `NS2.Designer` would be selected over `System.Security.Cryptography.DES`
             //
-            //  using Namespace1;
-            //  class C
+            //  namespace System.Security.Cryptography
             //  {
-            //      des$$
+            //      class DES {}
             //  }
-            //
-            // Or, if we have `Namespace1.MyTask` and `Namespace2.Task` in the example below, `Namespace2.Task` would be selected.
-            //
-            //  using Namespace1;
-            //  class C
+            //  namespace NS2
             //  {
-            //      task$$
+            //      class Designer {}
+            //      class C
+            //      {
+            //          des$$
+            //      }
             //  }
-            if (isItem1Expanded && isItem1ExactMatch)
+            if (!isItem1Expanded && match1.Kind <= PatternMatchKind.Prefix)
             {
-                return match2.Kind != PatternMatchKind.Prefix ? -1 : 1;
-            }
-            else if (isItem2Expanded && isItem2ExactMatch)
-            {
-                return match1.Kind != PatternMatchKind.Prefix ? 1 : -1;
+                return -1;
             }
 
-            // Non-expanded item is the only exact match, so we definitely prefer it.
-            return isItem1Expanded ? 1 : -1;
+            if (!isItem2Expanded && match2.Kind <= PatternMatchKind.Prefix)
+            {
+                return 1;
+            }
+
+            // Now we are left with an expanded item with exact match and a non-expanded item with worse than prefix match.
+            // Prefer non-expanded item with exact match.
+            Debug.Assert(isItem1Expanded && match1.Kind == PatternMatchKind.Exact && !isItem2Expanded && match2.Kind > PatternMatchKind.Prefix ||
+                         isItem2Expanded && match2.Kind == PatternMatchKind.Exact && !isItem1Expanded && match1.Kind > PatternMatchKind.Prefix);
+            return isItem1Expanded ? -1 : 1;
         }
 
         public static string ConcatNamespace(string? containingNamespace, string name)
