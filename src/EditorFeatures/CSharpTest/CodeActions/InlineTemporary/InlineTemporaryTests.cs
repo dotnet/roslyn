@@ -5170,39 +5170,5 @@ class C
     }
 }");
         }
-
-        [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task TopLevelStatement()
-        {
-            // InlineTemp does not yet support top-level statements
-            // https://github.com/dotnet/roslyn/issues/44263
-            await TestMissingInRegularAndScriptAsync(@"
-int val = 0;
-int [||]val2 = val + 1;
-System.Console.WriteLine(val2);
-");
-        }
-
-        [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task TopLevelStatement_InScope()
-        {
-            // Note: we should simplify 'global' as well
-            // https://github.com/dotnet/roslyn/issues/44263
-            await TestAsync(@"
-{
-    int val = 0;
-    int [||]val2 = val + 1;
-    System.Console.WriteLine(val2);
-}
-",
-@"
-{
-    int val = 0;
-    global::System.Console.WriteLine(val + 1);
-}
-", TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
-        }
     }
 }

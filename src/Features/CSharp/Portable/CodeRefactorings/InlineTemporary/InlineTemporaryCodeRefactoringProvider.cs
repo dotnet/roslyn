@@ -59,12 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return;
             }
 
-            if (variableDeclaration.Parent.IsParentKind(SyntaxKind.GlobalStatement))
-            {
-                // We don't handle InlineTemp in top-level statements yet. https://github.com/dotnet/roslyn/issues/44263
-                return;
-            }
-
             if (variableDeclarator.Initializer == null ||
                 variableDeclarator.Initializer.Value.IsMissing ||
                 variableDeclarator.Initializer.Value.IsKind(SyntaxKind.StackAllocArrayCreationExpression))
