@@ -372,7 +372,8 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [Fact(Skip = "PROTOTYPE(TopLevelStatements): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task PP_If8()
         {
             var code =
@@ -396,7 +397,8 @@ aeu";
                 Field("aeu"));
         }
 
-        [Fact(Skip = "PROTOTYPE(TopLevelStatements): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task PP_If9()
         {
             var code =
