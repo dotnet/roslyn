@@ -1830,6 +1830,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return GetExecutableBlockStatements(node)
         End Function
 
+        Public Function IsTerminator(node As SyntaxNode, token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsTerminator
+            ' TODO: some tokens may be terminators
+            Return False
+        End Function
+
         Private Function ISyntaxFacts_GetLeadingBlankLines(node As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFacts.GetLeadingBlankLines
             Return MyBase.GetLeadingBlankLines(node)
         End Function

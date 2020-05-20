@@ -1699,6 +1699,31 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                ? GetExecutableBlockStatements(node)
                : (IReadOnlyList<SyntaxNode>)ImmutableArray.Create<SyntaxNode>(node.GetEmbeddedStatement());
 
+        public bool IsTerminator(SyntaxNode node, SyntaxToken token)
+        {
+            if (token.IsKind(SyntaxKind.SemicolonToken))
+            {
+                if (node.IsKind(SyntaxKind.UsingDirective, out UsingDirectiveSyntax usingDirective))
+                {
+                    return usingDirective.SemicolonToken == token;
+                }
+                else if (node.IsKind(SyntaxKind.ExternAliasDirective, out ExternAliasDirectiveSyntax externAliasDirective))
+                {
+                    return externAliasDirective.SemicolonToken == token;
+                }
+                else
+                {
+                    // TODO: handle other terminating semicolons
+                    return false;
+                }
+            }
+            else
+            {
+                // TODO: handle other terminating tokens
+                return false;
+            }
+        }
+
         public bool IsCastExpression(SyntaxNode node)
             => node is CastExpressionSyntax;
 

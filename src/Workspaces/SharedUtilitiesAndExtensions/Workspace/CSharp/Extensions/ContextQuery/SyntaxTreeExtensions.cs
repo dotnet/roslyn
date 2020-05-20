@@ -730,6 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsParameterTypeContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsPossibleLambdaOrAnonymousMethodParameterTypeContext(position, tokenOnLeftOfPosition, cancellationToken) ||
                 syntaxTree.IsStatementContext(position, tokenOnLeftOfPosition, cancellationToken) ||
+                syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||
                 syntaxTree.IsTypeParameterConstraintContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsUsingAliasContext(position, cancellationToken) ||
                 syntaxTree.IsUsingStaticContext(position, cancellationToken) ||
