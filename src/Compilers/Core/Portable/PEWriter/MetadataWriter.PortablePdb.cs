@@ -906,9 +906,12 @@ namespace Microsoft.Cci
 
                     builder.WriteByte((byte)portableReference.Properties.Kind);
                     builder.WriteBoolean(portableReference.Properties.EmbedInteropTypes);
-                    builder.WriteInt32(peReader.GetTimestamp());
-                    builder.WriteInt32(peReader.GetSizeOfImage());
-                    builder.WriteGuid(peReader.GetMvid());
+                    builder.WriteInt32(peReader.PEHeaders.CoffHeader.TimeDateStamp);
+                    builder.WriteInt32(peReader.PEHeaders.PEHeader.SizeOfImage);
+
+                    var metadataReader = peReader.GetMetadataReader();
+                    var moduleDefinition = metadataReader.GetModuleDefinition();
+                    builder.WriteGuid(metadataReader.GetGuid(moduleDefinition.Mvid));
                 }
             }
 

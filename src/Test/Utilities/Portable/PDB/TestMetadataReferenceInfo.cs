@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
@@ -32,11 +33,15 @@ namespace Roslyn.Test.Utilities.PDB
             _peReader = new PEReader(emitStream);
             Compilation = compilation;
             MetadataReference = metadataReference;
+
+            var metadataReader = _peReader.GetMetadataReader();
+            var moduleDefinition = metadataReader.GetModuleDefinition();
+
             MetadataReferenceInfo = new MetadataReferenceInfo(
-                _peReader.GetTimestamp(),
-                _peReader.GetSizeOfImage(),
+                _peReader.PEHeaders.CoffHeader.TimeDateStamp,
+                _peReader.PEHeaders.PEHeader.SizeOfImage,
                 PathUtilities.GetFileName(fullPath),
-                _peReader.GetMvid(),
+                metadataReader.GetGuid(moduleDefinition.Mvid),
                 metadataReference.Properties.Aliases,
                 metadataReference.Properties.Kind,
                 metadataReference.Properties.EmbedInteropTypes); ;
