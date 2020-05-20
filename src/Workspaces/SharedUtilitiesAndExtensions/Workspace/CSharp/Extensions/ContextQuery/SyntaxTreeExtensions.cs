@@ -77,11 +77,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var tokenOnLeftOfPosition = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
+            var parent = token.Parent;
 
             var modifierTokens = syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition);
             if (modifierTokens.IsEmpty())
             {
-                return false;
+                if (token.IsKind(SyntaxKind.CloseBracketToken)
+                    && parent.IsKind(SyntaxKind.AttributeList, out AttributeListSyntax attributeList)
+                    && !(attributeList.Target is { Identifier: { RawKind: (int)SyntaxKind.AssemblyKeyword } }))
+                {
+                    // Allow empty modifier tokens if we have an attribute list
+                    parent = attributeList.Parent;
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             if (modifierTokens.IsSubsetOf(validModifiers))
@@ -89,9 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // the parent is the member
                 // the grandparent is the container of the member
                 // in interactive, it's possible that there might be an intervening "incomplete" member for partially
-                // typed declarations that parse ambiguously. For example, "internal e".
-                if (token.Parent.IsKind(SyntaxKind.CompilationUnit) ||
-                   (token.Parent.IsKind(SyntaxKind.IncompleteMember) && token.Parent.IsParentKind(SyntaxKind.CompilationUnit)))
+                // typed declarations that parse ambiguously. For example, "internal e". It's also possible for a
+                // complete member to be parsed based on data after the caret, e.g. "unsafe $$ void L() { }".
+                if (parent.IsKind(SyntaxKind.CompilationUnit) ||
+                   (parent is MemberDeclarationSyntax && parent.IsParentKind(SyntaxKind.CompilationUnit)))
                 {
                     return true;
                 }
@@ -328,6 +340,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
                 token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
+
+                // If one or more attribute lists are present before the caret, check to see if those attribute lists
+                // were written in a local function declaration context.
+                while (token.IsKind(SyntaxKind.CloseBracketToken) && token.Parent.IsKind(SyntaxKind.AttributeList, out AttributeListSyntax attributeList))
+                {
+                    beforeModifiersPosition = attributeList.OpenBracketToken.SpanStart;
+                    leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
+                    token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
+                }
 
                 return syntaxTree.IsStatementContext(beforeModifiersPosition, token, cancellationToken)
                     || (!syntaxTree.IsScript() && syntaxTree.IsGlobalStatementContext(beforeModifiersPosition, cancellationToken));

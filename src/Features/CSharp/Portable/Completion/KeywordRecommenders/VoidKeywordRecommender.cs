@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsUnsafeCastTypeContext(context) ||
                 IsUnsafeDefaultExpressionContext(context) ||
                 context.IsFixedVariableDeclarationContext ||
+                context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.SyntaxTree.IsLocalFunctionDeclarationContext(position, SyntaxKindSet.AllLocalFunctionModifiers, cancellationToken);
         }
 
