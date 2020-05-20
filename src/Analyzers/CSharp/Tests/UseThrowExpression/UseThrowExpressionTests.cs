@@ -541,5 +541,18 @@ class A<T> where T: struct
     }
 }");
         }
+
+        [WorkItem(44454, "https://github.com/dotnet/roslyn/issues/44454")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TopLevelStatement()
+        {
+            await TestMissingAsync(
+@"using System;
+string s = null;
+string x = null;
+if (s == null) [|throw|] new ArgumentNullException();
+x = s;
+");
+        }
     }
 }
