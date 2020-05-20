@@ -13,7 +13,10 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+<<<<<<< HEAD
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+=======
+>>>>>>> RemoveHostClientProvider
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
