@@ -2606,7 +2606,7 @@ void local(int x, int y)
         </Document>
     </Project>
 </Workspace>",
-            new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)));
+            new TestParameters(parseOptions: TestOptions.Regular));
         }
 
         [WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]
@@ -2639,7 +2639,7 @@ void outer()
     }
 }
 ",
-            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8));
+            TestOptions.Regular);
         }
     }
 }
