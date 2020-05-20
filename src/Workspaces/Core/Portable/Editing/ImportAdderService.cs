@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,11 +62,10 @@ namespace Microsoft.CodeAnalysis.Editing
 
         protected abstract INamespaceSymbol? GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model);
 
-        private SyntaxNode MakeSafeToAddNamespaces(
+        private ISet<INamespaceSymbol> GetSafeToAddImports(
+            ImmutableArray<INamespaceSymbol> namespaceSymbols,
             SyntaxNode root,
-            IEnumerable<INamespaceSymbol> namespaceSymbols,
             SemanticModel model,
-            Workspace workspace,
             CancellationToken cancellationToken)
         {
             var namespaceMembers = namespaceSymbols.SelectMany(x => x.GetMembers());
@@ -73,19 +73,22 @@ namespace Microsoft.CodeAnalysis.Editing
                 namespaceMembers.OfType<INamedTypeSymbol>().Where(t => t.MightContainExtensionMethods)
                 .SelectMany(x => x.GetMembers().OfType<IMethodSymbol>().Where(x => x.IsExtensionMethod));
 
-            return MakeSafeToAddNamespaces(root, namespaceMembers, extensionMethods, model, workspace, cancellationToken);
+            var conflicts = new HashSet<INamespaceSymbol>();
+            AddPotentiallyConflictingImports(
+                root, namespaceMembers, extensionMethods, model, conflicts, cancellationToken);
+            return namespaceSymbols.Except(conflicts).ToSet();
         }
 
         /// <summary>
         /// Fully qualifies parts of the document that may change meaning if namespaces are added, 
         /// and marks them with <see cref="Simplifier.Annotation"/> so they can be reduced later.
         /// </summary>
-        protected abstract SyntaxNode MakeSafeToAddNamespaces(
+        protected abstract void AddPotentiallyConflictingImports(
             SyntaxNode root,
             IEnumerable<INamespaceOrTypeSymbol> namespaceMembers,
             IEnumerable<IMethodSymbol> extensionMethods,
             SemanticModel model,
-            Workspace workspace,
+            HashSet<INamespaceSymbol> conflicts,
             CancellationToken cancellationToken);
 
         private SyntaxNode GenerateNamespaceImportDeclaration(INamespaceSymbol namespaceSymbol, SyntaxGenerator generator)
@@ -164,14 +167,13 @@ namespace Microsoft.CodeAnalysis.Editing
             bool placeSystemNamespaceFirst,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var importsToAdd);
+            using var _ = PooledDictionary<INamespaceSymbol, SyntaxNode>.GetInstance(out var importToSyntax);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             SyntaxNode? first = null, last = null;
             var annotatedNodes = syntaxNodes.Where(x => x.HasAnnotations(SymbolAnnotation.Kind));
-            var addedSymbols = new HashSet<INamespaceSymbol>();
 
             foreach (var annotatedNode in annotatedNodes)
             {
@@ -198,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         first ??= annotatedNode;
                         last = annotatedNode;
 
-                        if (addedSymbols.Contains(namespaceSymbol))
+                        if (importToSyntax.ContainsKey(namespaceSymbol))
                             continue;
 
                         var namespaceSyntax = GenerateNamespaceImportDeclaration(namespaceSymbol, generator);
@@ -208,35 +210,18 @@ namespace Microsoft.CodeAnalysis.Editing
                         if (IsInsideNamespace(annotatedNode, namespaceSymbol, model, cancellationToken))
                             continue;
 
-                        addedSymbols.Add(namespaceSymbol);
-                        importsToAdd.Add(namespaceSyntax);
+                        importToSyntax[namespaceSymbol] = namespaceSyntax;
                     }
                 }
             }
 
-            if (importsToAdd.Count == 0)
+            var safeImportsToAdd = GetSafeToAddImports(importToSyntax.Keys.ToImmutableArray(), root, model, cancellationToken);
+
+            var importsToAdd = importToSyntax.Where(kvp => safeImportsToAdd.Contains(kvp.Key)).Select(kvp => kvp.Value).ToImmutableArray();
+            if (importsToAdd.Length == 0)
                 return document;
 
             var context = first == null || last == null ? null : first.GetCommonRoot(last);
-
-            {
-                // Mark the context with an annotation. 
-                // This will allow us to find it after we have called MakeSafeToAddNamespaces.
-                var annotation = new SyntaxAnnotation();
-                RoslynDebug.Assert(context is object);
-                document = document.WithSyntaxRoot(root.ReplaceNode(context, context.WithAdditionalAnnotations(annotation)));
-                root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                // Make Safe to add namespaces
-                document = document.WithSyntaxRoot(
-                   MakeSafeToAddNamespaces(root, addedSymbols, model, document.Project.Solution.Workspace, cancellationToken));
-                root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                // Find the context. It might be null if we have removed the context in the process of complexifying the tree.
-                context = root.DescendantNodesAndSelf().FirstOrDefault(x => x.HasAnnotation(annotation)) ?? root;
-            }
 
             root = addImportsService.AddImports(model.Compilation, root, context, importsToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
             return document.WithSyntaxRoot(root);

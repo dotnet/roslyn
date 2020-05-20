@@ -837,8 +837,8 @@ class C
 
         #region AddImports Safe Tests
 
-        [Theory, InlineData(true), InlineData(false)]
-        public async Task TestSafeWithMatchingSimpleName(bool useSymbolAnnotations)
+        [Fact]
+        public async Task TestSafeWithMatchingSimpleName()
         {
             await TestAsync(
 @"using B;
@@ -859,8 +859,7 @@ class C
     C1 M(A.C2 c2) => default;
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -875,11 +874,10 @@ namespace B
 
 class C
 {
-    global::B.C1 M(A.C2 c2) => default;
+    C1 M(A.C2 c2) => default;
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -894,12 +892,12 @@ namespace B
 
 class C
 {
-    B.C1 M(C2 c2) => default;
-}", safe: true, useSymbolAnnotations);
+    C1 M(A.C2 c2) => default;
+}", safe: true, useSymbolAnnotations: true);
         }
 
-        [Theory, InlineData(true), InlineData(false)]
-        public async Task TestSafeWithMatchingGenericName(bool useSymbolAnnotations)
+        [Fact]
+        public async Task TestSafeWithMatchingGenericName()
         {
             await TestAsync(
 @"using B;
@@ -920,8 +918,7 @@ class C
     C1<int> M(A.C2 c2) => default;
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -936,11 +933,10 @@ namespace B
 
 class C
 {
-    global::B.C1<int> M(A.C2 c2) => default;
+    C1<int> M(A.C2 c2) => default;
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -955,12 +951,12 @@ namespace B
 
 class C
 {
-    B.C1<int> M(C2 c2) => default;
-}", safe: true, useSymbolAnnotations);
+    C1<int> M(A.C2 c2) => default;
+}", safe: true, useSymbolAnnotations: true);
         }
 
-        [Theory, InlineData(true), InlineData(false)]
-        public async Task TestSafeWithMatchingQualifiedName(bool useSymbolAnnotations)
+        [Fact]
+        public async Task TestSafeWithMatchingQualifiedName()
         {
             await TestAsync(
 @"using B;
@@ -984,8 +980,7 @@ class C
     O.C1 M(A.C2 c2) => default;
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -1003,11 +998,10 @@ namespace B
 
 class C
 {
-    global::B.O.C1 M(A.C2 c2) => default;
+    O.C1 M(A.C2 c2) => default;
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -1025,12 +1019,12 @@ namespace B
 
 class C
 {
-    B.O.C1 M(C2 c2) => default;
-}", safe: true, useSymbolAnnotations);
+    O.C1 M(A.C2 c2) => default;
+}", safe: true, useSymbolAnnotations: true);
         }
 
-        [Theory, InlineData(true), InlineData(false)]
-        public async Task TestSafeWithMatchingAliasedIdentifierName(bool useSymbolAnnotations)
+        [Fact]
+        public async Task TestSafeWithMatchingAliasedIdentifierName()
         {
             await TestAsync(
 @"using C1 = B.C1;
@@ -1053,10 +1047,7 @@ namespace Inner
         C1 M(A.C2 c2) => default;
     }
 }",
-
-@"using A;
-using B;
-using C1 = B.C1;
+@"using C1 = B.C1;
 
 namespace A
 {
@@ -1073,12 +1064,10 @@ namespace Inner
 {
     class C
     {
-        global::B.C1 M(A.C2 c2) => default;
+        C1 M(A.C2 c2) => default;
     }
 }",
-
-@"using A;
-using C1 = B.C1;
+@"using C1 = B.C1;
 
 namespace A
 {
@@ -1095,13 +1084,13 @@ namespace Inner
 {
     class C
     {
-        C1 M(C2 c2) => default;
+        C1 M(A.C2 c2) => default;
     }
-}", safe: true, useSymbolAnnotations);
+}", safe: true, useSymbolAnnotations: true);
         }
 
-        [Theory, InlineData(true), InlineData(false)]
-        public async Task TestSafeWithMatchingGenericNameAndTypeArguments(bool useSymbolAnnotations)
+        [Fact]
+        public async Task TestSafeWithMatchingGenericNameAndTypeArguments()
         {
             await TestAsync(
 @"using B;
@@ -1124,8 +1113,7 @@ class C
     C1<C3> M(A.C2 c2) => default;
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -1142,11 +1130,10 @@ namespace B
 
 class C
 {
-    global::B.C1<global::B.C3> M(A.C2 c2) => default;
+    C1<C3> M(A.C2 c2) => default;
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -1163,12 +1150,12 @@ namespace B
 
 class C
 {
-    B.C1<B.C3> M(C2 c2) => default;
-}", safe: true, useSymbolAnnotations);
+    C1<C3> M(A.C2 c2) => default;
+}", safe: true, useSymbolAnnotations: true);
         }
 
-        [Theory, InlineData(true), InlineData(false)]
-        public async Task TestSafeWithMatchingQualifiedNameAndTypeArguments(bool useSymbolAnnotations)
+        [Fact]
+        public async Task TestSafeWithMatchingQualifiedNameAndTypeArguments()
         {
             await TestAsync(
 @"using B;
@@ -1194,8 +1181,7 @@ class C
     O.C1<C3> M(A.C2 c2) => default;
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -1215,11 +1201,10 @@ namespace B
 
 class C
 {
-    global::B.O.C1<global::B.C3> M(A.C2 c2) => default;
+    O.C1<C3> M(A.C2 c2) => default;
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -1239,13 +1224,12 @@ namespace B
 
 class C
 {
-    B.O.C1<B.C3> M(C2 c2) => default;
-}", safe: true, useSymbolAnnotations);
+    O.C1<C3> M(A.C2 c2) => default;
+}", safe: true, useSymbolAnnotations: true);
         }
 
-        [Theory, InlineData(true), InlineData(false)]
-        [WorkItem(39641, "https://github.com/dotnet/roslyn/issues/39641")]
-        public async Task TestSafeWithMatchingSimpleNameInAllLocations(bool useSymbolAnnotations)
+        [Fact, WorkItem(39641, "https://github.com/dotnet/roslyn/issues/39641")]
+        public async Task TestSafeWithMatchingSimpleNameInAllLocations()
         {
             await TestAsync(
 @"using B;
@@ -1282,43 +1266,7 @@ class C
     }
 }",
 
-@"using A;
-using B;
-using System.Collections.Generic;
-
-namespace A
-{
-	class C1 { }
-	class C2 { }
-}
-
-namespace B
-{
-	class C1
-	{
-		public static global::B.C1 P { get; }
-	}
-}
-
-#nullable enable
-#pragma warning disable
-
-class C
-{
-    /// <summary>
-    /// <see cref=""global::B.C1""/>
-    /// </summary>
-    global::B.C1 M(global::B.C1 c1, A.C2 c2)
-
-    {
-        global::B.C1 result = (global::B.C1)c1 ?? new global::B.C1() ?? global::B.C1.P ?? new global::B.C1[0] { }[0] ?? new List<global::B.C1>()[0] ?? (global::B.C1?)null;
-        (global::B.C1 a, int b) = (default, default);
-        return result;
-    }
-}",
-
-@"using A;
-using B;
+@"using B;
 using System.Collections.Generic;
 
 namespace A
@@ -1340,21 +1288,55 @@ namespace B
 
 class C
 {
-    /// <summary>
-    /// <see cref=""global::B.C1""/>
-    /// </summary>
-    B.C1 M(B.C1 c1, C2 c2)
+	/// <summary>
+	/// <see cref=""C1""/>
+	/// </summary>
+	C1 M(C1 c1, A.C2 c2)
 
     {
-        B.C1 result = (B.C1)c1 ?? new B.C1() ?? B.C1.P ?? new B.C1[0] { }[0] ?? new List<B.C1>()[0] ?? (B.C1?)null;
-        (B.C1 a, int b) = (default, default);
+        C1 result = (C1)c1 ?? new C1() ?? C1.P ?? new C1[0] { }[0] ?? new List<C1>()[0] ?? (C1?)null;
+        (C1 a, int b) = (default, default);
         return result;
     }
-}", safe: true, useSymbolAnnotations);
+}",
+
+@"using B;
+using System.Collections.Generic;
+
+namespace A
+{
+	class C1 { }
+	class C2 { }
+}
+
+namespace B
+{
+	class C1
+	{
+		public static C1 P { get; }
+	}
+}
+
+#nullable enable
+#pragma warning disable
+
+class C
+{
+	/// <summary>
+	/// <see cref=""C1""/>
+	/// </summary>
+	C1 M(C1 c1, A.C2 c2)
+
+    {
+        C1 result = (C1)c1 ?? new C1() ?? C1.P ?? new C1[0] { }[0] ?? new List<C1>()[0] ?? (C1?)null;
+        (C1 a, int b) = (default, default);
+        return result;
+    }
+}", safe: true, useSymbolAnnotations: true);
         }
 
-        [Theory, InlineData(true), InlineData(false)]
-        public async Task TestSafeWithMatchingExtensionMethod(bool useSymbolAnnotations)
+        [Fact]
+        public async Task TestSafeWithMatchingExtensionMethod()
         {
             await TestAsync(
 @"using B;
@@ -1381,8 +1363,7 @@ class C
     void M(A.C1 c1) => 42.M();
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -1403,11 +1384,10 @@ namespace B
 
 class C
 {
-    void M(A.C1 c1) => global::B.BExtensions.M(42);
+    void M(A.C1 c1) => 42.M();
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -1428,12 +1408,12 @@ namespace B
 
 class C
 {
-    void M(C1 c1) => BExtensions.M(42);
-}", safe: true, useSymbolAnnotations);
+    void M(A.C1 c1) => 42.M();
+}", safe: true, useSymbolAnnotations: true);
         }
 
-        [Theory, InlineData(true), InlineData(false)]
-        public async Task TestSafeWithMatchingExtensionMethodAndArguments(bool useSymbolAnnotations)
+        [Fact]
+        public async Task TestSafeWithMatchingExtensionMethodAndArguments()
         {
             await TestAsync(
 @"using B;
@@ -1462,14 +1442,13 @@ class C
     void M(A.C1 c1) => 42.M(default(C2));
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
     static class AExtensions
     {
-        public static void M(this int a, global::A.C2 c2){}
+        public static void M(this int a, C2 c2){}
     }
     public class C1 {}
     public class C2 {}
@@ -1479,18 +1458,17 @@ namespace B
 {
     static class BExtensions
     {
-        public static void M(this int a, global::B.C2 c2){}
+        public static void M(this int a, C2 c2){}
     }
     public class C2 {}
 }
 
 class C
 {
-    void M(A.C1 c1) => global::B.BExtensions.M(42, (global::B.C2)(default(global::B.C2)));
+    void M(A.C1 c1) => 42.M(default(C2));
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -1513,12 +1491,12 @@ namespace B
 
 class C
 {
-    void M(C1 c1) => 42.M(default(B.C2));
-}", safe: true, useSymbolAnnotations);
+    void M(A.C1 c1) => 42.M(default(C2));
+}", safe: true, useSymbolAnnotations: true);
         }
 
-        [Theory, InlineData(true), InlineData(false)]
-        public async Task TestSafeWithMatchingExtensionMethodAndTypeArguments(bool useSymbolAnnotations)
+        [Fact]
+        public async Task TestSafeWithMatchingExtensionMethodAndTypeArguments()
         {
             await TestAsync(
 @"using B;
@@ -1547,8 +1525,7 @@ class C
     void M(A.C1 c1) => 42.M<C2>();
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -1571,11 +1548,10 @@ namespace B
 
 class C
 {
-    void M(A.C1 c1) => global::B.BExtensions.M<global::B.C2>(42);
+    void M(A.C1 c1) => 42.M<C2>();
 }",
 
-@"using A;
-using B;
+@"using B;
 
 namespace A
 {
@@ -1598,8 +1574,8 @@ namespace B
 
 class C
 {
-    void M(C1 c1) => BExtensions.M<B.C2>(42);
-}", safe: true, useSymbolAnnotations);
+    void M(A.C1 c1) => 42.M<C2>();
+}", safe: true, useSymbolAnnotations: true);
         }
 
         //        [Theory, InlineData(true), InlineData(false)]
