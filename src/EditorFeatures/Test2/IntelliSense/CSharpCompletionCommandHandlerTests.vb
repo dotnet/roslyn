@@ -6974,6 +6974,32 @@ class C
             End Function
         End Class
 
+        <WorkItem(43439, "https://github.com/dotnet/roslyn/issues/43439")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSelectNullOverNuint(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    public static void Main()
+    {
+        object o = $$
+    }
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("nu")
+                Await state.AssertSelectedCompletionItem(displayText:="null", isHardSelected:=True)
+                Await state.AssertCompletionItemsContain("nuint", "")
+
+                state.SendTypeChars("i")
+                Await state.AssertSelectedCompletionItem(displayText:="nuint", isHardSelected:=True)
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem(displayText:="null", isHardSelected:=True)
+            End Using
+        End Function
+
         ' Simulates a situation where IntelliCode provides items not included into the Rolsyn original list.
         ' We want to ignore these items in CommitIfUnique.
         ' This situation should not happen. Tests with this provider were added to cover protective scenarios.
