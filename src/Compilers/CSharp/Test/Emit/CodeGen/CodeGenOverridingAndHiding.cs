@@ -1145,11 +1145,13 @@ class Test
 {
     public static void Main()
     {
-        Base<int, int> b = new Derived();
+        Base2<int, int> b2 = new Derived();
+        Base<int, int> b = b2;
         List<int> arg = new List<int>();
         b.Method(out arg, ref arg);
         b.Method(ref arg, out arg);
         b.Method(ref arg);
+        b2.Method(out arg);
     }
 }
 ";
@@ -1165,8 +1167,10 @@ class Test
             var comp = CompileAndVerify(source, expectedOutput: @"
 Base.Method(out, ref)
 Derived.Method(ref, out)
-Derived.Method(ref)");
+Derived.Method(ref)
+Base2.Method(out)");
         }
+
         [WorkItem(540214, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540214")]
         [Fact]
 
@@ -3702,17 +3706,46 @@ public class C : B
             var text = @"
 public class A
 {
-    public virtual int get_P() { return 0; }
+    public virtual int get_P()
+    {
+        System.Console.WriteLine(""A::get_P"");
+        return 0;
+    }
 }
 
 public class B : A
 {
-    public virtual int P { get; set; }
+    public virtual int P
+    {
+        get
+        {
+            System.Console.WriteLine(""B::P.get"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""B::P.set"");
+        }
+    }
 }
 
 public class C : B
 {
-    public override int get_P() { return 0; }
+    public override int get_P()
+    {
+        System.Console.WriteLine(""C::get_P"");
+        return 0;
+    }
+}
+
+public class Program
+{
+    static void Main()
+    {
+        C c = new C();
+        _ = c.P;
+        _ = c.get_P();
+    }
 }
 ";
             Action<ModuleSymbol> validator = module =>
@@ -3736,7 +3769,9 @@ public class C : B
                 Assert.Equal(methodA, methodC.OverriddenMethod);
             };
 
-            CompileAndVerify(text, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(text, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput:
+@"B::P.get
+C::get_P");
         }
 
         /// <summary>

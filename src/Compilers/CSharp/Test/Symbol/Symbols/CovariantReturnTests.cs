@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -26,14 +27,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         private static void VerifyOverride(
             CSharpCompilation comp,
             string methodName,
-            string overridingMethodDisplay,
-            string overriddenMethodDisplay,
+            string overridingMemberDisplay,
+            string overriddenMemberDisplay,
             bool binaryCompat = false)
         {
             var member = comp.GlobalNamespace.GetMember(methodName);
-            Assert.Equal(overridingMethodDisplay, member.ToTestDisplayString());
+            VerifyOverride(comp, member, overridingMemberDisplay, overriddenMemberDisplay, binaryCompat);
+        }
+
+        private static void VerifyOverride(
+            CSharpCompilation comp,
+            Symbol member,
+            string overridingMemberDisplay,
+            string overriddenMemberDisplay,
+            bool binaryCompat = false)
+        {
+            Assert.Equal(overridingMemberDisplay, member.ToTestDisplayString());
             var overriddenMember = member.GetOverriddenMember();
-            Assert.Equal(overriddenMethodDisplay, overriddenMember?.ToTestDisplayString());
+            Assert.Equal(overriddenMemberDisplay, overriddenMember?.ToTestDisplayString());
             if (member is MethodSymbol method && overriddenMember is MethodSymbol overriddenMethod)
             {
                 Assert.True(method.IsOverride);
@@ -112,6 +123,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             }
         }
 
+        private static Symbol MemberOfConstructedType(
+            CSharpCompilation comp,
+            string memberName,
+            string containingTypeName,
+            params string[] typeArguments)
+        {
+            var genericType = (NamedTypeSymbol)comp.GlobalNamespace.GetMember(containingTypeName);
+            Assert.Equal(typeArguments.Length, genericType.Arity);
+            var constructedType = genericType.Construct(typeArguments.Select(n => (TypeSymbol)comp.GlobalNamespace.GetMember(n)));
+            return constructedType.GetMembers(memberName).Single();
+        }
+
         private static void VerifyNoOverride(CSharpCompilation comp, string methodName)
         {
             var method = comp.GlobalNamespace.GetMember(methodName);
@@ -149,7 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             string source, MetadataReference[] references = null,
             TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "",
-            bool pretendRuntimeSupportsCovariantReturnsFeature = true)
+            bool pretendRuntimeSupportsCovariantReturnsFeature = true,
+            CSharpCompilationOptions options = null)
         {
             var parseOptions = TestOptions.WithCovariantReturns;
             if (pretendRuntimeSupportsCovariantReturnsFeature)
@@ -160,7 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 parseOptions: parseOptions,
                 references: references,
                 targetFramework: targetFramework,
-                assemblyName: assemblyName);
+                assemblyName: assemblyName,
+                options: options);
         }
 
         private CSharpCompilation CreateCompilationWithoutCovariantReturns(
@@ -168,7 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             MetadataReference[] references = null,
             TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "",
-            bool pretendRuntimeSupportsCovariantReturnsFeature = true)
+            bool pretendRuntimeSupportsCovariantReturnsFeature = true,
+            CSharpCompilationOptions options = null)
         {
             var parseOptions = TestOptions.WithoutCovariantReturns;
             if (pretendRuntimeSupportsCovariantReturnsFeature)
@@ -179,39 +205,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 parseOptions: parseOptions,
                 references: references,
                 targetFramework: targetFramework,
-                assemblyName: assemblyName);
+                assemblyName: assemblyName,
+                options: options);
         }
 
-        private static CSharpCompilation CompilationReferenceView(CSharpCompilation comp, params MetadataReference[] references)
+        private static CSharpCompilation SourceView(
+            CSharpCompilation comp,
+            string assignments)
         {
-            references = references.Append(comp.ToMetadataReference());
-            return CreateCompilation("", references: references);
+            return comp.AddSyntaxTrees(CSharpSyntaxTree.ParseText(assignments, (CSharpParseOptions)comp.SyntaxTrees[0].Options));
         }
 
-        private static CSharpCompilation MetadataView(CSharpCompilation comp, params MetadataReference[] references)
+        private static CSharpCompilation CompilationReferenceView(
+            CSharpCompilation comp,
+            string assignments,
+            MetadataReference[] references = null,
+            TargetFramework targetFramework = TargetFramework.Standard)
         {
-            references = references.Append(comp.EmitToImageReference());
-            return CreateCompilation("", references: references);
+            CompilationReference compAsMetadata = comp.ToMetadataReference();
+            references = references?.Append(compAsMetadata) ?? new[] { compAsMetadata };
+            var result = CreateCompilation(assignments, references: references, targetFramework: targetFramework);
+            result.VerifyDiagnostics();
+            var originalCorLib = comp.Assembly.CorLibrary;
+            var newCorLib = result.Assembly.CorLibrary;
+            Assert.Equal(originalCorLib, newCorLib);
+            var sourceAssembly = (AssemblySymbol)result.GetAssemblyOrModuleSymbol(compAsMetadata);
+            Assert.True(sourceAssembly is SourceAssemblySymbol);
+            return result;
         }
 
-        private static CSharpCompilation RetargetedView(CSharpCompilation comp, params MetadataReference[] references)
+        private static CSharpCompilation MetadataView(
+            CSharpCompilation comp,
+            string assignments,
+            MetadataReference[] references = null,
+            TargetFramework targetFramework = TargetFramework.Standard)
         {
-            var someType = comp.GlobalNamespace.GetMembers().OfType<NamedTypeSymbol>().FirstOrDefault();
-            references = references.Append(comp.ToMetadataReference());
-            var result = CreateCompilation("", references: references, targetFramework: TargetFramework.NetStandardLatest);
+            var compAsImage = comp.EmitToImageReference();
+            references = references?.Append(compAsImage) ?? new[] { compAsImage };
+            return CreateCompilation(assignments, references: references, targetFramework: targetFramework);
+        }
+
+        private static CSharpCompilation RetargetingView(
+            CSharpCompilation comp,
+            string assignments,
+            MetadataReference[] references = null,
+            TargetFramework targetFramework = TargetFramework.NetStandardLatest)
+        {
+            CompilationReference compAsMetadata = comp.ToMetadataReference();
+            references = references?.Append(compAsMetadata) ?? new[] { compAsMetadata };
+            var result = CreateCompilation(
+                assignments,
+                references: references,
+                targetFramework: targetFramework,
+                options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress));
+
             result.VerifyDiagnostics();
             var originalCorLib = comp.Assembly.CorLibrary;
             var newCorLib = result.Assembly.CorLibrary;
             Assert.NotEqual(originalCorLib, newCorLib);
-
-            if (someType is { })
-            {
-                // confirm that it is retargeted
-                var someRetargetedType = result.GlobalNamespace.GetMembers(someType.Name).OfType<NamedTypeSymbol>().FirstOrDefault();
-                var someRetargetedMember = someRetargetedType.GetMembers().OfType<MethodSymbol>().FirstOrDefault();
-                Assert.True(someRetargetedMember is null || someRetargetedMember is CSharp.Symbols.Retargeting.RetargetingMethodSymbol);
-            }
-
+            var retargetingAssembly = (AssemblySymbol)result.GetAssemblyOrModuleSymbol(compAsMetadata);
+            Assert.True(retargetingAssembly is RetargetingAssemblySymbol);
             return result;
         }
 
@@ -227,6 +280,8 @@ public class Derived : Base
 {
     public override string M() => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -238,20 +293,18 @@ public class Program
 ";
             var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
 
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments)).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -271,6 +324,7 @@ public class Program
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.String Base.M()");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -328,6 +382,8 @@ public class Derived2 : Base
     public override object this[int index] => null;
 }
 ";
+            var assignments = @"";
+
             CreateCompilationWithoutCovariantReturns(source, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty, pretendRuntimeSupportsCovariantReturnsFeature: false)
                 .VerifyDiagnostics(
                 // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -343,10 +399,11 @@ public class Derived2 : Base
             var comp = CreateCompilationWithCovariantReturns(source, references: new[] { corlibRef }, targetFramework: TargetFramework.Empty, pretendRuntimeSupportsCovariantReturnsFeature: false)
                 .VerifyDiagnostics(
                 );
-            verify(comp);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, "", references: new[] { corlibRef }, targetFramework: TargetFramework.Empty));
+            verify(MetadataView(comp, "", references: new[] { corlibRef }, targetFramework: TargetFramework.Empty));
+            var corlib2Ref = CreateEmptyCompilation(new string[] { corLibSource }, assemblyName: "notcorlib").EmitToImageReference();
+            verify(RetargetingView(comp, "", references: new[] { corlib2Ref }, targetFramework: TargetFramework.Empty));
 
             static void verify(CSharpCompilation comp)
             {
@@ -379,7 +436,8 @@ public class Base
 public class Derived : Base
 {
     public override string M() => null;
-}
+}";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -394,8 +452,7 @@ public class Program
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
 
             // Test against a runtime that does not admit support for covariant returns.
             comp = CreateCompilationWithoutCovariantReturns(source, pretendRuntimeSupportsCovariantReturnsFeature: false).VerifyDiagnostics(
@@ -403,25 +460,22 @@ public class Program
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M()", "Base.M()", "object").WithLocation(8, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
 
             comp = CreateCompilationWithCovariantReturns(source, pretendRuntimeSupportsCovariantReturnsFeature: false).VerifyDiagnostics(
                 // (8,28): error CS8778: 'Derived.M()': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base.M()'
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M()", "Base.M()", "object").WithLocation(8, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
 
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -441,6 +495,7 @@ public class Program
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.Object Base.M()");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -455,7 +510,8 @@ public class Base
 public class Derived : Base
 {
     public override U M<T, U>() => null;
-}
+}";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -470,16 +526,14 @@ public class Program
                 //     public override U M<T, U>() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 23)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -499,6 +553,7 @@ public class Program
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "U Derived.M<T, U>()", "T Base.M<T, U>()");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -514,6 +569,8 @@ public class Derived<T, U> : Base<T> where T : class where U : class, T
 {
     public override U M() => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base<object> b, Derived<object, string> d)
@@ -528,16 +585,14 @@ public class Program
                 //     public override U M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 23)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -557,6 +612,8 @@ public class Program
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "U Derived<T, U>.M()", "T Base<T>.M()");
+                VerifyOverride(comp, MemberOfConstructedType(comp, "M", "Derived", "System.Object", "System.String"), "System.String Derived<System.Object, System.String>.M()", "System.Object Base<System.Object>.M()");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -574,6 +631,8 @@ public class Derived<T> : Base where T : N
     public override T M() => null;
 }
 public class Q : N { }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived<Q> d)
@@ -588,16 +647,14 @@ public class Program
                 //     public override T M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(9, 23)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -617,6 +674,8 @@ public class Program
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "T Derived<T>.M()", "N Base.M()");
+                VerifyOverride(comp, MemberOfConstructedType(comp, "M", "Derived", "Q"), "Q Derived<Q>.M()", "N Base.M()");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -632,6 +691,8 @@ public class Derived : Base
 {
     public override string M => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -646,8 +707,7 @@ public class Program
                 //     public override string M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
 
             // Test against a runtime that does not admit support for covariant returns.
             comp = CreateCompilationWithoutCovariantReturns(source, pretendRuntimeSupportsCovariantReturnsFeature: false).VerifyDiagnostics(
@@ -655,25 +715,22 @@ public class Program
                 //     public override string M => null;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses, "M").WithArguments("Derived.M", "Base.M", "object").WithLocation(8, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
 
             comp = CreateCompilationWithCovariantReturns(source, pretendRuntimeSupportsCovariantReturnsFeature: false).VerifyDiagnostics(
                 // (8,28): error CS8779: 'Derived.M': Target runtime doesn't support covariant types in overrides. Type must be 'object' to match overridden member 'Base.M'
                 //     public override string M => null;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses, "M").WithArguments("Derived.M", "Base.M", "object").WithLocation(8, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
 
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -694,6 +751,7 @@ public class Program
             {
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M { get; }", "System.Object Base.M { get; }");
                 VerifyOverride(comp, "Derived.get_M", "System.String Derived.M.get", "System.Object Base.M.get");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -709,6 +767,8 @@ public class Derived<T, U> : Base<T> where T : class where U : class, T
 {
     public override U M => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base<object> b, Derived<object, string> d)
@@ -723,16 +783,14 @@ public class Program
                 //     public override U M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 23)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -753,6 +811,9 @@ public class Program
             {
                 VerifyOverride(comp, "Derived.M", "U Derived<T, U>.M { get; }", "T Base<T>.M { get; }");
                 VerifyOverride(comp, "Derived.get_M", "U Derived<T, U>.M.get", "T Base<T>.M.get");
+                VerifyOverride(comp, MemberOfConstructedType(comp, "M", "Derived", "System.Object", "System.String"), "System.String Derived<System.Object, System.String>.M { get; }", "System.Object Base<System.Object>.M { get; }");
+                VerifyOverride(comp, MemberOfConstructedType(comp, "get_M", "Derived", "System.Object", "System.String"), "System.String Derived<System.Object, System.String>.M.get", "System.Object Base<System.Object>.M.get");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -770,6 +831,8 @@ public class Derived<T> : Base where T : N
     public override T M => null;
 }
 public class Q : N { }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived<Q> d)
@@ -784,16 +847,14 @@ public class Program
                 //     public override T M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(9, 23)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -814,6 +875,9 @@ public class Program
             {
                 VerifyOverride(comp, "Derived.M", "T Derived<T>.M { get; }", "N Base.M { get; }");
                 VerifyOverride(comp, "Derived.get_M", "T Derived<T>.M.get", "N Base.M.get");
+                VerifyOverride(comp, MemberOfConstructedType(comp, "M", "Derived", "Q"), "Q Derived<Q>.M { get; }", "N Base.M { get; }");
+                VerifyOverride(comp, MemberOfConstructedType(comp, "get_M", "Derived", "Q"), "Q Derived<Q>.M.get", "N Base.M.get");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -829,6 +893,8 @@ public class Derived : Base
 {
     public override string this[int i] => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -843,16 +909,14 @@ public class Program
                 //     public override string this[int i] => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(8, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -875,6 +939,7 @@ public class Program
             {
                 VerifyOverride(comp, "Derived.this[]", "System.String Derived.this[System.Int32 i] { get; }", "System.Object Base.this[System.Int32 i] { get; }");
                 VerifyOverride(comp, "Derived.get_Item", "System.String Derived.this[System.Int32 i].get", "System.Object Base.this[System.Int32 i].get");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -890,6 +955,8 @@ public class Derived<T, U> : Base<T> where T : class where U : class, T
 {
     public override U this[int i] => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base<object> b, Derived<object, string> d)
@@ -904,16 +971,14 @@ public class Program
                 //     public override U this[int i] => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(8, 23)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base<object>, Derived<object, string>)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -936,6 +1001,10 @@ public class Program
             {
                 VerifyOverride(comp, "Derived.this[]", "U Derived<T, U>.this[System.Int32 i] { get; }", "T Base<T>.this[System.Int32 i] { get; }");
                 VerifyOverride(comp, "Derived.get_Item", "U Derived<T, U>.this[System.Int32 i].get", "T Base<T>.this[System.Int32 i].get");
+                VerifyOverride(comp, MemberOfConstructedType(comp, "this[]", "Derived", "System.Object", "System.String"), "System.String Derived<System.Object, System.String>.this[System.Int32 i] { get; }", "System.Object Base<System.Object>.this[System.Int32 i] { get; }");
+                VerifyOverride(comp, MemberOfConstructedType(comp, "get_Item", "Derived", "System.Object", "System.String"), "System.String Derived<System.Object, System.String>.this[System.Int32 i].get", "System.Object Base<System.Object>.this[System.Int32 i].get");
+
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -953,6 +1022,8 @@ public class Derived<T> : Base where T : N
     public override T this[int i] => null;
 }
 public class Q : N { }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived<Q> d)
@@ -967,16 +1038,14 @@ public class Program
                 //     public override T this[int i] => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(9, 23)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived<Q>)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -999,6 +1068,9 @@ public class Program
             {
                 VerifyOverride(comp, "Derived.this[]", "T Derived<T>.this[System.Int32 i] { get; }", "N Base.this[System.Int32 i] { get; }");
                 VerifyOverride(comp, "Derived.get_Item", "T Derived<T>.this[System.Int32 i].get", "N Base.this[System.Int32 i].get");
+                VerifyOverride(comp, MemberOfConstructedType(comp, "this[]", "Derived", "Q"), "Q Derived<Q>.this[System.Int32 i] { get; }", "N Base.this[System.Int32 i] { get; }");
+                VerifyOverride(comp, MemberOfConstructedType(comp, "get_Item", "Derived", "Q"), "Q Derived<Q>.this[System.Int32 i].get", "N Base.this[System.Int32 i].get");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -1018,18 +1090,19 @@ public class Derived : Base
     private void SuppressUnusedWarning() => E?.Invoke();
 }
 ";
+            var assignments = @"";
             var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (10,40): error CS1715: 'Derived.E': type must be 'Func<object>' to match overridden member 'Base.E'
                 //     public override event Func<string> E;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("Derived.E", "Base.E", "System.Func<object>").WithLocation(10, 40)
                 );
-            verify(comp);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (10,40): error CS1715: 'Derived.E': type must be 'Func<object>' to match overridden member 'Base.E'
                 //     public override event Func<string> E;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("Derived.E", "Base.E", "System.Func<object>").WithLocation(10, 40)
                 );
-            verify(comp);
+            verify(SourceView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
@@ -1050,6 +1123,9 @@ public class Derived : Base
 {
     public override Func<string> P { get; set; }
 }
+";
+            var assignments = @"
+using System;
 public class Program
 {
     void M(Base b, Derived d)
@@ -1064,21 +1140,20 @@ public class Program
                 //     public override Func<string> P { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "P").WithArguments("Derived.P", "Base.P", "System.Func<object>").WithLocation(9, 34)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (9,34): error CS1715: 'Derived.P': type must be 'Func<object>' to match overridden member 'Base.P'
                 //     public override Func<string> P { get; set; }
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "P").WithArguments("Derived.P", "Base.P", "System.Func<object>").WithLocation(9, 34)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.P", "System.Func<System.String> Derived.P { get; set; }", "System.Func<System.Object> Base.P { get; set; }");
                 VerifyNoOverride(comp, "Derived.set_P");
                 VerifyOverride(comp, "Derived.get_P", "System.Func<System.String> Derived.P.get", "System.Func<System.Object> Base.P.get");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -1097,6 +1172,8 @@ public class Derived : Base
 {
     public override string M() => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -1111,16 +1188,14 @@ public class Program
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp, baseMetadata));
-            verify(MetadataView(comp, baseMetadata));
-            verify(RetargetedView(comp, baseMetadata));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments, new[] { baseMetadata }));
+            verify(MetadataView(comp, assignments, new[] { baseMetadata }));
+            verify(RetargetingView(comp, assignments, new[] { baseMetadata }));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -1140,6 +1215,7 @@ public class Program
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.Object Base.M()");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -1158,6 +1234,8 @@ public class Derived : Base
 {
     public override string M => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -1167,21 +1245,20 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
+            var references = new[] { baseMetadata };
+            var comp = CreateCompilationWithoutCovariantReturns(source, references: references).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
+            verify(SourceView(comp, assignments));
+            comp = CreateCompilationWithCovariantReturns(source, references: references).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp, baseMetadata));
-            verify(MetadataView(comp, baseMetadata));
-            verify(RetargetedView(comp, baseMetadata));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments, references));
+            verify(MetadataView(comp, assignments, references));
+            verify(RetargetingView(comp, assignments, references));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -1202,6 +1279,7 @@ public class Program
             {
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M { get; }", "System.Object Base.M { get; }");
                 VerifyOverride(comp, "Derived.get_M", "System.String Derived.M.get", "System.Object Base.M.get");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -1220,6 +1298,8 @@ public class Derived : Base
 {
     public override string this[int i] => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -1229,21 +1309,20 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
+            var references = new[] { baseMetadata };
+            var comp = CreateCompilationWithoutCovariantReturns(source, references: references).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string this[int i] => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("covariant returns").WithLocation(4, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source, references: new[] { baseMetadata }).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp, baseMetadata));
-            verify(MetadataView(comp, baseMetadata));
-            verify(RetargetedView(comp, baseMetadata));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments, references));
+            verify(MetadataView(comp, assignments, references));
+            verify(RetargetingView(comp, assignments, references));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -1266,6 +1345,7 @@ public class Program
             {
                 VerifyOverride(comp, "Derived.this[]", "System.String Derived.this[System.Int32 i] { get; }", "System.Object Base.this[System.Int32 i] { get; }");
                 VerifyOverride(comp, "Derived.get_Item", "System.String Derived.this[System.Int32 i].get", "System.Object Base.this[System.Int32 i].get");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -1281,6 +1361,8 @@ public class Derived : Base
 {
     public override string M() => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -1295,16 +1377,14 @@ public class Program
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -1324,6 +1404,7 @@ public class Program
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.Object Base.M()");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -1339,6 +1420,8 @@ public class Derived : Base
 {
     public override object M() => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -1353,19 +1436,18 @@ public class Program
                 //     public override object M() => null;
                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M").WithArguments("Derived.M()", "Base.M()", "string").WithLocation(8, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (8,28): error CS0508: 'Derived.M()': return type must be 'string' to match overridden member 'Base.M()'
                 //     public override object M() => null;
                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M").WithArguments("Derived.M()", "Base.M()", "string").WithLocation(8, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "System.Object Derived.M()", "System.String Base.M()");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -1393,6 +1475,8 @@ public class Derived3 : Derived
     public new object M1 => null;
     public object M2 => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d1, Derived2 d2, Derived3 d3)
@@ -1419,8 +1503,7 @@ public class Program
                 //     public object M2 => null;
                 Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("Derived3.M2", "Derived.M2").WithLocation(20, 19)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 8);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (10,19): warning CS0114: 'Derived.M2' hides inherited member 'Base.M2'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public string M2 => null;    // A
@@ -1432,8 +1515,7 @@ public class Program
                 //     public object M2 => null;
                 Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("Derived3.M2", "Derived.M2").WithLocation(20, 19)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 8);
+            verify(SourceView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
@@ -1443,6 +1525,7 @@ public class Program
                 VerifyNoOverride(comp, "Derived2.M2");
                 VerifyNoOverride(comp, "Derived3.M1");
                 VerifyNoOverride(comp, "Derived3.M2");
+                VerifyAssignments(comp, 8);
             }
         }
 
@@ -1468,6 +1551,8 @@ public class Derived2 : Derived
     public override object M2 => null; // 1
     public override Base M3 => null;   // 2
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d1, Derived2 d2)
@@ -1501,8 +1586,7 @@ public class Program
                 //     public override Base M3 => null;   // 2
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M3").WithArguments("Derived2.M3", "Derived.M3", "string").WithLocation(18, 26)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 9);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (17,28): error CS1715: 'Derived2.M2': type must be 'string' to match overridden member 'Derived.M2'
                 //     public override object M2 => null; // 1
@@ -1511,11 +1595,12 @@ public class Program
                 //     public override Base M3 => null;   // 2
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M3").WithArguments("Derived2.M3", "Derived.M3", "string").WithLocation(18, 26)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 9);
+            verify(SourceView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
+                VerifyAssignments(comp, 9);
+
                 VerifyOverride(comp, "Derived.M1", "System.String Derived.M1 { get; }", "System.Object Base.M1 { get; }");
                 VerifyOverride(comp, "Derived.get_M1", "System.String Derived.M1.get", "System.Object Base.M1.get");
                 VerifyOverride(comp, "Derived.M2", "System.String Derived.M2 { get; }", "System.Object Base.M2 { get; }");
@@ -1548,6 +1633,8 @@ public class Derived : Base
 }
 public interface IOut<out T> { }
 public interface IIn<in T> { }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -1567,16 +1654,14 @@ public class Program
                 //     public override IOut<string> M2 => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M2").WithArguments("covariant returns").WithLocation(10, 34)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 4);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 4);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -1607,6 +1692,7 @@ public class Program
                 VerifyOverride(comp, "Derived.get_M1", "IIn<System.Object> Derived.M1.get", "IIn<System.String> Base.M1.get");
                 VerifyOverride(comp, "Derived.M2", "IOut<System.String> Derived.M2 { get; }", "IOut<System.Object> Base.M2 { get; }");
                 VerifyOverride(comp, "Derived.get_M2", "IOut<System.String> Derived.M2.get", "IOut<System.Object> Base.M2.get");
+                VerifyAssignments(comp, 4);
             }
         }
 
@@ -1626,6 +1712,8 @@ public class Derived : Base
 }
 public interface IOut<out T> { }
 public interface IIn<in T> { }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -1645,8 +1733,7 @@ public class Program
                 //     public override IOut<object> M2 => null;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M2").WithArguments("Derived.M2", "Base.M2", "IOut<string>").WithLocation(10, 34)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 4);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (9,33): error CS1715: 'Derived.M1': type must be 'IIn<object>' to match overridden member 'Base.M1'
                 //     public override IIn<string> M1 => null;
@@ -1655,8 +1742,7 @@ public class Program
                 //     public override IOut<object> M2 => null;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M2").WithArguments("Derived.M2", "Base.M2", "IOut<string>").WithLocation(10, 34)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 4);
+            verify(SourceView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
@@ -1664,6 +1750,7 @@ public class Program
                 VerifyOverride(comp, "Derived.get_M1", "IIn<System.String> Derived.M1.get", "IIn<System.Object> Base.M1.get");
                 VerifyOverride(comp, "Derived.M2", "IOut<System.Object> Derived.M2 { get; }", "IOut<System.String> Base.M2 { get; }");
                 VerifyOverride(comp, "Derived.get_M2", "IOut<System.Object> Derived.M2.get", "IOut<System.String> Base.M2.get");
+                VerifyAssignments(comp, 4);
             }
         }
 
@@ -1686,6 +1773,8 @@ public class B
 {
     public static implicit operator A(B b) => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -1705,8 +1794,7 @@ public class Program
                 //     public override B M2 => null;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M2").WithArguments("Derived.M2", "Base.M2", "A").WithLocation(10, 23)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 4);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (9,27): error CS1715: 'Derived.M1': type must be 'int' to match overridden member 'Base.M1'
                 //     public override short M1 => 1;
@@ -1715,8 +1803,7 @@ public class Program
                 //     public override B M2 => null;
                 Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "M2").WithArguments("Derived.M2", "Base.M2", "A").WithLocation(10, 23)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 4);
+            verify(SourceView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
@@ -1724,6 +1811,7 @@ public class Program
                 VerifyOverride(comp, "Derived.get_M1", "System.Int16 Derived.M1.get", "System.Int32 Base.M1.get");
                 VerifyOverride(comp, "Derived.M2", "B Derived.M2 { get; }", "A Base.M2 { get; }");
                 VerifyOverride(comp, "Derived.get_M2", "B Derived.M2.get", "A Base.M2.get");
+                VerifyAssignments(comp, 4);
             }
         }
 
@@ -1739,6 +1827,8 @@ public class Derived : Base
 {
     public override string M => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -1753,16 +1843,14 @@ public class Program
                 //     public override string M => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(8, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -1783,6 +1871,7 @@ public class Program
             {
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M { get; }", "System.IComparable Base.M { get; }");
                 VerifyOverride(comp, "Derived.get_M", "System.String Derived.M.get", "System.IComparable Base.M.get");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -1805,6 +1894,8 @@ public class C : Base
     string Base.M1 => null;   // 3
     string Base.M2() => null; // 4
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d, C c)
@@ -1831,8 +1922,7 @@ public class Program
                 //     string Base.M2() => null; // 4
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("C.M2()").WithLocation(15, 17)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 4);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (9,17): error CS0539: 'Derived.M1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     string Base.M1 => null;   // 1
@@ -1847,8 +1937,7 @@ public class Program
                 //     string Base.M2() => null; // 4
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("C.M2()").WithLocation(15, 17)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 4);
+            verify(SourceView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
@@ -1856,6 +1945,7 @@ public class Program
                 VerifyNoOverride(comp, "Derived.Base.M2");
                 VerifyNoOverride(comp, "C.Base.M1");
                 VerifyNoOverride(comp, "C.Base.M2");
+                VerifyAssignments(comp, 4);
             }
         }
 
@@ -1871,6 +1961,8 @@ public class Derived : Base
 {
     public override string P { get => string.Empty; }
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d)
@@ -1885,16 +1977,14 @@ public class Program
                 //     public override string P { get; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(8, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -1915,6 +2005,7 @@ public class Program
             {
                 VerifyOverride(comp, "Derived.P", "System.String Derived.P { get; }", "System.Object Base.P { get; set; }");
                 VerifyOverride(comp, "Derived.get_P", "System.String Derived.P.get", "System.Object Base.P.get");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -1934,6 +2025,8 @@ public class Derived2 : Derived
 {
     public override string P { get => string.Empty; set { } }
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d1, Derived2 d2)
@@ -1952,15 +2045,13 @@ public class Program
                 //     public override string P { get => string.Empty; set { } }
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 53)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 3);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (12,53): error CS0546: 'Derived2.P.set': cannot override because 'Derived.P' does not have an overridable set accessor
                 //     public override string P { get => string.Empty; set { } }
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 53)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 3);
+            verify(SourceView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
@@ -1969,6 +2060,7 @@ public class Program
                 VerifyOverride(comp, "Derived2.P", "System.String Derived2.P { get; set; }", "System.String Derived.P { get; }");
                 VerifyOverride(comp, "Derived2.get_P", "System.String Derived2.P.get", "System.String Derived.P.get");
                 VerifyNoOverride(comp, "Derived2.set_P");
+                VerifyAssignments(comp, 3);
             }
         }
 
@@ -1988,6 +2080,8 @@ public class Derived2 : Derived
 {
     public override string P { set { } }
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d1, Derived2 d2)
@@ -2006,15 +2100,13 @@ public class Program
                 //     public override string P { set { } }
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 32)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 3);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (12,32): error CS0546: 'Derived2.P.set': cannot override because 'Derived.P' does not have an overridable set accessor
                 //     public override string P { set { } }
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "set").WithArguments("Derived2.P.set", "Derived.P").WithLocation(12, 32)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 3);
+            verify(SourceView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
@@ -2022,6 +2114,7 @@ public class Program
                 VerifyOverride(comp, "Derived.get_P", "System.String Derived.P.get", "System.Object Base.P.get");
                 VerifyOverride(comp, "Derived2.P", "System.String Derived2.P { set; }", "System.String Derived.P { get; }");
                 VerifyNoOverride(comp, "Derived2.set_P");
+                VerifyAssignments(comp, 3);
             }
         }
 
@@ -2041,6 +2134,8 @@ public class Derived2 : Derived
 {
     public override string P { get => string.Empty; }
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d1, Derived2 d2)
@@ -2059,16 +2154,14 @@ public class Program
                 //     public override string P { get => string.Empty; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(12, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 3);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 3);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived, Derived2)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived, Derived2)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       22 (0x16)
   .maxstack  1
@@ -2095,6 +2188,7 @@ public class Program
                 VerifyOverride(comp, "Derived.get_P", "System.IComparable Derived.P.get", "System.Object Base.P.get");
                 VerifyOverride(comp, "Derived2.P", "System.String Derived2.P { get; }", "System.IComparable Derived.P { get; }");
                 VerifyOverride(comp, "Derived2.get_P", "System.String Derived2.P.get", "System.IComparable Derived.P.get");
+                VerifyAssignments(comp, 3);
             }
         }
 
@@ -2111,6 +2205,8 @@ public class Derived : Base<string>
 {
     public override string M(string s) => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base<string> b, Derived d, string s)
@@ -2125,19 +2221,18 @@ public class Program
                 //     public override string M(string s) => null;
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Base<T>.M(string)", "Base<T>.M(T)", "Derived").WithLocation(9, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (9,28): error CS0462: The inherited members 'Base<T>.M(string)' and 'Base<T>.M(T)' have the same signature in type 'Derived', so they cannot be overridden
                 //     public override string M(string s) => null;
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "M").WithArguments("Base<T>.M(string)", "Base<T>.M(T)", "Derived").WithLocation(9, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 2);
+            verify(SourceView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M(System.String s)", "System.Object Base<System.String>.M(System.String s)");
+                VerifyAssignments(comp, 2);
             }
         }
 
@@ -2157,6 +2252,8 @@ public class Derived2 : Derived
 {
     public override string M() => null;
 }
+";
+            var assignments = @"
 public class Program
 {
     void M(Base b, Derived d1, Derived2 d2)
@@ -2175,16 +2272,14 @@ public class Program
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(12, 28)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 3);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            VerifyAssignments(comp, 3);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
-            CompileAndVerify(comp, verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived, Derived2)", source: source, sequencePoints: "Program.M", expectedIL: @"
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
+            CompileAndVerify(SourceView(comp, assignments), verify: Verification.Skipped).VerifyIL("Program.M(Base, Derived, Derived2)", source: assignments, sequencePoints: "Program.M", expectedIL: @"
 {
   // Code size       22 (0x16)
   .maxstack  1
@@ -2209,6 +2304,7 @@ public class Program
             {
                 VerifyOverride(comp, "Derived.M", "System.IComparable Derived.M()", "System.Object Base.M()");
                 VerifyOverride(comp, "Derived2.M", "System.String Derived2.M()", "System.IComparable Derived.M()");
+                VerifyAssignments(comp, 3);
             }
         }
 
@@ -2472,7 +2568,10 @@ public class Mid : Base
 {
 }
 ";
-            var ref1a = CreateCompilationWithoutCovariantReturns(s1a, references: new[] { ref0 }, assemblyName: "ref1").EmitToImageReference();
+            var ref1a = CreateCompilationWithoutCovariantReturns(
+                s1a,
+                references: new[] { ref0 },
+                assemblyName: "ref1").EmitToImageReference();
 
             var s1b = @"
 public class Mid : Base
@@ -2480,7 +2579,10 @@ public class Mid : Base
     public override string M() => null;
 }
 ";
-            var ref1b = CreateCompilationWithCovariantReturns(s1b, references: new[] { ref0 }, assemblyName: "ref1").EmitToImageReference();
+            var ref1b = CreateCompilationWithCovariantReturns(
+                s1b,
+                references: new[] { ref0 },
+                assemblyName: "ref1").EmitToImageReference();
 
             var s2 = @"
 public class Derived : Mid
@@ -2488,23 +2590,28 @@ public class Derived : Mid
     public override string M() => null;
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(s2, references: new[] { ref0, ref1a }).VerifyDiagnostics(
+            var assignments = "";
+            // PROTOTYPE(covariant-returns): Test some assignments with receiver of Base, Mid, and Derived.
+
+            var references = new[] { ref0, ref1a };
+            var comp = CreateCompilationWithoutCovariantReturns(s2, references).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
                 );
             verify1(comp);
 
-            comp = CreateCompilationWithCovariantReturns(s2, references: new[] { ref0, ref1a }).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(s2, references).VerifyDiagnostics(
                 );
             verify1(comp);
-            verify1(CompilationReferenceView(comp, ref0, ref1a));
-            verify1(MetadataView(comp, ref0, ref1a));
-            verify1(RetargetedView(comp, ref0, ref1a));
+            verify1(CompilationReferenceView(comp, assignments, references));
+            verify1(MetadataView(comp, assignments, references));
+            verify1(RetargetingView(comp, assignments, references));
 
-            verify2(CompilationReferenceView(comp, ref0, ref1b));
-            verify2(MetadataView(comp, ref0, ref1b));
-            verify2(RetargetedView(comp, ref0, ref1b));
+            references = new[] { ref0, ref1b };
+            // we do not test CompilationReferenceView because the changed reference would cause us to retarget
+            verify2(MetadataView(comp, assignments, references));
+            verify2(RetargetingView(comp, assignments, references));
 
             static void verify1(CSharpCompilation comp)
             {
@@ -2550,23 +2657,26 @@ public class Derived : Mid
     public override string P => null;
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(s2, references: new[] { ref0, ref1a }).VerifyDiagnostics(
+            var assignments = "";
+            var references = new[] { ref0, ref1a };
+            var comp = CreateCompilationWithoutCovariantReturns(s2, references).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string P => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(4, 28)
                 );
             verify1(comp);
 
-            comp = CreateCompilationWithCovariantReturns(s2, references: new[] { ref0, ref1a }).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(s2, references).VerifyDiagnostics(
                 );
             verify1(comp);
-            verify1(CompilationReferenceView(comp, ref0, ref1a));
-            verify1(MetadataView(comp, ref0, ref1a));
-            verify1(RetargetedView(comp, ref0, ref1a));
+            verify1(CompilationReferenceView(comp, assignments, references));
+            verify1(MetadataView(comp, assignments, references));
+            verify1(RetargetingView(comp, assignments, references));
 
-            verify2(CompilationReferenceView(comp, ref0, ref1b));
-            verify2(MetadataView(comp, ref0, ref1b));
-            verify2(RetargetedView(comp, ref0, ref1b));
+            references = new[] { ref0, ref1b };
+            // we do not test CompilationReferenceView because the changed reference would cause us to retarget
+            verify2(MetadataView(comp, assignments, references));
+            verify2(RetargetingView(comp, assignments, references));
 
             static void verify1(CSharpCompilation comp)
             {
@@ -2615,23 +2725,26 @@ public class Derived : Mid
     public override string M() => null;
 }
 ";
-            var comp = CreateCompilationWithoutCovariantReturns(s2, references: new[] { ref0, ref1a }).VerifyDiagnostics(
+            var assignments = "";
+            var references = new[] { ref0, ref1a };
+            var comp = CreateCompilationWithoutCovariantReturns(s2, references).VerifyDiagnostics(
                 // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(4, 28)
                 );
             verify1(comp);
 
-            comp = CreateCompilationWithCovariantReturns(s2, references: new[] { ref0, ref1a }).VerifyDiagnostics(
+            comp = CreateCompilationWithCovariantReturns(s2, references).VerifyDiagnostics(
                 );
             verify1(comp);
-            verify1(CompilationReferenceView(comp, ref0, ref1a));
-            verify1(MetadataView(comp, ref0, ref1a));
-            verify1(RetargetedView(comp, ref0, ref1a));
+            verify1(CompilationReferenceView(comp, assignments, references));
+            verify1(MetadataView(comp, assignments, references));
+            verify1(RetargetingView(comp, assignments, references));
 
-            verify2(CompilationReferenceView(comp, ref0, ref1b));
-            verify2(MetadataView(comp, ref0, ref1b));
-            verify2(RetargetedView(comp, ref0, ref1b));
+            references = new[] { ref0, ref1b };
+            // we do not test CompilationReferenceView because the changed reference would cause us to retarget
+            verify2(MetadataView(comp, assignments, references));
+            verify2(RetargetingView(comp, assignments, references));
 
             static void verify1(CSharpCompilation comp)
             {
@@ -2642,7 +2755,7 @@ public class Derived : Mid
             {
                 // When viewed from metadata, we do not see a relationship between Derived.M and Mid.M because
                 // there is nothing in the metadata to indicate there is relationship. The compiler
-                // does no simulate the covariant language rules on metadata nor does the compiler simulate the
+                // does not simulate the covariant language rules on metadata nor does the compiler simulate the
                 // virtual slot unification that the runtime does.
                 VerifyOverride(comp, "Derived.M", "System.String Derived.M()", "System.Object Base.M()");
                 VerifyOverride(comp, "Mid.M", "System.Object Mid.M()", "System.Object Base.M()");
@@ -2673,6 +2786,7 @@ public class D : C
     public override string P => null;
 }
 ";
+            var assignments = "";
             var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (14,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string get_P() => null;
@@ -2681,13 +2795,13 @@ public class D : C
                 //     public override string P => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(19, 28)
                 );
-            verify(comp);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
@@ -2714,18 +2828,19 @@ public class C : B
     public override string P => null;
 }
 ";
+            var assignments = "";
             var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string P => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("covariant returns").WithLocation(12, 28)
                 );
-            verify(comp);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
@@ -2755,18 +2870,19 @@ public class C : B
     public override string M() => null;
 }
 ";
+            var assignments = "";
             var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (12,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public override string M() => null;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("covariant returns").WithLocation(12, 28)
                 );
-            verify(comp);
+            verify(SourceView(comp, assignments));
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 );
-            verify(comp);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
@@ -3107,6 +3223,11 @@ public class Derived : Base
     public override IIn<object> M6() => null!;
     public override IIn<object> P6 => null!;
 }
+public interface IOut<out T> { }
+public interface IIn<in T> { }
+";
+            var assignments = @"
+#nullable enable
 public class Program
 {
     void M(Base b, Derived d)
@@ -3137,8 +3258,6 @@ public class Program
         IIn<object> x24 = d.P6;
     }
 }
-public interface IOut<out T> { }
-public interface IIn<in T> { }
 ";
             var comp = CreateCompilationWithoutCovariantReturns(source).VerifyDiagnostics(
                 // (20,29): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -3178,8 +3297,7 @@ public interface IIn<in T> { }
                 //     public override IIn<object> P6 => null!;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "P6").WithArguments("covariant returns").WithLocation(31, 33)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 24);
+            verify(SourceView(comp, assignments));
 
             comp = CreateCompilationWithCovariantReturns(source).VerifyDiagnostics(
                 // (20,29): warning CS8764: Nullability of return type doesn't match overridden member (possibly because of nullability attributes).
@@ -3201,11 +3319,10 @@ public interface IIn<in T> { }
                 //     public override IIn<object> P6 => null!;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "null!").WithLocation(31, 39)
                 );
-            verify(comp);
-            VerifyAssignments(comp, 24);
-            verify(CompilationReferenceView(comp));
-            verify(MetadataView(comp));
-            verify(RetargetedView(comp));
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments));
+            verify(MetadataView(comp, assignments));
+            verify(RetargetingView(comp, assignments));
 
             static void verify(CSharpCompilation comp)
             {
@@ -3221,6 +3338,7 @@ public interface IIn<in T> { }
                 VerifyOverride(comp, "Derived.P5", "IIn<System.Object?> Derived.P5 { get; }", "IIn<System.String> Base.P5 { get; }");
                 VerifyOverride(comp, "Derived.M6", "IIn<System.Object> Derived.M6()", "IIn<System.String?> Base.M6()");
                 VerifyOverride(comp, "Derived.P6", "IIn<System.Object> Derived.P6 { get; }", "IIn<System.String?> Base.P6 { get; }");
+                VerifyAssignments(comp, 24);
             }
         }
 
@@ -3257,7 +3375,7 @@ public interface IIn<in T> { }
     // Code size       8 (0x8)
     .maxstack  8
     IL_0000:  ldarg.0
-    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0006:  nop
     IL_0007:  ret
   } // end of method Base::.ctor
@@ -3269,8 +3387,8 @@ public interface IIn<in T> { }
   .method public hidebysig newslot virtual 
           instance string  M3() cil managed
   {
-    .override Base::M1
-    .override Base::M2
+    .override method instance object class Base::M1() // different name, type
+    .override method instance object class Base::M2() // different name, type
     // Code size       2 (0x2)
     .maxstack  8
     IL_0000:  ldnull
@@ -3297,7 +3415,8 @@ public class Override : Derived
     public override string M2() => null;
     public override string M3() => null;
 }
-
+";
+            var assignments = @"
 public class Program
 {
     public void M(Derived d, Override o)
@@ -3305,39 +3424,56 @@ public class Program
         object x1 = d.M1();
         object x2 = d.M2();
         string x3 = d.M3();
-        object x4 = o.M1();
-        object x5 = o.M2();
+        string x4 = o.M1();
+        string x5 = o.M2();
         string x6 = o.M3();
     }
 }
 ";
-            CompileWithCustomILSource(cSharpSource, ilSource, comp =>
-            {
-                comp.VerifyDiagnostics();
+            MetadataReference ilReference = CreateMetadataReferenceFromIlSource(ilSource);
+            var references = new[] { ilReference };
+            var comp = CreateCompilationWithoutCovariantReturns(cSharpSource, references);
+            comp.VerifyDiagnostics(
+                // (4,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string M1() => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M1").WithArguments("covariant returns").WithLocation(4, 28),
+                // (5,28): error CS8652: The feature 'covariant returns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public override string M2() => null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M2").WithArguments("covariant returns").WithLocation(5, 28)
+                );
+            verify(SourceView(comp, assignments));
 
+            comp = CreateCompilationWithCovariantReturns(cSharpSource, references);
+            comp.VerifyDiagnostics();
+            verify(SourceView(comp, assignments));
+            verify(CompilationReferenceView(comp, assignments, references));
+            verify(MetadataView(comp, assignments, references));
+            verify(RetargetingView(comp, assignments, references));
+
+            void verify(CSharpCompilation comp)
+            {
                 VerifyNoOverride(comp, "Base.M1");
                 VerifyNoOverride(comp, "Base.M2");
                 VerifyNoOverride(comp, "Derived.M3");
-                grep("verify more overrides in Override");
+                VerifyOverride(comp, "Override.M1", "System.String Override.M1()", "System.Object Base.M1()");
+                VerifyOverride(comp, "Override.M2", "System.String Override.M2()", "System.Object Base.M2()");
+                VerifyOverride(comp, "Override.M3", "System.String Override.M3()", "System.String Derived.M3()");
                 VerifyAssignments(comp, 6);
 
-                var globalNamespace = compilation.GlobalNamespace;
+                var globalNamespace = comp.GlobalNamespace;
 
-                var baseClass = globalNamespace.GetMember<NamedTypeSymbol>("Base");
                 var derivedClass = globalNamespace.GetMember<NamedTypeSymbol>("Derived");
                 var overrideClass = globalNamespace.GetMember<NamedTypeSymbol>("Override");
-                var invokeClass = globalNamespace.GetMember<NamedTypeSymbol>("Invoke");
 
-                var baseMethod = baseClass.GetMember<MethodSymbol>("Foo");
-                var derivedMethod = derivedClass.GetMember<MethodSymbol>("Bar");
-                var overrideMethod = overrideClass.GetMember<MethodSymbol>("Bar");
+                var derivedMethod = derivedClass.GetMember<MethodSymbol>("M3");
+                var overrideMethod = overrideClass.GetMember<MethodSymbol>("M3");
 
-                Assert.True(derivedMethod.IsOverride);
+                Assert.False(derivedMethod.IsOverride);
                 Assert.Null(derivedMethod.OverriddenMethod);
 
                 Assert.True(overrideMethod.IsOverride);
                 Assert.Equal(derivedMethod, overrideMethod.OverriddenMethod);
-            });
+            }
         }
     }
 }

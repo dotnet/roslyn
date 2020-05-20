@@ -632,7 +632,7 @@ class C
             // same, so it had a different view of what one method was overriding than C# did.  However,
             // in the context of implementing the covariant return types feature, we added code in the compiler to
             // cause the compiler to emit methodimpl records whenever there is a mismatch.  As a consequence
-            // of that, this we updated test to now require that the runtime behavior and the compile-time behavior
+            // of that, we updated this test to now require that the runtime behavior and the compile-time behavior
             // of this program match, so that at runtime it obeys the behavior specified by the C#
             // language specification.
             var source = @"
