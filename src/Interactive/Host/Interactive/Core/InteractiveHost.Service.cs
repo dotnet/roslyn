@@ -178,7 +178,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 NamedPipeServerStream serverStream = new NamedPipeServerStream(GenerateUniqueChannelLocalName(), PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
                 await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
-                var jsonRPC = JsonRpc.Attach(serverStream);
+                // (miziga) should there be a target? 
+                var jsonRPC = JsonRpc.Attach(serverStream, new Service());
+                // (miziga) should this be here or in RunServer? 
+                await jsonRPC.Completion.ConfigureAwait(false);
 
                 // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(
@@ -314,15 +317,14 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             // Used by ResetInteractive - consider improving (we should remember the parameters for auto-reset, e.g.)
 
-            public async Task<RemoteExecutionResult> SetPathsAsync(                string[] referenceSearchPaths,
-                string[] sourceSearchPaths,
+            public async Task<RemoteExecutionResult> SetPathsAsync(
+                string[] referenceSearchPaths,                string[] sourceSearchPaths,
                 string? baseDirectory)
             {
                 Debug.Assert(referenceSearchPaths != null);
                 Debug.Assert(sourceSearchPaths != null);
                 Debug.Assert(baseDirectory != null);
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
-
                 lock (_lastTaskGuard)
                 {
                     _lastTask = SetPathsAsync(_lastTask, completionSource, referenceSearchPaths, sourceSearchPaths, baseDirectory);
@@ -336,8 +338,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 TaskCompletionSource<RemoteExecutionResult> completionSource,
                 string[]? referenceSearchPaths,
                 string[]? sourceSearchPaths,
-                string? baseDirectory)
-            {
+                string? baseDirectory)            {
                 var serviceState = GetServiceState();
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
 
@@ -366,8 +367,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Execution is performed on the UI thread.
             /// </summary>
             public async Task<RemoteExecutionResult> InitializeContextAsync(string? initializationFile, bool isRestarting)
-            {
-                var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
+            {                var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
                 lock (_lastTaskGuard)
                 {
                     _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFile, isRestarting);
@@ -427,7 +427,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 Debug.Assert(text != null);
 
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
-
                 lock (_lastTaskGuard)
                 {
                     _lastTask = ExecuteAsync(completionSource, _lastTask, text!);
@@ -435,8 +434,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return await completionSource.Task.ConfigureAwait(false);
             }
 
-            private async Task<EvaluationState> ExecuteAsync(TaskCompletionSource<RemoteExecutionResult> completionSource, Task<EvaluationState> lastTask, string text)
-            {
+            private async Task<EvaluationState> ExecuteAsync(TaskCompletionSource<RemoteExecutionResult> completionSource, Task<EvaluationState> lastTask, string text)            {
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
 
                 var success = false;
@@ -488,9 +486,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
 
-                lock (_lastTaskGuard)                {
-                    _lastTask = ExecuteFileAsync(completionSource, _lastTask, path!);
-                }
+                lock (_lastTaskGuard)
+                {
+                    _lastTask = ExecuteFileAsync(completionSource, _lastTask, path!);                }
 
                 return await completionSource.Task.ConfigureAwait(false);
             }
@@ -733,6 +731,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return (Script<object>)script;
             }
 
+            //(miziga): file to be used in json RPC? requires operation: refactor to only need path? 
             private async Task<EvaluationState> ExecuteFileAsync(
                 TaskCompletionSource<RemoteExecutionResult> completionSource,
                 Task<EvaluationState> lastTask,

@@ -331,11 +331,10 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// This method is thread safe but operations are sent to the remote process
         /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
-        public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
+        public async Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
             Contract.ThrowIfNull(path);
-            return Async<RemoteExecutionResult>(nameof(Service.ExecuteFileAsync), path);
-        }
+            return Async<RemoteExecutionResult>(nameof(Service.ExecuteFileAsync), path);        }
 
         /// <summary>
         /// Asynchronously adds a reference to the set of available references for next submission.
