@@ -49,8 +49,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public static ImmutableArray<string> TupleElementNames => default;
 
-        public static INamedTypeSymbol TupleUnderlyingType => null;
-
         public new ITypeSymbol OriginalDefinition => this;
 
         public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember) => null;
@@ -70,8 +68,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override bool IsNamespace => false;
 
         public override bool IsType => true;
-
-        public static bool IsSerializable => false;
 
         bool ITypeSymbol.IsRefLikeType => throw new System.NotImplementedException();
 
