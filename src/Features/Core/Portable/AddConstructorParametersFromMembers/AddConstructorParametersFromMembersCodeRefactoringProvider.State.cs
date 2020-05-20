@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 ContainingType = selectedMembers[0].ContainingType;
 
                 var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
-                var parametersForSelectedMembers = service.DetermineParameters(selectedMembers, rules);
+                var parametersForSelectedMembers = DetermineParameters(selectedMembers, rules);
 
                 if (!selectedMembers.All(IsWritableInstanceFieldOrProperty) ||
                     ContainingType == null ||

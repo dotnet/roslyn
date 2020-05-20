@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // See if this is an 'is' expression that would be handled by the analyzer.  If so
             // we don't need to do anything.
-            if (CSharpIsAndCastCheckDiagnosticAnalyzer.Instance.TryGetPatternPieces(
+            if (CSharpIsAndCastCheckDiagnosticAnalyzer.TryGetPatternPieces(
                     isExpression, out _, out _, out _, out _))
             {
                 return;

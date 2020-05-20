@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 statements = postProcessor.RemoveRedundantBlock(statements);
                 statements = postProcessor.RemoveDeclarationAssignmentPattern(statements);
-                statements = postProcessor.RemoveInitializedDeclarationAndReturnPattern(statements);
+                statements = PostProcessor.RemoveInitializedDeclarationAndReturnPattern(statements);
 
                 return statements;
             }

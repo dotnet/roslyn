@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
             Return Rewriter.Visit(root)
         End Function
 
-        Private Shared Function GetExplicitNamespaceSymbol(fullName As ExpressionSyntax, namespacePart As ExpressionSyntax, model As SemanticModel) As INamespaceSymbol
+        Private Overloads Shared Function GetExplicitNamespaceSymbol(fullName As ExpressionSyntax, namespacePart As ExpressionSyntax, model As SemanticModel) As INamespaceSymbol
             ' name must refer to something that is not a namespace, but be qualified with a namespace.
             Dim Symbol = model.GetSymbolInfo(fullName).Symbol
             Dim nsSymbol = TryCast(model.GetSymbolInfo(namespacePart).Symbol, INamespaceSymbol)

@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             AddIndentBlockOperations(list, parameterOrArgumentList, indentationDelta)
         End Sub
 
-        Private Shared Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), parameterOrArgumentList As SyntaxNode, indentationDelta As Integer)
+        Private Overloads Shared Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), parameterOrArgumentList As SyntaxNode, indentationDelta As Integer)
             Dim openBrace = parameterOrArgumentList.GetFirstToken(includeZeroWidth:=True)
             Dim closeBrace = parameterOrArgumentList.GetLastToken(includeZeroWidth:=True)
 
@@ -211,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             AddAlignTokensOperations(operations, baseToken)
         End Sub
 
-        Private Shared Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), baseToken As SyntaxToken)
+        Private Overloads Shared Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), baseToken As SyntaxToken)
             operations.Add(FormattingOperations.CreateAlignTokensOperation(
                            baseToken,
                            SpecializedCollections.SingletonEnumerable(baseToken.GetNextToken(includeZeroWidth:=True)),

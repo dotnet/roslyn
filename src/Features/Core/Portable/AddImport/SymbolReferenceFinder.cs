@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols, ITypeSymbol typeSymbol)
             {
                 return GetViableExtensionMethodsWorker(methodSymbols).WhereAsArray(
-                    s => _owner.IsViableExtensionMethod(s.Symbol, typeSymbol));
+                    s => IsViableExtensionMethod(s.Symbol, typeSymbol));
             }
 
             private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethodsWorker(

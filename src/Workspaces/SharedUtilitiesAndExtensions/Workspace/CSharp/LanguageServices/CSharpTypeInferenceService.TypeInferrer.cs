@@ -500,19 +500,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case InvocationExpressionSyntax invocation:
                         {
-                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            var index = GetArgumentListIndex(argumentList, previousToken);
                             return InferTypeInInvocationExpression(invocation, index);
                         }
 
                     case ObjectCreationExpressionSyntax objectCreation:
                         {
-                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            var index = GetArgumentListIndex(argumentList, previousToken);
                             return InferTypeInObjectCreationExpression(objectCreation, index);
                         }
 
                     case ConstructorInitializerSyntax constructorInitializer:
                         {
-                            var index = this.GetArgumentListIndex(argumentList, previousToken);
+                            var index = GetArgumentListIndex(argumentList, previousToken);
                             return InferTypeInConstructorInitializer(constructorInitializer, index);
                         }
                 }
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (attributeArgumentList.Parent is AttributeSyntax attribute)
                 {
-                    var index = this.GetArgumentListIndex(attributeArgumentList, previousToken);
+                    var index = GetArgumentListIndex(attributeArgumentList, previousToken);
                     return InferTypeInAttribute(attribute, index);
                 }
 

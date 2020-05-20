@@ -1472,7 +1472,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var document = projectChanges.NewProject.GetDocument(documentId)!;
                 var text = document.GetTextSynchronously(CancellationToken.None);
-                var info = this.CreateDocumentInfoWithoutText(document);
+                var info = CreateDocumentInfoWithoutText(document);
                 this.ApplyDocumentAdded(info, text);
             }
 
@@ -1481,7 +1481,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var document = projectChanges.NewProject.GetAdditionalDocument(documentId)!;
                 var text = document.GetTextSynchronously(CancellationToken.None);
-                var info = this.CreateDocumentInfoWithoutText(document);
+                var info = CreateDocumentInfoWithoutText(document);
                 this.ApplyAdditionalDocumentAdded(info, text);
             }
 
@@ -1490,7 +1490,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var document = projectChanges.NewProject.GetAnalyzerConfigDocument(documentId)!;
                 var text = document.GetTextSynchronously(CancellationToken.None);
-                var info = this.CreateDocumentInfoWithoutText(document);
+                var info = CreateDocumentInfoWithoutText(document);
                 this.ApplyAnalyzerConfigDocumentAdded(info, text);
             }
 

@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return Nothing
         End Function
 
-        Private Shared Function GetAvailableInsertionIndices(destination As CompilationUnitSyntax, cancellationToken As CancellationToken) As IList(Of Boolean)
+        Private Overloads Shared Function GetAvailableInsertionIndices(destination As CompilationUnitSyntax, cancellationToken As CancellationToken) As IList(Of Boolean)
             Dim members = destination.Members
 
             Dim indices = New List(Of Boolean)

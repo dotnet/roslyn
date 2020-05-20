@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 }
 
                 var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
-                Parameters = service.DetermineParameters(selectedMembers, rules);
+                Parameters = DetermineParameters(selectedMembers, rules);
                 MatchingConstructor = GetMatchingConstructorBasedOnParameterTypes(ContainingType, Parameters);
                 // We are going to create a new contructor and pass part of the parameters into DelegatedConstructor,
                 // so parameters should be compared based on types since we don't want get a type mismatch error after the new constructor is genreated.
