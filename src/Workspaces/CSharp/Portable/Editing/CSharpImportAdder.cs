@@ -87,6 +87,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
 
             private readonly HashSet<INamespaceSymbol> _conflictNamespaces;
 
+            /// <summary>
+            /// Track if we're in an anonymous method or not.  If so, because of how the language binds lambdas and
+            /// overloads, we'll assume any method access we see inside (instance or otherwise) could end up conflicting
+            /// with an extension method we might pull in.
+            /// </summary>
+            private bool _inAnonymousMethod;
+
             public ConflictWalker(
                 SemanticModel model,
                 ImmutableArray<INamespaceSymbol> namespaceSymbols,
@@ -116,6 +123,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                 }
             }
 
+            public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
+            {
+                // lambdas are interesting.  Say you have:
+                //
+                //      Goo(x => x.M());
+                //
+                //      void Goo(Action<C> act) { }
+                //      void Goo(Action<int> act) { }
+                //
+                //      class C { public void M() { } }
+                //
+                // This is legal code where the lambda body is calling the instance method.  However, if we introduce a
+                // using that brings in an extension method 'M' on 'int', then the above will become ambiguous.  This is
+                // because lambda binding will try each interpretation separately and eliminate the ones that fail.
+                // Adding the import will make the int form succeed, causing ambiguity.
+                //
+                // To deal with that, we keep track of if we're in a lambda, and we conservatively assume that a method
+                // access (even to a non-extension method) could conflict with an extension method brought in.
+
+                var previousInAnonymousMethod = _inAnonymousMethod;
+                _inAnonymousMethod = true;
+                base.VisitSimpleLambdaExpression(node);
+                _inAnonymousMethod = previousInAnonymousMethod;
+            }
+
+            public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+            {
+                var previousInAnonymousMethod = _inAnonymousMethod;
+                _inAnonymousMethod = true;
+                base.VisitParenthesizedLambdaExpression(node);
+                _inAnonymousMethod = previousInAnonymousMethod;
+            }
+
+            public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
+            {
+                var previousInAnonymousMethod = _inAnonymousMethod;
+                _inAnonymousMethod = true;
+                base.VisitAnonymousMethodExpression(node);
+                _inAnonymousMethod = previousInAnonymousMethod;
+            }
+
             private void CheckName(NameSyntax node)
             {
                 // Check to see if we have an standalone identifier (or identifier on the left of a dot). If so, if that
@@ -126,13 +174,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                     return;
 
                 var symbol = _model.GetSymbolInfo(node, _cancellationToken).GetAnySymbol();
-                if (symbol == null)
-                    return;
-
-                if (symbol.Kind != SymbolKind.NamedType)
-                    return;
-
-                _conflictNamespaces.AddRange(_namespaceMembers[(symbol.Name, node.Arity)]);
+                if (symbol?.Kind == SymbolKind.NamedType)
+                    _conflictNamespaces.AddRange(_namespaceMembers[(symbol.Name, node.Arity)]);
             }
 
             public override void VisitIdentifierName(IdentifierNameSyntax node)
@@ -155,13 +198,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                 // bring in an extension that conflicts with that.
 
                 var symbol = _model.GetSymbolInfo(node.Name, _cancellationToken).GetAnySymbol();
-                if (!(symbol is IMethodSymbol method))
-                    return;
-
-                if (!method.IsReducedExtension())
-                    return;
-
-                _conflictNamespaces.AddRange(_extensionMethods[method.Name]);
+                if (symbol is IMethodSymbol method)
+                {
+                    // see explanation in VisitSimpleLambdaExpression for the _inAnonymousMethod check
+                    if (method.IsReducedExtension() || _inAnonymousMethod)
+                        _conflictNamespaces.AddRange(_extensionMethods[method.Name]);
+                }
             }
         }
     }

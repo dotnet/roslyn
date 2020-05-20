@@ -1578,102 +1578,93 @@ class C
 }", safe: true, useSymbolAnnotations: true);
         }
 
-        //        [Theory, InlineData(true), InlineData(false)]
-        //        public async Task TestWarnsWithMatchingExtensionMethodUsedAsDelegate(bool useSymbolAnnotations)
-        //        {
-        //            var source = @"using System;
-        //using B;
+        [Fact]
+        public async Task TestSafeWithLambdaExtensionMethodAmbiguity()
+        {
+            await TestAsync(
+@"using System;
 
-        //namespace A
-        //{
-        //    static class AExtensions
-        //    {
-        //        public static void M(this int a){}
-        //    }
-        //    public class C1 {}
-        //}
+class C
+{
+    // Don't add a using for N even though it is used here.
+    public N.Other x;
 
-        //namespace B
-        //{
-        //    static class BExtensions
-        //    {
-        //        public static void M(this object a){}
-        //    }
-        //}
+    public static void Main()
+    {
+        M(x => x.M1());
+    }
 
-        //class C
-        //{
-        //    Action M(A.C1 c1) => 42.M;
-        //}";
+    public static void M(Action<C> a){}
+    public static void M(Action<int> a){}
 
-        //            await TestAsync(
-        //                source,
-        //@"using System;
-        //using A;
-        //using B;
+    public void M1(){}
+}
 
-        //namespace A
-        //{
-        //    static class AExtensions
-        //    {
-        //        public static void M(this int a){}
-        //    }
-        //    public class C1 {}
-        //}
+namespace N
+{
+    public class Other { }
 
-        //namespace B
-        //{
-        //    static class BExtensions
-        //    {
-        //        public static void M(this object a){}
-        //    }
-        //}
+    public static class Extensions
+    {
+        public static void M1(this int a){}
+    }
+}",
+@"using System;
 
-        //class C
-        //{
-        //    Action M(A.C1 c1) => 42.M;
-        //}",
+class C
+{
+    // Don't add a using for N even though it is used here.
+    public N.Other x;
 
-        //@"using System;
-        //using A;
-        //using B;
+    public static void Main()
+    {
+        M(x => x.M1());
+    }
 
-        //namespace A
-        //{
-        //    static class AExtensions
-        //    {
-        //        public static void M(this int a){}
-        //    }
-        //    public class C1 {}
-        //}
+    public static void M(Action<C> a){}
+    public static void M(Action<int> a){}
 
-        //namespace B
-        //{
-        //    static class BExtensions
-        //    {
-        //        public static void M(this object a){}
-        //    }
-        //}
+    public void M1(){}
+}
 
-        //class C
-        //{
-        //    Action M(C1 c1) => 42.M;
-        //}", safe: true, useSymbolAnnotations);
+namespace N
+{
+    public class Other { }
 
-        //            var doc = await GetDocument(source, useSymbolAnnotations);
-        //            OptionSet options = await doc.GetOptionsAsync();
+    public static class Extensions
+    {
+        public static void M1(this int a){}
+    }
+}",
+@"using System;
 
-        //            var imported = await ImportAdder.AddImportsFromSyntaxesAsync(doc, true, options);
-        //            var root = await imported.GetSyntaxRootAsync();
-        //            var nodeWithWarning = root.GetAnnotatedNodes(WarningAnnotation.Kind).Single();
+class C
+{
+    // Don't add a using for N even though it is used here.
+    public N.Other x;
 
-        //            Assert.Equal("42.M", nodeWithWarning.ToFullString());
+    public static void Main()
+    {
+        M(x => x.M1());
+    }
 
-        //            var warning = nodeWithWarning.GetAnnotations(WarningAnnotation.Kind).Single();
-        //            var expectedWarningMessage = string.Format(WorkspacesResources.Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access, "M");
+    public static void M(Action<C> a){}
+    public static void M(Action<int> a){}
 
-        //            Assert.Equal(expectedWarningMessage, WarningAnnotation.GetDescription(warning));
-        //        }
+    public void M1(){}
+}
+
+namespace N
+{
+    public class Other { }
+
+    public static class Extensions
+    {
+        public static void M1(this int a){}
+    }
+}", safe: true, useSymbolAnnotations: true);
+        }
+
         #endregion
     }
 }
