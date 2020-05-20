@@ -98,9 +98,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
 
 
             Private Sub CheckName(node As NameSyntax)
-                ' Check to see if we have an standalone identifer (Or identifier on the left of a dot).
-                ' If so, if that identifier binds to a namespace Or type, then we don't want to bring in
-                ' any imports that would bring in the same name And could then potentially conflict here.
+                ' Check to see if we have an standalone identifier (Or identifier on the left of a dot). If so, if that
+                ' identifier binds to a namespace Or type, then we don't want to bring in any imports that would bring
+                ' in the same name And could then potentially conflict here.
 
                 If node.IsRightSideOfDotOrBang Then
                     Return
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
 
                 If symbol.Kind = SymbolKind.Namespace Or symbol.Kind = SymbolKind.NamedType Then
                     _conflictNamespaces.AddRange(_namespaceMembers((symbol.Name, node.Arity)))
-                ElseIf symbol.OriginalDefinition.IsExtensionMethod() Then
+                ElseIf symbol.OriginalDefinition.IsReducedExtension() Then
                     _conflictNamespaces.AddRange(_extensionMethods(symbol.Name))
                 End If
             End Sub
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                     Return
                 End If
 
-                If Not method.OriginalDefinition.IsExtensionMethod Then
+                If Not method.IsReducedExtension() Then
                     Return
                 End If
 

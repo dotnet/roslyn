@@ -106,9 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
 
             private void CheckName(NameSyntax node)
             {
-                // Check to see if we have an standalone identifer (or identifier on the left of a dot).
-                // If so, if that identifier binds to a namespace or type, then we don't want to bring in
-                // any imports that would bring in the same name and could then potentially conflict here.
+                // Check to see if we have an standalone identifier (or identifier on the left of a dot). If so, if that
+                // identifier binds to a namespace or type, then we don't want to bring in any imports that would bring
+                // in the same name and could then potentially conflict here.
 
                 if (node.IsRightSideOfDotOrArrowOrColonColon())
                     return;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                 if (!(symbol is IMethodSymbol method))
                     return;
 
-                if (!method.OriginalDefinition.IsExtensionMethod)
+                if (!method.IsReducedExtension())
                     return;
 
                 _conflictNamespaces.AddRange(_extensionMethods[method.Name]);
