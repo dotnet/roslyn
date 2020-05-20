@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 try
                 {
+                    // (miziga) getting result from this method for json rpc ?
                     // async call to remote process:
                     action(_remoteService.Service, this);
 

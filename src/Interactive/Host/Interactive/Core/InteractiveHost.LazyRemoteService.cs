@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private Task<RemoteService?> TryStartProcessAsync(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
             {
-                return Task.Run(() => Host.TryStartProcess(hostPath, culture, cancellationToken));
+                return Task.Run(() => Host.TryStartProcessAsync(hostPath, culture, cancellationToken));
             }
         }
     }

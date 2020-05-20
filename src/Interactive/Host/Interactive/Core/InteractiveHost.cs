@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Pipes;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
@@ -15,8 +16,10 @@ using System.Runtime.Serialization.Formatters;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -40,8 +43,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private LazyRemoteService? _lazyRemoteService;
         private int _remoteServiceInstanceId;
 
-        // Remoting channel to communicate with the remote service.
-        private IpcServerChannel? _serverChannel;
+        private NamedPipeClientStream _clientStream;
 
         private TextWriter _output;
         private TextWriter _errorOutput;
@@ -75,8 +77,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             _errorOutputGuard = new object();
 
             var serverProvider = new BinaryServerFormatterSinkProvider { TypeFilterLevel = TypeFilterLevel.Full };
-            _serverChannel = new IpcServerChannel(GenerateUniqueChannelLocalName(), "ReplChannel-" + Guid.NewGuid(), serverProvider);
-            ChannelServices.RegisterChannel(_serverChannel, ensureSecurity: false);
+            // (miziga) initializing pipe for replacement of remote channel
+            _clientStream = new NamedPipeClientStream(".", GenerateUniqueChannelLocalName(), PipeDirection.InOut, PipeOptions.Asynchronous);
+
+            // TODO(miziga) delete channel when ready
+            //_serverChannel = new IpcServerChannel(GenerateUniqueChannelLocalName(), "ReplChannel-" + Guid.NewGuid(), serverProvider);
+            //ChannelServices.RegisterChannel(_serverChannel, ensureSecurity: false);
         }
 
         #region Test hooks
@@ -101,44 +107,28 @@ namespace Microsoft.CodeAnalysis.Interactive
         // The ProcessExited event is not hooked yet.
         internal event Action<Process>? InteractiveHostProcessCreated;
 
-        internal IpcServerChannel? Test_ServerChannel
-            => _serverChannel;
-
+        }
         #endregion
 
         private static string GenerateUniqueChannelLocalName()
             => typeof(InteractiveHost).FullName + Guid.NewGuid();
 
-        private RemoteService? TryStartProcess(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
         {
-            Process? newProcess = null;
-            int newProcessId = -1;
-            Semaphore? semaphore = null;
+            return null;
+        }
+
+        private async Task<RemoteService?> TryStartProcess(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
+		{            int newProcessId = -1;
+            Semaphore semaphore = null;
             try
             {
                 int currentProcessId = Process.GetCurrentProcess().Id;
 
-                bool semaphoreCreated;
-
-                string semaphoreName;
-                while (true)
-                {
-                    semaphoreName = "InteractiveHostSemaphore-" + Guid.NewGuid();
-                    semaphore = new Semaphore(0, 1, semaphoreName, out semaphoreCreated);
-
-                    if (semaphoreCreated)
-                    {
-                        break;
-                    }
-
-                    semaphore.Close();
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
-
                 var remoteServerPort = "InteractiveHostChannel-" + Guid.NewGuid();
 
                 var processInfo = new ProcessStartInfo(hostPath);
-                processInfo.Arguments = remoteServerPort + " " + semaphoreName + " " + currentProcessId;
+                // used the same pipeName method instead of the sempahore
+                processInfo.Arguments = GenerateUniqueChannelLocalName() + " " + currentProcessId;
                 processInfo.WorkingDirectory = _initialWorkingDirectory;
                 processInfo.CreateNoWindow = true;
                 processInfo.UseShellExecute = false;
@@ -167,8 +157,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                     newProcessId = 0;
                 }
 
+                // TODO(miziga): delete when ready
                 // sync:
-                while (!semaphore.WaitOne(_millisecondsTimeout))
+                /*while (!semaphore.WaitOne(_millisecondsTimeout))
                 {
                     if (!CheckAlive(newProcess, hostPath))
                     {
@@ -177,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     WriteOutputInBackground(isError: false, string.Format(InteractiveHostResources.Attempt_to_connect_to_process_Sharp_0_failed_retrying, newProcessId));
                     cancellationToken.ThrowIfCancellationRequested();
-                }
+                }*/
 
                 // instantiate remote service:
                 Service newService;
@@ -188,8 +179,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                         "ipc://" + remoteServerPort + "/" + Service.ServiceName);
 
                     cancellationToken.ThrowIfCancellationRequested();
+                    // (miziga) pipe connection here
+                    await _clientStream.ConnectAsync();
 
-                    newService.Initialize(_replServiceProviderType, culture.Name);
+                    newService.InitializeAsync(_replServiceProviderType, culture.Name);
                 }
                 catch (RemotingException) when (!CheckAlive(newProcess, hostPath))
                 {
@@ -207,13 +200,14 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 return null;
             }
-            finally
+            // TODO(miziga): delete when ready
+            /*finally
             {
                 if (semaphore != null)
                 {
                     semaphore.Close();
                 }
-            }
+            }*/
         }
 
         private bool CheckAlive(Process process, string hostPath)
@@ -240,7 +234,9 @@ namespace Microsoft.CodeAnalysis.Interactive
         // Dispose may be called anytime.
         public void Dispose()
         {
-            DisposeChannel();
+            //(miziga)DisposeChannel();
+            //(miziga)close pipe??
+            //(miziga)_clientStream.Close();
 
             // Run this in background to avoid deadlocking with UIThread operations performing with active outputs.
             _ = Task.Run(() => SetOutputs(TextWriter.Null, TextWriter.Null));
@@ -254,14 +250,15 @@ namespace Microsoft.CodeAnalysis.Interactive
             Interlocked.Exchange(ref _lazyRemoteService, null)?.Dispose();
         }
 
-        private void DisposeChannel()
+        //TODO(miziga) delete when ready
+        /*private void DisposeChannel()
         {
             var serverChannel = Interlocked.Exchange(ref _serverChannel, null);
             if (serverChannel != null)
             {
                 ChannelServices.UnregisterChannel(serverChannel);
             }
-        }
+        }*/
 
         public void SetOutputs(TextWriter output, TextWriter errorOutput)
         {
@@ -414,7 +411,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     return default!;
                 }
-
+                /*using (_clientStream)
+                {
+                    await _clientStream.ConnectAsync();
+                    var jsonRpc = JsonRpc.Attach(_clientStream);
+                    // (miziga) what arguments should go in the invoke? path?
+                    return await jsonRpc.InvokeAsync();
+                }*/
                 return await new RemoteAsyncOperation<TResult>(initializedService.Service).ExecuteAsync(action).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.Report(e))
@@ -427,6 +430,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             try
             {
+                // (miziga) same as the above method?
                 return await new RemoteAsyncOperation<TResult>(remoteService).ExecuteAsync(action).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.Report(e))
@@ -497,6 +501,11 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
             Contract.ThrowIfNull(path);
+            //(miziga) this is where the jsonrpc will be used
+            //(miziga) what is the target name of the method to be referenced with the parameters? 
+            var jsonRpc = JsonRpc.Attach(_clientStream);
+            //return await jsonRpc.InvokeAsync<RemoteExecutionResult>("", path).ConfigureAwait(false);
+            //TODO(miziga): delete 
             return Async<RemoteExecutionResult>((service, operation) => service.ExecuteFile(operation, path));
         }
 
