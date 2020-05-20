@@ -5861,16 +5861,16 @@ unsafe class Derived : Base
         }
 
         [Theory]
-        [InlineData(" ", "ref ")]
-        [InlineData(" ", "out ")]
-        [InlineData(" ", "in ")]
+        [InlineData("", "ref ")]
+        [InlineData("", "out ")]
+        [InlineData("", "in ")]
         [InlineData("ref ", "")]
         [InlineData("ref ", "out ")]
         [InlineData("ref ", "in ")]
-        [InlineData("out ", " ")]
+        [InlineData("out ", "")]
         [InlineData("out ", "ref ")]
         [InlineData("out ", "in ")]
-        [InlineData("in ", " ")]
+        [InlineData("in ", "")]
         [InlineData("in ", "ref ")]
         [InlineData("in ", "out ")]
         public void Override_RefnessMustMatch_Parameters(string refKind1, string refKind2)
@@ -5890,13 +5890,11 @@ unsafe class Derived : Base
             comp.VerifyDiagnostics(
                 // (9,29): error CS0115: 'Derived.M1(delegate*<{refKind2} string, void>)': no suitable method found to override
                 //     protected override void M1(delegate*<{refKind2} string, void> ptr) {}
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments($"Derived.M1(delegate*<{refKindString(refKind2)}string, void>)").WithLocation(9, 29),
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments($"Derived.M1(delegate*<{refKind2}string, void>)").WithLocation(9, 29),
                 // (10,49): error CS0508: 'Derived.M2()': return type must be 'delegate*<{refKind1} string, void>' to match overridden member 'Base.M2()'
                 //     protected override delegate*<{refKind2} string, void> M2() => throw null;
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", $"delegate*<{refKindString(refKind1)}string, void>").WithLocation(10, 48 + refKind2.Length)
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", $"delegate*<{refKind1}string, void>").WithLocation(10, 48 + refKind2.Length)
             );
-
-            static string refKindString(string orig) => orig == " " ? "" : orig;
         }
 
         [Theory]
@@ -6063,7 +6061,7 @@ unsafe class Derived : Base
             comp.VerifyDiagnostics(
             );
 
-            assertMethods(comp.SourceModule); 
+            assertMethods(comp.SourceModule);
             CompileAndVerify(comp, symbolValidator: assertMethods);
 
             static void assertMethods(ModuleSymbol module)
@@ -6092,24 +6090,24 @@ unsafe class Derived : Base
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class Base
 {
-    protected virtual void M1(delegate*<(int, string)> ptr) {{}}
+    protected virtual void M1(delegate*<(int, string)> ptr) {}
     protected virtual delegate*<(int, string)> M2() => throw null;
-    protected virtual void M3(delegate*<(int, string), void> ptr) {{}}
+    protected virtual void M3(delegate*<(int, string), void> ptr) {}
     protected virtual delegate*<(int, string), void> M4() => throw null;
-    protected virtual void M5(delegate*<(int i, string s)> ptr) {{}}
+    protected virtual void M5(delegate*<(int i, string s)> ptr) {}
     protected virtual delegate*<(int i, string s)> M6() => throw null;
-    protected virtual void M7(delegate*<(int i, string s), void> ptr) {{}}
+    protected virtual void M7(delegate*<(int i, string s), void> ptr) {}
     protected virtual delegate*<(int i, string s), void> M8() => throw null;
 }
 unsafe class Derived : Base
 {
-    protected override void M1(delegate*<(int i, string s)> ptr) {{}}
+    protected override void M1(delegate*<(int i, string s)> ptr) {}
     protected override delegate*<(int i, string s)> M2() => throw null;
-    protected override void M3(delegate*<(int i, string s), void> ptr) {{}}
+    protected override void M3(delegate*<(int i, string s), void> ptr) {}
     protected override delegate*<(int i, string s), void> M4() => throw null;
-    protected override void M5(delegate*<(int, string)> ptr) {{}}
+    protected override void M5(delegate*<(int, string)> ptr) {}
     protected override delegate*<(int, string)> M6() => throw null;
-    protected override void M7(delegate*<(int, string), void> ptr) {{}}
+    protected override void M7(delegate*<(int, string), void> ptr) {}
     protected override delegate*<(int, string), void> M8() => throw null;
 }");
 
@@ -6151,24 +6149,24 @@ unsafe class Derived : Base
 #nullable enable
 unsafe class Base
 {
-    protected virtual void M1(delegate*<string?> ptr) {{}}
+    protected virtual void M1(delegate*<string?> ptr) {}
     protected virtual delegate*<string?> M2() => throw null!;
-    protected virtual void M3(delegate*<string?, void> ptr) {{}}
+    protected virtual void M3(delegate*<string?, void> ptr) {}
     protected virtual delegate*<string?, void> M4() => throw null!;
-    protected virtual void M5(delegate*<string> ptr) {{}}
+    protected virtual void M5(delegate*<string> ptr) {}
     protected virtual delegate*<string> M6() => throw null!;
-    protected virtual void M7(delegate*<string, void> ptr) {{}}
+    protected virtual void M7(delegate*<string, void> ptr) {}
     protected virtual delegate*<string, void> M8() => throw null!;
 }
 unsafe class Derived : Base
 {
-    protected override void M1(delegate*<string> ptr) {{}}
+    protected override void M1(delegate*<string> ptr) {}
     protected override delegate*<string> M2() => throw null!;
-    protected override void M3(delegate*<string, void> ptr) {{}}
+    protected override void M3(delegate*<string, void> ptr) {}
     protected override delegate*<string, void> M4() => throw null!;
-    protected override void M5(delegate*<string?> ptr) {{}}
+    protected override void M5(delegate*<string?> ptr) {}
     protected override delegate*<string?> M6() => throw null!;
-    protected override void M7(delegate*<string?, void> ptr) {{}}
+    protected override void M7(delegate*<string?, void> ptr) {}
     protected override delegate*<string?, void> M8() => throw null!;
 }");
 
@@ -6187,7 +6185,7 @@ unsafe class Derived : Base
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M7").WithArguments("ptr").WithLocation(22, 29)
             );
 
-            assertMethods(comp.SourceModule); 
+            assertMethods(comp.SourceModule);
             CompileAndVerify(comp, symbolValidator: assertMethods);
 
             static void assertMethods(ModuleSymbol module)
@@ -6217,24 +6215,24 @@ unsafe class Derived : Base
 #nullable enable
 unsafe class Base
 {
-    protected virtual void M1(delegate*<ref string?> ptr) {{}}
+    protected virtual void M1(delegate*<ref string?> ptr) {}
     protected virtual delegate*<ref string?> M2() => throw null!;
-    protected virtual void M3(delegate*<ref string?, void> ptr) {{}}
+    protected virtual void M3(delegate*<ref string?, void> ptr) {}
     protected virtual delegate*<ref string?, void> M4() => throw null!;
-    protected virtual void M5(delegate*<ref string> ptr) {{}}
+    protected virtual void M5(delegate*<ref string> ptr) {}
     protected virtual delegate*<ref string> M6() => throw null!;
-    protected virtual void M7(delegate*<ref string, void> ptr) {{}}
+    protected virtual void M7(delegate*<ref string, void> ptr) {}
     protected virtual delegate*<ref string, void> M8() => throw null!;
 }
 unsafe class Derived : Base
 {
-    protected override void M1(delegate*<ref string> ptr) {{}}
+    protected override void M1(delegate*<ref string> ptr) {}
     protected override delegate*<ref string> M2() => throw null!;
-    protected override void M3(delegate*<ref string, void> ptr) {{}}
+    protected override void M3(delegate*<ref string, void> ptr) {}
     protected override delegate*<ref string, void> M4() => throw null!;
-    protected override void M5(delegate*<ref string?> ptr) {{}}
+    protected override void M5(delegate*<ref string?> ptr) {}
     protected override delegate*<ref string?> M6() => throw null!;
-    protected override void M7(delegate*<ref string?, void> ptr) {{}}
+    protected override void M7(delegate*<ref string?, void> ptr) {}
     protected override delegate*<ref string?, void> M8() => throw null!;
 }");
 
@@ -6265,7 +6263,7 @@ unsafe class Derived : Base
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M8").WithLocation(23, 53)
             );
 
-            assertMethods(comp.SourceModule); 
+            assertMethods(comp.SourceModule);
             CompileAndVerify(comp, symbolValidator: assertMethods);
 
             static void assertMethods(ModuleSymbol module)
@@ -6295,24 +6293,24 @@ unsafe class Derived : Base
 #nullable enable
 public unsafe class Base
 {
-    public virtual void M1(ref delegate*<string?> ptr) {{}}
+    public virtual void M1(ref delegate*<string?> ptr) {}
     public virtual ref delegate*<string?> M2() => throw null!;
-    public virtual void M3(ref delegate*<string?, void> ptr) {{}}
+    public virtual void M3(ref delegate*<string?, void> ptr) {}
     public virtual ref delegate*<string?, void> M4() => throw null!;
-    public virtual void M5(ref delegate*<string> ptr) {{}}
+    public virtual void M5(ref delegate*<string> ptr) {}
     public virtual ref delegate*<string> M6() => throw null!;
-    public virtual void M7(ref delegate*<string, void> ptr) {{}}
+    public virtual void M7(ref delegate*<string, void> ptr) {}
     public virtual ref delegate*<string, void> M8() => throw null!;
 }
 public unsafe class Derived : Base
 {
-    public override void M1(ref delegate*<string> ptr) {{}}
+    public override void M1(ref delegate*<string> ptr) {}
     public override ref delegate*<string> M2() => throw null!;
-    public override void M3(ref delegate*<string, void> ptr) {{}}
+    public override void M3(ref delegate*<string, void> ptr) {}
     public override ref delegate*<string, void> M4() => throw null!;
-    public override void M5(ref delegate*<string?> ptr) {{}}
+    public override void M5(ref delegate*<string?> ptr) {}
     public override ref delegate*<string?> M6() => throw null!;
-    public override void M7(ref delegate*<string?, void> ptr) {{}}
+    public override void M7(ref delegate*<string?, void> ptr) {}
     public override ref delegate*<string?, void> M8() => throw null!;
 }");
 
@@ -6370,7 +6368,6 @@ public unsafe class Derived : Base
         [Fact]
         public void Override_SingleDimensionArraySizesInMetadata()
         {
-
             var il = @"
 .class public auto ansi abstract beforefieldinit Base
     extends [mscorlib]System.Object

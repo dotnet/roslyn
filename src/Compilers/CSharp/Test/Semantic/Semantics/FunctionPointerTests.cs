@@ -1353,7 +1353,7 @@ unsafe class C
         }
 
         [Fact]
-        public void MergeVariantAnnotations()
+        public void MergeVariantAnnotations_ReturnTypes()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
 #nullable enable
@@ -1420,6 +1420,79 @@ unsafe class C
                "?",
                "?",
                "delegate*<ref System.String>"
+            };
+
+            AssertEx.Equal(expectedTypes, invocationTypes);
+        }
+
+        [Fact]
+        public void MergeVariantAnnotations_ParamTypes()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+#nullable enable
+unsafe class C
+{
+    void M(bool b)
+    {
+        delegate*<string, void> ptr1 = null;
+        delegate*<string?, void> ptr2 = null;
+        delegate*<ref string, void> ptr3 = null;
+        delegate*<ref string?, void> ptr4 = null;
+        _ = b ? ptr1 : ptr2;
+        _ = b ? ptr1 : ptr3;
+        _ = b ? ptr1 : ptr4;
+        _ = b ? ptr3 : ptr4;
+
+        delegate*<string, void> ptr5 = null;
+        delegate*<string?, void> ptr6 = null;
+        delegate*<ref string, void> ptr7 = null;
+        delegate*<ref string?, void> ptr8 = null;
+        _ = b ? ptr5 : ptr6;
+        _ = b ? ptr5 : ptr7;
+        _ = b ? ptr5 : ptr8;
+        _ = b ? ptr7 : ptr8;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string, void>' and 'delegate*<ref string, void>'
+                //         _ = b ? ptr1 : ptr3;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr3").WithArguments("delegate*<string, void>", "delegate*<ref string, void>").WithLocation(12, 13),
+                // (13,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string, void>' and 'delegate*<ref string?, void>'
+                //         _ = b ? ptr1 : ptr4;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string, void>", "delegate*<ref string?, void>").WithLocation(13, 13),
+                // (14,24): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string?, void>' doesn't match target type 'delegate*<ref string, void>'.
+                //         _ = b ? ptr3 : ptr4;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr4").WithArguments("delegate*<ref string?, void>", "delegate*<ref string, void>").WithLocation(14, 24),
+                // (21,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string, void>' and 'delegate*<ref string, void>'
+                //         _ = b ? ptr5 : ptr7;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr7").WithArguments("delegate*<string, void>", "delegate*<ref string, void>").WithLocation(21, 13),
+                // (22,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string, void>' and 'delegate*<ref string?, void>'
+                //         _ = b ? ptr5 : ptr8;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr8").WithArguments("delegate*<string, void>", "delegate*<ref string?, void>").WithLocation(22, 13),
+                // (23,24): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string?, void>' doesn't match target type 'delegate*<ref string, void>'.
+                //         _ = b ? ptr7 : ptr8;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr8").WithArguments("delegate*<ref string?, void>", "delegate*<ref string, void>").WithLocation(23, 24)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocationTypes = tree.GetRoot()
+                                      .DescendantNodes()
+                                      .OfType<ConditionalExpressionSyntax>()
+                                      .Select(s => model.GetTypeInfo(s).Type.ToTestDisplayString())
+                                      .ToList();
+
+            var expectedTypes = new string[] {
+               "delegate*<System.String, System.Void>",
+               "?",
+               "?",
+               "delegate*<ref System.String, System.Void>",
+               "delegate*<System.String, System.Void>",
+               "?",
+               "?",
+               "delegate*<ref System.String, System.Void>"
             };
 
             AssertEx.Equal(expectedTypes, invocationTypes);

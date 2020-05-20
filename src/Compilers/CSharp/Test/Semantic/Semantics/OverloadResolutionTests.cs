@@ -846,7 +846,6 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         [Fact]
         public void NormalizeTaskTypes_FunctionPointers()
         {
-
             string source =
 @"
 using System.Runtime.CompilerServices;

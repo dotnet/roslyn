@@ -675,6 +675,9 @@ unsafe class C
             Assert.Equal(ptr1Ref.GetHashCode(), ptr1RefReadonly.GetHashCode());
             Assert.Equal(ptr2Ref.GetHashCode(), ptr2In.GetHashCode());
             Assert.Equal(ptr2Ref.GetHashCode(), ptr2Out.GetHashCode());
+            Assert.Equal(symbolEqualityComparer.GetHashCode(ptr1Ref.GetPublicSymbol()), symbolEqualityComparer.GetHashCode(ptr1RefReadonly.GetPublicSymbol()));
+            Assert.Equal(symbolEqualityComparer.GetHashCode(ptr2Ref.GetPublicSymbol()), symbolEqualityComparer.GetHashCode(ptr2In.GetPublicSymbol()));
+            Assert.Equal(symbolEqualityComparer.GetHashCode(ptr2Ref.GetPublicSymbol()), symbolEqualityComparer.GetHashCode(ptr2Out.GetPublicSymbol()));
         }
 
         [Fact]
