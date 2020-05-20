@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     var argumentOpt = TryGetRelevantArgument(initialNode, node, diagnostic);
                     var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionForMethodCandidates(
-                        argumentOpt, semanticModel, syntaxFacts, fixData.Arguments, candidates);
+                        argumentOpt, semanticModel, syntaxFacts, fixData.Arguments, candidates, root);
                     RegisterFixForMethodOverloads(context, fixData.Arguments, argumentInsertPositionInMethodCandidates);
                     return;
                 }
@@ -172,7 +172,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
-            ImmutableArray<IMethodSymbol> methodCandidates)
+            ImmutableArray<IMethodSymbol> methodCandidates,
+            SyntaxNode root)
         {
             var comparer = syntaxFacts.StringComparer;
             var methodsAndArgumentToAdd = ArrayBuilder<ArgumentInsertPositionData<TArgumentSyntax>>.GetInstance();
@@ -181,6 +182,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
             {
                 if (method.IsNonImplicitAndFromSource())
                 {
+                    var methodNode = root.FindNode(method.Locations[0].SourceSpan);
+                    if (methodNode.RawKind == syntaxFacts.SyntaxKinds.GlobalStatement)
+                    {
+                        // AddParameter doesn't yet support local functions in top-level statements
+                        // https://github.com/dotnet/roslyn/issues/44271
+                        continue;
+                    }
+
                     var isNamedArgument = !string.IsNullOrWhiteSpace(syntaxFacts.GetNameForArgument(argumentOpt));
 
                     if (isNamedArgument || NonParamsParameterCount(method) < arguments.Count)
