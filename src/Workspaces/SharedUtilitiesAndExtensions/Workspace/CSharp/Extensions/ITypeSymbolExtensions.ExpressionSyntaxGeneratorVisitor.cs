@@ -32,11 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public override ExpressionSyntax VisitNamedType(INamedTypeSymbol symbol)
             {
-                var typeSyntax = TypeSyntaxGeneratorVisitor.Create().CreateSimpleTypeSyntax(symbol);
-                if (!(typeSyntax is SimpleNameSyntax))
-                {
+                var visitor = TypeSyntaxGeneratorVisitor.Create();
+                if (!visitor.TryCreateNativeIntegerType(symbol, out var typeSyntax))
                     return typeSyntax;
-                }
+
+                typeSyntax = visitor.CreateSimpleTypeSyntax(symbol);
+                if (!(typeSyntax is SimpleNameSyntax))
+                    return typeSyntax;
 
                 var simpleNameSyntax = (SimpleNameSyntax)typeSyntax;
                 if (symbol.ContainingType != null)

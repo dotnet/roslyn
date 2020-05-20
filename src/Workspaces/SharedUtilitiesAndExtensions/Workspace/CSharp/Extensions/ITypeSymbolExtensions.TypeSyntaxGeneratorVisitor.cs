@@ -109,15 +109,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     SyntaxFactory.IdentifierName("dynamic"), symbol);
             }
 
+            public bool TryCreateNativeIntegerType(INamedTypeSymbol symbol, out TypeSyntax syntax)
+            {
+#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
+                // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
+                if (symbol.IsNativeIntegerType)
+                {
+                    syntax = SyntaxFactory.IdentifierName(symbol.SpecialType == SpecialType.System_IntPtr ? "nint" : "nuint");
+                    return true;
+                }
+#endif
+
+                syntax = null;
+                return false;
+            }
+
             public TypeSyntax CreateSimpleTypeSyntax(INamedTypeSymbol symbol)
             {
                 if (!_nameOnly)
                 {
                     var syntax = TryCreateSpecializedNamedTypeSyntax(symbol);
                     if (syntax != null)
-                    {
                         return syntax;
-                    }
                 }
 
                 if (symbol.IsTupleType && symbol.TupleUnderlyingType != null && !symbol.Equals(symbol.TupleUnderlyingType))
@@ -173,14 +186,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return CreateTupleTypeSyntax(symbol);
                 }
 
-#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
-                // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
-                if (symbol.IsNativeIntegerType)
-                {
-                    return SyntaxFactory.IdentifierName(symbol.SpecialType == SpecialType.System_IntPtr ? "nint" : "nuint");
-                }
-#endif
-
                 if (symbol.IsNullable())
                 {
                     // Can't have a nullable of a pointer type.  i.e. "int*?" is illegal.
@@ -210,11 +215,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public override TypeSyntax VisitNamedType(INamedTypeSymbol symbol)
             {
-                var typeSyntax = CreateSimpleTypeSyntax(symbol);
-                if (!(typeSyntax is SimpleNameSyntax))
-                {
+                if (TryCreateNativeIntegerType(symbol, out var typeSyntax))
                     return typeSyntax;
-                }
+
+                typeSyntax = CreateSimpleTypeSyntax(symbol);
+                if (!(typeSyntax is SimpleNameSyntax))
+                    return typeSyntax;
 
                 var simpleNameSyntax = (SimpleNameSyntax)typeSyntax;
                 if (symbol.ContainingType != null)
