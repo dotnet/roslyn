@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
@@ -85,12 +84,12 @@ class Goo
             const string code = @"
 class C
 {
-    $$public int Goo
+    $${|#0:public int Goo{|textspan:
     {
         get { }
         set { }
-    }
-
+    }|#0}
+|}
     public int Goo2
     {
         get { }
@@ -99,13 +98,7 @@ class C
 }";
 
             await VerifyBlockSpansAsync(code,
-                new BlockSpan(
-                    isCollapsible: true,
-                    textSpan: TextSpan.FromBounds(32, 82),
-                    hintSpan: TextSpan.FromBounds(18, 80),
-                    type: BlockTypes.Nonstructural,
-                    bannerText: CSharpStructureHelpers.Ellipsis,
-                    autoCollapse: true));
+                Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -114,12 +107,12 @@ class C
             const string code = @"
 class C
 {
-    $$public int Goo
+    $${|#0:public int Goo{|textspan:
     {
         get { }
         set { }
-    }
-
+    }|#0}
+|}
     public int this[int value]
     {
         get { }
@@ -128,13 +121,7 @@ class C
 }";
 
             await VerifyBlockSpansAsync(code,
-                new BlockSpan(
-                    isCollapsible: true,
-                    textSpan: TextSpan.FromBounds(32, 82),
-                    hintSpan: TextSpan.FromBounds(18, 80),
-                    type: BlockTypes.Nonstructural,
-                    bannerText: CSharpStructureHelpers.Ellipsis,
-                    autoCollapse: true));
+                Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

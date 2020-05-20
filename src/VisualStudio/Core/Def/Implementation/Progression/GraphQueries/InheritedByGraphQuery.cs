@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,14 +20,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var node in context.InputNodes)
             {
-                var symbolAndProjectId = graphBuilder.GetSymbolAndProjectId(node);
-                if (!(symbolAndProjectId.Symbol is INamedTypeSymbol namedType))
+                var symbol = graphBuilder.GetSymbol(node);
+                if (!(symbol is INamedTypeSymbol namedType))
                     continue;
 
                 if (namedType.TypeKind == TypeKind.Class)
                 {
-                    var derivedTypes = await DependentTypeFinder.FindImmediatelyDerivedClassesAsync(
-                        symbolAndProjectId.WithSymbol(namedType), solution, cancellationToken).ConfigureAwait(false);
+                    var derivedTypes = await SymbolFinder.FindDerivedClassesArrayAsync(
+                        namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(
@@ -36,9 +37,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
                 else if (namedType.TypeKind == TypeKind.Interface)
                 {
-                    var derivedTypes = await DependentTypeFinder.FindImmediatelyDerivedAndImplementingTypesAsync(
-                        symbolAndProjectId.WithSymbol(namedType), solution, cancellationToken).ConfigureAwait(false);
-                    foreach (var derivedType in derivedTypes)
+                    var implementingClassesAndStructs = await SymbolFinder.FindImplementationsArrayAsync(
+                        namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var derivedInterfaces = await SymbolFinder.FindDerivedInterfacesArrayAsync(
+                        namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    foreach (var derivedType in implementingClassesAndStructs.Concat(derivedInterfaces))
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(
                             derivedType, relatedNode: node).ConfigureAwait(false);

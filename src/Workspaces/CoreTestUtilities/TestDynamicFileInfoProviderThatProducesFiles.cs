@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
         }
 
-        public event EventHandler<string> Updated;
+        event EventHandler<string> IDynamicFileInfoProvider.Updated { add { } remove { } }
 
         public Task<DynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
         {
@@ -49,8 +48,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
             => Task.CompletedTask;
-
-        private void OnUpdate()
-            => Updated?.Invoke(this, "test");
     }
 }

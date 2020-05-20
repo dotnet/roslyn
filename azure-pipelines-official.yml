@@ -103,7 +103,6 @@ stages:
                 -officialSourceBranchName $(SourceBranchName)
                 -officialIbcSourceBranchName $(IbcSourceBranchName)
                 -officialIbcDropId $(IbcDropId)
-                -skipAnalyzers
                 /p:RepositoryName=$(Build.Repository.Name)
                 /p:VisualStudioDropAccessToken=$(System.AccessToken)
                 /p:VisualStudioDropName=$(VisualStudio.DropName)
@@ -124,7 +123,7 @@ stages:
       inputs:
         filePath: 'eng\publish-assets.ps1'
         arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
-      condition: succeeded()
+      condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
     # Publish OptProf configuration files
     - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
@@ -290,7 +289,11 @@ stages:
       # https://github.com/dotnet/arcade/issues/2871 is resolved.
       enableSymbolValidation: false
       enableSourceLinkValidation: false
+      # It's important that post-build stages are depends on 'SetValidateDependency' stage instead of 'build', 
+      # since we don't want to publish validation build. 
       validateDependsOn:
+        - SetValidateDependency
+      dependsOn:
         - SetValidateDependency
       # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
       SDLValidationParameters:

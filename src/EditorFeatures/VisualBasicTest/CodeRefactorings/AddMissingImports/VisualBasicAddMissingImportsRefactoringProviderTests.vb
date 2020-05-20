@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.PasteTracking
@@ -44,9 +45,10 @@ Namespace Microsoft.CodeAnalysis.AddMissingImports
             initialMarkup As String, expectedMarkup As String,
             placeSystemNamespaceFirst As Boolean, separateImportDirectiveGroups As Boolean) As Task
 
-            Dim options = OptionsSet(
-                SingleOption(GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst),
-                SingleOption(GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups))
+            Dim options = New OptionsCollection(GetLanguage()) From {
+                {GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst},
+                {GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups}
+                }
 
             Return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options:=options)
         End Function

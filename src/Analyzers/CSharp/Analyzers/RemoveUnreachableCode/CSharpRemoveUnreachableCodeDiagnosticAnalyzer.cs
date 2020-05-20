@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         {
             var fadeCode = context.GetOption(FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
 
-            var tree = context.SemanticModel.SyntaxTree;
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 

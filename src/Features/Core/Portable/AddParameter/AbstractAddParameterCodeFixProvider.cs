@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     {
                         var argumentToAdd = DetermineFirstArgumentToAdd(
                             semanticModel, syntaxFacts, comparer, method,
-                            arguments, argumentOpt);
+                            arguments);
 
                         if (argumentToAdd != null)
                         {
@@ -418,8 +418,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             ISyntaxFactsService syntaxFacts,
             StringComparer comparer,
             IMethodSymbol method,
-            SeparatedSyntaxList<TArgumentSyntax> arguments,
-            TArgumentSyntax argumentOpt)
+            SeparatedSyntaxList<TArgumentSyntax> arguments)
         {
             var compilation = semanticModel.Compilation;
             var methodParameterNames = new HashSet<string>(comparer);

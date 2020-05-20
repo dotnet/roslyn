@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             string expectedUnoptimizedIL = null,
             MetadataReference[] references = null,
             bool allowUnsafe = false,
-            [CallerFilePath]string callerPath = null,
-            [CallerLineNumber]int callerLine = 0,
+            [CallerFilePath] string callerPath = null,
+            [CallerLineNumber] int callerLine = 0,
             CSharpParseOptions parseOptions = null,
             Verification verify = Verification.Passes)
         {

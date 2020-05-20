@@ -9,6 +9,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -266,7 +267,7 @@ class Program
                 var source = string.Format(sourceTemplate, s1, s2, s3);
                 var compilation = CreatePatternCompilation(source);
                 compilation.VerifyDiagnostics(
-                    // (12,18): error CS8120: The switch case has already been handled by a previous case.
+                    // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                     //             case (_, _): // error - subsumed
                     Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "(_, _)").WithLocation(12, 18)
                     );
@@ -442,10 +443,7 @@ public class Point
                 Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 48),
                 // (6,48): error CS8504: Pattern missing
                 //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 48),
-                // (6,57): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "false").WithLocation(6, 57)
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 48)
                 );
         }
 
@@ -673,26 +671,24 @@ class Program
         if (t is (int z3) { }) { }                      // ok
         if (t is ValueTuple<int>(int z4)) { }           // ok
     }
-    private static bool Check<T>(T expected, T actual)
-    {
-        if (!object.Equals(expected, actual)) throw new Exception($""expected: {expected}; actual: {actual}"");
-        return true;
-    }
 }";
-            var compilation = CreatePatternCompilation(source);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
-                // (8,18): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
+                // (8,18): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (t is (int x)) { }                           // error 1
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(int x)").WithLocation(8, 18),
-                // (9,27): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x)").WithArguments("parenthesized pattern").WithLocation(8, 18),
+                // (8,19): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
+                //         if (t is (int x)) { }                           // error 1
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(8, 19),
+                // (9,27): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         switch (t) { case (_): break; }                 // error 2
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(_)").WithLocation(9, 27),
-                // (10,28): error CS8507: A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(_)").WithArguments("parenthesized pattern").WithLocation(9, 27),
+                // (10,28): error CS8652: The feature 'parenthesized pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresDisambiguation, "(int y)").WithLocation(10, 28),
-                // (10,42): error CS8510: The pattern has already been handled by a previous arm of the switch expression.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int y)").WithArguments("parenthesized pattern").WithLocation(10, 28),
+                // (10,29): error CS8121: An expression of type 'ValueTuple<int>' cannot be handled by a pattern of type 'int'.
                 //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(10, 42)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("System.ValueTuple<int>", "int").WithLocation(10, 29)
                 );
         }
 
@@ -869,7 +865,7 @@ namespace System
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (20,18): error CS8120: The switch case has already been handled by a previous case.
+                // (20,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case var _: return 4;
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "var _").WithLocation(20, 18)
                 );
@@ -935,7 +931,7 @@ namespace System
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,61): error CS8410: The pattern has already been handled by a previous arm of the switch expression.
+                // (6,61): error CS8410: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         string s2 = s switch { null => null, string t => t, "foo" => null };
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""foo""").WithLocation(6, 61)
                 );
@@ -2334,6 +2330,271 @@ public class C
 ";
             CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
             CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WarnUnmatchedIsRelationalPattern()
+        {
+            var source =
+@"public class C
+{
+    public void M()
+    {
+        _ = 1 is < 0; // 1
+        _ = 1 is < 1; // 2
+        _ = 1 is < 2; // 3
+        _ = 1 is <= 0; // 4
+        _ = 1 is <= 1; // 5
+        _ = 1 is <= 2; // 6
+        _ = 1 is > 0; // 7
+        _ = 1 is > 1; // 8
+        _ = 1 is > 2; // 9
+        _ = 1 is >= 0; // 10
+        _ = 1 is >= 1; // 11
+        _ = 1 is >= 2; // 12
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (5,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is < 0; // 1
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is < 0").WithLocation(5, 13),
+                // (6,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is < 1; // 2
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is < 1").WithLocation(6, 13),
+                // (7,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is < 2; // 3
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is < 2").WithLocation(7, 13),
+                // (8,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is <= 0; // 4
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is <= 0").WithLocation(8, 13),
+                // (9,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is <= 1; // 5
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is <= 1").WithLocation(9, 13),
+                // (10,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is <= 2; // 6
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is <= 2").WithLocation(10, 13),
+                // (11,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is > 0; // 7
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is > 0").WithLocation(11, 13),
+                // (12,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is > 1; // 8
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is > 1").WithLocation(12, 13),
+                // (13,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is > 2; // 9
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is > 2").WithLocation(13, 13),
+                // (14,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is >= 0; // 10
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is >= 0").WithLocation(14, 13),
+                // (15,13): error CS8793: The given expression always matches the provided pattern.
+                //         _ = 1 is >= 1; // 11
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "1 is >= 1").WithLocation(15, 13),
+                // (16,13): warning CS8519: The given expression never matches the provided pattern.
+                //         _ = 1 is >= 2; // 12
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is >= 2").WithLocation(16, 13)
+                );
+        }
+
+        [Fact]
+        public void RelationalPatternInSwitchWithConstantControllingExpression()
+        {
+            var source =
+@"public class C
+{
+    public void M()
+    {
+        switch (1)
+        {
+            case < 0: break; // 1
+            case < 1: break; // 2
+            case < 2: break;
+            case < 3: break; // 3
+        }
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (7,23): warning CS0162: Unreachable code detected
+                //             case < 0: break; // 1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(7, 23),
+                // (8,23): warning CS0162: Unreachable code detected
+                //             case < 1: break; // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 23),
+                // (10,23): warning CS0162: Unreachable code detected
+                //             case < 3: break; // 3
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 23)
+                );
+        }
+
+        [Fact]
+        public void RelationalPatternInSwitchWithOutOfRangeComparand()
+        {
+            var source =
+@"public class C
+{
+    public void M(int i)
+    {
+        switch (i)
+        {
+            case < int.MinValue: break; // 1
+            case <= int.MinValue: break;
+            case > int.MaxValue: break; // 2
+            case >= int.MaxValue: break;
+        }
+    }
+    public void M(uint i)
+    {
+        switch (i)
+        {
+            case < 0: break; // 3
+            case <= 0: break;
+            case > uint.MaxValue: break; // 4
+            case >= uint.MaxValue: break;
+        }
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                    // (7,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                    //             case < int.MinValue: break; // 1
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "< int.MinValue").WithLocation(7, 18),
+                    // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                    //             case > int.MaxValue: break; // 2
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "> int.MaxValue").WithLocation(9, 18),
+                    // (17,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                    //             case < 0: break; // 3
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "< 0").WithLocation(17, 18),
+                    // (19,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                    //             case > uint.MaxValue: break; // 4
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "> uint.MaxValue").WithLocation(19, 18)
+                );
+        }
+
+        [Fact]
+        public void IsRelationalPatternWithOutOfRangeComparand()
+        {
+            var source =
+@"public class C
+{
+    public void M(int i)
+    {
+        _ = i is < int.MinValue; // 1
+        _ = i is <= int.MinValue;
+        _ = i is > int.MaxValue; // 2
+        _ = i is >= int.MaxValue;
+    }
+    public void M(uint i)
+    {
+        _ = i is < 0; // 3
+        _ = i is <= 0;
+        _ = i is > uint.MaxValue; // 4
+        _ = i is >= uint.MaxValue;
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                    // (5,13): error CS8518: An expression of type 'int' can never match the provided pattern.
+                    //         _ = i is < int.MinValue; // 1
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is < int.MinValue").WithArguments("int").WithLocation(5, 13),
+                    // (7,13): error CS8518: An expression of type 'int' can never match the provided pattern.
+                    //         _ = i is > int.MaxValue; // 2
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is > int.MaxValue").WithArguments("int").WithLocation(7, 13),
+                    // (12,13): error CS8518: An expression of type 'uint' can never match the provided pattern.
+                    //         _ = i is < 0; // 3
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is < 0").WithArguments("uint").WithLocation(12, 13),
+                    // (14,13): error CS8518: An expression of type 'uint' can never match the provided pattern.
+                    //         _ = i is > uint.MaxValue; // 4
+                    Diagnostic(ErrorCode.ERR_IsPatternImpossible, "i is > uint.MaxValue").WithArguments("uint").WithLocation(14, 13)
+                );
+        }
+
+        [Fact]
+        public void IsRelationalPatternWithAlwaysMatchingRange()
+        {
+            var source =
+@"public class C
+{
+    public void M(int i)
+    {
+        _ = i is > int.MinValue;
+        _ = i is >= int.MinValue; // 1
+        _ = i is < int.MaxValue;
+        _ = i is <= int.MaxValue; // 2
+    }
+    public void M(uint i)
+    {
+        _ = i is > 0;
+        _ = i is >= 0; // 3
+        _ = i is < uint.MaxValue;
+        _ = i is <= uint.MaxValue; // 4
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (6,13): warning CS8794: An expression of type 'int' always matches the provided pattern.
+                //         _ = i is >= int.MinValue; // 1
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is >= int.MinValue").WithArguments("int").WithLocation(6, 13),
+                // (8,13): warning CS8794: An expression of type 'int' always matches the provided pattern.
+                //         _ = i is <= int.MaxValue; // 2
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is <= int.MaxValue").WithArguments("int").WithLocation(8, 13),
+                // (13,13): warning CS8794: An expression of type 'uint' always matches the provided pattern.
+                //         _ = i is >= 0; // 3
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is >= 0").WithArguments("uint").WithLocation(13, 13),
+                // (15,13): warning CS8794: An expression of type 'uint' always matches the provided pattern.
+                //         _ = i is <= uint.MaxValue; // 4
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "i is <= uint.MaxValue").WithArguments("uint").WithLocation(15, 13)
+                );
+        }
+
+        [Fact]
+        public void IsImpossiblePatternKinds()
+        {
+            var source =
+@"public class C
+{
+    public void M(string s)
+    {
+        _ = s is (System.Delegate); // impossible parenthesized type pattern
+        _ = s is not _;             // impossible negated pattern
+        _ = s is ""a"" and ""b"";   // impossible conjunctive pattern
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (5,19): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'Delegate'.
+                //         _ = s is (System.Delegate); // impossible parenthesized type pattern
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "System.Delegate").WithArguments("string", "System.Delegate").WithLocation(5, 19),
+                // (6,13): error CS8518: An expression of type 'string' can never match the provided pattern.
+                //         _ = s is not _;             // impossible negated pattern
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is not _").WithArguments("string").WithLocation(6, 13),
+                // (7,13): error CS8518: An expression of type 'string' can never match the provided pattern.
+                //         _ = s is "a" and "b";   // impossible conjunctive pattern
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"s is ""a"" and ""b""").WithArguments("string").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void IsAlwaysPatternKinds()
+        {
+            var source =
+@"public class C
+{
+    public void M(string s)
+    {
+        _ = s is (_);                   // always parenthesized discard pattern
+        _ = s is not System.Delegate;   // always negated type pattern
+        _ = s is string or null;        // always disjunctive pattern
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                // (6,22): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'Delegate'.
+                //         _ = s is not System.Delegate;   // always negated type pattern
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "System.Delegate").WithArguments("string", "System.Delegate").WithLocation(6, 22),
+                // (7,13): warning CS8794: An expression of type 'string' always matches the provided pattern.
+                //         _ = s is string or null;        // always disjunctive pattern
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "s is string or null").WithArguments("string").WithLocation(7, 13)
+                );
         }
     }
 }

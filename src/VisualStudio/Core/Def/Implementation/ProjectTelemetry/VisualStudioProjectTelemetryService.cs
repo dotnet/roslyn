@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
                 return;
 
             // Now kick off scanning in the OOP process.
-            var success = await _keepAliveSession.TryInvokeAsync(
+            await _keepAliveSession.RunRemoteAsync(
                 nameof(IRemoteProjectTelemetryService.ComputeProjectTelemetryAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),

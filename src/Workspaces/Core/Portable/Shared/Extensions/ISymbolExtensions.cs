@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -108,10 +107,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return false;
             }
 
-            return IsBrowsingProhibitedByEditorBrowsableAttribute(symbol, attributes, hideAdvancedMembers, compilation, editorBrowsableAttributeConstructor)
-                || IsBrowsingProhibitedByTypeLibTypeAttribute(symbol, attributes, compilation, typeLibTypeAttributeConstructors)
-                || IsBrowsingProhibitedByTypeLibFuncAttribute(symbol, attributes, compilation, typeLibFuncAttributeConstructors)
-                || IsBrowsingProhibitedByTypeLibVarAttribute(symbol, attributes, compilation, typeLibVarAttributeConstructors)
+            return IsBrowsingProhibitedByEditorBrowsableAttribute(attributes, hideAdvancedMembers, compilation, editorBrowsableAttributeConstructor)
+                || IsBrowsingProhibitedByTypeLibTypeAttribute(attributes, compilation, typeLibTypeAttributeConstructors)
+                || IsBrowsingProhibitedByTypeLibFuncAttribute(attributes, compilation, typeLibFuncAttributeConstructors)
+                || IsBrowsingProhibitedByTypeLibVarAttribute(attributes, compilation, typeLibVarAttributeConstructors)
                 || IsBrowsingProhibitedByHideModuleNameAttribute(symbol, compilation, hideModuleNameAttribute, attributes);
         }
 
@@ -137,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsBrowsingProhibitedByEditorBrowsableAttribute(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, Compilation compilation, IMethodSymbol? constructor)
+            ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, Compilation compilation, IMethodSymbol? constructor)
         {
             constructor ??= EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
             if (constructor == null)
@@ -167,30 +166,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsBrowsingProhibitedByTypeLibTypeAttribute(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
+            ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
         {
             return IsBrowsingProhibitedByTypeLibAttributeWorker(
-                symbol,
                 attributes,
                 constructors ?? EditorBrowsableHelpers.GetSpecialTypeLibTypeAttributeConstructors(compilation),
                 TypeLibTypeFlagsFHidden);
         }
 
         private static bool IsBrowsingProhibitedByTypeLibFuncAttribute(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
+            ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
         {
             return IsBrowsingProhibitedByTypeLibAttributeWorker(
-                symbol,
                 attributes,
                 constructors ?? EditorBrowsableHelpers.GetSpecialTypeLibFuncAttributeConstructors(compilation),
                 TypeLibFuncFlagsFHidden);
         }
 
         private static bool IsBrowsingProhibitedByTypeLibVarAttribute(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
+            ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
         {
             return IsBrowsingProhibitedByTypeLibAttributeWorker(
-                symbol,
                 attributes,
                 constructors ?? EditorBrowsableHelpers.GetSpecialTypeLibVarAttributeConstructors(compilation),
                 TypeLibVarFlagsFHidden);
@@ -201,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const int TypeLibVarFlagsFHidden = 0x0040;
 
         private static bool IsBrowsingProhibitedByTypeLibAttributeWorker(
-            ISymbol symbol, ImmutableArray<AttributeData> attributes, List<IMethodSymbol> attributeConstructors, int hiddenFlag)
+            ImmutableArray<AttributeData> attributes, List<IMethodSymbol> attributeConstructors, int hiddenFlag)
         {
             foreach (var attribute in attributes)
             {
@@ -211,11 +207,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         if (Equals(attribute.AttributeConstructor, constructor))
                         {
-                            var actualFlags = 0;
-
                             // Check for both constructor signatures. The constructor that takes a TypeLib*Flags reports an int argument.
                             var argumentValue = attribute.ConstructorArguments.First().Value;
 
+                            int actualFlags;
                             if (argumentValue is int i)
                             {
                                 actualFlags = i;

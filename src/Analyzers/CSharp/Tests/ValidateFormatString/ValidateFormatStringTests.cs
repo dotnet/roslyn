@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.ValidateFormatString;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.ValidateFormatString;
 using Roslyn.Test.Utilities;
@@ -22,13 +20,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpValidateFormatStringDiagnosticAnalyzer(), null);
 
-        private IOptionsCollection CSharpOptionOffVBOptionOn() => OptionsSet(
-                (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), false),
-                (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), true));
+        private OptionsCollection OptionOff()
+            => new OptionsCollection(GetLanguage())
+            {
+                { ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, false },
+            };
 
-        private IOptionsCollection CSharpOptionOnVBOptionOff() => OptionsSet(
-                (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), true),
-                (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), false));
+        private OptionsCollection OptionOn()
+            => new OptionsCollection(GetLanguage())
+            {
+                { ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, true },
+            };
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
         public async Task OnePlaceholder()
@@ -553,7 +555,7 @@ class C
         string.Format(""This [|{1}|] is my test"", ""teststring1"");
     }     
 }";
-            var options = optionOn ? CSharpOptionOnVBOptionOff() : CSharpOptionOffVBOptionOn();
+            var options = optionOn ? OptionOn() : OptionOff();
             if (!expectDiagnostic)
             {
                 await TestDiagnosticMissingAsync(source, new TestParameters(options: options));

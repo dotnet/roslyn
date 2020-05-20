@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,8 +14,8 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Editor.UnitTests.Preview.TestOnly_CompilerDiagnosticAnalyzerProviderService;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityLevel
 {
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
             var uniqueDiagnosticIds = new HashSet<string>();
             foreach (var assembly in MefHostServices.DefaultAssemblies)
             {
-                var analyzerReference = new AnalyzerFileReference(assembly.Location, FromFileLoader.Instance);
+                var analyzerReference = new AnalyzerFileReference(assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile);
                 foreach (var analyzer in analyzerReference.GetAnalyzers(languageName))
                 {
                     foreach (var descriptor in analyzer.SupportedDiagnostics)
@@ -375,6 +376,9 @@ dotnet_style_prefer_compound_assignment = true:suggestion
 # IDE0075
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
+# IDE0076
+dotnet_diagnostic.IDE0076.severity = %value%
+
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -514,6 +518,9 @@ dotnet_diagnostic.IDE0073.severity = %value%
 
 # IDE0075
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
+
+# IDE0076
+dotnet_diagnostic.IDE0076.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
@@ -881,6 +888,9 @@ dotnet_style_prefer_compound_assignment = true:suggestion
 # IDE0075, PreferSimplifiedBooleanExpressions
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
+# IDE0076
+No editorconfig based code style option
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -1053,6 +1063,9 @@ file_header_template = unset
 
 # IDE0075, PreferSimplifiedBooleanExpressions
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
+
+# IDE0076
+No editorconfig based code style option
 
 # IDE1006
 No editorconfig based code style option

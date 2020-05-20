@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpNullableAnnotationReducer(),
                 new CSharpCastReducer(),
                 new CSharpExtensionMethodReducer(),
-                new CSharpParenthesesReducer(),
+                new CSharpParenthesizedExpressionReducer(),
+                new CSharpParenthesizedPatternReducer(),
                 new CSharpEscapingReducer(),
                 new CSharpMiscellaneousReducer(),
                 new CSharpInferredMemberNameReducer(),
@@ -182,7 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 if (diagnostic.Id == s_CS8019_UnusedUsingDirective)
                 {
-
                     if (root.FindNode(diagnostic.Location.SourceSpan) is UsingDirectiveSyntax node)
                     {
                         namespaceImports.Add(node);

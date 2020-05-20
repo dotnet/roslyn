@@ -30,6 +30,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DiagnosticHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIdToOptionMappingHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\SuppressMessageAttributeState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\SuppressMessageAttributeState.TargetScope.cs" Link="RemoveUnnecessarySuppressions\SuppressMessageAttributeState.TargetScope.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\SuppressMessageAttributeState.TargetSymbolResolver.cs" Link="RemoveUnnecessarySuppressions\SuppressMessageAttributeState.TargetSymbolResolver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\MakeFieldReadonlyDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\NamingStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\AbstractOrderModifiersDiagnosticAnalyzer.cs" />
@@ -47,6 +51,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.SymbolStartAnalyzer.BlockAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.SymbolStartAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\AbstractSimplifyConditionalDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\SimplifyBooleanExpressionConstants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\AbstractSimplifyInterpolationDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\Helpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
@@ -62,6 +70,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForReturn\UseConditionalExpressionForReturnHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\AbstractUseInferredMemberNameDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\AbstractUseIsNullForReferenceEqualsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameDiagnosticAnalyzer.cs" />

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 
@@ -60,5 +61,12 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <see langword="false"/> if the language allows the type node to be entirely elided.
         /// </summary>
         internal abstract bool RequiresLocalDeclarationType();
+
+        internal abstract SyntaxToken InterpolatedStringTextToken(string content);
+        internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
+        internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);
+        internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);
+        internal abstract SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment);
+        internal abstract SyntaxNode InterpolationFormatClause(string format);
     }
 }

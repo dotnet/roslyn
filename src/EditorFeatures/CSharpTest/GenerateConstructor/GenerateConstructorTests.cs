@@ -3641,7 +3641,7 @@ class Program
         string s = """";
         new Program(s);
     }
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
         }
 
         [WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")]
@@ -3676,7 +3676,7 @@ class MyAttribute : Attribute
 [MyAttribute(123)]
 class D
 {
-}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp));
+}", options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
         }
 
         [WorkItem(33673, "https://github.com/dotnet/roslyn/issues/33673")]
@@ -3751,7 +3751,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestWitNestedNullability()
+        public async Task TestWithNestedNullability()
         {
             await TestInRegularAndScriptAsync(
 @"#nullable enable

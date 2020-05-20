@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Rename
@@ -23,10 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
     Friend Class VisualBasicRenameRewriterLanguageService
         Inherits AbstractRenameRewriterLanguageService
 
-        Private ReadOnly _languageServiceProvider As HostLanguageServices
+        Public Shared ReadOnly Instance As New VisualBasicRenameRewriterLanguageService()
 
-        Public Sub New(provider As HostLanguageServices)
-            _languageServiceProvider = provider
+        Private Sub New()
         End Sub
 
 #Region "Annotate"
@@ -89,29 +87,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             Public Sub New(parameters As RenameRewriterParameters)
                 MyBase.New(visitIntoStructuredTrivia:=True)
-                Me._documentId = parameters.Document.Id
-                Me._renameRenamableSymbolDeclaration = parameters.RenamedSymbolDeclarationAnnotation
-                Me._solution = parameters.OriginalSolution
-                Me._replacementText = parameters.ReplacementText
-                Me._originalText = parameters.OriginalText
-                Me._possibleNameConflicts = parameters.PossibleNameConflicts
-                Me._renameLocations = parameters.RenameLocations
-                Me._conflictLocations = parameters.ConflictLocationSpans
-                Me._cancellationToken = parameters.CancellationToken
-                Me._semanticModel = DirectCast(parameters.SemanticModel, SemanticModel)
-                Me._renamedSymbol = parameters.RenameSymbol
-                Me._replacementTextValid = parameters.ReplacementTextValid
-                Me._renameSpansTracker = parameters.RenameSpansTracker
-                Me._isRenamingInStrings = parameters.OptionSet.GetOption(RenameOptions.RenameInStrings)
-                Me._isRenamingInComments = parameters.OptionSet.GetOption(RenameOptions.RenameInComments)
-                Me._stringAndCommentTextSpans = parameters.StringAndCommentTextSpans
-                Me._aliasSymbol = TryCast(Me._renamedSymbol, IAliasSymbol)
-                Me._renamableDeclarationLocation = Me._renamedSymbol.Locations.Where(Function(loc) loc.IsInSource AndAlso loc.SourceTree Is _semanticModel.SyntaxTree).FirstOrDefault()
-                Me._simplificationService = parameters.Document.Project.LanguageServices.GetService(Of ISimplificationService)()
-                Me._syntaxFactsService = parameters.Document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
-                Me._semanticFactsService = parameters.Document.Project.LanguageServices.GetService(Of ISemanticFactsService)()
-                Me._isVerbatim = Me._syntaxFactsService.IsVerbatimIdentifier(_replacementText)
-                Me._renameAnnotations = parameters.RenameAnnotations
+                _documentId = parameters.Document.Id
+                _renameRenamableSymbolDeclaration = parameters.RenamedSymbolDeclarationAnnotation
+                _solution = parameters.OriginalSolution
+                _replacementText = parameters.ReplacementText
+                _originalText = parameters.OriginalText
+                _possibleNameConflicts = parameters.PossibleNameConflicts
+                _renameLocations = parameters.RenameLocations
+                _conflictLocations = parameters.ConflictLocationSpans
+                _cancellationToken = parameters.CancellationToken
+                _semanticModel = DirectCast(parameters.SemanticModel, SemanticModel)
+                _renamedSymbol = parameters.RenameSymbol
+                _replacementTextValid = parameters.ReplacementTextValid
+                _renameSpansTracker = parameters.RenameSpansTracker
+                _isRenamingInStrings = parameters.OptionSet.RenameInStrings
+                _isRenamingInComments = parameters.OptionSet.RenameInComments
+                _stringAndCommentTextSpans = parameters.StringAndCommentTextSpans
+                _aliasSymbol = TryCast(Me._renamedSymbol, IAliasSymbol)
+                _renamableDeclarationLocation = Me._renamedSymbol.Locations.Where(Function(loc) loc.IsInSource AndAlso loc.SourceTree Is _semanticModel.SyntaxTree).FirstOrDefault()
+                _simplificationService = parameters.Document.Project.LanguageServices.GetService(Of ISimplificationService)()
+                _syntaxFactsService = parameters.Document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
+                _semanticFactsService = parameters.Document.Project.LanguageServices.GetService(Of ISemanticFactsService)()
+                _isVerbatim = Me._syntaxFactsService.IsVerbatimIdentifier(_replacementText)
+                _renameAnnotations = parameters.RenameAnnotations
             End Sub
 
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
@@ -465,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
                 If identifierToken <> Nothing AndAlso Not Me._annotatedIdentifierTokens.Contains(identifierToken) Then
                     Dim symbolInfo = Me._semanticModel.GetSymbolInfo(invocationExpression, Me._cancellationToken)
-                    Dim symbols As IEnumerable(Of ISymbol) = Nothing
+                    Dim symbols As IEnumerable(Of ISymbol)
                     If symbolInfo.Symbol Is Nothing Then
                         Return Nothing
                     Else
@@ -667,7 +665,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             replacementText As String,
             renamedSymbol As ISymbol,
             renameSymbol As ISymbol,
-            referencedSymbols As IEnumerable(Of SymbolAndProjectId),
+            referencedSymbols As IEnumerable(Of ISymbol),
             baseSolution As Solution,
             newSolution As Solution,
             reverseMappedLocations As IDictionary(Of Location, Location),
@@ -747,7 +745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     DeclarationConflictHelpers.GetMembersWithConflictingSignatures(DirectCast(renamedSymbol, IPropertySymbol), trimOptionalParameters:=True) _
                         .Select(Function(loc) reverseMappedLocations(loc)))
                 AddConflictingParametersOfProperties(
-                    referencedSymbols.Select(Function(s) s.Symbol).Concat(renameSymbol).Where(Function(sym) sym.Kind = SymbolKind.Property),
+                    referencedSymbols.Concat(renameSymbol).Where(Function(sym) sym.Kind = SymbolKind.Property),
                     renamedSymbol.Name,
                     conflicts)
 

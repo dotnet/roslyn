@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
@@ -16,9 +15,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 
         protected AbstractEmbeddedLanguagesProvider(EmbeddedLanguageInfo info)
         {
-            Languages = ImmutableArray.Create<IEmbeddedLanguage>(
-                new RegexEmbeddedLanguage(info),
-                new FallbackEmbeddedLanguage(info));
+            Languages = ImmutableArray.Create<IEmbeddedLanguage>(new FallbackEmbeddedLanguage(info));
         }
     }
 }

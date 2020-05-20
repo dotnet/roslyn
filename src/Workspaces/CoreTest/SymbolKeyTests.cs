@@ -223,7 +223,7 @@ public class C
     public A GetA<A>(A a) { return a; }
     public A GetA<A, B>(A a, B b) { return a; }
     public B GetB<A, B>(A a, B b) { return b; }
-    publi C GetC() { return default(C); }
+    public C GetC() { return default(C); }
 }
 
 public class C<T>
@@ -699,7 +699,7 @@ class C
                 Assert.NotNull(found);
 
                 // note: we don't check that the symbols are equal.  That's because the compiler
-                // doesn't guarantee that the TypeParameters will be hte same across successive
+                // doesn't guarantee that the TypeParameters will be the same across successive
                 // invocations. 
                 Assert.Equal(symbol.OriginalDefinition, found.OriginalDefinition);
 
@@ -736,7 +736,7 @@ class C
 
             // Validate that if the client does ask to resolve locations that we
             // do not crash if those locations cannot be found.
-            var found = SymbolKey.ResolveString(id, compilation2, resolveLocations: true).GetAnySymbol();
+            var found = SymbolKey.ResolveString(id, compilation2).GetAnySymbol();
             Assert.NotNull(found);
 
             Assert.Equal(symbol.Name, found.Name);
@@ -773,7 +773,7 @@ class C
 
             // Validate that if the client does ask to resolve locations that we
             // do not crash if those locations cannot be found.
-            var found = SymbolKey.ResolveString(id, compilation2, resolveLocations: true).GetAnySymbol();
+            var found = SymbolKey.ResolveString(id, compilation2).GetAnySymbol();
             Assert.NotNull(found);
 
             Assert.Equal(symbol.Name, found.Name);

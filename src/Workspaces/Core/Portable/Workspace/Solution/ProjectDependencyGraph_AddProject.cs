@@ -4,12 +4,11 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis
 {
-    partial class ProjectDependencyGraph
+    public partial class ProjectDependencyGraph
     {
         internal ProjectDependencyGraph WithAdditionalProject(ProjectId projectId)
         {

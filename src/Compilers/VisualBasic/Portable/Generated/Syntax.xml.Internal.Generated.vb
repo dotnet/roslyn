@@ -8801,7 +8801,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     ''' <summary>
     ''' An abstract node class that represents a "With" or "From" clause used to
-    ''' initializer an new object.
+    ''' initialize a new object.
     ''' </summary>
     Friend MustInherit Class ObjectCreationInitializerSyntax
         Inherits VisualBasicSyntaxNode
@@ -18669,7 +18669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represent an call statement (also known as a invocation statement).
+    ''' Represent a call statement (also known as a invocation statement).
     ''' </summary>
     Friend NotInheritable Class CallStatementSyntax
         Inherits ExecutableStatementSyntax
@@ -32891,7 +32891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represents an Date literal token.
+    ''' Represents a Date literal token.
     ''' </summary>
     Friend NotInheritable Class DateLiteralTokenSyntax
         Inherits SyntaxToken
@@ -32958,7 +32958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represents an string literal token.
+    ''' Represents a string literal token.
     ''' </summary>
     Friend NotInheritable Class StringLiteralTokenSyntax
         Inherits SyntaxToken
@@ -33026,7 +33026,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represents an string literal token.
+    ''' Represents a string literal token.
     ''' </summary>
     Friend NotInheritable Class CharacterLiteralTokenSyntax
         Inherits SyntaxToken
@@ -49175,7 +49175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represent an call statement (also known as a invocation statement).
+        ''' Represent a call statement (also known as a invocation statement).
         ''' </summary>
         ''' <param name="callKeyword">
         ''' The "Call" keyword.
@@ -53649,7 +53649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represents an Date literal token.
+        ''' Represents a Date literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -53661,7 +53661,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -53673,7 +53673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -61251,7 +61251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represent an call statement (also known as a invocation statement).
+        ''' Represent a call statement (also known as a invocation statement).
         ''' </summary>
         ''' <param name="callKeyword">
         ''' The "Call" keyword.
@@ -65725,7 +65725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represents an Date literal token.
+        ''' Represents a Date literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -65737,7 +65737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -65749,7 +65749,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.

@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -554,6 +553,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void WithProjectCompilationOutputFilePaths()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            // any character is allowed
+            var path = "\0<>a/b/*.dll";
+
+            SolutionTestHelpers.TestProperty(
+                solution,
+                (s, value) => s.WithProjectCompilationOutputFilePaths(projectId, value),
+                s => s.GetProject(projectId)!.CompilationOutputFilePaths,
+                new CompilationOutputFilePaths(path),
+                defaultThrows: false);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputFilePaths(null!, new CompilationOutputFilePaths("x.dll")));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputFilePaths(ProjectId.CreateNewId(), new CompilationOutputFilePaths("x.dll")));
+        }
+
+        [Fact]
         public void WithProjectDefaultNamespace()
         {
             var projectId = ProjectId.CreateNewId();
@@ -897,14 +918,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (old, value) => old.WithProjectAnalyzerReferences(projectId, value),
                 opt => opt.GetProject(projectId)!.AnalyzerReferences,
                 analyzerRef,
-                allowDuplicates: true);
+                allowDuplicates: false);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectAnalyzerReferences(null!, new[] { analyzerRef }));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectAnalyzerReferences(ProjectId.CreateNewId(), new[] { analyzerRef }));
         }
 
         [Fact]
-        public void AddAnalyzerReferences()
+        public void AddAnalyzerReferences_Project()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
             var projectId = solution.Projects.Single().Id;
@@ -931,7 +952,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void RemoveAnalyzerReference()
+        public void RemoveAnalyzerReference_Project()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
             var projectId = solution.Projects.Single().Id;
@@ -954,6 +975,65 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // project not in solution:
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerReference(ProjectId.CreateNewId(), analyzerRef1));
+        }
+
+        [Fact]
+        public void WithAnalyzerReferences()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var analyzerRef = (AnalyzerReference)new TestAnalyzerReference();
+
+            SolutionTestHelpers.TestListProperty(solution,
+                (old, value) => old.WithAnalyzerReferences(value),
+                opt => opt.AnalyzerReferences,
+                analyzerRef,
+                allowDuplicates: false);
+        }
+
+        [Fact]
+        public void AddAnalyzerReferences()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+
+            var solution2 = solution.AddAnalyzerReferences(EmptyEnumerable<AnalyzerReference>());
+            Assert.Same(solution, solution2);
+
+            var analyzerRef1 = new TestAnalyzerReference();
+            var analyzerRef2 = new TestAnalyzerReference();
+
+            var solution3 = solution.AddAnalyzerReferences(OnceEnumerable(analyzerRef1, analyzerRef2));
+            AssertEx.Equal(new[] { analyzerRef1, analyzerRef2 }, solution3.AnalyzerReferences);
+
+            var solution4 = solution3.AddAnalyzerReferences(new AnalyzerReference[0]);
+
+            Assert.Same(solution, solution2);
+            Assert.Throws<ArgumentNullException>("analyzerReferences", () => solution.AddAnalyzerReferences(null!));
+            Assert.Throws<ArgumentNullException>("analyzerReferences[0]", () => solution.AddAnalyzerReferences(new AnalyzerReference[] { null! }));
+            Assert.Throws<ArgumentException>("analyzerReferences[1]", () => solution.AddAnalyzerReferences(new[] { analyzerRef1, analyzerRef1 }));
+
+            // dup:
+            Assert.Throws<InvalidOperationException>(() => solution3.AddAnalyzerReferences(new[] { analyzerRef1 }));
+        }
+
+        [Fact]
+        public void RemoveAnalyzerReference()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var analyzerRef1 = new TestAnalyzerReference();
+            var analyzerRef2 = new TestAnalyzerReference();
+
+            solution = solution.WithAnalyzerReferences(new[] { analyzerRef1, analyzerRef2 });
+
+            var solution2 = solution.RemoveAnalyzerReference(analyzerRef1);
+            AssertEx.Equal(new[] { analyzerRef2 }, solution2.AnalyzerReferences);
+
+            var solution3 = solution2.RemoveAnalyzerReference(analyzerRef2);
+            Assert.Empty(solution3.AnalyzerReferences);
+
+            Assert.Throws<ArgumentNullException>("analyzerReference", () => solution.RemoveAnalyzerReference(null!));
+
+            // removing a reference that's not in the list:
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerReference(new TestAnalyzerReference()));
         }
 
 #nullable restore
@@ -1169,6 +1249,42 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // This should throw if we're removing one document from the wrong project. Right now we don't test the RemoveDocument
             // API due to https://github.com/dotnet/roslyn/issues/41211.
             Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveDocuments(ImmutableArray.Create(documentInfo1.Id)));
+        }
+
+        [Fact]
+        public void RemoveAdditionalDocumentFromUnrelatedProject()
+        {
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            var documentInfo1 = DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "file1.txt");
+
+            var solution = CreateSolution()
+                .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp)
+                .AddProject(projectId2, "project2", "project2.dll", LanguageNames.CSharp)
+                .AddAdditionalDocument(documentInfo1);
+
+            // This should throw if we're removing one document from the wrong project. Right now we don't test the RemoveAdditionalDocument
+            // API due to https://github.com/dotnet/roslyn/issues/41211.
+            Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveAdditionalDocuments(ImmutableArray.Create(documentInfo1.Id)));
+        }
+
+        [Fact]
+        public void RemoveAnalyzerConfigDocumentFromUnrelatedProject()
+        {
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            var documentInfo1 = DocumentInfo.Create(DocumentId.CreateNewId(projectId1), ".editorconfig");
+
+            var solution = CreateSolution()
+                .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp)
+                .AddProject(projectId2, "project2", "project2.dll", LanguageNames.CSharp)
+                .AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo1));
+
+            // This should throw if we're removing one document from the wrong project. Right now we don't test the RemoveAdditionalDocument
+            // API due to https://github.com/dotnet/roslyn/issues/41211.
+            Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo1.Id)));
         }
 
         [Fact]
@@ -1556,9 +1672,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddDocument(did, "goo.cs", text);
 
             var document = sol.GetDocument(did);
-            Assert.False(document.TryGetSyntaxRoot(out var root));
+            Assert.False(document.TryGetSyntaxRoot(out _));
 
-            root = await document.GetSyntaxRootAsync();
+            var root = await document.GetSyntaxRootAsync();
             Assert.NotNull(root);
             Assert.Equal(text, root.ToString());
 
@@ -1611,9 +1727,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var root2 = tree2.GetRoot();
             // text should not be available yet (it should be defer created from the node)
             // and getting the document or root should not cause it to be created.
-            Assert.False(tree2.TryGetText(out var text2));
+            Assert.False(tree2.TryGetText(out _));
 
-            text2 = tree2.GetText();
+            var text2 = tree2.GetText();
             Assert.NotNull(text2);
 
             Assert.NotSame(tree, tree2);
@@ -1666,7 +1782,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             observedRoot.AssertReleased();
 
             // re-get the tree (should recover from storage, not reparse)
-            var root = sol.GetDocument(did).GetSyntaxRootAsync().Result;
+            _ = sol.GetDocument(did).GetSyntaxRootAsync().Result;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -2498,7 +2614,7 @@ public class C : A {
             var newTree = recoverableTree.WithFilePath("different/dummy");
 
             // this shouldn't throw
-            var root = newTree.GetRoot();
+            _ = newTree.GetRoot();
         }
 
         [Fact]

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Dim invocationAtLast = token.Parent.FirstAncestorOrSelf(Of InvocationExpressionSyntax)()
                 Return invocationAtLast IsNot Nothing AndAlso
                    invocationAtLast.GetLastToken() = token AndAlso
-                   invocationAtLast.CanRemoveEmptyArgumentList(semanticModel, cancellationToken) AndAlso
+                   invocationAtLast.CanRemoveEmptyArgumentList(semanticModel) AndAlso
                    EndsQuery(invocationAtLast.Expression.GetLastToken(), semanticModel, cancellationToken)
             End If
 

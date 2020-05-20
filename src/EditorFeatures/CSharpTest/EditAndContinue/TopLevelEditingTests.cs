@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -3564,8 +3565,9 @@ class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.method));
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void MethodUpdate_UpdateSwitchExpression()
         {
             var src1 = @"
@@ -5936,8 +5938,9 @@ public class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void FieldInitializerUpdate_SwitchExpressionInConstructor()
         {
             var src1 = "class C { int a = 1; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
@@ -5986,8 +5989,9 @@ public class C
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.constructor));
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor1()
         {
             var src1 = "class C { int a { get; } = 1; public C() { var b = a switch { 0 => 0, _ => 1 }; } }";
@@ -5999,8 +6003,9 @@ public class C
                 Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor2()
         {
             var src1 = "class C { int a { get; } = 1; public C() : this(1) { var b = a switch { 0 => 0, _ => 1 }; } public C(int a) { } }";
@@ -6011,8 +6016,9 @@ public class C
             edits.VerifySemanticDiagnostics();
         }
 
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [Fact]
+        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
+        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void PropertyInitializerUpdate_SwitchExpressionInConstructor3()
         {
             var src1 = "class C { int a { get; } = 1; public C() { } public C(int b) { var b = a switch { 0 => 0, _ => 1 }; } }";

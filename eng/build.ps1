@@ -37,7 +37,7 @@ param (
   [switch]$buildServerLog,
   [switch]$ci,
   [switch]$procdump,
-  [switch]$skipAnalyzers,
+  [switch][Alias('a')]$runAnalyzers,
   [switch][Alias('d')]$deployExtensions,
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
@@ -59,6 +59,7 @@ param (
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testIOperation,
+  [switch]$sequential,
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -97,7 +98,7 @@ function Print-Usage() {
   Write-Host "  -bootstrapConfiguration   Build configuration for bootstrap compiler: 'Debug' or 'Release'"
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -procdump                 Monitor test runs with procdump"
-  Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
+  Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
@@ -120,7 +121,7 @@ function Print-Usage() {
 # specified.
 #
 # In this function it's okay to use two arguments to extend the effect of another. For
-# example it's okay to look at $testVsi and infer $skipAnalyzers. It's not okay though to infer
+# example it's okay to look at $testVsi and infer $runAnalyzers. It's not okay though to infer
 # $build based on say $testDesktop. It's possible the developer wanted only for testing
 # to execute, not any build.
 function Process-Arguments() {
@@ -178,7 +179,7 @@ function Process-Arguments() {
 
   if ($testVsi) {
     # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
-    $script:skipAnalyzers = $true
+    $script:runAnalyzers = $false
     $script:bootstrap = $false
   }
 
@@ -215,7 +216,6 @@ function BuildSolution() {
   }
 
   $projects = Join-Path $RepoRoot $solution
-  $enableAnalyzers = !$skipAnalyzers
   $toolsetBuildProj = InitializeToolset
 
   $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.1" } else { "" }
@@ -238,6 +238,11 @@ function BuildSolution() {
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
+  # If we are using msbuild.exe restore using static graph
+  # This check can be removed and turned on for all builds once roslyn depends on a .NET Core SDK
+  # that has a new enough msbuild for the -graph switch to be present
+  $restoreUseStaticGraphEvaluation = if ($msbuildEngine -ne 'dotnet') { "/p:RestoreUseStaticGraphEvaluation=true" } else { "" }
+  
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -253,7 +258,7 @@ function BuildSolution() {
       /p:Publish=$publish `
       /p:ContinuousIntegrationBuild=$ci `
       /p:OfficialBuildId=$officialBuildId `
-      /p:UseRoslynAnalyzers=$enableAnalyzers `
+      /p:UseRoslynAnalyzers=$runAnalyzers `
       /p:BootstrapBuildPath=$bootstrapDir `
       /p:TestTargetFrameworks=$testTargetFrameworks `
       /p:TreatWarningsAsErrors=true `
@@ -261,6 +266,7 @@ function BuildSolution() {
       /p:VisualStudioIbcDropId=$ibcDropId `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
+      $restoreUseStaticGraphEvaluation `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
@@ -345,6 +351,12 @@ function TestUsingOptimizedRunner() {
       # Minimize all windows to avoid interference during integration test runs
       $shell = New-Object -ComObject "Shell.Application"
       $shell.MinimizeAll()
+
+      # Set registry to take dump automatically when test process crashes
+      reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f
+      reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpType /t REG_DWORD /d 2
+      reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpCount /t REG_DWORD /d 2
+      reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpFolder /t REG_SZ /d "$LogDir"
     }
   }
 
@@ -398,6 +410,14 @@ function TestUsingOptimizedRunner() {
   $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
   $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
+  if ($configuration -eq 'Debug') {
+    $excludedConfiguration = 'Release'
+  } else {
+    $excludedConfiguration = 'Debug'
+  }
+
+  $dlls = $dlls | ?{ -not (($_.FullName -match ".*\\$excludedConfiguration\\.*") -or ($_.FullName -match ".*/$excludedConfiguration/.*")) }
+
   if ($ci) {
     $args += " -xml"
     if ($testVsi) {
@@ -415,6 +435,10 @@ function TestUsingOptimizedRunner() {
 
   if ($test64) {
     $args += " -test64"
+  }
+
+  if ($sequential) {
+    $args += " -sequential"
   }
 
   foreach ($dll in $dlls) {
@@ -620,6 +644,10 @@ try {
 
     $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
     InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
+  }
+
+  if ($restore) {
+    &(Ensure-DotNetSdk) tool restore
   }
 
   try

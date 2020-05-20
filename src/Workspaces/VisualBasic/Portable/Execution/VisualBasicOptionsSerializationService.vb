@@ -7,8 +7,6 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Execution
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
     <ExportLanguageService(GetType(IOptionsSerializationService), LanguageNames.VisualBasic), [Shared]>

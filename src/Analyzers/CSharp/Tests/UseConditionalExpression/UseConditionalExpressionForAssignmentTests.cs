@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression
@@ -22,17 +23,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
             => (new CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer(),
                 new CSharpUseConditionalExpressionForAssignmentCodeFixProvider());
 
-        private static readonly IOptionsCollection s_preferImplicitTypeAlways = OptionsSet
-        (
-            (CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement),
-            (CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement),
-            (CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement)
-        );
+        private OptionsCollection PreferImplicitTypeAlways => new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement },
+            { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement },
+        };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnSimpleAssignment()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -58,10 +59,136 @@ class C
 }");
         }
 
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnSimpleAssignment_Throw1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            i = 1;
+        }
+    }
+}",
+@"
+class C
+{
+    void M(int i)
+    {
+        i = true ? throw new System.Exception() : 1;
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnSimpleAssignment_Throw2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            i = 0;
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}",
+@"
+class C
+{
+    void M(int i)
+    {
+        i = true ? 0 : throw new System.Exception();
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestNotWithTwoThrows()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestNotOnSimpleAssignment_Throw1_CSharp6()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            i = 1;
+        }
+    }
+}", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestWithSimpleThrow()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            throw;
+        }
+        else
+        {
+            i = 1;
+        }
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnSimpleAssignmentNoBlocks()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -86,7 +213,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnSimpleAssignmentNoBlocks_NotInBlock()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -134,7 +261,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnAssignmentToUndefinedField()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -160,10 +287,40 @@ class C
 }");
         }
 
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnAssignmentToUndefinedField_Throw()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        [||]if (true)
+        {
+            this.i = 0;
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        this.i = true ? 0 : throw new System.Exception();
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnNonUniformTargetSyntax()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -192,7 +349,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnAssignmentToDefinedField()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -225,7 +382,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnAssignmentToAboveLocalNoInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -252,10 +409,72 @@ class C
 }");
         }
 
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnAssignmentToAboveLocalNoInitializer_Throw1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        int i;
+        [||]if (true)
+        {
+            i = 0;
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        int i = true ? 0 : throw new System.Exception();
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnAssignmentToAboveLocalNoInitializer_Throw2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        int i;
+        [||]if (true)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            i = 1;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        int i = true ? throw new System.Exception() : 1;
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnAssignmentToAboveLocalLiteralInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -315,7 +534,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnAssignmentToAboveLocalDefaultExpressionInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -345,7 +564,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestDoNotMergeAssignmentToAboveLocalWithComplexInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -376,7 +595,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestDoNotMergeAssignmentToAboveLocalIfIntermediaryStatement()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -409,7 +628,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestDoNotMergeAssignmentToAboveIfLocalUsedInIfCondition()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -440,7 +659,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestDoNotMergeAssignmentToAboveIfMultiDecl()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -471,7 +690,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestUseImplicitTypeForIntrinsicTypes()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -495,13 +714,13 @@ class C
     {
         var i = true ? 0 : 1;
     }
-}", options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement));
+}", new TestParameters(options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestUseImplicitTypeWhereApparent()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -525,13 +744,13 @@ class C
     {
         int i = true ? 0 : 1;
     }
-}", options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement));
+}", new TestParameters(options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestUseImplicitTypeWherePossible()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -555,7 +774,7 @@ class C
     {
         int i = true ? 0 : 1;
     }
-}", options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement));
+}", new TestParameters(options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
@@ -594,10 +813,30 @@ class C
 }");
         }
 
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestMissingWithoutElseWithThrowStatementAfterwards()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            i = 0;
+        }
+
+        throw new System.Exception();
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -623,13 +862,74 @@ class C
         // cast will be necessary, otherwise 'var' would get the type 'string'.
         var o = true ? ""a"" : (object)""b"";
     }
-}", options: s_preferImplicitTypeAlways);
+}", new TestParameters(options: PreferImplicitTypeAlways));
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        object o;
+        [||]if (true)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            o = ""b"";
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        object o = true ? throw new System.Exception() : ""b"";
+    }
+}", new TestParameters(options: PreferImplicitTypeAlways));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        object o;
+        [||]if (true)
+        {
+            o = ""a"";
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        object o = true ? ""a"" : throw new System.Exception();
+    }
+}", new TestParameters(options: PreferImplicitTypeAlways));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -653,13 +953,75 @@ class C
     {
         var s = true ? ""a"" : null;
     }
-}", options: s_preferImplicitTypeAlways);
+}", new TestParameters(options: PreferImplicitTypeAlways));
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        string s;
+        [||]if (true)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            s = null;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        string s = true ? throw new System.Exception() : (string)null;
+    }
+}", new TestParameters(options: PreferImplicitTypeAlways));
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches_Throw2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        string s;
+        [||]if (true)
+        {
+            s = ""a"";
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        string s = true ? ""a"" : throw new System.Exception();
+    }
+}", new TestParameters(options: PreferImplicitTypeAlways));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversionWithUseVarForAll_CanUseVarButRequiresCastOfConditionalBranch()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -683,13 +1045,13 @@ class C
     {
         var s = true ? null : (string)null;
     }
-}", options: s_preferImplicitTypeAlways);
+}", new TestParameters(options: PreferImplicitTypeAlways));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestKeepTriviaAroundIf()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -720,7 +1082,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestFixAll1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -761,7 +1123,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestMultiLine1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -794,7 +1156,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestMultiLine2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -827,7 +1189,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestMultiLine3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -862,7 +1224,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestElseIfWithBlock()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -897,10 +1259,88 @@ class C
 }");
         }
 
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestElseIfWithBlock_Throw1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M(int i)
+    {
+        if (true)
+        {
+        }
+        else [||]if (false)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            i = 0;
+        }
+    }
+}",
+@"
+class C
+{
+    void M(int i)
+    {
+        if (true)
+        {
+        }
+        else
+        {
+            i = false ? throw new System.Exception() : 0;
+        }
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestElseIfWithBlock_Throw2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M(int i)
+    {
+        if (true)
+        {
+        }
+        else [||]if (false)
+        {
+            i = 1;
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}",
+@"
+class C
+{
+    void M(int i)
+    {
+        if (true)
+        {
+        }
+        else
+        {
+            i = false ? 1 : throw new System.Exception();
+        }
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestElseIfWithoutBlock()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -925,7 +1365,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestRefAssignment1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -953,10 +1393,56 @@ class C
 }");
         }
 
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestRefAssignment1_Throw1()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M(ref int i, ref int j)
+    {
+        ref int x = ref i;
+        [||]if (true)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            x = ref j;
+        }
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestRefAssignment1_Throw2()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M(ref int i, ref int j)
+    {
+        ref int x = ref i;
+        [||]if (true)
+        {
+            x = ref i;
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestTrueFalse1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -982,10 +1468,70 @@ class C
 }");
         }
 
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestTrueFalse_Throw1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M(bool i, int j)
+    {
+        [||]if (j == 0)
+        {
+            i = true;
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}",
+@"
+class C
+{
+    void M(bool i, int j)
+    {
+        i = j == 0 ? true : throw new System.Exception();
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestTrueFalse_Throw2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M(bool i, int j)
+    {
+        [||]if (j == 0)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            i = false;
+        }
+    }
+}",
+@"
+class C
+{
+    void M(bool i, int j)
+    {
+        i = j == 0 ? throw new System.Exception() : false;
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestTrueFalse2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1007,6 +1553,66 @@ class C
     void M(bool i, int j)
     {
         i = j != 0;
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestFalseTrue_Throw1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M(bool i, int j)
+    {
+        [||]if (j == 0)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            i = true;
+        }
+    }
+}",
+@"
+class C
+{
+    void M(bool i, int j)
+    {
+        i = j == 0 ? throw new System.Exception() : true;
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestFalseTrue_Throw2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M(bool i, int j)
+    {
+        [||]if (j == 0)
+        {
+            i = false;
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}",
+@"
+class C
+{
+    void M(bool i, int j)
+    {
+        i = j == 0 ? false : throw new System.Exception();
     }
 }");
         }

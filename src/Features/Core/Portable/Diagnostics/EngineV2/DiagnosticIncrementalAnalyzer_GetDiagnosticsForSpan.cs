@@ -214,14 +214,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
-                => AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Syntax, _compilation, _owner.GetOrCreateSkippedAnalyzersInfo, _range, cancellationToken);
+                => AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Syntax, _owner.DiagnosticAnalyzerInfoCache, _compilation, _range, cancellationToken);
 
             private Task<IEnumerable<DiagnosticData>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
             {
                 var supportsSemanticInSpan = analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
 
                 var analysisSpan = supportsSemanticInSpan ? (TextSpan?)_range : null;
-                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Semantic, _compilation, _owner.GetOrCreateSkippedAnalyzersInfo, analysisSpan, cancellationToken);
+                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Semantic, _owner.DiagnosticAnalyzerInfoCache, _compilation, analysisSpan, cancellationToken);
             }
 
             private async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
@@ -271,20 +271,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     GC.KeepAlive(wholeMethodBodyDiagnostics);
                     GC.KeepAlive(wholeDiagnostics);
                 }
-#endif
-            }
 
-            private static bool IsUnusedImportDiagnostic(Diagnostic d)
-            {
-                switch (d.Id)
+                static bool IsUnusedImportDiagnostic(Diagnostic d)
                 {
-                    case "CS8019":
-                    case "BC50000":
-                    case "BC50001":
-                        return true;
-                    default:
-                        return false;
+                    switch (d.Id)
+                    {
+                        case "CS8019":
+                        case "BC50000":
+                        case "BC50001":
+                            return true;
+                        default:
+                            return false;
+                    }
                 }
+#endif
             }
 
             private static TextSpan AdjustSpan(Document document, SyntaxNode root, TextSpan span)
