@@ -1922,5 +1922,31 @@ class [|$$Test1|]
                 Await VerifyTagsAreCorrect(workspace, "Test1")
             End Using
         End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        Public Async Function RenameConstructorReferencedInGlobalSuppression(host As TestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                <![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:[|C|].#ctor")]
+
+class [|C|]
+{
+    public [|$$C|]()
+    {
+    }
+}]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "D")
+                VerifyFileName(workspace, "Test1")
+            End Using
+        End Function
     End Class
 End Namespace

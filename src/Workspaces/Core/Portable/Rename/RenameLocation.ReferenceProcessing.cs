@@ -568,11 +568,12 @@ namespace Microsoft.CodeAnalysis.Rename
                     var startOffset = 0;
                     foreach (var subSpan in subSpansToReplace)
                     {
-                        // Assert that provided sub-span has a match with matchText.
-                        Debug.Assert(subSpan.Length == matchText.Length);
                         Debug.Assert(subSpan.Start <= replaceInsideString.Length);
                         Debug.Assert(subSpan.End <= replaceInsideString.Length);
-                        Debug.Assert(replaceInsideString.Substring(subSpan.Start, subSpan.Length) == matchText);
+
+                        // Verify that provided sub-span has a match with matchText.
+                        if (replaceInsideString.Substring(subSpan.Start, subSpan.Length) != matchText)
+                            continue;
 
                         // Append the sub-string from last match till the next match
                         var offset = subSpan.Start - startOffset;
