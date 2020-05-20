@@ -1890,5 +1890,78 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TopLevelStatement()
+        {
+            string source = @"
+int i = 0;
+[|switch|] (i)
+{
+    case 1:
+        return 4;
+    default:
+        return 7;
+}";
+
+            string fixedSource = @"
+int i = 0;
+return i switch
+{
+    1 => 4,
+    _ => 7,
+};
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, new[] {
+                    // error CS9004: Program using top-level statements must be an executable.
+                    DiagnosticResult.CompilerError("CS9004"),
+                    // error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    DiagnosticResult.CompilerError("CS8652").WithSpan(2, 1, 2, 11).WithArguments("top-level statements"),
+                },
+                fixedSource);
+        }
+
+        [WorkItem(44449, "https://github.com/dotnet/roslyn/issues/44449")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TopLevelStatement_FollowedWithThrow()
+        {
+            // We should be rewriting the declaration for 'j' to get 'var j = i switch ...'
+            string source = @"
+int ignored = 0;
+int i = 0;
+int j;
+[|switch|] (i)
+{
+    case 1:
+        j = 4;
+        break;
+    case 2:
+        j = 5;
+        break;
+}
+throw null;
+";
+
+            string fixedSource = @"
+int ignored = 0;
+int i = 0;
+int j;
+j = i switch
+{
+    1 => 4,
+    2 => 5,
+    _ => throw null,
+};
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, new DiagnosticResult[] {
+                    // error CS9004: Program using top-level statements must be an executable.
+                    DiagnosticResult.CompilerError("CS9004"),
+                    // error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    DiagnosticResult.CompilerError("CS8652").WithSpan(2, 1, 2, 17).WithArguments("top-level statements"),
+                },
+                fixedSource);
+        }
     }
 }
