@@ -12,6 +12,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting;
@@ -26,6 +27,7 @@ using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -159,9 +161,29 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return null;
             }
 
-            public void Initialize(Type replServiceProviderType, string cultureName)
+            public async Task InitializeAsync(Type replServiceProviderType, string cultureName)
             {
                 Contract.ThrowIfFalse(_serviceState == null, "Service already initialized");
+
+                //(miziga) moved from the RunServer method 
+                using (var resetEvent = new ManualResetEventSlim(false))
+                {
+                    var uiThread = new Thread(() =>
+                    {
+                        s_control = new Control();
+                        s_control.CreateControl();
+                        resetEvent.Set();
+                        Application.Run();
+                    });
+                    uiThread.SetApartmentState(ApartmentState.STA);
+                    uiThread.IsBackground = true;
+                    uiThread.Start();
+                    resetEvent.Wait();
+                }
+
+                NamedPipeServerStream serverStream = new NamedPipeServerStream(GenerateUniqueChannelLocalName(), PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
+                var jsonRPC = JsonRpc.Attach(serverStream);
 
                 // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(
@@ -248,9 +270,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     SetErrorMode(GetErrorMode() | ErrorMode.SEM_FAILCRITICALERRORS | ErrorMode.SEM_NOOPENFILEERRORBOX | ErrorMode.SEM_NOGPFAULTERRORBOX);
                 }
+                // TODO:(miziga): delete
+                /*IpcServerChannel serverChannel = null;
+                IpcClientChannel clientChannel = null;*/
 
-                IpcServerChannel? serverChannel = null;
-                IpcClientChannel? clientChannel = null;
                 try
                 {
                     using (var semaphore = Semaphore.OpenExisting(semaphoreName))
@@ -262,18 +285,24 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                         var clientProvider = new BinaryClientFormatterSinkProvider();
 
-                        clientChannel = new IpcClientChannel(GenerateUniqueChannelLocalName(), clientProvider);
+                        //TODO(miziga): delete
+                        /*clientChannel = new IpcClientChannel(GenerateUniqueChannelLocalName(), clientProvider);
                         ChannelServices.RegisterChannel(clientChannel, ensureSecurity: false);
 
                         serverChannel = new IpcServerChannel(GenerateUniqueChannelLocalName(), serverPort, serverProvider);
-                        ChannelServices.RegisterChannel(serverChannel, ensureSecurity: false);
+                        ChannelServices.RegisterChannel(serverChannel, ensureSecurity: false);*/
+
+                        //(miziga) move to initialize since called in InteractiveHost.cs right after client awaiting connection?
+                        /*NamedPipeServerStream serverStream = new NamedPipeServerStream(GenerateUniqueChannelLocalName(), PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                        var jsonRPC = JsonRpc.Attach(serverStream);*/
 
                         RemotingConfiguration.RegisterWellKnownServiceType(
                             typeof(Service),
                             ServiceName,
                             WellKnownObjectMode.Singleton);
 
-                        using (var resetEvent = new ManualResetEventSlim(false))
+                        // (miziga) move to initialize
+                        /*using (var resetEvent = new ManualResetEventSlim(false))
                         {
                             var uiThread = new Thread(() =>
                             {
@@ -286,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                             uiThread.IsBackground = true;
                             uiThread.Start();
                             resetEvent.Wait();
-                        }
+                        }*/
 
                         // the client can instantiate interactive host now:
                         semaphore.Release();
@@ -296,7 +325,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    if (serverChannel != null)
+                    // TODO:(miziga): delete and make a finally or catch statement for the try
+                    /*if (serverChannel != null)
                     {
                         ChannelServices.UnregisterChannel(serverChannel);
                     }
@@ -304,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     if (clientChannel != null)
                     {
                         ChannelServices.UnregisterChannel(clientChannel);
-                    }
+                    }*/
                 }
 
                 // force exit even if there are foreground threads running:
@@ -316,6 +346,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 get { return typeof(Service).Name; }
             }
 
+            // (miziga) refactor to be a channel name for pipes?
             private static string GenerateUniqueChannelLocalName()
             {
                 return typeof(Service).FullName + Guid.NewGuid();
@@ -327,7 +358,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             // Used by ResetInteractive - consider improving (we should remember the parameters for auto-reset, e.g.)
 
-            [OneWay]
             public void SetPaths(
                 RemoteAsyncOperation<RemoteExecutionResult> operation,
                 string[] referenceSearchPaths,
@@ -374,7 +404,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Reads given initialization file (.rsp) and loads and executes all assembly references and files, respectively specified in it.
             /// Execution is performed on the UI thread.
             /// </summary>
-            [OneWay]
             public void InitializeContext(RemoteAsyncOperation<RemoteExecutionResult> operation, string? initializationFile, bool isRestarting)
             {
                 lock (_lastTaskGuard)
@@ -386,7 +415,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Adds an assembly reference to the current session.
             /// </summary>
-            [OneWay]
             public void AddReference(RemoteAsyncOperation<bool> operation, string reference)
             {
                 lock (_lastTaskGuard)
@@ -428,7 +456,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Executes given script snippet on the UI thread in the context of the current session.
             /// </summary>
-            [OneWay]
             public void Execute(RemoteAsyncOperation<RemoteExecutionResult> operation, string text)
             {
                 lock (_lastTaskGuard)
@@ -484,10 +511,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Executes given script file on the UI thread in the context of the current session.
             /// </summary>
-            [OneWay]
             public void ExecuteFile(RemoteAsyncOperation<RemoteExecutionResult> operation, string path)
             {
-                lock (_lastTaskGuard)
+				Debug.Assert(path != null);                lock (_lastTaskGuard)
                 {
                     _lastTask = ExecuteFileAsync(operation, _lastTask, path);
                 }
