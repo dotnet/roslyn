@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
         }
 
         protected override void AddPotentiallyConflictingImports(
-            SyntaxNode root, IEnumerable<INamespaceOrTypeSymbol> namespaceMembers, IEnumerable<IMethodSymbol> extensionMethods, SemanticModel model, HashSet<INamespaceSymbol> conflicts, CancellationToken cancellationToken)
+            SyntaxNode container, IEnumerable<INamespaceOrTypeSymbol> namespaceMembers, IEnumerable<IMethodSymbol> extensionMethods, SemanticModel model, HashSet<INamespaceSymbol> conflicts, CancellationToken cancellationToken)
         {
             var rewriter = new ConflictWalker(namespaceMembers, extensionMethods, model, conflicts, cancellationToken);
-            rewriter.Visit(root);
+            rewriter.Visit(container);
         }
 
         private INamespaceSymbol? GetExplicitNamespaceSymbol(ExpressionSyntax fullName, ExpressionSyntax namespacePart, SemanticModel model)

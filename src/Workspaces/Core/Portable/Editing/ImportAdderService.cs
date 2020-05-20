@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private ISet<INamespaceSymbol> GetSafeToAddImports(
             ImmutableArray<INamespaceSymbol> namespaceSymbols,
-            SyntaxNode root,
+            SyntaxNode container,
             SemanticModel model,
             CancellationToken cancellationToken)
         {
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
             using var _ = PooledHashSet<INamespaceSymbol>.GetInstance(out var conflicts);
             AddPotentiallyConflictingImports(
-                root, namespaceMembers, extensionMethods, model, conflicts, cancellationToken);
+                container, namespaceMembers, extensionMethods, model, conflicts, cancellationToken);
             return namespaceSymbols.Except(conflicts).ToSet();
         }
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// blocks off imports that could potentially bring in a name that would conflict with them.
         /// </summary>
         protected abstract void AddPotentiallyConflictingImports(
-            SyntaxNode root,
+            SyntaxNode container,
             IEnumerable<INamespaceOrTypeSymbol> namespaceMembers,
             IEnumerable<IMethodSymbol> extensionMethods,
             SemanticModel model,
@@ -215,13 +215,20 @@ namespace Microsoft.CodeAnalysis.Editing
                 }
             }
 
-            var safeImportsToAdd = GetSafeToAddImports(importToSyntax.Keys.ToImmutableArray(), root, model, cancellationToken);
+            if (first == null || last == null || importToSyntax.Count == 0)
+                return document;
+
+            var context = first.GetCommonRoot(last);
+
+            // Find the namespace/compilation-unit we'll be adding all these imports to.
+            var importContainer = addImportsService.GetImportContainer(root, context, importToSyntax.First().Value);
+
+            // Now remove any imports we think can cause conflicts in that container.
+            var safeImportsToAdd = GetSafeToAddImports(importToSyntax.Keys.ToImmutableArray(), importContainer, model, cancellationToken);
 
             var importsToAdd = importToSyntax.Where(kvp => safeImportsToAdd.Contains(kvp.Key)).Select(kvp => kvp.Value).ToImmutableArray();
             if (importsToAdd.Length == 0)
                 return document;
-
-            var context = first == null || last == null ? null : first.GetCommonRoot(last);
 
             root = addImportsService.AddImports(model.Compilation, root, context, importsToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
             return document.WithSyntaxRoot(root);

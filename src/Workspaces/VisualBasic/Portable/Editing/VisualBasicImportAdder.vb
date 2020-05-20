@@ -33,9 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
             Return Nothing
         End Function
 
-        Protected Overrides Sub AddPotentiallyConflictingImports(root As SyntaxNode, namespaceMembers As IEnumerable(Of INamespaceOrTypeSymbol), extensionMethods As IEnumerable(Of IMethodSymbol), model As SemanticModel, conflicts As HashSet(Of INamespaceSymbol), cancellationToken As CancellationToken)
+        Protected Overrides Sub AddPotentiallyConflictingImports(container As SyntaxNode, namespaceMembers As IEnumerable(Of INamespaceOrTypeSymbol), extensionMethods As IEnumerable(Of IMethodSymbol), model As SemanticModel, conflicts As HashSet(Of INamespaceSymbol), cancellationToken As CancellationToken)
             Dim walker = New ConflictWalker(namespaceMembers, extensionMethods, model, conflicts, cancellationToken)
-            walker.Visit(root)
+            walker.Visit(container)
         End Sub
 
         Private Overloads Function GetExplicitNamespaceSymbol(fullName As ExpressionSyntax, namespacePart As ExpressionSyntax, model As SemanticModel) As INamespaceSymbol
