@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -40,9 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
         }
 
         protected override void AddPotentiallyConflictingImports(
-            SyntaxNode container, IEnumerable<INamespaceOrTypeSymbol> namespaceMembers, IEnumerable<IMethodSymbol> extensionMethods, SemanticModel model, HashSet<INamespaceSymbol> conflicts, CancellationToken cancellationToken)
+            SemanticModel model, SyntaxNode container, ImmutableArray<INamespaceSymbol> namespaceSymbols,
+            HashSet<INamespaceSymbol> conflicts, CancellationToken cancellationToken)
         {
-            var rewriter = new ConflictWalker(namespaceMembers, extensionMethods, model, conflicts, cancellationToken);
+            var rewriter = new ConflictWalker(model, namespaceSymbols, conflicts, cancellationToken);
             rewriter.Visit(container);
         }
 
@@ -86,9 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             private readonly HashSet<INamespaceSymbol> _conflictNamespaces;
 
             public ConflictWalker(
-                IEnumerable<INamespaceOrTypeSymbol> namespaceMembers,
-                IEnumerable<IMethodSymbol> extensionMethods,
                 SemanticModel model,
+                ImmutableArray<INamespaceSymbol> namespaceSymbols,
                 HashSet<INamespaceSymbol> conflictNamespaces,
                 CancellationToken cancellationToken)
                 : base(SyntaxWalkerDepth.StructuredTrivia)
@@ -97,14 +98,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                 _cancellationToken = cancellationToken;
                 _conflictNamespaces = conflictNamespaces;
 
-                foreach (var member in namespaceMembers)
+                foreach (var ns in namespaceSymbols)
                 {
-                    if (member is INamedTypeSymbol namedType)
-                        _namespaceMembers.Add((namedType.Name, namedType.Arity), member.ContainingNamespace);
-                }
+                    foreach (var type in ns.GetTypeMembers())
+                    {
+                        _namespaceMembers.Add((type.Name, type.Arity), ns);
 
-                foreach (var method in extensionMethods)
-                    _extensionMethods.Add(method.Name, method.ContainingNamespace);
+                        if (type.MightContainExtensionMethods)
+                        {
+                            foreach (var member in type.GetMembers())
+                            {
+                                if (member is IMethodSymbol method && method.IsExtensionMethod)
+                                    _extensionMethods.Add(method.Name, ns);
+                            }
+                        }
+                    }
+                }
             }
 
             private void CheckName(NameSyntax node)

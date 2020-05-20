@@ -68,14 +68,9 @@ namespace Microsoft.CodeAnalysis.Editing
             SemanticModel model,
             CancellationToken cancellationToken)
         {
-            var namespaceMembers = namespaceSymbols.SelectMany(x => x.GetMembers());
-            var extensionMethods =
-                namespaceMembers.OfType<INamedTypeSymbol>().Where(t => t.MightContainExtensionMethods)
-                .SelectMany(x => x.GetMembers().OfType<IMethodSymbol>().Where(x => x.IsExtensionMethod));
-
             using var _ = PooledHashSet<INamespaceSymbol>.GetInstance(out var conflicts);
             AddPotentiallyConflictingImports(
-                container, namespaceMembers, extensionMethods, model, conflicts, cancellationToken);
+                model, container, namespaceSymbols, conflicts, cancellationToken);
             return namespaceSymbols.Except(conflicts).ToSet();
         }
 
@@ -84,10 +79,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// blocks off imports that could potentially bring in a name that would conflict with them.
         /// </summary>
         protected abstract void AddPotentiallyConflictingImports(
-            SyntaxNode container,
-            IEnumerable<INamespaceOrTypeSymbol> namespaceMembers,
-            IEnumerable<IMethodSymbol> extensionMethods,
             SemanticModel model,
+            SyntaxNode container,
+            ImmutableArray<INamespaceSymbol> namespaceSymbols,
             HashSet<INamespaceSymbol> conflicts,
             CancellationToken cancellationToken);
 

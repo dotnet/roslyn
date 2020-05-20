@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -33,8 +34,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
             Return Nothing
         End Function
 
-        Protected Overrides Sub AddPotentiallyConflictingImports(container As SyntaxNode, namespaceMembers As IEnumerable(Of INamespaceOrTypeSymbol), extensionMethods As IEnumerable(Of IMethodSymbol), model As SemanticModel, conflicts As HashSet(Of INamespaceSymbol), cancellationToken As CancellationToken)
-            Dim walker = New ConflictWalker(namespaceMembers, extensionMethods, model, conflicts, cancellationToken)
+        Protected Overrides Sub AddPotentiallyConflictingImports(model As SemanticModel,
+                container As SyntaxNode,
+                namespaceSymbols As ImmutableArray(Of INamespaceSymbol),
+                conflicts As HashSet(Of INamespaceSymbol),
+                cancellationToken As CancellationToken)
+            Dim walker = New ConflictWalker(model, namespaceSymbols, conflicts, cancellationToken)
             walker.Visit(container)
         End Sub
 
@@ -77,9 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
             Private ReadOnly _conflictNamespaces As HashSet(Of INamespaceSymbol)
 
             Public Sub New(
-                    namespaceMembers As IEnumerable(Of INamespaceOrTypeSymbol),
-                    extensionMethods As IEnumerable(Of IMethodSymbol),
                     model As SemanticModel,
+                    namespaceSymbols As ImmutableArray(Of INamespaceSymbol),
                     conflictNamespaces As HashSet(Of INamespaceSymbol),
                     cancellationToken As CancellationToken)
                 MyBase.New(SyntaxWalkerDepth.StructuredTrivia)
@@ -87,12 +91,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                 _cancellationToken = cancellationToken
                 _conflictNamespaces = conflictNamespaces
 
-                For Each member In namespaceMembers
-                    _namespaceMembers.Add((member.Name, member.GetArity()), member.ContainingNamespace)
-                Next
+                For Each ns In namespaceSymbols
+                    For Each typeOrNamespace In ns.GetMembers()
+                        _namespaceMembers.Add((typeOrNamespace.Name, typeOrNamespace.GetArity()), ns)
 
-                For Each method In extensionMethods
-                    _extensionMethods.Add(method.Name, method.ContainingNamespace)
+                        Dim type = TryCast(typeOrNamespace, INamedTypeSymbol)
+                        If type?.MightContainExtensionMethods Then
+                            For Each member In type.GetMembers()
+                                Dim method = TryCast(member, IMethodSymbol)
+                                If method?.IsExtensionMethod Then
+                                    _extensionMethods.Add(method.Name, ns)
+                                End If
+                            Next
+                        End If
+                    Next
                 Next
             End Sub
 
