@@ -142,6 +142,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
                 var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
+
+                // NOTE: Predefined operators can be referenced in global suppression attributes.
                 return info.ContainsPredefinedOperator(op) || info.ContainsGlobalAttributes;
             }, cancellationToken);
         }
@@ -182,10 +184,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
             CancellationToken cancellationToken)
         {
-            var findInGlobalSuppressions = ShouldFindReferencesInGlobalSuppressions(symbol, out var getDocumentationCommentId);
+            var findInGlobalSuppressions = ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId);
             return FindReferencesInDocumentUsingIdentifierAsync(
                 identifier, document, semanticModel, symbolsMatch,
-                getDocumentationCommentId, findInGlobalSuppressions, cancellationToken);
+                docCommentId, findInGlobalSuppressions, cancellationToken);
         }
 
         protected static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
@@ -193,7 +195,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Document document,
             SemanticModel semanticModel,
             Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
-            Func<string>? getDocumentationCommentId,
+            string? docCommentId,
             bool findInGlobalSuppressions,
             CancellationToken cancellationToken)
         {
@@ -212,9 +214,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (!findInGlobalSuppressions)
                 return references;
 
-            RoslynDebug.Assert(getDocumentationCommentId != null);
+            RoslynDebug.Assert(docCommentId != null);
             var referencesInGlobalSuppressions = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-                document, semanticModel, syntaxFacts, getDocumentationCommentId, cancellationToken).ConfigureAwait(false);
+                document, semanticModel, syntaxFacts, docCommentId, cancellationToken).ConfigureAwait(false);
             return references.AddRange(referencesInGlobalSuppressions);
         }
 
@@ -438,11 +440,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var allAliasReferences = ArrayBuilder<FinderLocation>.GetInstance();
             foreach (var aliasSymbol in aliasSymbols)
             {
-                var findInGlobalSuppressions = ShouldFindReferencesInGlobalSuppressions(aliasSymbol, out var getDocumentationCommentId);
+                var findInGlobalSuppressions = ShouldFindReferencesInGlobalSuppressions(aliasSymbol, out var docCommentId);
 
                 var aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
                     aliasSymbol.Name, document, semanticModel, symbolsMatch,
-                    getDocumentationCommentId, findInGlobalSuppressions, cancellationToken).ConfigureAwait(false);
+                    docCommentId, findInGlobalSuppressions, cancellationToken).ConfigureAwait(false);
                 allAliasReferences.AddRange(aliasReferences);
                 // the alias may reference an attribute and the alias name may end with an "Attribute" suffix. In this case search for the
                 // shortened name as well (e.g. using GooAttribute = MyNamespace.GooAttribute; [Goo] class C1 {})
@@ -450,7 +452,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     aliasReferences = await FindReferencesInDocumentUsingIdentifierAsync(
                         simpleName, document, semanticModel, symbolsMatch,
-                        getDocumentationCommentId, findInGlobalSuppressions, cancellationToken).ConfigureAwait(false);
+                        docCommentId, findInGlobalSuppressions, cancellationToken).ConfigureAwait(false);
                     allAliasReferences.AddRange(aliasReferences);
                 }
             }
@@ -1008,10 +1010,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, SyntaxNode>? findParentNode,
             CancellationToken cancellationToken)
         {
-            var findInGlobalSuppressions = ShouldFindReferencesInGlobalSuppressions(symbol, out var getDocumentationCommentId);
+            var findInGlobalSuppressions = ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId);
             var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
             return FindReferencesInDocumentAsync(document, semanticModel, tokensMatch,
-                symbolsMatch, getDocumentationCommentId, findInGlobalSuppressions, cancellationToken);
+                symbolsMatch, docCommentId, findInGlobalSuppressions, cancellationToken);
         }
 
         protected static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
@@ -1019,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SemanticModel semanticModel,
             Func<SyntaxToken, bool> tokensMatch,
             Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
-            Func<string>? getDocumentationCommentId,
+            string? docCommentId,
             bool findInGlobalSuppressions,
             CancellationToken cancellationToken)
         {
@@ -1032,10 +1034,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             if (!findInGlobalSuppressions)
                 return references;
 
-            RoslynDebug.Assert(getDocumentationCommentId != null);
+            RoslynDebug.Assert(docCommentId != null);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var referencesInGlobalSuppressions = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-                document, semanticModel, syntaxFacts, getDocumentationCommentId, cancellationToken).ConfigureAwait(false);
+                document, semanticModel, syntaxFacts, docCommentId, cancellationToken).ConfigureAwait(false);
             return references.AddRange(referencesInGlobalSuppressions);
         }
     }

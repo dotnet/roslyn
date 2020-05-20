@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindReferencesInDocumentAsync(document, semanticModel, t =>
                 IsPotentialReference(predefinedType, syntaxFacts, t),
                 (t, m) => (matched: true, reason: CandidateReason.None),
-                getDocumentationCommentId: null,
+                docCommentId: null,
                 findInGlobalSuppressions: false,
                 cancellationToken);
         }
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return TryGetNameWithoutAttributeSuffix(namedType.Name, syntaxFacts, out var simpleName)
                 ? FindReferencesInDocumentUsingIdentifierAsync(simpleName, document, semanticModel,
-                    symbolsMatch, getDocumentationCommentId: null, findInGlobalSuppressions: false, cancellationToken)
+                    symbolsMatch, docCommentId: null, findInGlobalSuppressions: false, cancellationToken)
                 : SpecializedTasks.EmptyImmutableArray<FinderLocation>();
         }
     }

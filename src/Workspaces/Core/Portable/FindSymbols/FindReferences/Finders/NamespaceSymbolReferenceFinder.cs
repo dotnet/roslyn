@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
-            var suppressionReferences = ShouldFindReferencesInGlobalSuppressions(symbol, out var getDocumentationCommentId)
+            var suppressionReferences = ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId)
                 ? await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel,
-                    syntaxFactsService, getDocumentationCommentId, cancellationToken).ConfigureAwait(false)
+                    syntaxFactsService, docCommentId, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
             return nonAliasReferences.Concat(aliasReferences).Concat(suppressionReferences);

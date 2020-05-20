@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
@@ -36,16 +35,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// </summary>
         private static readonly Regex s_docCommentIdPattern = new Regex(@"(~?[A-Z]:)([^([]*)(.*)");
 
-        protected static bool ShouldFindReferencesInGlobalSuppressions(ISymbol symbol, [NotNullWhen(returnValue: true)] out Func<string>? getDocumentationCommentId)
+        protected static bool ShouldFindReferencesInGlobalSuppressions(ISymbol symbol, [NotNullWhen(returnValue: true)] out string? documentationCommentId)
         {
             if (!SupportsGlobalSuppression(symbol))
             {
-                getDocumentationCommentId = null;
+                documentationCommentId = null;
                 return false;
             }
 
-            getDocumentationCommentId = () => DocumentationCommentId.CreateDeclarationId(symbol);
-            return true;
+            documentationCommentId = DocumentationCommentId.CreateDeclarationId(symbol);
+            return documentationCommentId != null;
 
             // Global suppressions are currently supported for types, members and
             // namespaces, except global namespace.
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Document document,
             SemanticModel semanticModel,
             ISyntaxFacts syntaxFacts,
-            Func<string> getDocumentationCommentId,
+            string docCommentId,
             CancellationToken cancellationToken)
         {
             // Check if we have any relevant global attributes in this document.
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             // Check if we have any instances of the symbol documentation comment ID string literals within global attributes.
             // These string literals represent references to the symbol.
-            if (!GetExpectedDocumentationCommentId(getDocumentationCommentId, out var documentationCommentId))
+            if (!TryGetExpectedDocumentationCommentId(docCommentId, out var expectedDocCommentId))
             {
                 return ImmutableArray<FinderLocation>.Empty;
             }
@@ -103,7 +102,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
             foreach (var token in root.DescendantTokens())
             {
-                if (IsCandidate(token, documentationCommentId, semanticModel, syntaxFacts, suppressMessageAttribute, cancellationToken, out var offsetOfReferenceInToken))
+                if (IsCandidate(token, expectedDocCommentId, semanticModel, syntaxFacts, suppressMessageAttribute, cancellationToken, out var offsetOfReferenceInToken))
                 {
                     var referenceLocation = CreateReferenceLocation(offsetOfReferenceInToken, token, root, document, syntaxFacts);
                     locations.Add(new FinderLocation(token.Parent, referenceLocation));
@@ -255,11 +254,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
-        private static bool GetExpectedDocumentationCommentId(
-            Func<string> getDocumentationCommentId,
+        private static bool TryGetExpectedDocumentationCommentId(
+            string id,
             [NotNullWhen(true)] out string? docCommentId)
         {
-            var id = getDocumentationCommentId();
             if (!ValidateAndSplitDocumentationCommentId(id, out _, out var idPartBeforeArguments, out var arguments))
             {
                 docCommentId = null;

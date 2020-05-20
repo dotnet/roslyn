@@ -24,7 +24,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected override bool CanFind(IMethodSymbol symbol)
-            => symbol.MethodKind == MethodKind.Constructor;
+            => symbol.MethodKind switch
+            {
+                MethodKind.Constructor => true,
+                MethodKind.StaticConstructor => true,
+                _ => false,
+            };
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
