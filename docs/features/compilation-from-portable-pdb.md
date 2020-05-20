@@ -11,7 +11,119 @@ This document is restricted to the following assumptions:
 
 This document will provide the expanded specification to the Portable PDB format. Any additions to that format will be ported to expand documentation provided in [dotnet-runtime](https://github.com/jnm2/dotnet-runtime/blob/26efe3467741fe2a85780b2d2cd18875af6ebd98/docs/design/specs/PortablePdb-Metadata.md#source-link-c-and-vb-compilers).
 
-## List of Expanded Information
+## List of Compiler Flags
+
+#### CSharp Flags Not Included
+
+* appconfig
+* baseaddress
+* bugreport
+* checksumalgorithm 
+    - Already stored in PDB for each source file
+* debug
+* delaysign
+* doc
+* deterministic
+* embed
+* errorendlocation
+* errorlog
+* errorreport
+* filealign
+* fullpaths
+* highentropyva
+* incremental
+* keycontainer
+* keyfile
+* link
+    - Represented by a metadata reference with `EmbededInteropTypes=true` 
+* linkresource
+* main
+    - Already stored in PDB as the entry point token
+* moduleassemblyname
+    - Stored in metadata 
+* modulename
+    - Stored in metadata
+* noconfig
+* nologo
+* nostdlib
+* nowarn
+* nowin32manifest
+* optimize
+* out
+* parallel
+* pathmap
+* pdb
+* platform
+* preferreduilang
+* publicsign
+* recurse
+* refout
+* refonly
+* reportanalyzer
+* resource
+* ruleset
+* subsystemversion
+* target
+* utf8output
+* version
+* warn
+* warnaserror
+* win32icon
+* win32manifest
+* win32res
+
+#### Visual Basic Flags Not Included
+
+* baseaddress
+* bugreport
+* checksumalgorithm
+    - already stored in PDB for each source file
+* debug
+* delaysign
+* doc
+* errorreport
+* filealign
+* help
+* highentropyva
+* keycontainer
+* keyfile
+* libpath
+* linkresource
+* main
+    - already included in PDB information
+* moduleassemblyname
+* modulename
+* netcf
+* noconfig
+* nologo
+* nostdlib
+* nowarn
+* nowin32manifest
+* optimize
+* optioncompare
+* optionexplicit
+* optioninfer
+* out
+* parallel
+* platform
+* preferreduilang
+* quiet
+* recurse
+* refonly
+* refout
+* resource
+* rootnamespace
+* ruleset
+* sdkpath
+* subsystemversion
+* target
+* utf8output
+* vbruntime
+* verbose
+* warnaserror
+* win32icon
+* win32manifest
+* win32resource
 
 #### Compiler Version
 
@@ -30,13 +142,13 @@ Size of image: 4 byte integer
 
 Example:
 
-File name: `Foo.exe`
+File name: `Foo.exe` 
 
-COFF header Timestamp field: `0x542d5742`
+COFF header Timestamp field: `0x542d5742` 
 
-COFF header SizeOfImage field: `0x32000`
+COFF header SizeOfImage field: `0x32000` 
 
-Lookup key: `foo.exe/542d574232000/foo.exe`
+Lookup key: `foo.exe/542d574232000/foo.exe` 
 
 To fully support metadata references, we'll need to be able to find the exact PE image that was used in the compilation. We'll do this by storing the parts that make up the symbol server key.
 
@@ -51,8 +163,8 @@ At this time, we'll only include external references for the compilation. Any ot
 Metadata references can be easily stored as binary. The binary encoding will be as follows (order matters):
 
 Name: A UTF-8 string (null terminated)
-Aliases: UTF-8 Comma (,) separate list of aliases (null terminated). May be empty
-MetadataImageKind: byte value representing Microsoft.CodeAnalysis.MetadataImageKind
+Aliases: UTF-8 Comma (, ) separate list of aliases (null terminated). May be empty
+MetadataImageKind: byte value representing Microsoft. CodeAnalysis. MetadataImageKind
 EmbedInteropTypes: boolean
 Timestamp: 4 byte integer
 File Size: 4 byte integer
@@ -64,8 +176,7 @@ The remaining values will be stored as key value pairs in the pdb. The storage f
 
 Example: 
 
-
-`compilerversion\01.2.3\0sourceencoding\0utf-8\0checked\01\0unsafe\01\0langversion\0latest\0nullable\0Enable`
+`compilerversion\01.2.3\0sourceencoding\0utf-8\0checked\01\0unsafe\01\0langversion\0latest\0nullable\0Enable` 
 
 ##### Options For CSharp
 
