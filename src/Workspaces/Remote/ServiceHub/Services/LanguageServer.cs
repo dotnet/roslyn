@@ -16,6 +16,8 @@ using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
+#pragma warning disable CA1822 // Mark members as static - Multiple 'JsonRpcMethod' attribute annotated methods.
+
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal class LanguageServer : ServiceBase
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [JsonRpcMethod(Methods.InitializeName)]
-        public static Task<InitializeResult> InitializeAsync(JToken _1, CancellationToken _2)
+        public Task<InitializeResult> InitializeAsync(JToken _1, CancellationToken _2)
         {
             return Task.FromResult(new InitializeResult()
             {
@@ -54,20 +56,20 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
-        public static Task InitializedAsync()
+        public Task InitializedAsync()
         {
             return Task.CompletedTask;
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
-        public static void Shutdown(CancellationToken _)
+        public void Shutdown(CancellationToken _)
         {
             // our language server shutdown when VS shutdown
             // we have this so that we don't get log file every time VS shutdown
         }
 
         [JsonRpcMethod(Methods.ExitName)]
-        public static void Exit()
+        public void Exit()
         {
             // our language server exit when VS shutdown
             // we have this so that we don't get log file every time VS shutdown
