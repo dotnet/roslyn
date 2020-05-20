@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return returnType;
         }
 
-        internal static FlowAnalysisAnnotations GetFlowAnalysisAnnotations(this Symbol? symbol)
+        internal static FlowAnalysisAnnotations GetFlowAnalysisAnnotations(this Symbol symbol)
         {
             return symbol switch
             {

@@ -1379,12 +1379,13 @@ class C
         }
 
         [Fact]
-        public void MaybeNullT_Property_Uninitialized()
+        public void MaybeNullT_Uninitialized()
         {
             var source =
 @"using System.Diagnostics.CodeAnalysis;
 public class C<T>
 {
+    [MaybeNull] public T F;
     [MaybeNull] public T P { get; set; }
 }";
             var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
@@ -1393,26 +1394,13 @@ public class C<T>
         }
 
         [Fact]
-        public void MaybeNullT_Field_Uninitialized()
-        {
-            var source =
-@"using System.Diagnostics.CodeAnalysis;
-public class C<T>
-{
-    [MaybeNull] public T P;
-}";
-            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void MaybeNull_ClassT_Property_Uninitialized()
+        public void MaybeNull_ClassT_Uninitialized()
         {
             var source =
 @"using System.Diagnostics.CodeAnalysis;
 public class C<T> where T : class
 {
+    [MaybeNull] public T F;
     [MaybeNull] public T P { get; set; }
 }";
             var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
@@ -1421,13 +1409,14 @@ public class C<T> where T : class
         }
 
         [Fact]
-        public void MaybeNull_ClassT_Field_Uninitialized()
+        public void MaybeNull_NotNullT_Uninitialized()
         {
             var source =
 @"using System.Diagnostics.CodeAnalysis;
-public class C<T> where T : class
+public class C<T> where T : notnull
 {
-    [MaybeNull] public T P;
+    [MaybeNull] public T F;
+    [MaybeNull] public T P { get; set; }
 }";
             var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
@@ -1435,12 +1424,13 @@ public class C<T> where T : class
         }
 
         [Fact]
-        public void MaybeNull_Property_Uninitialized()
+        public void MaybeNull_Uninitialized()
         {
             var source =
 @"using System.Diagnostics.CodeAnalysis;
 public class C
 {
+    [MaybeNull] public string F;
     [MaybeNull] public string P { get; set; }
 }";
             var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
@@ -1449,50 +1439,23 @@ public class C
         }
 
         [Fact]
-        public void MaybeNull_Field_Uninitialized()
+        public void MaybeNull_NullInitializer()
         {
             var source =
 @"using System.Diagnostics.CodeAnalysis;
 public class C
 {
-    [MaybeNull] public string P;
-}";
-            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void MaybeNull_Property_NullInitializer()
-        {
-            var source =
-@"using System.Diagnostics.CodeAnalysis;
-public class C
-{
+    [MaybeNull] public string F = null;
     [MaybeNull] public string P { get; set; } = null;
 }";
             var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (4,49): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //     [MaybeNull] public string P { get; set; } = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 49)
-                );
-        }
-
-        [Fact]
-        public void MaybeNull_Field_NullInitializer()
-        {
-            var source =
-@"using System.Diagnostics.CodeAnalysis;
-public class C
-{
-    [MaybeNull] public string P = null;
-}";
-            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
                 // (4,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //     [MaybeNull] public string P = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 35)
+                //     [MaybeNull] public string F = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 35),
+                // (5,49): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     [MaybeNull] public string P { get; set; } = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 49)
                 );
         }
     }
