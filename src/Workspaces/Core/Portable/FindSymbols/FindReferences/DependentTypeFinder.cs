@@ -59,23 +59,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ObjectPool<PooledHashSet<INamedTypeSymbol>> s_symbolSetPool = PooledHashSet<INamedTypeSymbol>.CreatePool(SymbolEquivalenceComparer.Instance);
         private static readonly ObjectPool<PooledDictionary<INamedTypeSymbol, Project>> s_symbolToProjectPool = PooledDictionary<INamedTypeSymbol, Project>.CreatePool(SymbolEquivalenceComparer.Instance);
 
-        // Caches from a types to their related types (in the context of a specific solution).
-        // Kept as a cache so that clients who make many calls into us won't end up computing
-        // the same data over and over again.  Will be let go the moment the solution they're
-        // based off of is no longer alive.
-        //
-        // Importantly, the caches only store SymbolKeys and Ids.  As such, they will not hold
-        // any Symbols or Compilations alive.
-
-        private static readonly RelatedTypeCache s_typeToImmediatelyDerivedClassesMap = new RelatedTypeCache();
-        private static readonly RelatedTypeCache s_typeToTransitivelyDerivedClassesMap = new RelatedTypeCache();
-
-        private static readonly RelatedTypeCache s_typeToImmediatelyDerivedInterfacesMap = new RelatedTypeCache();
-        private static readonly RelatedTypeCache s_typeToTransitivelyDerivedInterfacesMap = new RelatedTypeCache();
-
-        private static readonly RelatedTypeCache s_typeToImmediatelyImplementingTypesMap = new RelatedTypeCache();
-        private static readonly RelatedTypeCache s_typeToTransitivelyImplementingTypesMap = new RelatedTypeCache();
-
         /// <summary>
         /// We pass the special <see cref="KeyEqualityComparer.Instance"/> here because <see cref="IImmutableSet{T}"/>
         /// uses reference equality not value equality.
@@ -84,61 +67,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _ => new ConcurrentDictionary<(SymbolKey, ProjectId?, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>(KeyEqualityComparer.Instance);
 
         private static async Task<ImmutableArray<INamedTypeSymbol>> FindTypesFromCacheOrComputeAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            RelatedTypeCache cache,
             Func<CancellationToken, Task<ImmutableArray<(INamedTypeSymbol type, Project project)>>> findAsync,
             CancellationToken cancellationToken)
         {
-            var dictionary = cache.GetValue(solution, s_createTypeMap);
-
-            // Do a quick lookup first to avoid the allocation.  If it fails, go through the
-            // slower allocating path.
-            var key = (type.GetSymbolKey(), solution.GetOriginatingProjectId(type), projects);
-            if (!dictionary.TryGetValue(key, out var lazy))
-            {
-                lazy = dictionary.GetOrAdd(key,
-                    new AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>(
-                        c => GetSymbolKeysAndProjectIdsAsync(findAsync, c),
-                        cacheResult: true));
-            }
-
-            // Otherwise, someone else computed the symbols and cached the results as symbol 
-            // keys.  Convert those symbol keys back to symbols and return.
-            var symbolKeys = await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            var builder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
-
-            // Group by projectId so that we only process one project/compilation at a time.
-            // Also, process in dependency order so that previous compilations are ready if
-            // they're referenced by later compilations.
-            var dependencyOrder = solution.GetProjectDependencyGraph()
-                                          .GetTopologicallySortedProjects()
-                                          .Select((id, index) => (id, index))
-                                          .ToDictionary(t => t.id, t => t.index);
-
-            var orderedGroups = symbolKeys.GroupBy(t => t.Item2).OrderBy(g => dependencyOrder[g.Key]);
-            foreach (var group in orderedGroups)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var project = solution.GetRequiredProject(group.Key);
-                if (project.SupportsCompilation)
-                {
-                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                    foreach (var (symbolKey, _) in group)
-                    {
-                        var resolvedSymbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol();
-                        if (resolvedSymbol is INamedTypeSymbol namedType)
-                        {
-                            builder.Add(namedType);
-                        }
-                    }
-                }
-            }
-
-            return builder.ToImmutableAndFree();
+            var result = await findAsync(cancellationToken).ConfigureAwait(false);
+            return result.SelectAsArray(t => t.type);
         }
 
         private static async Task<ImmutableArray<(SymbolKey, ProjectId)>> GetSymbolKeysAndProjectIdsAsync(

@@ -45,8 +45,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects,
-                transitive ? s_typeToTransitivelyDerivedInterfacesMap : s_typeToImmediatelyDerivedInterfacesMap,
                 c => FindWithoutCachingDerivedInterfacesAsync(type, solution, projects, transitive, c),
                 cancellationToken);
         }
