@@ -8,12 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Packaging;
-using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -78,9 +76,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             this.Workspace = this.CreateWorkspace();
             if (await IsInIdeModeAsync(this.Workspace).ConfigureAwait(true))
             {
-                // start remote host
-                EnableRemoteHostClientService();
-
                 // not every derived package support object browser and for those languages
                 // this is a no op
                 await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(true);
@@ -136,8 +131,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     if (await IsInIdeModeAsync(this.Workspace).ConfigureAwait(true))
                     {
-                        DisableRemoteHostClientService();
-
                         await UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None).ConfigureAwait(true);
                     }
                 });
@@ -185,11 +178,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             return false;
         }
-
-        private void EnableRemoteHostClientService()
-            => ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Enable();
-
-        private void DisableRemoteHostClientService()
-            => ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Disable();
     }
 }
