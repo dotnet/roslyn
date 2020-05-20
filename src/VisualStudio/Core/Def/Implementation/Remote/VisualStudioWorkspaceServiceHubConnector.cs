@@ -63,6 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
 
             _disposalCancellationSource.Cancel();
+            _disposalCancellationSource.Dispose();
 
             _checksumUpdater?.Shutdown();
             _globalNotificationDelivery?.Dispose();
