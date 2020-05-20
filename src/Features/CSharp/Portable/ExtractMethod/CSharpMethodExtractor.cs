@@ -69,6 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
                 }
 
+                // check whether the global statement is a statement container
+                if (!globalStatement.Statement.IsStatementContainerNode() && !root.SyntaxTree.IsScript())
+                {
+                    // The extracted function will be a new global statement
+                    return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
+                }
+
                 return await InsertionPoint.CreateAsync(document, globalStatement.Statement, cancellationToken).ConfigureAwait(false);
             }
 
