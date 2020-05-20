@@ -1690,7 +1690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // these could be 2 parts of the same partial method.
                     // Partial methods are allowed to collide by signature.
                     return;
-                case (SynthesizedSimpleProgramEntryPointSymbol, SynthesizedSimpleProgramEntryPointSymbol):
+                case (SynthesizedSimpleProgramEntryPointSymbol { }, SynthesizedSimpleProgramEntryPointSymbol { }):
                     return;
             }
 
