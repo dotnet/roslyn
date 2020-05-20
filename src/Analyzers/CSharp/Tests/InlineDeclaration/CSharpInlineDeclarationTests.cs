@@ -2282,18 +2282,15 @@ class C
 }");
         }
 
+        [WorkItem(44429, "https://github.com/dotnet/roslyn/issues/44429")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task TopLevelStatement()
         {
-            await TestAsync(@"
+            await TestMissingAsync(@"
 [|int|] i;
 if (int.TryParse(v, out i))
 {
-}",
-@"
-if (int.TryParse(v, out int i))
-{
-}", TestOptions.Regular);
+}", new TestParameters(TestOptions.Regular));
         }
     }
 }
