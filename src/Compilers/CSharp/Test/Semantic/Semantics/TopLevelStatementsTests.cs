@@ -159,13 +159,13 @@ local();
 void local() => System.Console.WriteLine(2);
 ";
 
-            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "2");
 
             verifyModel(comp, comp.SyntaxTrees[0]);
 
-            comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Enable), parseOptions: DefaultParseOptions);
+            comp = CreateCompilation(text1, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Enable), parseOptions: DefaultParseOptions);
             verifyModel(comp, comp.SyntaxTrees[0], nullableEnabled: true);
 
             static void verifyModel(CSharpCompilation comp, SyntaxTree tree1, bool nullableEnabled = false)
@@ -544,7 +544,7 @@ local();
 void local() => System.Console.WriteLine(i);
 ";
 
-            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1");
 
@@ -583,7 +583,7 @@ void local() => System.Console.WriteLine(i);
                 Assert.NotNull(operation2);
                 Assert.IsAssignableFrom<ILocalReferenceOperation>(operation2);
 
-                // PROTOTYPE(TopLevelStatements): The following assert fails due to https://github.com/dotnet/roslyn/issues/41853, enable once the issue is fixed.
+                // The following assert fails due to https://github.com/dotnet/roslyn/issues/41853, enable once the issue is fixed.
                 //Assert.Contains(declSymbol, model1.AnalyzeDataFlow(localRef).DataFlowsIn);
             }
         }
@@ -951,7 +951,7 @@ int x = 1;
 System.Console.Write(x);
 ";
 
-            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
                 // (4,5): error CS0128: A local variable or function named 'x' is already defined in this scope
@@ -1009,7 +1009,7 @@ string args = ""1"";
 System.Console.Write(args);
 ";
 
-            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
                 // (2,8): error CS0136: A local or parameter named 'args' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -1036,12 +1036,73 @@ _ = from x in new object[0] select x;
 System.Console.Write(x);
 ";
 
-            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
                 // (4,10): error CS1931: The range variable 'x' conflicts with a previous declaration of 'x'
                 // _ = from x in new object[0] select x;
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "x").WithArguments("x").WithLocation(4, 10)
+                );
+        }
+
+        [Fact]
+        public void LocalDeclarationStatement_16()
+        {
+            var text = @"
+System.Console.WriteLine();
+string await = ""Hi!"";
+System.Console.WriteLine(await);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (3,8): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                // string await = "Hi!";
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(3, 8),
+                // (3,8): warning CS0219: The variable 'await' is assigned but its value is never used
+                // string await = "Hi!";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "await").WithArguments("await").WithLocation(3, 8),
+                // (4,31): error CS1525: Invalid expression term ')'
+                // System.Console.WriteLine(await);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(4, 31)
+                );
+
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnType.IsErrorType());
+            AssertEntryPointParameter(entryPoint);
+        }
+
+        [Fact]
+        public void LocalDeclarationStatement_17()
+        {
+            var text = @"
+string async = ""Hi!"";
+System.Console.WriteLine(async);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void LocalDeclarationStatement_18()
+        {
+            var text = @"
+int c = -100;
+ref int d = ref c;
+System.Console.Write(d);
+await System.Threading.Tasks.Task.Yield();
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (3,9): error CS8177: Async methods cannot have by-reference locals
+                // ref int d = ref c;
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "d").WithLocation(3, 9)
                 );
         }
 
@@ -1435,6 +1496,32 @@ string e() => ""1"";
 
             var model2 = comp.GetSemanticModel(tree);
             Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, model1.GetTypeInfo(reference).Nullability.FlowState);
+        }
+
+        [Fact]
+        public void FlowAnalysis_02()
+        {
+            var text = @"
+System.Console.WriteLine();
+
+if (args.Length == 0)
+{
+    return 10;
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0161: '<top-level-statements-entry-point>': not all code paths return a value
+                // System.Console.WriteLine();
+                Diagnostic(ErrorCode.ERR_ReturnExpected, @"System.Console.WriteLine();
+
+if (args.Length == 0)
+{
+    return 10;
+}
+").WithArguments("<top-level-statements-entry-point>").WithLocation(2, 1)
+                );
         }
 
         [Fact]
@@ -4085,13 +4172,13 @@ local();
 
 void local()
 {
-    System.Console.WriteLine(""Hi!"");
+    System.Console.WriteLine(15);
 }
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
-            CompileAndVerify(comp, expectedOutput: "Hi!");
+            CompileAndVerify(comp, expectedOutput: "15");
 
             Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
@@ -4110,6 +4197,56 @@ void local()
             Assert.Equal(SymbolKind.NamedType, local.ContainingSymbol.ContainingSymbol.Kind);
             Assert.True(local.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
             Assert.True(((INamespaceSymbol)local.ContainingSymbol.ContainingSymbol.ContainingSymbol).IsGlobalNamespace);
+
+            VerifyFlowGraph(comp, tree.GetRoot(),
+@"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Methods: [void local()]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'local();')
+              Expression: 
+                IInvocationOperation (void local()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'local()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   void local()
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... teLine(15);')
+                  Expression: 
+                    IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... iteLine(15)')
+                      Instance Receiver: 
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '15')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 15) (Syntax: '15')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B2#0R1]
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
+    }
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+");
         }
 
         [Fact]
@@ -4379,7 +4516,7 @@ void local2()
 }
 ";
 
-            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
                 // (7,6): error CS0128: A local variable or function named 'local1' is already defined in this scope
@@ -4431,7 +4568,7 @@ void args(int x)
 {}
 ";
 
-            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
                 // (3,6): error CS0136: A local or parameter named 'args' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -4459,7 +4596,7 @@ void local<args>(args x)
 }
 ";
 
-            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             CompileAndVerify(comp, expectedOutput: "1");
         }
@@ -4476,7 +4613,7 @@ void local()
 }
 ";
 
-            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             CompileAndVerify(comp, expectedOutput: "2");
         }
@@ -4492,7 +4629,7 @@ void local(int args)
 }
 ";
 
-            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             CompileAndVerify(comp, expectedOutput: "3");
         }
@@ -4512,7 +4649,7 @@ void local()
 }
 ";
 
-            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             CompileAndVerify(comp, expectedOutput: "4");
         }
@@ -4527,13 +4664,50 @@ local();
 void local() {}
 ";
 
-            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
                 // (3,10): error CS1931: The range variable 'local' conflicts with a previous declaration of 'local'
                 // _ = from local in new object[0] select local;
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "local").WithArguments("local").WithLocation(3, 10)
                 );
+        }
+
+        [Fact]
+        public void LocalFunctionStatement_17()
+        {
+            var text = @"
+System.Console.WriteLine();
+string await() => ""Hi!"";
+System.Console.WriteLine(await());
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (3,8): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                // string await() => "Hi!";
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(3, 8),
+                // (3,8): warning CS8321: The local function 'await' is declared but never used
+                // string await() => "Hi!";
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "await").WithArguments("await").WithLocation(3, 8),
+                // (4,32): error CS1525: Invalid expression term ')'
+                // System.Console.WriteLine(await());
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(4, 32)
+                );
+        }
+
+        [Fact]
+        public void LocalFunctionStatement_18()
+        {
+            var text = @"
+string async() => ""Hi!"";
+System.Console.WriteLine(async());
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            CompileAndVerify(comp, expectedOutput: "Hi!");
         }
 
         [Fact]
@@ -5729,7 +5903,6 @@ void local() => System.Console.WriteLine(1);
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // PROTOTYPE(TopLevelStatements): Is this message good enough for local functions?
                 // (6,1): error CS9002: Top-level statements must precede namespace and type declarations.
                 // void local() => System.Console.WriteLine(1);
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "void local() => System.Console.WriteLine(1);").WithLocation(6, 1)
@@ -8269,7 +8442,7 @@ using System.Linq;
 _ = from args in new object[0] select args;
 ";
 
-            var comp = CreateCompilation(new[] { text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
                 // (3,10): error CS1931: The range variable 'args' conflicts with a previous declaration of 'args'
@@ -8303,6 +8476,44 @@ lambda();
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             CompileAndVerify(comp, expectedOutput: "Args_04", args: new[] { "Args_04" }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Span_01()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+Span<int> span = default;
+_ = new { Span = span };
+
+", options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (5,11): error CS0828: Cannot assign 'Span<int>' to anonymous type property
+                // _ = new { Span = span };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Span = span").WithArguments("System.Span<int>").WithLocation(5, 11)
+                );
+        }
+
+        [Fact]
+        public void Span_02()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+Span<int> outer;
+for (Span<int> inner = stackalloc int[10];; inner = outer)
+{
+    outer = inner;
+}
+", options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //     outer = inner;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(7, 13)
+                );
         }
     }
 }
