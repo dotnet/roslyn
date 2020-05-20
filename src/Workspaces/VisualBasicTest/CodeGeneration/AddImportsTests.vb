@@ -410,8 +410,8 @@ End Class", safe, useSymbolAnnotations)
 
 #Region "AddImports Safe Tests"
 
-        <Theory, InlineData(True), InlineData(False)>
-        Public Async Function TestSafeWithMatchingSimpleName(useSymbolAnnotations As Boolean) As Task
+        <Fact>
+        Public Async Function TestSafeWithMatchingSimpleName() As Task
             Await TestAsync(
 "Imports B
 
@@ -433,8 +433,7 @@ Class C
         Return Nothing
     End Function
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class C1
@@ -450,12 +449,11 @@ Namespace B
 End Namespace
 
 Class C
-    Private Function M(ByVal c2 As A.C2) As Global.B.C1
+    Private Function M(ByVal c2 As A.C2) As C1
         Return Nothing
     End Function
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class C1
@@ -471,14 +469,14 @@ Namespace B
 End Namespace
 
 Class C
-    Private Function M(ByVal c2 As C2) As B.C1
+    Private Function M(ByVal c2 As A.C2) As C1
         Return Nothing
     End Function
-End Class", safe:=True, useSymbolAnnotations)
+End Class", safe:=True, useSymbolAnnotations:=True)
         End Function
 
-        <Theory, InlineData(True), InlineData(False)>
-        Public Async Function TestSafeWithMatchingSimpleNameDifferentCase(useSymbolAnnotations As Boolean) As Task
+        <Fact>
+        Public Async Function TestSafeWithMatchingSimpleNameDifferentCase() As Task
             Await TestAsync(
 "Imports B
 
@@ -500,8 +498,7 @@ Class C
         Return Nothing
     End Function
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class C1
@@ -517,12 +514,11 @@ Namespace B
 End Namespace
 
 Class C
-    Private Function M(ByVal c2 As A.C2) As Global.B.c1
+    Private Function M(ByVal c2 As A.C2) As c1
         Return Nothing
     End Function
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class C1
@@ -538,14 +534,14 @@ Namespace B
 End Namespace
 
 Class C
-    Private Function M(ByVal c2 As C2) As B.c1
+    Private Function M(ByVal c2 As A.C2) As c1
         Return Nothing
     End Function
-End Class", safe:=True, useSymbolAnnotations)
+End Class", safe:=True, useSymbolAnnotations:=True)
         End Function
 
-        <Theory, InlineData(True), InlineData(False)>
-        Public Async Function TestSafeWithMatchingGenericName(useSymbolAnnotations As Boolean) As Task
+        <Fact>
+        Public Async Function TestSafeWithMatchingGenericName() As Task
             Await TestAsync(
 "Imports B
 
@@ -567,8 +563,7 @@ Class C
         Return Nothing
     End Function
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class C1(Of T)
@@ -584,12 +579,11 @@ Namespace B
 End Namespace
 
 Class C
-    Private Function M(ByVal c2 As A.C2) As Global.B.C1(Of Integer)
+    Private Function M(ByVal c2 As A.C2) As C1(Of Integer)
         Return Nothing
     End Function
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class C1(Of T)
@@ -605,14 +599,14 @@ Namespace B
 End Namespace
 
 Class C
-    Private Function M(ByVal c2 As C2) As B.C1(Of Integer)
+    Private Function M(ByVal c2 As A.C2) As C1(Of Integer)
         Return Nothing
     End Function
-End Class", safe:=True, useSymbolAnnotations)
+End Class", safe:=True, useSymbolAnnotations:=True)
         End Function
 
-        <Theory, InlineData(True), InlineData(False)>
-        Public Async Function TestSafeWithMatchingQualifiedName(useSymbolAnnotations As Boolean) As Task
+        <Fact>
+        Public Async Function TestSafeWithMatchingQualifiedName() As Task
             Await TestAsync(
 "Imports B
 
@@ -636,8 +630,7 @@ Class C
         Return Nothing
     End Function
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class O
@@ -655,12 +648,11 @@ Namespace B
 End Namespace
 
 Class C
-    Private Function M(ByVal c2 As A.C2) As Global.B.O.C1
+    Private Function M(ByVal c2 As A.C2) As O.C1
         Return Nothing
     End Function
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class O
@@ -678,14 +670,14 @@ Namespace B
 End Namespace
 
 Class C
-    Private Function M(ByVal c2 As C2) As B.O.C1
+    Private Function M(ByVal c2 As A.C2) As O.C1
         Return Nothing
     End Function
-End Class", safe:=True, useSymbolAnnotations)
+End Class", safe:=True, useSymbolAnnotations:=True)
         End Function
 
-        <Theory, InlineData(True), InlineData(False)>
-        Public Async Function TestSafeWithMatchingAliasedIdentifierName(useSymbolAnnotations As Boolean) As Task
+        <Fact>
+        Public Async Function TestSafeWithMatchingAliasedIdentifierName() As Task
             Await TestAsync(
 "Imports C1 = B.C1
 
@@ -709,9 +701,7 @@ Namespace Inner
         End Function
     End Class
 End Namespace",
-"Imports A
-Imports B
-Imports C1 = B.C1
+"Imports C1 = B.C1
 
 Namespace A
     Class C1
@@ -728,13 +718,12 @@ End Namespace
 
 Namespace Inner
     Class C
-        Private Function M(ByVal c2 As A.C2) As Global.B.C1
+        Private Function M(ByVal c2 As A.C2) As C1
             Return Nothing
         End Function
     End Class
 End Namespace",
-"Imports A
-Imports C1 = B.C1
+"Imports C1 = B.C1
 
 Namespace A
     Class C1
@@ -751,15 +740,15 @@ End Namespace
 
 Namespace Inner
     Class C
-        Private Function M(ByVal c2 As C2) As C1
+        Private Function M(ByVal c2 As A.C2) As C1
             Return Nothing
         End Function
     End Class
-End Namespace", safe:=True, useSymbolAnnotations)
+End Namespace", safe:=True, useSymbolAnnotations:=True)
         End Function
 
-        <Theory, InlineData(True), InlineData(False)>
-        Public Async Function TestSafeWithMatchingGenericNameAndTypeArguments(useSymbolAnnotations As Boolean) As Task
+        <Fact>
+        Public Async Function TestSafeWithMatchingGenericNameAndTypeArguments() As Task
             Await TestAsync(
 "Imports B
 
@@ -787,8 +776,7 @@ Class C
         Return Nothing
     End Function
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class C1(Of T)
@@ -810,12 +798,11 @@ Namespace B
 End Namespace
 
 Class C
-    Private Function M(ByVal c2 As A.C2) As Global.B.C1(Of Global.B.C3)
+    Private Function M(ByVal c2 As A.C2) As C1(Of C3)
         Return Nothing
     End Function
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class C1(Of T)
@@ -837,14 +824,14 @@ Namespace B
 End Namespace
 
 Class C
-    Private Function M(ByVal c2 As C2) As B.C1(Of B.C3)
+    Private Function M(ByVal c2 As A.C2) As C1(Of C3)
         Return Nothing
     End Function
-End Class", safe:=True, useSymbolAnnotations)
+End Class", safe:=True, useSymbolAnnotations:=True)
         End Function
 
-        <Theory, InlineData(True), InlineData(False)>
-        Public Async Function TestSafeWithMatchingQualifiedNameAndTypeArguments(useSymbolAnnotations As Boolean) As Task
+        <Fact>
+        Public Async Function TestSafeWithMatchingQualifiedNameAndTypeArguments() As Task
             Await TestAsync(
 "Imports B
 
@@ -874,8 +861,7 @@ Class C
         Return Nothing
     End Function
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class O
@@ -899,12 +885,11 @@ Namespace B
 End Namespace
 
 Class C
-    Private Function M(ByVal c2 As A.C2) As Global.B.O.C1(Of Global.B.C3)
+    Private Function M(ByVal c2 As A.C2) As O.C1(Of C3)
         Return Nothing
     End Function
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class O
@@ -928,14 +913,14 @@ Namespace B
 End Namespace
 
 Class C
-    Private Function M(ByVal c2 As C2) As B.O.C1(Of B.C3)
+    Private Function M(ByVal c2 As A.C2) As O.C1(Of C3)
         Return Nothing
     End Function
-End Class", safe:=True, useSymbolAnnotations)
+End Class", safe:=True, useSymbolAnnotations:=True)
         End Function
 
-        <Theory, InlineData(True), InlineData(False)>
-        Public Async Function TestSafeWithMatchingSimpleNameInAllLocations(useSymbolAnnotations As Boolean) As Task
+        <Fact>
+        Public Async Function TestSafeWithMatchingSimpleNameInAllLocations() As Task
             Await TestAsync(
 "Imports B
 Imports System.Collections.Generic
@@ -973,45 +958,7 @@ Class C
         Return result
     End Function
 End Class",
-"Imports A
-Imports B
-Imports System.Collections.Generic
-
-Namespace A
-    Class C1
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class C1
-        Public Shared ReadOnly Property P As Global.B.C1
-    End Class
-End Namespace
-
-Class C
-    ''' <summary>
-    ''' <see cref=""Global.B.C1""/>
-    ''' </summary>
-    Private Function M(ByVal c As Global.B.C1, ByVal c2 As A.C2) As Global.B.C1
-        Dim result As Global.B.C1
-        result = DirectCast(c, Global.B.C1)
-        result = CType(c, Global.B.C1)
-        result = new Global.B.C1()
-        result = Global.B.C1.P
-        result = new Global.B.C1(0){}(0)
-        Dim list = New List(Of Global.B.C1)()
-        Dim tuple As (Global.B.C1, Integer) = (Nothing, Nothing)
-        Dim t = GetType(Global.B.C1)
-        Dim s = NameOf(Global.B.C1)
-
-        Return result
-    End Function
-End Class",
-"Imports A
-Imports B
+"Imports B
 Imports System.Collections.Generic
 
 Namespace A
@@ -1029,28 +976,64 @@ Namespace B
 End Namespace
 
 Class C
-    ''' <summary>
-    ''' <see cref=""B.C1""/>
-    ''' </summary>
-    Private Function M(ByVal c As B.C1, ByVal c2 As C2) As B.C1
-        Dim result As B.C1
-        result = DirectCast(c, B.C1)
-        result = CType(c, B.C1)
-        result = new B.C1()
-        result = B.C1.P
-        result = new B.C1(0){}(0)
-        Dim list = New List(Of B.C1)()
-        Dim tuple As (B.C1, Integer) = (Nothing, Nothing)
-        Dim t = GetType(B.C1)
-        Dim s = NameOf(B.C1)
+	''' <summary>
+	''' <see cref=""C1""/>
+	''' </summary>
+    Private Function M(ByVal c As C1, ByVal c2 As A.C2) As C1
+        Dim result As C1
+        result = DirectCast(c, C1)
+        result = CType(c, C1)
+        result = new C1()
+        result = C1.P
+        result = new C1(0){}(0)
+        Dim list = New List(Of C1)()
+        Dim tuple As (C1, Integer) = (Nothing, Nothing)
+        Dim t = GetType(C1)
+        Dim s = NameOf(C1)
 
         Return result
     End Function
-End Class", safe:=True, useSymbolAnnotations)
+End Class",
+"Imports B
+Imports System.Collections.Generic
+
+Namespace A
+    Class C1
+    End Class
+
+    Class C2
+    End Class
+End Namespace
+
+Namespace B
+    Class C1
+        Public Shared ReadOnly Property P As C1
+    End Class
+End Namespace
+
+Class C
+	''' <summary>
+	''' <see cref=""C1""/>
+	''' </summary>
+    Private Function M(ByVal c As C1, ByVal c2 As A.C2) As C1
+        Dim result As C1
+        result = DirectCast(c, C1)
+        result = CType(c, C1)
+        result = new C1()
+        result = C1.P
+        result = new C1(0){}(0)
+        Dim list = New List(Of C1)()
+        Dim tuple As (C1, Integer) = (Nothing, Nothing)
+        Dim t = GetType(C1)
+        Dim s = NameOf(C1)
+
+        Return result
+    End Function
+End Class", safe:=True, useSymbolAnnotations:=True)
         End Function
 
-        <Theory, InlineData(True), InlineData(False)>
-        Public Async Function TestSafeWithMatchingExtensionMethod(useSymbolAnnotations As Boolean) As Task
+        <Fact>
+        Public Async Function TestSafeWithMatchingExtensionMethod() As Task
             Await TestAsync(
 "Imports B
 Imports System.Runtime.CompilerServices
@@ -1079,8 +1062,7 @@ Friend Class C
 		Call 42.M()
     End Sub
 End Class",
-"Imports A
-Imports B
+"Imports B
 Imports System.Runtime.CompilerServices
 
 Namespace A
@@ -1104,11 +1086,10 @@ End Namespace
 
 Friend Class C
     Private Sub M(ByVal c1 As A.C1)
-		Call Global.B.BExtensions.M((CInt((42))))
+		Call 42.M()
     End Sub
 End Class",
-"Imports A
-Imports B
+"Imports B
 Imports System.Runtime.CompilerServices
 
 Namespace A
@@ -1131,15 +1112,16 @@ Namespace B
 End Namespace
 
 Friend Class C
-    Private Sub M(ByVal c1 As C1)
-		Call BExtensions.M(42)
+    Private Sub M(ByVal c1 As A.C1)
+		Call 42.M()
     End Sub
-End Class", safe:=True, useSymbolAnnotations)
+End Class", safe:=True, useSymbolAnnotations:=True)
         End Function
 
-        <Theory, InlineData(True), InlineData(False)>
-        Public Async Function TestSafeWithMatchingExtensionMethodAndArguments(useSymbolAnnotations As Boolean) As Task
-            Await TestAsync("Imports B
+        <Fact>
+        Public Async Function TestSafeWithMatchingExtensionMethodAndArguments() As Task
+            Await TestAsync(
+"Imports B
 Imports System.Runtime.CompilerServices
 
 Namespace A
@@ -1172,14 +1154,13 @@ Friend Class C
 		Call 42.M(New C2())
     End Sub
 End Class",
-"Imports A
-Imports B
+"Imports B
 Imports System.Runtime.CompilerServices
 
 Namespace A
     Friend Module AExtensions
         <Extension()>
-        Sub M(ByVal a As Integer, ByVal c2 As Global.A.C2)
+        Sub M(ByVal a As Integer, ByVal c2 As C2)
         End Sub
     End Module
 
@@ -1193,7 +1174,7 @@ End Namespace
 Namespace B
     Friend Module BExtensions
         <Extension()>
-        Sub M(ByVal a As Integer, ByVal c2 As Global.B.C2)
+        Sub M(ByVal a As Integer, ByVal c2 As C2)
         End Sub
     End Module
 
@@ -1203,11 +1184,10 @@ End Namespace
 
 Friend Class C
     Private Sub M(ByVal c1 As A.C1)
-		Call Global.B.BExtensions.M((CInt((42))), (CType((New Global.B.C2()), Global.B.C2)))
+		Call 42.M(New C2())
     End Sub
 End Class",
-"Imports A
-Imports B
+"Imports B
 Imports System.Runtime.CompilerServices
 
 Namespace A
@@ -1236,14 +1216,14 @@ Namespace B
 End Namespace
 
 Friend Class C
-    Private Sub M(ByVal c1 As C1)
-		Call 42.M(New B.C2())
+    Private Sub M(ByVal c1 As A.C1)
+		Call 42.M(New C2())
     End Sub
-End Class", safe:=True, useSymbolAnnotations)
+End Class", safe:=True, useSymbolAnnotations:=True)
         End Function
 
-        <Theory, InlineData(True), InlineData(False)>
-        Public Async Function TestSafeWithMatchingExtensionMethodAndTypeArguments(useSymbolAnnotations As Boolean) As Task
+        <Fact>
+        Public Async Function TestSafeWithMatchingExtensionMethodAndTypeArguments() As Task
             Await TestAsync(
 "Imports B
 Imports System.Runtime.CompilerServices
@@ -1278,8 +1258,7 @@ Friend Class C
 		Call 42.M(Of C2)()
     End Sub
 End Class",
-"Imports A
-Imports B
+"Imports B
 Imports System.Runtime.CompilerServices
 
 Namespace A
@@ -1309,11 +1288,10 @@ End Namespace
 
 Friend Class C
     Private Sub M(ByVal c1 As A.C1)
-		Call Global.B.BExtensions.M(Of Global.B.C2)((CInt((42))))
+		Call 42.M(Of C2)()
     End Sub
 End Class",
-"Imports A
-Imports B
+"Imports B
 Imports System.Runtime.CompilerServices
 
 Namespace A
@@ -1342,10 +1320,10 @@ Namespace B
 End Namespace
 
 Friend Class C
-    Private Sub M(ByVal c1 As C1)
-		Call BExtensions.M(Of B.C2)(42)
+    Private Sub M(ByVal c1 As A.C1)
+		Call 42.M(Of C2)()
     End Sub
-End Class", safe:=True, useSymbolAnnotations)
+End Class", safe:=True, useSymbolAnnotations:=True)
         End Function
 
         '        <Theory, InlineData(True), InlineData(False)>
@@ -1454,9 +1432,8 @@ End Class", safe:=True, useSymbolAnnotations)
         '            Assert.Equal(expectedWarningMessage, WarningAnnotation.GetDescription(warning))
         '        End Function
 
-        <WorkItem(39592, "https://github.com/dotnet/roslyn/issues/39592")>
-        <Theory, InlineData(True), InlineData(False)>
-        Public Async Function TestCanExpandCrefSignaturePart(useSymbolAnnotations As Boolean) As Task
+        <Fact, WorkItem(39592, "https://github.com/dotnet/roslyn/issues/39592")>
+        Public Async Function TestCanExpandCrefSignaturePart() As Task
             Await TestAsync(
 "Imports B
 
@@ -1480,8 +1457,7 @@ Class C
     Private Sub M(ByVal c1 As C1)
     End Sub
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class C1
@@ -1497,14 +1473,13 @@ Namespace B
 End Namespace
 
 Class C
-    ''' <see cref=""M(Global.B.C1)""/>
+    ''' <see cref=""M(C1)""/>
     Private Sub M(ByVal c2 As A.C2)
     End Sub
-    Private Sub M(ByVal c1 As Global.B.C1)
+    Private Sub M(ByVal c1 As C1)
     End Sub
 End Class",
-"Imports A
-Imports B
+"Imports B
 
 Namespace A
     Class C1
@@ -1520,12 +1495,12 @@ Namespace B
 End Namespace
 
 Class C
-    ''' <see cref=""M(B.C1)""/>
-    Private Sub M(ByVal c2 As C2)
+    ''' <see cref=""M(C1)""/>
+    Private Sub M(ByVal c2 As A.C2)
     End Sub
-    Private Sub M(ByVal c1 As B.C1)
+    Private Sub M(ByVal c1 As C1)
     End Sub
-End Class", safe:=True, useSymbolAnnotations)
+End Class", safe:=True, useSymbolAnnotations:=True)
         End Function
 
 #End Region
