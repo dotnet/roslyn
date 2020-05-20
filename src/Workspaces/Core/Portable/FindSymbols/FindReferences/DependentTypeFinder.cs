@@ -5,12 +5,10 @@
 #nullable enable
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -21,12 +19,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    // Must cache using SymbolKey+ProjectId.  That's because the same symbol key may be found among many projects, but
-    // the same operation on the same symbol key might produce different results depending on which project it was found
-    // in.  For example, each symbol's project may have a different set of downstream dependent projects.  As such,
-    // there may be a different set of related symbols found for each.
-    using RelatedTypeCache = ConditionalWeakTable<Solution, ConcurrentDictionary<(SymbolKey, ProjectId?, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>>;
-
     using SymbolSet = HashSet<INamedTypeSymbol>;
 
     /// <summary>
@@ -60,33 +52,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ObjectPool<PooledDictionary<INamedTypeSymbol, Project>> s_symbolToProjectPool = PooledDictionary<INamedTypeSymbol, Project>.CreatePool(SymbolEquivalenceComparer.Instance);
 
         /// <summary>
-        /// We pass the special <see cref="KeyEqualityComparer.Instance"/> here because <see cref="IImmutableSet{T}"/>
-        /// uses reference equality not value equality.
-        /// </summary>
-        private static readonly RelatedTypeCache.CreateValueCallback s_createTypeMap =
-            _ => new ConcurrentDictionary<(SymbolKey, ProjectId?, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>(KeyEqualityComparer.Instance);
-
-        private static async Task<ImmutableArray<INamedTypeSymbol>> FindTypesFromCacheOrComputeAsync(
-            Func<CancellationToken, Task<ImmutableArray<(INamedTypeSymbol type, Project project)>>> findAsync,
-            CancellationToken cancellationToken)
-        {
-            var result = await findAsync(cancellationToken).ConfigureAwait(false);
-            return result.SelectAsArray(t => t.type);
-        }
-
-        private static async Task<ImmutableArray<(SymbolKey, ProjectId)>> GetSymbolKeysAndProjectIdsAsync(
-            Func<CancellationToken, Task<ImmutableArray<(INamedTypeSymbol type, Project project)>>> findAsync,
-            CancellationToken cancellationToken)
-        {
-            // If we're the code that is actually computing the symbols, then just 
-            // take our result and store it in the outer frame.  That way the caller
-            // doesn't need to incur the cost of deserializing the symbol keys that
-            // we're create right below this.
-            var result = await findAsync(cancellationToken).ConfigureAwait(false);
-            return result.SelectAsArray(t => (t.type.GetSymbolKey(), t.project.Id));
-        }
-
-        /// <summary>
         /// Walks down a <paramref name="type"/>'s inheritance tree looking for more <see cref="INamedTypeSymbol"/>'s
         /// that match the provided <paramref name="typeMatches"/> predicate.
         /// </summary>
@@ -95,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// inherit from it that would match this search.</param>
         /// <param name="transitive">If this search after finding the direct inherited types that match the provided
         /// predicate, or if the search should continue recursively using those types as the starting point.</param>
-        private static async Task<ImmutableArray<(INamedTypeSymbol type, Project project)>> DescendInheritanceTreeAsync(
+        private static async Task<ImmutableArray<INamedTypeSymbol>> DescendInheritanceTreeAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -171,7 +136,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     transitive, cancellationToken).ConfigureAwait(false);
             }
 
-            return result.SelectAsArray(kvp => (kvp.Key, kvp.Value));
+            return result.SelectAsArray(kvp => kvp.Key);
         }
 
         private static async Task DescendInheritanceTreeInProjectAsync(
