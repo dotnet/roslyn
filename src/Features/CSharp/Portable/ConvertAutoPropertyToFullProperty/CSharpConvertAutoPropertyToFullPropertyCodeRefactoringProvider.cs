@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                     out var arrowExpression, out _))
             {
                 return accessorDeclarationSyntax.WithSemicolonToken(default);
-            };
+            }
 
             return accessorDeclarationSyntax
                 .WithExpressionBody(arrowExpression)
