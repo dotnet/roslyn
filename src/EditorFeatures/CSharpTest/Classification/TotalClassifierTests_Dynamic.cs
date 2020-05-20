@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
@@ -620,7 +621,8 @@ partial void F(dynamic d)
                 Punctuation.CloseParen);
         }
 
-        [Fact(Skip = "PROTOTYPE(TopLevelStatements): Script and Regular parse differently now"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task DynamicAsArrayName()
         {
             await TestAsync(
