@@ -173,6 +173,7 @@ namespace Analyzer.Utilities
         public const string SystemIDisposable = "System.IDisposable";
         public const string SystemIEquatable1 = "System.IEquatable`1";
         public const string SystemIFormatProvider = "System.IFormatProvider";
+        public const string SystemIndex = "System.Index";
         public const string SystemInt16 = "System.Int16";
         public const string SystemInt32 = "System.Int32";
         public const string SystemInt64 = "System.Int64";
