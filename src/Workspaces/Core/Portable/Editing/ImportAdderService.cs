@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 namespaceMembers.OfType<INamedTypeSymbol>().Where(t => t.MightContainExtensionMethods)
                 .SelectMany(x => x.GetMembers().OfType<IMethodSymbol>().Where(x => x.IsExtensionMethod));
 
-            var conflicts = new HashSet<INamespaceSymbol>();
+            using var _ = PooledHashSet<INamespaceSymbol>.GetInstance(out var conflicts);
             AddPotentiallyConflictingImports(
                 root, namespaceMembers, extensionMethods, model, conflicts, cancellationToken);
             return namespaceSymbols.Except(conflicts).ToSet();
