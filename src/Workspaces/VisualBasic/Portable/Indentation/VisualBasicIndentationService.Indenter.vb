@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return token.GetPreviousToken()
         End Function
 
-        Private Function GetIndentationBasedOnToken(indenter As Indenter, token As SyntaxToken, Optional trivia As SyntaxTrivia = Nothing) As IndentationResult
+        Private Shared Function GetIndentationBasedOnToken(indenter As Indenter, token As SyntaxToken, Optional trivia As SyntaxTrivia = Nothing) As IndentationResult
             Dim sourceText = indenter.LineToBeIndented.Text
 
             Dim position = indenter.GetCurrentPositionNotBelongToEndOfFileToken(indenter.LineToBeIndented.Start)
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return GetIndentationOfCurrentPosition(indenter, token, position)
         End Function
 
-        Private Function GetIndentationOfCurrentPosition(indenter As Indenter, token As SyntaxToken, position As Integer) As IndentationResult
+        Private Shared Function GetIndentationOfCurrentPosition(indenter As Indenter, token As SyntaxToken, position As Integer) As IndentationResult
             Return GetIndentationOfCurrentPosition(indenter, token, position, extraSpaces:=0)
         End Function
 
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, extraSpaces, indenter.CancellationToken))
         End Function
 
-        Private Function IsLineContinuable(lastVisibleTokenOnPreviousLine As SyntaxToken, trivia As SyntaxTrivia) As Boolean
+        Private Shared Function IsLineContinuable(lastVisibleTokenOnPreviousLine As SyntaxToken, trivia As SyntaxTrivia) As Boolean
             If trivia.Kind = SyntaxKind.LineContinuationTrivia OrElse
                 trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
                 Return True
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return Nothing
         End Function
 
-        Private Function GetIndentationFromTokenLineAfterLineContinuation(indenter As Indenter, token As SyntaxToken, trivia As SyntaxTrivia) As IndentationResult
+        Private Shared Function GetIndentationFromTokenLineAfterLineContinuation(indenter As Indenter, token As SyntaxToken, trivia As SyntaxTrivia) As IndentationResult
             Dim sourceText = indenter.LineToBeIndented.Text
             Dim position = indenter.LineToBeIndented.Start
 
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                     TypeOf token.Parent Is TypeParameterListSyntax)
         End Function
 
-        Private Function GetIndentationFromTwoLines(indenter As Indenter, firstLine As TextLine, secondLine As TextLine, token As SyntaxToken, position As Integer) As IndentationResult
+        Private Shared Function GetIndentationFromTwoLines(indenter As Indenter, firstLine As TextLine, secondLine As TextLine, token As SyntaxToken, position As Integer) As IndentationResult
             If firstLine.LineNumber = secondLine.LineNumber Then
                 ' things are on same line, put the indentation size
                 Return GetIndentationOfCurrentPosition(indenter, token, position, indenter.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language))

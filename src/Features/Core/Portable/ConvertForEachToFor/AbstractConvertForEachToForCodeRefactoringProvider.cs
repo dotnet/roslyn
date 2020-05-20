@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             ISemanticFactsService semanticFacts, SemanticModel model, SyntaxNode location, string baseName, CancellationToken cancellationToken)
             => semanticFacts.GenerateUniqueLocalName(model, location, containerOpt: null, baseName, cancellationToken);
 
-        protected SyntaxNode GetCollectionVariableName(
+        protected static SyntaxNode GetCollectionVariableName(
             SemanticModel model, SyntaxGenerator generator,
             ForEachInfo foreachInfo, SyntaxNode foreachCollectionExpression, CancellationToken cancellationToken)
         {

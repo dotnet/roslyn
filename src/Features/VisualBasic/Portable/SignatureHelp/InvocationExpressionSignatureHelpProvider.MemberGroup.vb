@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return memberGroup.Where(Function(m) m.IsAccessibleWithin(within, throughType)).ToImmutableArray()
         End Function
 
-        Private Function GetMemberGroupItems(accessibleMembers As ImmutableArray(Of ISymbol),
+        Private Shared Function GetMemberGroupItems(accessibleMembers As ImmutableArray(Of ISymbol),
                                              document As Document,
                                              invocationExpression As InvocationExpressionSyntax,
                                              semanticModel As SemanticModel) As IEnumerable(Of SignatureHelpItem)

@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return valueText
             End Function
 
-            Private Function GetIntegerLiteralValueString(value As Object, base As LiteralBase) As String
+            Private Shared Function GetIntegerLiteralValueString(value As Object, base As LiteralBase) As String
                 Select Case base
                     Case LiteralBase.Decimal
                         Return CType(value, ULong).ToString(CultureInfo.InvariantCulture)

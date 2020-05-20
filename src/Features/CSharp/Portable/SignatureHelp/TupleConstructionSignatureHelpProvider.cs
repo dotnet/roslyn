@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return CreateSignatureHelpItems(items, targetExpression.Span, state, selectedItem: null);
         }
 
-        private SignatureHelpItem Convert(INamedTypeSymbol tupleType, ImmutableArray<TaggedText> prefixParts, ImmutableArray<TaggedText> suffixParts,
+        private static SignatureHelpItem Convert(INamedTypeSymbol tupleType, ImmutableArray<TaggedText> prefixParts, ImmutableArray<TaggedText> suffixParts,
             ImmutableArray<TaggedText> separatorParts, SemanticModel semanticModel, int position)
         {
             return new SymbolKeySignatureHelpItem(

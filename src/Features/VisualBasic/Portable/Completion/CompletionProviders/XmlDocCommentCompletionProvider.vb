@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("<"c, "/"c, """"c, " "c)
 
-        Public Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
+        Public Shared Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
             Return If(token.IntersectsWith(position) AndAlso IsText(token),
                       token.GetPreviousToken(includeSkipped:=True),
                       token)

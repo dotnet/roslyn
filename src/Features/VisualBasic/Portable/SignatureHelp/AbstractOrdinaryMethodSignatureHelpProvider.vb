@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     friend MustInherit class AbstractOrdinaryMethodSignatureHelpProvider
         inherits AbstractVisualBasicSignatureHelpProvider
 
-        Protected Function ConvertMemberGroupMember(document As Document,
+        Protected Shared Function ConvertMemberGroupMember(document As Document,
                                                     member As ISymbol,
                                                     position As Integer,
                                                     semanticModel As SemanticModel) As SignatureHelpItem

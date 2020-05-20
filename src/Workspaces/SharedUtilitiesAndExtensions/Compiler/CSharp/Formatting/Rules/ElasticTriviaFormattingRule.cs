@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             var initializer = GetInitializerNode(node);
             var lastTokenOfType = GetLastTokenOfType(node);

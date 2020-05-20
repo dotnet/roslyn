@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text)
+        private static SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion() || !selectionInfo.SelectionInExpression)
             {
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         private static TextSpan GetControlFlowSpan(SelectionInfo selectionInfo)
             => TextSpan.FromBounds(selectionInfo.FirstTokenInFinalSpan.SpanStart, selectionInfo.LastTokenInFinalSpan.Span.End);
 
-        private SelectionInfo AdjustFinalTokensBasedOnContext(
+        private static SelectionInfo AdjustFinalTokensBasedOnContext(
             SelectionInfo selectionInfo,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return selectionInfo;
         }
 
-        private SelectionInfo AssignInitialFinalTokens(SelectionInfo selectionInfo, SyntaxNode root, CancellationToken cancellationToken)
+        private static SelectionInfo AssignInitialFinalTokens(SelectionInfo selectionInfo, SyntaxNode root, CancellationToken cancellationToken)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
             {

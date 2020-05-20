@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ''' <summary>
             ''' this will put operator token and modifier tokens in right order
             ''' </summary>
-            Private Function OperatorStatementSpecialFixup(node As OperatorStatementSyntax) As OperatorStatementSyntax
+            Private Shared Function OperatorStatementSpecialFixup(node As OperatorStatementSyntax) As OperatorStatementSyntax
                 ' first check whether operator is missing
                 If Not node.OperatorToken.IsMissing Then
                     Return node
@@ -376,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ''' <summary>
             ''' reorder modifiers in the list
             ''' </summary>
-            Private Function ReorderModifiers(modifiers As SyntaxTokenList) As SyntaxTokenList
+            Private Shared Function ReorderModifiers(modifiers As SyntaxTokenList) As SyntaxTokenList
                 ' quick check - if there is only one or less modifier, return as it is
                 If modifiers.Count <= 1 Then
                     Return modifiers
@@ -469,7 +469,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ''' <summary>
             ''' remove "Dim" keyword if present
             ''' </summary>
-            Private Function RemoveDimKeyword(Of T As SyntaxNode)(node As T, modifiersGetter As Func(Of T, SyntaxTokenList)) As T
+            Private Shared Function RemoveDimKeyword(Of T As SyntaxNode)(node As T, modifiersGetter As Func(Of T, SyntaxTokenList)) As T
                 Return RemoveModifierKeyword(node, modifiersGetter, SyntaxKind.DimKeyword)
             End Function
 

@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        private static void AddAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             switch (node)
             {
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SetAlignmentBlockOperation(list, bracePair.openBrace, bracePair.openBrace.GetNextToken(includeZeroWidth: true), bracePair.closeBrace, option);
         }
 
-        private void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             // increase indentation - embedded statement cases
             if (node is IfStatementSyntax ifStatement && ifStatement.Statement != null && !(ifStatement.Statement is BlockSyntax))

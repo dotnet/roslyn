@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return true;
         }
 
-        private SignatureHelpItem Convert(
+        private static SignatureHelpItem Convert(
             IPropertySymbol indexer,
             SyntaxToken openToken,
             SemanticModel semanticModel,

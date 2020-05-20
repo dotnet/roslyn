@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             return false;
         }
 
-        private bool IsLambdaExpression(SemanticModel semanticModel, int position, SyntaxToken token, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
+        private static bool IsLambdaExpression(SemanticModel semanticModel, int position, SyntaxToken token, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
         {
             // Not after `new`
             if (token.IsKind(SyntaxKind.NewKeyword) && token.Parent.IsKind(SyntaxKind.ObjectCreationExpression))

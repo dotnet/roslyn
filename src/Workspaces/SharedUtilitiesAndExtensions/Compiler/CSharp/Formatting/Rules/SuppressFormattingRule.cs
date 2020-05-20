@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddSpecificNodesSuppressOperations(list, node);
         }
 
-        private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             if (node is IfStatementSyntax ifStatementNode)
             {
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             if (!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block)
             {
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return false;
         }
 
-        private void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             // array or collection initializer case
             if (node.IsInitializerForArrayOrCollectionCreationExpression())
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode parent, IEnumerable<SyntaxNode> items)
+        private static void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode parent, IEnumerable<SyntaxNode> items)
         {
             // make creation node itself to not break into multiple line, if it is on same line
             AddSuppressWrappingIfOnSingleLineOperation(list, parent.GetFirstToken(includeZeroWidth: true), parent.GetLastToken(includeZeroWidth: true));

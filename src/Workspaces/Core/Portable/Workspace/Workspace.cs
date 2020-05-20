@@ -1210,7 +1210,7 @@ namespace Microsoft.CodeAnalysis
                 // added projects
                 foreach (var proj in solutionChanges.GetAddedProjects())
                 {
-                    this.ApplyProjectAdded(this.CreateProjectInfo(proj));
+                    this.ApplyProjectAdded(CreateProjectInfo(proj));
                 }
 
                 // changed projects
@@ -1576,7 +1576,7 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfTrue(changes.GetProjectChanges().Any());
         }
 
-        private ProjectInfo CreateProjectInfo(Project project)
+        private static ProjectInfo CreateProjectInfo(Project project)
         {
             return ProjectInfo.Create(
                 project.Id,
@@ -1600,7 +1600,7 @@ namespace Microsoft.CodeAnalysis
                 .WithAnalyzerConfigDocuments(project.AnalyzerConfigDocuments.Select(d => CreateDocumentInfoWithText(d)));
         }
 
-        private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
+        private static DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
             => CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(doc.GetTextSynchronously(CancellationToken.None), VersionStamp.Create(), doc.FilePath)));
 
         internal static DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)

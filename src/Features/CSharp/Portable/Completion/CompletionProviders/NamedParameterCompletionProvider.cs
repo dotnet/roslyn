@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return existingArguments.ToSet();
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>> GetParameterLists(
             SemanticModel semanticModel,
             int position,
             SyntaxNode invocableNode,

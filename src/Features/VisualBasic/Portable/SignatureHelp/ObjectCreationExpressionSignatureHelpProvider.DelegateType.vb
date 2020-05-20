@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class ObjectCreationExpressionSignatureHelpProvider
 
-        Private Function GetDelegateTypeConstructors(objectCreationExpression As ObjectCreationExpressionSyntax,
+        Private Shared Function GetDelegateTypeConstructors(objectCreationExpression As ObjectCreationExpressionSyntax,
                                                      semanticModel As SemanticModel,
                                                      anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                      documentationCommentFormattingService As IDocumentationCommentFormattingService,

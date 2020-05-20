@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return Nothing
         End Function
 
-        Private Overloads Function Convert(constructor As IMethodSymbol,
+        Private Overloads Shared Function Convert(constructor As IMethodSymbol,
                                            within As ISymbol,
                                            attribute As AttributeSyntax,
                                            semanticModel As SemanticModel,

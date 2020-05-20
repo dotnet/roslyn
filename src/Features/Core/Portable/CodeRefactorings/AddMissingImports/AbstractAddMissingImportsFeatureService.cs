@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return fixes.ToImmutableAndFree();
         }
 
-        private async Task<Document> ApplyFixesAsync(Document document, ImmutableArray<AddImportFixData> fixes, CancellationToken cancellationToken)
+        private static async Task<Document> ApplyFixesAsync(Document document, ImmutableArray<AddImportFixData> fixes, CancellationToken cancellationToken)
         {
             if (fixes.IsEmpty)
             {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return await CleanUpNewLinesAsync(newDocument, insertSpans, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Document> CleanUpNewLinesAsync(Document document, IEnumerable<TextSpan> insertSpans, CancellationToken cancellationToken)
+        private static async Task<Document> CleanUpNewLinesAsync(Document document, IEnumerable<TextSpan> insertSpans, CancellationToken cancellationToken)
         {
             var languageFormatter = document.GetLanguageService<ISyntaxFormattingService>();
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);

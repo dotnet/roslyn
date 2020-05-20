@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Next
         End Function
 
-        Private Async Function GenerateEventFromAddRemoveHandlerAsync(document As Document, handlerStatement As AddRemoveHandlerStatementSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
+        Private Shared Async Function GenerateEventFromAddRemoveHandlerAsync(document As Document, handlerStatement As AddRemoveHandlerStatementSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             Dim handlerExpression = GetHandlerExpression(handlerStatement)

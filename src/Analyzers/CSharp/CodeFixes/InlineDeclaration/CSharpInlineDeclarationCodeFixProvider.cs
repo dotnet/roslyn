@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return (declarator, identifier, invocationOrCreation);
         }
 
-        private SyntaxNode ReplaceIdentifierWithInlineDeclaration(
+        private static SyntaxNode ReplaceIdentifierWithInlineDeclaration(
             OptionSet options, SemanticModel semanticModel,
             SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
             IdentifierNameSyntax identifier, SyntaxNode currentNode,

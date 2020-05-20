@@ -1406,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return false;
         }
 
-        private int GetCharValue(RegexToken hexText, int withBase)
+        private static int GetCharValue(RegexToken hexText, int withBase)
         {
             unchecked
             {

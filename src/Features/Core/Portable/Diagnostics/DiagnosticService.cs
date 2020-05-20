@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         [Conditional("DEBUG")]
-        private void AssertIfNull(ImmutableArray<DiagnosticData> diagnostics)
+        private static void AssertIfNull(ImmutableArray<DiagnosticData> diagnostics)
         {
             for (var i = 0; i < diagnostics.Length; i++)
             {

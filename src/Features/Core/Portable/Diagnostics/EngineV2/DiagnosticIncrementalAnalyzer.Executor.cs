@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return true;
         }
 
-        private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
+        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
             Project project,
             ImmutableArray<DiagnosticAnalyzer> ideAnalyzers,
             Compilation? compilation,

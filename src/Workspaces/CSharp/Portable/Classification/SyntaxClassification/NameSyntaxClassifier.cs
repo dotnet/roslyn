@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private bool TryClassifyAmbiguousSymbol(
+        private static bool TryClassifyAmbiguousSymbol(
             NameSyntax name,
             SymbolInfo symbolInfo,
             SemanticModel semanticModel,
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private bool TryClassifySymbol(
+        private static bool TryClassifySymbol(
             NameSyntax name,
             [NotNullWhen(returnValue: true)] ISymbol? symbol,
             SemanticModel semanticModel,

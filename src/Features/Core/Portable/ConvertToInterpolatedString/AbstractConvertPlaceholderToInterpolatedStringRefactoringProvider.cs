@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
                 if (arguments.Count >= 2)
                 {
-                    if (syntaxFactsService.GetExpressionOfArgument(thisInstance.GetFormatArgument(arguments, syntaxFactsService)) is TLiteralExpressionSyntax firstArgumentExpression &&
+                    if (syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) is TLiteralExpressionSyntax firstArgumentExpression &&
                         syntaxFactsService.IsStringLiteral(firstArgumentExpression.GetFirstToken()))
                     {
                         var invocationSymbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
         }
 
-        private bool IsArgumentListCorrect(
+        private static bool IsArgumentListCorrect(
             SeparatedSyntaxList<TArgumentSyntax>? nullableArguments,
             ISymbol invocationSymbol,
             ImmutableArray<IMethodSymbol> formatMethods,
@@ -182,13 +182,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         private static string GetArgumentName(TArgumentSyntax argument, ISyntaxFacts syntaxFacts)
             => syntaxFacts.GetNameForArgument(argument);
 
-        private SyntaxNode GetParamsArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
+        private static SyntaxNode GetParamsArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
         => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[1];
 
-        private TArgumentSyntax GetFormatArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
+        private static TArgumentSyntax GetFormatArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
             => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[0];
 
-        private TArgumentSyntax GetArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, int index, ISyntaxFacts syntaxFacts)
+        private static TArgumentSyntax GetArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, int index, ISyntaxFacts syntaxFacts)
         {
             if (arguments.Count > 4)
             {
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 ?? arguments[index];
         }
 
-        private ImmutableArray<TExpressionSyntax> GetExpandedArguments(
+        private static ImmutableArray<TExpressionSyntax> GetExpandedArguments(
             SemanticModel semanticModel,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             SyntaxGenerator syntaxGenerator,

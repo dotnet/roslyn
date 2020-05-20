@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return True
             End Function
 
-            Public Function RemoveDeclarationAssignmentPattern(statements As IEnumerable(Of StatementSyntax)) As IEnumerable(Of StatementSyntax)
+            Public Shared Function RemoveDeclarationAssignmentPattern(statements As IEnumerable(Of StatementSyntax)) As IEnumerable(Of StatementSyntax)
                 If statements.Count() < 2 Then
                     Return statements
                 End If

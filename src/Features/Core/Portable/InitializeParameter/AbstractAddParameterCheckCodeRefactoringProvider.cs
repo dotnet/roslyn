@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return false;
         }
 
-        private bool IsIfNullCheck(IOperation statement, IParameterSymbol parameter)
+        private static bool IsIfNullCheck(IOperation statement, IParameterSymbol parameter)
         {
             if (statement is IConditionalOperation ifStatement)
             {
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         CreateArgumentException(compilation, generator, parameter, methodName))));
         }
 
-        private SyntaxNode GetStatementToAddNullCheckAfter(
+        private static SyntaxNode GetStatementToAddNullCheckAfter(
             SemanticModel semanticModel,
             IParameterSymbol parameter,
             IBlockOperation blockStatementOpt,

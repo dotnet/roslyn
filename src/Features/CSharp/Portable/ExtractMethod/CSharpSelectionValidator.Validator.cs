@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpSelectionValidator
     {
-        public bool Check(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public static bool Check(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => node switch
             {
                 ExpressionSyntax expression => CheckExpression(semanticModel, expression, cancellationToken),

@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
             }
 
-            private IEnumerable<SymbolDisplayPart> Description(string description)
+            private static IEnumerable<SymbolDisplayPart> Description(string description)
             {
                 return Punctuation("(")
                     .Concat(PlainText(description))
@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     .Concat(Space());
             }
 
-            protected IEnumerable<SymbolDisplayPart> Keyword(string text)
+            protected static IEnumerable<SymbolDisplayPart> Keyword(string text)
                 => Part(SymbolDisplayPartKind.Keyword, text);
 
             protected static IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)
@@ -735,10 +735,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
             }
 
-            protected IEnumerable<SymbolDisplayPart> PlainText(string text)
+            protected static IEnumerable<SymbolDisplayPart> PlainText(string text)
                 => Part(SymbolDisplayPartKind.Text, text);
 
-            protected IEnumerable<SymbolDisplayPart> Punctuation(string text)
+            protected static IEnumerable<SymbolDisplayPart> Punctuation(string text)
                 => Part(SymbolDisplayPartKind.Punctuation, text);
 
             protected static IEnumerable<SymbolDisplayPart> Space(int count = 1)
@@ -757,10 +757,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 yield return new SymbolDisplayPart(kind, symbol, text);
             }
 
-            private IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, string text)
+            private static IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, string text)
                 => Part(kind, null, text);
 
-            private IEnumerable<SymbolDisplayPart> TypeParameterName(string text)
+            private static IEnumerable<SymbolDisplayPart> TypeParameterName(string text)
                 => Part(SymbolDisplayPartKind.TypeParameterName, text);
         }
     }

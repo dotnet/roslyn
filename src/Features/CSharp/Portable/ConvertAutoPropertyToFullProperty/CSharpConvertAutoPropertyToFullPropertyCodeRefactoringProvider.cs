@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             => (accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)),
                 accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)));
 
-        private SyntaxNode GetUpdatedAccessor(DocumentOptionSet options,
+        private static SyntaxNode GetUpdatedAccessor(DocumentOptionSet options,
             SyntaxNode accessor, SyntaxNode statement)
         {
             var newAccessor = AddStatement(accessor, statement);

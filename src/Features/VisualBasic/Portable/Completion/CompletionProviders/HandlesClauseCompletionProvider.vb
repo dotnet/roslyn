@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
-        Private Function GetTopLevelIdentifiersAsync(
+        Private Shared Function GetTopLevelIdentifiersAsync(
             context As VisualBasicSyntaxContext,
             cancellationToken As CancellationToken
         ) As ImmutableArray(Of ISymbol)

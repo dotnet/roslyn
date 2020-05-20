@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
             SpecialType.System_UInt64,
             SpecialType.System_UInt16}
 
-        Private Function GetIntrinsicTypeKeywords(context As VisualBasicSyntaxContext) As IEnumerable(Of RecommendedKeyword)
+        Private Shared Function GetIntrinsicTypeKeywords(context As VisualBasicSyntaxContext) As IEnumerable(Of RecommendedKeyword)
             Debug.Assert(s_intrinsicKeywordNames.Length = s_intrinsicSpecialTypes.Length)
 
             Dim inferredSpecialTypes = context.InferredTypes.Select(Function(t) t.SpecialType).ToSet()

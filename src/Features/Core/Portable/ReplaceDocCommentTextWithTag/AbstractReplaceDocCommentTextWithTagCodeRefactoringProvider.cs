@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return null;
         }
 
-        private void RegisterRefactoring(
+        private static void RegisterRefactoring(
             CodeRefactoringContext context, TextSpan expandedSpan, string replacement)
         {
             context.RegisterRefactoring(
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
             return document.WithText(newText);
         }
 
-        private TextSpan ExpandSpan(SourceText sourceText, TextSpan span, bool fullyQualifiedName)
+        private static TextSpan ExpandSpan(SourceText sourceText, TextSpan span, bool fullyQualifiedName)
         {
             if (span.Length != 0)
             {

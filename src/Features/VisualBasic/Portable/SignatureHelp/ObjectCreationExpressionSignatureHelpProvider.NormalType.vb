@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class ObjectCreationExpressionSignatureHelpProvider
 
-        Private Function GetNormalTypeConstructors(document As Document,
+        Private Shared Function GetNormalTypeConstructors(document As Document,
                                                    objectCreationExpression As ObjectCreationExpressionSyntax,
                                                    semanticModel As SemanticModel,
                                                    anonymousTypeDisplayService As IAnonymousTypeDisplayService,
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return (items, selectedItem)
         End Function
 
-        Private Function ConvertNormalTypeConstructor(constructor As IMethodSymbol, objectCreationExpression As ObjectCreationExpressionSyntax, semanticModel As SemanticModel,
+        Private Shared Function ConvertNormalTypeConstructor(constructor As IMethodSymbol, objectCreationExpression As ObjectCreationExpressionSyntax, semanticModel As SemanticModel,
                                                       anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                       documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim position = objectCreationExpression.SpanStart

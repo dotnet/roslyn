@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Private Function IsBlockSyntax(node As SyntaxNode) As Boolean
+        Private Shared Function IsBlockSyntax(node As SyntaxNode) As Boolean
             Dim pair = GetFirstAndLastMembers(node)
             If pair.Equals(Nothing) Then
                 Return False

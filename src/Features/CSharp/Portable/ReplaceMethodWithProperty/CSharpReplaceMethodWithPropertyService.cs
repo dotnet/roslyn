@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             editor.ReplaceNode(getMethodDeclaration, newProperty);
         }
 
-        public SyntaxNode ConvertMethodsToProperty(
+        public static SyntaxNode ConvertMethodsToProperty(
             DocumentOptionSet documentOptions, ParseOptions parseOptions,
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
             string propertyName, bool nameChanged)
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             return propertyDeclaration;
         }
 
-        public PropertyDeclarationSyntax ConvertMethodsToPropertyWorker(
+        public static PropertyDeclarationSyntax ConvertMethodsToPropertyWorker(
             DocumentOptionSet documentOptions, ParseOptions parseOptions,
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
             string propertyName, bool nameChanged)

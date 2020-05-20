@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
             Return index
         End Function
 
-        Private Function GetFirstCharacterIndex(message As String, Optional start As Integer = 0) As Integer
+        Private Shared Function GetFirstCharacterIndex(message As String, Optional start As Integer = 0) As Integer
             Dim index = GetFirstNonWhitespace(message, start)
 
             Dim singleQuote = 0

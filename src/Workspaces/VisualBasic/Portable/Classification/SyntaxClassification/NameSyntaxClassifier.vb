@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             End If
         End Sub
 
-        Private Function TryClassifySymbol(
+        Private Shared Function TryClassifySymbol(
             node As NameSyntax,
             symbol As ISymbol,
             ByRef classifiedSpan As ClassifiedSpan) As Boolean
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             Return False
         End Function
 
-        Private Function TryClassifyMyNamespace(
+        Private Shared Function TryClassifyMyNamespace(
             node As NameSyntax,
             symbol As ISymbol,
             semanticModel As SemanticModel,

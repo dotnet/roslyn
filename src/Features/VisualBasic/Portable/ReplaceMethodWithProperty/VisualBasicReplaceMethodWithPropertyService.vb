@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return declaration
         End Function
 
-        Private Function ConvertMethodsToProperty(
+        Private Shared Function ConvertMethodsToProperty(
             editor As SyntaxEditor,
             getAndSetMethods As GetAndSetMethods,
             propertyName As String, nameChanged As Boolean) As DeclarationStatementSyntax

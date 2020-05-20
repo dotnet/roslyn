@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return updatedDocument.Project.Solution;
         }
 
-        protected IPropertySymbol GenerateProperty(
+        protected static IPropertySymbol GenerateProperty(
             string propertyName, string fieldName,
             Accessibility accessibility,
             IFieldSymbol field,

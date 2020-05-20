@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return (fieldAction, propertyAction);
         }
 
-        private ImmutableArray<IParameterSymbol> GetParametersWithoutAssociatedMembers(
+        private static ImmutableArray<IParameterSymbol> GetParametersWithoutAssociatedMembers(
             IBlockOperation? blockStatementOpt,
             ImmutableArray<NamingRule> rules,
             IMethodSymbol method)
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     document, functionDeclaration, blockStatementOpt, parameter, fieldOrProperty, c)));
         }
 
-        private ISymbol? TryFindSiblingFieldOrProperty(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
+        private static ISymbol? TryFindSiblingFieldOrProperty(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
         {
             foreach (var (siblingParam, _) in GetSiblingParameters(parameter))
             {
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
-        private CodeGenerationOptions? GetAddOptions<TSymbol>(
+        private static CodeGenerationOptions? GetAddOptions<TSymbol>(
             IParameterSymbol parameter, IBlockOperation? blockStatementOpt,
             SyntaxNode typeDeclaration, CancellationToken cancellationToken)
             where TSymbol : ISymbol
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return TryGetLastStatement(blockStatementOpt);
         }
 
-        private IOperation? TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
+        private static IOperation? TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation? blockStatementOpt)
             => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatementOpt, out _);
 
         private static IOperation? TryFindFieldOrPropertyAssignmentStatement(

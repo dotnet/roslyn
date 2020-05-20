@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             context.RegisterRefactorings(actions);
         }
 
-        private async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+        private static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             return actions.ToImmutableAndFree();
         }
 
-        private async Task<CodeAction> ExtractMethodAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private static async Task<CodeAction> ExtractMethodAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 c => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));
         }
 
-        private async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private static async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();

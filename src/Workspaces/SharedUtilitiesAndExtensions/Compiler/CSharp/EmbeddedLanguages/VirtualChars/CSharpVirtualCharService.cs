@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         private static VirtualCharSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
             => TryConvertSimpleDoubleQuoteString(token, startDelimiter, endDelimiter, escapeBraces);
 
-        private VirtualCharSequence TryConvertStringToVirtualChars(
+        private static VirtualCharSequence TryConvertStringToVirtualChars(
             SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
         {
             var tokenText = token.Text;
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 tokenText, offset, startIndexInclusive, endIndexExclusive, runeResults);
         }
 
-        private bool TryAddEscape(
+        private static bool TryAddEscape(
             ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
         {
             // Copied from Lexer.ScanEscapeSequence.

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
 
-        public Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
+        public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
         {
             if (reference is PortableExecutableReference portable)
             {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return Checksum.Create(stream);
         }
 
-        public void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public static void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             if (reference is PortableExecutableReference portable)
             {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        protected void WritePortableExecutableReferenceHeaderTo(
+        protected static void WritePortableExecutableReferenceHeaderTo(
             PortableExecutableReference reference, SerializationKinds kind, ObjectWriter writer, CancellationToken cancellationToken)
         {
             writer.WriteString(nameof(PortableExecutableReference));
@@ -135,13 +135,13 @@ namespace Microsoft.CodeAnalysis.Serialization
             WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
         }
 
-        private void WritePortableExecutableReferencePropertiesTo(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        private static void WritePortableExecutableReferencePropertiesTo(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             WriteTo(reference.Properties, writer, cancellationToken);
             writer.WriteString(reference.FilePath);
         }
 
-        private Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
+        private static Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return Checksum.Create(stream);
         }
 
-        private void WriteMvidsTo(Metadata? metadata, ObjectWriter writer, CancellationToken cancellationToken)
+        private static void WriteMvidsTo(Metadata? metadata, ObjectWriter writer, CancellationToken cancellationToken)
         {
             if (metadata == null)
             {
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteGuid(guid);
         }
 
-        private void WritePortableExecutableReferenceTo(
+        private static void WritePortableExecutableReferenceTo(
             PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.Bits, writer, cancellationToken);
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return new MetadataReferenceProperties(kind, aliases, embedInteropTypes);
         }
 
-        private void WriteTo(Metadata? metadata, ObjectWriter writer, CancellationToken cancellationToken)
+        private static void WriteTo(Metadata? metadata, ObjectWriter writer, CancellationToken cancellationToken)
         {
             if (metadata == null)
             {
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             WriteTo((ModuleMetadata)metadata, writer, cancellationToken);
         }
 
-        private bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
+        private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
             ISupportTemporaryStorage reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             var storages = reference.GetStorages();
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             stream.Write(content, 0, content.Length);
         }
 
-        private void WriteTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
+        private static void WriteTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
         {
             writer.WriteInt32((int)metadata.Kind);
 

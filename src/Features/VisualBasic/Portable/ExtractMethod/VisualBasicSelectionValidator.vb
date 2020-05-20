@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return TextSpan.FromBounds(selectionInfo.FirstTokenInFinalSpan.SpanStart, selectionInfo.LastTokenInFinalSpan.Span.End)
         End Function
 
-        Private Function CheckErrorCasesAndAppendDescriptions(selectionInfo As SelectionInfo, semanticModel As SemanticModel, cancellationToken As CancellationToken) As SelectionInfo
+        Private Shared Function CheckErrorCasesAndAppendDescriptions(selectionInfo As SelectionInfo, semanticModel As SemanticModel, cancellationToken As CancellationToken) As SelectionInfo
             If selectionInfo.Status.Failed() Then
                 Return selectionInfo
             End If
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return originalFirstToken <> finalFirstToken OrElse originalLastToken <> finalLastToken
         End Function
 
-        Private Function ContainsAllStaticLocalUsagesDefinedInSelectionIfExist(selectionInfo As SelectionInfo,
+        Private Shared Function ContainsAllStaticLocalUsagesDefinedInSelectionIfExist(selectionInfo As SelectionInfo,
                                                                                semanticModel As SemanticModel,
                                                                                cancellationToken As CancellationToken) As Boolean
             If selectionInfo.FirstTokenInFinalSpan.GetAncestor(Of FieldDeclarationSyntax)() IsNot Nothing OrElse
@@ -223,7 +223,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             Return True
         End Function
 
-        Private Function GetFinalTokenCommonRoot(selection As SelectionInfo) As SyntaxNode
+        Private Shared Function GetFinalTokenCommonRoot(selection As SelectionInfo) As SyntaxNode
             Return GetCommonRoot(selection.FirstTokenInFinalSpan, selection.LastTokenInFinalSpan)
         End Function
 
@@ -307,7 +307,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             Return clone
         End Function
 
-        Private Function AdjustFinalTokensBasedOnContext(selectionInfo As SelectionInfo,
+        Private Shared Function AdjustFinalTokensBasedOnContext(selectionInfo As SelectionInfo,
                                                          semanticModel As SemanticModel,
                                                          cancellationToken As CancellationToken) As SelectionInfo
             If selectionInfo.Status.Failed() Then

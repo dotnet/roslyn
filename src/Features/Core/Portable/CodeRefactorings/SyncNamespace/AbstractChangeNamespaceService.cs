@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return await Simplifier.ReduceAsync(formattedDocument, optionSet, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Document> FixReferencingDocumentAsync(
+        private static async Task<Document> FixReferencingDocumentAsync(
             Document document,
             IEnumerable<LocationForAffectedSymbol> refLocations,
             string newNamespace,
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return result;
         }
 
-        private async Task<Solution> RemoveUnnecessaryImportsAsync(
+        private static async Task<Solution> RemoveUnnecessaryImportsAsync(
             Solution solution,
             ImmutableArray<DocumentId> ids,
             ImmutableArray<string> names,
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// Add imports for the namespace specified by <paramref name="names"/>
         /// to the provided <paramref name="containers"/>
         /// </summary>
-        private async Task<Document> AddImportsInContainersAsync(
+        private static async Task<Document> AddImportsInContainersAsync(
             Document document,
             IAddImportsService addImportService,
             ImmutableArray<SyntaxNode> containers,

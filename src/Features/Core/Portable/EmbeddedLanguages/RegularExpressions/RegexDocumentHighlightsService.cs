@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             return ImmutableArray<HighlightSpan>.Empty;
         }
 
-        private ImmutableArray<HighlightSpan> CreateHighlights(
+        private static ImmutableArray<HighlightSpan> CreateHighlights(
             RegexEscapeNode node, TextSpan captureSpan)
         {
             return ImmutableArray.Create(CreateHighlightSpan(node.GetSpan()), CreateHighlightSpan(captureSpan));

@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
-        Private Overloads Function Convert(
+        Private Overloads Shared Function Convert(
             eventSymbol As IEventSymbol,
             raiseEventStatement As RaiseEventStatementSyntax,
             semanticModel As SemanticModel,

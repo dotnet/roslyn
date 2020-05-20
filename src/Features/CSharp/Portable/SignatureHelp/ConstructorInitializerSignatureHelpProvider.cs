@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return null;
         }
 
-        private SignatureHelpItem Convert(
+        private static SignatureHelpItem Convert(
             IMethodSymbol constructor,
             SyntaxToken openToken,
             SemanticModel semanticModel,

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return root.ReplaceTokens(map.Keys, (o, n) => map[o]);
             }
 
-            private Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
+            private static Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
                 Dictionary<TriviaLocation, PreviousNextTokenPair> tokenPairs,
                 Dictionary<TriviaLocation, LeadingTrailingTriviaPair> triviaPairs)
             {

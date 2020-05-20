@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return true;
         }
 
-        private bool HaveSameSignature(IEventSymbol event1, IEventSymbol event2, bool caseSensitive)
+        private static bool HaveSameSignature(IEventSymbol event1, IEventSymbol event2, bool caseSensitive)
             => IdentifiersMatch(event1.Name, event2.Name, caseSensitive);
 
         public bool HaveSameSignature(IPropertySymbol property1, IPropertySymbol property2, bool caseSensitive)
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return true;
         }
 
-        private bool HaveSameAccessors(IPropertySymbol property1, IPropertySymbol property2)
+        private static bool HaveSameAccessors(IPropertySymbol property1, IPropertySymbol property2)
         {
             if (property1.ContainingType == null ||
                 property1.ContainingType.TypeKind == TypeKind.Interface)

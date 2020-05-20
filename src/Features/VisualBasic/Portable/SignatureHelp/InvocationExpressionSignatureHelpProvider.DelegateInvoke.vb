@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class InvocationExpressionSignatureHelpProvider
 
-        Private Function GetDelegateInvokeItems(invocationExpression As InvocationExpressionSyntax,
+        Private Shared Function GetDelegateInvokeItems(invocationExpression As InvocationExpressionSyntax,
                                                 semanticModel As SemanticModel,
                                                 anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                 documentationCommentFormattingService As IDocumentationCommentFormattingService,

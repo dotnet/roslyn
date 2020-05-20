@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             };
         }
 
-        private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             var (firstToken, lastToken) = GetSpecificNodeSuppressionTokenRange(node);
             if (!firstToken.IsKind(SyntaxKind.None) || !lastToken.IsKind(SyntaxKind.None))
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             if (!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block)
             {

@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         private static bool InfoBoundSuccessfully(SymbolInfo symbolInfo)
             => InfoBoundSuccessfully(symbolInfo.Symbol);
 
-        private bool InfoBoundSuccessfully(QueryClauseInfo semanticInfo)
+        private static bool InfoBoundSuccessfully(QueryClauseInfo semanticInfo)
             => InfoBoundSuccessfully(semanticInfo.OperationInfo);
 
         private static bool InfoBoundSuccessfully(ISymbol operation)
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return (usingDirective, addImportService.HasExistingImport(semanticModel.Compilation, root, contextNode, usingDirective, generator));
         }
 
-        private NameSyntax RemoveGlobalAliasIfUnnecessary(
+        private static NameSyntax RemoveGlobalAliasIfUnnecessary(
             SemanticModel semanticModel,
             NameSyntax nameSyntax,
             NamespaceDeclarationSyntax namespaceToAddTo)

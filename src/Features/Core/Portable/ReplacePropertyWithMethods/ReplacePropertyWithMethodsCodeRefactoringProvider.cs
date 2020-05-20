@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 propertyDeclaration.Span);
         }
 
-        private async Task<Solution> ReplacePropertyWithMethodsAsync(
+        private static async Task<Solution> ReplacePropertyWithMethodsAsync(
            Document document,
            IPropertySymbol propertySymbol,
            CancellationToken cancellationToken)
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             return definitionToBackingField;
         }
 
-        private bool HasAnyMatchingGetOrSetMethods(IPropertySymbol property, string name)
+        private static bool HasAnyMatchingGetOrSetMethods(IPropertySymbol property, string name)
         {
             return HasAnyMatchingGetMethods(property, name) ||
                 HasAnyMatchingSetMethods(property, name);
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             return null;
         }
 
-        private async Task<Solution> UpdateReferencesAsync(
+        private static async Task<Solution> UpdateReferencesAsync(
             Solution updatedSolution,
             ILookup<Document, (IPropertySymbol property, ReferenceLocation location)> referencesByDocument,
             Dictionary<IPropertySymbol, IFieldSymbol> propertyToBackingField,
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 }
             }
         }
-        private async Task<Solution> ReplaceDefinitionsWithMethodsAsync(
+        private static async Task<Solution> ReplaceDefinitionsWithMethodsAsync(
             Solution originalSolution,
             Solution updatedSolution,
             IEnumerable<ReferencedSymbol> references,
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             return result;
         }
 
-        private async Task<Solution> ReplaceDefinitionsWithMethodsAsync(
+        private static async Task<Solution> ReplaceDefinitionsWithMethodsAsync(
             Solution updatedSolution,
             DocumentId documentId,
             MultiDictionary<DocumentId, IPropertySymbol>.ValueSet originalDefinitions,
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             return updatedSolution.WithDocumentSyntaxRoot(documentId, editor.GetChangedRoot());
         }
 
-        private async Task<List<(IPropertySymbol property, SyntaxNode declaration)>> GetCurrentPropertiesAsync(
+        private static async Task<List<(IPropertySymbol property, SyntaxNode declaration)>> GetCurrentPropertiesAsync(
             Solution updatedSolution,
             Compilation compilation,
             DocumentId documentId,

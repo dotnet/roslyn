@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             AddIndentBlockOperations(Of TypeParameterListSyntax)(list, node, Function(n) Not n.OpenParenToken.IsMissing AndAlso n.Parameters.Count > 0, indentationDelta:=1)
         End Sub
 
-        Private Overloads Sub AddIndentBlockOperations(Of T As SyntaxNode)(list As List(Of IndentBlockOperation), node As SyntaxNode, predicate As Func(Of T, Boolean), Optional indentationDelta As Integer = 0)
+        Private Overloads Shared Sub AddIndentBlockOperations(Of T As SyntaxNode)(list As List(Of IndentBlockOperation), node As SyntaxNode, predicate As Func(Of T, Boolean), Optional indentationDelta As Integer = 0)
             Dim parameterOrArgumentList = TryCast(node, T)
             If parameterOrArgumentList Is Nothing Then
                 Return
@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                            AlignTokensOption.AlignIndentationOfTokensToBaseToken))
         End Sub
 
-        Private Overloads Sub AddAlignTokensOperations(Of T As SyntaxNode)(operations As List(Of AlignTokensOperation), node As SyntaxNode, baseTokenGetter As Func(Of T, SyntaxToken))
+        Private Overloads Shared Sub AddAlignTokensOperations(Of T As SyntaxNode)(operations As List(Of AlignTokensOperation), node As SyntaxNode, baseTokenGetter As Func(Of T, SyntaxToken))
             Dim parameterList = TryCast(node, T)
             If parameterList Is Nothing Then
                 Return

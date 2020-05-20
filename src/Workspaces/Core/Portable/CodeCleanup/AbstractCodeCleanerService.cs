@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
         }
 
-        private ImmutableArray<TextSpan> GetTextSpansFromAnnotation(
+        private static ImmutableArray<TextSpan> GetTextSpansFromAnnotation(
             SyntaxNode node,
             List<(SyntaxAnnotation previousAnnotation, SyntaxAnnotation nextAnnotation)> annotations,
             CancellationToken cancellationToken)
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             return builder.ToImmutableAndFree();
         }
 
-        private bool TryGetTextSpanFromAnnotation(
+        private static bool TryGetTextSpanFromAnnotation(
             SpanMarker previousTokenMarker,
             SpanMarker nextTokenMarker,
             SyntaxNode node,
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Inject annotations into the node so that it can re-calculate spans for each code cleaner after each tree transformation.
         /// </summary>
-        private (SyntaxNode newNode, List<(SyntaxAnnotation previous, SyntaxAnnotation next)> annotations) AnnotateNodeForTextSpans(
+        private static (SyntaxNode newNode, List<(SyntaxAnnotation previous, SyntaxAnnotation next)> annotations) AnnotateNodeForTextSpans(
             ISyntaxFactsService syntaxFactsService, SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
             // Get spans where the tokens around the spans are not overlapping with the spans.
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Make sure annotations are positioned outside of any spans. If not, merge two adjacent spans to one.
         /// </summary>
-        private ImmutableArray<TextSpan> GetNonOverlappingSpans(ISyntaxFactsService syntaxFactsService, SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+        private static ImmutableArray<TextSpan> GetNonOverlappingSpans(ISyntaxFactsService syntaxFactsService, SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
             // Create interval tree for spans
             var intervalTree = SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), spans);
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         /// <summary>
         /// Adjust provided span to align to either token's start position or end position.
         /// </summary>
-        private TextSpan GetSpanAlignedToTokens(
+        private static TextSpan GetSpanAlignedToTokens(
             ISyntaxFactsService syntaxFactsService, SyntaxNode root, TextSpan span, out SyntaxToken startToken, out SyntaxToken endToken)
         {
             startToken = FindTokenOnLeftOfPosition(syntaxFactsService, root, span.Start);

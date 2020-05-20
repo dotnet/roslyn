@@ -381,7 +381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Dim typeArguments = If(state.SimpleName.Arity = genericName.TypeArgumentList.Arguments.Count,
                     genericName.TypeArgumentList.Arguments.OfType(Of SyntaxNode)().ToList(),
                     Enumerable.Repeat(Of SyntaxNode)(Nothing, state.SimpleName.Arity))
-                Return Me.GetTypeParameters(state, semanticModel, typeArguments, cancellationToken)
+                Return GetTypeParameters(state, semanticModel, typeArguments, cancellationToken)
             End If
 
             Return ImmutableArray(Of ITypeParameterSymbol).Empty

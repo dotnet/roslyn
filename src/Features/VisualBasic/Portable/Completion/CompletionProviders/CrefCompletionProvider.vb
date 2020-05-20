@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Function
 
-        Private Iterator Function CreateCompletionItems(
+        Private Shared Iterator Function CreateCompletionItems(
                 semanticModel As SemanticModel,
                 symbols As IEnumerable(Of ISymbol), position As Integer) As IEnumerable(Of CompletionItem)
 
@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End Try
         End Function
 
-        Private Function CreateCompletionItem(
+        Private Shared Function CreateCompletionItem(
                 semanticModel As SemanticModel,
                 symbol As ISymbol, position As Integer, builder As StringBuilder) As CompletionItem
 

@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
-        Private Overloads Function Convert(method As IMethodSymbol,
+        Private Overloads Shared Function Convert(method As IMethodSymbol,
                                            functionAggregation As FunctionAggregationSyntax,
                                            semanticModel As SemanticModel,
                                            anonymousTypeDisplayService As IAnonymousTypeDisplayService,

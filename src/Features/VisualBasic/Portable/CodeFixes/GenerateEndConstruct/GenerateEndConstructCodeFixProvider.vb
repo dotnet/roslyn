@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
             Return String.Format(VBFeaturesResources.Insert_the_missing_0, SyntaxFacts.GetText(SyntaxKind.NextKeyword))
         End Function
 
-        Private Async Function GenerateEndConstructAsync(document As Document, endStatement As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function GenerateEndConstructAsync(document As Document, endStatement As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
             If endStatement.Kind = SyntaxKind.EndEnumStatement Then
                 ' InvInsideEndsEnum
                 Dim nextNode = endStatement.Parent.GetLastToken().GetNextToken().Parent

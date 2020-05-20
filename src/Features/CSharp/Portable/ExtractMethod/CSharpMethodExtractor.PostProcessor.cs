@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 _contextPosition = contextPosition;
             }
 
-            public IEnumerable<StatementSyntax> RemoveRedundantBlock(IEnumerable<StatementSyntax> statements)
+            public static IEnumerable<StatementSyntax> RemoveRedundantBlock(IEnumerable<StatementSyntax> statements)
             {
                 // it must have only one statement
                 if (statements.Count() != 1)
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return SpecializedCollections.SingletonEnumerable<StatementSyntax>(SyntaxFactory.ReturnStatement(declaration.Declaration.Variables[0].Initializer.Value));
             }
 
-            public IEnumerable<StatementSyntax> RemoveDeclarationAssignmentPattern(IEnumerable<StatementSyntax> statements)
+            public static IEnumerable<StatementSyntax> RemoveDeclarationAssignmentPattern(IEnumerable<StatementSyntax> statements)
             {
                 if (!(statements.ElementAtOrDefault(0) is LocalDeclarationStatementSyntax declaration) || !(statements.ElementAtOrDefault(1) is ExpressionStatementSyntax assignment))
                 {

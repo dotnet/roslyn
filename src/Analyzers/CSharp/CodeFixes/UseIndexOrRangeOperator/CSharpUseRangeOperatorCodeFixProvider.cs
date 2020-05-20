@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private SyntaxNode UpdateInvocation(
+        private static SyntaxNode UpdateInvocation(
             SemanticModel semanticModel, SyntaxNode currentRoot,
             InvocationExpressionSyntax currentInvocation,
             SyntaxGenerator generator,
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private static InvocationExpressionSyntax GetInvocationExpression(Diagnostic d, CancellationToken cancellationToken)
             => (InvocationExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-        private ExpressionSyntax FixOne(Result result, SyntaxGenerator generator)
+        private static ExpressionSyntax FixOne(Result result, SyntaxGenerator generator)
         {
             var invocation = result.Invocation;
             var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess

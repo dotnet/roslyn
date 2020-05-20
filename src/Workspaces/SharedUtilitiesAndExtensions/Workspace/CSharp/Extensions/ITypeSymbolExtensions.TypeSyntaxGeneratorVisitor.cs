@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private static IdentifierNameSyntax CreateGlobalIdentifier()
                 => SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
 
-            private TypeSyntax TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
+            private static TypeSyntax TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
             {
                 if (symbol.SpecialType == SpecialType.System_Void)
                 {

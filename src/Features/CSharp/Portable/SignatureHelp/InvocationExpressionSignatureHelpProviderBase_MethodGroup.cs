@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                  TryGetSelectedIndex(accessibleMethods, currentSymbol)));
         }
 
-        private ImmutableArray<IMethodSymbol> GetAccessibleMethods(
+        private static ImmutableArray<IMethodSymbol> GetAccessibleMethods(
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
             ISymbol within,
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return accessibleMethods.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToImmutableArrayOrEmpty();
         }
 
-        private bool IsHiddenByOtherMethod(IMethodSymbol method, ISet<IMethodSymbol> methodSet)
+        private static bool IsHiddenByOtherMethod(IMethodSymbol method, ISet<IMethodSymbol> methodSet)
         {
             foreach (var m in methodSet)
             {

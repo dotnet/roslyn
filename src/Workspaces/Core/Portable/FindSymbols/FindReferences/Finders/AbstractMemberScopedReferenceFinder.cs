@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return null;
         }
 
-        protected ImmutableArray<FinderLocation> FindReferencesInTokensWithSymbolName(
+        protected static ImmutableArray<FinderLocation> FindReferencesInTokensWithSymbolName(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,

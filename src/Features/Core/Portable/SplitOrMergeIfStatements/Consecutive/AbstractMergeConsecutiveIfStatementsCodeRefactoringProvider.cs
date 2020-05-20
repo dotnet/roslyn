@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                    ContainEquivalentStatements(syntaxFacts, ifOrElseIf, elseIfClause, out _);
         }
 
-        private Task<bool> CanBeMergedWithPreviousStatementAsync(
+        private static Task<bool> CanBeMergedWithPreviousStatementAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                 : Task.FromResult(false);
         }
 
-        private Task<bool> CanBeMergedWithNextStatementAsync(
+        private static Task<bool> CanBeMergedWithNextStatementAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,

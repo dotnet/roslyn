@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return type.Equals(SelectionResult.GetContainingScopeType());
             }
 
-            private bool UserDefinedValueType(Compilation compilation, ITypeSymbol type)
+            private static bool UserDefinedValueType(Compilation compilation, ITypeSymbol type)
             {
                 if (!type.IsValueType || type.IsPointerType() || type.IsEnumType())
                 {
@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return ContainsReturnStatementInSelectedCode(controlFlowAnalysisData.ExitPoints);
             }
 
-            private void AddTypeParametersToMap(IEnumerable<ITypeParameterSymbol> typeParameters, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static void AddTypeParametersToMap(IEnumerable<ITypeParameterSymbol> typeParameters, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 foreach (var typeParameter in typeParameters)
                 {
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            private void AppendMethodTypeParameterFromConstraint(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static void AppendMethodTypeParameterFromConstraint(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 var typeParametersInConstraint = new List<ITypeParameterSymbol>();
 
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return typeParameters;
             }
 
-            private IEnumerable<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static IEnumerable<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 // add return type to the map
                 AddTypeParametersToMap(TypeParameterCollector.Collect(returnType), sortedMap);

@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return memberNode.AddAttributeLists(attributeList).WithLeadingTrivia(leadingTrivia)
         End Function
 
-        Private Function CreateAttributeList(
+        Private Shared Function CreateAttributeList(
                 targetSymbol As ISymbol,
                 attributeName As NameSyntax,
                 diagnostic As Diagnostic,

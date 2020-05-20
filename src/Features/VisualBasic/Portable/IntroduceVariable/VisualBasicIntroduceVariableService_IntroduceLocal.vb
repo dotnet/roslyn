@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             End If
         End Function
 
-        Private Function GetContainerToGenerateInfo(
+        Private Shared Function GetContainerToGenerateInfo(
                 document As SemanticDocument,
                 expression As ExpressionSyntax,
                 cancellationToken As CancellationToken) As SyntaxNode

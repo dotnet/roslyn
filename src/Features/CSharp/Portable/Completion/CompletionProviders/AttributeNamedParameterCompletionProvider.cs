@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        private async Task<ImmutableArray<CompletionItem>> GetNameEqualsItemsAsync(
+        private static async Task<ImmutableArray<CompletionItem>> GetNameEqualsItemsAsync(
             CompletionContext context, SemanticModel semanticModel,
             SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters)
         {
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return q.ToImmutableArray();
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetNameColonItemsAsync(
+        private static async Task<IEnumerable<CompletionItem>> GetNameColonItemsAsync(
             CompletionContext context, SemanticModel semanticModel, SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters)
         {
             var parameterLists = GetParameterLists(semanticModel, context.Position, attributeSyntax, context.CancellationToken);

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return result.ToImmutableAndFree();
         }
 
-        private async Task CascadeBetweenAnonymousFunctionParametersAsync(
+        private static async Task CascadeBetweenAnonymousFunctionParametersAsync(
             Solution solution,
             IParameterSymbol parameter,
             ArrayBuilder<ISymbol> results,
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
-        private void CascadeBetweenAnonymousFunctionParameters(
+        private static void CascadeBetweenAnonymousFunctionParameters(
             Document document,
             SemanticModel semanticModel,
             SyntaxNode container,

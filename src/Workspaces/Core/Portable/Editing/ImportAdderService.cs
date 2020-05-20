@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return (importsToAdd.ToImmutableAndFree(), addedSymbols, first.GetCommonRoot(last), model, root);
         }
 
-        private async ValueTask<(ImmutableArray<SyntaxNode> imports, HashSet<INamespaceSymbol> namespaceSymbols, SyntaxNode? context, SemanticModel? model, SyntaxNode? newRoot)> GetImportDirectivesFromAnnotatedNodesAsync(
+        private static async ValueTask<(ImmutableArray<SyntaxNode> imports, HashSet<INamespaceSymbol> namespaceSymbols, SyntaxNode? context, SemanticModel? model, SyntaxNode? newRoot)> GetImportDirectivesFromAnnotatedNodesAsync(
             Document document,
             IEnumerable<SyntaxNode> syntaxNodes,
             SyntaxNode root,

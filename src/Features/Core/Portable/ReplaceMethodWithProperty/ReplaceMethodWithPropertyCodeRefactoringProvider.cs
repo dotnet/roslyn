@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 setMethod.DeclaringSyntaxReferences.Length == 1;
         }
 
-        private async Task<Solution> ReplaceMethodsWithPropertyAsync(
+        private static async Task<Solution> ReplaceMethodsWithPropertyAsync(
             Document document,
             string propertyName,
             bool nameChanged,
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution;
         }
 
-        private async Task<Solution> UpdateReferencesAsync(Solution updatedSolution, string propertyName, bool nameChanged, ILookup<Document, ReferenceLocation> getReferencesByDocument, ILookup<Document, ReferenceLocation> setReferencesByDocument, CancellationToken cancellationToken)
+        private static async Task<Solution> UpdateReferencesAsync(Solution updatedSolution, string propertyName, bool nameChanged, ILookup<Document, ReferenceLocation> getReferencesByDocument, ILookup<Document, ReferenceLocation> setReferencesByDocument, CancellationToken cancellationToken)
         {
             var allReferenceDocuments = getReferencesByDocument.Concat(setReferencesByDocument).Select(g => g.Key).Distinct();
             foreach (var referenceDocument in allReferenceDocuments)
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             }
         }
 
-        private async Task<Solution> ReplaceGetMethodsAndRemoveSetMethodsAsync(
+        private static async Task<Solution> ReplaceGetMethodsAndRemoveSetMethodsAsync(
             Solution originalSolution,
             Solution updatedSolution,
             string propertyName,
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution;
         }
 
-        private async Task<Solution> ReplaceGetMethodsAndRemoveSetMethodsAsync(
+        private static async Task<Solution> ReplaceGetMethodsAndRemoveSetMethodsAsync(
             string propertyName,
             bool nameChanged,
             Solution updatedSolution,
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution.WithDocumentSyntaxRoot(documentId, editor.GetChangedRoot());
         }
 
-        private async Task<List<GetAndSetMethods>> GetGetSetPairsAsync(
+        private static async Task<List<GetAndSetMethods>> GetGetSetPairsAsync(
             Solution updatedSolution,
             Compilation compilation,
             DocumentId documentId,

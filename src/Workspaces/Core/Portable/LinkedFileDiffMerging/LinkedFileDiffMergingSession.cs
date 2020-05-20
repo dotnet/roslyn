@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis
             return successfullyMergedChanges.ToImmutableAndFree();
         }
 
-        private IEnumerable<TextChange> MergeChangesWithMergeFailComments(
+        private static IEnumerable<TextChange> MergeChangesWithMergeFailComments(
             IEnumerable<TextChange> mergedChanges,
             IEnumerable<TextChange> commentChanges,
             IList<TextSpan> mergeConflictResolutionSpans,

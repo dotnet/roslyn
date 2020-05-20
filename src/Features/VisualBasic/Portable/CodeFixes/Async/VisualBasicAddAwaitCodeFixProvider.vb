@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             Return New DescriptionAndNode(VBFeaturesResources.Insert_Await, newRoot)
         End Function
 
-        Private Function GetNewRootAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+        Private Shared Function GetNewRootAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim expression = TryCast(oldNode, ExpressionSyntax)
             If expression Is Nothing Then
                 Return SpecializedTasks.Null(Of SyntaxNode)()
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             End Select
         End Function
 
-        Private Function DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression As ExpressionSyntax, semanticModel As SemanticModel, project As Project, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression As ExpressionSyntax, semanticModel As SemanticModel, project As Project, cancellationToken As CancellationToken) As Boolean
             If Not IsInAsyncBlock(expression) Then
                 Return False
             End If

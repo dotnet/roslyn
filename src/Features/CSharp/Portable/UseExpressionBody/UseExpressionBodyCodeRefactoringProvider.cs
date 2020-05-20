@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
         }
 
-        private SyntaxNode? TryGetDeclaration(
+        private static SyntaxNode? TryGetDeclaration(
             UseExpressionBodyHelper helper, SourceText text, SyntaxNode node, int position)
         {
             var declaration = GetDeclaration(node, helper);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return declaration;
         }
 
-        private bool TryComputeRefactoring(
+        private static bool TryComputeRefactoring(
             CodeRefactoringContext context, SyntaxNode root, SyntaxNode declaration,
             OptionSet optionSet, UseExpressionBodyHelper helper)
         {

@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private (bool oblivious, bool annotatedOrNotAnnotated) GetNullableAnnotations(SyntaxNode node)
+        private static (bool oblivious, bool annotatedOrNotAnnotated) GetNullableAnnotations(SyntaxNode node)
         {
             return (HasAnnotation(node, NullableSyntaxAnnotation.Oblivious),
                     HasAnnotation(node, NullableSyntaxAnnotation.AnnotatedOrNotAnnotated));

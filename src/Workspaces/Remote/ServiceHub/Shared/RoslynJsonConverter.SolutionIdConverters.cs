@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private abstract class WorkspaceIdJsonConverter<T> : BaseJsonConverter<T>
         {
-            protected (Guid, string)? ReadFromJsonObject(JsonReader reader)
+            protected static (Guid, string)? ReadFromJsonObject(JsonReader reader)
             {
                 if (reader.TokenType == JsonToken.Null)
                 {

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             CollectBlockSpans(trivia.SyntaxTree, trivia, spans, cancellationToken);
         }
 
-        public void CollectBlockSpans(
+        public static void CollectBlockSpans(
             SyntaxTree syntaxTree, SyntaxTrivia trivia,
             ArrayBuilder<BlockSpan> spans, CancellationToken cancellationToken)
         {

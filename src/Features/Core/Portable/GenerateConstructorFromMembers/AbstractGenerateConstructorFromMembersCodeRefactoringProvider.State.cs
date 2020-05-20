@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
 
             public static async Task<State> TryGenerateAsync(
-                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (!await state.TryInitializeAsync(service, document, textSpan, containingType, selectedMembers, cancellationToken).ConfigureAwait(false))
+                if (!await state.TryInitializeAsync(document, textSpan, containingType, selectedMembers, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -41,7 +40,6 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             private async Task<bool> TryInitializeAsync(
-                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return q.FirstOrDefault();
             }
 
-            private IMethodSymbol GetMatchingConstructorBasedOnParameterTypes(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
+            private static IMethodSymbol GetMatchingConstructorBasedOnParameterTypes(INamedTypeSymbol containingType, ImmutableArray<IParameterSymbol> parameters)
                 => containingType.InstanceConstructors.FirstOrDefault(c => MatchesConstructorBasedOnParameterTypes(c, parameters));
 
             private static bool MatchesConstructorBasedOnParameterTypes(IMethodSymbol constructor, ImmutableArray<IParameterSymbol> parameters)

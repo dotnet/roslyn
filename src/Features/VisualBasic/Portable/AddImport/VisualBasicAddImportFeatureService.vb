@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                     addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement, generator))
         End Function
 
-        Private Function GetImportsStatement(symbol As INamespaceOrTypeSymbol) As ImportsStatementSyntax
+        Private Shared Function GetImportsStatement(symbol As INamespaceOrTypeSymbol) As ImportsStatementSyntax
             Dim nameSyntax = DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax)
             Return GetImportsStatement(nameSyntax)
         End Function

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return new IndentationResult(trivia.FullSpan.Start, 0);
         }
 
-        private IndentationResult? TryGetDesiredIndentation(Indenter indenter, SyntaxToken? tokenOpt)
+        private static IndentationResult? TryGetDesiredIndentation(Indenter indenter, SyntaxToken? tokenOpt)
         {
             if (tokenOpt == null)
                 return null;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return GetIndentationBasedOnToken(indenter, tokenOpt.Value);
         }
 
-        private IndentationResult GetIndentationBasedOnToken(Indenter indenter, SyntaxToken token)
+        private static IndentationResult GetIndentationBasedOnToken(Indenter indenter, SyntaxToken token)
         {
             Contract.ThrowIfNull(indenter.Tree);
             Contract.ThrowIfTrue(token.Kind() == SyntaxKind.None);
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             }
         }
 
-        private IndentationResult GetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
+        private static IndentationResult GetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
             => token.Parent switch
             {
                 BaseArgumentListSyntax argument => GetIndentationFromCommaSeparatedList(indenter, argument.Arguments, token),
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 _ => GetDefaultIndentationFromToken(indenter, token),
             };
 
-        private IndentationResult GetIndentationFromCommaSeparatedList<T>(
+        private static IndentationResult GetIndentationFromCommaSeparatedList<T>(
             Indenter indenter, SeparatedSyntaxList<T> list, SyntaxToken token) where T : SyntaxNode
         {
             var index = list.GetWithSeparators().IndexOf(token);
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return GetDefaultIndentationFromTokenLine(indenter, token, additionalSpace: 0);
         }
 
-        private IndentationResult GetDefaultIndentationFromToken(Indenter indenter, SyntaxToken token)
+        private static IndentationResult GetDefaultIndentationFromToken(Indenter indenter, SyntaxToken token)
         {
             if (IsPartOfQueryExpression(token))
             {
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return GetDefaultIndentationFromTokenLine(indenter, token);
         }
 
-        private IndentationResult GetIndentationForQueryExpression(Indenter indenter, SyntaxToken token)
+        private static IndentationResult GetIndentationForQueryExpression(Indenter indenter, SyntaxToken token)
         {
             // find containing non terminal node
             var queryExpressionClause = GetQueryExpressionClause(token);

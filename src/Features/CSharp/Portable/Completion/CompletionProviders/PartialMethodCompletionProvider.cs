@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        private bool VerifyModifiers(SyntaxTree tree, int position, CancellationToken cancellationToken, out DeclarationModifiers modifiers)
+        private static bool VerifyModifiers(SyntaxTree tree, int position, CancellationToken cancellationToken, out DeclarationModifiers modifiers)
         {
             var touchingToken = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var token = touchingToken.GetPreviousToken();

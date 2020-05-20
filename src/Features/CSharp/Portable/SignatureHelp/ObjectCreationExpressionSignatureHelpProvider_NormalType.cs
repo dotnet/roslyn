@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private (IList<SignatureHelpItem> items, int? selectedItem) GetNormalTypeConstructors(
+        private static (IList<SignatureHelpItem> items, int? selectedItem) GetNormalTypeConstructors(
             Document document,
             BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return (items, selectedItem);
         }
 
-        private SignatureHelpItem ConvertNormalTypeConstructor(
+        private static SignatureHelpItem ConvertNormalTypeConstructor(
             IMethodSymbol constructor,
             BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,

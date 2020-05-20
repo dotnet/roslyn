@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return (location, tokenPair, triviaMap) => TriviaResolver(location, tokenPair, triviaMap, method);
             }
 
-            private SyntaxToken AnnotationResolver(
+            private static SyntaxToken AnnotationResolver(
                 SyntaxNode node,
                 TriviaLocation location,
                 SyntaxAnnotation annotation,

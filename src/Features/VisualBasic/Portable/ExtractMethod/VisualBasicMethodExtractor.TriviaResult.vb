@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 throw ExceptionUtilities.UnexpectedValue(location)
             End Function
 
-            Private Function RemoveTrailingElasticTrivia(
+            Private Shared Function RemoveTrailingElasticTrivia(
                 token1 As SyntaxToken, list As IEnumerable(Of SyntaxTrivia), token2 As SyntaxToken) As IEnumerable(Of SyntaxTrivia)
 
                 ' special case for skipped token trivia
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return token1.TrailingTrivia.Concat(list)
             End Function
 
-            Private Function RemoveLeadingElasticTrivia(
+            Private Shared Function RemoveLeadingElasticTrivia(
                 token1 As SyntaxToken, list As IEnumerable(Of SyntaxTrivia), token2 As SyntaxToken) As IEnumerable(Of SyntaxTrivia)
 
                 If token1.IsLastTokenOfStatement() Then

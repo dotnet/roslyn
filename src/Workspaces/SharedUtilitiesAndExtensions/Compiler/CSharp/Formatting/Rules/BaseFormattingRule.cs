@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         protected static AdjustSpacesOperation CreateAdjustSpacesOperation(int space, AdjustSpacesOption option)
             => FormattingOperations.CreateAdjustSpacesOperation(space, option);
 
-        protected void AddBraceSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        protected static void AddBraceSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             var bracePair = node.GetBracePair();
             if (!bracePair.IsValidBracePair())

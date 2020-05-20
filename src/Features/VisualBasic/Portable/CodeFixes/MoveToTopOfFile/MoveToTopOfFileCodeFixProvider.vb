@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
                         node.Span.End > m.SpanStart)
         End Function
 
-        Private Function CreateActionForImports(document As Document, node As ImportsStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
+        Private Shared Function CreateActionForImports(document As Document, node As ImportsStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
             Dim destinationLine As Integer = 0
             If root.Imports.Any() Then
                 destinationLine = FindLastContiguousStatement(root.Imports, root.GetLeadingBannerAndPreprocessorDirectives())
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
 
         End Function
 
-        Private Function CreateActionForOptions(document As Document, node As OptionStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
+        Private Shared Function CreateActionForOptions(document As Document, node As OptionStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
             Dim destinationLine = FindLastContiguousStatement(root.Options, root.GetLeadingBannerAndPreprocessorDirectives())
 
             If DestinationPositionIsHidden(root, destinationLine, cancellationToken) Then
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
             }
         End Function
 
-        Private Function CreateActionForAttribute(document As Document, node As AttributesStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
+        Private Shared Function CreateActionForAttribute(document As Document, node As AttributesStatementSyntax, root As CompilationUnitSyntax, cancellationToken As CancellationToken) As IEnumerable(Of CodeAction)
             Dim destinationLine As Integer = 0
             If root.Attributes.Any() Then
                 destinationLine = FindLastContiguousStatement(root.Attributes, root.GetLeadingBannerAndPreprocessorDirectives())

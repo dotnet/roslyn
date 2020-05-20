@@ -279,14 +279,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return SpecializedCollections.SingletonEnumerable<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Block(statements)));
             }
 
-            private IEnumerable<StatementSyntax> CleanupCode(IEnumerable<StatementSyntax> statements)
+            private static IEnumerable<StatementSyntax> CleanupCode(IEnumerable<StatementSyntax> statements)
             {
-                var semanticModel = SemanticDocument.SemanticModel;
-                var context = InsertionPoint.GetContext();
-                var postProcessor = new PostProcessor(semanticModel, context.SpanStart);
-
-                statements = postProcessor.RemoveRedundantBlock(statements);
-                statements = postProcessor.RemoveDeclarationAssignmentPattern(statements);
+                statements = PostProcessor.RemoveRedundantBlock(statements);
+                statements = PostProcessor.RemoveDeclarationAssignmentPattern(statements);
                 statements = PostProcessor.RemoveInitializedDeclarationAndReturnPattern(statements);
 
                 return statements;

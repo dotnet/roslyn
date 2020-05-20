@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             context.RegisterRefactorings(actions);
         }
 
-        private bool HasOperators(INamedTypeSymbol containingType)
+        private static bool HasOperators(INamedTypeSymbol containingType)
             => HasOperator(containingType, WellKnownMemberNames.EqualityOperatorName) ||
                HasOperator(containingType, WellKnownMemberNames.InequalityOperatorName);
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 pickMembersOptions.ToImmutable(), generateEquals, generateGetHashCode);
         }
 
-        private async Task<CodeAction> CreateCodeActionWithoutDialogAsync(
+        private static async Task<CodeAction> CreateCodeActionWithoutDialogAsync(
             Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
             bool generateEquals, bool generateGetHashCode, CancellationToken cancellationToken)
         {

@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private static int NonParamsParameterCount(IMethodSymbol method)
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
-        private void RegisterFixForMethodOverloads(
+        private static void RegisterFixForMethodOverloads(
             CodeFixContext context,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
         }
 
-        private ImmutableArray<CodeFixData> PrepareCreationOfCodeActions(
+        private static ImmutableArray<CodeFixData> PrepareCreationOfCodeActions(
             Document document,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return title;
         }
 
-        private async Task<Solution> FixAsync(
+        private static async Task<Solution> FixAsync(
             Document invocationDocument,
             IMethodSymbol method,
             TArgumentSyntax argument,

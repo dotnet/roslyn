@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             return allReferences.ToImmutableAndFree();
         }
 
-        private async Task FindResultsInAllSymbolsInStartingProjectAsync(
+        private static async Task FindResultsInAllSymbolsInStartingProjectAsync(
             ArrayBuilder<Reference> allSymbolReferences, int maxResults, SymbolReferenceFinder finder,
             bool exact, CancellationToken cancellationToken)
         {
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             AddRange(allSymbolReferences, references, maxResults);
         }
 
-        private async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
+        private static async Task FindResultsInUnreferencedProjectSourceSymbolsAsync(
             ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
             Project project, ArrayBuilder<Reference> allSymbolReferences, int maxResults,
             SymbolReferenceFinder finder, bool exact, CancellationToken cancellationToken)
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// by this project.  The set returned will be tuples containing the PEReference, and the project-id
         /// for the project we found the pe-reference in.
         /// </summary>
-        private ImmutableArray<(ProjectId, PortableExecutableReference)> GetUnreferencedMetadataReferences(
+        private static ImmutableArray<(ProjectId, PortableExecutableReference)> GetUnreferencedMetadataReferences(
             Project project, HashSet<PortableExecutableReference> seenReferences)
         {
             var result = ArrayBuilder<(ProjectId, PortableExecutableReference)>.GetInstance();
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             return result.ToImmutableAndFree();
         }
 
-        private async Task WaitForTasksAsync(
+        private static async Task WaitForTasksAsync(
             ArrayBuilder<Reference> allSymbolReferences,
             int maxResults,
             HashSet<Task<ImmutableArray<SymbolReference>>> findTasks,
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
-        private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
+        private static ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
         {
             var awaitExpression = FirstAwaitExpressionAncestor(syntaxFactsService, node);
 
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             return semanticModel.GetTypeInfo(innerExpression).Type;
         }
 
-        protected bool AncestorOrSelfIsAwaitExpression(ISyntaxFacts syntaxFactsService, SyntaxNode node)
+        protected static bool AncestorOrSelfIsAwaitExpression(ISyntaxFacts syntaxFactsService, SyntaxNode node)
             => FirstAwaitExpressionAncestor(syntaxFactsService, node) != null;
 
         private static SyntaxNode FirstAwaitExpressionAncestor(ISyntaxFacts syntaxFactsService, SyntaxNode node)

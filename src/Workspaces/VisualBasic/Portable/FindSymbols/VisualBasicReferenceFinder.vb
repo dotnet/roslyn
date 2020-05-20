@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
                 ImmutableArray.Create(relatedSymbol))
         End Function
 
-        Private Async Function DetermineCascadedSymbolsAsync(
+        Private Shared Async Function DetermineCascadedSymbolsAsync(
                 namedType As INamedTypeSymbol,
                 project As Project,
                 cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))

@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 textSpan, GetCurrentArgumentState(root, position, _syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
-        Private Overloads Function Convert(symbol As ISymbol, genericName As GenericNameSyntax, semanticModel As SemanticModel, anonymousTypeDisplayService As IAnonymousTypeDisplayService, documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
+        Private Overloads Shared Function Convert(symbol As ISymbol, genericName As GenericNameSyntax, semanticModel As SemanticModel, anonymousTypeDisplayService As IAnonymousTypeDisplayService, documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim position = genericName.SpanStart
             Dim item As SignatureHelpItem
             If TypeOf symbol Is INamedTypeSymbol Then
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Private Shared ReadOnly s_minimallyQualifiedFormat As SymbolDisplayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(SymbolDisplayFormat.MinimallyQualifiedFormat.GenericsOptions Or SymbolDisplayGenericsOptions.IncludeVariance)
 
-        Private Overloads Function Convert(parameter As ITypeParameterSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpSymbolParameter
+        Private Overloads Shared Function Convert(parameter As ITypeParameterSymbol, semanticModel As SemanticModel, position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpSymbolParameter
             Dim parts = New List(Of SymbolDisplayPart)
             parts.AddRange(parameter.ToMinimalDisplayParts(semanticModel, position, s_minimallyQualifiedFormat))
             AddConstraints(parameter, parts, semanticModel, position)

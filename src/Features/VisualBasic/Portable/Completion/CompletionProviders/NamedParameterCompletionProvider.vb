@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return existingArguments.ToSet()
         End Function
 
-        Private Function GetParameterLists(semanticModel As SemanticModel,
+        Private Shared Function GetParameterLists(semanticModel As SemanticModel,
                                            position As Integer,
                                            invocableNode As SyntaxNode,
                                            cancellationToken As CancellationToken) As IEnumerable(Of ImmutableArray(Of ISymbol))

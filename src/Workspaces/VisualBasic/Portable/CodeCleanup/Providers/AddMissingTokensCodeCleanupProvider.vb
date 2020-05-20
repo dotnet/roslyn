@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                                       Return lastTokenWithTrailingTrivia
                                                   End If
 
-                                                  throw ExceptionUtilities.UnexpectedValue(o)
+                                                  Throw ExceptionUtilities.UnexpectedValue(o)
                                               End Function)
 
                 Return True
@@ -462,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return ProcessMissingToken(originalToken, token)
             End Function
 
-            Private Function ReplaceOrSetToken(Of T As SyntaxNode)(originalParent As T, tokenToFix As SyntaxToken, replacementToken As SyntaxToken) As T
+            Private Shared Function ReplaceOrSetToken(Of T As SyntaxNode)(originalParent As T, tokenToFix As SyntaxToken, replacementToken As SyntaxToken) As T
                 If Not IsOmitted(tokenToFix) Then
                     Return originalParent.ReplaceToken(tokenToFix, replacementToken)
                 Else
@@ -470,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End If
             End Function
 
-            Private Function SetOmittedToken(originalParent As SyntaxNode, newToken As SyntaxToken) As SyntaxNode
+            Private Shared Function SetOmittedToken(originalParent As SyntaxNode, newToken As SyntaxToken) As SyntaxNode
                 Select Case newToken.Kind
                     Case SyntaxKind.ThenKeyword
                         ' this can be regular If, an If directive, or an ElseIf
@@ -521,7 +521,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return token.Kind = SyntaxKind.None
             End Function
 
-            Private Function ProcessOmittedToken(originalToken As SyntaxToken, token As SyntaxToken, parent As SyntaxNode) As SyntaxToken
+            Private Shared Function ProcessOmittedToken(originalToken As SyntaxToken, token As SyntaxToken, parent As SyntaxNode) As SyntaxToken
                 ' multiline if statement with missing then keyword case
                 If TypeOf parent Is IfStatementSyntax Then
                     Dim ifStatement = DirectCast(parent, IfStatementSyntax)
@@ -566,7 +566,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return node IsNot Nothing AndAlso node.Span.Length > 0
             End Function
 
-            Private Function ProcessMissingToken(originalToken As SyntaxToken, token As SyntaxToken) As SyntaxToken
+            Private Shared Function ProcessMissingToken(originalToken As SyntaxToken, token As SyntaxToken) As SyntaxToken
                 ' auto insert missing "Of" keyword in type argument list
                 If TryCast(originalToken.Parent, TypeArgumentListSyntax)?.OfKeyword = originalToken Then
                     Return CreateMissingToken(token)
@@ -579,11 +579,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return token
             End Function
 
-            Private Function CreateMissingToken(token As SyntaxToken) As SyntaxToken
+            Private Shared Function CreateMissingToken(token As SyntaxToken) As SyntaxToken
                 Return CreateToken(token, token.Kind)
             End Function
 
-            Private Function CreateOmittedToken(token As SyntaxToken, kind As SyntaxKind) As SyntaxToken
+            Private Shared Function CreateOmittedToken(token As SyntaxToken, kind As SyntaxKind) As SyntaxToken
                 Return CreateToken(token, kind)
             End Function
         End Class

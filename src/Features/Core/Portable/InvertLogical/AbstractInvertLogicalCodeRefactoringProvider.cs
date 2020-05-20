@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
                 expression.Span);
         }
 
-        private async Task<Document> InvertLogicalAsync(
+        private static async Task<Document> InvertLogicalAsync(
             Document document1, SyntaxNode binaryExpression, CancellationToken cancellationToken)
         {
             // We invert in two steps.  To invert `a op b` we are effectively generating two negations:

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class InvocationExpressionSignatureHelpProvider
 
-        Private Function GetElementAccessItems(leftExpression As ExpressionSyntax,
+        Private Shared Function GetElementAccessItems(leftExpression As ExpressionSyntax,
                                                semanticModel As SemanticModel,
                                                anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                documentationCommentFormattingService As IDocumentationCommentFormattingService,
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Function(s) ConvertIndexer(s, leftExpression.SpanStart, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService))
         End Function
 
-        Private Function ConvertIndexer(indexer As IPropertySymbol,
+        Private Shared Function ConvertIndexer(indexer As IPropertySymbol,
                                         position As Integer,
                                         semanticModel As SemanticModel,
                                         anonymousTypeDisplayService As IAnonymousTypeDisplayService,

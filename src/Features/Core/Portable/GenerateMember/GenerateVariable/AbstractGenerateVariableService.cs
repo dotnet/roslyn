@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         protected virtual bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
             => false;
 
-        private void AddPropertyCodeActions(
+        private static void AddPropertyCodeActions(
             ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
         {
             if (state.IsInOutContext)
@@ -119,14 +119,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             GenerateWritableProperty(result, document, state);
         }
 
-        private void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
         {
             result.Add(new GenerateVariableCodeAction(
                 document, state, generateProperty: true, isReadonly: false, isConstant: false,
                 refKind: GetRefKindFromContext(state)));
         }
 
-        private void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        private static void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
         {
             if (state.TypeToGenerateIn.TypeKind != TypeKind.Interface)
             {

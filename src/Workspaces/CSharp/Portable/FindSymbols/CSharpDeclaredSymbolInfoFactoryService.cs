@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         {
         }
 
-        private ImmutableArray<string> GetInheritanceNames(StringTable stringTable, BaseListSyntax baseList)
+        private static ImmutableArray<string> GetInheritanceNames(StringTable stringTable, BaseListSyntax baseList)
         {
             if (baseList == null)
             {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        private void AddAliasMaps(SyntaxNode node, List<Dictionary<string, string>> aliasMaps)
+        private static void AddAliasMaps(SyntaxNode node, List<Dictionary<string, string>> aliasMaps)
         {
             for (var current = node; current != null; current = current.Parent)
             {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        private void ProcessUsings(List<Dictionary<string, string>> aliasMaps, SyntaxList<UsingDirectiveSyntax> usings)
+        private static void ProcessUsings(List<Dictionary<string, string>> aliasMaps, SyntaxList<UsingDirectiveSyntax> usings)
         {
             Dictionary<string, string> aliasMap = null;
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        private void AddInheritanceName(
+        private static void AddInheritanceName(
             ArrayBuilder<string> builder, TypeSyntax type,
             List<Dictionary<string, string>> aliasMaps)
         {
@@ -325,16 +325,16 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         private static bool IsNestedType(BaseTypeDeclarationSyntax typeDecl)
             => typeDecl.Parent is BaseTypeDeclarationSyntax;
 
-        private string GetConstructorSuffix(ConstructorDeclarationSyntax constructor)
+        private static string GetConstructorSuffix(ConstructorDeclarationSyntax constructor)
             => constructor.Modifiers.Any(SyntaxKind.StaticKeyword)
                 ? ".static " + constructor.Identifier + "()"
                 : GetSuffix('(', ')', constructor.ParameterList.Parameters);
 
-        private string GetMethodSuffix(MethodDeclarationSyntax method)
+        private static string GetMethodSuffix(MethodDeclarationSyntax method)
             => GetTypeParameterSuffix(method.TypeParameterList) +
                GetSuffix('(', ')', method.ParameterList.Parameters);
 
-        private string GetIndexerSuffix(IndexerDeclarationSyntax indexer)
+        private static string GetIndexerSuffix(IndexerDeclarationSyntax indexer)
             => GetSuffix('[', ']', indexer.ParameterList.Parameters);
 
         private static string GetTypeParameterSuffix(TypeParameterListSyntax typeParameterList)
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         /// symbols/compilations, this is well worth it, even if it does mean we have to
         /// create our own 'symbol display' logic here.
         /// </summary>
-        private string GetSuffix(
+        private static string GetSuffix(
             char openBrace, char closeBrace, SeparatedSyntaxList<ParameterSyntax> parameters)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();

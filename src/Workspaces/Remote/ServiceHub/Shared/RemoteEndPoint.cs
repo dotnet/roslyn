@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken, TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
-        private bool ReportUnlessCanceled(Exception ex, CancellationToken linkedCancellationToken, CancellationToken cancellationToken)
+        private static bool ReportUnlessCanceled(Exception ex, CancellationToken linkedCancellationToken, CancellationToken cancellationToken)
         {
             // check whether we are in cancellation mode
 
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
+        private static bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
         {
             if (!cancellationToken.IsCancellationRequested)
             {

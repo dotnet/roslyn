@@ -118,13 +118,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                                  .Concat(indexerReferences);
         }
 
-        private Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(
+        private static Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(
             Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsElementAccessExpression, cancellationToken);
         }
 
-        private Task<ImmutableArray<Document>> FindDocumentWithIndexerMemberCrefAsync(
+        private static Task<ImmutableArray<Document>> FindDocumentWithIndexerMemberCrefAsync(
             Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsIndexerMemberCref, cancellationToken);

@@ -280,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Function CanReplaceWithReducedName(
+        Private Shared Function CanReplaceWithReducedName(
             name As NameSyntax,
             replacementNode As ExpressionSyntax,
             semanticModel As SemanticModel,
@@ -294,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return CanReplaceWithReducedNameInContext(name, replacementNode)
         End Function
 
-        Private Function CanReplaceWithReducedNameInContext(name As NameSyntax, replacementNode As ExpressionSyntax) As Boolean
+        Private Shared Function CanReplaceWithReducedNameInContext(name As NameSyntax, replacementNode As ExpressionSyntax) As Boolean
 
             ' Special case.  if this new minimal name parses out to a predefined type, then we
             ' have to make sure that we're not in a using alias.   That's the one place where the
@@ -318,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 simplifiedNode.Kind = SyntaxKind.NullableType
         End Function
 
-        Private Function TryOmitModuleName(name As QualifiedNameSyntax, semanticModel As SemanticModel, <Out()> ByRef replacementNode As ExpressionSyntax, <Out()> ByRef issueSpan As TextSpan, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function TryOmitModuleName(name As QualifiedNameSyntax, semanticModel As SemanticModel, <Out()> ByRef replacementNode As ExpressionSyntax, <Out()> ByRef issueSpan As TextSpan, cancellationToken As CancellationToken) As Boolean
             If name.IsParentKind(SyntaxKind.QualifiedName) Then
                 Dim symbolForName = semanticModel.GetSymbolInfo(DirectCast(name.Parent, QualifiedNameSyntax)).Symbol
 

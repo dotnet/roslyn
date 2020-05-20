@@ -21,14 +21,13 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             public INamedTypeSymbol ContainingType { get; private set; }
 
             public static async Task<State> GenerateAsync(
-                AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,
                 CancellationToken cancellationToken)
             {
                 var state = new State();
                 if (!await state.TryInitializeAsync(
-                    service, selectedMembers, document, cancellationToken).ConfigureAwait(false))
+                    selectedMembers, document, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -37,7 +36,6 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
 
             private async Task<bool> TryInitializeAsync(
-                AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 ImmutableArray<ISymbol> selectedMembers,
                 Document document,
                 CancellationToken cancellationToken)

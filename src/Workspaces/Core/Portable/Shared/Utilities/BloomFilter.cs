@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private int ComputeHash(long key, int seed)
+        private static int ComputeHash(long key, int seed)
         {
             // This is a duplicate of ComputeHash(string key, int seed).  However, because
             // we only have 64bits to encode we just unroll that function here.  See

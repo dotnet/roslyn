@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return false;
         }
 
-        private async Task<bool> CanBeMergedAsync(
+        private static async Task<bool> CanBeMergedAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,

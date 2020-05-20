@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return GetNodeContainingTargetNode(node, matchingNode)
         End Function
 
-        Private Function GetNodeContainingTargetNode(originalNode As SyntaxNode, matchingNode As SyntaxNode) As SyntaxNode
+        Private Shared Function GetNodeContainingTargetNode(originalNode As SyntaxNode, matchingNode As SyntaxNode) As SyntaxNode
             If matchingNode.IsKind(SyntaxKind.InvocationExpression) Then
                 Return If(
                     originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, InvocationExpressionSyntax).Expression) OrElse
@@ -480,7 +480,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 WithAdditionalAnnotations(changeSignatureFormattingAnnotation)
         End Function
 
-        Private Function IsParamsArrayExpanded(semanticModel As SemanticModel, node As SyntaxNode, symbolInfo As SymbolInfo, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function IsParamsArrayExpanded(semanticModel As SemanticModel, node As SyntaxNode, symbolInfo As SymbolInfo, cancellationToken As CancellationToken) As Boolean
             If symbolInfo.Symbol Is Nothing Then
                 Return False
             End If

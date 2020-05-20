@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         private const byte NoEncodingSerialization = 0;
         private const byte EncodingSerialization = 1;
 
-        public void WriteTo(Encoding? encoding, ObjectWriter writer, CancellationToken cancellationToken)
+        public static void WriteTo(Encoding? encoding, ObjectWriter writer, CancellationToken cancellationToken)
         {
             if (encoding == null)
             {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        public Encoding? ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
+        public static Encoding? ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

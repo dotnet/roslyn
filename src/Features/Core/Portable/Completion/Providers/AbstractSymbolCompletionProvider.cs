@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         /// <param name="typeConvertibilityCache">A cache to use for repeated lookups. This should be created with <see cref="SymbolEqualityComparer.Default"/>
         /// because we ignore nullability.</param>
-        private bool ShouldIncludeInTargetTypedCompletionList(
+        private static bool ShouldIncludeInTargetTypedCompletionList(
             ISymbol symbol,
             ImmutableArray<ITypeSymbol> inferredTypes,
             SemanticModel semanticModel,

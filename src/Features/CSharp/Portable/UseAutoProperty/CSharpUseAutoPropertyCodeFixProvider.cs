@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             return variableDeclarator.Initializer?.Value;
         }
 
-        private bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)
+        private static bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)
         {
             if (propertyDeclaration.AccessorList?.Accessors.Any(SyntaxKind.SetAccessorDeclaration) == true)
             {

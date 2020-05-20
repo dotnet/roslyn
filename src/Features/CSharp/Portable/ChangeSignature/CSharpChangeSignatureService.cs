@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 .WithAdditionalAnnotations(changeSignatureFormattingAnnotation);
         }
 
-        private bool IsParamsArrayExpanded(SemanticModel semanticModel, SyntaxNode node, SymbolInfo symbolInfo, CancellationToken cancellationToken)
+        private static bool IsParamsArrayExpanded(SemanticModel semanticModel, SyntaxNode node, SymbolInfo symbolInfo, CancellationToken cancellationToken)
         {
             if (symbolInfo.Symbol == null)
             {
