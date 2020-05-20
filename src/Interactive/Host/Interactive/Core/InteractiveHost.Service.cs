@@ -160,6 +160,25 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 Debug.Assert(cultureName != null);
                 Contract.ThrowIfFalse(_serviceState == null, "Service already initialized");
+ 
+                using (var resetEvent = new ManualResetEventSlim(false))
+                {
+                    var uiThread = new Thread(() =>
+                    {
+                        s_control = new Control();
+                        s_control.CreateControl();
+                        resetEvent.Set();
+                        Application.Run();
+                    });
+                    uiThread.SetApartmentState(ApartmentState.STA);
+                    uiThread.IsBackground = true;
+                    uiThread.Start();
+                    resetEvent.Wait();
+                }
+
+                NamedPipeServerStream serverStream = new NamedPipeServerStream(GenerateUniqueChannelLocalName(), PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
+                var jsonRPC = JsonRpc.Attach(serverStream);
 
                 // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(
@@ -249,13 +268,15 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     SetErrorMode(GetErrorMode() | ErrorMode.SEM_FAILCRITICALERRORS | ErrorMode.SEM_NOOPENFILEERRORBOX | ErrorMode.SEM_NOGPFAULTERRORBOX);
                 }
+                // TODO:(miziga): delete
+                /*IpcServerChannel serverChannel = null;
+                IpcClientChannel clientChannel = null;*/
 
                 try
                 {
                     using (var resetEvent = new ManualResetEventSlim(false))
                     {
-                        var uiThread = new Thread(() =>
-                        {
+                        var uiThread = new Thread(() =>                        {
                             s_control = new Control();
                             s_control.CreateControl();
                             resetEvent.Set();
@@ -264,8 +285,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         uiThread.SetApartmentState(ApartmentState.STA);
                         uiThread.IsBackground = true;
                         uiThread.Start();
-                        resetEvent.Wait();
-                    }
+                        resetEvent.Wait();                    }
 
                     var serverStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
                     await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
@@ -277,8 +297,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    // TODO:(miziga): delete and make a finally or catch statement for the try
-                }
+                    // TODO:(miziga): delete and make a finally or catch statement for the try                }
 
                 // force exit even if there are foreground threads running:
                 Environment.Exit(0);
@@ -295,8 +314,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             // Used by ResetInteractive - consider improving (we should remember the parameters for auto-reset, e.g.)
 
-            public async Task<RemoteExecutionResult> SetPathsAsync(
-                string[] referenceSearchPaths,
+            public async Task<RemoteExecutionResult> SetPathsAsync(                string[] referenceSearchPaths,
                 string[] sourceSearchPaths,
                 string? baseDirectory)
             {
@@ -470,8 +488,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
 
-                lock (_lastTaskGuard)
-                {
+                lock (_lastTaskGuard)                {
                     _lastTask = ExecuteFileAsync(completionSource, _lastTask, path!);
                 }
 

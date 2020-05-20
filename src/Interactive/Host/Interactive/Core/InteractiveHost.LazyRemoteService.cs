@@ -189,8 +189,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     newProcess.Exited -= ProcessExitedBeforeEstablishingConnection;
                 }
 
-                return new RemoteService(Host, newProcess, newProcessId, jsonRpc);
-            }
+                return new RemoteService(Host, newProcess, newProcessId, jsonRpc);            }
 
             private bool CheckAlive(Process process, string hostPath)
             {

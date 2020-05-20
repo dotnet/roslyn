@@ -9,8 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.IO.Pipes;
-using System.Text;
+using System.IO.Pipes;using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             _initialWorkingDirectory = workingDirectory;
             _outputGuard = new object();
             _errorOutputGuard = new object();
-        }
+		}
 
         #region Test hooks
 
@@ -86,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         // Triggered whenever we create a fresh process.
         // The ProcessExited event is not hooked yet.
         internal event Action<Process>? InteractiveHostProcessCreated;
-
         #endregion
 
         ~InteractiveHost()
@@ -97,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         // Dispose may be called anytime.
         public void Dispose()
         {
-            // Run this in background to avoid deadlocking with UIThread operations performing with active outputs.
+			// Run this in background to avoid deadlocking with UIThread operations performing with active outputs.
             _ = Task.Run(() => SetOutputs(TextWriter.Null, TextWriter.Null));
 
             DisposeRemoteService();
