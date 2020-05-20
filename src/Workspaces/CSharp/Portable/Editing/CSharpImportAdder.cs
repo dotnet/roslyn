@@ -66,6 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             return null;
         }
 
+        /// <summary>
+        /// Walks the portion of the tree we're adding imports to looking to see if those imports could likely cause
+        /// conflicts with existing code.  Note: this is a best-effort basis, and the goal is to catch reasonable
+        /// conflicts effectively.  There may be cases that do slip through that we can adjust for in the future.  Those
+        /// cases should be assessed to see how reasonable/likely they are.  I.e. if it's just a hypothetical case with
+        /// no users being hit, then that's far less important than if we have a reasonable coding pattern that would be
+        /// impacted by adding an import to a normal namespace.
+        /// </summary>
         private class ConflictWalker : CSharpSyntaxWalker
         {
             private readonly SemanticModel _model;
