@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
-        /// Fully qualifies parts of the document that may change meaning if namespaces are added, 
-        /// and marks them with <see cref="Simplifier.Annotation"/> so they can be reduced later.
+        /// Looks at the contents of the document for top level identifiers (or existing extension method calls), and
+        /// blocks off imports that could potentially bring in a name that would conflict with them.
         /// </summary>
         protected abstract void AddPotentiallyConflictingImports(
             SyntaxNode root,
