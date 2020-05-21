@@ -90,7 +90,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Dim finalSolution = solutionWithInterfaceDocument
 
             For Each docId In documentIds
-                finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, docToRootMap(docId), PreservationMode.PreserveIdentity)
+                If docToRootMap.ContainsKey(docId) Then
+                    finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, docToRootMap(docId), PreservationMode.PreserveIdentity)
+                End If
             Next
 
             Return finalSolution
