@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 if (client != null)
                 {
                     var result = await client.TryRunRemoteAsync<SerializableConflictResolution?>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteRenamer.ResolveConflictsAsync),
                         solution,
                         new object?[]

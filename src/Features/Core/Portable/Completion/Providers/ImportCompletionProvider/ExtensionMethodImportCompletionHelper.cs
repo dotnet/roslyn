@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (client != null)
                 {
                     var result = await client.TryRunRemoteAsync<(IList<SerializableImportCompletionItem> items, StatisticCounter counter)>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteExtensionMethodImportCompletionService.GetUnimportedExtensionMethodsAsync),
                         project.Solution,
                         new object[] { document.Id, position, SymbolKey.CreateString(receiverTypeSymbol), namespaceInScope.ToArray(), forceIndexCreation },
