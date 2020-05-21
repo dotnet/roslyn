@@ -1537,16 +1537,17 @@ class C
 {
     void M1()
     {
-        object obj = true ? 0 : M2();
+        var obj = true ? 0 : M2();
     }
 
     void M2() { }
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,22): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'int' and 'void'
-                //         object obj = true ? 0 : M2();
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? 0 : M2()").WithArguments("int", "void").WithLocation(6, 22));
+                // (6,19): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'int' and 'void'
+                //         var obj = true ? 0 : M2();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? 0 : M2()").WithArguments("int", "void").WithLocation(6, 19)
+                );
         }
 
         [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
@@ -6502,11 +6503,18 @@ public class Square
    {
       Circle aa = new Circle();
       Square ii = new Square();
-      object o = (1 == 1) ? aa : ii;   // CS0172
+      var o1 = (1 == 1) ? aa : ii;   // CS0172
+      object o2 = (1 == 1) ? aa : ii;   // CS8652
    }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigQM, Line = 21, Column = 18 } });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (21,16): error CS0172: Type of conditional expression cannot be determined because 'Square.Circle' and 'Square' implicitly convert to one another
+                //       var o1 = (1 == 1) ? aa : ii;   // CS0172
+                Diagnostic(ErrorCode.ERR_AmbigQM, "(1 == 1) ? aa : ii").WithArguments("Square.Circle", "Square").WithLocation(21, 16),
+                // (22,19): error CS8652: The feature 'target-typed conditional expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //       object o2 = (1 == 1) ? aa : ii;   // CS8652
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(1 == 1) ? aa : ii").WithArguments("target-typed conditional expression").WithLocation(22, 19)
+                );
         }
 
         [Fact]
@@ -6522,7 +6530,7 @@ public class MyClass
    {
       A a = new A();
       C c = new C();
-      object o = b ? a : c;  // CS0173
+      var o = b ? a : c;  // CS0173
    }
 
    public static void Main()
@@ -6530,8 +6538,11 @@ public class MyClass
        F(true);
    }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidQM, Line = 11, Column = 18 } });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,15): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'A' and 'C'
+                //       var o = b ? a : c;  // CS0173
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? a : c").WithArguments("A", "C").WithLocation(11, 15)
+                );
         }
 
         [WorkItem(528331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528331")]
@@ -6560,14 +6571,17 @@ class Program
     {
         A<string> a = new A<string>();
         A<int> b = new A<int>();
-        System.Console.WriteLine(1 > 2 ? a : b);	// Invalid, Can't implicit convert 
+        var o = 1 > 2 ? a : b; // Invalid, Can't implicit convert
     }
 }
 class A<T>
 {
 }";
-            CreateCompilation(text).
-                VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidQM, "1 > 2 ? a : b").WithArguments("A<string>", "A<int>").WithLocation(8, 34));
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'A<string>' and 'A<int>'
+                //         var o = 1 > 2 ? a : b; // Invalid, Can't implicit convert
+                Diagnostic(ErrorCode.ERR_InvalidQM, "1 > 2 ? a : b").WithArguments("A<string>", "A<int>").WithLocation(8, 17)
+                );
         }
 
         [WorkItem(540902, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540902")]

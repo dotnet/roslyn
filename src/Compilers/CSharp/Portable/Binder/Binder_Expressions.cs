@@ -5870,7 +5870,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If Goo itself is a dynamic thing (e.g. in `x.Goo.Bar`, `x` is dynamic, and we're
                 // currently checking Bar), then CheckValue will do nothing.
                 boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
-                boundLeft = BindToNaturalType(boundLeft, diagnostics);
                 return BindDynamicMemberAccess(node, boundLeft, right, invoked, indexed, diagnostics);
             }
 
@@ -5898,6 +5897,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, boundLeft);
             }
 
+            boundLeft = BindToNaturalType(boundLeft, diagnostics);
+            leftType = boundLeft.Type;
             var lookupResult = LookupResult.GetInstance();
             try
             {
@@ -6103,7 +6104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindIndexedPropertyAccess((BoundPropertyGroup)expr, mustHaveAllOptionalParameters: false, diagnostics: diagnostics);
 
                 default:
-                    return expr;
+                    return BindToNaturalType(expr, diagnostics);
             }
         }
 

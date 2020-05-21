@@ -3895,7 +3895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type is null)
             {
                 noCommonTypeError = hadMultipleCandidates ? ErrorCode.ERR_AmbigQM : ErrorCode.ERR_InvalidQM;
-                targetTyped = Compilation.LanguageVersion >= MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion();
+                targetTyped = true;
             }
             else
             {

@@ -1022,9 +1022,9 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (8,20): error CS0117: 'new()' does not contain a definition for 'field'
+                // (6,13): error CS8754: There is no target type for 'new()'
                 //        _ = (new()).field;
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "field").WithArguments("new()", "field").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 13)
                 );
         }
 
@@ -2444,9 +2444,9 @@ class C
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,15): error CS0117: 'new()' does not contain a definition for 'ToString'
+                // (6,9): error CS8754: There is no target type for 'new()'
                 //         new().ToString();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "ToString").WithArguments("new()", "ToString").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(6, 9),
                 // (7,9): error CS8754: There is no target type for 'new()'
                 //         new()[0].ToString();
                 Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithArguments("new()").WithLocation(7, 9)

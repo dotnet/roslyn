@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureTypePattern:
                 case MessageID.IDS_FeatureRelationalPattern:
                 case MessageID.IDS_FeatureNativeInt:
-                case MessageID.IDS_FeatureTargetTypedConditional:  // changes semantics
+                case MessageID.IDS_FeatureTargetTypedConditional:  // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.
