@@ -2077,7 +2077,7 @@ namespace System
         }
 
         [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]
-        public void BadTupleElementTypeInDeconstruction02()
+        public void MixedDeclarationAndAssignmentInTupleDeconstruct()
         {
             var source =
 @"
@@ -2099,14 +2099,7 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,9): error CS8183: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (int x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int x1, x2)").WithLocation(7, 9),
-                // (8,9): error CS8183: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (x3, int x4) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(x3, int x4)").WithLocation(8, 9)
-                );
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]

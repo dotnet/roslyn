@@ -379,18 +379,13 @@ class C
 }
 
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (int i2, i1) = b ? (1, 2) : (3, 4);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int i1, i2)").WithLocation(7, 9)
-            };
+            var expectedDiagnostics = DiagnosticDescription.None;
 
             string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     Locals: [System.Int32 i2] [System.Int32 i1]
@@ -398,13 +393,11 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'i2')
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
               Value: 
-                ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'i2')
-
+                ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
         Jump if False (Regular) to Block[B3]
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
-
         Next (Regular) Block[B2]
     Block[B2] - Block
         Predecessors: [B1]
@@ -416,7 +409,6 @@ Block[B0] - Entry
                   Elements(2):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-
         Next (Regular) Block[B4]
     Block[B3] - Block
         Predecessors: [B1]
@@ -428,28 +420,25 @@ Block[B0] - Entry
                   Elements(2):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
-
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
         Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '(int i1, i2 ... ) : (3, 4);')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(int i1, i2 ... ) : (3, 4);')
               Expression: 
-                IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 i1, System.Int32 i2), IsInvalid) (Syntax: '(int i1, i2 ... 2) : (3, 4)')
+                IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(int i1, i2 ... 2) : (3, 4)')
                   Left: 
-                    ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2), IsInvalid) (Syntax: '(int i1, i2)')
+                    ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(int i1, i2)')
                       NaturalType: (System.Int32 i1, System.Int32 i2)
                       Elements(2):
-                          IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'int i1')
-                            ILocalReferenceOperation: i1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'i1')
-                          IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'i2')
+                          IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i1')
+                            ILocalReferenceOperation: i1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+                          IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2')
                   Right: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'b ? (1, 2) : (3, 4)')
-
         Next (Regular) Block[B5]
             Leaving: {R1}
 }
-
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)

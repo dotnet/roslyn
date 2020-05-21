@@ -1854,34 +1854,6 @@ unsafe class C
         }
 
         [Fact]
-        public void MixedDeconstructionCannotBeParsed()
-        {
-            string source = @"
-class C
-{
-    public static void Main()
-    {
-        int x;
-        (x, int y) = new C();
-    }
-
-    public void Deconstruct(out int a, out int b)
-    {
-        a = 1;
-        b = 2;
-    }
-}
-";
-
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (x, int y) = new C();
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(x, int y)").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
         public void DeconstructionWithTupleNamesCannotBeParsed()
         {
             string source = @"
@@ -6115,10 +6087,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,10): error CS0103: The name '_' does not exist in the current context
                 //         (@_, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "@_").WithArguments("_").WithLocation(6, 10),
-                // (6,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (@_, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(@_, var x)").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@_").WithArguments("_").WithLocation(6, 10)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -6144,11 +6113,8 @@ class C
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (_, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(_, var x)").WithLocation(7, 9)
-                );
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1");
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -6179,29 +6145,6 @@ class C
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "3");
-        }
-
-        [Fact]
-        public void MixedDeconstructionIsBlocked()
-        {
-            var source =
-@"
-class C
-{
-    static void Main()
-    {
-        int i;
-        (i, var x) = (1, 2);
-    }
-}
-";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (i, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(i, var x)").WithLocation(7, 9)
-                );
         }
 
         [Fact]
@@ -6676,15 +6619,9 @@ class C
                 // (6,17): error CS0841: Cannot use local variable 'x' before it is declared
                 //         (var x, x) = (1, 2);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(6, 17),
-                // (6,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (var x, x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(var x, x)").WithLocation(6, 9),
                 // (7,10): error CS0841: Cannot use local variable 'y' before it is declared
                 //         (y, var y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 10),
-                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (y, var y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(y, var y)").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 10)
                 );
         }
 
@@ -7063,12 +7000,9 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(
-                // (8,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (int x1, z) = t;
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int x1, z)").WithLocation(8, 9)
-            );
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "1");
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
@@ -7094,12 +7028,8 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(
-                // (8,14): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         for ((int x1, z) = t; ; )
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int x1, z)").WithLocation(8, 14)
-            );
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
@@ -9792,7 +9722,7 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size      188 (0xbc)
+  // Code size      140 (0x8c)
   .maxstack  3
   .locals init (int V_0, //x1
                 string V_1, //y1
@@ -9801,70 +9731,52 @@ class C
                 string V_4, //y3
                 int V_5, //x3
                 string V_6, //y4
-                int V_7, //x4
-                int V_8,
-                string V_9)
+                int V_7) //x4
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
-  IL_0002:  newobj     ""C..ctor()""
-  IL_0007:  ldloca.s   V_8
-  IL_0009:  ldloca.s   V_9
-  IL_000b:  callvirt   ""void C.Deconstruct(out int, out string)""
-  IL_0010:  ldloc.s    V_8
-  IL_0012:  stloc.0
-  IL_0013:  ldloc.s    V_9
-  IL_0015:  stloc.1
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  call       ""string int.ToString()""
-  IL_001d:  ldstr      "" ""
-  IL_0022:  ldloc.1
-  IL_0023:  call       ""string string.Concat(string, string, string)""
-  IL_0028:  call       ""void System.Console.WriteLine(string)""
-  IL_002d:  newobj     ""C..ctor()""
-  IL_0032:  ldloca.s   V_8
-  IL_0034:  ldloca.s   V_9
-  IL_0036:  callvirt   ""void C.Deconstruct(out int, out string)""
-  IL_003b:  ldloc.s    V_8
-  IL_003d:  stloc.2
-  IL_003e:  ldloc.s    V_9
-  IL_0040:  stloc.3
-  IL_0041:  ldloca.s   V_2
-  IL_0043:  call       ""string int.ToString()""
-  IL_0048:  ldstr      "" ""
-  IL_004d:  ldloc.3
-  IL_004e:  call       ""string string.Concat(string, string, string)""
-  IL_0053:  call       ""void System.Console.WriteLine(string)""
-  IL_0058:  ldstr      """"
-  IL_005d:  stloc.s    V_4
-  IL_005f:  newobj     ""C..ctor()""
-  IL_0064:  ldloca.s   V_8
-  IL_0066:  ldloca.s   V_9
-  IL_0068:  callvirt   ""void C.Deconstruct(out int, out string)""
-  IL_006d:  ldloc.s    V_8
-  IL_006f:  stloc.s    V_5
-  IL_0071:  ldloc.s    V_9
-  IL_0073:  stloc.s    V_4
-  IL_0075:  ldloca.s   V_5
-  IL_0077:  call       ""string int.ToString()""
-  IL_007c:  ldstr      "" ""
-  IL_0081:  ldloc.s    V_4
-  IL_0083:  call       ""string string.Concat(string, string, string)""
-  IL_0088:  call       ""void System.Console.WriteLine(string)""
-  IL_008d:  newobj     ""C..ctor()""
-  IL_0092:  ldloca.s   V_8
-  IL_0094:  ldloca.s   V_9
-  IL_0096:  callvirt   ""void C.Deconstruct(out int, out string)""
-  IL_009b:  ldloc.s    V_8
-  IL_009d:  stloc.s    V_7
-  IL_009f:  ldloc.s    V_9
-  IL_00a1:  stloc.s    V_6
-  IL_00a3:  ldloca.s   V_7
-  IL_00a5:  call       ""string int.ToString()""
-  IL_00aa:  ldstr      "" ""
-  IL_00af:  ldloc.s    V_6
-  IL_00b1:  call       ""string string.Concat(string, string, string)""
-  IL_00b6:  call       ""void System.Console.WriteLine(string)""
-  IL_00bb:  ret
+  IL_0002:  ldc.i4.1
+  IL_0003:  stloc.0
+  IL_0004:  ldstr      ""hello""
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       ""string int.ToString()""
+  IL_0011:  ldstr      "" ""
+  IL_0016:  ldloc.1
+  IL_0017:  call       ""string string.Concat(string, string, string)""
+  IL_001c:  call       ""void System.Console.WriteLine(string)""
+  IL_0021:  ldc.i4.1
+  IL_0022:  stloc.2
+  IL_0023:  ldstr      ""hello""
+  IL_0028:  stloc.3
+  IL_0029:  ldloca.s   V_2
+  IL_002b:  call       ""string int.ToString()""
+  IL_0030:  ldstr      "" ""
+  IL_0035:  ldloc.3
+  IL_0036:  call       ""string string.Concat(string, string, string)""
+  IL_003b:  call       ""void System.Console.WriteLine(string)""
+  IL_0040:  ldstr      """"
+  IL_0045:  stloc.s    V_4
+  IL_0047:  ldc.i4.1
+  IL_0048:  stloc.s    V_5
+  IL_004a:  ldstr      ""hello""
+  IL_004f:  stloc.s    V_4
+  IL_0051:  ldloca.s   V_5
+  IL_0053:  call       ""string int.ToString()""
+  IL_0058:  ldstr      "" ""
+  IL_005d:  ldloc.s    V_4
+  IL_005f:  call       ""string string.Concat(string, string, string)""
+  IL_0064:  call       ""void System.Console.WriteLine(string)""
+  IL_0069:  ldc.i4.1
+  IL_006a:  stloc.s    V_7
+  IL_006c:  ldstr      ""hello""
+  IL_0071:  stloc.s    V_6
+  IL_0073:  ldloca.s   V_7
+  IL_0075:  call       ""string int.ToString()""
+  IL_007a:  ldstr      "" ""
+  IL_007f:  ldloc.s    V_6
+  IL_0081:  call       ""string string.Concat(string, string, string)""
+  IL_0086:  call       ""void System.Console.WriteLine(string)""
+  IL_008b:  ret
 }");
         }
     }
