@@ -82,7 +82,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 // log telemetry that service hub started
-                RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m => { m["Host"] = host; m["InstanceId"] = InstanceId; }));
+                RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m =>
+                {
+                    m["Host"] = host;
+                    m["InstanceId"] = InstanceId;
+                }));
 
                 if (serializedSession != null)
                 {
