@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 typeDeclaration.Members.Insert(index, memberDeclaration));
         }
 
-        private SyntaxTokenList MakeFieldModifiers(bool isConstant, bool inScript)
+        private static SyntaxTokenList MakeFieldModifiers(bool isConstant, bool inScript)
         {
             if (isConstant)
             {

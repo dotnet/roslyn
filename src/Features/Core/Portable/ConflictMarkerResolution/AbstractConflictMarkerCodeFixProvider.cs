@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             return true;
         }
 
-        private void RegisterCodeFixes(
+        private static void RegisterCodeFixes(
             CodeFixContext context, TextLine startLine, TextLine middleLine, TextLine endLine)
         {
             var document = context.Document;

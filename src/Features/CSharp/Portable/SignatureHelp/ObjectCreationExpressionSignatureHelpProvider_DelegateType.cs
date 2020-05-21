@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private (IList<SignatureHelpItem> items, int? selectedItem) GetDelegateTypeConstructors(
+        private static (IList<SignatureHelpItem> items, int? selectedItem) GetDelegateTypeConstructors(
             BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return (SpecializedCollections.SingletonList(item), 0);
         }
 
-        private IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+        private static IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
         {
             var result = new List<SymbolDisplayPart>();
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+        private static IList<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
         {
             const string TargetName = "target";
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     displayParts: parts));
         }
 
-        private IList<SymbolDisplayPart> GetDelegateTypePostambleParts()
+        private static IList<SymbolDisplayPart> GetDelegateTypePostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseParenToken));

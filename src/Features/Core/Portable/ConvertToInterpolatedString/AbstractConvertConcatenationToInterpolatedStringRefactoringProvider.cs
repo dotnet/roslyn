@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 top.Span);
         }
 
-        private Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode top, SyntaxNode interpolatedString)
+        private static Task<Document> UpdateDocumentAsync(Document document, SyntaxNode root, SyntaxNode top, SyntaxNode interpolatedString)
         {
             var newRoot = root.ReplaceNode(top, interpolatedString);
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             pieces.Add(right);
         }
 
-        private bool IsStringConcat(
+        private static bool IsStringConcat(
             ISyntaxFactsService syntaxFacts, SyntaxNode expression,
             SemanticModel semanticModel, CancellationToken cancellationToken)
         {

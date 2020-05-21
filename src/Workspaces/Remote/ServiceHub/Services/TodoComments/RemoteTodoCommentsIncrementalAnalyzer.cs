@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task ConvertAsync(
+        private static async Task ConvertAsync(
             Document document,
             ImmutableArray<TodoComment> todoComments,
             ArrayBuilder<TodoCommentData> converted,

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null);
         }
 
-        private TextSpan GetTextSpan(ExpressionSyntax expression, SyntaxToken openBracket)
+        private static TextSpan GetTextSpan(ExpressionSyntax expression, SyntaxToken openBracket)
         {
             if (openBracket.Parent is BracketedArgumentListSyntax)
             {
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return SignatureHelpUtilities.GetSignatureHelpState(argumentList, position);
         }
 
-        private bool TryGetComIndexers(
+        private static bool TryGetComIndexers(
             SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken,
             out ImmutableArray<IPropertySymbol> indexers, out ITypeSymbol expressionType)
         {
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return false;
         }
 
-        private bool TryGetIndexers(
+        private static bool TryGetIndexers(
             int position, SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken,
             out ImmutableArray<IPropertySymbol> indexers, out ITypeSymbol expressionType)
         {
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return true;
         }
 
-        private SignatureHelpItem Convert(
+        private static SignatureHelpItem Convert(
             IPropertySymbol indexer,
             SyntaxToken openToken,
             SemanticModel semanticModel,
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return item;
         }
 
-        private IList<SymbolDisplayPart> GetPreambleParts(
+        private static IList<SymbolDisplayPart> GetPreambleParts(
             IPropertySymbol indexer,
             int position,
             SemanticModel semanticModel)
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts()
+        private static IList<SymbolDisplayPart> GetPostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseBracketToken));

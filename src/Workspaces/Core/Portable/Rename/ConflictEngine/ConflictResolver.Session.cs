@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             /// one location it must be the correct one (the symbol is ambiguous to something else)
             /// and we always try to rewrite it.  If there are multiple locations, we only allow it
             /// if the candidate reason allows for it).
-            private bool ShouldIncludeLocation(ISet<RenameLocation> renameLocations, RenameLocation location)
+            private static bool ShouldIncludeLocation(ISet<RenameLocation> renameLocations, RenameLocation location)
             {
                 if (location.IsRenameInStringOrComment)
                 {

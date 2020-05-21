@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public Compilation ContainingCompilation => null;
 
-        public INamedTypeSymbol ImplicitType => null;
+        public static INamedTypeSymbol ImplicitType => null;
 
         public ImmutableArray<INamespaceSymbol> ConstituentNamespaces
         {

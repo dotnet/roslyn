@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return expression;
             }
 
-            private ExpressionSyntax TryAddTypeArgumentToIdentifierName(ExpressionSyntax newNode, ISymbol symbol)
+            private static ExpressionSyntax TryAddTypeArgumentToIdentifierName(ExpressionSyntax newNode, ISymbol symbol)
             {
                 if (newNode.Kind() == SyntaxKind.IdentifierName && symbol.Kind == SymbolKind.Method)
                 {
@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return typeArgumentSymbols;
             }
 
-            private bool IsInvocationWithDynamicArguments(SimpleNameSyntax originalSimpleName, SemanticModel semanticModel)
+            private static bool IsInvocationWithDynamicArguments(SimpleNameSyntax originalSimpleName, SemanticModel semanticModel)
             {
                 var invocationExpression = originalSimpleName.Ancestors().OfType<InvocationExpressionSyntax>().FirstOrDefault();
 
@@ -858,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
             }
 
-            private bool IsPropertyNameOfObjectInitializer(SimpleNameSyntax identifierName)
+            private static bool IsPropertyNameOfObjectInitializer(SimpleNameSyntax identifierName)
             {
                 SyntaxNode currentNode = identifierName;
                 SyntaxNode parent = identifierName;
