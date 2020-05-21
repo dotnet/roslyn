@@ -58,13 +58,13 @@ End Class
             Assert.NotEmpty(rules);
         }
 
-        private void AssertFormatCSharp(string expected, string input)
+        private static void AssertFormatCSharp(string expected, string input)
         {
             var tree = CS.SyntaxFactory.ParseSyntaxTree(input);
             AssertFormat(expected, tree);
         }
 
-        private void AssertFormatVB(string expected, string input)
+        private static void AssertFormatVB(string expected, string input)
         {
             var tree = VB.SyntaxFactory.ParseSyntaxTree(input);
             AssertFormat(expected, tree);

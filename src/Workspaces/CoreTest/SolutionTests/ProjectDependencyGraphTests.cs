@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
                 actualResults.OrderBy(n => n));
         }
 
-        private void VerifyTransitiveReferences(Solution solution, string project, string[] expectedResults)
+        private static void VerifyTransitiveReferences(Solution solution, string project, string[] expectedResults)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
             VerifyTransitiveReferences(solution, projectDependencyGraph, project, expectedResults);
@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         #region Helpers
 
-        private Solution CreateSolutionFromReferenceMap(string projectReferences)
+        private static Solution CreateSolutionFromReferenceMap(string projectReferences)
         {
             var solution = CreateSolution();
 

@@ -2662,7 +2662,7 @@ class C1
             }
         }
 
-        private FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
+        private static FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
         {
             var result = new List<(string, object)>();
             foreach (var (fileName, fileContent) in files)

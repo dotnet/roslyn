@@ -205,7 +205,7 @@ End Class
 
         End Sub
 
-        Private Function GetAttributeData(decl As String, use As String) As AttributeData
+        Private Shared Function GetAttributeData(decl As String, use As String) As AttributeData
             Dim code = decl & vbCrLf & use & vbCrLf & "Public Class C " & vbCrLf & "End Class" & vbCrLf
             Dim compilation = Compile(code)
             Dim typeC = DirectCast(compilation.GlobalNamespace.GetMembers("C").First, INamedTypeSymbol)

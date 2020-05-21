@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return (TSymbol)symbol;
         }
 
-        private void CheckDeclarationIdExact<TSymbol>(string expectedId, Compilation compilation, Func<TSymbol, bool> test)
+        private static void CheckDeclarationIdExact<TSymbol>(string expectedId, Compilation compilation, Func<TSymbol, bool> test)
             where TSymbol : ISymbol
         {
             var symbol = CheckDeclarationId(expectedId, compilation, test);

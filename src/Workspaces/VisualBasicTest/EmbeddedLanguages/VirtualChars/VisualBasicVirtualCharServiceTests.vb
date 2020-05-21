@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
             Return token
         End Function
 
-        Private Sub Test(stringText As String, expected As String)
+        Private Shared Sub Test(stringText As String, expected As String)
             Dim token = GetStringToken(stringText)
             Dim virtualChars = VisualBasicVirtualCharService.Instance.TryConvertToVirtualChars(token)
             Dim actual = ConvertToString(virtualChars)
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
             Test("$""a""""b""", "['a',[2,3]]['""',[3,5]]['b',[5,6]]")
         End Sub
 
-        Private Function ConvertToString(virtualChars As VirtualCharSequence) As String
+        Private Shared Function ConvertToString(virtualChars As VirtualCharSequence) As String
             Dim strings = ArrayBuilder(Of String).GetInstance()
             For Each ch In virtualChars
                 strings.Add(ConvertToString(ch))
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
             Return String.Join("", strings.ToImmutableAndFree())
         End Function
 
-        Private Function ConvertToString(vc As VirtualChar) As String
+        Private Shared Function ConvertToString(vc As VirtualChar) As String
             Return $"[{ConvertToString(ChrW(vc.Rune.Value))},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]"
         End Function
 

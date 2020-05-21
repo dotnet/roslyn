@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static Solution CreateSolution()
             => new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly))).CurrentSolution;
 
-        private Solution CreateSolutionWithProjectAndDocuments()
+        private static Solution CreateSolutionWithProjectAndDocuments()
         {
             var projectId = ProjectId.CreateNewId();
 
@@ -1308,22 +1308,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await ValidateSolutionAndCompilationsAsync(sol);
         }
 
-        private Solution CreateSolutionWithOneCSharpProject()
+        private static Solution CreateSolutionWithOneCSharpProject()
         {
-            return this.CreateSolution()
+            return CreateSolution()
                        .AddProject("goo", "goo.dll", LanguageNames.CSharp)
                        .AddMetadataReference(s_mscorlib)
                        .AddDocument("goo.cs", "public class Goo { }")
                        .Project.Solution;
         }
 
-        private Solution CreateSolutionWithTwoCSharpProjects()
+        private static Solution CreateSolutionWithTwoCSharpProjects()
         {
             var pm1 = ProjectId.CreateNewId();
             var pm2 = ProjectId.CreateNewId();
             var doc1 = DocumentId.CreateNewId(pm1);
             var doc2 = DocumentId.CreateNewId(pm2);
-            return this.CreateSolution()
+            return CreateSolution()
                        .AddProject(pm1, "goo", "goo.dll", LanguageNames.CSharp)
                        .AddProject(pm2, "bar", "bar.dll", LanguageNames.CSharp)
                        .AddProjectReference(pm2, new ProjectReference(pm1))
@@ -1331,11 +1331,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                        .AddDocument(doc2, "bar.cs", "public class Bar : Goo { }");
         }
 
-        private Solution CreateCrossLanguageSolution()
+        private static Solution CreateCrossLanguageSolution()
         {
             var pm1 = ProjectId.CreateNewId();
             var pm2 = ProjectId.CreateNewId();
-            return this.CreateSolution()
+            return CreateSolution()
                        .AddProject(pm1, "goo", "goo.dll", LanguageNames.CSharp)
                        .AddMetadataReference(pm1, s_mscorlib)
                        .AddProject(pm2, "bar", "bar.dll", LanguageNames.VisualBasic)
@@ -1428,9 +1428,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 #endif
 
-        private Solution CreateSolutionWithProjectDependencyChain(int projectCount)
+        private static Solution CreateSolutionWithProjectDependencyChain(int projectCount)
         {
-            var solution = this.CreateNotKeptAliveSolution();
+            var solution = CreateNotKeptAliveSolution();
             projectCount = 5;
             var projectIds = Enumerable.Range(0, projectCount).Select(i => ProjectId.CreateNewId()).ToArray();
             for (var i = 0; i < projectCount; i++)
@@ -2193,7 +2193,7 @@ End Class";
             TestRecoverableSyntaxTree(sol, did);
         }
 
-        private void TestRecoverableSyntaxTree(Solution sol, DocumentId did)
+        private static void TestRecoverableSyntaxTree(Solution sol, DocumentId did)
         {
             // get it async and wait for it to get GC'd
             var observed = GetObservedSyntaxTreeRootAsync(sol, did);

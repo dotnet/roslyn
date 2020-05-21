@@ -292,7 +292,7 @@ End Module";
         public static CSharp.Syntax.MethodDeclarationSyntax CreateCSharpMethod(string returnType = "void", string methodName = "Method")
             => CSharp.SyntaxFactory.MethodDeclaration(CSharp.SyntaxFactory.ParseTypeName(returnType), CSharp.SyntaxFactory.Identifier(methodName));
 
-        private void VerifyRange(string codeWithMarker, string language = LanguageNames.CSharp)
+        private static void VerifyRange(string codeWithMarker, string language = LanguageNames.CSharp)
         {
             MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out IDictionary<string, ImmutableArray<TextSpan>> namedSpans);
@@ -302,7 +302,7 @@ End Module";
             VerifyRange(codeWithoutMarker, ImmutableArray<ICodeCleanupProvider>.Empty, namedSpans["b"], ref expectedResult, language);
         }
 
-        private void VerifyRange(string codeWithMarker, ICodeCleanupProvider transformer, ref IEnumerable<TextSpan> expectedResult, string language = LanguageNames.CSharp)
+        private static void VerifyRange(string codeWithMarker, ICodeCleanupProvider transformer, ref IEnumerable<TextSpan> expectedResult, string language = LanguageNames.CSharp)
         {
             MarkupTestFile.GetSpans(codeWithMarker,
                 out var codeWithoutMarker, out IDictionary<string, ImmutableArray<TextSpan>> namedSpans);

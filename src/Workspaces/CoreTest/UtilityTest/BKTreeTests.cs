@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             TestTreeInvariants(testValues);
         }
 
-        private void TestTreeInvariants(string[] testValues)
+        private static void TestTreeInvariants(string[] testValues)
         {
             var tree = BKTree.Create(testValues);
 

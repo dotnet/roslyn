@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static Solution CreateSolution()
             => new AdhocWorkspace().CurrentSolution;
 
-        private Solution GetSingleDocumentSolution(string sourceText)
+        private static Solution GetSingleDocumentSolution(string sourceText)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     .AddDocument(did, "goo.cs", SourceText.From(sourceText));
         }
 
-        private Solution GetMultipleDocumentSolution(string[] sourceTexts)
+        private static Solution GetMultipleDocumentSolution(string[] sourceTexts)
         {
             var pid = ProjectId.CreateNewId();
 

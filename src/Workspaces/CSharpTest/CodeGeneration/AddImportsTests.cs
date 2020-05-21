@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             return doc;
         }
 
-        private async Task TestAsync(string initialText, string importsAddedText, string simplifiedText, bool safe, bool useSymbolAnnotations, Func<OptionSet, OptionSet> optionsTransform = null)
+        private static async Task TestAsync(string initialText, string importsAddedText, string simplifiedText, bool safe, bool useSymbolAnnotations, Func<OptionSet, OptionSet> optionsTransform = null)
         {
             var doc = await GetDocument(initialText, useSymbolAnnotations);
             OptionSet options = await doc.GetOptionsAsync();

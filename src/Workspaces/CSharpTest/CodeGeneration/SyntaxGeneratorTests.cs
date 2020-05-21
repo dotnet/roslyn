@@ -223,7 +223,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             Assert.True(attributes.Count == 1);
         }
 
-        private AttributeData GetAttributeData(string decl, string use)
+        private static AttributeData GetAttributeData(string decl, string use)
         {
             var compilation = Compile(decl + "\r\n" + use + "\r\nclass C { }");
             var typeC = compilation.GlobalNamespace.GetMembers("C").First() as INamedTypeSymbol;
@@ -3467,7 +3467,7 @@ class C
 }");
         }
 
-        private void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
+        private static void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
         {
             MarkupTestFile.GetSpan(markup, out var code, out var span);
 

@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
             Return SyntaxFactory.ParseCompilationUnit(text, options:=DirectCast(parseOptions, VisualBasicParseOptions))
         End Function
 
-        Protected Function CreateMethod(ParamArray lines() As String) As String
+        Protected Shared Function CreateMethod(ParamArray lines() As String) As String
             Dim adjustedLines = New List(Of String)()
             adjustedLines.Add("Class C")
             adjustedLines.Add("    Sub Method()")

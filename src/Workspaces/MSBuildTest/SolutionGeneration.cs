@@ -306,7 +306,7 @@ EndGlobal
                 return document.ToString();
             }
 
-            private void AddItemGroup<T>(
+            private static void AddItemGroup<T>(
                 XElement addBefore,
                 Func<T, string> itemTypeSelector,
                 IEnumerable<T> items,
