@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class ObjectCreationExpressionSignatureHelpProvider
 
-        Private Function GetNormalTypeConstructors(document As Document,
+        Private Shared Function GetNormalTypeConstructors(document As Document,
                                                    objectCreationExpression As ObjectCreationExpressionSyntax,
                                                    semanticModel As SemanticModel,
                                                    anonymousTypeDisplayService As IAnonymousTypeDisplayService,
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return (items, selectedItem)
         End Function
 
-        Private Function ConvertNormalTypeConstructor(constructor As IMethodSymbol, objectCreationExpression As ObjectCreationExpressionSyntax, semanticModel As SemanticModel,
+        Private Shared Function ConvertNormalTypeConstructor(constructor As IMethodSymbol, objectCreationExpression As ObjectCreationExpressionSyntax, semanticModel As SemanticModel,
                                                       anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                       documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim position = objectCreationExpression.SpanStart
@@ -56,14 +56,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return item
         End Function
 
-        Private Function GetNormalTypePreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+        Private Shared Function GetNormalTypePreambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
             result.AddRange(method.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
             Return result
         End Function
 
-        Private Function GetNormalTypePostambleParts() As IList(Of SymbolDisplayPart)
+        Private Shared Function GetNormalTypePostambleParts() As IList(Of SymbolDisplayPart)
             Return {Punctuation(SyntaxKind.CloseParenToken)}
         End Function
     End Class

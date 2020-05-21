@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddAnchorIndentationOperation(List<AnchorIndentationOperation> list, SyntaxNode node)
+        private static void AddAnchorIndentationOperation(List<AnchorIndentationOperation> list, SyntaxNode node)
             => AddAnchorIndentationOperation(list, node.GetFirstToken(includeZeroWidth: true), node.GetLastToken(includeZeroWidth: true));
     }
 }

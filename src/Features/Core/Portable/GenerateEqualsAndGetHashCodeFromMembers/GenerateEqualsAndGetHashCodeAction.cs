@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     ImmutableArray.Create(generator.ReturnStatement(expression)));
             }
 
-            private IMethodSymbol CreateInequalityOperator(Compilation compilation, SyntaxGenerator generator, ImmutableArray<IParameterSymbol> parameters)
+            private static IMethodSymbol CreateInequalityOperator(Compilation compilation, SyntaxGenerator generator, ImmutableArray<IParameterSymbol> parameters)
             {
                 var expression = generator.LogicalNotExpression(
                     generator.ValueEqualsExpression(
