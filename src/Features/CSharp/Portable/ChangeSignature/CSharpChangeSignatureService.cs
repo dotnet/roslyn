@@ -560,7 +560,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
             else
             {
-                var argumentList = node switch
+#pragma warning disable IDE0007 // Use implicit type - Using 'var' causes "error CS8506: No best type was found for the switch expression"
+                // TODO: File a bug on IDE0007 analyzer
+                BaseArgumentListSyntax? argumentList = node switch
+#pragma warning restore IDE0007 // Use implicit type
                 {
                     InvocationExpressionSyntax invocation => invocation.ArgumentList,
                     ObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
