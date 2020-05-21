@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -137,6 +139,23 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase = false, bool ignoreAssemblyKeys = false)
             => SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyKeys);
+
+        public static bool CanCreate(ISymbol symbol, CancellationToken cancellationToken)
+        {
+            if (BodyLevelSymbolKey.IsBodyLevelSymbol(symbol))
+            {
+                var locations = BodyLevelSymbolKey.GetBodyLevelSourceLocations(symbol, cancellationToken);
+                if (locations.Length == 0)
+                    return false;
+
+                // Ensure that the tree we're looking at is actually in this compilation.  It may not be in the
+                // compilation in the case of work done with a speculative model.
+                var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
+                return compilation.SyntaxTrees.Contains(locations.First().SourceTree);
+            }
+
+            return true;
+        }
 
         public static SymbolKeyResolution ResolveString(
             string symbolKey, Compilation compilation,

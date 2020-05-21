@@ -5,9 +5,11 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -16,6 +18,35 @@ namespace Microsoft.CodeAnalysis
     {
         private static class BodyLevelSymbolKey
         {
+            public static bool IsBodyLevelSymbol(ISymbol symbol)
+                => symbol switch
+                {
+                    ILabelSymbol _ => true,
+                    IRangeVariableSymbol _ => true,
+                    ILocalSymbol _ => true,
+                    IMethodSymbol { MethodKind: MethodKind.LocalFunction } _ => true,
+                    _ => false,
+                };
+
+            public static ImmutableArray<Location> GetBodyLevelSourceLocations(ISymbol symbol, CancellationToken cancellationToken)
+            {
+                Contract.ThrowIfFalse(IsBodyLevelSymbol(symbol));
+                Contract.ThrowIfTrue(symbol.DeclaringSyntaxReferences.IsEmpty && symbol.Locations.IsEmpty);
+
+                using var _ = ArrayBuilder<Location>.GetInstance(out var result);
+
+                foreach (var location in symbol.Locations)
+                {
+                    if (location.IsInSource)
+                        result.Add(location);
+                }
+
+                foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
+                    result.Add(syntaxRef.GetSyntax(cancellationToken).GetLocation());
+
+                return result.ToImmutable();
+            }
+
             public static void Create(ISymbol symbol, SymbolKeyWriter visitor)
             {
                 // Store the body level symbol in two forms.  The first, a highly precise form that should find explicit
@@ -39,8 +70,7 @@ namespace Microsoft.CodeAnalysis
                 // write out the locations for precision
                 Contract.ThrowIfTrue(symbol.DeclaringSyntaxReferences.IsEmpty && symbol.Locations.IsEmpty);
 
-                var locations = symbol.Locations.Concat(
-                    symbol.DeclaringSyntaxReferences.SelectAsArray(r => r.GetSyntax(visitor.CancellationToken).GetLocation()));
+                var locations = GetBodyLevelSourceLocations(symbol, visitor.CancellationToken);
 
                 Contract.ThrowIfFalse(locations.All(loc => loc.IsInSource));
                 visitor.WriteLocationArray(locations.Distinct());

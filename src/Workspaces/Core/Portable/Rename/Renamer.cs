@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             using (Logger.LogBlock(FunctionId.Renamer_RenameSymbolAsync, cancellationToken))
             {
-                var project = solution.GetOriginatingProject(symbol);
-                if (project != null)
+                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
                 {
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                     if (client != null)
@@ -134,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Rename
                             solution,
                             new object?[]
                             {
-                                SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
+                                serializedSymbol,
                                 newName,
                                 SerializableRenameOptionSet.Dehydrate(optionSet),
                                 nonConflictSymbols?.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
