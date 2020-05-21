@@ -229,6 +229,9 @@ namespace Analyzer.Utilities.Extensions
                 method.ReturnsVoid && method.Parameters.IsEmpty;
         }
 
+        /// <summary>
+        /// Checks if the given method has the signature "Task CloseAsync()".
+        /// </summary>
         private static bool HasDisposeCloseAsyncMethodSignature(this IMethodSymbol method, INamedTypeSymbol? taskType)
             => taskType != null && method.Parameters.IsEmpty && method.Name == "CloseAsync" && method.ReturnType.Equals(taskType);
 
