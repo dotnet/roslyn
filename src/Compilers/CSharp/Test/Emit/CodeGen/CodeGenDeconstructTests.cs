@@ -6613,7 +6613,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             // mixing declaration and expressions isn't supported yet
             comp.VerifyDiagnostics(
                 // (6,17): error CS0841: Cannot use local variable 'x' before it is declared
@@ -9808,6 +9808,359 @@ class C
                 // (9,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         (int x2, y2) = new C();
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x2, y2) = new C()").WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void NestedMixedDeclarationAndAssignmentPermutations()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1;
+        string y1;
+        (x1, (y1, var z1)) = new C();
+        System.Console.WriteLine(x1 + "" "" + y1 + "" "" + z1);
+
+        int x2;
+        bool z2;
+        (x2, (var y2, z2)) = new C();
+        System.Console.WriteLine(x2 + "" "" + y2 + "" "" + z2);
+
+        string y3;
+        bool z3;
+        (var x3, (y3, z3)) = new C();
+        System.Console.WriteLine(x3 + "" "" + y3 + "" "" + z3);
+
+        bool z4;
+        (var x4, (var y4, z4)) = new C();
+        System.Console.WriteLine(x4 + "" "" + y4 + "" "" + z4);
+
+        string y5;
+        (var x5, (y5, var z5)) = new C();
+        System.Console.WriteLine(x5 + "" "" + y5 + "" "" + z5);
+
+        int x6;
+        (x6, (var y6, var z6)) = new C();
+        System.Console.WriteLine(x6 + "" "" + y6 + "" "" + z6);
+
+        int x7;
+        (x7, var (y7, z7)) = new C();
+        System.Console.WriteLine(x7 + "" "" + y7 + "" "" + z7);
+    }
+
+    public void Deconstruct(out int a, out (string a, bool b) b)
+    {
+        a = 1;
+        b = (""hello"", true);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"1 hello True
+1 hello True
+1 hello True
+1 hello True
+1 hello True
+1 hello True
+1 hello True");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      640 (0x280)
+  .maxstack  4
+  .locals init (int V_0, //x1
+                string V_1, //y1
+                bool V_2, //z1
+                int V_3, //x2
+                bool V_4, //z2
+                string V_5, //y2
+                string V_6, //y3
+                bool V_7, //z3
+                int V_8, //x3
+                bool V_9, //z4
+                int V_10, //x4
+                string V_11, //y4
+                string V_12, //y5
+                int V_13, //x5
+                bool V_14, //z5
+                int V_15, //x6
+                string V_16, //y6
+                bool V_17, //z6
+                int V_18, //x7
+                string V_19, //y7
+                bool V_20, //z7
+                int V_21,
+                System.ValueTuple<string, bool> V_22)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_21
+  IL_0007:  ldloca.s   V_22
+  IL_0009:  callvirt   ""void C.Deconstruct(out int, out System.ValueTuple<string, bool>)""
+  IL_000e:  ldloc.s    V_22
+  IL_0010:  ldloc.s    V_21
+  IL_0012:  stloc.0
+  IL_0013:  dup
+  IL_0014:  ldfld      ""string System.ValueTuple<string, bool>.Item1""
+  IL_0019:  stloc.1
+  IL_001a:  ldfld      ""bool System.ValueTuple<string, bool>.Item2""
+  IL_001f:  stloc.2
+  IL_0020:  ldc.i4.5
+  IL_0021:  newarr     ""string""
+  IL_0026:  dup
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""string int.ToString()""
+  IL_002f:  stelem.ref
+  IL_0030:  dup
+  IL_0031:  ldc.i4.1
+  IL_0032:  ldstr      "" ""
+  IL_0037:  stelem.ref
+  IL_0038:  dup
+  IL_0039:  ldc.i4.2
+  IL_003a:  ldloc.1
+  IL_003b:  stelem.ref
+  IL_003c:  dup
+  IL_003d:  ldc.i4.3
+  IL_003e:  ldstr      "" ""
+  IL_0043:  stelem.ref
+  IL_0044:  dup
+  IL_0045:  ldc.i4.4
+  IL_0046:  ldloca.s   V_2
+  IL_0048:  call       ""string bool.ToString()""
+  IL_004d:  stelem.ref
+  IL_004e:  call       ""string string.Concat(params string[])""
+  IL_0053:  call       ""void System.Console.WriteLine(string)""
+  IL_0058:  newobj     ""C..ctor()""
+  IL_005d:  ldloca.s   V_21
+  IL_005f:  ldloca.s   V_22
+  IL_0061:  callvirt   ""void C.Deconstruct(out int, out System.ValueTuple<string, bool>)""
+  IL_0066:  ldloc.s    V_22
+  IL_0068:  ldloc.s    V_21
+  IL_006a:  stloc.3
+  IL_006b:  dup
+  IL_006c:  ldfld      ""string System.ValueTuple<string, bool>.Item1""
+  IL_0071:  stloc.s    V_5
+  IL_0073:  ldfld      ""bool System.ValueTuple<string, bool>.Item2""
+  IL_0078:  stloc.s    V_4
+  IL_007a:  ldc.i4.5
+  IL_007b:  newarr     ""string""
+  IL_0080:  dup
+  IL_0081:  ldc.i4.0
+  IL_0082:  ldloca.s   V_3
+  IL_0084:  call       ""string int.ToString()""
+  IL_0089:  stelem.ref
+  IL_008a:  dup
+  IL_008b:  ldc.i4.1
+  IL_008c:  ldstr      "" ""
+  IL_0091:  stelem.ref
+  IL_0092:  dup
+  IL_0093:  ldc.i4.2
+  IL_0094:  ldloc.s    V_5
+  IL_0096:  stelem.ref
+  IL_0097:  dup
+  IL_0098:  ldc.i4.3
+  IL_0099:  ldstr      "" ""
+  IL_009e:  stelem.ref
+  IL_009f:  dup
+  IL_00a0:  ldc.i4.4
+  IL_00a1:  ldloca.s   V_4
+  IL_00a3:  call       ""string bool.ToString()""
+  IL_00a8:  stelem.ref
+  IL_00a9:  call       ""string string.Concat(params string[])""
+  IL_00ae:  call       ""void System.Console.WriteLine(string)""
+  IL_00b3:  newobj     ""C..ctor()""
+  IL_00b8:  ldloca.s   V_21
+  IL_00ba:  ldloca.s   V_22
+  IL_00bc:  callvirt   ""void C.Deconstruct(out int, out System.ValueTuple<string, bool>)""
+  IL_00c1:  ldloc.s    V_22
+  IL_00c3:  ldloc.s    V_21
+  IL_00c5:  stloc.s    V_8
+  IL_00c7:  dup
+  IL_00c8:  ldfld      ""string System.ValueTuple<string, bool>.Item1""
+  IL_00cd:  stloc.s    V_6
+  IL_00cf:  ldfld      ""bool System.ValueTuple<string, bool>.Item2""
+  IL_00d4:  stloc.s    V_7
+  IL_00d6:  ldc.i4.5
+  IL_00d7:  newarr     ""string""
+  IL_00dc:  dup
+  IL_00dd:  ldc.i4.0
+  IL_00de:  ldloca.s   V_8
+  IL_00e0:  call       ""string int.ToString()""
+  IL_00e5:  stelem.ref
+  IL_00e6:  dup
+  IL_00e7:  ldc.i4.1
+  IL_00e8:  ldstr      "" ""
+  IL_00ed:  stelem.ref
+  IL_00ee:  dup
+  IL_00ef:  ldc.i4.2
+  IL_00f0:  ldloc.s    V_6
+  IL_00f2:  stelem.ref
+  IL_00f3:  dup
+  IL_00f4:  ldc.i4.3
+  IL_00f5:  ldstr      "" ""
+  IL_00fa:  stelem.ref
+  IL_00fb:  dup
+  IL_00fc:  ldc.i4.4
+  IL_00fd:  ldloca.s   V_7
+  IL_00ff:  call       ""string bool.ToString()""
+  IL_0104:  stelem.ref
+  IL_0105:  call       ""string string.Concat(params string[])""
+  IL_010a:  call       ""void System.Console.WriteLine(string)""
+  IL_010f:  newobj     ""C..ctor()""
+  IL_0114:  ldloca.s   V_21
+  IL_0116:  ldloca.s   V_22
+  IL_0118:  callvirt   ""void C.Deconstruct(out int, out System.ValueTuple<string, bool>)""
+  IL_011d:  ldloc.s    V_22
+  IL_011f:  ldloc.s    V_21
+  IL_0121:  stloc.s    V_10
+  IL_0123:  dup
+  IL_0124:  ldfld      ""string System.ValueTuple<string, bool>.Item1""
+  IL_0129:  stloc.s    V_11
+  IL_012b:  ldfld      ""bool System.ValueTuple<string, bool>.Item2""
+  IL_0130:  stloc.s    V_9
+  IL_0132:  ldc.i4.5
+  IL_0133:  newarr     ""string""
+  IL_0138:  dup
+  IL_0139:  ldc.i4.0
+  IL_013a:  ldloca.s   V_10
+  IL_013c:  call       ""string int.ToString()""
+  IL_0141:  stelem.ref
+  IL_0142:  dup
+  IL_0143:  ldc.i4.1
+  IL_0144:  ldstr      "" ""
+  IL_0149:  stelem.ref
+  IL_014a:  dup
+  IL_014b:  ldc.i4.2
+  IL_014c:  ldloc.s    V_11
+  IL_014e:  stelem.ref
+  IL_014f:  dup
+  IL_0150:  ldc.i4.3
+  IL_0151:  ldstr      "" ""
+  IL_0156:  stelem.ref
+  IL_0157:  dup
+  IL_0158:  ldc.i4.4
+  IL_0159:  ldloca.s   V_9
+  IL_015b:  call       ""string bool.ToString()""
+  IL_0160:  stelem.ref
+  IL_0161:  call       ""string string.Concat(params string[])""
+  IL_0166:  call       ""void System.Console.WriteLine(string)""
+  IL_016b:  newobj     ""C..ctor()""
+  IL_0170:  ldloca.s   V_21
+  IL_0172:  ldloca.s   V_22
+  IL_0174:  callvirt   ""void C.Deconstruct(out int, out System.ValueTuple<string, bool>)""
+  IL_0179:  ldloc.s    V_22
+  IL_017b:  ldloc.s    V_21
+  IL_017d:  stloc.s    V_13
+  IL_017f:  dup
+  IL_0180:  ldfld      ""string System.ValueTuple<string, bool>.Item1""
+  IL_0185:  stloc.s    V_12
+  IL_0187:  ldfld      ""bool System.ValueTuple<string, bool>.Item2""
+  IL_018c:  stloc.s    V_14
+  IL_018e:  ldc.i4.5
+  IL_018f:  newarr     ""string""
+  IL_0194:  dup
+  IL_0195:  ldc.i4.0
+  IL_0196:  ldloca.s   V_13
+  IL_0198:  call       ""string int.ToString()""
+  IL_019d:  stelem.ref
+  IL_019e:  dup
+  IL_019f:  ldc.i4.1
+  IL_01a0:  ldstr      "" ""
+  IL_01a5:  stelem.ref
+  IL_01a6:  dup
+  IL_01a7:  ldc.i4.2
+  IL_01a8:  ldloc.s    V_12
+  IL_01aa:  stelem.ref
+  IL_01ab:  dup
+  IL_01ac:  ldc.i4.3
+  IL_01ad:  ldstr      "" ""
+  IL_01b2:  stelem.ref
+  IL_01b3:  dup
+  IL_01b4:  ldc.i4.4
+  IL_01b5:  ldloca.s   V_14
+  IL_01b7:  call       ""string bool.ToString()""
+  IL_01bc:  stelem.ref
+  IL_01bd:  call       ""string string.Concat(params string[])""
+  IL_01c2:  call       ""void System.Console.WriteLine(string)""
+  IL_01c7:  newobj     ""C..ctor()""
+  IL_01cc:  ldloca.s   V_21
+  IL_01ce:  ldloca.s   V_22
+  IL_01d0:  callvirt   ""void C.Deconstruct(out int, out System.ValueTuple<string, bool>)""
+  IL_01d5:  ldloc.s    V_22
+  IL_01d7:  ldloc.s    V_21
+  IL_01d9:  stloc.s    V_15
+  IL_01db:  dup
+  IL_01dc:  ldfld      ""string System.ValueTuple<string, bool>.Item1""
+  IL_01e1:  stloc.s    V_16
+  IL_01e3:  ldfld      ""bool System.ValueTuple<string, bool>.Item2""
+  IL_01e8:  stloc.s    V_17
+  IL_01ea:  ldc.i4.5
+  IL_01eb:  newarr     ""string""
+  IL_01f0:  dup
+  IL_01f1:  ldc.i4.0
+  IL_01f2:  ldloca.s   V_15
+  IL_01f4:  call       ""string int.ToString()""
+  IL_01f9:  stelem.ref
+  IL_01fa:  dup
+  IL_01fb:  ldc.i4.1
+  IL_01fc:  ldstr      "" ""
+  IL_0201:  stelem.ref
+  IL_0202:  dup
+  IL_0203:  ldc.i4.2
+  IL_0204:  ldloc.s    V_16
+  IL_0206:  stelem.ref
+  IL_0207:  dup
+  IL_0208:  ldc.i4.3
+  IL_0209:  ldstr      "" ""
+  IL_020e:  stelem.ref
+  IL_020f:  dup
+  IL_0210:  ldc.i4.4
+  IL_0211:  ldloca.s   V_17
+  IL_0213:  call       ""string bool.ToString()""
+  IL_0218:  stelem.ref
+  IL_0219:  call       ""string string.Concat(params string[])""
+  IL_021e:  call       ""void System.Console.WriteLine(string)""
+  IL_0223:  newobj     ""C..ctor()""
+  IL_0228:  ldloca.s   V_21
+  IL_022a:  ldloca.s   V_22
+  IL_022c:  callvirt   ""void C.Deconstruct(out int, out System.ValueTuple<string, bool>)""
+  IL_0231:  ldloc.s    V_22
+  IL_0233:  ldloc.s    V_21
+  IL_0235:  stloc.s    V_18
+  IL_0237:  dup
+  IL_0238:  ldfld      ""string System.ValueTuple<string, bool>.Item1""
+  IL_023d:  stloc.s    V_19
+  IL_023f:  ldfld      ""bool System.ValueTuple<string, bool>.Item2""
+  IL_0244:  stloc.s    V_20
+  IL_0246:  ldc.i4.5
+  IL_0247:  newarr     ""string""
+  IL_024c:  dup
+  IL_024d:  ldc.i4.0
+  IL_024e:  ldloca.s   V_18
+  IL_0250:  call       ""string int.ToString()""
+  IL_0255:  stelem.ref
+  IL_0256:  dup
+  IL_0257:  ldc.i4.1
+  IL_0258:  ldstr      "" ""
+  IL_025d:  stelem.ref
+  IL_025e:  dup
+  IL_025f:  ldc.i4.2
+  IL_0260:  ldloc.s    V_19
+  IL_0262:  stelem.ref
+  IL_0263:  dup
+  IL_0264:  ldc.i4.3
+  IL_0265:  ldstr      "" ""
+  IL_026a:  stelem.ref
+  IL_026b:  dup
+  IL_026c:  ldc.i4.4
+  IL_026d:  ldloca.s   V_20
+  IL_026f:  call       ""string bool.ToString()""
+  IL_0274:  stelem.ref
+  IL_0275:  call       ""string string.Concat(params string[])""
+  IL_027a:  call       ""void System.Console.WriteLine(string)""
+  IL_027f:  ret
+}");
         }
     }
 }
