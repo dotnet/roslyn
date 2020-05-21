@@ -836,16 +836,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                                 if (semanticModel.Compilation.ClassifyCommonConversion(symbolType, targetType).IsImplicit)
                                 {
                                     callsiteInferenceFailed = false;
-
-                                    if (symbol.IsKind(SymbolKind.Method))
-                                    {
-                                        expression = Generator.InvocationExpression(Generator.IdentifierName(symbol.Name));
-                                    }
-                                    else
-                                    {
-                                        expression = Generator.IdentifierName(symbol.Name);
-                                    }
-
+                                    expression = Generator.IdentifierName(symbol.Name);
                                     break;
                                 }
                             }
