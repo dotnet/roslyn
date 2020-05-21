@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            if (!(semanticModel.GetOperation(ifOperation.Syntax.Parent, cancellationToken) is IBlockOperation containingBlock))
+            if (!(ifOperation.Parent is IBlockOperation containingBlock))
             {
                 return;
             }
