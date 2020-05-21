@@ -18,12 +18,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
-    public class GenerateMSBuildAnalyzerConfigTests
+    public class GenerateMSBuildEditorConfigTests
     {
         [Fact]
         public void GlobalPropertyIsGeneratedIfEmpty()
         {
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig();
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig();
             configTask.Execute();
 
             var result = configTask.ConfigFileContents;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             TaskItem property1 = new TaskItem("Property1", new Dictionary<string, string> { { "Value", "abc123" } });
             TaskItem property2 = new TaskItem("Property2", new Dictionary<string, string> { { "Value", "def456" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 PropertyItems = new[] { property1, property2 }
             };
@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var result = configTask.ConfigFileContents;
 
             Assert.Equal(@"is_global = true
-msbuild_property.Property1 = abc123
-msbuild_property.Property2 = def456
+build_property.Property1 = abc123
+build_property.Property2 = def456
 ", result);
         }
 
@@ -56,7 +56,7 @@ msbuild_property.Property2 = def456
         {
             TaskItem item1 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1 }
             };
@@ -67,7 +67,7 @@ msbuild_property.Property2 = def456
             Assert.Equal(@"is_global = true
 
 [c:/file1.cs]
-msbuild_item.Compile.ToRetrieve = abc123
+build_metadata.Compile.ToRetrieve = abc123
 ", result);
         }
 
@@ -78,7 +78,7 @@ msbuild_item.Compile.ToRetrieve = abc123
             TaskItem item2 = new TaskItem("c:\\file2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
             TaskItem item3 = new TaskItem("c:\\file3.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFiles" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "ghi789" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2, item3 }
             };
@@ -89,13 +89,13 @@ msbuild_item.Compile.ToRetrieve = abc123
             Assert.Equal(@"is_global = true
 
 [c:/file1.cs]
-msbuild_item.Compile.ToRetrieve = abc123
+build_metadata.Compile.ToRetrieve = abc123
 
 [c:/file2.cs]
-msbuild_item.Compile.ToRetrieve = def456
+build_metadata.Compile.ToRetrieve = def456
 
 [c:/file3.cs]
-msbuild_item.AdditionalFiles.ToRetrieve = ghi789
+build_metadata.AdditionalFiles.ToRetrieve = ghi789
 ", result);
         }
 
@@ -105,7 +105,7 @@ msbuild_item.AdditionalFiles.ToRetrieve = ghi789
             TaskItem item1 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
             TaskItem item2 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2 }
             };
@@ -116,8 +116,8 @@ msbuild_item.AdditionalFiles.ToRetrieve = ghi789
             Assert.Equal(@"is_global = true
 
 [c:/file1.cs]
-msbuild_item.Compile.ToRetrieve = abc123
-msbuild_item.AdditionalFile.ToRetrieve = def456
+build_metadata.Compile.ToRetrieve = abc123
+build_metadata.AdditionalFile.ToRetrieve = def456
 ", result);
         }
 
@@ -126,7 +126,7 @@ msbuild_item.AdditionalFile.ToRetrieve = def456
         {
             TaskItem item1 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1 }
             };
@@ -137,7 +137,7 @@ msbuild_item.AdditionalFile.ToRetrieve = def456
             Assert.Equal(@"is_global = true
 
 [c:/file1.cs]
-msbuild_item.Compile.ToRetrieve = 
+build_metadata.Compile.ToRetrieve = 
 ", result);
         }
 
@@ -148,7 +148,7 @@ msbuild_item.Compile.ToRetrieve =
             TaskItem item2 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" } });
             TaskItem item3 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "MetadataName", "ToRetrieve" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2, item3 }
             };
@@ -159,9 +159,9 @@ msbuild_item.Compile.ToRetrieve =
             Assert.Equal(@"is_global = true
 
 [c:/file1.cs]
-msbuild_item.. = 
-msbuild_item.Compile. = 
-msbuild_item..ToRetrieve = 
+build_metadata.. = 
+build_metadata.Compile. = 
+build_metadata..ToRetrieve = 
 ", result);
         }
 
@@ -176,7 +176,7 @@ msbuild_item..ToRetrieve =
             TaskItem property1 = new TaskItem("Property1", new Dictionary<string, string> { { "Value", "abc123" } });
             TaskItem property2 = new TaskItem("Property2", new Dictionary<string, string> { { "Value", "def456" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2, item3, item4 },
                 PropertyItems = new[] { property1, property2 }
@@ -186,18 +186,18 @@ msbuild_item..ToRetrieve =
             var result = configTask.ConfigFileContents;
 
             Assert.Equal(@"is_global = true
-msbuild_property.Property1 = abc123
-msbuild_property.Property2 = def456
+build_property.Property1 = abc123
+build_property.Property2 = def456
 
 [c:/file1.cs]
-msbuild_item.Compile.ToRetrieve = abc123
-msbuild_item.AdditionalFiles.ToRetrieve = jkl012
+build_metadata.Compile.ToRetrieve = abc123
+build_metadata.AdditionalFiles.ToRetrieve = jkl012
 
 [c:/file2.cs]
-msbuild_item.Compile.ToRetrieve = def456
+build_metadata.Compile.ToRetrieve = def456
 
 [c:/file3.cs]
-msbuild_item.AdditionalFiles.ToRetrieve = ghi789
+build_metadata.AdditionalFiles.ToRetrieve = ghi789
 ", result);
         }
 
@@ -208,7 +208,7 @@ msbuild_item.AdditionalFiles.ToRetrieve = ghi789
             TaskItem item2 = new TaskItem("subDir\\file2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
             TaskItem item3 = new TaskItem("someDir\\otherDir\\thirdDir\\..\\file3.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2, item3 }
             };
@@ -226,13 +226,13 @@ msbuild_item.AdditionalFiles.ToRetrieve = ghi789
             Assert.Equal($@"is_global = true
 
 [{expectedPath1}]
-msbuild_item.Compile.ToRetrieve = abc123
+build_metadata.Compile.ToRetrieve = abc123
 
 [{expectedPath2}]
-msbuild_item.Compile.ToRetrieve = abc123
+build_metadata.Compile.ToRetrieve = abc123
 
 [{expectedPath3}]
-msbuild_item.Compile.ToRetrieve = abc123
+build_metadata.Compile.ToRetrieve = abc123
 ", result);
         }
 
@@ -242,7 +242,7 @@ msbuild_item.Compile.ToRetrieve = abc123
             TaskItem item1 = new TaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
             TaskItem item2 = new TaskItem("c:\\someDir\\..\\file1.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2 }
             };
@@ -253,8 +253,8 @@ msbuild_item.Compile.ToRetrieve = abc123
             Assert.Equal($@"is_global = true
 
 [c:/file1.cs]
-msbuild_item.Compile.ToRetrieve = abc123
-msbuild_item.AdditionalFile.ToRetrieve = def456
+build_metadata.Compile.ToRetrieve = abc123
+build_metadata.AdditionalFile.ToRetrieve = def456
 ", result);
         }
 
@@ -280,7 +280,7 @@ values
             TaskItem property1 = new TaskItem("Property1", new Dictionary<string, string> { { "Value", longPropertyValue } });
             TaskItem property2 = new TaskItem("Property2", new Dictionary<string, string> { { "Value", "def456" } });
 
-            GenerateMSBuildAnalyzerConfig configTask = new GenerateMSBuildAnalyzerConfig()
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 PropertyItems = new[] { property1, property2 }
             };
@@ -289,7 +289,7 @@ values
             var result = configTask.ConfigFileContents;
 
             Assert.Equal(@"is_global = true
-msbuild_property.Property1 = this is 
+build_property.Property1 = this is 
 a 
 property
 with  
@@ -299,7 +299,7 @@ and
 property = looking
 values
 
-msbuild_property.Property2 = def456
+build_property.Property2 = def456
 ", result);
         }
     }
