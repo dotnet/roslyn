@@ -377,9 +377,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
 
-                var recommendations = await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
-                    semanticModel, originalNode.SpanStart, document.Project.Solution.Workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
-
                 return invocation.WithArgumentList(
                     await UpdateArgumentListAsync(
                         declarationSymbol,
