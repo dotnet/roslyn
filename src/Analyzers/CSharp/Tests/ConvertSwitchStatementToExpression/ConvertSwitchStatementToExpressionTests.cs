@@ -1913,13 +1913,18 @@ return i switch
 };
 ";
 
-            await VerifyCS.VerifyCodeFixAsync(source, new[] {
-                    // error CS9004: Program using top-level statements must be an executable.
-                    DiagnosticResult.CompilerError("CS9004"),
-                    // error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    DiagnosticResult.CompilerError("CS8652").WithSpan(2, 1, 2, 11).WithArguments("top-level statements"),
-                },
-                fixedSource);
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.Preview,
+            };
+
+            test.ExpectedDiagnostics.Add(
+                // error CS9004: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS9004"));
+
+            await test.RunAsync();
         }
 
         [WorkItem(44449, "https://github.com/dotnet/roslyn/issues/44449")]
@@ -1928,7 +1933,6 @@ return i switch
         {
             // We should be rewriting the declaration for 'j' to get 'var j = i switch ...'
             string source = @"
-int ignored = 0;
 int i = 0;
 int j;
 [|switch|] (i)
@@ -1944,7 +1948,6 @@ throw null;
 ";
 
             string fixedSource = @"
-int ignored = 0;
 int i = 0;
 int j;
 j = i switch
@@ -1955,13 +1958,18 @@ j = i switch
 };
 ";
 
-            await VerifyCS.VerifyCodeFixAsync(source, new DiagnosticResult[] {
-                    // error CS9004: Program using top-level statements must be an executable.
-                    DiagnosticResult.CompilerError("CS9004"),
-                    // error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    DiagnosticResult.CompilerError("CS8652").WithSpan(2, 1, 2, 17).WithArguments("top-level statements"),
-                },
-                fixedSource);
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.Preview,
+            };
+
+            test.ExpectedDiagnostics.Add(
+                // error CS9004: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS9004"));
+
+            await test.RunAsync();
         }
     }
 }

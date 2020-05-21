@@ -36,17 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             static bool AreInSiblingTopLevelStatements(StatementSyntax one, StatementSyntax other)
             {
-                if (!one.IsParentKind(SyntaxKind.GlobalStatement))
-                {
-                    return false;
-                }
-
-                if (!one.IsParentKind(SyntaxKind.GlobalStatement))
-                {
-                    return false;
-                }
-
-                return one.Parent.Parent == other.Parent.Parent;
+                return one.IsParentKind(SyntaxKind.GlobalStatement) &&
+                    other.IsParentKind(SyntaxKind.GlobalStatement);
             }
         }
     }

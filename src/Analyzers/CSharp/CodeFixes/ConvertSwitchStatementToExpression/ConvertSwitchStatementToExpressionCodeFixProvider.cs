@@ -81,8 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     declaratorToRemoveTypeOpt = semanticModel.GetDeclaredSymbol(declaratorToRemoveNodeOpt).GetSymbolType();
                 }
 
-                var switchNode = switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                var switchStatement = (SwitchStatementSyntax)(switchNode);
+                var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
                 var switchExpression = Rewriter.Rewrite(
                     switchStatement, declaratorToRemoveTypeOpt, nodeToGenerate,
                     shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
@@ -100,11 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     // Already morphed into the top-level switch expression.
                     SyntaxNode nextStatement = switchStatement.GetNextStatement();
                     Debug.Assert(nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement));
-                    if (nextStatement.IsParentKind(SyntaxKind.GlobalStatement))
-                    {
-                        nextStatement = nextStatement.Parent;
-                    }
-                    editor.RemoveNode(nextStatement);
+                    editor.RemoveNode(nextStatement.IsParentKind(SyntaxKind.GlobalStatement) ? nextStatement.Parent : nextStatement);
                 }
             }
         }
