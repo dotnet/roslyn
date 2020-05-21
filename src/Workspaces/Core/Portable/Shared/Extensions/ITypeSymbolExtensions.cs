@@ -90,12 +90,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var constructedInterfaces = typeSymbol.AllInterfaces.Where(i =>
                 SymbolEquivalenceComparer.Instance.Equals(i.OriginalDefinition, originalInterfaceType));
 
-            // Attempt to find and cache the compilation for the current type we're searching for implementations in.
-            // This will be used to try to check equivalence when forwarded types are involved when we call into
+            // Attempt to find and cache the compilation for the types we're searching for implementations in. This will
+            // be used to try to check equivalence when forwarded types are involved when we call into
             // OriginalSymbolsMatch.  This is just an optimization as OriginalSymbolsMatch will also do this.  However,
             // we may be making many different calls to OriginalSymbolsMatch below and there's no need to do this
             // multiple times.
             SymbolFinder.TryGetCompilation(typeSymbol, solution, out var typeSymbolCompilation);
+            SymbolFinder.TryGetCompilation(interfaceMember, solution, out var interfaceMemberCompilation);
 
             foreach (var constructedInterface in constructedInterfaces)
             {
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     constructedInterface.GetMembers(interfaceMember.Name).FirstOrDefault(
                         typeSymbol => SymbolFinder.OriginalSymbolsMatch(
                             typeSymbol, interfaceMember, solution,
-                            typeSymbolCompilation, symbolToMatchCompilation: null));
+                            typeSymbolCompilation, interfaceMemberCompilation));
 
                 if (constructedInterfaceMember == null)
                 {
