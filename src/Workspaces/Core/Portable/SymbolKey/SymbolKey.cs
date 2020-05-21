@@ -65,6 +65,19 @@ namespace Microsoft.CodeAnalysis
     /// </list>
     /// </para>
     /// <para>
+    /// Interior-method-level symbols (i.e. <see cref="ILabelSymbol"/>, <see cref="ILocalSymbol"/>, <see
+    /// cref="IRangeVariableSymbol"/> and <see cref="MethodKind.LocalFunction"/> <see cref="IMethodSymbol"/>s can also
+    /// be represented and restored in a different compilation.  To resolve these the destination compilation's <see
+    /// cref="SyntaxTree"/> is enumerated to list all the symbols with the same <see cref="ISymbol.Name"/> and <see
+    /// cref="ISymbol.Kind"/> as the original symbol.  The symbol with the same index in the destination tree as the
+    /// symbol in the original tree is returned.  This allows these sorts of symbols to be resolved in a way that is
+    /// resilient to basic forms of edits.  For example, adding whitespace edits, or adding removing symbols with
+    /// different names and types.  However, it may not find a matching symbol in the face of other sorts of edits.
+    /// </para>
+    /// <para>
+    /// Symbol keys cannot be created for interior-method symbols that were created in a speculative semantic model.
+    /// </para>
+    /// <para>
     ///     Due to issues arising from errors and ambiguity, it's possible for a SymbolKey to resolve to
     ///     multiple symbols. For example, in the following type:
     ///     <code>
