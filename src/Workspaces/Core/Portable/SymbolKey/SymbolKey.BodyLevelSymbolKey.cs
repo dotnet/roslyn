@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -38,7 +42,8 @@ namespace Microsoft.CodeAnalysis
                 var locations = symbol.Locations.Concat(
                     symbol.DeclaringSyntaxReferences.SelectAsArray(r => r.GetSyntax(visitor.CancellationToken).GetLocation()));
 
-                visitor.WriteLocationArray(locations);
+                Contract.ThrowIfFalse(locations.All(loc => loc.IsInSource));
+                visitor.WriteLocationArray(locations.Distinct());
 
                 // and the ordinal for resilience
                 visitor.WriteInteger(GetOrdinal());
@@ -52,9 +57,8 @@ namespace Microsoft.CodeAnalysis
 
                     // Ensure that the tree we're looking at is actually in this compilation.  It may not be in the
                     // compilation in the case of work done with a speculative model.
-                    if (Contains(compilation.SyntaxTrees, syntaxTree))
+                    if (TryGetSemanticModel(compilation, syntaxTree, out var semanticModel))
                     {
-                        var semanticModel = compilation.GetSemanticModel(syntaxTree);
                         foreach (var possibleSymbol in EnumerateSymbols(semanticModel, kind, localName, visitor.CancellationToken))
                         {
                             if (possibleSymbol.symbol.Equals(symbol))
@@ -64,6 +68,22 @@ namespace Microsoft.CodeAnalysis
 
                     return int.MaxValue;
                 }
+            }
+
+            private static bool TryGetSemanticModel(
+                Compilation compilation, SyntaxTree? syntaxTree,
+                [NotNullWhen(true)] out SemanticModel? semanticModel)
+            {
+                // Ensure that the tree we're looking at is actually in this compilation.  It may not be in the
+                // compilation in the case of work done with a speculative model.
+                if (syntaxTree != null && Contains(compilation.SyntaxTrees, syntaxTree))
+                {
+                    semanticModel = compilation.GetSemanticModel(syntaxTree);
+                    return true;
+                }
+
+                semanticModel = null;
+                return false;
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
@@ -92,9 +112,9 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Couldn't recover.  See if we can still find a match across the textual drift.
-                if (ordinal != int.MaxValue)
+                if (ordinal != int.MaxValue &&
+                    TryGetSemanticModel(reader.Compilation, locations[0].SourceTree, out var semanticModel))
                 {
-                    var semanticModel = reader.Compilation.GetSemanticModel(locations[0].SourceTree);
                     foreach (var symbol in EnumerateSymbols(semanticModel, kind, name, cancellationToken))
                     {
                         if (symbol.ordinal == ordinal)
