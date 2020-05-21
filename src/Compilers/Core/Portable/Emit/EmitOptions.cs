@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -104,6 +105,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public string? RuntimeMetadataVersion { get; private set; }
 
+        /// <summary>
+        /// The CodePage used to parse source before producing a compilation.
+        /// </summary>
+        public Encoding? CodePage { get; private set; }
+
         // 1.2 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public EmitOptions(
             bool metadataOnly,
@@ -177,7 +183,8 @@ namespace Microsoft.CodeAnalysis.Emit
             bool tolerateErrors = false,
             bool includePrivateMembers = true,
             ImmutableArray<InstrumentationKind> instrumentationKinds = default,
-            HashAlgorithmName? pdbChecksumAlgorithm = null)
+            HashAlgorithmName? pdbChecksumAlgorithm = null,
+            Encoding? codePage = null)
         {
             EmitMetadataOnly = metadataOnly;
             DebugInformationFormat = (debugInformationFormat == 0) ? DebugInformationFormat.Pdb : debugInformationFormat;
@@ -192,6 +199,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IncludePrivateMembers = includePrivateMembers;
             InstrumentationKinds = instrumentationKinds.NullToEmpty();
             PdbChecksumAlgorithm = pdbChecksumAlgorithm ?? HashAlgorithmName.SHA256;
+            CodePage = codePage;
         }
 
         private EmitOptions(EmitOptions other) : this(
@@ -207,7 +215,8 @@ namespace Microsoft.CodeAnalysis.Emit
             other.TolerateErrors,
             other.IncludePrivateMembers,
             other.InstrumentationKinds,
-            other.PdbChecksumAlgorithm)
+            other.PdbChecksumAlgorithm,
+            other.CodePage)
         {
         }
 
@@ -236,7 +245,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 RuntimeMetadataVersion == other.RuntimeMetadataVersion &&
                 TolerateErrors == other.TolerateErrors &&
                 IncludePrivateMembers == other.IncludePrivateMembers &&
-                InstrumentationKinds.NullToEmpty().SequenceEqual(other.InstrumentationKinds.NullToEmpty(), (a, b) => a == b);
+                InstrumentationKinds.NullToEmpty().SequenceEqual(other.InstrumentationKinds.NullToEmpty(), (a, b) => a == b) &&
+                CodePage == other.CodePage;
         }
 
         public override int GetHashCode()
@@ -253,7 +263,8 @@ namespace Microsoft.CodeAnalysis.Emit
                    Hash.Combine(RuntimeMetadataVersion,
                    Hash.Combine(TolerateErrors,
                    Hash.Combine(IncludePrivateMembers,
-                   Hash.Combine(Hash.CombineValues(InstrumentationKinds), 0)))))))))))));
+                   Hash.Combine(Hash.CombineValues(InstrumentationKinds),
+                   Hash.Combine(CodePage, 0))))))))))))));
         }
 
         public static bool operator ==(EmitOptions? left, EmitOptions? right)
@@ -468,6 +479,16 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return new EmitOptions(this) { InstrumentationKinds = instrumentationKinds };
+        }
+
+        public EmitOptions WithCodePage(Encoding? codePage)
+        {
+            if (CodePage == codePage)
+            {
+                return this;
+            }
+
+            return new EmitOptions(this) { CodePage = codePage };
         }
     }
 }

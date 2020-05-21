@@ -25,7 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class CSharpDeterministicBuildCompilationTests : CSharpTestBase, IEnumerable<object[]>
     {
-        private static void VerifyCompilationOptions(CSharpCompilationOptions originalOptions, BlobReader compilationOptionsBlobReader, string compilerVersion = null)
+        private static void VerifyCompilationOptions(
+            CSharpCompilationOptions originalOptions,
+            Compilation compilation,
+            EmitOptions emitOptions,
+            BlobReader compilationOptionsBlobReader,
+            string compilerVersion = null)
         {
             var pdbOptions = DeterministicBuildCompilationTestHelpers.ParseCompilationOptions(compilationOptionsBlobReader);
             compilerVersion ??= DeterministicBuildCompilationTestHelpers.GetCurrentCompilerVersion();
@@ -36,31 +41,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
             Assert.Equal(originalOptions.AllowUnsafe.ToString(), pdbOptions["unsafe"]);
 
-            if (originalOptions.CodePage is null)
+            if (emitOptions.CodePage is null)
             {
                 Assert.False(pdbOptions.ContainsKey("codepage"));
             }
             else
             {
-                Assert.Equal(originalOptions.CodePage.CodePage.ToString(), pdbOptions["codepage"]);
+                Assert.Equal(emitOptions.CodePage.ToString(), pdbOptions["codepage"]);
             }
 
-            if (originalOptions.PreprocessorSymbols.Any())
-            {
-                Assert.Equal(string.Join(",", originalOptions.PreprocessorSymbols), pdbOptions["define"]);
-            }
-            else
+            var firstSyntaxTree = compilation.SyntaxTrees.FirstOrDefault() as CSharpSyntaxTree;
+            if (firstSyntaxTree is null || firstSyntaxTree.Options.PreprocessorSymbols.IsEmpty)
             {
                 Assert.False(pdbOptions.ContainsKey("define"));
             }
+            else
+            {
+                Assert.Equal(string.Join(",", firstSyntaxTree.Options.PreprocessorSymbolNames), pdbOptions["define"]);
+            }
         }
 
-        private static void TestDeterministicCompilationCSharp(string code, CSharpParseOptions parseOptions, CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, params TestMetadataReferenceInfo[] metadataReferences)
+        private static void TestDeterministicCompilationCSharp(CSharpTestSource source, CSharpParseOptions parseOptions, CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, params TestMetadataReferenceInfo[] metadataReferences)
         {
-            var syntaxTree = Parse(code, "goo.cs", parseOptions, compilationOptions.CodePage ?? Encoding.UTF8);
-
             var originalCompilation = CreateCompilation(
-                syntaxTree,
+                source.GetSyntaxTrees(parseOptions),
                 references: metadataReferences.SelectAsArray(r => r.MetadataReference),
                 options: compilationOptions);
 
@@ -85,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                     var metadataReferenceReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.MetadataReferenceInfo, pdbReader);
                     var compilationOptionsReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader);
 
-                    VerifyCompilationOptions(compilationOptions, compilationOptionsReader);
+                    VerifyCompilationOptions(compilationOptions, originalCompilation, emitOptions, compilationOptionsReader);
                     DeterministicBuildCompilationTestHelpers.VerifyReferenceInfo(metadataReferences, metadataReferenceReader);
                 }
             }
@@ -93,9 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
         [Theory]
         [ClassData(typeof(CSharpDeterministicBuildCompilationTests))]
-        public void PortablePdb_DeterministicCompilation1(CSharpCompilationOptions compilationOptions)
+        public void PortablePdb_DeterministicCompilation1(CSharpCompilationOptions compilationOptions, EmitOptions emitOptions)
         {
-            string source = @"
+            var sourceOne = @"
 using System;
 
 class MainType
@@ -106,6 +110,15 @@ class MainType
     }
 }
 ";
+            var sourceTwo = @"
+class TypeTwo
+{
+}";
+            var sourceThree = @"
+class TypeThree
+{
+}";
+
             var referenceOneCompilation = CreateCompilation(
 @"public struct StructWithReference
 {
@@ -123,14 +136,9 @@ public struct StructWithValue
 }",
             options: TestOptions.DebugDll);
 
-            CSharpParseOptions parseOptions = new CSharpParseOptions(
+            var parseOptions = new CSharpParseOptions(
                 languageVersion: LanguageVersion.CSharp8,
-                kind: SourceCodeKind.Regular,
-                preprocessorSymbols: compilationOptions.PreprocessorSymbols);
-
-            EmitOptions emitOptions = new EmitOptions(
-                debugInformationFormat: DebugInformationFormat.Embedded,
-                pdbChecksumAlgorithm: HashAlgorithmName.SHA256);
+                kind: SourceCodeKind.Regular);
 
 
             using var referenceOne = TestMetadataReferenceInfo.Create(
@@ -143,16 +151,31 @@ public struct StructWithValue
                 fullPath: "efgh.dll",
                 emitOptions: emitOptions);
 
-            TestDeterministicCompilationCSharp(source, parseOptions, compilationOptions, emitOptions, referenceOne, referenceTwo);
+            var testSource = new[] { sourceOne, sourceTwo, sourceThree };
+            TestDeterministicCompilationCSharp(testSource, parseOptions, compilationOptions, emitOptions, referenceOne, referenceTwo);
         }
 
         public IEnumerator<object[]> GetEnumerator()
-        => GetData().Select(o => new object[] { o }).GetEnumerator();
+        => GetTestParameters().GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
 
-        private static IEnumerable<CSharpCompilationOptions> GetData()
+        private static IEnumerable<object[]> GetTestParameters()
+        {
+            var compilationOptionsSet = GetCompilationOptions();
+            var emitOptionsSet = GetEmitOptions();
+
+            foreach (var compilationOptions in compilationOptionsSet)
+            {
+                foreach (var emitOptions in emitOptionsSet)
+                {
+                    yield return new object[] { compilationOptions, emitOptions };
+                }
+            }
+        }
+
+        private static IEnumerable<CSharpCompilationOptions> GetCompilationOptions()
         {
             // Provide non default options for to test that they are being serialized
             // to the pdb correctly. It needs to produce a compilation to be emitted, but otherwise
@@ -192,19 +215,23 @@ public struct StructWithValue
                 referencesSupersedeLowerVersions: false,
                 publicSign: false,
                 topLevelBinderFlags: BinderFlags.None,
-                nullableContextOptions: NullableContextOptions.Enable,
-                codePage: Encoding.UTF7,
-                preprocessorSymbols: new[] { "PreOne", "PreTwo" });
+                nullableContextOptions: NullableContextOptions.Enable);
 
             yield return defaultOptions;
-            yield return defaultOptions.WithCodePage(Encoding.Default);
-            yield return defaultOptions.WithCodePage(Encoding.UTF32);
-            yield return defaultOptions.WithCodePage(null);
-            yield return defaultOptions.WithPreprocessorSymbols(new[] { "PreOne", "PreTwo", "PreThree" });
-            yield return defaultOptions.WithPreprocessorSymbols(null);
-            yield return defaultOptions.WithPreprocessorSymbols(new string[0]);
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Disable);
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Warnings);
+        }
+
+        private static IEnumerable<EmitOptions> GetEmitOptions()
+        {
+            var emitOptions = new EmitOptions(
+                debugInformationFormat: DebugInformationFormat.Embedded,
+                pdbChecksumAlgorithm: HashAlgorithmName.SHA256,
+                codePage: Encoding.UTF32);
+
+            yield return emitOptions;
+            yield return emitOptions.WithCodePage(null);
+            yield return emitOptions.WithCodePage(Encoding.ASCII);
         }
     }
 }

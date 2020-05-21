@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -3492,14 +3493,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             WriteValue("unsafe", Options.AllowUnsafe.ToString());
             WriteValue("langversion", LanguageVersion.ToDisplayString());
 
-            if (Options.CodePage is object)
+            var preprocessorSymbols = GetPreprocessorSymbols();
+            if (preprocessorSymbols.Any())
             {
-                WriteValue("codepage", Options.CodePage.CodePage.ToString());
-            }
-
-            if (!Options.PreprocessorSymbols.IsEmpty)
-            {
-                WriteValue("define", string.Join(",", Options.PreprocessorSymbols));
+                WriteValue("define", string.Join(",", preprocessorSymbols));
             }
 
             void WriteValue(string key, string value)
@@ -3509,6 +3506,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.WriteUTF8(value);
                 builder.WriteByte(0);
             }
+        }
+
+        ImmutableArray<string> GetPreprocessorSymbols()
+        {
+            var firstTree = SyntaxTrees
+                .FirstOrDefault(t => t is CSharpSyntaxTree) as CSharpSyntaxTree;
+
+            if (firstTree is null)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            return firstTree.Options.PreprocessorSymbolNames.ToImmutableArray();
         }
 
         /// <summary>
