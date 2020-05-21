@@ -82,6 +82,5 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(solution, destination, cancellationToken));
         }
-
     }
 }

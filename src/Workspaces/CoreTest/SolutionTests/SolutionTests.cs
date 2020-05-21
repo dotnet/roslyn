@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 yield return item;
             }
-
         }
 
         [Fact]
