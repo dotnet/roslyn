@@ -1795,7 +1795,7 @@ class F
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SingleLineComment_AtEndOfFile_DoesNotAddNewLine()
         {
-            await AssertNoChangeInFormatAsync(@"class Program { }
+            await AssertNoFormattingChangesAsync(@"class Program { }
 
 // Test");
         }
@@ -1804,7 +1804,7 @@ class F
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task MultiLineComment_AtEndOfFile_DoesNotAddNewLine()
         {
-            await AssertNoChangeInFormatAsync(@"class Program { }
+            await AssertNoFormattingChangesAsync(@"class Program { }
 
 /* Test */");
         }
@@ -1813,7 +1813,7 @@ class F
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DocComment_AtEndOfFile_DoesNotAddNewLine()
         {
-            await AssertNoChangeInFormatAsync(@"class Program { }
+            await AssertNoFormattingChangesAsync(@"class Program { }
 
 /// Test");
         }

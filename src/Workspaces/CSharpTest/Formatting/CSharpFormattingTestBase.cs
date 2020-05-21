@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         protected override SyntaxNode ParseCompilation(string text, ParseOptions parseOptions)
             => SyntaxFactory.ParseCompilationUnit(text, options: (CSharpParseOptions)parseOptions);
 
-        private protected Task AssertNoChangeInFormatAsync(
+        private protected Task AssertNoFormattingChangesAsync(
             string code,
             bool debugMode = false,
             OptionsCollection changedOptionSet = null,

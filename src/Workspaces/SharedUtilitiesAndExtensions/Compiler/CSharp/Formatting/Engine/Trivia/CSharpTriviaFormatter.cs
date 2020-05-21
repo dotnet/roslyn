@@ -72,15 +72,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // [trivia] [whitespace] [token] case
             if (trivia2.IsKind(SyntaxKind.None))
             {
-                var operation = this.FormattingRules.GetAdjustNewLinesOperation(this.Token1, this.Token2);
+                var insertNewLine = this.FormattingRules.GetAdjustNewLinesOperation(this.Token1, this.Token2) != null;
 
                 if (IsMultilineComment(trivia1))
                 {
-                    return LineColumnRule.PreserveLinesWithGivenIndentation(
-                        lines: operation is object ? operation.Line : 0);
+                    return LineColumnRule.PreserveLinesWithGivenIndentation(lines: insertNewLine ? 1 : 0);
                 }
 
-                if (operation is object)
+                if (insertNewLine)
                 {
                     return LineColumnRule.PreserveLinesWithDefaultIndentation(lines: 0);
                 }
@@ -96,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // preprocessor case
             if (SyntaxFacts.IsPreprocessorDirective(trivia2.Kind()))
             {
-                // Check for immovable preprocessor directives, which are bad directive trivia 
+                // Check for immovable preprocessor directives, which are bad directive trivia
                 // without a preceding line break
                 if (trivia2.IsKind(SyntaxKind.BadDirectiveTrivia) && existingWhitespaceBetween.Lines == 0 && !implicitLineBreak)
                 {
@@ -165,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private bool IsStartOrEndOfFile(SyntaxTrivia trivia1, SyntaxTrivia trivia2)
-            => (this.Token1.RawKind == 0 || this.Token2.RawKind == 0) && (trivia1.Kind() == 0 || trivia2.Kind() == 0);
+            => (this.Token1.RawKind == 0 || this.Token2.IsKind(SyntaxKind.None, SyntaxKind.EndOfFileToken)) && (trivia1.Kind() == 0 || trivia2.Kind() == 0);
 
         private static bool IsMultilineComment(SyntaxTrivia trivia1)
             => trivia1.IsMultiLineComment() || trivia1.IsMultiLineDocComment();
