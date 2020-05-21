@@ -122,7 +122,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         // TODO: remove once Pythia moves to ExternalAccess APIs
         [Obsolete("Use overload without ISymbolDisplayService")]
-        protected static SignatureHelpItem CreateItem(
+#pragma warning disable CA1822 // Mark members as static - see obsolete comment above.
+        protected SignatureHelpItem CreateItem(
+#pragma warning restore CA1822 // Mark members as static
             ISymbol orderSymbol,
             SemanticModel semanticModel,
             int position,
