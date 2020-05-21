@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        public DirectiveTriviaSyntax? GetNextDirective(Func<DirectiveTriviaSyntax?, bool>? predicate = null)
+        public DirectiveTriviaSyntax? GetNextDirective(Func<DirectiveTriviaSyntax, bool>? predicate = null)
         {
             var token = (SyntaxToken)this.ParentTrivia.Token;
             bool next = false;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     {
                         if (tr.IsDirective)
                         {
-                            var d = (DirectiveTriviaSyntax?)tr.GetStructure();
+                            var d = (DirectiveTriviaSyntax)tr.GetStructure()!;
                             if (predicate == null || predicate(d))
                             {
                                 return d;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return null;
         }
 
-        public DirectiveTriviaSyntax? GetPreviousDirective(Func<DirectiveTriviaSyntax?, bool>? predicate = null)
+        public DirectiveTriviaSyntax? GetPreviousDirective(Func<DirectiveTriviaSyntax, bool>? predicate = null)
         {
             var token = (SyntaxToken)this.ParentTrivia.Token;
             bool next = false;
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     {
                         if (tr.IsDirective)
                         {
-                            var d = (DirectiveTriviaSyntax?)tr.GetStructure();
+                            var d = (DirectiveTriviaSyntax)tr.GetStructure()!;
                             if (predicate == null || predicate(d))
                             {
                                 return d;

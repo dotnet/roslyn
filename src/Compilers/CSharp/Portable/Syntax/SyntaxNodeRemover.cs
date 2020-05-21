@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal static class SyntaxNodeRemover
     {
-        [return: NotNullIfNotNull("root")]
         internal static TRoot? RemoveNodes<TRoot>(TRoot root,
                 IEnumerable<SyntaxNode> nodes,
                 SyntaxRemoveOptions options)
