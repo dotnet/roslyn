@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -1268,13 +1269,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return IsAtStartOfPattern(syntaxTree, parenthesizedExpression.GetFirstToken().GetPreviousToken(), parenthesizedExpression.SpanStart);
                 }
 
-#if !CODE_STYLE
                 // e is ((($$ 1 or 2)))
-                if (leftToken.Parent.IsKind(SyntaxKind.ParenthesizedPattern))
+                if (leftToken.Parent.IsKind(SyntaxKindEx.ParenthesizedPattern))
                 {
                     return true;
                 }
-#endif
             }
 
             // case $$
@@ -1306,29 +1305,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-#if !CODE_STYLE
             // e is 1 and $$
             // e is 1 or $$
-            if (leftToken.IsKind(SyntaxKind.AndKeyword) || leftToken.IsKind(SyntaxKind.OrKeyword))
+            if (leftToken.IsKind(SyntaxKindEx.AndKeyword) || leftToken.IsKind(SyntaxKindEx.OrKeyword))
             {
+#if !CODE_STYLE
                 return leftToken.Parent is BinaryPatternSyntax;
+#endif
             }
 
             // e is not $$
-            if (leftToken.IsKind(SyntaxKind.NotKeyword) && leftToken.Parent.IsKind(SyntaxKind.NotPattern))
+            if (leftToken.IsKind(SyntaxKindEx.NotKeyword) && leftToken.Parent.IsKind(SyntaxKindEx.NotPattern))
             {
                 return true;
             }
-#endif
 
             return false;
         }
 
         public static bool IsAtEndOfPattern(this SyntaxTree syntaxTree, SyntaxToken leftToken, int position)
         {
-#if CODE_STYLE
-            return false;
-#else
             var originalLeftToken = leftToken;
             leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
@@ -1344,12 +1340,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // e is { P: (1) $$
                 if (leftToken == lastTokenInPattern)
                 {
-                    // Patterns such as 'e is not $$', 'e is 1 or $$', and 'e is ($$' should be invalid here
+                    // Patterns such as 'e is not $$', 'e is 1 or $$', 'e is ($$', and 'e is null or global::$$' should be invalid here
                     // as they are incomplete patterns.
-                    return !(leftToken.IsKind(SyntaxKind.OrKeyword) ||
-                        leftToken.IsKind(SyntaxKind.AndKeyword) ||
-                        leftToken.IsKind(SyntaxKind.NotKeyword) ||
-                        leftToken.IsKind(SyntaxKind.OpenParenToken));
+                    return !(leftToken.IsKind(SyntaxKindEx.OrKeyword) ||
+                        leftToken.IsKind(SyntaxKindEx.AndKeyword) ||
+                        leftToken.IsKind(SyntaxKindEx.NotKeyword) ||
+                        leftToken.IsKind(SyntaxKind.OpenParenToken) ||
+                        leftToken.IsKind(SyntaxKind.ColonColonToken));
                 }
 
                 // We want to make sure that IsAtEndOfPattern returns true even when the user is in the middle of typing a keyword
@@ -1414,7 +1411,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 return false;
             }
-#endif
         }
 
         private static SyntaxToken FindTokenOnLeftOfNode(SyntaxNode node)
