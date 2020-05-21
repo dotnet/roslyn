@@ -91,10 +91,6 @@
               "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
             },
             {
-              "filename": "/DesktopHost/System.Memory.dll",
-              "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
-            },
-            {
               "filename": "/Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
               "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.WpfCreateProject_DesignerIsolated" ]
             },
