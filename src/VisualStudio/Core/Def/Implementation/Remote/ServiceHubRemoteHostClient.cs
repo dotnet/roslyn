@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             : base(services)
         {
             _connectionPool = new ConnectionPool(
-                connectionFactory: (serviceName, cancellationToken) => CreateConnectionAsync(serviceName, callbackTarget: null, cancellationToken),
+                connectionFactory: (serviceName, cancellationToken) => CreateConnectionImplAsync(serviceName, callbackTarget: null, cancellationToken),
                 capacity: ConnectionPoolCapacity);
 
             _hubClient = hubClient;
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public override string ClientId => _hostGroup.Id;
 
-        protected override Task<Connection?> TryCreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
+        protected override Task<Connection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             // When callbackTarget is given, we can't share/pool connection since callbackTarget attaches a state to connection.
             // so connection is only valid for that specific callbackTarget. it is up to the caller to keep connection open
@@ -161,13 +161,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             if (callbackTarget == null && _connectionPool != null)
             {
-                return _connectionPool.GetOrCreateConnectionAsync(serviceName, cancellationToken).AsNullable();
+                return _connectionPool.GetOrCreateConnectionAsync(serviceName, cancellationToken);
             }
 
-            return CreateConnectionAsync(serviceName, callbackTarget, cancellationToken).AsNullable();
+            return CreateConnectionImplAsync(serviceName, callbackTarget, cancellationToken);
         }
 
-        private async Task<Connection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
+        private async Task<Connection> CreateConnectionImplAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             var serviceStream = await RequestServiceAsync(Services, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
             return new JsonRpcConnection(Services, _hubClient.Logger, callbackTarget, serviceStream);

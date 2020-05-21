@@ -102,7 +102,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var newText = oldText.WithChanges(new TextChange(TextSpan.FromBounds(0, 0), "/* test */"));
 
                 // sync
-                _ = await client.TryRunRemoteAsync(
+                await client.RunRemoteAsync(
                     WellKnownServiceHubService.RemoteHost,
                     nameof(IRemoteHostService.SynchronizeTextAsync),
                     solution: null,
@@ -139,7 +139,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var callback = new TodoCommentsListener();
 
             using var client = await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
-            using var session = await client.TryCreateKeepAliveSessionAsync(
+            using var session = await client.CreateKeepAliveSessionAsync(
                 WellKnownServiceHubService.RemoteTodoCommentsService,
                 callback,
                 cancellationTokenSource.Token);
@@ -224,7 +224,7 @@ class Test { }");
             var callback = new DesignerAttributeListener();
 
             using var client = await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
-            using var session = await client.TryCreateKeepAliveSessionAsync(
+            using var session = await client.CreateKeepAliveSessionAsync(
                 WellKnownServiceHubService.RemoteDesignerAttributeService,
                 callback,
                 cancellationTokenSource.Token);
@@ -468,13 +468,13 @@ class Test { }");
 
         private async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
         {
-            Assert.True(await client.TryRunRemoteAsync(
+            await client.RunRemoteAsync(
                 WellKnownServiceHubService.RemoteHost,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 solution,
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
                 callbackTarget: null,
-                CancellationToken.None));
+                CancellationToken.None);
         }
 
         private static Solution Populate(Solution solution)

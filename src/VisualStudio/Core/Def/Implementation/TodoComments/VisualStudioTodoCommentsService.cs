@@ -105,11 +105,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
-            _keepAliveSession = await client.TryCreateKeepAliveSessionAsync(
+            _keepAliveSession = await client.CreateKeepAliveSessionAsync(
                 WellKnownServiceHubService.RemoteTodoCommentsService,
                 callbackTarget: this, cancellationToken).ConfigureAwait(false);
-            if (_keepAliveSession == null)
-                return;
 
             // Now that we've started, let the VS todo list know to start listening to us
             _eventListenerTracker.EnsureEventListener(_workspace, this);

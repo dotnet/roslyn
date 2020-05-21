@@ -27,8 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             _serviceName = new RemoteServiceName(serviceName);
         }
 
-        public Task<Optional<T>> TryRunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
-            => _client.TryRunRemoteAsync<T>(_serviceName, targetName, solution, arguments, callbackTarget, cancellationToken);
+        public async Task<Optional<T>> TryRunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
+            => await _client.RunRemoteAsync<T>(_serviceName, targetName, solution, arguments, callbackTarget, cancellationToken).ConfigureAwait(false);
 
         [Obsolete("Use TryRunRemoteAsync instead")]
         public async Task<Session?> CreateSessionAsync(Solution solution, object? callbackTarget = null, CancellationToken cancellationToken = default)
@@ -39,11 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 return null;
             }
 
-            var keepAliveSession = await _client.TryCreateKeepAliveSessionAsync(_serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
-            if (keepAliveSession == null)
-            {
-                return null;
-            }
+            var keepAliveSession = await _client.CreateKeepAliveSessionAsync(_serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
 
             SessionWithSolution? session = null;
             try

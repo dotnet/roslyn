@@ -95,7 +95,7 @@ namespace Roslyn.Test.Utilities.Remote
 
         public override string ClientId { get; }
 
-        protected override async Task<Connection?> TryCreateConnectionAsync(
+        protected override async Task<Connection> CreateConnectionAsync(
             RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate service specific information 

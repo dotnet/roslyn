@@ -31,11 +31,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             if (client != null)
             {
                 var callbackObject = new CallbackObject(logService, progressService);
-                var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackObject, cancellationToken).ConfigureAwait(false);
-                if (session != null)
-                {
-                    return new RemoteUpdateEngine(workspace, session);
-                }
+                var session = await client.CreateKeepAliveSessionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackObject, cancellationToken).ConfigureAwait(false);
+                return new RemoteUpdateEngine(workspace, session);
             }
 
             // Couldn't go out of proc.  Just do everything inside the current process.

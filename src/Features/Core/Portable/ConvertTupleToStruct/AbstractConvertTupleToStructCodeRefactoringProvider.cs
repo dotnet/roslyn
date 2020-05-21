@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var resultOpt = await client.TryRunRemoteAsync<SerializableConvertTupleToStructResult>(
+                    var result = await client.RunRemoteAsync<SerializableConvertTupleToStructResult>(
                         WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteConvertTupleToStructCodeRefactoringProvider.ConvertToStructAsync),
                         solution,
@@ -180,14 +180,11 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
-                    if (resultOpt.HasValue)
-                    {
-                        var result = resultOpt.Value;
-                        var resultSolution = await RemoteUtilities.UpdateSolutionAsync(
-                            solution, result.DocumentTextChanges, cancellationToken).ConfigureAwait(false);
-                        return await AddRenameTokenAsync(
-                            resultSolution, result.RenamedToken, cancellationToken).ConfigureAwait(false);
-                    }
+                    var resultSolution = await RemoteUtilities.UpdateSolutionAsync(
+                        solution, result.DocumentTextChanges, cancellationToken).ConfigureAwait(false);
+
+                    return await AddRenameTokenAsync(
+                        resultSolution, result.RenamedToken, cancellationToken).ConfigureAwait(false);
                 }
             }
 

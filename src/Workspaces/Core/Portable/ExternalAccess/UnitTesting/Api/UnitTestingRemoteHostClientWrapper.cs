@@ -21,17 +21,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateUnitTestingKeepAliveSessionWrapperAsync(string serviceName, CancellationToken cancellationToken)
         {
-            var keepAliveSession = await UnderlyingObject.TryCreateKeepAliveSessionAsync(new RemoteServiceName(serviceName), callbackTarget: null, cancellationToken).ConfigureAwait(false);
+            var keepAliveSession = await UnderlyingObject.CreateKeepAliveSessionAsync(new RemoteServiceName(serviceName), callbackTarget: null, cancellationToken).ConfigureAwait(false);
             return new UnitTestingKeepAliveSessionWrapper(keepAliveSession);
         }
 
         public async Task<UnitTestingSessionWithSolutionWrapper> TryCreateUnitingSessionWithSolutionWrapperAsync(string serviceName, Solution solution, CancellationToken cancellationToken)
         {
-            var keepAliveSession = await UnderlyingObject.TryCreateKeepAliveSessionAsync(new RemoteServiceName(serviceName), callbackTarget: null, cancellationToken).ConfigureAwait(false);
-            if (keepAliveSession == null)
-            {
-                return default;
-            }
+            var keepAliveSession = await UnderlyingObject.CreateKeepAliveSessionAsync(new RemoteServiceName(serviceName), callbackTarget: null, cancellationToken).ConfigureAwait(false);
 
             SessionWithSolution? session = null;
             try

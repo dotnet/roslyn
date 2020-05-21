@@ -13,29 +13,29 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal readonly struct UnitTestingKeepAliveSessionWrapper
     {
-        internal KeepAliveSession? UnderlyingObject { get; }
+        internal KeepAliveSession UnderlyingObject { get; }
 
-        internal UnitTestingKeepAliveSessionWrapper(KeepAliveSession? underlyingObject)
+        internal UnitTestingKeepAliveSessionWrapper(KeepAliveSession underlyingObject)
             => UnderlyingObject = underlyingObject;
 
         public bool IsDefault => UnderlyingObject == null;
 
         public Task<T> TryInvokeAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => UnderlyingObject!.RunRemoteAsync<T>(targetName, solution, arguments, cancellationToken);
+            => UnderlyingObject.RunRemoteAsync<T>(targetName, solution, arguments, cancellationToken);
 
         public async Task<bool> TryInvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            await UnderlyingObject!.RunRemoteAsync(targetName, solution: null, arguments, cancellationToken).ConfigureAwait(false);
+            await UnderlyingObject.RunRemoteAsync(targetName, solution: null, arguments, cancellationToken).ConfigureAwait(false);
             return true;
         }
 
         public async Task<bool> TryInvokeAsync(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            await UnderlyingObject!.RunRemoteAsync(targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
+            await UnderlyingObject.RunRemoteAsync(targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
             return true;
         }
 
         public Task<T> TryInvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => UnderlyingObject!.RunRemoteAsync<T>(targetName, solution: null, arguments, cancellationToken);
+            => UnderlyingObject.RunRemoteAsync<T>(targetName, solution: null, arguments, cancellationToken);
     }
 }

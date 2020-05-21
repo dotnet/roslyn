@@ -115,13 +115,13 @@ End Class";
 
         private async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
         {
-            Assert.True(await client.TryRunRemoteAsync(
+            await client.RunRemoteAsync(
                 WellKnownServiceHubService.RemoteHost,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 solution,
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
                 callbackTarget: null,
-                CancellationToken.None));
+                CancellationToken.None);
         }
     }
 }
