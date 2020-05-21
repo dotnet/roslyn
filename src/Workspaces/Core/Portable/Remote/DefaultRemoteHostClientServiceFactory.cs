@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new RemoteHostClientService(workspaceServices.Workspace);
+            => new RemoteHostClientService(workspaceServices);
     }
 }

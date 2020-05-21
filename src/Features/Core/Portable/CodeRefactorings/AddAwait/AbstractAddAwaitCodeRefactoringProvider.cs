@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 .AddParentheses(syntaxGenerator.AwaitExpression(withoutTrivia))
                 .WithTriviaFrom(invocation);
 
-            return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken).ConfigureAwait(false); ;
+            return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken).ConfigureAwait(false);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

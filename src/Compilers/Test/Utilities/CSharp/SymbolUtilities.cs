@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -87,13 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 text = text + '\n' + symbolString;
             }
             return text;
-        }
-
-        // TODO: Remove this method and fix callsites to directly invoke Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions.ToTestDisplayString().
-        //       https://github.com/dotnet/roslyn/issues/11915
-        public static string ToTestDisplayString(this ISymbol symbol)
-        {
-            return CodeAnalysis.Test.Extensions.SymbolExtensions.ToTestDisplayString(symbol);
         }
 
         private static SymbolDisplayFormat GetDisplayFormat(bool includeNonNullable)

@@ -1069,7 +1069,7 @@ class Z<T> where T : class
     string b;
     T? c;
 
-    public Z(int a, string b, T c{|Navigation:)|}
+    public Z(int a, string b, T? c{|Navigation:)|}
     {
         this.a = a;
         this.b = b ?? throw new ArgumentNullException(nameof(b));

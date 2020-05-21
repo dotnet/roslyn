@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (client != null)
             {
                 var result = await client.TryRunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithNormalQueryAsync),
                     solution,
                     new object[] { name, ignoreCase, criteria },
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (client != null)
             {
                 var result = await client.TryRunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
                     project.Solution,
                     new object[] { project.Id, name, ignoreCase, criteria },
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (client != null)
             {
                 var result = await client.TryRunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithPatternAsync),
                     solution,
                     new object[] { pattern, criteria },
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (client != null)
             {
                 var result = await client.TryRunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
                     project.Solution,
                     new object[] { project.Id, pattern, criteria },

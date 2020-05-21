@@ -12,10 +12,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class AsyncLazyTests
+    public class AsyncLazyTests
     {
-        // This probably shouldn't need WpfFact, but the failure is being tracked by https://github.com/dotnet/roslyn/issues/7438
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void CancellationDuringInlinedComputationFromGetValueStillCachesResult()
         {
             CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResultCore((lazy, ct) => lazy.GetValue(ct), includeSynchronousComputation: true);
@@ -46,15 +45,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 includeSynchronousComputation ? synchronousComputation : null,
                 cacheResult: true);
 
-            var thrownException = Assert.ThrowsAny<Exception>(() =>
+            var thrownException = Assert.Throws<OperationCanceledException>(() =>
                 {
                     // Do a first request. Even though we will get a cancellation during the evaluation,
                     // since we handed a result back, that result must be cached.
                     doGetValue(lazy, requestCancellationTokenSource.Token);
                 });
-
-            // Assert it's either cancellation or aggregate exception
-            Assert.True(thrownException is OperationCanceledException || ((AggregateException)thrownException).Flatten().InnerException is OperationCanceledException);
 
             // And a second request. We'll let this one complete normally.
             var secondRequestResult = doGetValue(lazy, CancellationToken.None);
@@ -64,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(1, computations);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        [Fact, Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public void SynchronousRequestShouldCacheValueWithAsynchronousComputeFunction()
         {
             var lazy = new AsyncLazy<object>(c => Task.FromResult(new object()), cacheResult: true);
@@ -73,6 +69,34 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var secondRequestResult = lazy.GetValue(CancellationToken.None);
 
             Assert.Same(secondRequestResult, firstRequestResult);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task AwaitingProducesCorrectException(bool producerAsync, bool consumerAsync)
+        {
+            var exception = new ArgumentException();
+            Func<CancellationToken, Task<object>> asynchronousComputeFunction =
+                async cancellationToken =>
+                {
+                    await Task.Yield();
+                    throw exception;
+                };
+            Func<CancellationToken, object> synchronousComputeFunction =
+                cancellationToken =>
+                {
+                    throw exception;
+                };
+
+            var lazy = producerAsync
+                ? new AsyncLazy<object>(asynchronousComputeFunction, cacheResult: true)
+                : new AsyncLazy<object>(asynchronousComputeFunction, synchronousComputeFunction, cacheResult: true);
+
+            var actual = consumerAsync
+                ? await Assert.ThrowsAsync<ArgumentException>(async () => await lazy.GetValueAsync(CancellationToken.None))
+                : Assert.Throws<ArgumentException>(() => lazy.GetValue(CancellationToken.None));
+
+            Assert.Same(exception, actual);
         }
     }
 }
