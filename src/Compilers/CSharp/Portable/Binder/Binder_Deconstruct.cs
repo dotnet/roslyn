@@ -41,23 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case null:
                     case SyntaxKind.ExpressionStatement:
-                        if (expression != null)
-                        {
-                            // We only allow assignment-only or declaration-only deconstructions at this point.
-                            // Issue https://github.com/dotnet/roslyn/issues/15050 tracks allowing mixed deconstructions.
-                            // For now we give an error when you mix.
-                            Error(diagnostics, ErrorCode.ERR_MixedDeconstructionUnsupported, left);
-                        }
                         break;
                     case SyntaxKind.ForStatement:
-                        if (((ForStatementSyntax)node.Parent).Initializers.Contains(node))
-                        {
-                            if (expression != null)
-                            {
-                                Error(diagnostics, ErrorCode.ERR_MixedDeconstructionUnsupported, left);
-                            }
-                        }
-                        else
+                        if (!((ForStatementSyntax)node.Parent).Initializers.Contains(node))
                         {
                             Error(diagnostics, ErrorCode.ERR_DeclarationExpressionNotPermitted, declaration);
                         }

@@ -9128,5 +9128,744 @@ class C
   IL_0005:  ret
 }");
         }
+
+        [Fact]
+        public void MixDeclarationAndAssignmentPermutationsOf2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1 = 0;
+        (x1, string y1) = new C();
+        System.Console.WriteLine(x1 + "" "" + y1);
+        int x2;
+        (x2, var y2) = new C();
+        System.Console.WriteLine(x2 + "" "" + y2);
+        string y3 = """";
+        (int x3, y3) = new C();
+        System.Console.WriteLine(x3 + "" "" + y3);
+        string y4;
+        (var x4, y4) = new C();
+        System.Console.WriteLine(x4 + "" "" + y4);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: @"1 hello
+1 hello
+1 hello
+1 hello");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      188 (0xbc)
+  .maxstack  3
+  .locals init (int V_0, //x1
+                string V_1, //y1
+                int V_2, //x2
+                string V_3, //y2
+                string V_4, //y3
+                int V_5, //x3
+                string V_6, //y4
+                int V_7, //x4
+                int V_8,
+                string V_9)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  newobj     ""C..ctor()""
+  IL_0007:  ldloca.s   V_8
+  IL_0009:  ldloca.s   V_9
+  IL_000b:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_0010:  ldloc.s    V_8
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.s    V_9
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""string int.ToString()""
+  IL_001d:  ldstr      "" ""
+  IL_0022:  ldloc.1
+  IL_0023:  call       ""string string.Concat(string, string, string)""
+  IL_0028:  call       ""void System.Console.WriteLine(string)""
+  IL_002d:  newobj     ""C..ctor()""
+  IL_0032:  ldloca.s   V_8
+  IL_0034:  ldloca.s   V_9
+  IL_0036:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_003b:  ldloc.s    V_8
+  IL_003d:  stloc.2
+  IL_003e:  ldloc.s    V_9
+  IL_0040:  stloc.3
+  IL_0041:  ldloca.s   V_2
+  IL_0043:  call       ""string int.ToString()""
+  IL_0048:  ldstr      "" ""
+  IL_004d:  ldloc.3
+  IL_004e:  call       ""string string.Concat(string, string, string)""
+  IL_0053:  call       ""void System.Console.WriteLine(string)""
+  IL_0058:  ldstr      """"
+  IL_005d:  stloc.s    V_4
+  IL_005f:  newobj     ""C..ctor()""
+  IL_0064:  ldloca.s   V_8
+  IL_0066:  ldloca.s   V_9
+  IL_0068:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_006d:  ldloc.s    V_8
+  IL_006f:  stloc.s    V_5
+  IL_0071:  ldloc.s    V_9
+  IL_0073:  stloc.s    V_4
+  IL_0075:  ldloca.s   V_5
+  IL_0077:  call       ""string int.ToString()""
+  IL_007c:  ldstr      "" ""
+  IL_0081:  ldloc.s    V_4
+  IL_0083:  call       ""string string.Concat(string, string, string)""
+  IL_0088:  call       ""void System.Console.WriteLine(string)""
+  IL_008d:  newobj     ""C..ctor()""
+  IL_0092:  ldloca.s   V_8
+  IL_0094:  ldloca.s   V_9
+  IL_0096:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_009b:  ldloc.s    V_8
+  IL_009d:  stloc.s    V_7
+  IL_009f:  ldloc.s    V_9
+  IL_00a1:  stloc.s    V_6
+  IL_00a3:  ldloca.s   V_7
+  IL_00a5:  call       ""string int.ToString()""
+  IL_00aa:  ldstr      "" ""
+  IL_00af:  ldloc.s    V_6
+  IL_00b1:  call       ""string string.Concat(string, string, string)""
+  IL_00b6:  call       ""void System.Console.WriteLine(string)""
+  IL_00bb:  ret
+}");
+        }
+
+        [Fact]
+        public void MixDeclarationAndAssignmentPermutationsOf3()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1;
+        string y1;
+        (x1, y1, var z1) = new C();
+        System.Console.WriteLine(x1 + "" "" + y1 + "" "" + z1);
+
+        int x2;
+        bool z2;
+        (x2, var y2, z2) = new C();
+        System.Console.WriteLine(x2 + "" "" + y2 + "" "" + z2);
+
+        string y3;
+        bool z3;
+        (var x3, y3, z3) = new C();
+        System.Console.WriteLine(x3 + "" "" + y3 + "" "" + z3);
+
+        bool z4;
+        (var x4, var y4, z4) = new C();
+        System.Console.WriteLine(x4 + "" "" + y4 + "" "" + z4);
+
+        string y5;
+        (var x5, y5, var z5) = new C();
+        System.Console.WriteLine(x5 + "" "" + y5 + "" "" + z5);
+
+        int x6;
+        (x6, var y6, var z6) = new C();
+        System.Console.WriteLine(x6 + "" "" + y6 + "" "" + z6);
+    }
+
+    public void Deconstruct(out int a, out string b, out bool c)
+    {
+        a = 1;
+        b = ""hello"";
+        c = true;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: @"1 hello True
+1 hello True
+1 hello True
+1 hello True
+1 hello True
+1 hello True");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      506 (0x1fa)
+  .maxstack  4
+  .locals init (int V_0, //x1
+                string V_1, //y1
+                bool V_2, //z1
+                int V_3, //x2
+                bool V_4, //z2
+                string V_5, //y2
+                string V_6, //y3
+                bool V_7, //z3
+                int V_8, //x3
+                bool V_9, //z4
+                int V_10, //x4
+                string V_11, //y4
+                string V_12, //y5
+                int V_13, //x5
+                bool V_14, //z5
+                int V_15, //x6
+                string V_16, //y6
+                bool V_17, //z6
+                int V_18,
+                string V_19,
+                bool V_20)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_18
+  IL_0007:  ldloca.s   V_19
+  IL_0009:  ldloca.s   V_20
+  IL_000b:  callvirt   ""void C.Deconstruct(out int, out string, out bool)""
+  IL_0010:  ldloc.s    V_18
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.s    V_19
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.s    V_20
+  IL_0018:  stloc.2
+  IL_0019:  ldc.i4.5
+  IL_001a:  newarr     ""string""
+  IL_001f:  dup
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  call       ""string int.ToString()""
+  IL_0028:  stelem.ref
+  IL_0029:  dup
+  IL_002a:  ldc.i4.1
+  IL_002b:  ldstr      "" ""
+  IL_0030:  stelem.ref
+  IL_0031:  dup
+  IL_0032:  ldc.i4.2
+  IL_0033:  ldloc.1
+  IL_0034:  stelem.ref
+  IL_0035:  dup
+  IL_0036:  ldc.i4.3
+  IL_0037:  ldstr      "" ""
+  IL_003c:  stelem.ref
+  IL_003d:  dup
+  IL_003e:  ldc.i4.4
+  IL_003f:  ldloca.s   V_2
+  IL_0041:  call       ""string bool.ToString()""
+  IL_0046:  stelem.ref
+  IL_0047:  call       ""string string.Concat(params string[])""
+  IL_004c:  call       ""void System.Console.WriteLine(string)""
+  IL_0051:  newobj     ""C..ctor()""
+  IL_0056:  ldloca.s   V_18
+  IL_0058:  ldloca.s   V_19
+  IL_005a:  ldloca.s   V_20
+  IL_005c:  callvirt   ""void C.Deconstruct(out int, out string, out bool)""
+  IL_0061:  ldloc.s    V_18
+  IL_0063:  stloc.3
+  IL_0064:  ldloc.s    V_19
+  IL_0066:  stloc.s    V_5
+  IL_0068:  ldloc.s    V_20
+  IL_006a:  stloc.s    V_4
+  IL_006c:  ldc.i4.5
+  IL_006d:  newarr     ""string""
+  IL_0072:  dup
+  IL_0073:  ldc.i4.0
+  IL_0074:  ldloca.s   V_3
+  IL_0076:  call       ""string int.ToString()""
+  IL_007b:  stelem.ref
+  IL_007c:  dup
+  IL_007d:  ldc.i4.1
+  IL_007e:  ldstr      "" ""
+  IL_0083:  stelem.ref
+  IL_0084:  dup
+  IL_0085:  ldc.i4.2
+  IL_0086:  ldloc.s    V_5
+  IL_0088:  stelem.ref
+  IL_0089:  dup
+  IL_008a:  ldc.i4.3
+  IL_008b:  ldstr      "" ""
+  IL_0090:  stelem.ref
+  IL_0091:  dup
+  IL_0092:  ldc.i4.4
+  IL_0093:  ldloca.s   V_4
+  IL_0095:  call       ""string bool.ToString()""
+  IL_009a:  stelem.ref
+  IL_009b:  call       ""string string.Concat(params string[])""
+  IL_00a0:  call       ""void System.Console.WriteLine(string)""
+  IL_00a5:  newobj     ""C..ctor()""
+  IL_00aa:  ldloca.s   V_18
+  IL_00ac:  ldloca.s   V_19
+  IL_00ae:  ldloca.s   V_20
+  IL_00b0:  callvirt   ""void C.Deconstruct(out int, out string, out bool)""
+  IL_00b5:  ldloc.s    V_18
+  IL_00b7:  stloc.s    V_8
+  IL_00b9:  ldloc.s    V_19
+  IL_00bb:  stloc.s    V_6
+  IL_00bd:  ldloc.s    V_20
+  IL_00bf:  stloc.s    V_7
+  IL_00c1:  ldc.i4.5
+  IL_00c2:  newarr     ""string""
+  IL_00c7:  dup
+  IL_00c8:  ldc.i4.0
+  IL_00c9:  ldloca.s   V_8
+  IL_00cb:  call       ""string int.ToString()""
+  IL_00d0:  stelem.ref
+  IL_00d1:  dup
+  IL_00d2:  ldc.i4.1
+  IL_00d3:  ldstr      "" ""
+  IL_00d8:  stelem.ref
+  IL_00d9:  dup
+  IL_00da:  ldc.i4.2
+  IL_00db:  ldloc.s    V_6
+  IL_00dd:  stelem.ref
+  IL_00de:  dup
+  IL_00df:  ldc.i4.3
+  IL_00e0:  ldstr      "" ""
+  IL_00e5:  stelem.ref
+  IL_00e6:  dup
+  IL_00e7:  ldc.i4.4
+  IL_00e8:  ldloca.s   V_7
+  IL_00ea:  call       ""string bool.ToString()""
+  IL_00ef:  stelem.ref
+  IL_00f0:  call       ""string string.Concat(params string[])""
+  IL_00f5:  call       ""void System.Console.WriteLine(string)""
+  IL_00fa:  newobj     ""C..ctor()""
+  IL_00ff:  ldloca.s   V_18
+  IL_0101:  ldloca.s   V_19
+  IL_0103:  ldloca.s   V_20
+  IL_0105:  callvirt   ""void C.Deconstruct(out int, out string, out bool)""
+  IL_010a:  ldloc.s    V_18
+  IL_010c:  stloc.s    V_10
+  IL_010e:  ldloc.s    V_19
+  IL_0110:  stloc.s    V_11
+  IL_0112:  ldloc.s    V_20
+  IL_0114:  stloc.s    V_9
+  IL_0116:  ldc.i4.5
+  IL_0117:  newarr     ""string""
+  IL_011c:  dup
+  IL_011d:  ldc.i4.0
+  IL_011e:  ldloca.s   V_10
+  IL_0120:  call       ""string int.ToString()""
+  IL_0125:  stelem.ref
+  IL_0126:  dup
+  IL_0127:  ldc.i4.1
+  IL_0128:  ldstr      "" ""
+  IL_012d:  stelem.ref
+  IL_012e:  dup
+  IL_012f:  ldc.i4.2
+  IL_0130:  ldloc.s    V_11
+  IL_0132:  stelem.ref
+  IL_0133:  dup
+  IL_0134:  ldc.i4.3
+  IL_0135:  ldstr      "" ""
+  IL_013a:  stelem.ref
+  IL_013b:  dup
+  IL_013c:  ldc.i4.4
+  IL_013d:  ldloca.s   V_9
+  IL_013f:  call       ""string bool.ToString()""
+  IL_0144:  stelem.ref
+  IL_0145:  call       ""string string.Concat(params string[])""
+  IL_014a:  call       ""void System.Console.WriteLine(string)""
+  IL_014f:  newobj     ""C..ctor()""
+  IL_0154:  ldloca.s   V_18
+  IL_0156:  ldloca.s   V_19
+  IL_0158:  ldloca.s   V_20
+  IL_015a:  callvirt   ""void C.Deconstruct(out int, out string, out bool)""
+  IL_015f:  ldloc.s    V_18
+  IL_0161:  stloc.s    V_13
+  IL_0163:  ldloc.s    V_19
+  IL_0165:  stloc.s    V_12
+  IL_0167:  ldloc.s    V_20
+  IL_0169:  stloc.s    V_14
+  IL_016b:  ldc.i4.5
+  IL_016c:  newarr     ""string""
+  IL_0171:  dup
+  IL_0172:  ldc.i4.0
+  IL_0173:  ldloca.s   V_13
+  IL_0175:  call       ""string int.ToString()""
+  IL_017a:  stelem.ref
+  IL_017b:  dup
+  IL_017c:  ldc.i4.1
+  IL_017d:  ldstr      "" ""
+  IL_0182:  stelem.ref
+  IL_0183:  dup
+  IL_0184:  ldc.i4.2
+  IL_0185:  ldloc.s    V_12
+  IL_0187:  stelem.ref
+  IL_0188:  dup
+  IL_0189:  ldc.i4.3
+  IL_018a:  ldstr      "" ""
+  IL_018f:  stelem.ref
+  IL_0190:  dup
+  IL_0191:  ldc.i4.4
+  IL_0192:  ldloca.s   V_14
+  IL_0194:  call       ""string bool.ToString()""
+  IL_0199:  stelem.ref
+  IL_019a:  call       ""string string.Concat(params string[])""
+  IL_019f:  call       ""void System.Console.WriteLine(string)""
+  IL_01a4:  newobj     ""C..ctor()""
+  IL_01a9:  ldloca.s   V_18
+  IL_01ab:  ldloca.s   V_19
+  IL_01ad:  ldloca.s   V_20
+  IL_01af:  callvirt   ""void C.Deconstruct(out int, out string, out bool)""
+  IL_01b4:  ldloc.s    V_18
+  IL_01b6:  stloc.s    V_15
+  IL_01b8:  ldloc.s    V_19
+  IL_01ba:  stloc.s    V_16
+  IL_01bc:  ldloc.s    V_20
+  IL_01be:  stloc.s    V_17
+  IL_01c0:  ldc.i4.5
+  IL_01c1:  newarr     ""string""
+  IL_01c6:  dup
+  IL_01c7:  ldc.i4.0
+  IL_01c8:  ldloca.s   V_15
+  IL_01ca:  call       ""string int.ToString()""
+  IL_01cf:  stelem.ref
+  IL_01d0:  dup
+  IL_01d1:  ldc.i4.1
+  IL_01d2:  ldstr      "" ""
+  IL_01d7:  stelem.ref
+  IL_01d8:  dup
+  IL_01d9:  ldc.i4.2
+  IL_01da:  ldloc.s    V_16
+  IL_01dc:  stelem.ref
+  IL_01dd:  dup
+  IL_01de:  ldc.i4.3
+  IL_01df:  ldstr      "" ""
+  IL_01e4:  stelem.ref
+  IL_01e5:  dup
+  IL_01e6:  ldc.i4.4
+  IL_01e7:  ldloca.s   V_17
+  IL_01e9:  call       ""string bool.ToString()""
+  IL_01ee:  stelem.ref
+  IL_01ef:  call       ""string string.Concat(params string[])""
+  IL_01f4:  call       ""void System.Console.WriteLine(string)""
+  IL_01f9:  ret
+}");
+        }
+
+        [Fact]
+        public void DontAllowMixedDeclarationAndAssignmentInExpressionContext()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1 = 0;
+        var z1 = (x1, string y1) = new C();
+        string y2 = """";
+        var z2 = (int x2, y2) = new C();
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,23): error CS8185: A declaration is not allowed in this context.
+                //         var z1 = (x1, string y1) = new C();
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "string y1").WithLocation(7, 23),
+                // (9,19): error CS8185: A declaration is not allowed in this context.
+                //         var z2 = (int x2, y2) = new C();
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x2").WithLocation(9, 19));
+        }
+
+        [Fact]
+        public void DontAllowMixedDeclarationAndAssignmentInForeachDeclarationVariable()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1;
+        foreach((x1, string y1) in new C[0]);
+        string y2;
+        foreach((int x2, y2) in new C[0]);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (6,13): warning CS0168: The variable 'x1' is declared but never used
+                    //         int x1;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "x1").WithArguments("x1").WithLocation(6, 13),
+                    // (7,17): error CS8186: A foreach loop must declare its iteration variables.
+                    //         foreach((x1, string y1) in new C[0]);
+                    Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(x1, string y1)").WithLocation(7, 17),
+                    // (8,16): warning CS0168: The variable 'y2' is declared but never used
+                    //         string y2;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "y2").WithArguments("y2").WithLocation(8, 16),
+                    // (9,17): error CS8186: A foreach loop must declare its iteration variables.
+                    //         foreach((int x2, y2) in new C[0]);
+                    Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(int x2, y2)").WithLocation(9, 17));
+        }
+
+        [Fact]
+        public void DuplicateDeclarationOfVariableDeclaredInMixedDeclarationAndAssignment()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1;
+        string y1;
+        (x1, string y1) = new C();
+        string y2;
+        (int x2, y2) = new C();
+        int x2;
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,16): warning CS0168: The variable 'y1' is declared but never used
+                //         string y1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y1").WithArguments("y1").WithLocation(7, 16),
+                // (8,21): error CS0128: A local variable or function named 'y1' is already defined in this scope
+                //         (x1, string y1) = new C();
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(8, 21),
+                // (11,13): error CS0128: A local variable or function named 'x2' is already defined in this scope
+                //         int x2;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(11, 13),
+                // (11,13): warning CS0168: The variable 'x2' is declared but never used
+                //         int x2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x2").WithArguments("x2").WithLocation(11, 13));
+        }
+
+        [Fact]
+        public void AssignmentToUndeclaredVariableInMixedDeclarationAndAssignment()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (x1, string y1) = new C();
+        (int x2, y2) = new C();
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,10): error CS0103: The name 'x1' does not exist in the current context
+                //         (x1, string y1) = new C();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 10),
+                // (7,18): error CS0103: The name 'y2' does not exist in the current context
+                //         (int x2, y2) = new C();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y2").WithArguments("y2").WithLocation(7, 18));
+        }
+
+        [Fact]
+        public void MixedDeclarationAndAssignmentInForInitialization()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1;
+        for((x1, string y1) = new C(); x1 < 2; x1++)
+            System.Console.WriteLine(x1 + "" "" + y1);
+        string y2;
+        for((int x2, y2) = new C(); x2 < 2; x2++)
+            System.Console.WriteLine(x2 + "" "" + y2);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"1 hello
+1 hello");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      109 (0x6d)
+  .maxstack  3
+  .locals init (int V_0, //x1
+                string V_1, //y2
+                string V_2, //y1
+                int V_3,
+                string V_4,
+                int V_5) //x2
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_3
+  IL_0007:  ldloca.s   V_4
+  IL_0009:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_000e:  ldloc.3
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.s    V_4
+  IL_0012:  stloc.2
+  IL_0013:  br.s       IL_0030
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""string int.ToString()""
+  IL_001c:  ldstr      "" ""
+  IL_0021:  ldloc.2
+  IL_0022:  call       ""string string.Concat(string, string, string)""
+  IL_0027:  call       ""void System.Console.WriteLine(string)""
+  IL_002c:  ldloc.0
+  IL_002d:  ldc.i4.1
+  IL_002e:  add
+  IL_002f:  stloc.0
+  IL_0030:  ldloc.0
+  IL_0031:  ldc.i4.2
+  IL_0032:  blt.s      IL_0015
+  IL_0034:  newobj     ""C..ctor()""
+  IL_0039:  ldloca.s   V_3
+  IL_003b:  ldloca.s   V_4
+  IL_003d:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_0042:  ldloc.3
+  IL_0043:  stloc.s    V_5
+  IL_0045:  ldloc.s    V_4
+  IL_0047:  stloc.1
+  IL_0048:  br.s       IL_0067
+  IL_004a:  ldloca.s   V_5
+  IL_004c:  call       ""string int.ToString()""
+  IL_0051:  ldstr      "" ""
+  IL_0056:  ldloc.1
+  IL_0057:  call       ""string string.Concat(string, string, string)""
+  IL_005c:  call       ""void System.Console.WriteLine(string)""
+  IL_0061:  ldloc.s    V_5
+  IL_0063:  ldc.i4.1
+  IL_0064:  add
+  IL_0065:  stloc.s    V_5
+  IL_0067:  ldloc.s    V_5
+  IL_0069:  ldc.i4.2
+  IL_006a:  blt.s      IL_004a
+  IL_006c:  ret
+}");
+        }
+
+        [Fact]
+        public void MixDeclarationAndAssignmentInTupleDeconstructPermutationsOf2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1 = 0;
+        (x1, string y1) = (1, ""hello"");
+        System.Console.WriteLine(x1 + "" "" + y1);
+        int x2;
+        (x2, var y2) = (1, ""hello"");
+        System.Console.WriteLine(x2 + "" "" + y2);
+        string y3 = """";
+        (int x3, y3) = (1, ""hello"");
+        System.Console.WriteLine(x3 + "" "" + y3);
+        string y4;
+        (var x4, y4) = (1, ""hello"");
+        System.Console.WriteLine(x4 + "" "" + y4);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: @"1 hello
+1 hello
+1 hello
+1 hello");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      188 (0xbc)
+  .maxstack  3
+  .locals init (int V_0, //x1
+                string V_1, //y1
+                int V_2, //x2
+                string V_3, //y2
+                string V_4, //y3
+                int V_5, //x3
+                string V_6, //y4
+                int V_7, //x4
+                int V_8,
+                string V_9)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  newobj     ""C..ctor()""
+  IL_0007:  ldloca.s   V_8
+  IL_0009:  ldloca.s   V_9
+  IL_000b:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_0010:  ldloc.s    V_8
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.s    V_9
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""string int.ToString()""
+  IL_001d:  ldstr      "" ""
+  IL_0022:  ldloc.1
+  IL_0023:  call       ""string string.Concat(string, string, string)""
+  IL_0028:  call       ""void System.Console.WriteLine(string)""
+  IL_002d:  newobj     ""C..ctor()""
+  IL_0032:  ldloca.s   V_8
+  IL_0034:  ldloca.s   V_9
+  IL_0036:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_003b:  ldloc.s    V_8
+  IL_003d:  stloc.2
+  IL_003e:  ldloc.s    V_9
+  IL_0040:  stloc.3
+  IL_0041:  ldloca.s   V_2
+  IL_0043:  call       ""string int.ToString()""
+  IL_0048:  ldstr      "" ""
+  IL_004d:  ldloc.3
+  IL_004e:  call       ""string string.Concat(string, string, string)""
+  IL_0053:  call       ""void System.Console.WriteLine(string)""
+  IL_0058:  ldstr      """"
+  IL_005d:  stloc.s    V_4
+  IL_005f:  newobj     ""C..ctor()""
+  IL_0064:  ldloca.s   V_8
+  IL_0066:  ldloca.s   V_9
+  IL_0068:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_006d:  ldloc.s    V_8
+  IL_006f:  stloc.s    V_5
+  IL_0071:  ldloc.s    V_9
+  IL_0073:  stloc.s    V_4
+  IL_0075:  ldloca.s   V_5
+  IL_0077:  call       ""string int.ToString()""
+  IL_007c:  ldstr      "" ""
+  IL_0081:  ldloc.s    V_4
+  IL_0083:  call       ""string string.Concat(string, string, string)""
+  IL_0088:  call       ""void System.Console.WriteLine(string)""
+  IL_008d:  newobj     ""C..ctor()""
+  IL_0092:  ldloca.s   V_8
+  IL_0094:  ldloca.s   V_9
+  IL_0096:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_009b:  ldloc.s    V_8
+  IL_009d:  stloc.s    V_7
+  IL_009f:  ldloc.s    V_9
+  IL_00a1:  stloc.s    V_6
+  IL_00a3:  ldloca.s   V_7
+  IL_00a5:  call       ""string int.ToString()""
+  IL_00aa:  ldstr      "" ""
+  IL_00af:  ldloc.s    V_6
+  IL_00b1:  call       ""string string.Concat(string, string, string)""
+  IL_00b6:  call       ""void System.Console.WriteLine(string)""
+  IL_00bb:  ret
+}");
+        }
     }
 }
