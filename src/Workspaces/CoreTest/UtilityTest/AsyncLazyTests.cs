@@ -184,7 +184,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var cancellationTokenSource = new CancellationTokenSource();
 
             // Create a task that will cancel the request once it's started
-            Task.Run(() => { computeFunctionRunning.WaitOne(); cancellationTokenSource.Cancel(); });
+            Task.Run(() =>
+            {
+                computeFunctionRunning.WaitOne();
+                cancellationTokenSource.Cancel();
+            });
 
             try
             {

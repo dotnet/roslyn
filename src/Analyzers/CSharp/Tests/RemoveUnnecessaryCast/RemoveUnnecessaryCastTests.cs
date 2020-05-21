@@ -8035,5 +8035,27 @@ class Program
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
+
+        [WorkItem(44382, "https://github.com/dotnet/roslyn/issues/44382")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastOnParameterInitializer1()
+        {
+            var source =
+@"enum E : byte { }
+class C { void F() { void f(E e = (E)byte.MaxValue) { } } }";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(44382, "https://github.com/dotnet/roslyn/issues/44382")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastOnParameterInitializer2()
+        {
+            var source =
+@"enum E : byte { }
+class C { void f(E e = (E)byte.MaxValue) { } }";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
     }
 }

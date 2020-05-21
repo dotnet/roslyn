@@ -14,8 +14,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.Telemetry;
@@ -34,15 +36,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly ConnectionPool? _connectionPool;
 
         private ServiceHubRemoteHostClient(
-            Workspace workspace,
+            HostWorkspaceServices services,
             HubClient hubClient,
             HostGroup hostGroup,
             Stream stream)
-            : base(workspace)
+            : base(services)
         {
-            if (workspace.Options.GetOption(RemoteHostOptions.EnableConnectionPool))
+            var optionService = services.GetRequiredService<IOptionService>();
+            if (optionService.GetOption(RemoteHostOptions.EnableConnectionPool))
             {
-                int maxPoolConnection = workspace.Options.GetOption(RemoteHostOptions.MaxPoolConnection);
+                int maxPoolConnection = optionService.GetOption(RemoteHostOptions.MaxPoolConnection);
 
                 _connectionPool = new ConnectionPool(
                     connectionFactory: (serviceName, cancellationToken) => CreateConnectionAsync(serviceName, callbackTarget: null, cancellationToken),
@@ -59,9 +62,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         }
 
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
-            => RemoteHostCrashInfoBar.ShowInfoBar(Workspace, unexpectedException);
+            => RemoteHostCrashInfoBar.ShowInfoBar(Services, unexpectedException);
 
-        public static async Task<RemoteHostClient?> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient?> CreateAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
             {
@@ -74,9 +77,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
                 WatsonReporter.InitializeLogger(hubClient.Logger);
 
-                var remoteHostStream = await RequestServiceAsync(workspace, hubClient, WellKnownServiceHubServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
+                var remoteHostStream = await RequestServiceAsync(services, hubClient, WellKnownServiceHubService.RemoteHost, hostGroup, cancellationToken).ConfigureAwait(false);
 
-                var client = new ServiceHubRemoteHostClient(workspace, hubClient, hostGroup, remoteHostStream);
+                var client = new ServiceHubRemoteHostClient(services, hubClient, hostGroup, remoteHostStream);
 
                 var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
                 var cultureLCID = CultureInfo.CurrentCulture.LCID;
@@ -106,13 +109,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         }
 
         public static async Task<Stream> RequestServiceAsync(
-            Workspace workspace,
+            HostWorkspaceServices services,
             HubClient client,
-            string serviceName,
+            RemoteServiceName serviceName,
             HostGroup hostGroup,
             CancellationToken cancellationToken)
         {
-            var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
+            var is64bit = RemoteHostOptions.IsServiceHubProcess64Bit(services);
+
+            var descriptor = new ServiceDescriptor(serviceName.ToString(is64bit)) { HostGroup = hostGroup };
             try
             {
                 return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
@@ -122,12 +127,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // TODO: Once https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1040692.
                 // ServiceHub may throw non-cancellation exceptions if it is called after VS started to shut down,
                 // even if our cancellation token is signaled. Cancel the operation and do not report an error in these cases.
-                // 
+                //
                 // If ServiceHub did not throw non-cancellation exceptions when cancellation token is signaled,
                 // we can assume that these exceptions indicate a failure and should be reported to the user.
                 cancellationToken.ThrowIfCancellationRequested();
 
-                RemoteHostCrashInfoBar.ShowInfoBar(workspace, e);
+                RemoteHostCrashInfoBar.ShowInfoBar(services, e);
 
                 // TODO: Propagate the original exception (see https://github.com/dotnet/roslyn/issues/40476)
                 throw new SoftCrashException("Unexpected exception from HubClient", e, cancellationToken);
@@ -149,9 +154,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public HostGroup HostGroup => _hostGroup;
 
         public override string ClientId => _hostGroup.Id;
-        public override bool IsRemoteHost64Bit => RemoteHostOptions.IsServiceHubProcess64Bit(Workspace);
 
-        protected override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+        protected override Task<Connection?> TryCreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             // When callbackTarget is given, we can't share/pool connection since callbackTarget attaches a state to connection.
             // so connection is only valid for that specific callbackTarget. it is up to the caller to keep connection open
@@ -165,10 +169,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             return CreateConnectionAsync(serviceName, callbackTarget, cancellationToken).AsNullable();
         }
 
-        private async Task<Connection> CreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+        private async Task<Connection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
-            var serviceStream = await RequestServiceAsync(Workspace, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
-            return new JsonRpcConnection(Workspace, _hubClient.Logger, callbackTarget, serviceStream);
+            var serviceStream = await RequestServiceAsync(Services, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
+            return new JsonRpcConnection(Services, _hubClient.Logger, callbackTarget, serviceStream);
         }
 
         public override void Dispose()
@@ -217,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             try
             {
-                return Task.FromResult(Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+                return Task.FromResult(Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {
