@@ -6,8 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -132,6 +131,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol bestMatch = null;
             ArrayBuilder<Symbol> hiddenBuilder = null;
 
+            // If the metadata indicates a specific override, use that.
+            Symbol explicitOverride = member switch
+            {
+                PEMethodSymbol method => method.ExplicitlyOverriddenClassMethod,
+                PEPropertySymbol property => property.ExplicitlyOverriddenClassProperty,
+                _ => null
+            };
+
             for (NamedTypeSymbol currType = containingType.BaseTypeNoUseSiteDiagnostics;
                 (object)currType != null && (object)bestMatch == null && hiddenBuilder == null;
                 currType = currType.BaseTypeNoUseSiteDiagnostics)
@@ -141,6 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     member,
                     memberIsFromSomeCompilation,
                     containingType,
+                    explicitOverride,
                     currType,
                     out bestMatch,
                     out unused,
@@ -238,9 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Symbol> overriddenAccessors = ImmutableArray<Symbol>.Empty;
             ImmutableArray<Symbol> runtimeOverriddenAccessors = ImmutableArray<Symbol>.Empty;
             if ((object)overriddenAccessor != null && IsOverriddenSymbolAccessible(overriddenAccessor, accessor.ContainingType) &&
-                    (accessorIsFromSomeCompilation
-                        ? MemberSignatureComparer.CSharpAccessorOverrideComparer.Equals(accessor, overriddenAccessor) //NB: custom comparer
-                        : MemberSignatureComparer.RuntimeSignatureComparer.Equals(accessor, overriddenAccessor)))
+                isAccessorOverride(accessor, overriddenAccessor))
             {
                 FindRelatedMembers(
                     accessor.IsOverride, accessorIsFromSomeCompilation, accessor.Kind, overriddenAccessor, out overriddenAccessors, out runtimeOverriddenAccessors, ref hiddenBuilder);
@@ -248,6 +254,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ImmutableArray<Symbol> hiddenMembers = hiddenBuilder == null ? ImmutableArray<Symbol>.Empty : hiddenBuilder.ToImmutableAndFree();
             return OverriddenOrHiddenMembersResult.Create(overriddenAccessors, hiddenMembers, runtimeOverriddenAccessors);
+
+            bool isAccessorOverride(MethodSymbol accessor, MethodSymbol overriddenAccessor)
+            {
+                if (accessorIsFromSomeCompilation)
+                {
+                    return MemberSignatureComparer.CSharpAccessorOverrideComparer.Equals(accessor, overriddenAccessor); //NB: custom comparer
+                }
+
+                if (accessor is PEMethodSymbol { ExplicitlyOverriddenClassMethod: MethodSymbol peOverriddenAccessor } &&
+                    overriddenAccessor.Equals(peOverriddenAccessor, TypeCompareKind.AllIgnoreOptions))
+                {
+                    return true;
+                }
+
+                return MemberSignatureComparer.RuntimeSignatureComparer.Equals(accessor, overriddenAccessor);
+            }
         }
 
         /// <summary>
@@ -377,6 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     member,
                     memberIsFromSomeCompilation,
                     containingType,
+                    explicitOverride: null,
                     currType,
                     out currTypeBestMatch,
                     out currTypeHasSameKindNonMatch,
@@ -460,6 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="member">Member that is hiding or overriding.</param>
         /// <param name="memberIsFromSomeCompilation">True if member is from the current compilation.</param>
         /// <param name="memberContainingType">The type that contains member (member.ContainingType).</param>
+        /// <param name="explicitOverride">An explicitly overridden class member.</param>
         /// <param name="currType">The type to search.</param>
         /// <param name="currTypeBestMatch">
         /// A member with the same signature if currTypeHasExactMatch is true,
@@ -477,6 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol member,
             bool memberIsFromSomeCompilation,
             NamedTypeSymbol memberContainingType,
+            Symbol explicitOverride,
             NamedTypeSymbol currType,
             out Symbol currTypeBestMatch,
             out bool currTypeHasSameKindNonMatch,
@@ -540,7 +565,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
 
                         default:
-                            if (exactMatchComparer.Equals(member, otherMember))
+                            if (otherMember.Equals(explicitOverride, TypeCompareKind.AllIgnoreOptions) ||
+                                exactMatchComparer.Equals(member, otherMember))
                             {
                                 currTypeHasExactMatch = true;
                                 currTypeBestMatch = otherMember;
@@ -891,9 +917,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // CONSIDER: we could cache this on MethodSymbol
+        /// <summary>
+        /// Determine if this method requires a methodimpl table entry to inform the runtime of the override relationship.
+        /// </summary>
         internal static bool RequiresExplicitOverride(this MethodSymbol method)
         {
+            // CONSIDER: we could cache this on MethodSymbol
             if (method.IsOverride)
             {
                 MethodSymbol csharpOverriddenMethod = method.OverriddenMethod;
@@ -905,7 +934,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // We can ignore interface implementation changes since the method is already metadata virtual (since override).
                 // TODO: do we want to add more sophisticated handling for the case where there are multiple runtime-overridden methods?
                 MethodSymbol runtimeOverriddenMethod = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
-                return csharpOverriddenMethod != runtimeOverriddenMethod &&
+                return runtimeOverriddenMethod is null ||
+                    csharpOverriddenMethod != runtimeOverriddenMethod &&
                     method.IsAccessor() != runtimeOverriddenMethod.IsAccessor();
             }
 

@@ -6121,4 +6121,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialMethodExtendedModDifference" xml:space="preserve">
     <value>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</value>
   </data>
+  <data name="IDS_FeatureCovariantReturnsForOverrides" xml:space="preserve">
+    <value>covariant returns</value>
+  </data>
 </root>
