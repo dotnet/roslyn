@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         /// method to exist.
         /// </summary>
         [Obsolete("Expected to exist by IntelliCode. This can be removed once their unnecessary use of this is removed.")]
+#pragma warning disable CA1822 // Mark members as static - see obsolete message above.
         protected IList<TaggedText> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
+#pragma warning restore CA1822 // Mark members as static
             => SpecializedCollections.EmptyList<TaggedText>();
     }
 }

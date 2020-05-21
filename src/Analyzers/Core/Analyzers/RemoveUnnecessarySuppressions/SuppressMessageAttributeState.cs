@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return namedAttributeArguments.Length > 0;
         }
 
-        public bool HasInvalidScope(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, out TargetScope targetScope)
+        public static bool HasInvalidScope(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, out TargetScope targetScope)
         {
             if (!TryGetNamedArgument(namedAttributeArguments, SuppressMessageScope, out var scopeString) ||
                 RoslynString.IsNullOrEmpty(scopeString))
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private bool TryGetNamedArgument(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, string argumentName, out string? argumentValue)
+        private static bool TryGetNamedArgument(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, string argumentName, out string? argumentValue)
         {
             foreach (var (name, value) in namedAttributeArguments)
             {

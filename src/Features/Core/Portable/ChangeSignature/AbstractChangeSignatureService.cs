@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         /// <returns>Returns <c>null</c> if the operation is cancelled.</returns>
-        internal ChangeSignatureOptionsResult? GetChangeSignatureOptions(ChangeSignatureAnalysisSucceededContext context)
+        internal static ChangeSignatureOptionsResult? GetChangeSignatureOptions(ChangeSignatureAnalysisSucceededContext context)
         {
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetRequiredService<IChangeSignatureOptionsService>();
 
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
 #nullable restore
 
-        private void AddUpdatableNodeToDictionaries(Dictionary<DocumentId, List<SyntaxNode>> nodesToUpdate, DocumentId documentId, SyntaxNode nodeToUpdate, Dictionary<SyntaxNode, ISymbol> definitionToUse, ISymbol symbolWithSemanticParameters)
+        private static void AddUpdatableNodeToDictionaries(Dictionary<DocumentId, List<SyntaxNode>> nodesToUpdate, DocumentId documentId, SyntaxNode nodeToUpdate, Dictionary<SyntaxNode, ISymbol> definitionToUse, ISymbol symbolWithSemanticParameters)
         {
             nodesToUpdate[documentId].Add(nodeToUpdate);
             if (definitionToUse.TryGetValue(nodeToUpdate, out var sym) && sym != symbolWithSemanticParameters)
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             definitionToUse[nodeToUpdate] = symbolWithSemanticParameters;
         }
 
-        private bool TryGetNodeWithEditableSignatureOrAttributes(Location location, Solution solution, out SyntaxNode nodeToUpdate, out DocumentId documentId)
+        private static bool TryGetNodeWithEditableSignatureOrAttributes(Location location, Solution solution, out SyntaxNode nodeToUpdate, out DocumentId documentId)
         {
             var tree = location.SourceTree;
             documentId = solution.GetDocumentId(tree);
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return nodeToUpdate != null;
         }
 
-        protected ImmutableArray<IUnifiedArgumentSyntax> PermuteArguments(
+        protected static ImmutableArray<IUnifiedArgumentSyntax> PermuteArguments(
             ISymbol declarationSymbol,
             ImmutableArray<IUnifiedArgumentSyntax> arguments,
             SignatureChange updatedSignature,
@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return updatedLeadingTrivia.ToImmutable();
         }
 
-        protected bool IsParamsArrayExpandedHelper(ISymbol symbol, int argumentCount, bool lastArgumentIsNamed, SemanticModel semanticModel, SyntaxNode lastArgumentExpression, CancellationToken cancellationToken)
+        protected static bool IsParamsArrayExpandedHelper(ISymbol symbol, int argumentCount, bool lastArgumentIsNamed, SemanticModel semanticModel, SyntaxNode lastArgumentExpression, CancellationToken cancellationToken)
         {
             if (symbol is IMethodSymbol methodSymbol && methodSymbol.Parameters.LastOrDefault()?.IsParams == true)
             {

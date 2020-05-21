@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         /// If the expression is contained within a single line, the entire expression span is returned.
         /// Otherwise it will return the span from the expression start to the end of the same line.
         /// </summary>
-        private Location GetDiagnosticSquiggleLocation(TParenthesizedExpressionSyntax parenthesizedExpression, CancellationToken cancellationToken)
+        private static Location GetDiagnosticSquiggleLocation(TParenthesizedExpressionSyntax parenthesizedExpression, CancellationToken cancellationToken)
         {
             var parenthesizedExpressionLocation = parenthesizedExpression.GetLocation();
 

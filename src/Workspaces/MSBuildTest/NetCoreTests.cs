@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             await AssertNetCoreMultiTFMProject(projectFilePath);
         }
 
-        private async Task AssertNetCoreMultiTFMProject(string projectFilePath)
+        private static async Task AssertNetCoreMultiTFMProject(string projectFilePath)
         {
             using (var workspace = CreateMSBuildWorkspace())
             {
