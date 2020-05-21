@@ -3891,20 +3891,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             TypeSymbol type = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out bool hadMultipleCandidates, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
-            bool targetTyped;
             if (type is null)
-            {
                 noCommonTypeError = hadMultipleCandidates ? ErrorCode.ERR_AmbigQM : ErrorCode.ERR_InvalidQM;
-                targetTyped = true;
-            }
-            else
-            {
-                targetTyped = false;
-            }
 
             bool hasErrors = type?.IsErrorType() == true;
-            var unconvertedResult = new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, noCommonTypeError, type, hasErrors);
-            return targetTyped ? unconvertedResult : BindToNaturalType(unconvertedResult, diagnostics);
+            return new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, noCommonTypeError, type, hasErrors);
         }
 
         private BoundExpression BindRefConditionalOperator(ConditionalExpressionSyntax node, ExpressionSyntax whenTrue, ExpressionSyntax whenFalse, DiagnosticBag diagnostics)

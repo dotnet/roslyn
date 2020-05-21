@@ -25,11 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // they are error cases but included here for convenience.
 
             // Implicit constant expression conversions
-            TestConditional("b ? 1 : 2", "System.Int16", "System.Int32",
-                // (6,26): error CS0266: Cannot implicitly convert type 'int' to 'short'. An explicit conversion exists (are you missing a cast?)
-                //         System.Int16 t = b ? 1 : 2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b ? 1 : 2").WithArguments("int", "short").WithLocation(6, 26)
-                );
+            TestConditional("b ? 1 : 2", "System.Int16", "System.Int32");
             TestConditional("b ? -1L : 1UL", "System.Double", null);
 
             // Implicit reference conversions
@@ -43,18 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestConditional("b ? GetUInt() : GetInt()", "System.Int64", null);
 
             // Implicit enumeration conversions
-            TestConditional("b ? 0 : 0", "color", "System.Int32",
-                // (6,19): error CS0266: Cannot implicitly convert type 'int' to 'color'. An explicit conversion exists (are you missing a cast?)
-                //         color t = b ? 0 : 0;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b ? 0 : 0").WithArguments("int", "color").WithLocation(6, 19)
-                );
+            TestConditional("b ? 0 : 0", "color", "System.Int32");
 
             // Implicit interpolated string conversions
-            TestConditional(@"b ? $""x"" : $""x""", "System.FormattableString", "System.String",
-                // (6,38): error CS0029: Cannot implicitly convert type 'string' to 'System.FormattableString'
-                //         System.FormattableString t = b ? $"x" : $"x";
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"b ? $""x"" : $""x""").WithArguments("string", "System.FormattableString").WithLocation(6, 38)
-                );
+            TestConditional(@"b ? $""x"" : $""x""", "System.FormattableString", "System.String");
 
             // Implicit nullable conversions
             // Null literal conversions
@@ -82,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             // Implicit constant expression conversions
             TestConditional("b ? 1000000 : 2", "System.Int16", "System.Int32",
-                // (6,26): error CS0266: Cannot implicitly convert type 'int' to 'short'. An explicit conversion exists (are you missing a cast?)
+                // (6,30): error CS0029: Cannot implicitly convert type 'int' to 'short'
                 //         System.Int16 t = b ? 1000000 : 2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b ? 1000000 : 2").WithArguments("int", "short").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1000000").WithArguments("int", "short").WithLocation(6, 30)
                 );
 
             // Implicit reference conversions
@@ -106,24 +94,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // Implicit enumeration conversions
             TestConditional("b ? 1 : 0", "color", "System.Int32",
-                // (6,19): error CS0266: Cannot implicitly convert type 'int' to 'color'. An explicit conversion exists (are you missing a cast?)
+                // (6,23): error CS0029: Cannot implicitly convert type 'int' to 'color'
                 //         color t = b ? 1 : 0;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b ? 1 : 0").WithArguments("int", "color").WithLocation(6, 19)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "color").WithLocation(6, 23)
                 );
 
             // Implicit interpolated string conversions
             TestConditional(@"b ? $""x"" : ""x""", "System.FormattableString", "System.String",
-                // (6,38): error CS0029: Cannot implicitly convert type 'string' to 'System.FormattableString'
+                // (6,49): error CS0029: Cannot implicitly convert type 'string' to 'System.FormattableString'
                 //         System.FormattableString t = b ? $"x" : "x";
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"b ? $""x"" : ""x""").WithArguments("string", "System.FormattableString").WithLocation(6, 38)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""x""").WithArguments("string", "System.FormattableString").WithLocation(6, 49)
                 );
 
             // Implicit nullable conversions
             // Null literal conversions
             TestConditional(@"b ? """" : null", "System.Int64?", "System.String",
-                // (6,27): error CS0029: Cannot implicitly convert type 'string' to 'long?'
+                // (6,31): error CS0029: Cannot implicitly convert type 'string' to 'long?'
                 //         System.Int64? t = b ? "" : null;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"b ? """" : null").WithArguments("string", "long?").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "long?").WithLocation(6, 31)
                 );
             TestConditional(@"b ? 1 : """"", "System.Int64?", null,
                 // (6,35): error CS0029: Cannot implicitly convert type 'string' to 'long?'
@@ -167,9 +155,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void SpeculatingOnATargetTypedExpression()
+        public void NonbreakingChange()
         {
+            var source = @"
+class C
+{
+    static void M(short x) => System.Console.WriteLine(""M(short)"");
+    static void M(long l) => System.Console.WriteLine(""M(long)"");
+    static void Main()
+    {
+        bool b = true;
+        M(b ? 1 : 2); // should call M(long)
+    }
+}
+";
+            foreach (var langVersion in new[] { LanguageVersion.CSharp8, MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion() })
+            {
+                var comp = CreateCompilation(
+                    source, options: TestOptions.ReleaseExe,
+                    parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion))
+                    .VerifyDiagnostics();
+                CompileAndVerify(comp, expectedOutput: "M(long)");
+            }
+        }
 
+        [Fact]
+        public void BreakingChange()
+        {
+            // Prior to C# 9.0, this program compiles without error, as only the overload M(long, long)
+            // is a candidate. With the semantic changes in C# 9.0, both are candidates, but neither is
+            // more specific.
+            var source = @"
+class C
+{
+    static void M(short x, short y) { }
+    static void M(long x, long y) { }
+    static void Main()
+    {
+        bool b = true;
+        M(b ? 1 : 2, 1);
+    }
+}
+";
+            foreach (var langVersion in new[] { LanguageVersion.CSharp8, MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion() })
+            {
+                var comp = CreateCompilation(
+                    source, options: TestOptions.ReleaseExe,
+                    parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion))
+                    .VerifyDiagnostics(
+                        // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(short, short)' and 'C.M(long, long)'
+                        //         M(b ? 1 : 2, 1);
+                        Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(short, short)", "C.M(long, long)").WithLocation(9, 9)
+                    );
+            }
         }
 
         private static void TestConditional(string conditionalExpression, string targetType, string? naturalType, params DiagnosticDescription[] expectedDiagnostics)
