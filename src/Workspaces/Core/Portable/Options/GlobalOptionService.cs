@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey)
         {
-            ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> temporaryOptions = s_emptyEditorConfigKeysToOptions;
+            var temporaryOptions = s_emptyEditorConfigKeysToOptions;
             ref var editorConfigToOptionsStorage = ref temporaryOptions;
             switch (language)
             {

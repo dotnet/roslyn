@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
             else
             {
-                BaseArgumentListSyntax? argumentList = node switch
+                var argumentList = node switch
                 {
                     InvocationExpressionSyntax invocation => invocation.ArgumentList,
                     ObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
