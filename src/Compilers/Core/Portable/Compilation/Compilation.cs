@@ -2561,6 +2561,7 @@ namespace Microsoft.CodeAnalysis
                         emitTestCoverageData: options.EmitTestCoverageData,
                         pePdbFilePath: options.PdbFilePath,
                         privateKeyOpt: privateKeyOpt,
+                        codePage: options.CodePage,
                         cancellationToken: cancellationToken);
                 }
             }
@@ -2725,6 +2726,7 @@ namespace Microsoft.CodeAnalysis
             bool emitTestCoverageData,
             string? pePdbFilePath,
             RSAParameters? privateKeyOpt,
+            Encoding? codePage,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -2797,6 +2799,7 @@ namespace Microsoft.CodeAnalysis
                         deterministic,
                         emitTestCoverageData,
                         privateKeyOpt,
+                        codePage,
                         cancellationToken))
                     {
                         if (nativePdbWriter != null)
@@ -2878,6 +2881,7 @@ namespace Microsoft.CodeAnalysis
             bool isDeterministic,
             bool emitTestCoverageData,
             RSAParameters? privateKeyOpt,
+            Encoding? codePage,
             CancellationToken cancellationToken)
         {
             bool emitSecondaryAssembly = getMetadataPeStreamOpt != null;
@@ -2895,6 +2899,7 @@ namespace Microsoft.CodeAnalysis
                 deterministicPrimaryOutput,
                 emitTestCoverageData,
                 privateKeyOpt,
+                codePage,
                 cancellationToken))
             {
                 return false;
@@ -2917,6 +2922,7 @@ namespace Microsoft.CodeAnalysis
                     isDeterministic: true,
                     emitTestCoverageData: false,
                     privateKeyOpt: privateKeyOpt,
+                    codePage,
                     cancellationToken: cancellationToken))
                 {
                     return false;

@@ -2,20 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.PDB;
 using Roslyn.Utilities;
@@ -61,11 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             }
         }
 
-        private static void TestDeterministicCompilationCSharp(CSharpTestSource source, CSharpParseOptions parseOptions, CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, params TestMetadataReferenceInfo[] metadataReferences)
+        private static void TestDeterministicCompilationCSharp(SyntaxTree[] syntaxTrees, CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, params TestMetadataReferenceInfo[] metadataReferences)
         {
             var originalCompilation = CreateCompilation(
-                source.GetSyntaxTrees(parseOptions),
+                syntaxTrees,
                 references: metadataReferences.SelectAsArray(r => r.MetadataReference),
+                targetFramework: TargetFramework.NetStandard20,
                 options: compilationOptions);
 
             var peBlob = originalCompilation.EmitToArray(options: emitOptions);
@@ -97,9 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
         [Theory]
         [ClassData(typeof(CSharpDeterministicBuildCompilationTests))]
-        public void PortablePdb_DeterministicCompilation1(CSharpCompilationOptions compilationOptions, EmitOptions emitOptions)
+        public void PortablePdb_DeterministicCompilation(CSharpCompilationOptions compilationOptions, EmitOptions emitOptions)
         {
-            var sourceOne = @"
+            var parseOptions = new CSharpParseOptions(
+                languageVersion: LanguageVersion.CSharp8,
+                kind: SourceCodeKind.Regular);
+
+            var sourceOne = Parse(@"
 using System;
 
 class MainType
@@ -109,15 +110,17 @@ class MainType
         Console.WriteLine();
     }
 }
-";
-            var sourceTwo = @"
+", options: parseOptions, encoding: Encoding.UTF8);
+
+            var sourceTwo = Parse(@"
 class TypeTwo
 {
-}";
-            var sourceThree = @"
+}", options: parseOptions, encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+
+            var sourceThree = Parse(@"
 class TypeThree
 {
-}";
+}", options: parseOptions, encoding: Encoding.UTF7);
 
             var referenceOneCompilation = CreateCompilation(
 @"public struct StructWithReference
@@ -127,19 +130,12 @@ class TypeThree
 public struct StructWithValue
 {
     int PrivateData;
-}",
-            options: TestOptions.DebugDll);
+}", options: TestOptions.DebugDll);
 
             var referenceTwoCompilation = CreateCompilation(
 @"public class ReferenceTwo
 {
-}",
-            options: TestOptions.DebugDll);
-
-            var parseOptions = new CSharpParseOptions(
-                languageVersion: LanguageVersion.CSharp8,
-                kind: SourceCodeKind.Regular);
-
+}", options: TestOptions.DebugDll);
 
             using var referenceOne = TestMetadataReferenceInfo.Create(
                 referenceOneCompilation,
@@ -152,7 +148,66 @@ public struct StructWithValue
                 emitOptions: emitOptions);
 
             var testSource = new[] { sourceOne, sourceTwo, sourceThree };
-            TestDeterministicCompilationCSharp(testSource, parseOptions, compilationOptions, emitOptions, referenceOne, referenceTwo);
+            TestDeterministicCompilationCSharp(testSource, compilationOptions, emitOptions, referenceOne, referenceTwo);
+        }
+
+        [ConditionalTheory(typeof(DesktopOnly))]
+        [ClassData(typeof(CSharpDeterministicBuildCompilationTests))]
+        public void PortablePdb_DeterministicCompilationWithSJIS(CSharpCompilationOptions compilationOptions, EmitOptions emitOptions)
+        {
+            var parseOptions = new CSharpParseOptions(
+                languageVersion: LanguageVersion.CSharp8,
+                kind: SourceCodeKind.Regular);
+
+            var sourceOne = Parse(@"
+using System;
+
+class MainType
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+", options: parseOptions, encoding: Encoding.UTF8);
+
+            var sourceTwo = Parse(@"
+class TypeTwo
+{
+}", options: parseOptions, encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+
+            var sourceThree = Parse(@"
+class TypeThree
+{
+}", options: parseOptions, encoding: Encoding.GetEncoding(932)); // SJIS encoding
+
+            var referenceOneCompilation = CreateCompilation(
+@"public struct StructWithReference
+{
+    string PrivateData;
+}
+public struct StructWithValue
+{
+    int PrivateData;
+}", options: TestOptions.DebugDll);
+
+            var referenceTwoCompilation = CreateCompilation(
+@"public class ReferenceTwo
+{
+}", options: TestOptions.DebugDll);
+
+            using var referenceOne = TestMetadataReferenceInfo.Create(
+                referenceOneCompilation,
+                fullPath: "abcd.dll",
+                emitOptions: emitOptions);
+
+            using var referenceTwo = TestMetadataReferenceInfo.Create(
+                referenceTwoCompilation,
+                fullPath: "efgh.dll",
+                emitOptions: emitOptions);
+
+            var testSource = new[] { sourceOne, sourceTwo, sourceThree };
+            TestDeterministicCompilationCSharp(testSource, compilationOptions, emitOptions, referenceOne, referenceTwo);
         }
 
         public IEnumerator<object[]> GetEnumerator()
@@ -164,7 +219,7 @@ public struct StructWithValue
         private static IEnumerable<object[]> GetTestParameters()
         {
             var compilationOptionsSet = GetCompilationOptions();
-            var emitOptionsSet = GetEmitOptions();
+            var emitOptionsSet = DeterministicBuildCompilationTestHelpers.GetEmitOptions();
 
             foreach (var compilationOptions in compilationOptionsSet)
             {
@@ -220,18 +275,6 @@ public struct StructWithValue
             yield return defaultOptions;
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Disable);
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Warnings);
-        }
-
-        private static IEnumerable<EmitOptions> GetEmitOptions()
-        {
-            var emitOptions = new EmitOptions(
-                debugInformationFormat: DebugInformationFormat.Embedded,
-                pdbChecksumAlgorithm: HashAlgorithmName.SHA256,
-                codePage: Encoding.UTF32);
-
-            yield return emitOptions;
-            yield return emitOptions.WithCodePage(null);
-            yield return emitOptions.WithCodePage(Encoding.ASCII);
         }
     }
 }

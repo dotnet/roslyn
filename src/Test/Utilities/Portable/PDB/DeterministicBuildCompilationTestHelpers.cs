@@ -5,16 +5,33 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Roslyn.Test.Utilities.PDB
 {
-    internal static class DeterministicBuildCompilationTestHelpers
+    internal static partial class DeterministicBuildCompilationTestHelpers
     {
+        public static IEnumerable<EmitOptions> GetEmitOptions()
+        {
+            var emitOptions = new EmitOptions(
+                debugInformationFormat: DebugInformationFormat.Embedded,
+                pdbChecksumAlgorithm: HashAlgorithmName.SHA256,
+                codePage: Encoding.UTF32);
+
+            yield return emitOptions;
+            yield return emitOptions.WithCodePage(null);
+            yield return emitOptions.WithCodePage(Encoding.ASCII);
+        }
+
         public static string GetCurrentCompilerVersion()
         {
             return typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;

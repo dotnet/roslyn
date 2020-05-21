@@ -39,9 +39,9 @@ namespace Roslyn.Test.Utilities.PDB
 
         internal void AssertEqual(MetadataReferenceInfo other)
         {
+            Assert.Equal(Name, other.Name);
             Assert.Equal(Timestamp, other.Timestamp);
             Assert.Equal(ImageSize, other.ImageSize);
-            Assert.Equal(Name, other.Name);
             Assert.Equal(Mvid, other.Mvid);
             Assert.Equal(ExternAliases, other.ExternAliases);
             Assert.Equal(Kind, other.Kind);

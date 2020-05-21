@@ -69,6 +69,7 @@ namespace Microsoft.Cci
 
         private readonly int _numTypeDefsEstimate;
         private readonly bool _deterministic;
+        private readonly Encoding _codePage;
 
         internal readonly bool MetadataOnly;
         internal readonly bool EmitTestCoverageData;
@@ -93,12 +94,14 @@ namespace Microsoft.Cci
             bool metadataOnly,
             bool deterministic,
             bool emitTestCoverageData,
+            Encoding codePage,
             CancellationToken cancellationToken)
         {
             Debug.Assert(metadata != debugMetadataOpt);
 
             this.module = context.Module;
             _deterministic = deterministic;
+            _codePage = codePage;
             this.MetadataOnly = metadataOnly;
             this.EmitTestCoverageData = emitTestCoverageData;
 

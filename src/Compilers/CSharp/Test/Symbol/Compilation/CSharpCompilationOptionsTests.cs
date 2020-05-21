@@ -415,15 +415,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var topLevelBinderFlags = BinderFlags.None;
             var publicSign = false;
             NullableContextOptions nullableContextOptions = NullableContextOptions.Disable;
-            Encoding codePage = null;
-            IEnumerable<string> preprocessorSymbols = null;
 
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
                 concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
                 assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags,
-                nullableContextOptions, codePage, preprocessorSymbols);
+                nullableContextOptions);
         }
 
         private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver

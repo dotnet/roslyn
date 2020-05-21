@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
@@ -45,6 +46,7 @@ namespace Microsoft.Cci
             bool deterministic,
             bool emitTestCoverageData,
             bool hasPdbStream,
+            Encoding codePage,
             CancellationToken cancellationToken)
         {
             var builder = new MetadataBuilder();
@@ -69,7 +71,7 @@ namespace Microsoft.Cci
                 null;
 
             return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, metadataOnly, deterministic,
-                emitTestCoverageData, cancellationToken);
+                emitTestCoverageData, codePage, cancellationToken);
         }
 
         private FullMetadataWriter(
@@ -81,9 +83,10 @@ namespace Microsoft.Cci
             bool metadataOnly,
             bool deterministic,
             bool emitTestCoverageData,
+            Encoding codePage,
             CancellationToken cancellationToken)
             : base(builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, metadataOnly, deterministic,
-                  emitTestCoverageData, cancellationToken)
+                  emitTestCoverageData, codePage, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;

@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Emit
                    metadataOnly: false,
                    deterministic: false,
                    emitTestCoverageData: false,
+                   codePage: null,
                    cancellationToken: cancellationToken)
         {
             Debug.Assert(previousGeneration != null);

@@ -847,6 +847,11 @@ namespace Microsoft.Cci
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
             WriteValue("compilerversion", compilerVersion);
 
+            if (_codePage != null)
+            {
+                WriteValue("codepage", _codePage.ToString());
+            }
+
             module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
 
             _debugMetadataOpt.AddCustomDebugInformation(
