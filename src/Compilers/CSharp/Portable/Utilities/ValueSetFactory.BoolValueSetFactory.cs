@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value)
             {
-                Debug.Assert(value.IsBoolean);
-                return Related(relation, value.BooleanValue);
+                return value.IsBad ? BoolValueSet.AllValues : Related(relation, value.BooleanValue);
             }
 
             bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
