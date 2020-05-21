@@ -68,10 +68,11 @@ namespace Analyzer.Utilities
         public const string AdditionalStringFormattingMethods = "additional_string_formatting_methods";
 
         /// <summary>
-        /// String option to heuristically determine additional string formatting methods for CA2241 (https://docs.microsoft.com/visualstudio/code-quality/ca2241).
-        /// A method is considered a string formatting method if it has a 'string format' parameter followed by a 'params object[]' parameter.
+        /// String option to enable heuristically detecting of additional string formatting methods for CA2241 (https://docs.microsoft.com/visualstudio/code-quality/ca2241).
+        /// A method is considered a string formatting method if it has a '<see cref="string"/> <c>format</c>' parameter followed by a <see langword="params"/> <see cref="object"/>[]' parameter.
+        /// The default value of this is <c>false</c>.
         /// </summary>
-        public const string HeuristicDetermineAdditionalStringFormattingMethods = "heuristic_determine_additional_string_formatting_methods";
+        public const string TryDetermineAdditionalStringFormattingMethodsAutomatically = "try_determine_additional_string_formatting_methods_automatically";
 
         /// <summary>
         /// String option to configure names of symbols (separated by '|') that are excluded for analysis.
