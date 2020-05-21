@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Packaging;
+using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -74,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
             this.Workspace = this.CreateWorkspace();
-            if (await IsInIdeModeAsync(this.Workspace).ConfigureAwait(true))
+            if (IsInIdeMode(this.Workspace))
             {
                 // not every derived package support object browser and for those languages
                 // this is a no op
@@ -127,13 +129,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             if (disposing)
             {
-                ThreadHelper.JoinableTaskFactory.Run(async () =>
+                if (IsInIdeMode(Workspace))
                 {
-                    if (await IsInIdeModeAsync(this.Workspace).ConfigureAwait(true))
-                    {
-                        await UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None).ConfigureAwait(true);
-                    }
-                });
+                    ThreadHelper.JoinableTaskFactory.Run(async () => await UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None).ConfigureAwait(true));
+                }
 
                 // If we've created the language service then tell it it's time to clean itself up now.
                 if (_languageService != null)
@@ -162,21 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return Task.CompletedTask;
         }
 
-        private async Task<bool> IsInIdeModeAsync(Workspace workspace)
-            => workspace != null && !await IsInCommandLineModeAsync().ConfigureAwait(true);
-
-        private async Task<bool> IsInCommandLineModeAsync()
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-            var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-
-            if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out var result)))
-            {
-                return (bool)result;
-            }
-
-            return false;
-        }
+        private static bool IsInIdeMode(Workspace workspace)
+            => workspace != null && !IVsShellExtensions.IsInCommandLineMode;
     }
 }

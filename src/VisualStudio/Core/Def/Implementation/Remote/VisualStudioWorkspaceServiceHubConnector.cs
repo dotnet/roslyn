@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -40,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public void StartListening(Workspace workspace, object serviceOpt)
         {
-            if (!(workspace is VisualStudioWorkspace))
+            if (!(workspace is VisualStudioWorkspace) || IVsShellExtensions.IsInCommandLineMode)
             {
                 return;
             }
@@ -57,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public void StopListening(Workspace workspace)
         {
-            if (!(workspace is VisualStudioWorkspace))
+            if (!(workspace is VisualStudioWorkspace) || IVsShellExtensions.IsInCommandLineMode)
             {
                 return;
             }
