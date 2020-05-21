@@ -452,6 +452,33 @@
       <summary>Creates a PostfixUnaryExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="MemberAccessExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="SimpleMemberAccessExpression"/>
+    <Kind Name="PointerMemberAccessExpression"/>
+    <Field Name="Expression" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the object that the member belongs to.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="DotToken"/>
+      <Kind Name="MinusGreaterThanToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the kind of the operator in the member access expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Name" Type="SimpleNameSyntax">
+      <PropertyComment>
+        <summary>SimpleNameSyntax node representing the member being accessed.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for member access expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a MemberAccessExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="ConditionalAccessExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="ConditionalAccessExpression"/>
     <Field Name="Expression" Type="ExpressionSyntax">
@@ -1488,33 +1515,6 @@
             <summary>InitializerExpressionSyntax representing the initializer expression for the with expression.</summary>
         </PropertyComment>
     </Field>
-  </Node>
-  <Node Name="MemberAccessExpressionSyntax" Base="ExpressionSyntax">
-    <Kind Name="SimpleMemberAccessExpression"/>
-    <Kind Name="PointerMemberAccessExpression"/>
-    <Field Name="Expression" Type="ExpressionSyntax">
-      <PropertyComment>
-        <summary>ExpressionSyntax node representing the object that the member belongs to.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="OperatorToken" Type="SyntaxToken">
-      <Kind Name="DotToken"/>
-      <Kind Name="MinusGreaterThanToken"/>
-      <PropertyComment>
-        <summary>SyntaxToken representing the kind of the operator in the member access expression.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Name" Type="SimpleNameSyntax">
-      <PropertyComment>
-        <summary>SimpleNameSyntax node representing the member being accessed.</summary>
-      </PropertyComment>
-    </Field>
-    <TypeComment>
-      <summary>Class which represents the syntax node for member access expression.</summary>
-    </TypeComment>
-    <FactoryComment>
-      <summary>Creates a MemberAccessExpressionSyntax node.</summary>
-    </FactoryComment>
   </Node>
   <Node Name="AnonymousObjectMemberDeclaratorSyntax" Base="CSharpSyntaxNode">
     <Kind Name="AnonymousObjectMemberDeclarator"/>

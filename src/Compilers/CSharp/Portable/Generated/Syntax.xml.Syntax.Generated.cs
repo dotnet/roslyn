@@ -921,6 +921,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PostfixUnaryExpressionSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(this.Operand, operatorToken);
     }
 
+    /// <summary>Class which represents the syntax node for member access expression.</summary>
+    public sealed partial class MemberAccessExpressionSyntax : ExpressionSyntax
+    {
+        private ExpressionSyntax? expression;
+        private SimpleNameSyntax? name;
+
+        internal MemberAccessExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>ExpressionSyntax node representing the object that the member belongs to.</summary>
+        public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
+
+        /// <summary>SyntaxToken representing the kind of the operator in the member access expression.</summary>
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.MemberAccessExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
+
+        /// <summary>SimpleNameSyntax node representing the member being accessed.</summary>
+        public SimpleNameSyntax Name => GetRed(ref this.name, 2)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                0 => GetRedAtZero(ref this.expression)!,
+                2 => GetRed(ref this.name, 2)!,
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                0 => this.expression,
+                2 => this.name,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMemberAccessExpression(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMemberAccessExpression(this);
+
+        public MemberAccessExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
+        {
+            if (expression != this.Expression || operatorToken != this.OperatorToken || name != this.Name)
+            {
+                var newNode = SyntaxFactory.MemberAccessExpression(this.Kind(), expression, operatorToken, name);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public MemberAccessExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(expression, this.OperatorToken, this.Name);
+        public MemberAccessExpressionSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(this.Expression, operatorToken, this.Name);
+        public MemberAccessExpressionSyntax WithName(SimpleNameSyntax name) => Update(this.Expression, this.OperatorToken, name);
+    }
+
     /// <summary>Class which represents the syntax node for conditional access expression.</summary>
     public sealed partial class ConditionalAccessExpressionSyntax : ExpressionSyntax
     {
@@ -2913,63 +2970,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public WithExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.Receiver, this.WithKeyword, initializer);
 
         public WithExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items) => WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
-    }
-
-    /// <summary>Class which represents the syntax node for member access expression.</summary>
-    public sealed partial class MemberAccessExpressionSyntax : ExpressionSyntax
-    {
-        private ExpressionSyntax? expression;
-        private SimpleNameSyntax? name;
-
-        internal MemberAccessExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
-          : base(green, parent, position)
-        {
-        }
-
-        /// <summary>ExpressionSyntax node representing the object that the member belongs to.</summary>
-        public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
-
-        /// <summary>SyntaxToken representing the kind of the operator in the member access expression.</summary>
-        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.MemberAccessExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
-
-        /// <summary>SimpleNameSyntax node representing the member being accessed.</summary>
-        public SimpleNameSyntax Name => GetRed(ref this.name, 2)!;
-
-        internal override SyntaxNode? GetNodeSlot(int index)
-            => index switch
-            {
-                0 => GetRedAtZero(ref this.expression)!,
-                2 => GetRed(ref this.name, 2)!,
-                _ => null,
-            };
-
-        internal override SyntaxNode? GetCachedSlot(int index)
-            => index switch
-            {
-                0 => this.expression,
-                2 => this.name,
-                _ => null,
-            };
-
-        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMemberAccessExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMemberAccessExpression(this);
-
-        public MemberAccessExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
-        {
-            if (expression != this.Expression || operatorToken != this.OperatorToken || name != this.Name)
-            {
-                var newNode = SyntaxFactory.MemberAccessExpression(this.Kind(), expression, operatorToken, name);
-                var annotations = GetAnnotations();
-                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
-            }
-
-            return this;
-        }
-
-        public MemberAccessExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(expression, this.OperatorToken, this.Name);
-        public MemberAccessExpressionSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(this.Expression, operatorToken, this.Name);
-        public MemberAccessExpressionSyntax WithName(SimpleNameSyntax name) => Update(this.Expression, this.OperatorToken, name);
     }
 
     public sealed partial class AnonymousObjectMemberDeclaratorSyntax : CSharpSyntaxNode

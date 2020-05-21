@@ -67,6 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.PostfixUnaryExpressionSyntax GeneratePostfixUnaryExpression()
             => InternalSyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.PlusPlusToken));
 
+        private static Syntax.InternalSyntax.MemberAccessExpressionSyntax GenerateMemberAccessExpression()
+            => InternalSyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());
+
         private static Syntax.InternalSyntax.ConditionalAccessExpressionSyntax GenerateConditionalAccessExpression()
             => InternalSyntaxFactory.ConditionalAccessExpression(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.QuestionToken), GenerateIdentifierName());
 
@@ -168,9 +171,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static Syntax.InternalSyntax.WithExpressionSyntax GenerateWithExpression()
             => InternalSyntaxFactory.WithExpression(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.WithKeyword), GenerateInitializerExpression());
-
-        private static Syntax.InternalSyntax.MemberAccessExpressionSyntax GenerateMemberAccessExpression()
-            => InternalSyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());
 
         private static Syntax.InternalSyntax.AnonymousObjectMemberDeclaratorSyntax GenerateAnonymousObjectMemberDeclarator()
             => InternalSyntaxFactory.AnonymousObjectMemberDeclarator(null, GenerateIdentifierName());
@@ -893,6 +893,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestMemberAccessExpressionFactoryAndProperties()
+        {
+            var node = GenerateMemberAccessExpression();
+
+            Assert.NotNull(node.Expression);
+            Assert.Equal(SyntaxKind.DotToken, node.OperatorToken.Kind);
+            Assert.NotNull(node.Name);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
         public void TestConditionalAccessExpressionFactoryAndProperties()
         {
             var node = GenerateConditionalAccessExpression();
@@ -1299,18 +1311,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Receiver);
             Assert.Equal(SyntaxKind.WithKeyword, node.WithKeyword.Kind);
             Assert.NotNull(node.Initializer);
-
-            AttachAndCheckDiagnostics(node);
-        }
-
-        [Fact]
-        public void TestMemberAccessExpressionFactoryAndProperties()
-        {
-            var node = GenerateMemberAccessExpression();
-
-            Assert.NotNull(node.Expression);
-            Assert.Equal(SyntaxKind.DotToken, node.OperatorToken.Kind);
-            Assert.NotNull(node.Name);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -4020,6 +4020,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestMemberAccessExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateMemberAccessExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestMemberAccessExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateMemberAccessExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestConditionalAccessExpressionTokenDeleteRewriter()
         {
             var oldNode = GenerateConditionalAccessExpression();
@@ -4897,32 +4923,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestWithExpressionIdentityRewriter()
         {
             var oldNode = GenerateWithExpression();
-            var rewriter = new IdentityRewriter();
-            var newNode = rewriter.Visit(oldNode);
-
-            Assert.Same(oldNode, newNode);
-        }
-
-        [Fact]
-        public void TestMemberAccessExpressionTokenDeleteRewriter()
-        {
-            var oldNode = GenerateMemberAccessExpression();
-            var rewriter = new TokenDeleteRewriter();
-            var newNode = rewriter.Visit(oldNode);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestMemberAccessExpressionIdentityRewriter()
-        {
-            var oldNode = GenerateMemberAccessExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -9359,6 +9359,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static PostfixUnaryExpressionSyntax GeneratePostfixUnaryExpression()
             => SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.PlusPlusToken));
 
+        private static MemberAccessExpressionSyntax GenerateMemberAccessExpression()
+            => SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());
+
         private static ConditionalAccessExpressionSyntax GenerateConditionalAccessExpression()
             => SyntaxFactory.ConditionalAccessExpression(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.QuestionToken), GenerateIdentifierName());
 
@@ -9460,9 +9463,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static WithExpressionSyntax GenerateWithExpression()
             => SyntaxFactory.WithExpression(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.WithKeyword), GenerateInitializerExpression());
-
-        private static MemberAccessExpressionSyntax GenerateMemberAccessExpression()
-            => SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());
 
         private static AnonymousObjectMemberDeclaratorSyntax GenerateAnonymousObjectMemberDeclarator()
             => SyntaxFactory.AnonymousObjectMemberDeclarator(default(NameEqualsSyntax), GenerateIdentifierName());
@@ -10185,6 +10185,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestMemberAccessExpressionFactoryAndProperties()
+        {
+            var node = GenerateMemberAccessExpression();
+
+            Assert.NotNull(node.Expression);
+            Assert.Equal(SyntaxKind.DotToken, node.OperatorToken.Kind());
+            Assert.NotNull(node.Name);
+            var newNode = node.WithExpression(node.Expression).WithOperatorToken(node.OperatorToken).WithName(node.Name);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
         public void TestConditionalAccessExpressionFactoryAndProperties()
         {
             var node = GenerateConditionalAccessExpression();
@@ -10592,18 +10604,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.WithKeyword, node.WithKeyword.Kind());
             Assert.NotNull(node.Initializer);
             var newNode = node.WithReceiver(node.Receiver).WithWithKeyword(node.WithKeyword).WithInitializer(node.Initializer);
-            Assert.Equal(node, newNode);
-        }
-
-        [Fact]
-        public void TestMemberAccessExpressionFactoryAndProperties()
-        {
-            var node = GenerateMemberAccessExpression();
-
-            Assert.NotNull(node.Expression);
-            Assert.Equal(SyntaxKind.DotToken, node.OperatorToken.Kind());
-            Assert.NotNull(node.Name);
-            var newNode = node.WithExpression(node.Expression).WithOperatorToken(node.OperatorToken).WithName(node.Name);
             Assert.Equal(node, newNode);
         }
 
@@ -13312,6 +13312,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestMemberAccessExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateMemberAccessExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestMemberAccessExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateMemberAccessExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestConditionalAccessExpressionTokenDeleteRewriter()
         {
             var oldNode = GenerateConditionalAccessExpression();
@@ -14189,32 +14215,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestWithExpressionIdentityRewriter()
         {
             var oldNode = GenerateWithExpression();
-            var rewriter = new IdentityRewriter();
-            var newNode = rewriter.Visit(oldNode);
-
-            Assert.Same(oldNode, newNode);
-        }
-
-        [Fact]
-        public void TestMemberAccessExpressionTokenDeleteRewriter()
-        {
-            var oldNode = GenerateMemberAccessExpression();
-            var rewriter = new TokenDeleteRewriter();
-            var newNode = rewriter.Visit(oldNode);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestMemberAccessExpressionIdentityRewriter()
-        {
-            var oldNode = GenerateMemberAccessExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
