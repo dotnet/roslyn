@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return new RegexSequenceNode(sequence.ToImmutableAndFree());
         }
 
-        private void MergeTextNodes(ArrayBuilder<RegexExpressionNode> list, ArrayBuilder<RegexExpressionNode> final)
+        private static void MergeTextNodes(ArrayBuilder<RegexExpressionNode> list, ArrayBuilder<RegexExpressionNode> final)
         {
             // Iterate all the nodes in the sequence we have, adding them directly to
             // `final` if they are not text nodes.  If they are text nodes, we attempt
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return TryParseLazyQuantifier(quantifier);
         }
 
-        private RegexQuantifierNode CreateQuantifier(
+        private static RegexQuantifierNode CreateQuantifier(
             RegexPrimaryExpressionNode expression,
             RegexToken openBraceToken, RegexToken firstNumberToken, RegexToken? commaToken,
             RegexToken? secondNumberToken, RegexToken closeBraceToken)
@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return result;
         }
 
-        private RegexExpressionNode CheckConditionalAlternation(RegexExpressionNode result)
+        private static RegexExpressionNode CheckConditionalAlternation(RegexExpressionNode result)
         {
             if (result is RegexAlternationNode topAlternation &&
                 topAlternation.Left is RegexAlternationNode)
@@ -1320,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private bool IsEscapedMinus(RegexNode node)
+        private static bool IsEscapedMinus(RegexNode node)
             => node is RegexSimpleEscapeNode simple && IsTextChar(simple.TypeToken, '-');
 
         private bool TryGetRangeComponentValue(RegexExpressionNode component, out int ch)
@@ -1406,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return false;
         }
 
-        private int GetCharValue(RegexToken hexText, int withBase)
+        private static int GetCharValue(RegexToken hexText, int withBase)
         {
             unchecked
             {
@@ -1421,7 +1421,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private int HexValue(VirtualChar ch)
+        private static int HexValue(VirtualChar ch)
         {
             Debug.Assert(RegexLexer.IsHexChar(ch));
             unchecked
@@ -2045,7 +2045,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return new RegexTextNode(token.With(kind: RegexKind.TextToken));
         }
 
-        private void CheckQuantifierExpression(RegexExpressionNode current, ref RegexToken token)
+        private static void CheckQuantifierExpression(RegexExpressionNode current, ref RegexToken token)
         {
             if (current == null ||
                 current.Kind == RegexKind.SimpleOptionsGrouping)

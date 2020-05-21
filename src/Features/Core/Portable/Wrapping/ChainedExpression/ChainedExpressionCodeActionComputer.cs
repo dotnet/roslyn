@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                 return result.ToImmutableAndFree();
             }
 
-            private int NormalizedWidth(ImmutableArray<SyntaxNodeOrToken> chunk)
+            private static int NormalizedWidth(ImmutableArray<SyntaxNodeOrToken> chunk)
                 => chunk.Sum(s => s.IsNode ? s.AsNode().Width() : s.AsToken().Width());
 
             private ImmutableArray<Edit> GetUnwrapEdits()

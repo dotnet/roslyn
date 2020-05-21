@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
-        private SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        private static SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
             switch (node)
             {

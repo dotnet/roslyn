@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
             protected IEnumerable<TypeInferenceInfo> CreateResult(SpecialType type, NullableAnnotation nullableAnnotation = NullableAnnotation.None)
                 => CreateResult(Compilation.GetSpecialType(type).WithNullableAnnotation(nullableAnnotation));
 
-            protected IEnumerable<TypeInferenceInfo> CreateResult(ITypeSymbol type)
+            protected static IEnumerable<TypeInferenceInfo> CreateResult(ITypeSymbol type)
                 => type == null
                     ? SpecializedCollections.EmptyCollection<TypeInferenceInfo>()
                     : SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(type));
 
-            protected IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
+            protected static IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
             {
                 var result = new List<ITypeSymbol>();
                 result.Add(parameterSymbol.Type);

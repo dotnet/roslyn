@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Prep
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
         End Function
 
-        Private Function HasMatchingIfDirective(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function HasMatchingIfDirective(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean
             Dim innermostKind = context.SyntaxTree.GetInnermostIfPreprocessorKind(context.Position, cancellationToken)
 
             Return innermostKind.HasValue

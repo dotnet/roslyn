@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                     return;
                 }
 
-                if (_state.HasInvalidScope(namedAttributeArguments, out var targetScope))
+                if (SuppressMessageAttributeState.HasInvalidScope(namedAttributeArguments, out var targetScope))
                 {
                     reportDiagnostic(Diagnostic.Create(s_invalidScopeDescriptor, attributeSyntax.GetLocation()));
                     return;

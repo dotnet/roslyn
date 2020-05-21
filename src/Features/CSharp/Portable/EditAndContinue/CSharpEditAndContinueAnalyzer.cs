@@ -2578,7 +2578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     containingType: (TypeDeclarationSyntax?)newNode.Parent);
             }
 
-            private bool ClassifyMethodModifierUpdate(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers)
+            private static bool ClassifyMethodModifierUpdate(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers)
             {
                 // Ignore async keyword when matching modifiers.
                 // async checks are done in ComputeBodyMatch.
