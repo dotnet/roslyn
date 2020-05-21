@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
-        private ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
+        private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
         {
             if (symbol.PartialDefinitionPart != null)
             {
@@ -101,17 +101,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return ordinaryDocuments.Concat(forEachDocuments).Concat(deconstructDocuments).Concat(awaitExpressionDocuments);
         }
 
-        private bool IsForEachMethod(IMethodSymbol methodSymbol)
+        private static bool IsForEachMethod(IMethodSymbol methodSymbol)
         {
             return
                 methodSymbol.Name == WellKnownMemberNames.GetEnumeratorMethodName ||
                 methodSymbol.Name == WellKnownMemberNames.MoveNextMethodName;
         }
 
-        private bool IsDeconstructMethod(IMethodSymbol methodSymbol)
+        private static bool IsDeconstructMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == WellKnownMemberNames.DeconstructMethodName;
 
-        private bool IsGetAwaiterMethod(IMethodSymbol methodSymbol)
+        private static bool IsGetAwaiterMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == WellKnownMemberNames.GetAwaiter;
 
         protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

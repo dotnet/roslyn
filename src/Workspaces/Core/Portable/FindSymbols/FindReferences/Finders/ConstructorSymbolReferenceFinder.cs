@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return ordinaryRefs.Concat(attributeRefs, predefinedTypeRefs, implicitObjectCreationMatches);
         }
 
-        private Task<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
+        private static Task<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol, name, document, semanticModel, findParentNode, cancellationToken);
         }
 
-        private Task<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(
+        private static Task<ImmutableArray<FinderLocation>> FindPredefinedTypeReferencesAsync(
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
         }
 
-        private Task<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
+        private static Task<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,

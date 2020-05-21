@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return name.TryGetWithoutAttributeSuffix(syntaxFacts.IsCaseSensitive, out result);
         }
 
-        protected async Task<ImmutableArray<Document>> FindDocumentsAsync(Project project, IImmutableSet<Document> scope, Func<Document, CancellationToken, Task<bool>> predicateAsync, CancellationToken cancellationToken)
+        protected static async Task<ImmutableArray<Document>> FindDocumentsAsync(Project project, IImmutableSet<Document> scope, Func<Document, CancellationToken, Task<bool>> predicateAsync, CancellationToken cancellationToken)
         {
             // special case for HR
             if (scope != null && scope.Count == 1)
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Finds all the documents in the provided project that contain the requested string
         /// values
         /// </summary>
-        protected Task<ImmutableArray<Document>> FindDocumentsAsync(
+        protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
             Project project,
             IImmutableSet<Document> documents,
             bool findInGlobalSuppressions,
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }, cancellationToken);
         }
 
-        protected Task<ImmutableArray<Document>> FindDocumentsAsync(
+        protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
             Project project,
             IImmutableSet<Document> documents,
             PredefinedType predefinedType,
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }, cancellationToken);
         }
 
-        protected Task<ImmutableArray<Document>> FindDocumentsAsync(
+        protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
             Project project,
             IImmutableSet<Document> documents,
             PredefinedOperator op,
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return allAliasReferences.ToImmutableAndFree();
         }
 
-        protected Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync(Project project, IImmutableSet<Document> documents, Func<SyntaxTreeIndex, bool> predicate, CancellationToken cancellationToken)
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync(Project project, IImmutableSet<Document> documents, Func<SyntaxTreeIndex, bool> predicate, CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
@@ -469,16 +469,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }, cancellationToken);
         }
 
-        protected Task<ImmutableArray<Document>> FindDocumentsWithForEachStatementsAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithForEachStatementsAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
             => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsForEachStatement, cancellationToken);
 
-        protected Task<ImmutableArray<Document>> FindDocumentsWithDeconstructionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithDeconstructionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
             => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsDeconstruction, cancellationToken);
 
-        protected Task<ImmutableArray<Document>> FindDocumentsWithAwaitExpressionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithAwaitExpressionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
             => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsAwait, cancellationToken);
 
-        protected Task<ImmutableArray<Document>> FindDocumentsWithImplicitObjectCreationExpressionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithImplicitObjectCreationExpressionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
             => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsImplicitObjectCreation, cancellationToken);
 
         /// <summary>
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private delegate void CollectMatchingReferences(ISymbol symbol, SyntaxNode node,
             ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations);
 
-        private async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        private static async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol,
             Document document,
             Func<SyntaxTreeIndex, bool> isRelevantDocument,
@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol, symbol.Name, document, semanticModel, cancellationToken: cancellationToken);
         }
 
-        protected ImmutableArray<FinderLocation> FindReferencesInTokens(
+        protected static ImmutableArray<FinderLocation> FindReferencesInTokens(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -970,7 +970,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 findParentNode: null, cancellationToken: cancellationToken);
         }
 
-        protected ImmutableArray<FinderLocation> FindReferencesInTokens(
+        protected static ImmutableArray<FinderLocation> FindReferencesInTokens(
             TSymbol symbol,
             Document document,
             SemanticModel semanticModel,

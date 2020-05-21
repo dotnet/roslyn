@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
+        private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();

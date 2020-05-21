@@ -114,16 +114,23 @@ namespace Roslyn.Test.Utilities
                 ContainerName = containerName
             };
 
-        protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri)
-            => new LSP.TextDocumentIdentifier()
-            {
-                Uri = uri
-            };
+        protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId projectContext = null)
+        {
+            var documentIdentifier = new LSP.VSTextDocumentIdentifier() { Uri = uri };
 
-        protected static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret)
+            if (projectContext != null)
+            {
+                documentIdentifier.ProjectContext =
+                    new LSP.ProjectContext { Id = ProtocolConversions.ProjectIdToProjectContextId(projectContext) };
+            }
+
+            return documentIdentifier;
+        }
+
+        protected static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret, ProjectId projectContext = null)
             => new LSP.TextDocumentPositionParams()
             {
-                TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+                TextDocument = CreateTextDocumentIdentifier(caret.Uri, projectContext),
                 Position = caret.Range.Start
             };
 
@@ -203,7 +210,7 @@ namespace Roslyn.Test.Utilities
             return workspace;
         }
 
-        protected Workspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
+        protected TestWorkspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
         {
             var workspace = TestWorkspace.Create(xmlContent, exportProvider: GetExportProvider());
             locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);

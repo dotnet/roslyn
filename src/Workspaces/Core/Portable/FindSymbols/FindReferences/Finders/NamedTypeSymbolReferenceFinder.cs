@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return Task.FromResult(result.ToImmutableAndFree());
         }
 
-        private void Add<TSymbol>(ArrayBuilder<ISymbol> result, ImmutableArray<TSymbol> enumerable) where TSymbol : ISymbol
+        private static void Add<TSymbol>(ArrayBuilder<ISymbol> result, ImmutableArray<TSymbol> enumerable) where TSymbol : ISymbol
         {
             result.AddRange(enumerable.Cast<ISymbol>());
         }

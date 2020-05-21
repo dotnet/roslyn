@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         // Get parent nodes, including walking out of structured trivia.
-        private IEnumerable<SyntaxNode> GetParentNodes(SyntaxToken token)
+        private static IEnumerable<SyntaxNode> GetParentNodes(SyntaxToken token)
         {
             var current = token.Parent;
 

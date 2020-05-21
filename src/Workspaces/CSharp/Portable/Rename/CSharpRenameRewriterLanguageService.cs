@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             }
         }
 
-        private void AddSymbolSourceSpans(
+        private static void AddSymbolSourceSpans(
             ArrayBuilder<Location> conflicts, IEnumerable<ISymbol> symbols,
             IDictionary<Location, Location> reverseMappedLocations)
         {

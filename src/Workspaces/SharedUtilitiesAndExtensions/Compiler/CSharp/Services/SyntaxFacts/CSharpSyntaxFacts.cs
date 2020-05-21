@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return type != PredefinedType.None;
         }
 
-        private PredefinedType GetPredefinedType(SyntaxToken token)
+        private static PredefinedType GetPredefinedType(SyntaxToken token)
         {
             return (SyntaxKind)token.RawKind switch
             {
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return op != PredefinedOperator.None;
         }
 
-        private PredefinedOperator GetPredefinedOperator(SyntaxToken token)
+        private static PredefinedOperator GetPredefinedOperator(SyntaxToken token)
         {
             switch ((SyntaxKind)token.RawKind)
             {
@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        private TextSpan GetBlockBodySpan(BlockSyntax body)
+        private static TextSpan GetBlockBodySpan(BlockSyntax body)
             => TextSpan.FromBounds(body.OpenBraceToken.Span.End, body.CloseBraceToken.SpanStart);
 
         public int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node)
@@ -1243,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.IsParentKind(SyntaxKind.PostIncrementExpression) ||
                node.IsParentKind(SyntaxKind.PreIncrementExpression);
 
-        public bool IsOperandOfDecrementExpression(SyntaxNode node)
+        public static bool IsOperandOfDecrementExpression(SyntaxNode node)
             => node.IsParentKind(SyntaxKind.PostDecrementExpression) ||
                node.IsParentKind(SyntaxKind.PreDecrementExpression);
 
@@ -1430,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsExpressionOfMemberAccessExpression(SyntaxNode node)
             => (node?.Parent as MemberAccessExpressionSyntax)?.Expression == node;
 
-        public SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node)
+        public static SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node)
             => ((InvocationExpressionSyntax)node).Expression;
 
         public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)

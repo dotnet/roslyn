@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     newNodes[i] = _editor.ApplyTrackingToNewNode(newNodes[i]);
                 }
 
-                return generator.ReplaceNode(root, current, newNodes);
+                return SyntaxGenerator.ReplaceNode(root, current, newNodes);
             }
         }
 

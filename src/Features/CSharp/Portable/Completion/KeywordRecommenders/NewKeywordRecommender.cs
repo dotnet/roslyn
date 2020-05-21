@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsTypeDeclarationContext(context, cancellationToken);
         }
 
-        private bool IsTypeDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsTypeDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             if (context.IsTypeDeclarationContext(validModifiers: ValidTypeModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsMemberDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsMemberDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return
                 context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||

@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return Nothing
         End Function
 
-        Private Function TryGetInvocationExpression(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef expression As InvocationExpressionSyntax) As Boolean
+        Private Shared Function TryGetInvocationExpression(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef expression As InvocationExpressionSyntax) As Boolean
             If Not CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, AddressOf IsTriggerToken, AddressOf IsArgumentListToken, cancellationToken, expression) Then
                 Return False
             End If
