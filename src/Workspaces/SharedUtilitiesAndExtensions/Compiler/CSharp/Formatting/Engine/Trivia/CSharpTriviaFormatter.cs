@@ -164,7 +164,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private bool IsStartOrEndOfFile(SyntaxTrivia trivia1, SyntaxTrivia trivia2)
-            => (this.Token1.RawKind == 0 || this.Token2.IsKind(SyntaxKind.None, SyntaxKind.EndOfFileToken)) && (trivia1.Kind() == 0 || trivia2.Kind() == 0);
+        {
+            // Below represents the tokens for a file:
+            // (None) - It is the start of the file. This means there are no previous tokens.
+            // (...) - All the tokens in the compilation unit.
+            // (EndOfFileToken) - This is the synthetic end of file token. Should be treated as the end of the file.
+            // (None) - It is the end of the file. This means there are no more tokens.
+
+            var isStartOrEndOfFile = (this.Token1.RawKind == 0 || this.Token2.RawKind == 0) && (trivia1.Kind() == 0 || trivia2.Kind() == 0);
+            var isAtEndOfFileToken = (Token2.IsKind(SyntaxKind.EndOfFileToken) && trivia2.Kind() == 0);
+
+            return isStartOrEndOfFile || isAtEndOfFileToken;
+        }
 
         private static bool IsMultilineComment(SyntaxTrivia trivia1)
             => trivia1.IsMultiLineComment() || trivia1.IsMultiLineDocComment();
