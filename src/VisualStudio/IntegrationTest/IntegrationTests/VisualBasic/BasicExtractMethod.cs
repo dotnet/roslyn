@@ -80,7 +80,6 @@ End Module";
 
             MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
             VisualStudio.Editor.Verify.TextContains(expectedText);
-            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Rename);
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
 
             VisualStudio.Editor.SendKeys("SayHello", VirtualKey.Enter);
@@ -124,7 +123,6 @@ End Module";
 
             MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
             Assert.Equal(expectedText, VisualStudio.Editor.GetText());
-            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Rename);
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
         }
     }
