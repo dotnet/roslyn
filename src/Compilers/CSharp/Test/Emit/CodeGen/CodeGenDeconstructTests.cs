@@ -6083,7 +6083,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (6,10): error CS0103: The name '_' does not exist in the current context
                 //         (@_, var x) = (1, 2);
@@ -6112,7 +6112,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1");
 
@@ -6593,7 +6593,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1");
         }
@@ -7000,7 +7000,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "1");
             var tree = compilation.SyntaxTrees.First();
@@ -7028,7 +7028,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
@@ -9089,7 +9089,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"1 hello
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"1 hello
 1 hello
 1 hello
 1 hello");
@@ -9217,7 +9217,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"1 hello True
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"1 hello True
 1 hello True
 1 hello True
 1 hello True
@@ -9564,7 +9564,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                 // (7,16): warning CS0168: The variable 'y1' is declared but never used
                 //         string y1;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "y1").WithArguments("y1").WithLocation(7, 16),
@@ -9598,7 +9598,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                 // (6,10): error CS0103: The name 'x1' does not exist in the current context
                 //         (x1, string y1) = new C();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 10),
@@ -9630,7 +9630,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"1 hello
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"1 hello
 1 hello");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
@@ -9715,7 +9715,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"1 hello
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"1 hello
 1 hello
 1 hello
 1 hello");
@@ -9778,6 +9778,36 @@ class C
   IL_0086:  call       ""void System.Console.WriteLine(string)""
   IL_008b:  ret
 }");
+        }
+
+        [Fact]
+        public void MixedDeclarationAndAssignmentCSharpEight()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1;
+        (x1, string y1) = new C();
+        string y2;
+        (int x2, y2) = new C();
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (7,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         (x1, string y1) = new C();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x1, string y1) = new C()").WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(7, 9),
+                // (9,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         (int x2, y2) = new C();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x2, y2) = new C()").WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(9, 9));
         }
     }
 }

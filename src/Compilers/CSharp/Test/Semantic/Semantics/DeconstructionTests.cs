@@ -4097,7 +4097,8 @@ unsafe class C
 ";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                options: TestOptions.UnsafeDebugDll);
+                options: TestOptions.UnsafeDebugDll,
+                parseOptions: TestOptions.RegularPreview);
 
             // The precise diagnostics here are not important, and may be sensitive to parser
             // adjustments. This is a test that we don't crash. The errors here are likely to

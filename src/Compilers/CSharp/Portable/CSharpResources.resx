@@ -5197,9 +5197,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ThrowMisplaced" xml:space="preserve">
     <value>A throw expression is not allowed in this context.</value>
   </data>
-  <data name="ERR_MixedDeconstructionUnsupported" xml:space="preserve">
-    <value>A deconstruction cannot mix declarations and expressions on the left-hand-side.</value>
-  </data>
   <data name="ERR_DeclarationExpressionNotPermitted" xml:space="preserve">
     <value>A declaration is not allowed in this context.</value>
   </data>
@@ -6120,5 +6117,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PartialMethodExtendedModDifference" xml:space="preserve">
     <value>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</value>
+  </data>
+  <data name="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstructor" xml:space="preserve">
+    <value>Mixed declarations and expressions in deconstruction</value>
   </data>
 </root>

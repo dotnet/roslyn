@@ -2099,7 +2099,7 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]

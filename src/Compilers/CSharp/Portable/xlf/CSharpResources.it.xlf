@@ -1001,6 +1001,11 @@
         <target state="translated">Attributo MemberNotNull</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstructor">
+        <source>Mixed declarations and expressions in deconstruction</source>
+        <target state="new">Mixed declarations and expressions in deconstruction</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">shadowing dei nomi nelle funzioni annidate</target>
@@ -9730,11 +9735,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="ERR_ThrowMisplaced">
         <source>A throw expression is not allowed in this context.</source>
         <target state="translated">Un'espressione throw non è consentita in questo contesto.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MixedDeconstructionUnsupported">
-        <source>A deconstruction cannot mix declarations and expressions on the left-hand-side.</source>
-        <target state="translated">Nella parte sinistra di una decostruzione non è possibile combinare dichiarazioni ed espressioni.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeclarationExpressionNotPermitted">

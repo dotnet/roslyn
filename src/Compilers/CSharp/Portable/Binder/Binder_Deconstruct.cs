@@ -41,9 +41,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case null:
                     case SyntaxKind.ExpressionStatement:
+                        if (expression != null)
+                        {
+                            MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstructor
+                                .CheckFeatureAvailability(diagnostics, Compilation, node.Location);
+                        }
                         break;
                     case SyntaxKind.ForStatement:
-                        if (!((ForStatementSyntax)node.Parent).Initializers.Contains(node))
+                        if (((ForStatementSyntax)node.Parent).Initializers.Contains(node))
+                        {
+                            if (expression != null)
+                            {
+                                MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstructor
+                                    .CheckFeatureAvailability(diagnostics, Compilation, node.Location);
+                            }
+                        }
+                        else
                         {
                             Error(diagnostics, ErrorCode.ERR_DeclarationExpressionNotPermitted, declaration);
                         }

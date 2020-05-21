@@ -1001,6 +1001,11 @@
         <target state="translated">MemberNotNull 특성</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstructor">
+        <source>Mixed declarations and expressions in deconstruction</source>
+        <target state="new">Mixed declarations and expressions in deconstruction</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">중첩된 함수의 이름 섀도잉</target>
@@ -9730,11 +9735,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_ThrowMisplaced">
         <source>A throw expression is not allowed in this context.</source>
         <target state="translated">이 컨텍스트에서는 throw 식을 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MixedDeconstructionUnsupported">
-        <source>A deconstruction cannot mix declarations and expressions on the left-hand-side.</source>
-        <target state="translated">분해는 왼쪽에 선언과 식을 혼합할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeclarationExpressionNotPermitted">
