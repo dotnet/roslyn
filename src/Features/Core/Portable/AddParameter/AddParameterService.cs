@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var generator = editor.Generator;
                 foreach (var methodDeclaration in documentLookup)
                 {
-                    var methodNode = syntaxRoot.FindNode(methodDeclaration.Locations[0].SourceSpan);
+                    var methodNode = syntaxRoot.FindNode(methodDeclaration.Locations[0].SourceSpan, getInnermostNodeForTie: true);
                     var existingParameters = generator.GetParameters(methodNode);
                     var insertionIndex = newParameterIndex ?? existingParameters.Count;
 

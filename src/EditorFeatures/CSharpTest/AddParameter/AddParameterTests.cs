@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddParameter;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -2594,30 +2595,27 @@ class MyClass : BaseClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TopLevelStatement()
         {
-            await TestMissingAsync(@"
-<Workspace>
-    <Project Language=""C#"" LanguageVersion=""Preview"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            await TestInRegularAndScriptAsync(@"
 [|local|](1, 2, 3);
 
 void local(int x, int y)
 {
 }
-        </Document>
-    </Project>
-</Workspace>",
-            new TestParameters(parseOptions: TestOptions.Regular));
+",
+@"
+[|local|](1, 2, 3);
+
+void local(int x, int y, int v)
+{
+}
+", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersionExtensions.CSharp9));
         }
 
         [WorkItem(44271, "https://github.com/dotnet/roslyn/issues/44271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TopLevelStatement_Nested()
         {
-            await TestAsync(@"
-<Workspace>
-    <Project Language=""C#"" LanguageVersion=""Preview"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-
+            await TestInRegularAndScriptAsync(@"
 void outer()
 {
     [|local|](1, 2, 3);
@@ -2626,10 +2624,8 @@ void outer()
     {
     }
 }
-</Document>
-    </Project>
-</Workspace>", @"
-
+",
+@"
 void outer()
 {
     local(1, 2, 3);
@@ -2638,8 +2634,7 @@ void outer()
     {
     }
 }
-",
-            TestOptions.Regular);
+");
         }
     }
 }
