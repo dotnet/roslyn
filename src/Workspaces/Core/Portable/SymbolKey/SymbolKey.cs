@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Constructs a new <see cref="SymbolKey"/> representing the provided <paramref name="symbol"/>.
         /// </summary>
-        internal static SymbolKey Create(ISymbol symbol, CancellationToken cancellationToken = default)
+        public static SymbolKey Create(ISymbol symbol, CancellationToken cancellationToken = default)
             => new SymbolKey(CreateString(symbol, cancellationToken));
 
         /// <summary>
@@ -135,10 +135,10 @@ namespace Microsoft.CodeAnalysis
         /// <c>A</c> and <c>X.SomeClass</c> from assembly <c>B</c> will be considered the same
         /// effective symbol.
         /// </param>
-        internal static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase = false, bool ignoreAssemblyKeys = false)
+        public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase = false, bool ignoreAssemblyKeys = false)
             => SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyKeys);
 
-        internal static SymbolKeyResolution ResolveString(
+        public static SymbolKeyResolution ResolveString(
             string symbolKey, Compilation compilation,
             bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default)
         {
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        internal static string CreateString(ISymbol symbol, CancellationToken cancellationToken = default)
+        public static string CreateString(ISymbol symbol, CancellationToken cancellationToken = default)
             => CreateStringWorker(FormatVersion, symbol, cancellationToken);
 
         // Internal for testing purposes.
