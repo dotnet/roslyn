@@ -331,9 +331,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
 
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
             // A symbol can only have implementations if it's an interface or a
             // method/property/event from an interface.
             if (symbol is INamedTypeSymbol namedTypeSymbol)
