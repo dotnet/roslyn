@@ -2,9 +2,6 @@
 trigger:
 - master
 
-pr:
-- master # for testing, will remove before merging
-
 jobs:
 - job: RichCodeNav_Indexing
   pool:
