@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-
-namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
+namespace Microsoft.CodeAnalysis.FindUsages
 {
-    public class DkmThread
+    internal enum ExternalScope
     {
-        public Guid UniqueId { get; set; }
+        Default = 0,
+        Repository = 1,
+        Organization = 2,
+        Global = 3
     }
 }
