@@ -23,8 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly HostWorkspaceServices _services;
         private readonly RemoteEndPoint _serviceEndPoint;
         private readonly IRemotableDataService _remotableDataService;
+
+        // Non-null if the connection is pooled.
         private IPooledConnectionReclamation? _poolReclamation;
 
+        // True if the underlying end-point has been disposed.
         private bool _disposed;
 
         public JsonRpcConnection(
@@ -63,6 +66,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 #endif
         public override void Dispose()
         {
+            // If the connection was taken from a pool, return it to the pool.
+            // Otherwise, dispose the underlying end-point and transition to "disposed" state.
+
             var poolReclamation = Interlocked.Exchange(ref _poolReclamation, null);
             if (poolReclamation != null)
             {

@@ -35,6 +35,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 public bool TryAcquire(out JsonRpcConnection connection)
                     => _queue.TryDequeue(out connection);
+
+                internal void DisposeConnections()
+                {
+                    while (_queue.TryDequeue(out var connection))
+                    {
+                        connection.Dispose();
+                    }
+                }
             }
 
             private readonly ConnectionFactory _connectionFactory;
@@ -90,12 +98,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     _isDisposed = true;
 
-                    foreach (var (_, queue) in _pools)
+                    foreach (var (_, pool) in _pools)
                     {
-                        while (queue.TryAcquire(out var connection))
-                        {
-                            connection.Dispose();
-                        }
+                        pool.DisposeConnections();
                     }
 
                     _pools.Clear();
