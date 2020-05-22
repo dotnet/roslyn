@@ -54,25 +54,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 
         private static Task TestNoImportsAddedAsync(
             string initialText,
-            bool safe,
             bool useSymbolAnnotations,
             Func<OptionSet, OptionSet> optionsTransform = null)
         {
-            return TestAsync(initialText, initialText, initialText, safe, useSymbolAnnotations, optionsTransform, performCheck: false);
+            return TestAsync(initialText, initialText, initialText, useSymbolAnnotations, optionsTransform, performCheck: false);
         }
 
         private static async Task TestAsync(
             string initialText,
             string importsAddedText,
             string simplifiedText,
-            bool safe,
             bool useSymbolAnnotations,
             Func<OptionSet, OptionSet> optionsTransform = null,
             bool performCheck = true)
         {
-            if (safe != useSymbolAnnotations)
-                return;
-
             if (performCheck)
             {
                 if (initialText == importsAddedText && importsAddedText == simplifiedText)
@@ -110,26 +105,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 
         public static object[][] TestAllData =
         {
-            new object[] { false, false },
-            new object[] { false, true },
-            new object[] { true, false },
-            new object[] { true, true },
-        };
-
-        public static object[][] TestSyntaxesData =
-        {
-            new object[] { false, false },
-            new object[] { true, false },
-        };
-
-        public static object[][] TestSymbolsData =
-        {
-            new object[] { false, true },
-            new object[] { true, true },
+            new object[] { false },
+            new object[] { true },
         };
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestAddImport(bool safe, bool useSymbolAnnotations)
+        public async Task TestAddImport(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"class C
@@ -149,11 +130,11 @@ class C
 class C
 {
     public List<int> F;
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestAddSystemImportFirst(bool safe, bool useSymbolAnnotations)
+        public async Task TestAddSystemImportFirst(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"using N;
@@ -177,11 +158,11 @@ using N;
 class C
 {
     public List<int> F;
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestDontAddSystemImportFirst(bool safe, bool useSymbolAnnotations)
+        public async Task TestDontAddSystemImportFirst(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"using N;
@@ -206,14 +187,13 @@ class C
 {
     public List<int> F;
 }",
-                safe,
                 useSymbolAnnotations,
                 options => options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, false)
 );
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestAddImportsInOrder(bool safe, bool useSymbolAnnotations)
+        public async Task TestAddImportsInOrder(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"using System.Collections;
@@ -240,11 +220,11 @@ using System.Diagnostics;
 class C
 {
     public List<int> F;
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestAddMultipleImportsInOrder(bool safe, bool useSymbolAnnotations)
+        public async Task TestAddMultipleImportsInOrder(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"class C
@@ -269,11 +249,11 @@ class C
 {
     public List<int> F;
     public EventHandler Handler;
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportNotRedundantlyAdded(bool safe, bool useSymbolAnnotations)
+        public async Task TestImportNotRedundantlyAdded(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"using System.Collections.Generic;
@@ -295,11 +275,11 @@ class C
 class C
 {
     public List<int> F;
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
-        [Theory, MemberData(nameof(TestSyntaxesData))]
-        public async Task TestBuiltInTypeFromSyntaxes(bool safe, bool useSymbolAnnotations)
+        [Fact]
+        public async Task TestBuiltInTypeFromSyntaxes()
         {
             await TestAsync(
 @"class C
@@ -317,11 +297,11 @@ class C
 @"class C
 {
     public int F;
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations: false);
         }
 
-        [Theory, MemberData(nameof(TestSymbolsData))]
-        public async Task TestBuiltInTypeFromSymbols(bool safe, bool useSymbolAnnotations)
+        [Fact]
+        public async Task TestBuiltInTypeFromSymbols()
         {
             await TestAsync(
 @"class C
@@ -337,20 +317,20 @@ class C
 @"class C
 {
     public int F;
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations: true);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportNotAddedForNamespaceDeclarations(bool safe, bool useSymbolAnnotations)
+        public async Task TestImportNotAddedForNamespaceDeclarations(bool useSymbolAnnotations)
         {
             await TestNoImportsAddedAsync(
 @"namespace N
 {
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportNotAddedForReferencesInsideNamespaceDeclarations(bool safe, bool useSymbolAnnotations)
+        public async Task TestImportNotAddedForReferencesInsideNamespaceDeclarations(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"namespace N
@@ -375,11 +355,11 @@ class C
     {
         private C c;
     }
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportNotAddedForReferencesInsideParentOfNamespaceDeclarations(bool safe, bool useSymbolAnnotations)
+        public async Task TestImportNotAddedForReferencesInsideParentOfNamespaceDeclarations(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"namespace N
@@ -425,11 +405,11 @@ namespace N.N1
     {
         private C c;
     }
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportNotAddedForReferencesMatchingNestedImports(bool safe, bool useSymbolAnnotations)
+        public async Task TestImportNotAddedForReferencesMatchingNestedImports(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"namespace N
@@ -460,11 +440,11 @@ namespace N.N1
     {
         private List<int> F;
     }
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportRemovedIfItMakesReferenceAmbiguous(bool safe, bool useSymbolAnnotations)
+        public async Task TestImportRemovedIfItMakesReferenceAmbiguous(bool useSymbolAnnotations)
         {
             // this is not really an artifact of the AddImports feature, it is due
             // to Simplifier not reducing the namespace reference because it would 
@@ -506,12 +486,12 @@ class C
 class C
 {
     public N.C F;
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
         [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
-        public async Task TestBannerTextRemainsAtTopOfDocumentWithoutExistingImports(bool safe, bool useSymbolAnnotations)
+        public async Task TestBannerTextRemainsAtTopOfDocumentWithoutExistingImports(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"// --------------------------------------------------------------------------------------------------------------------
@@ -546,12 +526,12 @@ using System.Collections.Generic;
 class C
 {
     public List<int> F;
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
         [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
-        public async Task TestBannerTextRemainsAtTopOfDocumentWithExistingImports(bool safe, bool useSymbolAnnotations)
+        public async Task TestBannerTextRemainsAtTopOfDocumentWithExistingImports(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"// --------------------------------------------------------------------------------------------------------------------
@@ -590,12 +570,12 @@ using ZZZ;
 class C
 {
     public List<int> F;
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
         [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
-        public async Task TestLeadingWhitespaceLinesArePreserved(bool safe, bool useSymbolAnnotations)
+        public async Task TestLeadingWhitespaceLinesArePreserved(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"class C
@@ -615,11 +595,11 @@ class C
 class C
 {
     public List<int> F;
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportAddedToNestedImports(bool safe, bool useSymbolAnnotations)
+        public async Task TestImportAddedToNestedImports(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"namespace N
@@ -652,11 +632,11 @@ class C
     {
         private List<int> F;
     }
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportNameNotSimplfied(bool safe, bool useSymbolAnnotations)
+        public async Task TestImportNameNotSimplfied(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"namespace System
@@ -689,11 +669,11 @@ class C
     {
         private List<int> F;
     }
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
-        [Theory, InlineData(false, true)]
-        public async Task TestUnnecessaryImportAddedAndRemoved(bool safe, bool useSymbolAnnotations)
+        [Theory, MemberData(nameof(TestAllData))]
+        public async Task TestUnnecessaryImportAddedAndRemoved(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"using List = System.Collections.Generic.List<int>;
@@ -725,11 +705,11 @@ namespace System
     {
         private List F;
     }
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportAddedToStartOfDocumentIfNoNestedImports(bool safe, bool useSymbolAnnotations)
+        public async Task TestImportAddedToStartOfDocumentIfNoNestedImports(bool useSymbolAnnotations)
         {
             await TestAsync(
 @"namespace N
@@ -758,16 +738,13 @@ namespace N
     {
         private List<int> F;
     }
-}", safe, useSymbolAnnotations);
+}", useSymbolAnnotations);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
         [WorkItem(9228, "https://github.com/dotnet/roslyn/issues/9228")]
-        public async Task TestDoNotAddDuplicateImportIfNamespaceIsDefinedInSourceAndExternalAssembly(bool safe, bool useSymbolAnnotations)
+        public async Task TestDoNotAddDuplicateImportIfNamespaceIsDefinedInSourceAndExternalAssembly(bool useSymbolAnnotations)
         {
-            if (safe != useSymbolAnnotations)
-                return;
-
             var externalCode =
 @"namespace N.M { public class A : System.Attribute { } }";
 
@@ -872,7 +849,7 @@ namespace B
 class C
 {
     C1 M(A.C2 c2) => default;
-}", safe: true, useSymbolAnnotations: true);
+}", useSymbolAnnotations: true);
         }
 
         [Fact]
@@ -895,7 +872,7 @@ namespace B
 class C
 {
     C1<int> M(A.C2 c2) => default;
-}", safe: true, useSymbolAnnotations: true);
+}", useSymbolAnnotations: true);
         }
 
         [Fact]
@@ -921,7 +898,7 @@ namespace B
 class C
 {
     O.C1 M(A.C2 c2) => default;
-}", safe: true, useSymbolAnnotations: true);
+}", useSymbolAnnotations: true);
         }
 
         [Fact]
@@ -947,7 +924,7 @@ namespace Inner
     {
         C1 M(A.C2 c2) => default;
     }
-}", safe: true, useSymbolAnnotations: true);
+}", useSymbolAnnotations: true);
         }
 
         [Fact]
@@ -972,7 +949,7 @@ namespace B
 class C
 {
     C1<C3> M(A.C2 c2) => default;
-}", safe: true, useSymbolAnnotations: true);
+}", useSymbolAnnotations: true);
         }
 
         [Fact]
@@ -1000,7 +977,7 @@ namespace B
 class C
 {
     O.C1<C3> M(A.C2 c2) => default;
-}", safe: true, useSymbolAnnotations: true);
+}", useSymbolAnnotations: true);
         }
 
         [Fact, WorkItem(39641, "https://github.com/dotnet/roslyn/issues/39641")]
@@ -1039,7 +1016,7 @@ class C
         (C1 a, int b) = (default, default);
         return result;
     }
-}", safe: true, useSymbolAnnotations: true);
+}", useSymbolAnnotations: true);
         }
 
         [Fact]
@@ -1068,7 +1045,7 @@ namespace B
 class C
 {
     void M(A.C1 c1) => 42.M();
-}", safe: true, useSymbolAnnotations: true);
+}", useSymbolAnnotations: true);
         }
 
         [Fact]
@@ -1099,7 +1076,7 @@ namespace B
 class C
 {
     void M(A.C1 c1) => 42.M(default(C2));
-}", safe: true, useSymbolAnnotations: true);
+}", useSymbolAnnotations: true);
         }
 
         [Fact]
@@ -1130,7 +1107,7 @@ namespace B
 class C
 {
     void M(A.C1 c1) => 42.M<C2>();
-}", safe: true, useSymbolAnnotations: true);
+}", useSymbolAnnotations: true);
         }
 
         [Fact]
@@ -1163,7 +1140,7 @@ namespace N
     {
         public static void M1(this int a){}
     }
-}", safe: true, useSymbolAnnotations: true);
+}", useSymbolAnnotations: true);
         }
 
         #endregion
