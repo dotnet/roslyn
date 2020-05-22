@@ -199,7 +199,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                 }
 
+#if DEBUG
                 VerifyDiagnostics(model);
+#endif
 
                 var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 if (root == null)
@@ -241,10 +243,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return ImmutableArray<DiagnosticData>.Empty;
             }
 
-            [Conditional("DEBUG")]
+#if DEBUG
             private void VerifyDiagnostics(SemanticModel model)
             {
-#if DEBUG
                 // Exclude unused import diagnostics since they are never reported when a span is passed.
                 // (See CSharp/VisualBasicCompilation.GetDiagnosticsForMethodBodiesInTree.)
                 bool shouldInclude(Diagnostic d) => _range.IntersectsWith(d.Location.SourceSpan) && !IsUnusedImportDiagnostic(d);
@@ -284,8 +285,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             return false;
                     }
                 }
-#endif
             }
+#endif
 
             private static TextSpan AdjustSpan(Document document, SyntaxNode root, TextSpan span)
             {

@@ -349,7 +349,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     // Just need the first result if we are doing fix all in span
-                    if (fixAllForInSpan && result.Any()) return;
+                    if (fixAllForInSpan && result.Any())
+                        return;
                 }
             }
             finally

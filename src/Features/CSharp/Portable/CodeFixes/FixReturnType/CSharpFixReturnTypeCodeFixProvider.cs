@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
                diagnostics);
         }
 
-        private async Task<(TypeSyntax declarationToFix, TypeSyntax fixedDeclaration)> TryGetOldAndNewReturnTypeAsync(
+        private static async Task<(TypeSyntax declarationToFix, TypeSyntax fixedDeclaration)> TryGetOldAndNewReturnTypeAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             Debug.Assert(diagnostics.Length == 1);

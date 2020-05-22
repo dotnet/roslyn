@@ -189,12 +189,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                     addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement, generator))
         End Function
 
-        Private Function GetImportsStatement(symbol As INamespaceOrTypeSymbol) As ImportsStatementSyntax
+        Private Shared Function GetImportsStatement(symbol As INamespaceOrTypeSymbol) As ImportsStatementSyntax
             Dim nameSyntax = DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax)
             Return GetImportsStatement(nameSyntax)
         End Function
 
-        Private Function GetImportsStatement(nameSyntax As NameSyntax) As ImportsStatementSyntax
+        Private Shared Function GetImportsStatement(nameSyntax As NameSyntax) As ImportsStatementSyntax
             nameSyntax = nameSyntax.WithAdditionalAnnotations(Simplifier.Annotation)
 
             Dim memberImportsClause = SyntaxFactory.SimpleImportsClause(nameSyntax)
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return type
         End Function
 
-        Private Function IsValid(info As SymbolInfo) As Boolean
+        Private Shared Function IsValid(info As SymbolInfo) As Boolean
             Dim symbol = info.Symbol.GetOriginalUnreducedDefinition()
             Return symbol IsNot Nothing AndAlso symbol.Locations.Length > 0
         End Function

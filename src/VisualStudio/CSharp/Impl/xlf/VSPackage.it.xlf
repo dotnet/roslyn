@@ -80,9 +80,9 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">Mostra diagnostica per file chiusi;
+        <target state="translated">Mostra diagnostica per file chiusi;
 Colora espressione regolare; 
-Evidenzia componenti correlati sotto il cursore; 
+Evidenzia i componenti correlati sotto il cursore; 
 Segnala espressioni regolari non valide;
 Abilita analisi della soluzione completa;
 Esegui analisi delle funzionalità dell'editor in processo esterno;
@@ -111,21 +111,22 @@ Mostra le guide per i costrutti a livello di codice;
 Guida Editor;
 Genera commenti relativi alla documentazione XML per ///;
 Inserisci * all'inizio di nuove righe quando si scrivono commenti /* */;
-Mostra anteprima per verifica ridenominazione,
+Mostra anteprima per verifica ridenominazione;
 Dividi valori letterali stringa dopo INVIO;
-Segnala segnaposto non validi in chiamate string.Format;
+Segnala segnaposto non validi in chiamate String.Format;
 Estrai metodo;
-Non inserire ref o out in struct personalizzato;
+Non inserire out o ref in struct personalizzato;
 Implementa interfaccia o classe astratta;
 Posiziona proprietà, eventi e metodi inseriti;
 con altri membri dello stesso tipo;
-al termine;
+alla fine;
 Durante la generazione della proprietà;
 preferisci proprietà generate;
 preferisci proprietà automatiche;
 regex;
 espressione regolare;
-Usa colori migliorati;</target>
+Usa colori migliorati;
+Combinazione colori editor;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

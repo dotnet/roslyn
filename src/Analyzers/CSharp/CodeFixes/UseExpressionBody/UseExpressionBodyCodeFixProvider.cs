@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
         }
 
-        private void AddEdits(
+        private static void AddEdits(
             SemanticModel semanticModel, SyntaxEditor editor, Diagnostic diagnostic,
             HashSet<AccessorListSyntax> accessorLists,
             CancellationToken cancellationToken)
