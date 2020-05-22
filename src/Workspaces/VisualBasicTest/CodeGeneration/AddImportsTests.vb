@@ -59,7 +59,7 @@ End NameSpace"
             Return doc
         End Function
 
-        Private Async Function TestAsync(initialText As String, importsAddedText As String, simplifiedText As String, safe As Boolean, useSymbolAnnotations As Boolean, Optional optionsTransform As Func(Of OptionSet, OptionSet) = Nothing, Optional globalImports As String() = Nothing) As Task
+        Private Shared Async Function TestAsync(initialText As String, importsAddedText As String, simplifiedText As String, safe As Boolean, useSymbolAnnotations As Boolean, Optional optionsTransform As Func(Of OptionSet, OptionSet) = Nothing, Optional globalImports As String() = Nothing) As Task
             If safe <> useSymbolAnnotations Then
                 Return
             End If
