@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
@@ -61,6 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
 
         Private Class ConflictWalker
             Inherits VisualBasicSyntaxWalker
+            Implements IEqualityComparer(Of (name As String, arity As Integer))
 
             Private ReadOnly _cancellationToken As CancellationToken
             Private ReadOnly _model As SemanticModel
@@ -69,15 +71,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
             ''' A mapping containing the simple names And arity of all namespace members, mapped to the import that
             ''' they're brought in by.
             ''' </summary>
-            Private ReadOnly _namespaceMembers As MultiDictionary(Of (name As String, arity As Integer), INamespaceSymbol) =
-                New MultiDictionary(Of (name As String, arity As Integer), INamespaceSymbol)()
+            Private ReadOnly _namespaceMembers As MultiDictionary(Of (name As String, arity As Integer), INamespaceSymbol)
 
             ''' <summary>
             ''' A mapping containing the simple names of all extension methods, mapped to the import that they're
             ''' brought in by.  This doesn't keep track of arity because methods can be called with type arguments.
             ''' </summary>
-            Private ReadOnly _extensionMethods As MultiDictionary(Of String, INamespaceSymbol) =
-                New MultiDictionary(Of String, INamespaceSymbol)()
+            Private ReadOnly _extensionMethods As MultiDictionary(Of String, INamespaceSymbol)
 
             Private ReadOnly _conflictNamespaces As HashSet(Of INamespaceSymbol)
 
@@ -97,6 +97,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                 _model = model
                 _cancellationToken = cancellationToken
                 _conflictNamespaces = conflictNamespaces
+
+                _namespaceMembers = New MultiDictionary(Of (name As String, arity As Integer), INamespaceSymbol)(Me)
+                _extensionMethods = New MultiDictionary(Of String, INamespaceSymbol)(VisualBasicSyntaxFacts.Instance.StringComparer)
 
                 For Each ns In namespaceSymbols
                     For Each typeOrNamespace In ns.GetMembers()
@@ -192,6 +195,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                     End If
                 End If
             End Sub
+
+            Public Shadows Function Equals(
+                    x As (name As String, arity As Integer),
+                    y As (name As String, arity As Integer)) As Boolean Implements IEqualityComparer(Of (name As String, arity As Integer)).Equals
+
+                Return x.arity = y.arity AndAlso
+                    VisualBasicSyntaxFacts.Instance.StringComparer.Equals(x.name, y.name)
+            End Function
+
+            Public Shadows Function GetHashCode(obj As (name As String, arity As Integer)) As Integer Implements IEqualityComparer(Of (name As String, arity As Integer)).GetHashCode
+                Return Hash.Combine(obj.arity,
+                    VisualBasicSyntaxFacts.Instance.StringComparer.GetHashCode(obj.name))
+            End Function
         End Class
     End Class
 End Namespace
