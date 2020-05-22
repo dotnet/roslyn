@@ -1879,9 +1879,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TypeSymbol hostObjectType = Compilation.GetHostObjectTypeSymbol();
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    if ((object)hostObjectType != null && hostObjectType.IsEqualToOrDerivedFrom(memberDeclaringType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
+                    if ((object)hostObjectType != null)
                     {
-                        return new BoundHostObjectMemberReference(syntax, hostObjectType) { WasCompilerGenerated = true };
+                        bool isDerived;
+                        if (memberDeclaringType.IsInterface)
+                        {
+                            isDerived =
+                                hostObjectType.Equals(memberDeclaringType, TypeCompareKind.ConsiderEverything) ||
+                                hostObjectType.ImplementsInterface(memberDeclaringType,
+                                    useSiteDiagnostics: ref useSiteDiagnostics);
+                        }
+                        else
+                        {
+                            isDerived = hostObjectType.IsEqualToOrDerivedFrom(memberDeclaringType,
+                                TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics);
+                        }
+
+                        if (isDerived)
+                        {
+                            return new BoundHostObjectMemberReference(syntax, hostObjectType) { WasCompilerGenerated = true };
+                        }
                     }
                 }
             }

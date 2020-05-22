@@ -22,10 +22,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
     public class ScriptTests : TestBase
     {
-        public class Globals
+        public interface IGlobals : IBaseGlobals
         {
-            public int X;
-            public int Y;
+            public int X { get; }
+        }
+
+        public interface IBaseGlobals
+        {
+            public int Y { get; }
+        }
+
+        public class Globals : IGlobals
+        {
+            public int X { get; set; }
+            public int Y { get; set; }
         }
 
         [Fact]
@@ -289,6 +299,13 @@ throw e;", globals: new ScriptTests());
         public async Task TestRunScriptWithGlobals()
         {
             var state = await CSharpScript.RunAsync("X + Y", globals: new Globals { X = 1, Y = 2 });
+            Assert.Equal(3, state.ReturnValue);
+        }
+
+        [Fact]
+        public async Task TestRunScriptWithBaseGlobals()
+        {
+            var state = await CSharpScript.RunAsync("X + Y", globals: new Globals { X = 1, Y = 2 }, globalsType: typeof(IGlobals));
             Assert.Equal(3, state.ReturnValue);
         }
 
