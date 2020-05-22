@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Testing
         private JoinableTaskCollection? _joinableTaskCollection;
         private JoinableTaskFactory? _joinableTaskFactory;
 
+        private TestServices? _testServices;
+
         private CancellationTokenSource _hangMitigatingCancellationTokenSource;
 
         protected AbstractIdeIntegrationTest()
@@ -38,9 +40,6 @@ namespace Microsoft.CodeAnalysis.Testing
 
             _hangMitigatingCancellationTokenSource = new CancellationTokenSource(HangMitigatingTimeout);
         }
-
-        protected static IServiceProvider ServiceProvider
-            => Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider;
 
         [NotNull]
         protected JoinableTaskContext? JoinableTaskContext
@@ -72,7 +71,19 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        protected TestServices TestServices { get; private set; }
+        [NotNull]
+        protected TestServices? TestServices
+        {
+            get
+            {
+                return _testServices ?? throw new InvalidOperationException();
+            }
+
+            private set
+            {
+                _testServices = value;
+            }
+        }
 
         protected JoinableTaskFactory JoinableTaskFactory
             => _joinableTaskFactory ?? throw new InvalidOperationException();

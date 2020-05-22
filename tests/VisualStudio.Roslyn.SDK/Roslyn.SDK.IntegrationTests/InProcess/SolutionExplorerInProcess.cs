@@ -10,10 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OperationProgress;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using NuGet.SolutionRestoreManager;
-using Xunit;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.Testing.InProcess
 {
@@ -254,6 +255,8 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
 
         public async Task BuildSolutionAsync(bool waitForBuildToFinish)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
             var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync();
             buildOutputWindowPane.Clear();
 
@@ -315,6 +318,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
             return solution.Projects.OfType<EnvDTE.Project>().First(
                 project =>
                 {
+                    ThreadHelper.ThrowIfNotOnUIThread();
                     return string.Equals(project.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase)
                         || string.Equals(project.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase);
                 });
@@ -328,6 +332,8 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
 
             public SolutionEvents(JoinableTaskFactory joinableTaskFactory, IVsSolution solution)
             {
+                ThreadHelper.ThrowIfNotOnUIThread();
+
                 _joinableTaskFactory = joinableTaskFactory;
                 _solution = solution;
                 ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out _cookie));
@@ -398,8 +404,8 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
 
         internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IVsUpdateSolutionEvents2, IDisposable
         {
-            private uint cookie;
-            private IVsSolutionBuildManager2 solutionBuildManager;
+            private uint _cookie;
+            private IVsSolutionBuildManager2 _solutionBuildManager;
 
             internal delegate void UpdateSolutionDoneEvent(bool succeeded, bool modified, bool canceled);
 
@@ -411,28 +417,26 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
 
             internal delegate void UpdateProjectConfigBeginEvent(IVsHierarchy projectHierarchy, IVsCfg projectConfig);
 
-            public event UpdateSolutionDoneEvent OnUpdateSolutionDone;
+            public event UpdateSolutionDoneEvent? OnUpdateSolutionDone;
 
-            public event UpdateSolutionBeginEvent OnUpdateSolutionBegin;
+            public event UpdateSolutionBeginEvent? OnUpdateSolutionBegin;
 
-            public event UpdateSolutionStartUpdateEvent OnUpdateSolutionStartUpdate;
+            public event UpdateSolutionStartUpdateEvent? OnUpdateSolutionStartUpdate;
 
-            public event Action OnActiveProjectConfigurationChange;
+            public event Action? OnActiveProjectConfigurationChange;
 
-            public event Action OnUpdateSolutionCancel;
+            public event Action? OnUpdateSolutionCancel;
 
-            public event UpdateProjectConfigDoneEvent OnUpdateProjectConfigDone;
+            public event UpdateProjectConfigDoneEvent? OnUpdateProjectConfigDone;
 
-            public event UpdateProjectConfigBeginEvent OnUpdateProjectConfigBegin;
+            public event UpdateProjectConfigBeginEvent? OnUpdateProjectConfigBegin;
 
             internal UpdateSolutionEvents(IVsSolutionBuildManager2 solutionBuildManager)
             {
-                this.solutionBuildManager = solutionBuildManager;
-                var hresult = solutionBuildManager.AdviseUpdateSolutionEvents(this, out cookie);
-                if (hresult != 0)
-                {
-                    System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(hresult);
-                }
+                ThreadHelper.ThrowIfNotOnUIThread();
+
+                _solutionBuildManager = solutionBuildManager;
+                ErrorHandler.ThrowOnFailure(solutionBuildManager.AdviseUpdateSolutionEvents(this, out _cookie));
             }
 
             int IVsUpdateSolutionEvents.UpdateSolution_Begin(ref int pfCancelUpdate)
@@ -443,6 +447,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
                 {
                     pfCancelUpdate = 1;
                 }
+
                 return 0;
             }
 
@@ -476,6 +481,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
                 {
                     pfCancelUpdate = 1;
                 }
+
                 return 0;
             }
 
@@ -521,6 +527,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
                 {
                     pfCancelUpdate = 1;
                 }
+
                 return 0;
             }
 
@@ -532,6 +539,8 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
 
             void IDisposable.Dispose()
             {
+                ThreadHelper.ThrowIfNotOnUIThread();
+
                 OnUpdateSolutionDone = null;
                 OnUpdateSolutionBegin = null;
                 OnUpdateSolutionStartUpdate = null;
@@ -540,15 +549,11 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
                 OnUpdateProjectConfigDone = null;
                 OnUpdateProjectConfigBegin = null;
 
-                if (cookie != 0)
+                if (_cookie != 0)
                 {
-                    var tempCookie = cookie;
-                    cookie = 0;
-                    var hresult = solutionBuildManager.UnadviseUpdateSolutionEvents(tempCookie);
-                    if (hresult != 0)
-                    {
-                        System.Runtime.InteropServices.Marshal.ThrowExceptionForHR(hresult);
-                    }
+                    var tempCookie = _cookie;
+                    _cookie = 0;
+                    ErrorHandler.ThrowOnFailure(_solutionBuildManager.UnadviseUpdateSolutionEvents(tempCookie));
                 }
             }
         }

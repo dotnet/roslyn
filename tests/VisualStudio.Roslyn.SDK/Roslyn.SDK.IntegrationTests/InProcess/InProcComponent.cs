@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var serviceProvider = (IAsyncServiceProvider2)ServiceProvider.GlobalProvider.GetService(typeof(SAsyncServiceProvider));
+            var serviceProvider = (IAsyncServiceProvider2)await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SAsyncServiceProvider));
             Assumes.Present(serviceProvider);
             return (TInterface)await serviceProvider.GetServiceAsync(typeof(TService));
         }
@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         /// <summary>
         /// Waiting for the application to 'idle' means that it is done pumping messages (including WM_PAINT).
         /// </summary>
+        /// <param name="cancellationToken">The cancellation token that the operation will observe.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         protected static async Task WaitForApplicationIdleAsync(CancellationToken cancellationToken)
         {

@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
 
         protected override void QueueTask(Task task)
         {
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
             _synchronizationContext.Post(_postCallback, task);
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
         }
 
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)

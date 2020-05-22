@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis.Testing.InProcess
@@ -12,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
     {
         public static IEnumerable<IVsTaskItem> AsEnumerable(this IVsEnumTaskItems items)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             var item = new IVsTaskItem[1];
             while (true)
             {
@@ -41,6 +44,8 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
 
         public static __VSERRORCATEGORY GetCategory(this IVsErrorItem errorItem)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             ErrorHandler.ThrowOnFailure(errorItem.GetCategory(out var category));
             return (__VSERRORCATEGORY)category;
         }

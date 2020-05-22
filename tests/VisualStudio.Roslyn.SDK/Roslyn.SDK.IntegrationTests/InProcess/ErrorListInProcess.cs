@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.CodeAnalysis.Testing.InProcess
@@ -19,12 +20,18 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
 
         public async Task<int> GetErrorCountAsync(__VSERRORCATEGORY minimumSeverity = __VSERRORCATEGORY.EC_WARNING)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
             var errorItems = await GetErrorItemsAsync();
             try
             {
                 return errorItems
                     .AsEnumerable()
-                    .Where(e => ((IVsErrorItem)e).GetCategory() <= minimumSeverity)
+                    .Where(e =>
+                    {
+                        ThreadHelper.ThrowIfNotOnUIThread();
+                        return ((IVsErrorItem)e).GetCategory() <= minimumSeverity;
+                    })
                     .Count();
             }
             catch (IndexOutOfRangeException)
