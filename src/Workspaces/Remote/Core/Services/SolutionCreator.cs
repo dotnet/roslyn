@@ -85,8 +85,10 @@ namespace Microsoft.CodeAnalysis.Remote
                         newSolutionChecksums.AnalyzerReferences, _cancellationToken).ConfigureAwait(false));
                 }
 
+#if DEBUG
                 // make sure created solution has same checksum as given one
                 await ValidateChecksumAsync(newSolutionChecksum, solution).ConfigureAwait(false);
+#endif
 
                 return solution;
             }
@@ -507,9 +509,9 @@ namespace Microsoft.CodeAnalysis.Remote
             return map;
         }
 
+#if DEBUG
         private async Task ValidateChecksumAsync(Checksum checksumFromRequest, Solution incrementalSolutionBuilt)
         {
-#if DEBUG
             var currentSolutionChecksum = await incrementalSolutionBuilt.State.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
             if (checksumFromRequest == currentSolutionChecksum)
             {
@@ -526,11 +528,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var workspace = new TemporaryWorkspace(solutionInfo, options);
                 return workspace.CurrentSolution;
             }
-#else
-
-            // have this to avoid error on async
-            await Task.CompletedTask.ConfigureAwait(false);
-#endif
         }
+#endif
     }
 }

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var solution = project.Solution;
 
                 var result = await client.TryRunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
                     solution,
                     new object[] { project.Id, query.Name, query.Kind, criteria },

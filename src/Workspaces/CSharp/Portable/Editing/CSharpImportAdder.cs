@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             rewriter.Visit(container);
         }
 
-        private INamespaceSymbol? GetExplicitNamespaceSymbol(ExpressionSyntax fullName, ExpressionSyntax namespacePart, SemanticModel model)
+        private static INamespaceSymbol? GetExplicitNamespaceSymbol(ExpressionSyntax fullName, ExpressionSyntax namespacePart, SemanticModel model)
         {
 
             // name must refer to something that is not a namespace, but be qualified with a namespace.

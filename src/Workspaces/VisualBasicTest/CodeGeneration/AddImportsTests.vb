@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
     End Class
 End NameSpace"
 
-        Private Async Function GetDocument(code As String, withAnnotations As Boolean, Optional globalImports As String() = Nothing) As Task(Of Document)
+        Private Shared Async Function GetDocument(code As String, withAnnotations As Boolean, Optional globalImports As String() = Nothing) As Task(Of Document)
             Dim ws As AdhocWorkspace = New AdhocWorkspace()
             Dim project As Project = ws.AddProject(
                 ProjectInfo.Create(

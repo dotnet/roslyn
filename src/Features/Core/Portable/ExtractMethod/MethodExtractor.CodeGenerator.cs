@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return statements.Concat(CreateReturnStatement(AnalyzerResult.VariableToUseAsReturnValue.Name));
             }
 
-            protected HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
+            protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
                 IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)
             {
                 var annotations = new List<Tuple<SyntaxToken, SyntaxAnnotation>>();

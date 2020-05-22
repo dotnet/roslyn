@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var commonTypes = await GetDerivedAndImplementedTypesAsync(
                     (INamedTypeSymbol)symbol.ConstraintTypes[0], projects).ConfigureAwait(false);
 
-                for (int i = 1; i < symbol.ConstraintTypes.Length; i++)
+                for (var i = 1; i < symbol.ConstraintTypes.Length; i++)
                 {
                     var currentTypes = await GetDerivedAndImplementedTypesAsync(
                         (INamedTypeSymbol)symbol.ConstraintTypes[i], projects).ConfigureAwait(false);

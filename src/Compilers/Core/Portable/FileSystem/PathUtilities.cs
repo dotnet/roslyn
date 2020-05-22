@@ -733,7 +733,7 @@ namespace Roslyn.Utilities
         /// in the given string with '/'. Otherwise, returns the string.
         /// </summary>
         /// <remarks>
-        /// This method is equivalent to Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildAnalyzerConfig.NormalizeWithForwardSlash
+        /// This method is equivalent to Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig.NormalizeWithForwardSlash
         /// Both methods should be kept in sync.
         /// </remarks>
         public static string NormalizeWithForwardSlash(string p)

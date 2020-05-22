@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editing
             HashSet<INamespaceSymbol> conflicts,
             CancellationToken cancellationToken);
 
-        private SyntaxNode GenerateNamespaceImportDeclaration(INamespaceSymbol namespaceSymbol, SyntaxGenerator generator)
+        private static SyntaxNode GenerateNamespaceImportDeclaration(INamespaceSymbol namespaceSymbol, SyntaxGenerator generator)
         {
             // We add Simplifier.Annotation so that the import can be removed if it turns out to be unnecessary.
             // This can happen for a number of reasons (we replace the type with var, inbuilt type, alias, etc.)
@@ -150,7 +150,6 @@ namespace Microsoft.CodeAnalysis.Editing
             root = addImportsService.AddImports(model.Compilation, root, context, importsToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
 
             return document.WithSyntaxRoot(root);
-
         }
 
         private async Task<Document> AddImportDirectivesFromSymbolAnnotationsAsync(
@@ -232,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Checks if the namespace declaration <paramref name="node"/> is contained inside,
         /// or any of its ancestor namespaces are the same as <paramref name="symbol"/>
         /// </summary>
-        private bool IsInsideNamespace(SyntaxNode node, INamespaceSymbol symbol, SemanticModel model, CancellationToken cancellationToken)
+        private static bool IsInsideNamespace(SyntaxNode node, INamespaceSymbol symbol, SemanticModel model, CancellationToken cancellationToken)
         {
             var containedNamespace = model.GetEnclosingNamespace(node.SpanStart, cancellationToken);
 
