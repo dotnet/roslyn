@@ -68,13 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             Func<OptionSet, OptionSet> optionsTransform = null,
             bool performCheck = true)
         {
-            if (performCheck)
-            {
-                if (initialText == importsAddedText && importsAddedText == simplifiedText)
-                    throw new Exception($"use {nameof(TestNoImportsAddedAsync)}");
-            }
-
-
             var doc = await GetDocument(initialText, useSymbolAnnotations);
             OptionSet options = await doc.GetOptionsAsync();
             if (optionsTransform != null)
@@ -100,6 +93,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 
                 var actualText = (await formatted.GetTextAsync()).ToString();
                 Assert.Equal(simplifiedText, actualText);
+            }
+
+            if (performCheck)
+            {
+                if (initialText == importsAddedText && importsAddedText == simplifiedText)
+                    throw new Exception($"use {nameof(TestNoImportsAddedAsync)}");
             }
         }
 
@@ -949,6 +948,68 @@ namespace B
 class C
 {
     C1<C3> M(A.C2 c2) => default;
+}", useSymbolAnnotations: true);
+        }
+
+        [Fact]
+        public async Task TestSafeWithMatchingGenericNameAndTypeArguments_DifferentArity()
+        {
+            await TestAsync(
+@"using B;
+
+namespace A
+{
+    class C1<T, X> {}
+    class C2 {}
+}
+
+namespace B
+{
+    class C1<T> {}
+    class C3 {}
+}
+
+class C
+{
+    C1<C3> M(A.C2 c2) => default;
+}",
+@"using A;
+using B;
+
+namespace A
+{
+    class C1<T, X> {}
+    class C2 {}
+}
+
+namespace B
+{
+    class C1<T> {}
+    class C3 {}
+}
+
+class C
+{
+    C1<C3> M(A.C2 c2) => default;
+}",
+@"using A;
+using B;
+
+namespace A
+{
+    class C1<T, X> {}
+    class C2 {}
+}
+
+namespace B
+{
+    class C1<T> {}
+    class C3 {}
+}
+
+class C
+{
+    C1<C3> M(C2 c2) => default;
 }", useSymbolAnnotations: true);
         }
 

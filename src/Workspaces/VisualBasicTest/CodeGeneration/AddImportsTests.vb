@@ -77,12 +77,6 @@ End NameSpace"
                 Optional globalImports As String() = Nothing,
                 Optional performCheck As Boolean = True) As Task
 
-            If performCheck Then
-                If initialText = importsAddedText AndAlso importsAddedText = simplifiedText Then
-                    Throw New Exception($"use {NameOf(TestNoImportsAddedAsync)}")
-                End If
-            End If
-
             Dim doc = Await GetDocument(initialText, useSymbolAnnotations, globalImports)
             Dim options = doc.Project.Solution.Workspace.Options
             If optionsTransform IsNot Nothing Then
@@ -105,6 +99,12 @@ End NameSpace"
                 Dim formatted = Await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, options)
                 Dim actualText = (Await formatted.GetTextAsync()).ToString()
                 Assert.Equal(simplifiedText, actualText)
+            End If
+
+            If performCheck Then
+                If initialText = importsAddedText AndAlso importsAddedText = simplifiedText Then
+                    Throw New Exception($"use {NameOf(TestNoImportsAddedAsync)}")
+                End If
             End If
         End Function
 
@@ -509,6 +509,74 @@ Class C
         Return Nothing
     End Function
 End Class", useSymbolAnnotations:=True)
+        End Function
+
+        <Fact>
+        Public Async Function TestSafeWithMatchingGenericName_DifferentArity() As Task
+            Await TestAsync(
+"Imports B
+
+Namespace A
+    Class C1(Of T, X)
+    End Class
+
+    Class C2
+    End Class
+End Namespace
+
+Namespace B
+    Class C1(Of T)
+    End Class
+End Namespace
+
+Class C
+    Private Function M(ByVal c2 As A.C2) As C1(Of Integer)
+        Return Nothing
+    End Function
+End Class",
+"Imports A
+Imports B
+
+Namespace A
+    Class C1(Of T, X)
+    End Class
+
+    Class C2
+    End Class
+End Namespace
+
+Namespace B
+    Class C1(Of T)
+    End Class
+End Namespace
+
+Class C
+    Private Function M(ByVal c2 As A.C2) As C1(Of Integer)
+        Return Nothing
+    End Function
+End Class",
+"Imports A
+Imports B
+
+Namespace A
+    Class C1(Of T, X)
+    End Class
+
+    Class C2
+    End Class
+End Namespace
+
+Namespace B
+    Class C1(Of T)
+    End Class
+End Namespace
+
+Class C
+    Private Function M(ByVal c2 As C2) As C1(Of Integer)
+        Return Nothing
+    End Function
+End Class",
+useSymbolAnnotations:=True)
         End Function
 
         <Fact>
