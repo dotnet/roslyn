@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
@@ -659,25 +660,40 @@ namespace Root
 }", parameters: new TestParameters(options: featureOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task Keywords()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData(typeof(bool))]
+        [InlineData(typeof(sbyte))]
+        [InlineData(typeof(byte))]
+        [InlineData(typeof(decimal))]
+        [InlineData(typeof(float))]
+        [InlineData(typeof(double))]
+        [InlineData(typeof(short))]
+        [InlineData(typeof(int))]
+        [InlineData(typeof(long))]
+        [InlineData(typeof(char))]
+        [InlineData(typeof(string))]
+        [InlineData(typeof(ushort))]
+        [InlineData(typeof(uint))]
+        [InlineData(typeof(ulong))]
+        public async Task Keywords(Type type)
         {
-            var builtInTypeMap = new Dictionary<string, string>()
+            var typeKeyword = type.FullName switch
             {
-                { "System.Boolean", "bool" },
-                { "System.SByte", "sbyte" },
-                { "System.Byte", "byte" },
-                { "System.Decimal", "decimal" },
-                { "System.Single", "float" },
-                { "System.Double", "double" },
-                { "System.Int16", "short" },
-                { "System.Int32", "int" },
-                { "System.Int64", "long" },
-                { "System.Char", "char" },
-                { "System.String", "string" },
-                { "System.UInt16", "ushort" },
-                { "System.UInt32", "uint" },
-                { "System.UInt64", "ulong" }
+                "System.Boolean" => "bool",
+                "System.SByte" => "sbyte",
+                "System.Byte" => "byte",
+                "System.Decimal" => "decimal",
+                "System.Single" => "float",
+                "System.Double" => "double",
+                "System.Int16" => "short",
+                "System.Int32" => "int",
+                "System.Int64" => "long",
+                "System.Char" => "char",
+                "System.String" => "string",
+                "System.UInt16" => "ushort",
+                "System.UInt32" => "uint",
+                "System.UInt64" => "ulong",
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             var content =
@@ -687,13 +703,9 @@ namespace Root
 }
 ";
 
-            foreach (var pair in builtInTypeMap)
-            {
-                var position = content.IndexOf(@"[||]", StringComparison.Ordinal);
-                var newContent = content.Replace(@"[||]", pair.Key);
-                var expected = content.Replace(@"[||]", pair.Value);
-                await TestWithPredefinedTypeOptionsAsync(newContent, expected);
-            }
+            var newContent = content.Replace(@"[||]", type.FullName);
+            var expected = content.Replace(@"[||]", typeKeyword);
+            await TestWithPredefinedTypeOptionsAsync(newContent, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
