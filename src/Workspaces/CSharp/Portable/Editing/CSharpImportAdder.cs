@@ -93,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             /// A mapping containing the simple names of all extension methods, mapped to the import that they're
             /// brought in by.  This doesn't keep track of arity because methods can be called with type arguments.
             /// </summary>
+            /// <remarks>
+            /// We could consider adding more information here (for example the min/max number of args that this can be
+            /// called with).  That could then be used to check if there could be a conflict. However, that's likely
+            /// more complexity than we need currently.  But it is always something we can do in the future.
+            /// </remarks>
             private readonly MultiDictionary<string, INamespaceSymbol> _extensionMethods
                 = new MultiDictionary<string, INamespaceSymbol>();
 
