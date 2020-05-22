@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Looks at the contents of the document for top level identifiers (or existing extension method calls), and
         /// blocks off imports that could potentially bring in a name that would conflict with them.
+        /// <paramref name="container"/> is the node that the import will be added to.  This will either be the
+        /// compilation-unit node, or one of the namespace-blocks in the file.
         /// </summary>
         protected abstract void AddPotentiallyConflictingImports(
             SemanticModel model,
