@@ -52,10 +52,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             return doc;
         }
 
-        private static async Task TestAsync(string initialText, string importsAddedText, string simplifiedText, bool safe, bool useSymbolAnnotations, Func<OptionSet, OptionSet> optionsTransform = null)
+        private static Task TestNoImportsAddedAsync(
+            string initialText,
+            bool safe,
+            bool useSymbolAnnotations,
+            Func<OptionSet, OptionSet> optionsTransform = null)
+        {
+            return TestAsync(initialText, initialText, initialText, safe, useSymbolAnnotations, optionsTransform, performCheck: false);
+        }
+
+        private static async Task TestAsync(
+            string initialText,
+            string importsAddedText,
+            string simplifiedText,
+            bool safe,
+            bool useSymbolAnnotations,
+            Func<OptionSet, OptionSet> optionsTransform = null,
+            bool performCheck = true)
         {
             if (safe != useSymbolAnnotations)
                 return;
+
+            if (performCheck)
+            {
+                if (initialText == importsAddedText && importsAddedText == simplifiedText)
+                    throw new Exception($"use {nameof(TestNoImportsAddedAsync)}");
+            }
+
 
             var doc = await GetDocument(initialText, useSymbolAnnotations);
             OptionSet options = await doc.GetOptionsAsync();
@@ -320,15 +343,7 @@ class C
         [Theory, MemberData(nameof(TestAllData))]
         public async Task TestImportNotAddedForNamespaceDeclarations(bool safe, bool useSymbolAnnotations)
         {
-            await TestAsync(
-@"namespace N
-{
-}",
-
-@"namespace N
-{
-}",
-
+            await TestNoImportsAddedAsync(
 @"namespace N
 {
 }", safe, useSymbolAnnotations);
@@ -840,43 +855,7 @@ class C
         [Fact]
         public async Task TestSafeWithMatchingSimpleName()
         {
-            await TestAsync(
-@"using B;
-
-namespace A
-{
-    class C1 {}
-    class C2 {}
-}
-
-namespace B
-{
-    class C1 {}
-}
-
-class C
-{
-    C1 M(A.C2 c2) => default;
-}",
-
-@"using B;
-
-namespace A
-{
-    class C1 {}
-    class C2 {}
-}
-
-namespace B
-{
-    class C1 {}
-}
-
-class C
-{
-    C1 M(A.C2 c2) => default;
-}",
-
+            await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -899,43 +878,7 @@ class C
         [Fact]
         public async Task TestSafeWithMatchingGenericName()
         {
-            await TestAsync(
-@"using B;
-
-namespace A
-{
-    class C1<T> {}
-    class C2 {}
-}
-
-namespace B
-{
-    class C1<T> {}
-}
-
-class C
-{
-    C1<int> M(A.C2 c2) => default;
-}",
-
-@"using B;
-
-namespace A
-{
-    class C1<T> {}
-    class C2 {}
-}
-
-namespace B
-{
-    class C1<T> {}
-}
-
-class C
-{
-    C1<int> M(A.C2 c2) => default;
-}",
-
+            await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -958,49 +901,7 @@ class C
         [Fact]
         public async Task TestSafeWithMatchingQualifiedName()
         {
-            await TestAsync(
-@"using B;
-
-namespace A
-{
-    class O {}
-    class C2 {}
-}
-
-namespace B
-{
-	class O
-	{
-    	public class C1 {}
-	}
-}
-
-class C
-{
-    O.C1 M(A.C2 c2) => default;
-}",
-
-@"using B;
-
-namespace A
-{
-    class O {}
-    class C2 {}
-}
-
-namespace B
-{
-	class O
-	{
-    	public class C1 {}
-	}
-}
-
-class C
-{
-    O.C1 M(A.C2 c2) => default;
-}",
-
+            await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -1026,47 +927,7 @@ class C
         [Fact]
         public async Task TestSafeWithMatchingAliasedIdentifierName()
         {
-            await TestAsync(
-@"using C1 = B.C1;
-
-namespace A
-{
-    class C1 {}
-    class C2 {}
-}
-
-namespace B
-{
-    class C1 {}
-}
-
-namespace Inner
-{
-    class C
-    {
-        C1 M(A.C2 c2) => default;
-    }
-}",
-@"using C1 = B.C1;
-
-namespace A
-{
-    class C1 {}
-    class C2 {}
-}
-
-namespace B
-{
-    class C1 {}
-}
-
-namespace Inner
-{
-    class C
-    {
-        C1 M(A.C2 c2) => default;
-    }
-}",
+            await TestNoImportsAddedAsync(
 @"using C1 = B.C1;
 
 namespace A
@@ -1092,47 +953,7 @@ namespace Inner
         [Fact]
         public async Task TestSafeWithMatchingGenericNameAndTypeArguments()
         {
-            await TestAsync(
-@"using B;
-
-namespace A
-{
-    class C1<T> {}
-    class C2 {}
-    class C3 {}
-}
-
-namespace B
-{
-    class C1<T> {}
-    class C3 {}
-}
-
-class C
-{
-    C1<C3> M(A.C2 c2) => default;
-}",
-
-@"using B;
-
-namespace A
-{
-    class C1<T> {}
-    class C2 {}
-    class C3 {}
-}
-
-namespace B
-{
-    class C1<T> {}
-    class C3 {}
-}
-
-class C
-{
-    C1<C3> M(A.C2 c2) => default;
-}",
-
+            await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -1157,53 +978,7 @@ class C
         [Fact]
         public async Task TestSafeWithMatchingQualifiedNameAndTypeArguments()
         {
-            await TestAsync(
-@"using B;
-
-namespace A
-{
-    class O {}
-    class C2 {}
-    class C3 {}
-}
-
-namespace B
-{
-    class C3 {}
-	class O
-	{
-    	public class C1<T> {}
-	}
-}
-
-class C
-{
-    O.C1<C3> M(A.C2 c2) => default;
-}",
-
-@"using B;
-
-namespace A
-{
-    class O {}
-    class C2 {}
-    class C3 {}
-}
-
-namespace B
-{
-    class C3 {}
-	class O
-	{
-    	public class C1<T> {}
-	}
-}
-
-class C
-{
-    O.C1<C3> M(A.C2 c2) => default;
-}",
-
+            await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -1231,75 +1006,7 @@ class C
         [Fact, WorkItem(39641, "https://github.com/dotnet/roslyn/issues/39641")]
         public async Task TestSafeWithMatchingSimpleNameInAllLocations()
         {
-            await TestAsync(
-@"using B;
-using System.Collections.Generic;
-
-namespace A
-{
-	class C1 { }
-	class C2 { }
-}
-
-namespace B
-{
-	class C1
-	{
-		public static C1 P { get; }
-	}
-}
-
-#nullable enable
-#pragma warning disable
-
-class C
-{
-	/// <summary>
-	/// <see cref=""C1""/>
-	/// </summary>
-	C1 M(C1 c1, A.C2 c2)
-
-    {
-        C1 result = (C1)c1 ?? new C1() ?? C1.P ?? new C1[0] { }[0] ?? new List<C1>()[0] ?? (C1?)null;
-        (C1 a, int b) = (default, default);
-        return result;
-    }
-}",
-
-@"using B;
-using System.Collections.Generic;
-
-namespace A
-{
-	class C1 { }
-	class C2 { }
-}
-
-namespace B
-{
-	class C1
-	{
-		public static C1 P { get; }
-	}
-}
-
-#nullable enable
-#pragma warning disable
-
-class C
-{
-	/// <summary>
-	/// <see cref=""C1""/>
-	/// </summary>
-	C1 M(C1 c1, A.C2 c2)
-
-    {
-        C1 result = (C1)c1 ?? new C1() ?? C1.P ?? new C1[0] { }[0] ?? new List<C1>()[0] ?? (C1?)null;
-        (C1 a, int b) = (default, default);
-        return result;
-    }
-}",
-
+            await TestNoImportsAddedAsync(
 @"using B;
 using System.Collections.Generic;
 
@@ -1338,55 +1045,7 @@ class C
         [Fact]
         public async Task TestSafeWithMatchingExtensionMethod()
         {
-            await TestAsync(
-@"using B;
-
-namespace A
-{
-    static class AExtensions
-    {
-        public static void M(this int a){}
-    }
-    public class C1 {}
-}
-
-namespace B
-{
-    static class BExtensions
-    {
-        public static void M(this int a){}
-    }
-}
-
-class C
-{
-    void M(A.C1 c1) => 42.M();
-}",
-
-@"using B;
-
-namespace A
-{
-    static class AExtensions
-    {
-        public static void M(this int a){}
-    }
-    public class C1 {}
-}
-
-namespace B
-{
-    static class BExtensions
-    {
-        public static void M(this int a){}
-    }
-}
-
-class C
-{
-    void M(A.C1 c1) => 42.M();
-}",
-
+            await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -1415,59 +1074,7 @@ class C
         [Fact]
         public async Task TestSafeWithMatchingExtensionMethodAndArguments()
         {
-            await TestAsync(
-@"using B;
-
-namespace A
-{
-    static class AExtensions
-    {
-        public static void M(this int a, C2 c2){}
-    }
-    public class C1 {}
-    public class C2 {}
-}
-
-namespace B
-{
-    static class BExtensions
-    {
-        public static void M(this int a, C2 c2){}
-    }
-    public class C2 {}
-}
-
-class C
-{
-    void M(A.C1 c1) => 42.M(default(C2));
-}",
-
-@"using B;
-
-namespace A
-{
-    static class AExtensions
-    {
-        public static void M(this int a, C2 c2){}
-    }
-    public class C1 {}
-    public class C2 {}
-}
-
-namespace B
-{
-    static class BExtensions
-    {
-        public static void M(this int a, C2 c2){}
-    }
-    public class C2 {}
-}
-
-class C
-{
-    void M(A.C1 c1) => 42.M(default(C2));
-}",
-
+            await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -1498,59 +1105,7 @@ class C
         [Fact]
         public async Task TestSafeWithMatchingExtensionMethodAndTypeArguments()
         {
-            await TestAsync(
-@"using B;
-
-namespace A
-{
-    static class AExtensions
-    {
-        public static void M<T>(this int a){}
-    }
-    public class C1 {}
-    public class C2 {}
-}
-
-namespace B
-{
-    static class BExtensions
-    {
-        public static void M<T>(this int a){}
-    }
-    public class C2 {}
-}
-
-class C
-{
-    void M(A.C1 c1) => 42.M<C2>();
-}",
-
-@"using B;
-
-namespace A
-{
-    static class AExtensions
-    {
-        public static void M<T>(this int a){}
-    }
-    public class C1 {}
-    public class C2 {}
-}
-
-namespace B
-{
-    static class BExtensions
-    {
-        public static void M<T>(this int a){}
-    }
-    public class C2 {}
-}
-
-class C
-{
-    void M(A.C1 c1) => 42.M<C2>();
-}",
-
+            await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -1581,61 +1136,7 @@ class C
         [Fact]
         public async Task TestSafeWithLambdaExtensionMethodAmbiguity()
         {
-            await TestAsync(
-@"using System;
-
-class C
-{
-    // Don't add a using for N even though it is used here.
-    public N.Other x;
-
-    public static void Main()
-    {
-        M(x => x.M1());
-    }
-
-    public static void M(Action<C> a){}
-    public static void M(Action<int> a){}
-
-    public void M1(){}
-}
-
-namespace N
-{
-    public class Other { }
-
-    public static class Extensions
-    {
-        public static void M1(this int a){}
-    }
-}",
-@"using System;
-
-class C
-{
-    // Don't add a using for N even though it is used here.
-    public N.Other x;
-
-    public static void Main()
-    {
-        M(x => x.M1());
-    }
-
-    public static void M(Action<C> a){}
-    public static void M(Action<int> a){}
-
-    public void M1(){}
-}
-
-namespace N
-{
-    public class Other { }
-
-    public static class Extensions
-    {
-        public static void M1(this int a){}
-    }
-}",
+            await TestNoImportsAddedAsync(
 @"using System;
 
 class C

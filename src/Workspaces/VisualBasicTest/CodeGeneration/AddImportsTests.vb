@@ -59,9 +59,33 @@ End NameSpace"
             Return doc
         End Function
 
-        Private Shared Async Function TestAsync(initialText As String, importsAddedText As String, simplifiedText As String, safe As Boolean, useSymbolAnnotations As Boolean, Optional optionsTransform As Func(Of OptionSet, OptionSet) = Nothing, Optional globalImports As String() = Nothing) As Task
+        Private Shared Function TestNoImportsAddedAsync(
+            initialText As String,
+            safe As Boolean,
+            useSymbolAnnotations As Boolean,
+            Optional optionsTransform As Func(Of OptionSet, OptionSet) = Nothing,
+            Optional globalImports As String() = Nothing) As Task
+
+            Return TestAsync(initialText, initialText, initialText, safe, useSymbolAnnotations, optionsTransform, globalImports, performCheck:=False)
+        End Function
+
+        Private Shared Async Function TestAsync(
+                initialText As String,
+                importsAddedText As String,
+                simplifiedText As String,
+                safe As Boolean,
+                useSymbolAnnotations As Boolean,
+                Optional optionsTransform As Func(Of OptionSet, OptionSet) = Nothing,
+                Optional globalImports As String() = Nothing,
+                Optional performCheck As Boolean = True) As Task
             If safe <> useSymbolAnnotations Then
                 Return
+            End If
+
+            If performCheck Then
+                If initialText = importsAddedText AndAlso importsAddedText = simplifiedText Then
+                    Throw New Exception($"use {NameOf(TestNoImportsAddedAsync)}")
+                End If
             End If
 
             Dim doc = Await GetDocument(initialText, useSymbolAnnotations, globalImports)
@@ -71,9 +95,9 @@ End NameSpace"
             End If
 
             Dim imported = If(
-                useSymbolAnnotations,
-                Await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, options),
-                Await ImportAdder.AddImportsFromSyntaxesAsync(doc, options))
+                    useSymbolAnnotations,
+                    Await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, options),
+                    Await ImportAdder.AddImportsFromSyntaxesAsync(doc, options))
 
             If importsAddedText IsNot Nothing Then
                 Dim formatted = Await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, options)
@@ -296,11 +320,7 @@ End Class",
 
         <Theory, MemberData(NameOf(TestAllData))>
         Public Async Function TestImportNotAddedForNamespaceDeclarations(safe As Boolean, useSymbolAnnotations As Boolean) As Task
-            Await TestAsync(
-"Namespace N
-End Namespace",
-"Namespace N
-End Namespace",
+            Await TestNoImportsAddedAsync(
 "Namespace N
 End Namespace", safe, useSymbolAnnotations)
         End Function
@@ -412,47 +432,7 @@ End Class", safe, useSymbolAnnotations)
 
         <Fact>
         Public Async Function TestSafeWithMatchingSimpleName() As Task
-            Await TestAsync(
-"Imports B
-
-Namespace A
-    Class C1
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class C1
-    End Class
-End Namespace
-
-Class C
-    Private Function M(ByVal c2 As A.C2) As C1
-        Return Nothing
-    End Function
-End Class",
-"Imports B
-
-Namespace A
-    Class C1
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class C1
-    End Class
-End Namespace
-
-Class C
-    Private Function M(ByVal c2 As A.C2) As C1
-        Return Nothing
-    End Function
-End Class",
+            Await TestNoImportsAddedAsync(
 "Imports B
 
 Namespace A
@@ -477,47 +457,7 @@ End Class", safe:=True, useSymbolAnnotations:=True)
 
         <Fact>
         Public Async Function TestSafeWithMatchingSimpleNameDifferentCase() As Task
-            Await TestAsync(
-"Imports B
-
-Namespace A
-    Class C1
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class C1
-    End Class
-End Namespace
-
-Class C
-    Private Function M(ByVal c2 As A.C2) As c1
-        Return Nothing
-    End Function
-End Class",
-"Imports B
-
-Namespace A
-    Class C1
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class C1
-    End Class
-End Namespace
-
-Class C
-    Private Function M(ByVal c2 As A.C2) As c1
-        Return Nothing
-    End Function
-End Class",
+            Await TestNoImportsAddedAsync(
 "Imports B
 
 Namespace A
@@ -542,47 +482,7 @@ End Class", safe:=True, useSymbolAnnotations:=True)
 
         <Fact>
         Public Async Function TestSafeWithMatchingGenericName() As Task
-            Await TestAsync(
-"Imports B
-
-Namespace A
-    Class C1(Of T)
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class C1(Of T)
-    End Class
-End Namespace
-
-Class C
-    Private Function M(ByVal c2 As A.C2) As C1(Of Integer)
-        Return Nothing
-    End Function
-End Class",
-"Imports B
-
-Namespace A
-    Class C1(Of T)
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class C1(Of T)
-    End Class
-End Namespace
-
-Class C
-    Private Function M(ByVal c2 As A.C2) As C1(Of Integer)
-        Return Nothing
-    End Function
-End Class",
+            Await TestNoImportsAddedAsync(
 "Imports B
 
 Namespace A
@@ -607,51 +507,7 @@ End Class", safe:=True, useSymbolAnnotations:=True)
 
         <Fact>
         Public Async Function TestSafeWithMatchingQualifiedName() As Task
-            Await TestAsync(
-"Imports B
-
-Namespace A
-    Class O
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class O
-        Public Class C1
-        End Class
-    End Class
-End Namespace
-
-Class C
-    Private Function M(ByVal c2 As A.C2) As O.C1
-        Return Nothing
-    End Function
-End Class",
-"Imports B
-
-Namespace A
-    Class O
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class O
-        Public Class C1
-        End Class
-    End Class
-End Namespace
-
-Class C
-    Private Function M(ByVal c2 As A.C2) As O.C1
-        Return Nothing
-    End Function
-End Class",
+            Await TestNoImportsAddedAsync(
 "Imports B
 
 Namespace A
@@ -678,51 +534,7 @@ End Class", safe:=True, useSymbolAnnotations:=True)
 
         <Fact>
         Public Async Function TestSafeWithMatchingAliasedIdentifierName() As Task
-            Await TestAsync(
-"Imports C1 = B.C1
-
-Namespace A
-    Class C1
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class C1
-    End Class
-End Namespace
-
-Namespace Inner
-    Class C
-        Private Function M(ByVal c2 As A.C2) As C1
-            Return Nothing
-        End Function
-    End Class
-End Namespace",
-"Imports C1 = B.C1
-
-Namespace A
-    Class C1
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class C1
-    End Class
-End Namespace
-
-Namespace Inner
-    Class C
-        Private Function M(ByVal c2 As A.C2) As C1
-            Return Nothing
-        End Function
-    End Class
-End Namespace",
+            Await TestNoImportsAddedAsync(
 "Imports C1 = B.C1
 
 Namespace A
@@ -749,59 +561,7 @@ End Namespace", safe:=True, useSymbolAnnotations:=True)
 
         <Fact>
         Public Async Function TestSafeWithMatchingGenericNameAndTypeArguments() As Task
-            Await TestAsync(
-"Imports B
-
-Namespace A
-    Class C1(Of T)
-    End Class
-
-    Class C2
-    End Class
-
-    Class C3
-    End Class
-End Namespace
-
-Namespace B
-    Class C1(Of T)
-    End Class
-
-    Class C3
-    End Class
-End Namespace
-
-Class C
-    Private Function M(ByVal c2 As A.C2) As C1(Of C3)
-        Return Nothing
-    End Function
-End Class",
-"Imports B
-
-Namespace A
-    Class C1(Of T)
-    End Class
-
-    Class C2
-    End Class
-
-    Class C3
-    End Class
-End Namespace
-
-Namespace B
-    Class C1(Of T)
-    End Class
-
-    Class C3
-    End Class
-End Namespace
-
-Class C
-    Private Function M(ByVal c2 As A.C2) As C1(Of C3)
-        Return Nothing
-    End Function
-End Class",
+            Await TestNoImportsAddedAsync(
 "Imports B
 
 Namespace A
@@ -832,63 +592,7 @@ End Class", safe:=True, useSymbolAnnotations:=True)
 
         <Fact>
         Public Async Function TestSafeWithMatchingQualifiedNameAndTypeArguments() As Task
-            Await TestAsync(
-"Imports B
-
-Namespace A
-    Class O
-    End Class
-
-    Class C2
-    End Class
-
-    Class C3
-    End Class
-End Namespace
-
-Namespace B
-    Class C3
-    End Class
-
-    Class O
-        Public Class C1(Of T)
-        End Class
-    End Class
-End Namespace
-
-Class C
-    Private Function M(ByVal c2 As A.C2) As O.C1(Of C3)
-        Return Nothing
-    End Function
-End Class",
-"Imports B
-
-Namespace A
-    Class O
-    End Class
-
-    Class C2
-    End Class
-
-    Class C3
-    End Class
-End Namespace
-
-Namespace B
-    Class C3
-    End Class
-
-    Class O
-        Public Class C1(Of T)
-        End Class
-    End Class
-End Namespace
-
-Class C
-    Private Function M(ByVal c2 As A.C2) As O.C1(Of C3)
-        Return Nothing
-    End Function
-End Class",
+            Await TestNoImportsAddedAsync(
 "Imports B
 
 Namespace A
@@ -921,79 +625,7 @@ End Class", safe:=True, useSymbolAnnotations:=True)
 
         <Fact>
         Public Async Function TestSafeWithMatchingSimpleNameInAllLocations() As Task
-            Await TestAsync(
-"Imports B
-Imports System.Collections.Generic
-
-Namespace A
-    Class C1
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class C1
-        Public Shared ReadOnly Property P As C1
-    End Class
-End Namespace
-
-Class C
-	''' <summary>
-	''' <see cref=""C1""/>
-	''' </summary>
-    Private Function M(ByVal c As C1, ByVal c2 As A.C2) As C1
-        Dim result As C1
-        result = DirectCast(c, C1)
-        result = CType(c, C1)
-        result = new C1()
-        result = C1.P
-        result = new C1(0){}(0)
-        Dim list = New List(Of C1)()
-        Dim tuple As (C1, Integer) = (Nothing, Nothing)
-        Dim t = GetType(C1)
-        Dim s = NameOf(C1)
-
-        Return result
-    End Function
-End Class",
-"Imports B
-Imports System.Collections.Generic
-
-Namespace A
-    Class C1
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class C1
-        Public Shared ReadOnly Property P As C1
-    End Class
-End Namespace
-
-Class C
-	''' <summary>
-	''' <see cref=""C1""/>
-	''' </summary>
-    Private Function M(ByVal c As C1, ByVal c2 As A.C2) As C1
-        Dim result As C1
-        result = DirectCast(c, C1)
-        result = CType(c, C1)
-        result = new C1()
-        result = C1.P
-        result = new C1(0){}(0)
-        Dim list = New List(Of C1)()
-        Dim tuple As (C1, Integer) = (Nothing, Nothing)
-        Dim t = GetType(C1)
-        Dim s = NameOf(C1)
-
-        Return result
-    End Function
-End Class",
+            Await TestNoImportsAddedAsync(
 "Imports B
 Imports System.Collections.Generic
 
@@ -1034,61 +666,7 @@ End Class", safe:=True, useSymbolAnnotations:=True)
 
         <Fact>
         Public Async Function TestSafeWithMatchingExtensionMethod() As Task
-            Await TestAsync(
-"Imports B
-Imports System.Runtime.CompilerServices
-
-Namespace A
-    Friend Module AExtensions
-        <Extension()>
-        Sub M(ByVal a As Integer)
-        End Sub
-    End Module
-
-    Public Class C1
-    End Class
-End Namespace
-
-Namespace B
-    Friend Module BExtensions
-        <Extension()>
-        Sub M(ByVal a As Integer)
-        End Sub
-    End Module
-End Namespace
-
-Friend Class C
-    Private Sub M(ByVal c1 As A.C1)
-		Call 42.M()
-    End Sub
-End Class",
-"Imports B
-Imports System.Runtime.CompilerServices
-
-Namespace A
-    Friend Module AExtensions
-        <Extension()>
-        Sub M(ByVal a As Integer)
-        End Sub
-    End Module
-
-    Public Class C1
-    End Class
-End Namespace
-
-Namespace B
-    Friend Module BExtensions
-        <Extension()>
-        Sub M(ByVal a As Integer)
-        End Sub
-    End Module
-End Namespace
-
-Friend Class C
-    Private Sub M(ByVal c1 As A.C1)
-		Call 42.M()
-    End Sub
-End Class",
+            Await TestNoImportsAddedAsync(
 "Imports B
 Imports System.Runtime.CompilerServices
 
@@ -1120,73 +698,7 @@ End Class", safe:=True, useSymbolAnnotations:=True)
 
         <Fact>
         Public Async Function TestSafeWithMatchingExtensionMethodAndArguments() As Task
-            Await TestAsync(
-"Imports B
-Imports System.Runtime.CompilerServices
-
-Namespace A
-    Friend Module AExtensions
-        <Extension()>
-        Sub M(ByVal a As Integer, ByVal c2 As C2)
-        End Sub
-    End Module
-
-    Public Class C1
-    End Class
-
-    Public Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Friend Module BExtensions
-        <Extension()>
-        Sub M(ByVal a As Integer, ByVal c2 As C2)
-        End Sub
-    End Module
-
-    Public Class C2
-    End Class
-End Namespace
-
-Friend Class C
-    Private Sub M(ByVal c1 As A.C1)
-		Call 42.M(New C2())
-    End Sub
-End Class",
-"Imports B
-Imports System.Runtime.CompilerServices
-
-Namespace A
-    Friend Module AExtensions
-        <Extension()>
-        Sub M(ByVal a As Integer, ByVal c2 As C2)
-        End Sub
-    End Module
-
-    Public Class C1
-    End Class
-
-    Public Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Friend Module BExtensions
-        <Extension()>
-        Sub M(ByVal a As Integer, ByVal c2 As C2)
-        End Sub
-    End Module
-
-    Public Class C2
-    End Class
-End Namespace
-
-Friend Class C
-    Private Sub M(ByVal c1 As A.C1)
-		Call 42.M(New C2())
-    End Sub
-End Class",
+            Await TestNoImportsAddedAsync(
 "Imports B
 Imports System.Runtime.CompilerServices
 
@@ -1224,73 +736,7 @@ End Class", safe:=True, useSymbolAnnotations:=True)
 
         <Fact>
         Public Async Function TestSafeWithMatchingExtensionMethodAndTypeArguments() As Task
-            Await TestAsync(
-"Imports B
-Imports System.Runtime.CompilerServices
-
-Namespace A
-    Friend Module AExtensions
-        <Extension()>
-        Sub M(Of T)(ByVal a As Integer)
-        End Sub
-    End Module
-
-    Public Class C1
-    End Class
-
-    Public Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Friend Module BExtensions
-        <Extension()>
-        Sub M(Of T)(ByVal a As Integer)
-        End Sub
-    End Module
-
-    Public Class C2
-    End Class
-End Namespace
-
-Friend Class C
-    Private Sub M(ByVal c1 As A.C1)
-		Call 42.M(Of C2)()
-    End Sub
-End Class",
-"Imports B
-Imports System.Runtime.CompilerServices
-
-Namespace A
-    Friend Module AExtensions
-        <Extension()>
-        Sub M(Of T)(ByVal a As Integer)
-        End Sub
-    End Module
-
-    Public Class C1
-    End Class
-
-    Public Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Friend Module BExtensions
-        <Extension()>
-        Sub M(Of T)(ByVal a As Integer)
-        End Sub
-    End Module
-
-    Public Class C2
-    End Class
-End Namespace
-
-Friend Class C
-    Private Sub M(ByVal c1 As A.C1)
-		Call 42.M(Of C2)()
-    End Sub
-End Class",
+            Await TestNoImportsAddedAsync(
 "Imports B
 Imports System.Runtime.CompilerServices
 
@@ -1434,51 +880,7 @@ End Class", safe:=True, useSymbolAnnotations:=True)
 
         <Fact, WorkItem(39592, "https://github.com/dotnet/roslyn/issues/39592")>
         Public Async Function TestCanExpandCrefSignaturePart() As Task
-            Await TestAsync(
-"Imports B
-
-Namespace A
-    Class C1
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class C1
-    End Class
-End Namespace
-
-Class C
-    ''' <see cref=""M(C1)""/>
-    Private Sub M(ByVal c2 As A.C2)
-    End Sub
-    Private Sub M(ByVal c1 As C1)
-    End Sub
-End Class",
-"Imports B
-
-Namespace A
-    Class C1
-    End Class
-
-    Class C2
-    End Class
-End Namespace
-
-Namespace B
-    Class C1
-    End Class
-End Namespace
-
-Class C
-    ''' <see cref=""M(C1)""/>
-    Private Sub M(ByVal c2 As A.C2)
-    End Sub
-    Private Sub M(ByVal c1 As C1)
-    End Sub
-End Class",
+            Await TestNoImportsAddedAsync(
 "Imports B
 
 Namespace A
@@ -1505,67 +907,7 @@ End Class", safe:=True, useSymbolAnnotations:=True)
 
         <Fact, WorkItem(39592, "https://github.com/dotnet/roslyn/issues/39592")>
         public async function TestSafeWithLambdaExtensionMethodAmbiguity() As Task
-            Await TestAsync(
-"Imports System
-Imports System.Runtime.CompilerServices
-
-Class C
-    ' Don't add a using for N even though it is used here.
-    Public x As N.Other
-
-    Public Sub Main()
-        M(Sub(x) x.M1())
-    End Sub
-
-    Public Shared Sub M(a As Action(Of C))
-    End Sub
-    Public Shared Sub M(a As Action(Of Integer))
-    End Sub
-
-    Public Sub M1()
-    End Sub
-End Class
-
-Namespace N
-    Public Class Other
-    End Class
-
-    Public Module Extensions
-        <Extension>
-        Public Sub M1(a As Integer)
-        End Sub
-    End Module
-End Namespace",
-"Imports System
-Imports System.Runtime.CompilerServices
-
-Class C
-    ' Don't add a using for N even though it is used here.
-    Public x As N.Other
-
-    Public Sub Main()
-        M(Sub(x) x.M1())
-    End Sub
-
-    Public Shared Sub M(a As Action(Of C))
-    End Sub
-    Public Shared Sub M(a As Action(Of Integer))
-    End Sub
-
-    Public Sub M1()
-    End Sub
-End Class
-
-Namespace N
-    Public Class Other
-    End Class
-
-    Public Module Extensions
-        <Extension>
-        Public Sub M1(a As Integer)
-        End Sub
-    End Module
-End Namespace",
+            Await TestNoImportsAddedAsync(
 "Imports System
 Imports System.Runtime.CompilerServices
 
