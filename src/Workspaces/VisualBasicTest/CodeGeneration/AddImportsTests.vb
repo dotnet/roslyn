@@ -437,6 +437,31 @@ End Class", useSymbolAnnotations:=True)
         End Function
 
         <Fact>
+        Public Async Function TestSafeWithMatchingSimpleName_CaseInsensitive() As Task
+            Await TestNoImportsAddedAsync(
+"Imports B
+
+Namespace A
+    Class c1
+    End Class
+
+    Class C2
+    End Class
+End Namespace
+
+Namespace B
+    Class C1
+    End Class
+End Namespace
+
+Class C
+    Private Function M(ByVal c2 As A.C2) As C1
+        Return Nothing
+    End Function
+End Class", useSymbolAnnotations:=True)
+        End Function
+
+        <Fact>
         Public Async Function TestSafeWithMatchingSimpleNameDifferentCase() As Task
             Await TestNoImportsAddedAsync(
 "Imports B
