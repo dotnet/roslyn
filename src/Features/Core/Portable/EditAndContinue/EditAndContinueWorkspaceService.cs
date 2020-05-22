@@ -309,8 +309,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // internal for testing
         internal static IEnumerable<TextSpan> GetSpansInNewDocument(IEnumerable<TextChange> changes)
         {
-            int oldPosition = 0;
-            int newPosition = 0;
+            var oldPosition = 0;
+            var newPosition = 0;
             foreach (var change in changes)
             {
                 if (change.Span.Start < oldPosition)

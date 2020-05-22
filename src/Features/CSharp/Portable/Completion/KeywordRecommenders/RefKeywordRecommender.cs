@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsValidNewByRefContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidNewByRefContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return
                 IsValidRefExpressionContext(context) ||

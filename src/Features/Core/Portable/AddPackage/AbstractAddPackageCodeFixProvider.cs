@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             return codeActions.ToImmutableAndFree();
         }
 
-        private async Task<ImmutableArray<PackageWithAssemblyResult>> FindMatchingPackagesAsync(
+        private static async Task<ImmutableArray<PackageWithAssemblyResult>> FindMatchingPackagesAsync(
             PackageSource source,
             ISymbolSearchService searchService,
             ISet<string> assemblyNames,

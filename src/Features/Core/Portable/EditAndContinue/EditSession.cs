@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var builderDisposer = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(instructionMap.Count, out var builder);
                 builder.Count = instructionMap.Count;
 
-                bool hasOutOfSyncDocuments = false;
+                var hasOutOfSyncDocuments = false;
 
                 foreach (var activeStatement in instructionMap.Values)
                 {
@@ -554,12 +554,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async Task<ProjectAnalysisSummary> GetProjectAnalysisSymmaryAsync(
+        private static async Task<ProjectAnalysisSummary> GetProjectAnalysisSymmaryAsync(
             ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)> documentAnalyses,
             CancellationToken cancellationToken)
         {
-            bool hasChanges = false;
-            bool hasSignificantValidChanges = false;
+            var hasChanges = false;
+            var hasSignificantValidChanges = false;
 
             foreach (var analysis in documentAnalyses)
             {
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 var baseSolution = DebuggingSession.LastCommittedSolution;
 
-                bool isBlocked = false;
+                var isBlocked = false;
                 foreach (var project in solution.Projects)
                 {
                     await PopulateChangedAndAddedDocumentsAsync(baseSolution, project, changedDocuments, addedDocuments, cancellationToken).ConfigureAwait(false);
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // we need to check with the debugger.
                     var (moduleDiagnostics, isModuleLoaded) = await GetModuleDiagnosticsAsync(mvid, project.Name, cancellationToken).ConfigureAwait(false);
 
-                    bool isModuleEncBlocked = isModuleLoaded && !moduleDiagnostics.IsEmpty;
+                    var isModuleEncBlocked = isModuleLoaded && !moduleDiagnostics.IsEmpty;
                     if (isModuleEncBlocked)
                     {
                         diagnostics.Add((project.Id, moduleDiagnostics));
@@ -918,8 +918,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             debugInfoReaderProvider = null;
             metadataReaderProvider = null;
 
-            bool success = false;
-            string fileBeingRead = compilationOutputs.PdbDisplayPath;
+            var success = false;
+            var fileBeingRead = compilationOutputs.PdbDisplayPath;
             try
             {
                 debugInfoReaderProvider = compilationOutputs.OpenPdb();

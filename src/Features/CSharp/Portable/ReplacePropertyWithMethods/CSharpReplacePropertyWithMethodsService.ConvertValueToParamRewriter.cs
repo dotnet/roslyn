@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             {
             }
 
-            private XmlNameSyntax ConvertToParam(XmlNameSyntax name)
+            private static XmlNameSyntax ConvertToParam(XmlNameSyntax name)
                 => name.ReplaceToken(name.LocalName, SyntaxFactory.Identifier("param"));
 
             public override SyntaxNode VisitXmlElementStartTag(XmlElementStartTagSyntax node)

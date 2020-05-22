@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var properties = new List<ISymbol>();
                     foreach (var referencedSymbol in referencedSymbols)
                     {
-                        var property = await RenameLocations.ReferenceProcessing.GetPropertyFromAccessorOrAnOverrideAsync(
+                        var property = await RenameLocations.ReferenceProcessing.TryGetPropertyFromAccessorOrAnOverrideAsync(
                             referencedSymbol, baseSolution, cancellationToken).ConfigureAwait(false);
                         if (property != null)
                         {
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             }
         }
 
-        private void AddSymbolSourceSpans(
+        private static void AddSymbolSourceSpans(
             ArrayBuilder<Location> conflicts, IEnumerable<ISymbol> symbols,
             IDictionary<Location, Location> reverseMappedLocations)
         {

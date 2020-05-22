@@ -130,28 +130,29 @@ namespace Microsoft.CodeAnalysis.Rename
 
             using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
             {
-                var project = solution.GetOriginatingProject(symbol);
-                if (project != null)
+                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
                 {
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                     if (client != null)
                     {
-                        var result = await client.TryRunRemoteAsync<SerializableRenameLocations>(
-                            WellKnownServiceHubServices.CodeAnalysisService,
+                        var result = await client.TryRunRemoteAsync<SerializableRenameLocations?>(
+                            WellKnownServiceHubService.CodeAnalysis,
                             nameof(IRemoteRenamer.FindRenameLocationsAsync),
                             solution,
                             new object[]
                             {
-                                SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
+                                serializedSymbol,
                                 SerializableRenameOptionSet.Dehydrate(optionSet),
                             },
                             callbackTarget: null,
                             cancellationToken).ConfigureAwait(false);
 
-                        if (result.HasValue)
+                        if (result.HasValue && result.Value != null)
                         {
-                            return await RenameLocations.RehydrateAsync(
+                            var rehydrated = await RenameLocations.TryRehydrateAsync(
                                 solution, result.Value, cancellationToken).ConfigureAwait(false);
+                            if (rehydrated != null)
+                                return rehydrated;
                         }
                     }
                 }

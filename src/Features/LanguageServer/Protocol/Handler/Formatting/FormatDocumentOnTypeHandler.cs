@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             string? clientName, CancellationToken cancellationToken)
         {
             var edits = new ArrayBuilder<TextEdit>();
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
+            var document = solution.GetDocument(request.TextDocument, clientName);
             if (document != null)
             {
                 var formattingService = document.Project.LanguageServices.GetRequiredService<IEditorFormattingService>();

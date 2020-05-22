@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             }
         }
 
-        private void UpdateLocation(
+        private static void UpdateLocation(
             SemanticModel semanticModel, INamedTypeSymbol interfaceType,
             SyntaxEditor editor, ISyntaxFactsService syntaxFacts,
             Location location, CancellationToken cancellationToken)

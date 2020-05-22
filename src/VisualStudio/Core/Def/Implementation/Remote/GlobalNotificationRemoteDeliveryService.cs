@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
 
             _ = await client.TryRunRemoteAsync(
-                WellKnownServiceHubServices.CodeAnalysisService,
+                WellKnownServiceHubService.CodeAnalysis,
                 nameof(IRemoteGlobalNotificationDeliveryService.OnGlobalOperationStarted),
                 solution: null,
                 Array.Empty<object>(),
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
 
             _ = await client.TryRunRemoteAsync(
-                WellKnownServiceHubServices.CodeAnalysisService,
+                WellKnownServiceHubService.CodeAnalysis,
                 nameof(IRemoteGlobalNotificationDeliveryService.OnGlobalOperationStopped),
                 solution: null,
                 new object[] { e.Operations, e.Cancelled },

@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return Nothing
         End Function
 
-        Private Function TryGetObjectCreationExpression(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef expression As ObjectCreationExpressionSyntax) As Boolean
+        Private Shared Function TryGetObjectCreationExpression(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef expression As ObjectCreationExpressionSyntax) As Boolean
             If Not CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, AddressOf IsTriggerToken, AddressOf IsArgumentListToken, cancellationToken, expression) Then
                 Return False
             End If

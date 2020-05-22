@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<object[]> HandleRequestAsync(Solution solution, DocumentSymbolParams request,
             ClientCapabilities clientCapabilities, string clientName, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
+            var document = solution.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return Array.Empty<SymbolInformation>();

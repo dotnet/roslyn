@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.CompletionItem[]> HandleRequestAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities,
             string? clientName, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
+            var document = solution.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return Array.Empty<LSP.CompletionItem>();

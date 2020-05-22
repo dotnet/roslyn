@@ -554,6 +554,16 @@
         <target state="translated">分析器配置文件中的严重性无效。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
+        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
+        <target state="new">Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
+        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
+        <target state="new">Multiple global analyzer config files set the same key. It has been unset.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
         <target state="translated">WindowsRuntime 标识不可重定目标</target>

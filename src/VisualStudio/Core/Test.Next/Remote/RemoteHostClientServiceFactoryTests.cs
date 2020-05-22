@@ -102,7 +102,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var mock = new MockLogAndProgressService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            using var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
+            using var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
             await session.RunRemoteAsync(
                 nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
                 solution: null,
@@ -120,17 +120,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             service.Enable();
 
             var client = (InProcRemoteHostClient)await service.TryGetRemoteHostClientAsync(CancellationToken.None);
+            var serviceName = new RemoteServiceName("Test");
 
             // register local service
             TestService testService = null;
-            client.RegisterService("Test", (s, p) =>
+            client.RegisterService(serviceName, (s, p) =>
             {
                 testService = new TestService(s, p);
                 return testService;
             });
 
             // create session that stay alive until client alive (ex, SymbolSearchUpdateEngine)
-            using var session = await client.TryCreateKeepAliveSessionAsync("Test", callbackTarget: null, CancellationToken.None);
+            using var session = await client.TryCreateKeepAliveSessionAsync(serviceName, callbackTarget: null, CancellationToken.None);
 
             // mimic unfortunate call that happens to be in the middle of communication.
             var task = session.RunRemoteAsync("TestMethodAsync", solution: null, arguments: null, CancellationToken.None);

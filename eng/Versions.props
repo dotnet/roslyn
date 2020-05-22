@@ -8,7 +8,7 @@
     <MajorVersion>3</MajorVersion>
     <MinorVersion>7</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>3</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
@@ -23,7 +23,7 @@
     </MajorVersion>
     <MinorVersion>
     </MinorVersion>
-    <MicrosoftNetCompilersToolsetVersion>3.7.0-2.20259.1</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>3.7.0-2.20267.1</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
@@ -33,7 +33,7 @@
     <CodeStyleAnalyzerVersion>3.7.0-1.20210.7</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.4.248</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
-    <MicrosoftVisualStudioLanguageServerPackagesVersion>16.7.12-g74a1f6f85d</MicrosoftVisualStudioLanguageServerPackagesVersion>
+    <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.7.29</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
   </PropertyGroup>
   <!--
     Dependency versions
@@ -120,9 +120,9 @@
     <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.8.27812-alpha</MicrosoftVisualStudioLanguageCallHierarchyVersion>
     <MicrosoftVisualStudioLanguageIntellisenseVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageIntellisenseVersion>
     <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>16.0.467</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
-    <MicrosoftVisualStudioLanguageServerProtocolVersion>$(MicrosoftVisualStudioLanguageServerPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolVersion>
-    <MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>$(MicrosoftVisualStudioLanguageServerPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>
-    <MicrosoftVisualStudioLanguageServerClientVersion>$(MicrosoftVisualStudioLanguageServerPackagesVersion)</MicrosoftVisualStudioLanguageServerClientVersion>
+    <MicrosoftVisualStudioLanguageServerProtocolVersion>$(MicrosoftVisualStudioLanguageServerProtocolPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolVersion>
+    <MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>$(MicrosoftVisualStudioLanguageServerProtocolPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>
+    <MicrosoftVisualStudioLanguageServerClientVersion>16.6.47</MicrosoftVisualStudioLanguageServerClientVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageStandardClassificationVersion>
     <MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>2.0.1</MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>
     <MicrosoftVisualStudioLiveShareWebEditorsVersion>2.2.0-preview1-t001</MicrosoftVisualStudioLiveShareWebEditorsVersion>

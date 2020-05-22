@@ -27,9 +27,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 {
     internal class FindUsagesLSPContext : FindUsagesContext
     {
-        private const int MaxResultsChunkSize = 32;
-
-        private readonly IProgress<object[]> _progress;
         private readonly Document _document;
         private readonly int _position;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -53,13 +50,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         public override CancellationToken CancellationToken { get; }
 
         public FindUsagesLSPContext(
-            IProgress<object[]> progress,
             Document document,
             int position,
             IMetadataAsSourceFileService metadataAsSourceFileService,
             CancellationToken cancellationToken)
         {
-            _progress = progress;
             _document = document;
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
@@ -67,27 +62,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             CancellationToken = cancellationToken;
         }
 
-        public override async Task OnCompletedAsync()
-        {
-            using var _ = ArrayBuilder<VSReferenceItem>.GetInstance(out var referencesToReport);
-            using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
-            {
-                if (_resultsChunk.IsEmpty())
-                {
-                    return;
-                }
-
-                referencesToReport.AddRange(_resultsChunk.ToArray());
-                _resultsChunk.Clear();
-            }
-
-            // We can report outside of the lock here since _progress is thread-safe.
-            _progress.Report(referencesToReport.ToArray());
-        }
+        public List<VSReferenceItem> GetReferences() => _resultsChunk;
 
         public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
         {
-            using var _ = ArrayBuilder<VSReferenceItem>.GetInstance(out var referencesToReport);
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
                 if (_definitionToId.ContainsKey(definition))
@@ -120,16 +98,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 if (definitionItem != null)
                 {
-                    AddToReferencesToReport_MustBeCalledUnderLock(referencesToReport, definitionItem);
+                    AddToReferencesToReport_MustBeCalledUnderLock(definitionItem);
                 }
             }
-
-            ReportIfNotEmpty(referencesToReport);
         }
 
         public override async Task OnReferenceFoundAsync(SourceReferenceItem reference)
         {
-            using var _ = ArrayBuilder<VSReferenceItem>.GetInstance(out var referencesToReport);
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
                 // Each reference should be associated with a definition. If this somehow isn't the
@@ -149,25 +124,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 if (referenceItem != null)
                 {
-                    AddToReferencesToReport_MustBeCalledUnderLock(referencesToReport, referenceItem);
+                    AddToReferencesToReport_MustBeCalledUnderLock(referenceItem);
                 }
             }
-
-            ReportIfNotEmpty(referencesToReport);
         }
 
-        private void AddToReferencesToReport_MustBeCalledUnderLock(ArrayBuilder<VSReferenceItem> referencesToReport, VSReferenceItem item)
+        private void AddToReferencesToReport_MustBeCalledUnderLock(VSReferenceItem item)
         {
             Debug.Assert(_semaphore.CurrentCount == 0);
-
             _resultsChunk.Add(item);
-            if (_resultsChunk.Count < MaxResultsChunkSize)
-            {
-                return;
-            }
-
-            referencesToReport.AddRange(_resultsChunk.ToArray());
-            _resultsChunk.Clear();
         }
 
         private static async Task<LSP.VSReferenceItem?> GenerateVSReferenceItemAsync(
@@ -287,17 +252,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 return null;
             }
-        }
-
-        private void ReportIfNotEmpty(ArrayBuilder<VSReferenceItem> referencesToReport)
-        {
-            if (referencesToReport.IsEmpty())
-            {
-                return;
-            }
-
-            // We can report outside of the lock here since _progress is thread-safe.
-            _progress.Report(referencesToReport.ToArray());
         }
     }
 }

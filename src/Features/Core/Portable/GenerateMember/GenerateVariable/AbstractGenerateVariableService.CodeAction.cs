@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     : default;
             }
 
-            private Accessibility DetermineMaximalAccessibility(State state)
+            private static Accessibility DetermineMaximalAccessibility(State state)
             {
                 if (state.TypeToGenerateIn.TypeKind == TypeKind.Interface)
                 {
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            private bool DerivesFrom(State state, INamedTypeSymbol containingType)
+            private static bool DerivesFrom(State state, INamedTypeSymbol containingType)
             {
                 return containingType.GetBaseTypes().Select(t => t.OriginalDefinition)
                                                     .Contains(state.TypeToGenerateIn);

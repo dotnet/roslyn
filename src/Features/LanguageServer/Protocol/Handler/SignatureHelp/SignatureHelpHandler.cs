@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.SignatureHelp> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
             LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
+            var document = solution.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return new LSP.SignatureHelp();
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// separator and a suffix. Parameters themselves have a prefix, display and suffix.
         /// Concatenate them all to get the text.
         /// </summary>
-        private string GetSignatureText(SignatureHelpItem item)
+        private static string GetSignatureText(SignatureHelpItem item)
         {
             var sb = new StringBuilder();
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return sb.ToString();
         }
-        private ClassifiedTextElement GetSignatureClassifiedText(SignatureHelpItem item)
+        private static ClassifiedTextElement GetSignatureClassifiedText(SignatureHelpItem item)
         {
             var taggedTexts = new ArrayBuilder<TaggedText>();
 

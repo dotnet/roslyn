@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return new NodeOperations(indentBlockOperation, suppressOperation, anchorIndentationOperations, alignmentOperation);
         }
 
-        private List<T> AddOperations<T>(List<SyntaxNode> nodes, Action<List<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
+        private static List<T> AddOperations<T>(List<SyntaxNode> nodes, Action<List<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
         {
             var operations = new List<T>();
             var list = new List<T>();
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return TextSpan.FromBounds(startPosition, endPosition);
         }
 
-        private void ApplySpecialOperations(
+        private static void ApplySpecialOperations(
             FormattingContext context, NodeOperations nodeOperationsCollector, OperationApplier applier, CancellationToken cancellationToken)
         {
             // apply alignment operation
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private void ApplyAnchorOperations(
+        private static void ApplyAnchorOperations(
             FormattingContext context,
             TokenPairWithOperations[] tokenOperations,
             OperationApplier applier,
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return false;
         }
 
-        private SyntaxToken FindCorrectBaseTokenOfRelativeIndentBlockOperation(IndentBlockOperation operation, TokenStream tokenStream)
+        private static SyntaxToken FindCorrectBaseTokenOfRelativeIndentBlockOperation(IndentBlockOperation operation, TokenStream tokenStream)
         {
             if (operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine))
             {
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return operation.BaseToken;
         }
 
-        private void ApplySpaceAndWrappingOperations(
+        private static void ApplySpaceAndWrappingOperations(
             FormattingContext context,
             TokenPairWithOperations[] tokenOperations,
             OperationApplier applier,
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private void BuildContext(
+        private static void BuildContext(
             FormattingContext context,
             NodeOperations nodeOperations,
             CancellationToken cancellationToken)

@@ -19,6 +19,8 @@ using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
+#pragma warning disable CA1822 // Mark members as static - Multiple 'JsonRpcMethod' attribute annotated methods.
+
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal class LanguageServer : ServiceBase

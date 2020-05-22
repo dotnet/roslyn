@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return Task.FromResult(new LSP.InitializeResult
             {
-                Capabilities = new LSP.ServerCapabilities
+                Capabilities = new LSP.VSServerCapabilities
                 {
                     DefinitionProvider = true,
                     RenameProvider = true,
@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     DocumentOnTypeFormattingProvider = new LSP.DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } },
                     DocumentHighlightProvider = true,
                     ReferencesProvider = true,
+                    ProjectContextProvider = true
                 }
             });
         }

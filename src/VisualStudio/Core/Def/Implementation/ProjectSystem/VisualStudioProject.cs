@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.PlatformUI;
 using Roslyn.Utilities;
@@ -67,6 +68,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string? _outputFilePath;
         private string? _outputRefFilePath;
         private string? _defaultNamespace;
+
+        /// <summary>
+        /// If this project is the 'primary' project the project system cares about for a group of Roslyn projects that
+        /// correspond to different configurations of a single project system project. <see langword="true"/> by
+        /// default.
+        /// </summary>
+        internal bool IsPrimary { get; set; } = true;
 
         // Actual property values for 'RunAnalyzers' and 'RunAnalyzersDuringLiveAnalysis' properties from the project file.
         // Both these properties can be used to configure running analyzers, with RunAnalyzers overriding RunAnalyzersDuringLiveAnalysis.

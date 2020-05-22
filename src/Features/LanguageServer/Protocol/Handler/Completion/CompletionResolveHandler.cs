@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var request = data.CompletionParams;
 
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
+            var document = solution.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return completionItem;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return resolvedCompletionItem;
         }
 
-        private LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)
+        private static LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)
         {
             return new LSP.VSCompletionItem
             {

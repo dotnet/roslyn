@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsConstructorInitializerContext(CSharpSyntaxContext context)
+        private static bool IsConstructorInitializerContext(CSharpSyntaxContext context)
         {
             // cases:
             //   Goo() : |
