@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -46,8 +47,18 @@ namespace Microsoft.CodeAnalysis.Editing
             // Create a simple interval tree for simplification spans.
             var spansTree = new SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), spans);
 
-            var nodes = root.DescendantNodesAndSelf().Where(
-                n => spansTree.HasIntervalThatOverlapsWith(n.FullSpan.Start, n.FullSpan.Length));
+            Func<SyntaxNode, bool> overlapsWithSpan = n => spansTree.HasIntervalThatOverlapsWith(n.FullSpan.Start, n.FullSpan.Length);
+
+            // Only dive deeper into nodes that actually overlap with the span we care about.  And also only include
+            // those child nodes that themselves overlap with the span.  i.e. if we have:
+            //
+            //                Parent
+            //       /                    \
+            //      A  [|   B     C   |]   D
+            //
+            // We'll dive under the parent because it overlaps with the span.  But we only want to include (and dive
+            // into) B and C not A and D.
+            var nodes = root.DescendantNodesAndSelf(overlapsWithSpan).Where(overlapsWithSpan);
 
             var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
 
