@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var originalListWithoutRemovedOrAdded = originalListOfParameters.Where(p => updatedListOfParameters.Contains(p)).ToImmutableArray();
             var updatedListWithoutRemovedOrAdded = updatedListOfParameters.Where(p => originalListOfParameters.Contains(p)).ToImmutableArray();
 
-            for (int i = 0; i < originalListWithoutRemovedOrAdded.Length; i++)
+            for (var i = 0; i < originalListWithoutRemovedOrAdded.Length; i++)
             {
                 if (originalListWithoutRemovedOrAdded[i] != updatedListWithoutRemovedOrAdded[i])
                 {
