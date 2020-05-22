@@ -221,11 +221,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var symbolToMatch = symbolInfoToMatch.Symbol;
                 var symbolToMatchCompilation = model.Compilation;
 
-                if (SymbolFinder.OriginalSymbolsMatch(searchSymbol, symbolInfoToMatch.Symbol, solution, null, symbolToMatchCompilation, cancellationToken))
+                if (SymbolFinder.OriginalSymbolsMatch(searchSymbol, symbolInfoToMatch.Symbol, solution, null, symbolToMatchCompilation))
                 {
                     return (matched: true, CandidateReason.None);
                 }
-                else if (symbolInfoToMatch.CandidateSymbols.Any(s => SymbolFinder.OriginalSymbolsMatch(searchSymbol, s, solution, null, symbolToMatchCompilation, cancellationToken)))
+                else if (symbolInfoToMatch.CandidateSymbols.Any(s => SymbolFinder.OriginalSymbolsMatch(searchSymbol, s, solution, null, symbolToMatchCompilation)))
                 {
                     return (matched: true, symbolInfoToMatch.CandidateReason);
                 }

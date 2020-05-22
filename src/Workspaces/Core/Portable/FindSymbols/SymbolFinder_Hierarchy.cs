@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var sourceMember = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                         var bestMember = sourceMember ?? m;
 
-                        if (IsOverride(solution, bestMember, symbol, cancellationToken))
+                        if (IsOverride(solution, bestMember, symbol))
                         {
                             results.Add(bestMember);
                         }
@@ -63,12 +63,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return results.ToImmutableAndFree();
         }
 
-        internal static bool IsOverride(
-            Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
+        internal static bool IsOverride(Solution solution, ISymbol member, ISymbol symbol)
         {
             for (var current = member; current != null; current = current.OverriddenMember())
             {
-                if (OriginalSymbolsMatch(current.OverriddenMember(), symbol.OriginalDefinition, solution, cancellationToken))
+                if (OriginalSymbolsMatch(current.OverriddenMember(), symbol.OriginalDefinition, solution))
                 {
                     return true;
                 }
@@ -142,8 +141,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                     var sourceMethod = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                                     var bestMethod = sourceMethod ?? m;
 
-                                    var implementations = await type.FindImplementationsForInterfaceMemberAsync(
-                                        bestMethod, solution, cancellationToken).ConfigureAwait(false);
+                                    var implementations = type.FindImplementationsForInterfaceMember(bestMethod, solution, cancellationToken);
                                     foreach (var implementation in implementations)
                                     {
                                         if (implementation != null &&
@@ -333,9 +331,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
 
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
             // A symbol can only have implementations if it's an interface or a
             // method/property/event from an interface.
             if (symbol is INamedTypeSymbol namedTypeSymbol)
@@ -369,7 +364,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
             foreach (var t in allTypes)
             {
-                var implementations = await t.FindImplementationsForInterfaceMemberAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+                var implementations = t.FindImplementationsForInterfaceMember(symbol, solution, cancellationToken);
                 foreach (var implementation in implementations)
                 {
                     var sourceDef = await FindSourceDefinitionAsync(implementation, solution, cancellationToken).ConfigureAwait(false);
