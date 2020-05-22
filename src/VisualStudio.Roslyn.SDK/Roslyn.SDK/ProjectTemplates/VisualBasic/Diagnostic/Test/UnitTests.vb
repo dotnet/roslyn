@@ -1,12 +1,11 @@
 ﻿Imports $saferootprojectname$
-Imports $saferootprojectname$.Test.TestHelper
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.VisualStudio.TestTools.UnitTesting
 Imports System.Threading
 Imports System.Threading.Tasks
-Imports Verify = Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.MSTest.CodeFixVerifier(
+Imports Verify = Microsoft.CodeAnalysis.VisualBasic.Testing.MSTest.CodeFixVerifier(
     Of $saferootprojectname$.$saferootidentifiername$Analyzer,
     $saferootprojectname$.$saferootidentifiername$CodeFixProvider)
 
@@ -18,7 +17,7 @@ Namespace $safeprojectname$
         <TestMethod>
         Public Async Function TestMethod1() As Task
             Dim test = ""
-            Await Verify.VerifyBasicDiagnosticAsync(test)
+            Await Verify.VerifyAnalyzerAsync(test)
         End Function
 
         'Diagnostic And CodeFix both triggered And checked for
@@ -44,7 +43,7 @@ Module MODULE1
 End Module"
 
             Dim expected = Verify.Diagnostic("$saferootidentifiername$").WithLocation(2, 8).WithArguments("Module1")
-            Await Verify.VerifyBasicFixAsync(test, expected, fixtest)
+            Await Verify.VerifyCodeFixAsync(test, expected, fixtest)
         End Function
 
     End Class
