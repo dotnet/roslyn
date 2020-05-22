@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 var current = root.GetCurrentNode(this.Node);
                 var newNodes = _modifier(current, generator).ToList();
-                for (int i = 0; i < newNodes.Count; i++)
+                for (var i = 0; i < newNodes.Count; i++)
                 {
                     newNodes[i] = _editor.ApplyTrackingToNewNode(newNodes[i]);
                 }
