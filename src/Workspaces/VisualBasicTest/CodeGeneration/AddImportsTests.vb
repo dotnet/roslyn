@@ -61,26 +61,21 @@ End NameSpace"
 
         Private Shared Function TestNoImportsAddedAsync(
             initialText As String,
-            safe As Boolean,
             useSymbolAnnotations As Boolean,
             Optional optionsTransform As Func(Of OptionSet, OptionSet) = Nothing,
             Optional globalImports As String() = Nothing) As Task
 
-            Return TestAsync(initialText, initialText, initialText, safe, useSymbolAnnotations, optionsTransform, globalImports, performCheck:=False)
+            Return TestAsync(initialText, initialText, initialText, useSymbolAnnotations, optionsTransform, globalImports, performCheck:=False)
         End Function
 
         Private Shared Async Function TestAsync(
                 initialText As String,
                 importsAddedText As String,
                 simplifiedText As String,
-                safe As Boolean,
                 useSymbolAnnotations As Boolean,
                 Optional optionsTransform As Func(Of OptionSet, OptionSet) = Nothing,
                 Optional globalImports As String() = Nothing,
                 Optional performCheck As Boolean = True) As Task
-            If safe <> useSymbolAnnotations Then
-                Return
-            End If
 
             If performCheck Then
                 If initialText = importsAddedText AndAlso importsAddedText = simplifiedText Then
@@ -114,24 +109,12 @@ End NameSpace"
         End Function
 
         Public Shared TestAllData As Object()() = {
-            New Object() {False, False},
-            New Object() {False, True},
-            New Object() {True, False},
-            New Object() {True, True}
-        }
-
-        Public Shared TestSyntaxesData As Object()() = {
-            New Object() {False, False},
-            New Object() {True, False}
-        }
-
-        Public Shared TestSymbolsData As Object()() = {
-            New Object() {False, True},
-            New Object() {True, True}
+            New Object() {False},
+            New Object() {True}
         }
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestAddImport(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestAddImport(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Class C
     Public F As System.Collections.Generic.List(Of Integer)
@@ -145,11 +128,11 @@ End Class",
 
 Class C
     Public F As List(Of Integer)
-End Class", safe, useSymbolAnnotations)
+End Class", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestAddSystemImportFirst(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestAddSystemImportFirst(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports N
 
@@ -167,11 +150,11 @@ Imports N
 
 Class C
     Public F As List(Of Integer)
-End Class", safe, useSymbolAnnotations)
+End Class", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestDontAddSystemImportFirst(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestDontAddSystemImportFirst(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports N
 
@@ -190,13 +173,12 @@ Imports System.Collections.Generic
 Class C
     Public F As List(Of Integer)
 End Class",
-            safe,
             useSymbolAnnotations,
             Function(options) options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, False))
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestAddImportsInOrder(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestAddImportsInOrder(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports System.Collections
 Imports System.Diagnostics
@@ -217,11 +199,11 @@ Imports System.Diagnostics
 
 Class C
     Public F As List(Of Integer)
-End Class", safe, useSymbolAnnotations)
+End Class", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestAddMultipleImportsInOrder(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestAddMultipleImportsInOrder(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports System.Collections
 Imports System.Diagnostics
@@ -247,11 +229,11 @@ Imports System.Diagnostics
 Class C
     Public F As List(Of Integer)
     Public Handler As EventHandler
-End Class", safe, useSymbolAnnotations)
+End Class", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestImportNotAddedAgainIfAlreadyExists(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestImportNotAddedAgainIfAlreadyExists(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports System.Collections.Generic
 
@@ -267,11 +249,11 @@ End Class",
 
 Class C
     Public F As List(Of Integer)
-End Class", safe, useSymbolAnnotations)
+End Class", useSymbolAnnotations)
         End Function
 
-        <Theory, MemberData(NameOf(TestSyntaxesData))>
-        Public Async Function TestBuiltInTypeFromSyntaxes(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        <Fact>
+        Public Async Function TestBuiltInTypeFromSyntaxes() As Task
             Await TestAsync(
 "Class C
     Public F As System.Int32
@@ -283,11 +265,11 @@ Class C
 End Class",
 "Class C
     Public F As Integer
-End Class", safe, useSymbolAnnotations)
+End Class", useSymbolAnnotations:=False)
         End Function
 
-        <Theory, MemberData(NameOf(TestSymbolsData))>
-        Public Async Function TestBuiltInTypeFromSymbols(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        <Fact>
+        Public Async Function TestBuiltInTypeFromSymbols() As Task
             Await TestAsync(
 "Class C
     Public F As System.Int32
@@ -297,11 +279,11 @@ End Class",
 End Class",
 "Class C
     Public F As Integer
-End Class", safe, useSymbolAnnotations)
+End Class", useSymbolAnnotations:=True)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestImportNotAddedIfGloballyImported(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestImportNotAddedIfGloballyImported(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
     "Class C
     Public F As System.Collections.Generic.List(Of Integer)
@@ -312,21 +294,20 @@ End Class",
     "Class C
     Public F As List(Of Integer)
 End Class",
-    safe,
     useSymbolAnnotations,
     globalImports:={"System.Collections.Generic"})
 
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestImportNotAddedForNamespaceDeclarations(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestImportNotAddedForNamespaceDeclarations(useSymbolAnnotations As Boolean) As Task
             Await TestNoImportsAddedAsync(
 "Namespace N
-End Namespace", safe, useSymbolAnnotations)
+End Namespace", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestImportAddedAndRemovedForReferencesInsideNamespaceDeclarations(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestImportAddedAndRemovedForReferencesInsideNamespaceDeclarations(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
         "Namespace N
     Class C
@@ -342,11 +323,11 @@ End Namespace",
     Class C
         Private _c As C
     End Class
-End Namespace", safe, useSymbolAnnotations)
+End Namespace", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestRemoveImportIfItMakesReferencesAmbiguous(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestRemoveImportIfItMakesReferencesAmbiguous(useSymbolAnnotations As Boolean) As Task
             ' this is not really an artifact of the AddImports feature, it is due
             ' to Simplifier not reducing the namespace reference because it would 
             ' become ambiguous, thus leaving an unused imports statement
@@ -380,11 +361,11 @@ End Namespace
 Class C
     Private F As N.C
 End Class
-", safe, useSymbolAnnotations)
+", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestPartialNamespacesNotUsed(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestPartialNamespacesNotUsed(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports System.Collections
 
@@ -405,11 +386,11 @@ Imports System.Collections.Generic
 Public Class C
     Public F1 As ArrayList
     Public F2 As List(Of Integer)
-End Class", safe, useSymbolAnnotations)
+End Class", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestDontAddImportWithExisitingImportDifferentCase(safe As Boolean, useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestDontAddImportWithExisitingImportDifferentCase(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports system.collections.generic
 
@@ -425,7 +406,7 @@ End Class",
 
 Class C
     Public F As List(Of Integer)
-End Class", safe, useSymbolAnnotations)
+End Class", useSymbolAnnotations)
         End Function
 
 #Region "AddImports Safe Tests"
@@ -452,7 +433,7 @@ Class C
     Private Function M(ByVal c2 As A.C2) As C1
         Return Nothing
     End Function
-End Class", safe:=True, useSymbolAnnotations:=True)
+End Class", useSymbolAnnotations:=True)
         End Function
 
         <Fact>
@@ -477,7 +458,7 @@ Class C
     Private Function M(ByVal c2 As A.C2) As c1
         Return Nothing
     End Function
-End Class", safe:=True, useSymbolAnnotations:=True)
+End Class", useSymbolAnnotations:=True)
         End Function
 
         <Fact>
@@ -502,7 +483,7 @@ Class C
     Private Function M(ByVal c2 As A.C2) As C1(Of Integer)
         Return Nothing
     End Function
-End Class", safe:=True, useSymbolAnnotations:=True)
+End Class", useSymbolAnnotations:=True)
         End Function
 
         <Fact>
@@ -529,7 +510,7 @@ Class C
     Private Function M(ByVal c2 As A.C2) As O.C1
         Return Nothing
     End Function
-End Class", safe:=True, useSymbolAnnotations:=True)
+End Class", useSymbolAnnotations:=True)
         End Function
 
         <Fact>
@@ -556,7 +537,7 @@ Namespace Inner
             Return Nothing
         End Function
     End Class
-End Namespace", safe:=True, useSymbolAnnotations:=True)
+End Namespace", useSymbolAnnotations:=True)
         End Function
 
         <Fact>
@@ -587,7 +568,7 @@ Class C
     Private Function M(ByVal c2 As A.C2) As C1(Of C3)
         Return Nothing
     End Function
-End Class", safe:=True, useSymbolAnnotations:=True)
+End Class", useSymbolAnnotations:=True)
         End Function
 
         <Fact>
@@ -620,7 +601,7 @@ Class C
     Private Function M(ByVal c2 As A.C2) As O.C1(Of C3)
         Return Nothing
     End Function
-End Class", safe:=True, useSymbolAnnotations:=True)
+End Class", useSymbolAnnotations:=True)
         End Function
 
         <Fact>
@@ -661,7 +642,7 @@ Class C
 
         Return result
     End Function
-End Class", safe:=True, useSymbolAnnotations:=True)
+End Class", useSymbolAnnotations:=True)
         End Function
 
         <Fact>
@@ -693,7 +674,7 @@ Friend Class C
     Private Sub M(ByVal c1 As A.C1)
 		Call 42.M()
     End Sub
-End Class", safe:=True, useSymbolAnnotations:=True)
+End Class", useSymbolAnnotations:=True)
         End Function
 
         <Fact>
@@ -731,7 +712,7 @@ Friend Class C
     Private Sub M(ByVal c1 As A.C1)
 		Call 42.M(New C2())
     End Sub
-End Class", safe:=True, useSymbolAnnotations:=True)
+End Class", useSymbolAnnotations:=True)
         End Function
 
         <Fact>
@@ -769,7 +750,7 @@ Friend Class C
     Private Sub M(ByVal c1 As A.C1)
 		Call 42.M(Of C2)()
     End Sub
-End Class", safe:=True, useSymbolAnnotations:=True)
+End Class", useSymbolAnnotations:=True)
         End Function
 
         '        <Theory, InlineData(True), InlineData(False)>
@@ -861,7 +842,7 @@ End Class", safe:=True, useSymbolAnnotations:=True)
         '    Private Function M(ByVal c1 As C1) As Action
         '        Return AddressOf 42.M
         '    End Function
-        'End Class", safe:=True, useSymbolAnnotations)
+        'End Class", useSymbolAnnotations)
 
         '            Dim doc = Await GetDocument(source, useSymbolAnnotations)
         '            Dim options As OptionSet = Await doc.GetOptionsAsync()
@@ -902,11 +883,11 @@ Class C
     End Sub
     Private Sub M(ByVal c1 As C1)
     End Sub
-End Class", safe:=True, useSymbolAnnotations:=True)
+End Class", useSymbolAnnotations:=True)
         End Function
 
         <Fact, WorkItem(39592, "https://github.com/dotnet/roslyn/issues/39592")>
-        public async function TestSafeWithLambdaExtensionMethodAmbiguity() As Task
+        Public Async Function TestSafeWithLambdaExtensionMethodAmbiguity() As Task
             Await TestNoImportsAddedAsync(
 "Imports System
 Imports System.Runtime.CompilerServices
@@ -937,7 +918,7 @@ Namespace N
         Public Sub M1(a As Integer)
         End Sub
     End Module
-End Namespace", safe:=True, useSymbolAnnotations:=True)
+End Namespace", useSymbolAnnotations:=True)
         End function
 
 #End Region
