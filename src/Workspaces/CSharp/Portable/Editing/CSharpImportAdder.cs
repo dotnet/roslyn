@@ -41,8 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
         }
 
         protected override void AddPotentiallyConflictingImports(
-            SemanticModel model, SyntaxNode container, ImmutableArray<INamespaceSymbol> namespaceSymbols,
-            HashSet<INamespaceSymbol> conflicts, CancellationToken cancellationToken)
+            SemanticModel model,
+            SyntaxNode container,
+            ImmutableArray<INamespaceSymbol> namespaceSymbols,
+            HashSet<INamespaceSymbol> conflicts,
+            CancellationToken cancellationToken)
         {
             var rewriter = new ConflictWalker(model, namespaceSymbols, conflicts, cancellationToken);
             rewriter.Visit(container);
