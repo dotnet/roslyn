@@ -1950,6 +1950,9 @@ class C
         if (o is 1 and int x3) { }
         if (o is (1 or 2) and int x4) { }
         if (o is not (1 or 2) and int x5) { }
+
+        if (o is not int x6) { }
+        if (o is not (1 and int x7)) { }
     }
 
     void Bad(object o)
@@ -1958,11 +1961,9 @@ class C
         if (o is int y2 or (1 or 2)) { }
         if (o is 1 or int y3) { }
         if (o is (1 or 2) or int y4) { }
-        if (o is not int y5) { }
-        if (o is not (1 and int y6)) { }
-        if (o is Point { X: var y7 } or Animal _) { }
-        if (o is Point(var y8, _) or Animal _) { }
-        if (o is object or (1 or var y9)) { }
+        if (o is Point { X: var y5 } or Animal _) { }
+        if (o is Point(var y6, _) or Animal _) { }
+        if (o is object or (1 or var y7)) { }
     }
 
     void NotBad(object o)
@@ -1984,36 +1985,30 @@ class Animal { }
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
-                // (16,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // (19,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is int y1 or 1) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y1").WithLocation(16, 22),
-                // (17,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y1").WithLocation(19, 22),
+                // (20,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is int y2 or (1 or 2)) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y2").WithLocation(17, 22),
-                // (18,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y2").WithLocation(20, 22),
+                // (21,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is 1 or int y3) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y3").WithLocation(18, 27),
-                // (19,34): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y3").WithLocation(21, 27),
+                // (22,34): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is (1 or 2) or int y4) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y4").WithLocation(19, 34),
-                // (20,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                //         if (o is not int y5) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y5").WithLocation(20, 26),
-                // (21,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                //         if (o is not (1 and int y6)) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y6").WithLocation(21, 33),
-                // (22,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                //         if (o is Point { X: var y7 } or Animal _) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y7").WithLocation(22, 33),
-                // (23,28): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                //         if (o is Point(var y8, _) or Animal _) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y8").WithLocation(23, 28),
-                // (24,13): warning CS8794: An expression of type 'object' always matches the provided pattern.
-                //         if (o is object or (1 or var y9)) { }
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is object or (1 or var y9)").WithArguments("object").WithLocation(24, 13),
-                // (24,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                //         if (o is object or (1 or var y9)) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y9").WithLocation(24, 38)
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y4").WithLocation(22, 34),
+                // (23,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is Point { X: var y5 } or Animal _) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y5").WithLocation(23, 33),
+                // (24,28): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is Point(var y6, _) or Animal _) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y6").WithLocation(24, 28),
+                // (25,13): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                //         if (o is object or (1 or var y7)) { }
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is object or (1 or var y7)").WithArguments("object").WithLocation(25, 13),
+                // (25,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is object or (1 or var y7)) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y7").WithLocation(25, 38)
                 );
         }
 
@@ -5500,6 +5495,204 @@ class C
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 17)
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void IsNot_01()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        object o = ""s"";
+        if (o is not string s) return;
+        Console.WriteLine(s);
+    }
+}";
+            string expectedOutput = "s";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void IsNot_02()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        object o = ""s"";
+        if (o is (not (string s))) return;
+        Console.WriteLine(s);
+    }
+}";
+            string expectedOutput = "s";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void IsNot_03()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        object o = ""s"";
+        {
+            if (o is string s)
+                _ = s;
+            else
+                _ = s; // 1
+        }
+        {
+            if (o is not string s)
+                _ = s; // 2
+            else
+                _ = s;
+        }
+        {
+            if (o is not not string s)
+                _ = s;
+            else
+                _ = s; // 3
+        }
+        {
+            if (o is not not not string s)
+                _ = s; // 4
+            else
+                _ = s;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (10,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(10, 21),
+                // (14,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(14, 21),
+                // (22,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(22, 21),
+                // (26,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(26, 21)
+                );
+        }
+
+        [Fact]
+        public void IsNot_04()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        object o = ""s"";
+        {
+            if (o is (string s))
+                _ = s;
+            else
+                _ = s; // 1
+        }
+        {
+            if (o is (not (string s)))
+                _ = s; // 2
+            else
+                _ = s;
+        }
+        {
+            if (o is (not (not (string s))))
+                _ = s;
+            else
+                _ = s; // 3
+        }
+        {
+            if (o is (not (not (not (string s)))))
+                _ = s; // 4
+            else
+                _ = s;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (10,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(10, 21),
+                // (14,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(14, 21),
+                // (22,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(22, 21),
+                // (26,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(26, 21)
+                );
+        }
+
+        [Fact]
+        public void IsNot_05()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        (object, object) o = (1, 2);
+        {
+            if (o is (1, string s))
+                _ = s;
+            else
+                _ = s; // 1
+        }
+        {
+            if (o is (not (1, string s)))
+                _ = s; // 2
+            else
+                _ = s;
+        }
+        {
+            if (o is (not (not (1, string s))))
+                _ = s;
+            else
+                _ = s; // 3
+        }
+        {
+            if (o is (not (not (not (1, string s)))))
+                _ = s; // 4
+            else
+                _ = s;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (10,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(10, 21),
+                // (14,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(14, 21),
+                // (22,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(22, 21),
+                // (26,21): error CS0165: Use of unassigned local variable 's'
+                //                 _ = s; // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(26, 21)
+                );
         }
     }
 }
