@@ -371,10 +371,10 @@ namespace Microsoft.CodeAnalysis
                 this.ClearSolutionData();
 
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
-            }
 
-            (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
-            _optionService.UnregisterWorkspace(this);
+                (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
+                _optionService.UnregisterWorkspace(this);
+            }
         }
 
         #region Host API
