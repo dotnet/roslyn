@@ -678,6 +678,38 @@ End Class", useSymbolAnnotations:=True)
         End Function
 
         <Fact>
+        Public Async Function TestSafeWithMatchingExtensionMethod_CaseInsensitive() As Task
+            Await TestNoImportsAddedAsync(
+"Imports B
+Imports System.Runtime.CompilerServices
+
+Namespace A
+    Friend Module AExtensions
+        <Extension()>
+        Sub M(ByVal a As Integer)
+        End Sub
+    End Module
+
+    Public Class C1
+    End Class
+End Namespace
+
+Namespace B
+    Friend Module BExtensions
+        <Extension()>
+        Sub M(ByVal a As Integer)
+        End Sub
+    End Module
+End Namespace
+
+Friend Class C
+    Private Sub M(ByVal c1 As A.C1)
+		Call 42.m()
+    End Sub
+End Class", useSymbolAnnotations:=True)
+        End Function
+
+        <Fact>
         Public Async Function TestSafeWithMatchingExtensionMethodAndArguments() As Task
             Await TestNoImportsAddedAsync(
 "Imports B
