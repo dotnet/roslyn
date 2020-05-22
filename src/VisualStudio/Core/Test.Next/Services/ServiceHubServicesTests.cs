@@ -139,12 +139,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var callback = new TodoCommentsListener();
 
             using var client = await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
-            using var session = await client.CreateKeepAliveSessionAsync(
+            using var connection = await client.CreateConnectionAsync(
                 WellKnownServiceHubService.RemoteTodoCommentsService,
                 callback,
                 cancellationTokenSource.Token);
 
-            var invokeTask = session.RunRemoteAsync(
+            var invokeTask = connection.RunRemoteAsync(
                 nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),
@@ -224,12 +224,12 @@ class Test { }");
             var callback = new DesignerAttributeListener();
 
             using var client = await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
-            using var session = await client.CreateKeepAliveSessionAsync(
+            using var connection = await client.CreateConnectionAsync(
                 WellKnownServiceHubService.RemoteDesignerAttributeService,
                 callback,
                 cancellationTokenSource.Token);
 
-            var invokeTask = session.RunRemoteAsync(
+            var invokeTask = connection.RunRemoteAsync(
                 nameof(IRemoteDesignerAttributeService.StartScanningForDesignerAttributesAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),

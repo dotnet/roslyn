@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             if (client != null)
             {
                 var callbackObject = new CallbackObject(logService, progressService);
-                var session = await client.CreateKeepAliveSessionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackObject, cancellationToken).ConfigureAwait(false);
+                var session = await client.CreateConnectionAsync(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, callbackObject, cancellationToken).ConfigureAwait(false);
                 return new RemoteUpdateEngine(workspace, session);
             }
 
@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
             private readonly Workspace _workspace;
-            private readonly KeepAliveSession _session;
+            private readonly RemoteServiceConnection _session;
 
             public RemoteUpdateEngine(
                 Workspace workspace,
-                KeepAliveSession session)
+                RemoteServiceConnection session)
             {
                 _workspace = workspace;
                 _session = session;

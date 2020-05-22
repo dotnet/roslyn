@@ -21,25 +21,25 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateUnitTestingKeepAliveSessionWrapperAsync(string serviceName, CancellationToken cancellationToken)
         {
-            var keepAliveSession = await UnderlyingObject.CreateKeepAliveSessionAsync(new RemoteServiceName(serviceName), callbackTarget: null, cancellationToken).ConfigureAwait(false);
-            return new UnitTestingKeepAliveSessionWrapper(keepAliveSession);
+            var connection = await UnderlyingObject.CreateConnectionAsync(new RemoteServiceName(serviceName), callbackTarget: null, cancellationToken).ConfigureAwait(false);
+            return new UnitTestingKeepAliveSessionWrapper(connection);
         }
 
         public async Task<UnitTestingSessionWithSolutionWrapper> TryCreateUnitingSessionWithSolutionWrapperAsync(string serviceName, Solution solution, CancellationToken cancellationToken)
         {
-            var keepAliveSession = await UnderlyingObject.CreateKeepAliveSessionAsync(new RemoteServiceName(serviceName), callbackTarget: null, cancellationToken).ConfigureAwait(false);
+            var connection = await UnderlyingObject.CreateConnectionAsync(new RemoteServiceName(serviceName), callbackTarget: null, cancellationToken).ConfigureAwait(false);
 
             SessionWithSolution? session = null;
             try
             {
                 // transfer ownership of the connection to the session object:
-                session = await SessionWithSolution.CreateAsync(keepAliveSession, solution, cancellationToken).ConfigureAwait(false);
+                session = await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
                 if (session == null)
                 {
-                    keepAliveSession.Dispose();
+                    connection.Dispose();
                 }
             }
 

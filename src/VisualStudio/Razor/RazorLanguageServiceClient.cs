@@ -39,19 +39,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 return null;
             }
 
-            var keepAliveSession = await _client.CreateKeepAliveSessionAsync(_serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
+            var connection = await _client.CreateConnectionAsync(_serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
 
             SessionWithSolution? session = null;
             try
             {
                 // transfer ownership of the connection to the session object:
-                session = await SessionWithSolution.CreateAsync(keepAliveSession, solution, cancellationToken).ConfigureAwait(false);
+                session = await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
                 if (session == null)
                 {
-                    keepAliveSession.Dispose();
+                    connection.Dispose();
                 }
             }
 

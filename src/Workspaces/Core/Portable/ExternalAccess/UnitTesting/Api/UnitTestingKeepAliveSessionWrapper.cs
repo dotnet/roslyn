@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal readonly struct UnitTestingKeepAliveSessionWrapper
     {
-        internal KeepAliveSession UnderlyingObject { get; }
+        internal RemoteServiceConnection UnderlyingObject { get; }
 
-        internal UnitTestingKeepAliveSessionWrapper(KeepAliveSession underlyingObject)
+        internal UnitTestingKeepAliveSessionWrapper(RemoteServiceConnection underlyingObject)
             => UnderlyingObject = underlyingObject;
 
         public bool IsDefault => UnderlyingObject == null;
