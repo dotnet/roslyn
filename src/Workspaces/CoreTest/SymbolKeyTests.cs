@@ -783,7 +783,7 @@ class C
             Assert.True(method.Parameters[0].Type.IsTupleType);
         }
 
-        private void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
+        private static void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
             foreach (var symbol in symbols)
             {
@@ -791,7 +791,7 @@ class C
             }
         }
 
-        private void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
+        private static void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
             var id = SymbolKey.CreateString(symbol);
             Assert.NotNull(id);
@@ -810,7 +810,7 @@ class C
             }
         }
 
-        private Compilation GetCompilation(string source, string language, string path = "")
+        private static Compilation GetCompilation(string source, string language, string path = "")
         {
             var references = new[]
             {

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             return rewriter.Visit(root);
         }
 
-        private INamespaceSymbol? GetExplicitNamespaceSymbol(ExpressionSyntax fullName, ExpressionSyntax namespacePart, SemanticModel model)
+        private static INamespaceSymbol? GetExplicitNamespaceSymbol(ExpressionSyntax fullName, ExpressionSyntax namespacePart, SemanticModel model)
         {
 
             // name must refer to something that is not a namespace, but be qualified with a namespace.
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                 return node;
             }
 
-            private bool CanHaveDocComments(NameSyntax node)
+            private static bool CanHaveDocComments(NameSyntax node)
             {
                 // a node can only have doc comments in its leading trivia if it's the first node in a member declaration syntax.
 

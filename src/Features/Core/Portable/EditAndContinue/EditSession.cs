@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async Task<ProjectAnalysisSummary> GetProjectAnalysisSymmaryAsync(
+        private static async Task<ProjectAnalysisSummary> GetProjectAnalysisSymmaryAsync(
             ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)> documentAnalyses,
             CancellationToken cancellationToken)
         {

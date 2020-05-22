@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private async Task<(SyntaxToken tokenToRightOrIn, SyntaxToken tokenToLeft, int location)> GetTokensToRightOrInToLeftAndUpdatedLocationAsync(
+        private static async Task<(SyntaxToken tokenToRightOrIn, SyntaxToken tokenToLeft, int location)> GetTokensToRightOrInToLeftAndUpdatedLocationAsync(
             Document document,
             SyntaxNode root,
             TextSpan selectionTrimmed,
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private void AddNonHiddenCorrectTypeNodes<TSyntaxNode>(IEnumerable<SyntaxNode> nodes, ArrayBuilder<TSyntaxNode> resultBuilder, CancellationToken cancellationToken)
+        private static void AddNonHiddenCorrectTypeNodes<TSyntaxNode>(IEnumerable<SyntaxNode> nodes, ArrayBuilder<TSyntaxNode> resultBuilder, CancellationToken cancellationToken)
             where TSyntaxNode : SyntaxNode
         {
             var correctTypeNonHiddenNodes = nodes.OfType<TSyntaxNode>().Where(n => !n.OverlapsHiddenPosition(cancellationToken));

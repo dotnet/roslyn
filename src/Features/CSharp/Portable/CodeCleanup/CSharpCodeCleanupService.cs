@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             }
         }
 
-        private async Task<Document> RemoveSortUsingsAsync(
+        private static async Task<Document> RemoveSortUsingsAsync(
             Document document, OrganizeUsingsSet organizeUsingsSet, CancellationToken cancellationToken)
         {
             if (organizeUsingsSet.IsRemoveUnusedImportEnabled)

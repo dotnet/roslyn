@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        private IList<SerializableNavigateToSearchResult> Convert(
+        private static IList<SerializableNavigateToSearchResult> Convert(
             ImmutableArray<INavigateToSearchResult> result)
         {
             return result.SelectAsArray(SerializableNavigateToSearchResult.Dehydrate);

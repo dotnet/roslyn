@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                                     .ToImmutableArray();
         }
 
-        private IParameterSymbol CreateParameterSymbol(
+        private static IParameterSymbol CreateParameterSymbol(
             IMethodSymbol method,
             ITypeSymbol parameterType,
             RefKind refKind,

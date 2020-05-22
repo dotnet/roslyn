@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return True
         End Function
 
-        Private Async Function IsTriggerOnDotAsync(document As Document, characterPosition As Integer, cancellationToken As CancellationToken) As Task(Of Boolean?)
+        Private Shared Async Function IsTriggerOnDotAsync(document As Document, characterPosition As Integer, cancellationToken As CancellationToken) As Task(Of Boolean?)
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
             If text(characterPosition) <> "."c Then
                 Return Nothing
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return IsValidTriggerToken(token)
         End Function
 
-        Private Function IsValidTriggerToken(token As SyntaxToken) As Boolean
+        Private Shared Function IsValidTriggerToken(token As SyntaxToken) As Boolean
             If token.Kind <> SyntaxKind.DotToken Then
                 Return False
             End If

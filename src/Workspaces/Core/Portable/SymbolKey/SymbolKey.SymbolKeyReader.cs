@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            private IModuleSymbol GetModule(IEnumerable<IModuleSymbol> modules, string moduleName)
+            private static IModuleSymbol GetModule(IEnumerable<IModuleSymbol> modules, string moduleName)
             {
                 foreach (var module in modules)
                 {
