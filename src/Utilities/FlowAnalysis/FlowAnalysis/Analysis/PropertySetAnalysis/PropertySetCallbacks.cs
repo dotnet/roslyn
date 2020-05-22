@@ -110,6 +110,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         }
 
         /// <summary>
+        /// A <see cref="PropertyMapper.PointsToAbstractValueCallback"/> for always mapping to Unknown.
+        /// </summary>
+        /// <param name="_">Ignored.</param>
+        /// <returns>Always unknown.</returns>
+        /// <remarks>Useful for dummy properties.</remarks>
+        public static PropertySetAbstractValueKind AlwaysUnknown(PointsToAbstractValue _)
+        {
+            return PropertySetAbstractValueKind.Unknown;
+        }
+
+        /// <summary>
         /// A <see cref="HazardousUsageEvaluator.EvaluationCallback"/> for all properties flagged being hazardous, treating all
         /// unknown as maybe flagged.
         /// </summary>

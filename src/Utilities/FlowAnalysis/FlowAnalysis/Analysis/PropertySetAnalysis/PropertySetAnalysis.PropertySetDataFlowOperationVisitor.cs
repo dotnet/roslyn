@@ -475,12 +475,88 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
             }
 
-            public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IOperation originalOperation, PropertySetAbstractValue defaultValue)
+            public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(
+                IMethodSymbol method,
+                IOperation? visitedInstance,
+                ImmutableArray<IArgumentOperation> visitedArguments,
+                bool invokedAsDelegate,
+                IOperation originalOperation,
+                PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
 
+                // If we have a matching InvocationMapper, update the abstract value on the invoked instance.
+                if (visitedInstance != null
+                    && this.TrackedTypeSymbols.Any(s => visitedInstance.Type.GetBaseTypesAndThis().Contains(s))
+                    && this.DataFlowAnalysisContext.InvocationMappers.TryGetInvocationMapper(method, out InvocationMapper? invocationMapper))
+                {
+                    PropertySetAbstractValue newAbstractValue;
+                    if (invocationMapper.MapFromArgumentPointsToAbstractValues != null)
+                    {
+                        ArrayBuilder<PointsToAbstractValue> builder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
+                        try
+                        {
+                            foreach (IArgumentOperation argumentOperation in visitedArguments)
+                            {
+                                builder.Add(this.GetPointsToAbstractValue(argumentOperation));
+                            }
+
+                            PointsToAbstractValue visitedInstancePointsTo = this.GetPointsToAbstractValue(visitedInstance);
+                            foreach (AbstractLocation location in visitedInstancePointsTo.Locations)
+                            {
+                                PropertySetAbstractValue previousAbstractValue = this.GetAbstractValue(location);
+                                newAbstractValue = invocationMapper.MapFromArgumentPointsToAbstractValues(
+                                    previousAbstractValue,
+                                    method,
+                                    builder);
+                                this.SetAbstractValue(location, newAbstractValue);
+                            }
+                        }
+                        finally
+                        {
+                            builder.Free();
+                        }
+                    }
+                    else if (invocationMapper.MapFromArgumentValueContentAbstractValues != null)
+                    {
+                        Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null);
+                        ArrayBuilder<PointsToAbstractValue> pointsToBuilder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
+                        ArrayBuilder<ValueContentAbstractValue> valueContentBuilder = ArrayBuilder<ValueContentAbstractValue>.GetInstance();
+                        try
+                        {
+                            foreach (IArgumentOperation argumentOperation in visitedArguments)
+                            {
+                                pointsToBuilder.Add(this.GetPointsToAbstractValue(argumentOperation));
+                                valueContentBuilder.Add(this.GetValueContentAbstractValue(argumentOperation.Value));
+                            }
+
+                            PointsToAbstractValue visitedInstancePointsTo = this.GetPointsToAbstractValue(visitedInstance);
+                            foreach (AbstractLocation location in visitedInstancePointsTo.Locations)
+                            {
+                                PropertySetAbstractValue previousAbstractValue = this.GetAbstractValue(location);
+                                newAbstractValue = invocationMapper.MapFromArgumentValueContentAbstractValues(
+                                    previousAbstractValue,
+                                    method,
+                                    valueContentBuilder,
+                                    pointsToBuilder);
+                                this.SetAbstractValue(location, newAbstractValue);
+                            }
+                        }
+                        finally
+                        {
+                            pointsToBuilder.Free();
+                            valueContentBuilder.Free();
+                        }
+                    }
+                    else
+                    {
+                        Debug.Fail("Unhandled InvocationMapper");
+                    }
+                }
+
+                // If we have a HazardousUsageEvaluator for the tracked type being passed as an argument.
                 if (this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetArgumentHazardousUsageEvaluator(
-                            out HazardousUsageEvaluator argumentHazardousUsageEvaluator))
+                        out HazardousUsageEvaluator argumentHazardousUsageEvaluator))
                 {
                     foreach (IArgumentOperation visitedArgument in visitedArguments)
                     {
@@ -516,10 +592,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         propertySetInstance,
                         (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.InvocationEvaluator!(method, abstractValue));
                 }
-                else
-                {
-                    this.MergeInterproceduralResults(originalOperation);
-                }
+
+                this.MergeInterproceduralResults(originalOperation);
 
                 return baseValue;
             }

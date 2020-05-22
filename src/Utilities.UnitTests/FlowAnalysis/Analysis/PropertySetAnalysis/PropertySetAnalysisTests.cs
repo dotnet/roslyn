@@ -32,17 +32,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// </summary>
         private class PropertySetAnalysisParameters
         {
-            public PropertySetAnalysisParameters(string typeToTrack, ConstructorMapper constructorMapper, PropertyMapperCollection propertyMapperCollection, HazardousUsageEvaluatorCollection hazardousUsageEvaluatorCollection)
+            public PropertySetAnalysisParameters(
+                string typeToTrack,
+                ConstructorMapper constructorMapper,
+                PropertyMapperCollection propertyMapperCollection,
+                InvocationMapperCollection invocationMapperCollection,
+                HazardousUsageEvaluatorCollection hazardousUsageEvaluatorCollection)
             {
                 TypesToTrack = new string[] { typeToTrack }.ToImmutableHashSet() ?? throw new ArgumentNullException(nameof(typeToTrack));
                 ConstructorMapper = constructorMapper ?? throw new ArgumentNullException(nameof(constructorMapper));
                 PropertyMapperCollection = propertyMapperCollection ?? throw new ArgumentNullException(nameof(propertyMapperCollection));
+                InvocationMapperCollection = invocationMapperCollection ?? throw new ArgumentNullException(nameof(invocationMapperCollection));
                 HazardousUsageEvaluatorCollection = hazardousUsageEvaluatorCollection ?? throw new ArgumentNullException(nameof(hazardousUsageEvaluatorCollection));
             }
 
             public ImmutableHashSet<string> TypesToTrack { get; }
             public ConstructorMapper ConstructorMapper { get; }
             public PropertyMapperCollection PropertyMapperCollection { get; }
+            public InvocationMapperCollection InvocationMapperCollection { get; }
             public HazardousUsageEvaluatorCollection HazardousUsageEvaluatorCollection { get; }
         }
 
@@ -51,7 +58,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// </summary>
         /// <param name="source">C# source code, with /*&lt;bind&gt;*/ and /*&lt;/bind&gt;*/ around the method block to be analyzed.</param>
         /// <param name="propertySetAnalysisParameters">PropertySetAnalysis parameters.</param>
-        /// <param name="expectedResults">Expected hazardous usages (MethodName = null => return statement).</param>
+        /// <param name="expectedResults">Expected hazardous usages (MethodName = null => return statement / initialization).</param>
         private void VerifyCSharp(
             string source,
             PropertySetAnalysisParameters propertySetAnalysisParameters,
@@ -88,6 +95,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         propertySetAnalysisParameters.TypesToTrack,
                         propertySetAnalysisParameters.ConstructorMapper,
                         propertySetAnalysisParameters.PropertyMapperCollection,
+                        propertySetAnalysisParameters.InvocationMapperCollection,
                         propertySetAnalysisParameters.HazardousUsageEvaluatorCollection,
                         InterproceduralAnalysisConfiguration.Create(
                             new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
@@ -172,6 +180,14 @@ public class TestTypeToTrack
     public void Method()
     {
     }
+
+    public void MakeSafe()
+    {
+    }
+
+    public void AnotherMethod()
+    {
+    }
 }
 
 public class TestTypeToTrackWithConstructor : TestTypeToTrack
@@ -233,6 +249,7 @@ public class OtherClass
                                 _ => PropertySetAbstractValueKind.Unknown,
                             };
                         })),
+                InvocationMapperCollection.Empty,
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
                         "Method",
@@ -430,6 +447,7 @@ class TestClass
                             _ => PropertySetAbstractValueKind.Unknown,
                         };
                     })),
+            InvocationMapperCollection.Empty,
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(
                     "Method",
@@ -529,6 +547,7 @@ class TestClass
                         {
                             return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(0));
                         })),
+                InvocationMapperCollection.Empty,
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
                         "Method",
@@ -602,6 +621,7 @@ class TestClass
                         {
                             return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(0));
                         })),
+                InvocationMapperCollection.Empty,
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
                         "Method",
@@ -675,6 +695,7 @@ class TestClass
                     {
                         return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(2));
                     })),
+            InvocationMapperCollection.Empty,
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(
                     "Method",
@@ -862,6 +883,7 @@ class TestClass
 
                         return kind;
                     })),
+            InvocationMapperCollection.Empty,
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
                     "Method",
@@ -966,6 +988,7 @@ class TestClass
                             valueContentAbstractValue,
                             v => (v as string)?.StartsWith("A", StringComparison.Ordinal) == true);
                     })),
+            InvocationMapperCollection.Empty,
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(    // When TypeToTrackWithConstructor.Method() is invoked, need to evaluate its state.
                     "Method",
@@ -1048,6 +1071,7 @@ class TestClass
                                 _ => PropertySetAbstractValueKind.Unknown,
                             };
                         })),
+                InvocationMapperCollection.Empty,
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(
                         HazardousUsageEvaluatorKind.Return,
@@ -1166,6 +1190,7 @@ class TestClass
                             };
                         },
                         propertyIndex: 0)),    // Both AString and AnObject point to index 0.
+                InvocationMapperCollection.Empty,
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
                         "Method",
@@ -1266,6 +1291,152 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull);
+        }
+
+        /// <summary>
+        /// Parameters for PropertySetAnalysis to flag hazardous usage when calling its Method() method unless its MakeUnsafe()
+        /// method was called before.
+        /// </summary>
+        private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousUnlessMakeSafeCalled =
+            new PropertySetAnalysisParameters(
+                "TestTypeToTrack",
+                new ConstructorMapper(     // Start off with MakeUnsafe() not being called yet.
+                    ImmutableArray.Create<PropertySetAbstractValueKind>(
+                        PropertySetAbstractValueKind.Flagged)),
+                new PropertyMapperCollection(
+                    new PropertyMapper(    // Dummy property whose abstract value is set by the InvocationMapper below.
+                        "...dummy",
+                        (PointsToAbstractValue pointsToAbstractValue) =>
+                        {
+                            // Shouldn't be called, since no property assignments to "...dummy".
+                            return PropertySetAbstractValueKind.Unknown;
+                        },
+                        propertyIndex: 0)),
+                new InvocationMapperCollection(
+                    new InvocationMapper(
+                        "MakeSafe",
+                        (IMethodSymbol method) =>
+                        {
+                            // In practice, make sure we're looking at the correct method.
+                            return true;
+                        },
+                        (PropertySetAbstractValue previousAbstractValue,
+                            IMethodSymbol method,
+                            IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
+                        {
+                            // Any method invocation to MakeSafe() will unflag the property at index 0 (same propertyIndex as
+                            // "...dummy" above).
+                            return previousAbstractValue.ReplaceAt(
+                                propertyIndex: 0,
+                                kind: PropertySetAbstractValueKind.Unflagged);
+                        }
+                    )),
+                new HazardousUsageEvaluatorCollection(
+                    new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
+                        "Method",
+                        (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                        {
+                            // When doing this for reals, need to examine the method to make sure we're looking at the right
+                            // method and arguments.
+
+                            // With only one property being tracked, this is straightforward.
+                            return (abstractValue[0]) switch
+                            {
+                                PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
+                                PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
+                                _ => HazardousUsageEvaluationResult.Unflagged,
+                            };
+                        })
+                   ));
+
+        [Fact]
+        public void TestTypeToTrack_HazardousUnlessMakeSafeCalled_OneInstanceFlagged()
+        {
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrack_HazardousUnlessMakeSafeCalled,
+                (7, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
+        }
+
+        [Fact]
+        public void TestTypeToTrack_HazardousUnlessMakeSafeCalled_OneInstanceAnotherMethodFlagged()
+        {
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AnotherMethod();
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrack_HazardousUnlessMakeSafeCalled,
+                (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
+        }
+
+        [Fact]
+        public void TestTypeToTrack_HazardousUnlessMakeSafeCalled_OneInstanceUnflagged()
+        {
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.MakeSafe();
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrack_HazardousUnlessMakeSafeCalled);
+        }
+
+        [Fact]
+        public void TestTypeToTrack_HazardousUnlessMakeSafeCalled_TwoInstancesUnflagged()
+        {
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack s = new TestTypeToTrack();
+        s.MakeSafe();
+        TestTypeToTrack u = new TestTypeToTrack();
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AnotherMethod();
+        t = s;
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrack_HazardousUnlessMakeSafeCalled);
+        }
+
+        [Fact]
+        public void TestTypeToTrack_HazardousUnlessMakeSafeCalled_TwoInstancesFlagged()
+        {
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack s = new TestTypeToTrack();
+        s.MakeSafe();
+        TestTypeToTrack u = new TestTypeToTrack();
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AnotherMethod();
+        t = u;
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrack_HazardousUnlessMakeSafeCalled,
+                (12, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
         }
 
         #region Infrastructure

@@ -8,10 +8,17 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
+    /// <summary>
+    /// Collection of <see cref="PropertyMapper"/>s.
+    /// </summary>
 #pragma warning disable CA1812 // Is too instantiated.
     internal sealed class PropertyMapperCollection
 #pragma warning restore CA1812
     {
+        /// <summary>
+        /// Constructs.
+        /// </summary>
+        /// <param name="propertyMappers"><see cref="PropertyMapper"/>s to use in this collection.</param>
         public PropertyMapperCollection(IEnumerable<PropertyMapper> propertyMappers)
         {
             if (propertyMappers == null)
@@ -65,6 +72,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             this.RequiresValueContentAnalysis = this.PropertyMappersWithIndex.Values.Any(t => t.PropertyMapper.RequiresValueContentAnalysis);
         }
 
+        /// <summary>
+        /// Constructs.
+        /// </summary>
+        /// <param name="propertyMappers"><see cref="PropertyMapper"/>s to use in this collection.</param>
         public PropertyMapperCollection(params PropertyMapper[] propertyMappers)
             : this((IEnumerable<PropertyMapper>)propertyMappers)
         {

@@ -40,6 +40,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="typeToTrackMetadataNames">Names of the types to track.</param>
         /// <param name="constructorMapper">How constructor invocations map to <see cref="PropertySetAbstractValueKind"/>s.</param>
         /// <param name="propertyMappers">How property assignments map to <see cref="PropertySetAbstractValueKind"/>.</param>
+        /// <param name="invocationMappers">How method invocations affect a tracked object's <see cref="PropertySetAbstractValue"/>.</param>
         /// <param name="hazardousUsageEvaluators">When and how to evaluate <see cref="PropertySetAbstractValueKind"/>s to for hazardous usages.</param>
         /// <param name="interproceduralAnalysisConfig">Interprocedural dataflow analysis configuration.</param>
         /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
@@ -52,6 +53,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             ImmutableHashSet<string> typeToTrackMetadataNames,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
+            InvocationMapperCollection invocationMappers,
             HazardousUsageEvaluatorCollection hazardousUsageEvaluators,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis = false)
@@ -77,7 +79,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             PointsToAnalysisResult? pointsToAnalysisResult;
             ValueContentAnalysisResult? valueContentAnalysisResultOpt;
-            if (!constructorMapper.RequiresValueContentAnalysis && !propertyMappers.RequiresValueContentAnalysis)
+            if (!constructorMapper.RequiresValueContentAnalysis
+                && !propertyMappers.RequiresValueContentAnalysis
+                && !invocationMappers.RequiresValueContentAnalysis)
             {
                 pointsToAnalysisResult = PointsToAnalysis.TryGetOrComputeResult(
                     cfg,
@@ -127,6 +131,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 typeToTrackMetadataNames,
                 constructorMapper,
                 propertyMappers,
+                invocationMappers,
                 hazardousUsageEvaluators);
             var result = TryGetOrComputeResultForAnalysisContext(analysisContext);
             return result;
@@ -140,6 +145,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="typeToTrackMetadataName">Name of the type to track.</param>
         /// <param name="constructorMapper">How constructor invocations map to <see cref="PropertySetAbstractValueKind"/>s.</param>
         /// <param name="propertyMappers">How property assignments map to <see cref="PropertySetAbstractValueKind"/>.</param>
+        /// <param name="invocationMappers">How method invocations affect a tracked object's <see cref="PropertySetAbstractValue"/>.</param>
         /// <param name="hazardousUsageEvaluators">When and how to evaluate <see cref="PropertySetAbstractValueKind"/>s to for hazardous usages.</param>
         /// <param name="interproceduralAnalysisConfig">Interprocedural dataflow analysis configuration.</param>
         /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
@@ -152,6 +158,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             string typeToTrackMetadataName,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
+            InvocationMapperCollection invocationMappers,
             HazardousUsageEvaluatorCollection hazardousUsageEvaluators,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis = false)
@@ -163,6 +170,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 new string[] { typeToTrackMetadataName }.ToImmutableHashSet(),
                 constructorMapper,
                 propertyMappers,
+                invocationMappers,
                 hazardousUsageEvaluators,
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis);
@@ -176,6 +184,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="typeToTrackMetadataNames">Names of the types to track.</param>
         /// <param name="constructorMapper">How constructor invocations map to <see cref="PropertySetAbstractValueKind"/>s.</param>
         /// <param name="propertyMappers">How property assignments map to <see cref="PropertySetAbstractValueKind"/>.</param>
+        /// <param name="invocationMappers">How method invocations affect a tracked object's <see cref="PropertySetAbstractValue"/>.</param>
         /// <param name="hazardousUsageEvaluators">When and how to evaluate <see cref="PropertySetAbstractValueKind"/>s to for hazardous usages.</param>
         /// <param name="interproceduralAnalysisConfig">Interprocedural dataflow analysis configuration.</param>
         /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
@@ -188,6 +197,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             ImmutableHashSet<string> typeToTrackMetadataNames,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
+            InvocationMapperCollection invocationMappers,
             HazardousUsageEvaluatorCollection hazardousUsageEvaluators,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis = false)
@@ -249,6 +259,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         typeToTrackMetadataNames,
                         constructorMapper,
                         propertyMappers,
+                        invocationMappers,
                         hazardousUsageEvaluators,
                         interproceduralAnalysisConfig,
                         pessimisticAnalysis);
