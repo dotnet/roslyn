@@ -1878,9 +1878,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     TypeSymbol hostObjectType = Compilation.GetHostObjectTypeSymbol();
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     if ((object)hostObjectType != null)
                     {
+                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                         bool isDerived;
                         if (memberDeclaringType.IsInterface)
                         {

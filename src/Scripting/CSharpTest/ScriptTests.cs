@@ -302,6 +302,7 @@ throw e;", globals: new ScriptTests());
             Assert.Equal(3, state.ReturnValue);
         }
 
+        [WorkItem(30947, "[https://github.com/dotnet/roslyn/issues/30947](https://github.com/dotnet/roslyn/issues/30947)")]
         [Fact]
         public async Task TestRunScriptWithBaseGlobals()
         {
