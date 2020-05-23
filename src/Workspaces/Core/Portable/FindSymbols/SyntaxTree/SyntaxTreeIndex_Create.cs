@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsAwait = false;
                 var containsTupleExpressionOrTupleType = false;
                 var containsImplicitObjectCreation = false;
-                bool containsGlobalAttributes = false;
+                var containsGlobalAttributes = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
