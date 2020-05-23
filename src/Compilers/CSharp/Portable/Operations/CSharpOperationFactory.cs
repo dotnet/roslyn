@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 _semanticModel,
                 boundFunctionPointerInvocation.Syntax,
                 constantValue: ConvertToOptional(boundFunctionPointerInvocation.ConstantValue),
-                isImplicit: false,
+                isImplicit: boundFunctionPointerInvocation.WasCompilerGenerated,
                 type: boundFunctionPointerInvocation.Type.GetPublicSymbol());
         }
 
