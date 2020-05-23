@@ -41,6 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         }
 
         public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
-            => _lazyClient.GetValueAsync(cancellationToken).AsNullable();
+            => (_services.Workspace is VisualStudioWorkspace) ? _lazyClient.GetValueAsync(cancellationToken).AsNullable() : SpecializedTasks.Null<RemoteHostClient>();
     }
 }
