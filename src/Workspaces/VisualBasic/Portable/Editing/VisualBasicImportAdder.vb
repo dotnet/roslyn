@@ -71,13 +71,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
             ''' A mapping containing the simple names And arity of all namespace members, mapped to the import that
             ''' they're brought in by.
             ''' </summary>
-            Private ReadOnly _namespaceMembers As MultiDictionary(Of (name As String, arity As Integer), INamespaceSymbol)
+            Private ReadOnly _importedTypesAndNamespaces As MultiDictionary(Of (name As String, arity As Integer), INamespaceSymbol)
+
+            ''' <summary>
+            ''' A mapping containing the simple names of all members, mapped to the import that they're brought in by.
+            ''' Members are imported in through modules in vb. This doesn't keep track of arity because methods can be
+            ''' called with type arguments.
+            ''' </summary>
+            Private ReadOnly _importedMembers As MultiDictionary(Of String, INamespaceSymbol)
 
             ''' <summary>
             ''' A mapping containing the simple names of all extension methods, mapped to the import that they're
-            ''' brought in by.  This doesn't keep track of arity because methods can be called with type arguments.
+            ''' brought in by. This doesn't keep track of arity because methods can be called with type arguments.
             ''' </summary>
-            Private ReadOnly _extensionMethods As MultiDictionary(Of String, INamespaceSymbol)
+            Private ReadOnly _importedExtensionMethods As MultiDictionary(Of String, INamespaceSymbol)
 
             Private ReadOnly _conflictNamespaces As HashSet(Of INamespaceSymbol)
 
@@ -98,19 +105,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                 _cancellationToken = cancellationToken
                 _conflictNamespaces = conflictNamespaces
 
-                _namespaceMembers = New MultiDictionary(Of (name As String, arity As Integer), INamespaceSymbol)(Me)
-                _extensionMethods = New MultiDictionary(Of String, INamespaceSymbol)(VisualBasicSyntaxFacts.Instance.StringComparer)
+                _importedTypesAndNamespaces = New MultiDictionary(Of (name As String, arity As Integer), INamespaceSymbol)(Me)
+                _importedMembers = New MultiDictionary(Of String, INamespaceSymbol)(VisualBasicSyntaxFacts.Instance.StringComparer)
+                _importedExtensionMethods = New MultiDictionary(Of String, INamespaceSymbol)(VisualBasicSyntaxFacts.Instance.StringComparer)
 
+                AddImportedMembers(namespaceSymbols)
+            End Sub
+
+            Private Sub AddImportedMembers(namespaceSymbols As ImmutableArray(Of INamespaceSymbol))
                 For Each ns In namespaceSymbols
                     For Each typeOrNamespace In ns.GetMembers()
-                        _namespaceMembers.Add((typeOrNamespace.Name, typeOrNamespace.GetArity()), ns)
+                        _importedTypesAndNamespaces.Add((typeOrNamespace.Name, typeOrNamespace.GetArity()), ns)
 
                         Dim type = TryCast(typeOrNamespace, INamedTypeSymbol)
                         If type?.MightContainExtensionMethods Then
                             For Each member In type.GetMembers()
                                 Dim method = TryCast(member, IMethodSymbol)
                                 If method?.IsExtensionMethod Then
-                                    _extensionMethods.Add(method.Name, ns)
+                                    _importedExtensionMethods.Add(method.Name, ns)
+                                End If
+                            Next
+                        End If
+
+                        If type?.TypeKind = TypeKind.Module Then
+                            ' modules make their members available to the containing scope.
+                            For Each member In type.GetMembers()
+                                Dim moduleType = TryCast(member, INamedTypeSymbol)
+                                If moduleType IsNot Nothing Then
+                                    _importedTypesAndNamespaces.Add((moduleType.Name, moduleType.GetArity()), ns)
+                                Else
+                                    _importedMembers.Add(member.Name, ns)
                                 End If
                             Next
                         End If
@@ -150,35 +174,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                 _inAnonymousMethod = previousInAnonymousMethod
             End Sub
 
-            Private Sub CheckName(node As NameSyntax)
-                ' Check to see if we have an standalone identifier (Or identifier on the left of a dot). If so, if that
-                ' identifier binds to a namespace Or type, then we don't want to bring in any imports that would bring
-                ' in the same name And could then potentially conflict here.
+            Private Sub CheckName(node As NameSyntax, name As String)
+                ' Check to see if we have an standalone identifier (Or identifier on the left of a dot). If so, then we
+                ' don't want to bring in any imports that would bring in the same name And could then potentially
+                ' conflict here.
 
                 If node.IsRightSideOfDotOrBang Then
                     Return
                 End If
 
-                Dim symbol = _model.GetSymbolInfo(node, _cancellationToken).GetAnySymbol()
-                If symbol Is Nothing Then
-                    Return
-                End If
-
-                If symbol.Kind = SymbolKind.Namespace Or symbol.Kind = SymbolKind.NamedType Then
-                    _conflictNamespaces.AddRange(_namespaceMembers((symbol.Name, node.Arity)))
-                ElseIf symbol.OriginalDefinition.IsReducedExtension() Then
-                    _conflictNamespaces.AddRange(_extensionMethods(symbol.Name))
-                End If
+                _conflictNamespaces.AddRange(_importedTypesAndNamespaces((name, node.Arity)))
+                _conflictNamespaces.AddRange(_importedMembers(name))
             End Sub
 
             Public Overrides Sub VisitIdentifierName(node As IdentifierNameSyntax)
                 MyBase.VisitIdentifierName(node)
-                CheckName(node)
+                CheckName(node, node.Identifier.ValueText)
             End Sub
 
             Public Overrides Sub VisitGenericName(node As GenericNameSyntax)
                 MyBase.VisitGenericName(node)
-                CheckName(node)
+                CheckName(node, node.Identifier.ValueText)
             End Sub
 
             Public Overrides Sub VisitMemberAccessExpression(node As MemberAccessExpressionSyntax)
@@ -191,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
                 If method IsNot Nothing Then
                     ' see explanation in VisitSimpleLambdaExpression for the _inAnonymousMethod check
                     If method.IsReducedExtension() OrElse _inAnonymousMethod Then
-                        _conflictNamespaces.AddRange(_extensionMethods(method.Name))
+                        _conflictNamespaces.AddRange(_importedExtensionMethods(method.Name))
                     End If
                 End If
             End Sub

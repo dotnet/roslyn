@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -83,22 +84,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             private readonly CancellationToken _cancellationToken;
 
             /// <summary>
-            /// A mapping containing the simple names and arity of all namespace members, mapped to the import that
-            /// they're brought in by.
+            /// A mapping containing the simple names and arity of all imported types, mapped to the import that they're
+            /// brought in by.
             /// </summary>
-            private readonly MultiDictionary<(string name, int arity), INamespaceSymbol> _namespaceMembers
+            private readonly MultiDictionary<(string name, int arity), INamespaceSymbol> _importedTypes
                 = new MultiDictionary<(string name, int arity), INamespaceSymbol>();
 
             /// <summary>
-            /// A mapping containing the simple names of all extension methods, mapped to the import that they're
-            /// brought in by.  This doesn't keep track of arity because methods can be called with type arguments.
+            /// A mapping containing the simple names of all imported extension methods, mapped to the import that
+            /// they're brought in by.  This doesn't keep track of arity because methods can be called with type
+            /// arguments.
             /// </summary>
             /// <remarks>
             /// We could consider adding more information here (for example the min/max number of args that this can be
             /// called with).  That could then be used to check if there could be a conflict. However, that's likely
             /// more complexity than we need currently.  But it is always something we can do in the future.
             /// </remarks>
-            private readonly MultiDictionary<string, INamespaceSymbol> _extensionMethods
+            private readonly MultiDictionary<string, INamespaceSymbol> _importedExtensionMethods
                 = new MultiDictionary<string, INamespaceSymbol>();
 
             private readonly HashSet<INamespaceSymbol> _conflictNamespaces;
@@ -121,18 +123,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                 _cancellationToken = cancellationToken;
                 _conflictNamespaces = conflictNamespaces;
 
+                AddImportedMembers(namespaceSymbols);
+            }
+
+            private void AddImportedMembers(ImmutableArray<INamespaceSymbol> namespaceSymbols)
+            {
                 foreach (var ns in namespaceSymbols)
                 {
                     foreach (var type in ns.GetTypeMembers())
                     {
-                        _namespaceMembers.Add((type.Name, type.Arity), ns);
+                        _importedTypes.Add((type.Name, type.Arity), ns);
 
                         if (type.MightContainExtensionMethods)
                         {
                             foreach (var member in type.GetMembers())
                             {
                                 if (member is IMethodSymbol method && method.IsExtensionMethod)
-                                    _extensionMethods.Add(method.Name, ns);
+                                    _importedExtensionMethods.Add(method.Name, ns);
                             }
                         }
                     }
@@ -191,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
 
                 var symbol = _model.GetSymbolInfo(node, _cancellationToken).GetAnySymbol();
                 if (symbol?.Kind == SymbolKind.NamedType)
-                    _conflictNamespaces.AddRange(_namespaceMembers[(symbol.Name, node.Arity)]);
+                    _conflictNamespaces.AddRange(_importedTypes[(symbol.Name, node.Arity)]);
             }
 
             public override void VisitIdentifierName(IdentifierNameSyntax node)
@@ -218,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                 {
                     // see explanation in VisitSimpleLambdaExpression for the _inAnonymousMethod check
                     if (method.IsReducedExtension() || _inAnonymousMethod)
-                        _conflictNamespaces.AddRange(_extensionMethods[method.Name]);
+                        _conflictNamespaces.AddRange(_importedExtensionMethods[method.Name]);
                 }
             }
         }
