@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
@@ -30,12 +29,14 @@ namespace Microsoft.CodeAnalysis.Testing
 
             await TestServices.Editor.SetTextAsync(@"using System");
 
-            await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
-
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            Assert.Equal("========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
             // Verify that intentional errors get validated by the test
-            Assert.Equal(1, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
+            var errorCount = await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR);
+
+            // Currently IntelliSense errors are not excluded from the count
+            Assert.True(errorCount == 1 || errorCount == 2);
         }
 
         [VsFact]
@@ -45,9 +46,8 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.CSharp.Analyzer", languageName: LanguageNames.CSharp);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
-            await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
-
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            Assert.Equal("========== Build: 3 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
 
@@ -62,9 +62,8 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.CSharp.CodeRefactoring", languageName: LanguageNames.CSharp);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
-            await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
-
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            Assert.Equal("========== Build: 2 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
@@ -77,9 +76,8 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.CSharp.StandaloneCodeAnalysis", languageName: LanguageNames.CSharp);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
-            await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
-
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            Assert.Equal("========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
@@ -92,9 +90,8 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.VisualBasic.Analyzer", languageName: LanguageNames.VisualBasic);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
-            await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
-
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            Assert.Equal("========== Build: 3 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
 
@@ -109,9 +106,8 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.VisualBasic.CodeRefactoring", languageName: LanguageNames.VisualBasic);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
-            await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
-
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            Assert.Equal("========== Build: 2 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
@@ -124,9 +120,8 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.AddProjectAsync("TestProj", "Microsoft.VisualBasic.StandaloneCodeAnalysis", languageName: LanguageNames.VisualBasic);
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
-            await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
-
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
+            Assert.Equal("========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));

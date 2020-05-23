@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
 {
     public class EditorInProcess : InProcComponent
     {
-        private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
+        internal static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
         public EditorInProcess(TestServices testServices)
             : base(testServices)

@@ -12,6 +12,8 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using NuGet.SolutionRestoreManager;
 using Task = System.Threading.Tasks.Task;
@@ -253,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
             }
         }
 
-        public async Task BuildSolutionAsync(bool waitForBuildToFinish)
+        public async Task<string?> BuildSolutionAsync(bool waitForBuildToFinish)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -263,26 +265,28 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
             await ExecuteCommandAsync(WellKnownCommandNames.Build.BuildSolution);
             if (waitForBuildToFinish)
             {
-                await WaitForBuildToFinishAsync(buildOutputWindowPane);
+                return await WaitForBuildToFinishAsync(buildOutputWindowPane);
             }
+
+            return null;
         }
 
-        public async Task WaitForBuildToFinishAsync()
+        public async Task<string> WaitForBuildToFinishAsync()
         {
             var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync();
-            await WaitForBuildToFinishAsync(buildOutputWindowPane);
+            return await WaitForBuildToFinishAsync(buildOutputWindowPane);
         }
 
-        public async Task<EnvDTE.OutputWindowPane> GetBuildOutputWindowPaneAsync()
+        public async Task<IVsOutputWindowPane> GetBuildOutputWindowPaneAsync()
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dte = await GetGlobalServiceAsync<SDTE, EnvDTE80.DTE2>();
-            var outputWindow = dte.ToolWindows.OutputWindow;
-            return outputWindow.OutputWindowPanes.Item("Build");
+            var outputWindow = await GetGlobalServiceAsync<SVsOutputWindow, IVsOutputWindow>();
+            ErrorHandler.ThrowOnFailure(outputWindow.GetPane(VSConstants.OutputWindowPaneGuid.BuildOutputPane_guid, out var pane));
+            return pane;
         }
 
-        private async Task WaitForBuildToFinishAsync(EnvDTE.OutputWindowPane buildOutputWindowPane)
+        private async Task<string> WaitForBuildToFinishAsync(IVsOutputWindowPane buildOutputWindowPane)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -302,6 +306,19 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
             {
                 solutionEvents.OnUpdateSolutionDone -= HandleUpdateSolutionDone;
             }
+
+            // Force the error list to update
+            ErrorHandler.ThrowOnFailure(buildOutputWindowPane.FlushToTaskList());
+
+            var textView = (IVsTextView)buildOutputWindowPane;
+            ErrorHandler.ThrowOnFailure(((IVsUserData)textView).GetData(EditorInProcess.IWpfTextViewId, out var wpfTextViewHost));
+            var lines = ((IWpfTextViewHost)wpfTextViewHost).TextView.TextViewLines;
+            if (lines.Count < 1)
+            {
+                return string.Empty;
+            }
+
+            return lines[lines.Count - 2].Extent.GetText();
         }
 
         private string CreateTemporaryPath()
