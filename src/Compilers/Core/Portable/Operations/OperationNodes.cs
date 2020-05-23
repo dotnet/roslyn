@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract class BaseNoneOperation : Operation
     {
-        protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.None, semanticModel, syntax, type: null, constantValue, isImplicit)
+        protected BaseNoneOperation(SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit, ITypeSymbol type = null) :
+            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private ImmutableArray<IOperation> _lazyChildrenInterlocked;
 
-        public LazyNoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit)
+        public LazyNoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit, ITypeSymbol type = null) :
+            base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit, type)
         {
         }
 

@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundFunctionPointerInvocationOperation(BoundFunctionPointerInvocation boundFunctionPointerInvocation)
         {
-            if (boundFunctionPointerInvocation.HasErrors)
+            if (boundFunctionPointerInvocation.ResultKind != LookupResultKind.Viable)
             {
                 return new CSharpLazyInvalidOperation(
                     this,
@@ -452,16 +452,14 @@ namespace Microsoft.CodeAnalysis.Operations
                     isImplicit: boundFunctionPointerInvocation.WasCompilerGenerated);
             }
 
-            return new CSharpLazyInvocationOperation(
+            return new CSharpLazyNoneOperation(
                 this,
                 boundFunctionPointerInvocation,
-                boundFunctionPointerInvocation.FunctionPointer.Signature.GetPublicSymbol(),
-                isVirtual: false,
                 _semanticModel,
                 boundFunctionPointerInvocation.Syntax,
-                boundFunctionPointerInvocation.Type.GetPublicSymbol(),
-                constantValue: default,
-                isImplicit: false);
+                constantValue: ConvertToOptional(boundFunctionPointerInvocation.ConstantValue),
+                isImplicit: false,
+                type: boundFunctionPointerInvocation.Type.GetPublicSymbol());
         }
 
         private IOperation CreateBoundUnconvertedAddressOfOperatorOperation(BoundUnconvertedAddressOfOperator boundUnconvertedAddressOf)
@@ -942,23 +940,17 @@ namespace Microsoft.CodeAnalysis.Operations
             BoundExpression boundOperand = boundConversion.Operand;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
-                if (boundConversion is { Type: FunctionPointerTypeSymbol { Signature: var signature }, Syntax: PrefixUnaryExpressionSyntax addressOfExpression })
+                if (boundConversion is { Type: FunctionPointerTypeSymbol { Signature: var signature }, Syntax: var expression })
                 {
+                    Debug.Assert(boundConversion.Conversion.MethodSymbol is object);
+                    SyntaxNode referenceSyntax = (expression is PrefixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.AddressOfExpression, Operand: var operand }) ? operand : expression;
                     return new AddressOfOperation(
-                        new MethodReferenceOperation(
-                            signature.GetPublicSymbol(),
-                            isVirtual: false,
-                            instance: null,
-                            _semanticModel,
-                            syntax: addressOfExpression.Operand,
-                            type: null,
-                            constantValue: default,
-                            isImplicit: false),
+                        CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand, boundConversion.SymbolOpt, suppressVirtualCalls: false),
                         _semanticModel,
-                        syntax: addressOfExpression,
+                        syntax: expression,
                         type: boundConversion.Type.GetPublicSymbol(),
                         constantValue: default,
-                        isImplicit: false);
+                        isImplicit: boundConversion.WasCompilerGenerated);
                 }
 
                 // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,

@@ -74,13 +74,13 @@ unsafe class C
             var model = comp.GetSemanticModel(tree);
 
             var initializer1 = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First().Initializer!.Value;
-            assertResult(model, initializer1);
+            assertResult(model, initializer1, comp);
             var parameter = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().ArgumentList.Arguments.Single();
-            assertResult(model, parameter.Expression);
+            assertResult(model, parameter.Expression, comp);
             var initializer2 = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Last().Initializer!.Value;
-            assertResult(model, initializer2);
+            assertResult(model, initializer2, comp);
 
-            static void assertResult(SemanticModel model, ExpressionSyntax initializer1)
+            static void assertResult(SemanticModel model, ExpressionSyntax initializer1, Compilation comp)
             {
                 var typeInfo = model.GetTypeInfo(initializer1);
                 Assert.True(typeInfo.ConvertedType is IPointerTypeSymbol { PointedAtType: { SpecialType: SpecialType.System_Void } });
@@ -89,6 +89,9 @@ unsafe class C
                 Assert.Equal(ConversionKind.ImplicitPointerToVoid, conversion.Kind);
                 Assert.True(conversion.IsImplicit);
                 Assert.True(conversion.IsPointer);
+
+                var classifiedConversion = comp.ClassifyConversion(typeInfo.Type, typeInfo.ConvertedType!);
+                Assert.Equal(conversion, classifiedConversion);
             }
         }
 
@@ -171,6 +174,9 @@ unsafe class C
                 Assert.Equal(ConversionKind.ImplicitNullToPointer, conversion.Kind);
                 Assert.True(conversion.IsImplicit);
                 Assert.True(conversion.IsPointer);
+
+                var classifiedConversion = model.ClassifyConversion(literal, typeInfo.ConvertedType);
+                Assert.Equal(conversion, classifiedConversion);
             }
         }
 
@@ -473,6 +479,10 @@ unsafe class C
             {
                 var conversion = model.GetConversion(decl);
                 Assert.Equal(ConversionKind.ImplicitUserDefined, conversion.Kind);
+
+                var typeInfo = model.GetTypeInfo(decl);
+                var classifedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
+                Assert.Equal(conversion, classifedConversion);
             }
         }
 
@@ -524,6 +534,10 @@ unsafe class C
                 Assert.Equal(ConversionKind.ImplicitPointer, conversion.Kind);
                 Assert.True(conversion.IsImplicit);
                 Assert.True(conversion.IsPointer);
+
+                var typeInfo = model.GetTypeInfo(decl);
+                var classifedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
+                Assert.Equal(conversion, classifedConversion);
             }
         }
 
@@ -554,11 +568,37 @@ unsafe class C
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
-            var decl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => d.Initializer!.Value).Single();
-            var conversion = model.GetConversion(decl);
-            Assert.Equal(ConversionKind.ImplicitPointer, conversion.Kind);
-            Assert.True(conversion.IsImplicit);
-            Assert.True(conversion.IsPointer);
+            var variableDeclaratorSyntax = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+
+            VerifyDeclarationConversion(comp, model, variableDeclaratorSyntax,
+                expectedConversionKind: ConversionKind.ImplicitPointer, expectedImplicit: true,
+                expectedOriginalType: "delegate*<delegate*<System.String, System.Void>, delegate*<System.String>>",
+                expectedConvertedType: "delegate*<delegate*<System.Object, System.Void>, delegate*<System.Object>>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<delegate*<System.Object, System.Void>, delegate*<System.Object>> ptr1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ptr1 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<delegate*<System.Object, System.Void>, delegate*<System.Object>>, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<delegate*<System.String, System.Void>, delegate*<System.String>>) (Syntax: 'param1')
+");
+        }
+
+        private static void VerifyDeclarationConversion(CSharpCompilation comp, SemanticModel model, VariableDeclaratorSyntax decl, ConversionKind expectedConversionKind, bool expectedImplicit, string expectedOriginalType, string expectedConvertedType, string expectedOperationTree)
+        {
+            var initializer = decl.Initializer!.Value;
+            var conversion = model.GetConversion(initializer);
+            Assert.Equal(expectedImplicit, conversion.IsImplicit);
+            Assert.Equal(expectedConversionKind, conversion.Kind);
+
+            var typeInfo = model.GetTypeInfo(initializer);
+            Assert.Equal(expectedOriginalType, typeInfo.Type!.ToTestDisplayString());
+            Assert.Equal(expectedConvertedType, typeInfo.ConvertedType!.ToTestDisplayString());
+            var classifedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
+            Assert.Equal(conversion, classifedConversion);
+
+            VerifyOperationTreeForNode(comp, model, decl, expectedOperationTree);
         }
 
         [Fact]
@@ -588,11 +628,21 @@ unsafe class C
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
-            var decl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => d.Initializer!.Value).Single();
-            var conversion = model.GetConversion(decl);
-            Assert.Equal(ConversionKind.ImplicitPointer, conversion.Kind);
-            Assert.True(conversion.IsImplicit);
-            Assert.True(conversion.IsPointer);
+            var variableDeclaratorSyntax = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+
+            VerifyDeclarationConversion(comp, model, variableDeclaratorSyntax,
+                expectedConversionKind: ConversionKind.ImplicitPointer, expectedImplicit: true,
+                expectedOriginalType: "delegate*<System.Void*, System.Int32*>",
+                expectedConvertedType: "delegate*<delegate*<System.Object, System.Void>, System.Void*>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<delegate*<System.Object, System.Void>, System.Void*> ptr1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'ptr1 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<delegate*<System.Object, System.Void>, System.Void*>, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void*, System.Int32*>) (Syntax: 'param1')
+");
         }
 
         [Fact]
@@ -605,7 +655,6 @@ unsafe class C
     {
         delegate*<string, void> ptr1 = param1;
         delegate*<string, string, string, void> ptr2 = param1;
-
     }
 }");
 
@@ -617,6 +666,39 @@ unsafe class C
                 //         delegate*<string, string, string, void> ptr2 = param1;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string, string, void>", "delegate*<string, string, string, void>").WithLocation(7, 56)
             );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            Assert.Equal(2, decls.Length);
+
+            VerifyDeclarationConversion(comp, model, decls[0],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<System.String, System.String, System.Void>",
+                expectedConvertedType: "delegate*<System.String, System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.String, System.Void> ptr1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr1 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.String, System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.String, System.String, System.Void>, IsInvalid) (Syntax: 'param1')
+");
+            VerifyDeclarationConversion(comp, model, decls[1],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<System.String, System.String, System.Void>",
+                expectedConvertedType: "delegate*<System.String, System.String, System.String, System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.String, System.String, System.String, System.Void> ptr2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr2 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.String, System.String, System.String, System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.String, System.String, System.Void>, IsInvalid) (Syntax: 'param1')
+");
         }
 
         [Fact]
@@ -664,6 +746,124 @@ unsafe class C
                 //         delegate*<out string, void> ptr8 = param2;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<out object, void>", "delegate*<out string, void>").WithLocation(13, 44)
             );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            Assert.Equal(8, decls.Length);
+
+            VerifyDeclarationConversion(comp, model, decls[0],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<ref System.Object, System.Void>",
+                expectedConvertedType: "delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.Object, System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.Object, System.Void> ptr1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr1 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.Object, System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<ref System.Object, System.Void>, IsInvalid) (Syntax: 'param1')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[1],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<ref System.Object, System.Void>",
+                expectedConvertedType: "delegate*<System.Object, System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.Object, System.Void> ptr2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr2 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Object, System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<ref System.Object, System.Void>, IsInvalid) (Syntax: 'param1')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[2],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<ref System.Object, System.Void>",
+                expectedConvertedType: "delegate*<ref System.String, System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<ref System.String, System.Void> ptr3) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr3 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<ref System.String, System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<ref System.Object, System.Void>, IsInvalid) (Syntax: 'param1')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[3],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<ref System.Object, System.Void>",
+                expectedConvertedType: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.Object, System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.Object, System.Void> ptr4) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr4 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.Object, System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<ref System.Object, System.Void>, IsInvalid) (Syntax: 'param1')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[4],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.Object, System.Void>",
+                expectedConvertedType: "delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.Object, System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.Object, System.Void> ptr5) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr5 = param2')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.Object, System.Void>, IsInvalid, IsImplicit) (Syntax: 'param2')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.Object, System.Void>, IsInvalid) (Syntax: 'param2')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[5],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.Object, System.Void>",
+                expectedConvertedType: "delegate*<System.Object, System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.Object, System.Void> ptr6) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr6 = param2')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Object, System.Void>, IsInvalid, IsImplicit) (Syntax: 'param2')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.Object, System.Void>, IsInvalid) (Syntax: 'param2')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[6],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.Object, System.Void>",
+                expectedConvertedType: "delegate*<ref System.Object, System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<ref System.Object, System.Void> ptr7) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr7 = param2')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<ref System.Object, System.Void>, IsInvalid, IsImplicit) (Syntax: 'param2')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.Object, System.Void>, IsInvalid) (Syntax: 'param2')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[7],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.Object, System.Void>",
+                expectedConvertedType: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void> ptr8) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr8 = param2')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void>, IsInvalid, IsImplicit) (Syntax: 'param2')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.Object, System.Void>, IsInvalid) (Syntax: 'param2')
+");
         }
 
         [Fact]
@@ -691,6 +891,54 @@ unsafe class C
                 //         delegate*<object> ptr3 = param1;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<object>").WithLocation(8, 34)
             );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            Assert.Equal(3, decls.Length);
+
+            VerifyDeclarationConversion(comp, model, decls[0],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<ref System.String>",
+                expectedConvertedType: "delegate*<ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.String>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.String> ptr1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr1 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.String>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<ref System.String>, IsInvalid) (Syntax: 'param1')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[1],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<ref System.String>",
+                expectedConvertedType: "delegate*<System.String>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.String> ptr2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr2 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.String>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<ref System.String>, IsInvalid) (Syntax: 'param1')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[2],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<ref System.String>",
+                expectedConvertedType: "delegate*<System.Object>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.Object> ptr3) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr3 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Object>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<ref System.String>, IsInvalid) (Syntax: 'param1')
+");
         }
 
         [Fact]
@@ -718,6 +966,54 @@ unsafe class C
                 //         delegate* stdcall<void> ptr3 = param1;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(8, 40)
             );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            Assert.Equal(3, decls.Length);
+
+            VerifyDeclarationConversion(comp, model, decls[0],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<System.Void>",
+                expectedConvertedType: "delegate*<System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr1 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'param1')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[1],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<System.Void>",
+                expectedConvertedType: "delegate*<System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr2 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'param1')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[2],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<System.Void>",
+                expectedConvertedType: "delegate*<System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr3) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr3 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'param1')
+");
         }
 
         [Fact]
@@ -741,6 +1037,40 @@ unsafe class C
                 //         delegate*<int, string> ptr2 = param1;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<int, object>", "delegate*<int, string>").WithLocation(7, 39)
             );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            Assert.Equal(2, decls.Length);
+
+            VerifyDeclarationConversion(comp, model, decls[0],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<System.Int32, System.Object>",
+                expectedConvertedType: "delegate*<System.Object, System.String>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.Object, System.String> ptr1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr1 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Object, System.String>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Int32, System.Object>, IsInvalid) (Syntax: 'param1')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[1],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<System.Int32, System.Object>",
+                expectedConvertedType: "delegate*<System.Int32, System.String>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.Int32, System.String> ptr2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr2 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Int32, System.String>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<System.Int32, System.Object>, IsInvalid) (Syntax: 'param1')
+");
         }
 
         [Fact]
@@ -764,6 +1094,40 @@ unsafe class C
                 //         delegate*<delegate*<string>> ptr2 = param2;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<delegate*<object>>", "delegate*<delegate*<string>>").WithLocation(7, 45)
             );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            Assert.Equal(2, decls.Length);
+
+            VerifyDeclarationConversion(comp, model, decls[0],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<delegate*<System.Object, System.Void>, System.Void>",
+                expectedConvertedType: "delegate*<delegate*<System.String, System.Void>, System.Void>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<delegate*<System.String, System.Void>, System.Void> ptr1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr1 = param1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<delegate*<System.String, System.Void>, System.Void>, IsInvalid, IsImplicit) (Syntax: 'param1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param1 (OperationKind.ParameterReference, Type: delegate*<delegate*<System.Object, System.Void>, System.Void>, IsInvalid) (Syntax: 'param1')
+");
+
+            VerifyDeclarationConversion(comp, model, decls[1],
+                expectedConversionKind: ConversionKind.ExplicitPointerToPointer, expectedImplicit: false,
+                expectedOriginalType: "delegate*<delegate*<System.Object>>",
+                expectedConvertedType: "delegate*<delegate*<System.String>>",
+                expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<delegate*<System.String>> ptr2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr2 = param2')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= param2')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<delegate*<System.String>>, IsInvalid, IsImplicit) (Syntax: 'param2')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IParameterReferenceOperation: param2 (OperationKind.ParameterReference, Type: delegate*<delegate*<System.Object>>, IsInvalid) (Syntax: 'param2')
+");
         }
 
         [Fact]
@@ -792,6 +1156,17 @@ unsafe class C
             Assert.Equal(SpecialType.System_String, methodSymbol.TypeArguments[0].SpecialType);
             var functionPointer = (IFunctionPointerTypeSymbol)methodSymbol.Parameters[0].Type;
             Assert.Equal(SpecialType.System_String, functionPointer.Signature.Parameters[0].Type.SpecialType);
+
+            VerifyOperationTreeForNode(comp, model, invocation, expectedOperationTree: @"
+IInvocationOperation ( void C.M1<System.String>(delegate*<System.String, System.Void> param)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M1(p)')
+  Instance Receiver: 
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M1')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: param) (OperationKind.Argument, Type: null) (Syntax: 'p')
+        ILocalReferenceOperation: p (OperationKind.LocalReference, Type: delegate*<System.String, System.Void>) (Syntax: 'p')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+");
         }
 
         [Fact]
@@ -865,6 +1240,17 @@ unsafe class C
             Assert.Equal(SpecialType.System_String, methodSymbol.TypeArguments[0].SpecialType);
             var functionPointer = (IFunctionPointerTypeSymbol)methodSymbol.Parameters[0].Type;
             Assert.Equal(SpecialType.System_String, functionPointer.Signature.ReturnType.SpecialType);
+
+            VerifyOperationTreeForNode(comp, model, invocation, expectedOperationTree: @"
+IInvocationOperation ( void C.M1<System.String>(delegate*<System.String> param)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M1(p)')
+  Instance Receiver: 
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M1')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: param) (OperationKind.Argument, Type: null) (Syntax: 'p')
+        ILocalReferenceOperation: p (OperationKind.LocalReference, Type: delegate*<System.String>) (Syntax: 'p')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+");
         }
 
         [Fact]
@@ -944,6 +1330,17 @@ unsafe class C
             var declaredSymbol = (IMethodSymbol)comp.GetTypeByMetadataName("C").GetMethod("M2").ISymbol;
             Assert.True(declaredSymbol.TypeParameters[0].Equals(functionPointer.Signature.ReturnType, TypeCompareKind.ConsiderEverything));
             Assert.True(declaredSymbol.TypeParameters[0].Equals(functionPointer.Signature.Parameters[0].Type, TypeCompareKind.ConsiderEverything));
+
+            VerifyOperationTreeForNode(comp, model, invocation, expectedOperationTree: @"
+IInvocationOperation ( void C.M1<T>(delegate*<T, T> param)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M1(p)')
+  Instance Receiver: 
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M1')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: param) (OperationKind.Argument, Type: null) (Syntax: 'p')
+        ILocalReferenceOperation: p (OperationKind.LocalReference, Type: delegate*<T, T>) (Syntax: 'p')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+");
         }
 
         [Fact]
@@ -1601,11 +1998,68 @@ unsafe class C
 
             var invocations = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().ToList();
             Assert.Equal(3, invocations.Count);
-            foreach (var invocation in invocations)
-            {
-                var type = model.GetTypeInfo(invocation).Type;
-                Assert.True(type!.IsErrorType());
-            }
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[0],
+                expectedSyntax: "ptr?.ToString()",
+                expectedType: "?",
+                expectedSymbol: null,
+                expectedSymbolCandidates: null);
+
+            VerifyOperationTreeForNode(comp, model, invocations[0], expectedOperationTree: @"
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'ptr?.ToString()')
+  Operation: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'ptr')
+      Children(1):
+          IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'ptr')
+  WhenNotNull: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.ToString()')
+      Children(1):
+          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '.ToString')
+            Children(1):
+                IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: ?, IsInvalid, IsImplicit) (Syntax: 'ptr')
+");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[1],
+                expectedSyntax: "c?.GetPtr()",
+                expectedType: "?",
+                expectedConvertedType: "delegate*<System.Void>",
+                expectedSymbol: null,
+                expectedSymbolCandidates: null);
+
+            VerifyOperationTreeForNode(comp, model, invocations[1], expectedOperationTree: @"
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'c?.GetPtr()')
+  Operation: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'c')
+      Children(1):
+          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
+  WhenNotNull: 
+    IInvocationOperation ( delegate*<System.Void> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.Void>, IsInvalid) (Syntax: '.GetPtr()')
+      Instance Receiver: 
+        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsInvalid, IsImplicit) (Syntax: 'c')
+      Arguments(0)
+");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[2].Parent!.Parent!,
+                expectedSyntax: "(c?.GetPtr())()",
+                expectedType: "?",
+                expectedSymbol: null,
+                expectedSymbolCandidates: null);
+
+            VerifyOperationTreeForNode(comp, model, invocations[2].Parent!.Parent!, expectedOperationTree: @"
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '(c?.GetPtr())()')
+  Children(1):
+      IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: ?, IsInvalid) (Syntax: 'c?.GetPtr()')
+        Operation: 
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'c')
+            Children(1):
+                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
+        WhenNotNull: 
+          IInvocationOperation ( delegate*<System.Void> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.Void>, IsInvalid) (Syntax: '.GetPtr()')
+            Instance Receiver: 
+              IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsInvalid, IsImplicit) (Syntax: 'c')
+            Arguments(0)
+");
+
         }
 
         [Fact]
@@ -1663,11 +2117,40 @@ unsafe class C
 
             var invocations = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().ToList();
             Assert.Equal(2, invocations.Count);
-            foreach (var invocation in invocations)
-            {
-                var type = model.GetTypeInfo(invocation).Type;
-                Assert.Equal(SpecialType.System_Void, type!.SpecialType);
-            }
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[0],
+                expectedSyntax: "c?.GetPtr()",
+                expectedType: "System.Void",
+                expectedSymbol: null,
+                expectedSymbolCandidates: null);
+
+            VerifyOperationTreeForNode(comp, model, invocations[0], expectedOperationTree: @"
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Void) (Syntax: 'c?.GetPtr()')
+  Operation: 
+    ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
+  WhenNotNull: 
+    IInvocationOperation ( delegate*<System.String> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.String>) (Syntax: '.GetPtr()')
+      Instance Receiver: 
+        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsImplicit) (Syntax: 'c')
+      Arguments(0)
+");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[1],
+                expectedSyntax: "c?.GetPtr()",
+                expectedType: "System.Void",
+                expectedSymbol: null,
+                expectedSymbolCandidates: null);
+
+            VerifyOperationTreeForNode(comp, model, invocations[1], expectedOperationTree: @"
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Void) (Syntax: 'c?.GetPtr()')
+  Operation: 
+    ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
+  WhenNotNull: 
+    IInvocationOperation ( delegate*<System.String> C.GetPtr()) (OperationKind.Invocation, Type: delegate*<System.String>) (Syntax: '.GetPtr()')
+      Instance Receiver: 
+        IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C, IsImplicit) (Syntax: 'c')
+      Arguments(0)
+");
         }
 
         [Fact]
@@ -1707,6 +2190,36 @@ True");
 }
 ");
 
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var isPatterns = syntaxTree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().ToArray();
+            Assert.Equal(2, isPatterns.Length);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, isPatterns[1].Pattern,
+                expectedSyntax: "var v",
+                expectedType: "delegate*<System.Void>",
+                expectedSymbol: null,
+                expectedSymbolCandidates: null);
+
+            VerifyOperationTreeForNode(comp, model, isPatterns[0], expectedOperationTree: @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'ptr is null')
+  Value: 
+    ILocalReferenceOperation: ptr (OperationKind.LocalReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
+  Pattern: 
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: delegate*<System.Void>)
+      Value: 
+        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+");
+
+            VerifyOperationTreeForNode(comp, model, isPatterns[1], expectedOperationTree: @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'ptr is var v')
+  Value: 
+    ILocalReferenceOperation: ptr (OperationKind.LocalReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
+  Pattern: 
+    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var v') (InputType: delegate*<System.Void>, DeclaredSymbol: delegate*<System.Void> v, MatchesNull: True)
+");
+
             comp = CreateCompilationWithFunctionPointers(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
                 // (7,9): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -1734,6 +2247,28 @@ unsafe class C
                 //         _ = ptr is var (x);
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var (x)").WithLocation(8, 20)
             );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var isPattern = syntaxTree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, isPattern.Pattern,
+                expectedSyntax: "var (x)",
+                expectedType: null,
+                expectedConvertedType: null,
+                expectedSymbol: null,
+                expectedSymbolCandidates: null);
+
+            VerifyOperationTreeForNode(comp, model, isPattern, expectedOperationTree: @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'ptr is var (x)')
+  Value: 
+    ILocalReferenceOperation: ptr (OperationKind.LocalReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '(x)') (InputType: ?, DeclaredSymbol: null, MatchedType: ?, DeconstructSymbol: null)
+      DeconstructionSubpatterns (1):
+          IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'x') (InputType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
+      PropertySubpatterns (0)
+");
         }
 
         [Fact]
@@ -1754,6 +2289,27 @@ unsafe class C
                 //         _ = ptr is { } _;
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{ } _").WithLocation(6, 20)
             );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var isPattern = syntaxTree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, isPattern.Pattern,
+                expectedSyntax: "{ } _",
+                expectedType: "?",
+                expectedSymbol: null,
+                expectedSymbolCandidates: null);
+
+            VerifyOperationTreeForNode(comp, model, isPattern, expectedOperationTree: @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'ptr is { } _')
+  Value: 
+    IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ } _') (InputType: ?, DeclaredSymbol: null, MatchedType: ?, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (0)
+");
         }
 
         [Fact]
@@ -1786,6 +2342,40 @@ unsafe class C
                 //         _ = ptr is object;
                 Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "ptr is object").WithLocation(9, 13)
             );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var binaryExpressions = syntaxTree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().ToArray();
+            Assert.Equal(4, binaryExpressions.Length);
+
+            VerifyOperationTreeForNode(comp, model, binaryExpressions[0], expectedOperationTree: @"
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean, IsInvalid) (Syntax: 'o is delegate*<void>')
+  Operand: 
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+  IsType: delegate*<System.Void>
+");
+
+            VerifyOperationTreeForNode(comp, model, binaryExpressions[1], expectedOperationTree: @"
+IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'o as delegate*<void>')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+");
+
+            VerifyOperationTreeForNode(comp, model, binaryExpressions[2], expectedOperationTree: @"
+IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid) (Syntax: 'ptr as object')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'ptr')
+");
+
+            VerifyOperationTreeForNode(comp, model, binaryExpressions[3], expectedOperationTree: @"
+IIsTypeOperation (OperationKind.IsType, Type: System.Boolean, IsInvalid) (Syntax: 'ptr is object')
+  Operand: 
+    IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'ptr')
+  IsType: System.Object
+");
         }
 
         [Fact]
@@ -1806,6 +2396,33 @@ unsafe class C
                 //         _ = c is { O: delegate*<void> _ };
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "delegate*<void>").WithLocation(7, 23)
             );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var isPattern = syntaxTree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+            var funcPtrTypeSyntax = isPattern.DescendantNodes().OfType<FunctionPointerTypeSyntax>().Single();
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, funcPtrTypeSyntax,
+                expectedSyntax: "delegate*<void>",
+                expectedType: "delegate*<System.Void>",
+                expectedSymbol: "delegate*<System.Void>");
+
+            VerifyOperationTreeForNode(comp, model, isPattern, expectedOperationTree: @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'c is { O: d ... *<void> _ }')
+  Value: 
+    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ O: delegate*<void> _ }') (InputType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'O: delegate*<void> _')
+            Member: 
+              IFieldReferenceOperation: System.Object C.O (OperationKind.FieldReference, Type: System.Object) (Syntax: 'O')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'O')
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'delegate*<void> _') (InputType: System.Object, DeclaredSymbol: null, MatchesNull: False)
+");
         }
 
         [Fact]
@@ -1874,6 +2491,36 @@ class E<T> where T : struct {}
                 //     void M4<T>(delegate*<E<T>> ptr) {}
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ptr").WithArguments("E<T>", "T", "T").WithLocation(9, 32)
             );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var paramTypes = syntaxTree.GetRoot().DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .Select(m => m.ParameterList.Parameters.Single().Type!)
+                .ToArray();
+
+            Assert.Equal(4, paramTypes.Length);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, paramTypes[0],
+                expectedSyntax: "delegate*<C*, S>",
+                expectedType: "delegate*<C*, S>",
+                expectedSymbol: "delegate*<C*, S>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, paramTypes[1],
+                expectedSyntax: "delegate*<T?>",
+                expectedType: "delegate*<T?>",
+                expectedSymbol: "delegate*<T?>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, paramTypes[2],
+                expectedSyntax: "delegate*<D<T>>",
+                expectedType: "delegate*<D<T>>",
+                expectedSymbol: "delegate*<D<T>>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, paramTypes[3],
+                expectedSyntax: "delegate*<E<T>>",
+                expectedType: "delegate*<E<T>>",
+                expectedSymbol: "delegate*<E<T>>");
         }
 
         [Fact]
@@ -1884,15 +2531,20 @@ unsafe class C
 {
     void M()
     {
-        _ = new delegate*<void>();
+        _ = /*<bind>*/new delegate*<void>()/*</bind>*/;
     }
 }");
 
             comp.VerifyDiagnostics(
-                // (6,13): error CS1919: Unsafe type 'delegate*<void>' cannot be used in object creation
-                //         _ = new delegate*<void>();
-                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new delegate*<void>()").WithArguments("delegate*<void>").WithLocation(6, 13)
+                // (6,23): error CS1919: Unsafe type 'delegate*<void>' cannot be used in object creation
+                //         _ = /*<bind>*/new delegate*<void>()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new delegate*<void>()").WithArguments("delegate*<void>").WithLocation(6, 23)
             );
+
+            VerifyOperationTreeForTest<ObjectCreationExpressionSyntax>(comp, expectedOperationTree: @"
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new delegate*<void>()')
+  Children(0)
+");
         }
 
         [Fact]
@@ -1903,15 +2555,22 @@ unsafe class C
 {
     void M(delegate*<void> ptr)
     {
-        _ = ptr[0];
+        _ = /*<bind>*/ptr[0]/*</bind>*/;
     }
 }");
 
             comp.VerifyDiagnostics(
-                // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'delegate*<void>'
-                //         _ = ptr[0];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "ptr[0]").WithArguments("delegate*<void>").WithLocation(6, 13)
+                // (6,23): error CS0021: Cannot apply indexing with [] to an expression of type 'delegate*<void>'
+                //         _ = /*<bind>*/ptr[0]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "ptr[0]").WithArguments("delegate*<void>").WithLocation(6, 23)
             );
+
+            VerifyOperationTreeForTest<ElementAccessExpressionSyntax>(comp, expectedOperationTree: @"
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'ptr[0]')
+  Children(2):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+      IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'ptr')
+");
         }
 
         [Fact]
@@ -1960,6 +2619,34 @@ unsafe class C
                 //         const delegate*<void> local = null;
                 Diagnostic(ErrorCode.ERR_BadConstType, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(7, 15)
             );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            VariableDeclarationSyntax fieldDeclaration = syntaxTree.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().Single().Declaration;
+            var fieldVariable = fieldDeclaration.Variables.Single();
+            Assert.Equal("delegate*<System.Void> C.field", model.GetDeclaredSymbol(fieldVariable).ToTestDisplayString());
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, fieldDeclaration.Type,
+                expectedSyntax: "delegate*<void>",
+                expectedType: "delegate*<System.Void>",
+                expectedSymbol: "delegate*<System.Void>");
+
+            var localDeclaration = syntaxTree.GetRoot()
+                .DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .Single().DescendantNodes()
+                .OfType<VariableDeclarationSyntax>()
+                .Single();
+
+            var localVariable = localDeclaration.Variables.Single();
+
+            Assert.Equal("delegate*<System.Void> local", model.GetDeclaredSymbol(localVariable).ToTestDisplayString());
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, localDeclaration.Type,
+                expectedSyntax: "delegate*<void>",
+                expectedType: "delegate*<System.Void>",
+                expectedSymbol: "delegate*<System.Void>");
         }
 
         [Fact]
@@ -2013,15 +2700,21 @@ unsafe class C
 {
     void M(delegate*<void> ptr)
     {
-        ptr.ToString();
+        /*<bind>*/ptr.ToString()/*</bind>*/;
     }
 }");
 
             comp.VerifyDiagnostics(
-                // (6,13): error CS1061: 'delegate*<void>' does not contain a definition for 'ToString' and no accessible extension method 'ToString' accepting a first argument of type 'delegate*<void>' could be found (are you missing a using directive or an assembly reference?)
-                //         ptr.ToString();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToString").WithArguments("delegate*<void>", "ToString").WithLocation(6, 13)
+                // (6,23): error CS1061: 'delegate*<void>' does not contain a definition for 'ToString' and no accessible extension method 'ToString' accepting a first argument of type 'delegate*<void>' could be found (are you missing a using directive or an assembly reference?)
+                //         /*<bind>*/ptr.ToString()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToString").WithArguments("delegate*<void>", "ToString").WithLocation(6, 23)
             );
+
+            VerifyOperationTreeForTest<InvocationExpressionSyntax>(comp, expectedOperationTree: @"
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'ptr.ToString()')
+  Children(1):
+      IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>) (Syntax: 'ptr')
+");
         }
 
         [Fact]
@@ -2031,12 +2724,12 @@ unsafe class C
 unsafe class C
 {
     static void M(delegate*<string, int, void> ptr1, delegate*<__arglist, void> ptr2)
-    {
+    /*<bind>*/{
         ptr1(__arglist(string.Empty, 1), 1);
         ptr1(null, __arglist(string.Empty, 1));
         ptr1(null, 1, __arglist(string.Empty, 1));
         ptr2(__arglist(1, 2, 3, ptr1));
-    }
+    }/*</bind>*/
 }");
 
             comp.VerifyDiagnostics(
@@ -2070,6 +2763,83 @@ unsafe class C
                 (RefKind.None, IsErrorType()));
 
             Assert.False(type.Signature.IsVararg);
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var parameterDecls = syntaxTree.GetRoot().DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .SelectMany(m => m.ParameterList.Parameters)
+                .Select(p => p.Type!)
+                .ToArray();
+
+            Assert.Equal(2, parameterDecls.Length);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[0],
+                expectedSyntax: "delegate*<string, int, void>",
+                expectedType: "delegate*<System.String, System.Int32, System.Void>",
+                expectedSymbol: "delegate*<System.String, System.Int32, System.Void>");
+
+            var semanticInfo = model.GetSemanticInfoSummary(parameterDecls[1]);
+
+            // Calling GetTypeInfo on `__arglist` returns null, so attempting to verify the individual parameters would fail
+            Assert.Equal("delegate*<__arglist, void>", parameterDecls[1].ToString());
+            Assert.Equal("delegate*<?, System.Void>", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(semanticInfo.Type, semanticInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal("delegate*<?, System.Void>", semanticInfo.Symbol.ToTestDisplayString(includeNonNullable: false));
+            Assert.Empty(semanticInfo.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+
+            VerifyOperationTreeForTest<BlockSyntax>(comp, expectedOperationTree: @"
+IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'ptr1(__argl ... ty, 1), 1);')
+    Expression: 
+      IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'ptr1(__argl ... pty, 1), 1)')
+        Children(3):
+            IParameterReferenceOperation: ptr1 (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32, System.Void>) (Syntax: 'ptr1')
+            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '__arglist(s ... g.Empty, 1)')
+              Children(2):
+                  IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
+                    Instance Receiver: 
+                      null
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'ptr1(null,  ... Empty, 1));')
+    Expression: 
+      IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'ptr1(null,  ... .Empty, 1))')
+        Children(3):
+            IParameterReferenceOperation: ptr1 (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32, System.Void>) (Syntax: 'ptr1')
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '__arglist(s ... g.Empty, 1)')
+              Children(2):
+                  IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
+                    Instance Receiver: 
+                      null
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'ptr1(null,  ... Empty, 1));')
+    Expression: 
+      IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'ptr1(null,  ... .Empty, 1))')
+        Children(4):
+            IParameterReferenceOperation: ptr1 (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32, System.Void>, IsInvalid) (Syntax: 'ptr1')
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '__arglist(s ... g.Empty, 1)')
+              Children(2):
+                  IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
+                    Instance Receiver: 
+                      null
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'ptr2(__argl ...  3, ptr1));')
+    Expression: 
+      IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'ptr2(__argl ... , 3, ptr1))')
+        Children(2):
+            IParameterReferenceOperation: ptr2 (OperationKind.ParameterReference, Type: delegate*<?, System.Void>) (Syntax: 'ptr2')
+            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '__arglist(1, 2, 3, ptr1)')
+              Children(4):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+                  IParameterReferenceOperation: ptr1 (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32, System.Void>, IsInvalid) (Syntax: 'ptr1')
+");
         }
     }
 }

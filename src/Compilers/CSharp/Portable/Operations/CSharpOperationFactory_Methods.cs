@@ -243,68 +243,75 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal ImmutableArray<IArgumentOperation> DeriveArguments(BoundNode containingExpression)
         {
-            return containingExpression switch
+            switch (containingExpression.Kind)
             {
-                BoundIndexerAccess boundIndexer => DeriveArguments(
-                    boundIndexer,
-                    boundIndexer.BinderOpt,
-                    boundIndexer.Indexer,
-                    boundIndexer.UseSetterForDefaultArgumentGeneration
-                        ? boundIndexer.Indexer.GetOwnOrInheritedSetMethod()
-                        : boundIndexer.Indexer.GetOwnOrInheritedGetMethod(),
-                    boundIndexer.Arguments,
-                    boundIndexer.ArgumentNamesOpt,
-                    boundIndexer.ArgsToParamsOpt,
-                    boundIndexer.ArgumentRefKindsOpt,
-                    boundIndexer.Indexer.Parameters,
-                    boundIndexer.Expanded,
-                    boundIndexer.Syntax),
+                case BoundKind.IndexerAccess:
+                    {
+                        var boundIndexer = (BoundIndexerAccess)containingExpression;
+                        return DeriveArguments(boundIndexer,
+                                               boundIndexer.BinderOpt,
+                                               boundIndexer.Indexer,
+                                               boundIndexer.UseSetterForDefaultArgumentGeneration ? boundIndexer.Indexer.GetOwnOrInheritedSetMethod() :
+                                                                                                    boundIndexer.Indexer.GetOwnOrInheritedGetMethod(),
+                                               boundIndexer.Arguments,
+                                               boundIndexer.ArgumentNamesOpt,
+                                               boundIndexer.ArgsToParamsOpt,
+                                               boundIndexer.ArgumentRefKindsOpt,
+                                               boundIndexer.Indexer.Parameters,
+                                               boundIndexer.Expanded,
+                                               boundIndexer.Syntax);
+                    }
+                case BoundKind.ObjectCreationExpression:
+                    {
+                        var objectCreation = (BoundObjectCreationExpression)containingExpression;
+                        return DeriveArguments(objectCreation,
+                                               objectCreation.BinderOpt,
+                                               objectCreation.Constructor,
+                                               objectCreation.Constructor,
+                                               objectCreation.Arguments,
+                                               objectCreation.ArgumentNamesOpt,
+                                               objectCreation.ArgsToParamsOpt,
+                                               objectCreation.ArgumentRefKindsOpt,
+                                               objectCreation.Constructor.Parameters,
+                                               objectCreation.Expanded,
+                                               objectCreation.Syntax);
+                    }
+                case BoundKind.Call:
+                    {
+                        var boundCall = (BoundCall)containingExpression;
+                        return DeriveArguments(boundCall,
+                                               boundCall.BinderOpt,
+                                               boundCall.Method,
+                                               boundCall.Method,
+                                               boundCall.Arguments,
+                                               boundCall.ArgumentNamesOpt,
+                                               boundCall.ArgsToParamsOpt,
+                                               boundCall.ArgumentRefKindsOpt,
+                                               boundCall.Method.Parameters,
+                                               boundCall.Expanded,
+                                               boundCall.Syntax,
+                                               boundCall.InvokedAsExtensionMethod);
+                    }
+                case BoundKind.CollectionElementInitializer:
+                    {
+                        var boundCollectionElementInitializer = (BoundCollectionElementInitializer)containingExpression;
+                        return DeriveArguments(boundCollectionElementInitializer,
+                                               boundCollectionElementInitializer.BinderOpt,
+                                               boundCollectionElementInitializer.AddMethod,
+                                               boundCollectionElementInitializer.AddMethod,
+                                               boundCollectionElementInitializer.Arguments,
+                                               argumentNamesOpt: default,
+                                               boundCollectionElementInitializer.ArgsToParamsOpt,
+                                               argumentRefKindsOpt: default,
+                                               boundCollectionElementInitializer.AddMethod.Parameters,
+                                               boundCollectionElementInitializer.Expanded,
+                                               boundCollectionElementInitializer.Syntax,
+                                               boundCollectionElementInitializer.InvokedAsExtensionMethod);
+                    }
 
-                BoundObjectCreationExpression objectCreation => DeriveArguments(
-                    objectCreation,
-                    objectCreation.BinderOpt,
-                    objectCreation.Constructor,
-                    objectCreation.Constructor,
-                    objectCreation.Arguments,
-                    objectCreation.ArgumentNamesOpt,
-                    objectCreation.ArgsToParamsOpt,
-                    objectCreation.ArgumentRefKindsOpt,
-                    objectCreation.Constructor.Parameters,
-                    objectCreation.Expanded,
-                    objectCreation.Syntax),
-
-                BoundCall boundCall => DeriveArguments(
-                    boundCall,
-                    boundCall.BinderOpt,
-                    boundCall.Method,
-                    boundCall.Method,
-                    boundCall.Arguments,
-                    boundCall.ArgumentNamesOpt,
-                    boundCall.ArgsToParamsOpt,
-                    boundCall.ArgumentRefKindsOpt,
-                    boundCall.Method.Parameters,
-                    boundCall.Expanded,
-                    boundCall.Syntax,
-                    boundCall.InvokedAsExtensionMethod),
-
-                BoundCollectionElementInitializer boundCollectionElementInitializer => DeriveArguments(
-                    boundCollectionElementInitializer,
-                    boundCollectionElementInitializer.BinderOpt,
-                    boundCollectionElementInitializer.AddMethod,
-                    boundCollectionElementInitializer.AddMethod,
-                    boundCollectionElementInitializer.Arguments,
-                    argumentNamesOpt: default,
-                    boundCollectionElementInitializer.ArgsToParamsOpt,
-                    argumentRefKindsOpt: default,
-                    boundCollectionElementInitializer.AddMethod.Parameters,
-                    boundCollectionElementInitializer.Expanded,
-                    boundCollectionElementInitializer.Syntax,
-                    boundCollectionElementInitializer.InvokedAsExtensionMethod),
-
-                BoundFunctionPointerInvocation funcPtrInvocation => DeriveArguments(funcPtrInvocation),
-
-                _ => throw ExceptionUtilities.UnexpectedValue(containingExpression.Kind)
-            };
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(containingExpression.Kind);
+            }
         }
 
         private ImmutableArray<IArgumentOperation> DeriveArguments(
@@ -339,16 +346,6 @@ namespace Microsoft.CodeAnalysis.Operations
                  expanded: expanded,
                  argsToParamsOpt: argumentsToParametersOpt,
                  invokedAsExtensionMethod: invokedAsExtensionMethod);
-        }
-
-        private ImmutableArray<IArgumentOperation> DeriveArguments(BoundFunctionPointerInvocation funcPtrInvocation)
-        {
-            // If there were errors with the function pointer invocation, we should have created an InvalidOperation
-            Debug.Assert(funcPtrInvocation.Arguments.Length == funcPtrInvocation.FunctionPointer.Signature.ParameterCount);
-            return funcPtrInvocation.Arguments.ZipAsArray(
-                funcPtrInvocation.FunctionPointer.Signature.Parameters,
-                this,
-                (arg, param, @this, _) => @this.CreateArgumentOperation(ArgumentKind.Explicit, param.GetPublicSymbol(), arg));
         }
 
         internal static ImmutableArray<BoundNode> CreateInvalidChildrenFromArgumentsExpression(BoundNode receiverOpt, ImmutableArray<BoundExpression> arguments, BoundExpression additionalNodeOpt = null)

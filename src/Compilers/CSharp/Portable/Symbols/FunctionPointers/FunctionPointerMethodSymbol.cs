@@ -10,7 +10,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Cci;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -93,6 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 suppressUseSiteDiagnostics);
         }
 
+        /// <summary>
+        /// Creates a function pointer method symbol from individual parts. This method should only be used when diagnostics are not needed.
+        /// </summary>
         internal static FunctionPointerMethodSymbol CreateFromParts(
             TypeWithAnnotations returnType,
             RefKind returnRefKind,
@@ -260,6 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Creates a function pointer method symbol from individual parts. This method should only be used when diagnostics are not needed.
+        /// </summary>
         private FunctionPointerMethodSymbol(
             CallingConvention callingConvention,
             RefKind refKind,

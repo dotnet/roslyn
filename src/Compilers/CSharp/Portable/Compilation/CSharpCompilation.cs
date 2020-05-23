@@ -1991,42 +1991,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new PointerTypeSymbol(TypeWithAnnotations.Create(elementType, elementNullableAnnotation));
         }
 
-        internal FunctionPointerTypeSymbol CreateFunctionPointerTypeSymbol(
-            TypeWithAnnotations returnType,
-            ImmutableArray<TypeWithAnnotations> parameterTypes,
-            RefKind returnRefKind,
-            ImmutableArray<RefKind> parameterRefKinds)
-        {
-            if (returnType.IsDefault)
-            {
-                throw new ArgumentNullException(nameof(returnType));
-            }
-
-            if (parameterTypes.IsDefault || parameterTypes.Any(param => param.IsDefault))
-            {
-                throw new ArgumentNullException(nameof(parameterTypes));
-            }
-
-            if (parameterRefKinds.IsDefault)
-            {
-                throw new ArgumentNullException(nameof(parameterRefKinds));
-            }
-
-            if (parameterRefKinds.Length != parameterTypes.Length)
-            {
-                // Given {0} parameter types and {1} parameter ref kinds. These must be the same.
-                throw new ArgumentException(string.Format(CSharpResources.NotSameNumberParameterTypesAndRefKinds, parameterTypes.Length, parameterRefKinds.Length));
-            }
-
-            if (returnRefKind == RefKind.Out)
-            {
-                //'RefKind.Out' is not a valid ref kind for a return type.
-                throw new ArgumentException(CSharpResources.OutIsNotValidForReturn);
-            }
-
-            return FunctionPointerTypeSymbol.CreateFromParts(returnType, returnRefKind, parameterTypes, parameterRefKinds, this);
-        }
-
         private protected override bool IsSymbolAccessibleWithinCore(
             ISymbol symbol,
             ISymbol within,
@@ -3215,6 +3179,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(parameterTypes));
             }
 
+            for (int i = 0; i < parameterTypes.Length; i++)
+            {
+                if (parameterTypes[i] is null)
+                {
+                    throw new ArgumentNullException($"{nameof(parameterTypes)}[{i}]");
+                }
+            }
+
             if (parameterRefKinds.IsDefault)
             {
                 throw new ArgumentNullException(nameof(parameterRefKinds));
@@ -3236,7 +3208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterTypesWithAnnotations = parameterTypes.SelectAsArray(
                 type => TypeWithAnnotations.Create(type.EnsureCSharpSymbolOrNull(nameof(parameterTypes)), type.NullableAnnotation.ToInternalAnnotation()));
 
-            return CreateFunctionPointerTypeSymbol(returnTypeWithAnnotations, parameterTypesWithAnnotations, returnRefKind, parameterRefKinds).GetPublicSymbol();
+            return FunctionPointerTypeSymbol.CreateFromParts(returnTypeWithAnnotations, returnRefKind, parameterTypesWithAnnotations, parameterRefKinds, this).GetPublicSymbol();
         }
 
         protected override INamedTypeSymbol CommonCreateNativeIntegerTypeSymbol(bool signed)

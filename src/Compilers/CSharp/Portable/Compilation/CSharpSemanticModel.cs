@@ -1787,6 +1787,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        /// <summary>
+        /// In the case that there is a valid method group to function pointer conversion, there are two separate syntax nodes:
+        ///  1. The method group itself, which is associated with the BoundMethodGroup, and
+        ///  2. The address of operator, which is associated with the BoundConversion
+        /// The BoundConversion has the correct info for the successful resolution of symbols, but the underlying method group
+        /// has the information for the full member list. We therefore need to treat the BoundMethodGroup as the lowest bound
+        /// node here.
+        /// </summary>
+        private BoundExpression AdjustLowestBoundNodeForFunctionPointerConversion(BoundExpression expr)
+        {
+            if (expr is BoundConversion { ConversionKind: ConversionKind.MethodGroup, Type: { TypeKind: TypeKind.FunctionPointer }, Operand: BoundMethodGroup operand })
+            {
+                return operand;
+            }
+
+            return expr;
+        }
+
         // Gets the semantic info from a specific bound node and a set of diagnostics
         // lowestBoundNode: The lowest node in the bound tree associated with node
         // highestBoundNode: The highest node in the bound tree associated with node
@@ -1819,6 +1837,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return SymbolInfo.None;
             }
+
+            boundExpr = AdjustLowestBoundNodeForFunctionPointerConversion(boundExpr);
 
             // TODO: Should parenthesized expression really not have symbols? At least for C#, I'm not sure that
             // is right. For example, C# allows the assignment statement:
@@ -2104,6 +2124,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                     }
                 }
+                else if (boundExpr is BoundConversion { ConversionKind: ConversionKind.MethodGroup, Type: { TypeKind: TypeKind.FunctionPointer }, SymbolOpt: var symbol })
+                {
+                    // Because the method group is a separate syntax node from the &, the lowest bound node here is the BoundConversion. However,
+                    // the conversion represents an implicit method group conversion from a typeless method group to a function pointer type, so
+                    // we should reflect that in the types and conversion we return.
+                    convertedType = type;
+                    convertedNullability = nullability;
+                    conversion = new Conversion(ConversionKind.MethodGroup, symbol, isExtensionMethod: false);
+                    type = null;
+                    nullability = new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.NotNull);
+                }
                 else
                 {
                     convertedType = type;
@@ -2131,6 +2162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (lowestBoundNode is BoundExpression boundExpr)
             {
+                boundExpr = AdjustLowestBoundNodeForFunctionPointerConversion(boundExpr);
                 LookupResultKind resultKind;
                 ImmutableArray<Symbol> memberGroup;
                 bool isDynamic;
@@ -3226,8 +3258,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FunctionPointerInvocation:
                     {
                         var invocation = (BoundFunctionPointerInvocation)boundNode;
-                        symbols = ImmutableArray.Create<Symbol>(invocation.FunctionPointer.Signature);
+                        symbols = ImmutableArray.Create<Symbol>(invocation.FunctionPointer);
                         resultKind = invocation.ResultKind;
+                        break;
+                    }
+
+                case BoundKind.UnconvertedAddressOfOperator:
+                    {
+                        symbols = GetMethodGroupSemanticSymbols(
+                            ((BoundUnconvertedAddressOfOperator)boundNode).Operand,
+                            boundNodeForSyntacticParent, binderOpt, out resultKind, out isDynamic, out memberGroup);
                         break;
                     }
 
@@ -3297,10 +3337,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert((object)symbol != null);
                             symbols = ImmutableArray.Create<Symbol>(ReducedExtensionMethodSymbol.Create(symbol));
                             resultKind = conversion.ResultKind;
-                        }
-                        else if (conversion.ConversionKind == ConversionKind.NoConversion && conversion.Operand is BoundUnconvertedAddressOfOperator unconvertedAddressOf)
-                        {
-                            symbols = GetMethodGroupSemanticSymbols(unconvertedAddressOf.Operand, boundNodeForSyntacticParent, binderOpt, out resultKind, out isDynamic, out memberGroup);
                         }
                         else if (conversion.ConversionKind.IsUserDefinedConversion())
                         {

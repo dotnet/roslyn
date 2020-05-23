@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract IArrayTypeSymbol CommonCreateArrayTypeSymbol(ITypeSymbol elementType, int rank, NullableAnnotation elementNullableAnnotation);
 
         /// <summary>
-        /// Returns a new PointerTypeSymbol representing a pointer type tied to a type in this
+        /// Returns a new IPointerTypeSymbol representing a pointer type tied to a type in this
         /// Compilation.
         /// </summary>
         /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
@@ -939,6 +939,20 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType);
 
+
+        /// <summary>
+        /// Returns a new IFunctionPointerTypeSymbol representing a function pointer type tied to types in this
+        /// Compilation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
+        /// <exception cref="ArgumentException">
+        /// If:
+        ///  * <see cref="RefKind.Out"/> is passed as the returnRefKind.
+        ///  * parameterTypes and parameterRefKinds do not have the same length.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// If returnType is <see langword="null"/>, or if parameterTypes or parameterRefKinds are default,
+        /// or if any of the types in parameterTypes are null.</exception>
         public IFunctionPointerTypeSymbol CreateFunctionPointerTypeSymbol(ITypeSymbol returnType, RefKind returnRefKind, ImmutableArray<ITypeSymbol> parameterTypes, ImmutableArray<RefKind> parameterRefKinds)
         {
             return CommonCreateFunctionPointerTypeSymbol(returnType, returnRefKind, parameterTypes, parameterRefKinds);

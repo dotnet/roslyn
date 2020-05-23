@@ -1745,6 +1745,14 @@ namespace System.Runtime.CompilerServices
             return actualOperation;
         }
 
+        protected static void VerifyOperationTreeForNode(CSharpCompilation compilation, SemanticModel model, SyntaxNode syntaxNode, string expectedOperationTree)
+        {
+            var actualOperation = model.GetOperation(syntaxNode);
+            Assert.NotNull(actualOperation);
+            var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
+            OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
+        }
+
         protected static void VerifyFlowGraphForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedFlowGraph)
             where TSyntaxNode : SyntaxNode
         {

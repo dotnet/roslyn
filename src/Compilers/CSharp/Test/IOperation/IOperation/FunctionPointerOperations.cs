@@ -32,10 +32,97 @@ unsafe class C
             var expectedOperationTree = @"
 IAddressOfOperation (OperationKind.AddressOf, Type: delegate*<System.Void>) (Syntax: '&M1')
   Reference: 
-    IMethodReferenceOperation: delegate*<System.Void> (OperationKind.MethodReference, Type: null) (Syntax: 'M1')
+    IMethodReferenceOperation: void C.M1() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'M1')
       Instance Receiver: 
         null
 ";
+
+            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
+        }
+
+        [Fact]
+        public void FunctionPointerLoad_WithThisReference()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+unsafe class C
+{
+    void M1() => throw null;
+    void M2()
+    {
+        delegate*<void> ptr = /*<bind>*/&M1/*</bind>*/;
+    }
+}");
+
+            var expectedOperationTree = @"
+IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&M1')
+  Reference: 
+    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
+      Children(1):
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M1')
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (7,42): error CS8759: Cannot create a function pointer for 'C.M1()' because it is not a static method
+                //         delegate*<void> ptr = /*<bind>*/&M1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "M1").WithArguments("C.M1()").WithLocation(7, 42)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void FunctionPointerLoad_WithInstanceReference()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+unsafe class C
+{
+    void M1() => throw null;
+    static void M2(C c)
+    {
+        delegate*<void> ptr = /*<bind>*/&c.M1/*</bind>*/;
+    }
+}");
+
+            var expectedOperationTree = @"
+IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&c.M1')
+  Reference: 
+    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c.M1')
+      Children(1):
+          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (7,42): error CS8759: Cannot create a function pointer for 'C.M1()' because it is not a static method
+                //         delegate*<void> ptr = /*<bind>*/&c.M1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "c.M1").WithArguments("C.M1()").WithLocation(7, 42)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void FunctionPointerLoad_WithStaticReference()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+static class Helper { public static void M1() => throw null; }
+unsafe class C
+{
+    static void M2()
+    {
+        delegate*<void> ptr = /*<bind>*/&Helper.M1/*</bind>*/;
+    }
+}");
+
+            var expectedOperationTree = @"
+IAddressOfOperation (OperationKind.AddressOf, Type: delegate*<System.Void>) (Syntax: '&Helper.M1')
+  Reference: 
+    IMethodReferenceOperation: void Helper.M1() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'Helper.M1')
+      Instance Receiver: 
+        null
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
         }
@@ -99,6 +186,34 @@ IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&
         }
 
         [Fact]
+        public void FunctionPointerLoad_UnknownMethod()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+unsafe class C
+{
+    static void M2()
+    {
+        delegate*<void> ptr = /*<bind>*/&M1/*</bind>*/;
+    }
+}");
+
+            var expectedOperationTree = @"
+IAddressOfOperation (OperationKind.AddressOf, Type: ?*, IsInvalid) (Syntax: '&M1')
+  Reference: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M1')
+      Children(0)
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (6,42): error CS0103: The name 'M1' does not exist in the current context
+                //         delegate*<void> ptr = /*<bind>*/&M1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(6, 42)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
         public void FunctionPointerInvocation()
         {
             var comp = CreateFunctionPointerCompilation(@"
@@ -112,16 +227,12 @@ unsafe class C
 }");
 
             var expectedOperationTree = @"
-IInvocationOperation ( delegate*<System.String, System.Void>) (OperationKind.Invocation, Type: System.Void) (Syntax: 'ptr(Prop)')
-  Instance Receiver: 
-    IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Void>) (Syntax: 'ptr')
-  Arguments(1):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null) (Syntax: 'Prop')
-        IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Prop')
-          Instance Receiver: 
-            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Prop')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IOperation:  (OperationKind.None, Type: System.Void) (Syntax: 'ptr(Prop)')
+  Children(2):
+      IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Void>) (Syntax: 'ptr')
+      IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'Prop')
+        Instance Receiver: 
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Prop')
             ";
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
@@ -246,16 +357,12 @@ IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'ptr(Prop)')
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IInvocationOperation ( delegate*<System.String, System.Int32>) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'ptr(Prop)')
-                      Instance Receiver: 
-                        IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32>, IsInvalid) (Syntax: 'ptr')
-                      Arguments(1):
-                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'Prop')
-                            IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Prop')
-                              Instance Receiver: 
-                                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Prop')
-                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'ptr(Prop)')
+                      Children(2):
+                          IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32>, IsInvalid) (Syntax: 'ptr')
+                          IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Prop')
+                            Instance Receiver: 
+                              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Prop')
       Initializer: 
         null
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 's = ptr(Prop);')
@@ -267,16 +374,12 @@ IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'ptr(Prop)')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              IInvocationOperation ( delegate*<System.String, System.Int32>) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'ptr(Prop)')
-                Instance Receiver: 
-                  IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32>, IsInvalid) (Syntax: 'ptr')
-                Arguments(1):
-                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'Prop')
-                      IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Prop')
-                        Instance Receiver: 
-                          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Prop')
-                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'ptr(Prop)')
+                Children(2):
+                    IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32>, IsInvalid) (Syntax: 'ptr')
+                    IPropertyReferenceOperation: System.String C.Prop { get; } (OperationKind.PropertyReference, Type: System.String, IsInvalid) (Syntax: 'Prop')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Prop')
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -328,8 +431,8 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '(delegate*<void>)&M1')
               Value: 
-                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: delegate*<System.Void>) (Syntax: '(delegate*<void>)&M1')
-                  Target: 
+                IAddressOfOperation (OperationKind.AddressOf, Type: delegate*<System.Void>) (Syntax: '(delegate*<void>)&M1')
+                  Reference: 
                     IMethodReferenceOperation: void C.M1() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'M1')
                       Instance Receiver: 
                         null
@@ -341,7 +444,7 @@ Block[B0] - Entry
               Value: 
                 IAddressOfOperation (OperationKind.AddressOf, Type: delegate*<System.Void>) (Syntax: '&M2')
                   Reference: 
-                    IMethodReferenceOperation: delegate*<System.Void> (OperationKind.MethodReference, Type: null) (Syntax: 'M2')
+                    IMethodReferenceOperation: void C.M2() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'M2')
                       Instance Receiver: 
                         null
         Next (Regular) Block[B4]
@@ -417,14 +520,10 @@ Block[B0] - Entry
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ptr(b ? s1 : s2);')
               Expression: 
-                IInvocationOperation ( delegate*<System.String, System.Void>) (OperationKind.Invocation, Type: System.Void) (Syntax: 'ptr(b ? s1 : s2)')
-                  Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: delegate*<System.String, System.Void>, IsImplicit) (Syntax: 'ptr')
-                  Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: ) (OperationKind.Argument, Type: null) (Syntax: 'b ? s1 : s2')
-                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b ? s1 : s2')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                IOperation:  (OperationKind.None, Type: null) (Syntax: 'ptr(b ? s1 : s2)')
+                  Children(2):
+                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: delegate*<System.String, System.Void>, IsImplicit) (Syntax: 'ptr')
+                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b ? s1 : s2')
         Next (Regular) Block[B5]
             Leaving: {R1}
 }

@@ -4306,8 +4306,8 @@ unsafe class C
 
             var symbolInfo = model.GetSymbolInfo(syntax);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
-            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal("void C.M()", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
 
             var typeInfo = model.GetTypeInfo(syntax);
             var type = typeInfo.Type;

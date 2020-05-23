@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _boundNode;
 
-        public CSharpLazyNoneOperation(CSharpOperationFactory operationFactory, BoundNode boundNode, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit)
+        public CSharpLazyNoneOperation(CSharpOperationFactory operationFactory, BoundNode boundNode, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit, ITypeSymbol type = null) :
+            base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit, type)
         {
             _operationFactory = operationFactory;
             _boundNode = boundNode;
@@ -808,11 +806,6 @@ namespace Microsoft.CodeAnalysis.Operations
         {
         }
 
-        internal CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, BoundFunctionPointerInvocation invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            this(operationFactory, (BoundExpression)invocableExpression, targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-
         private CSharpLazyInvocationOperation(CSharpOperationFactory operationFactory, BoundExpression invocableExpression, IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
@@ -822,13 +815,18 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IOperation CreateInstance()
         {
-            BoundExpression receiver = _invocableExpression switch
+            BoundExpression receiver;
+            switch (_invocableExpression)
             {
-                BoundCall { ReceiverOpt: var r } => r,
-                BoundCollectionElementInitializer { ImplicitReceiverOpt: var r } => r,
-                BoundFunctionPointerInvocation { InvokedExpression: var i } => i,
-                _ => throw ExceptionUtilities.UnexpectedValue(_invocableExpression.Kind)
-            };
+                case BoundCall call:
+                    receiver = call.ReceiverOpt;
+                    break;
+                case BoundCollectionElementInitializer initializer:
+                    receiver = initializer.ImplicitReceiverOpt;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(_invocableExpression.Kind);
+            }
 
             return _operationFactory.CreateReceiverOperation(receiver, TargetMethod.GetSymbol());
         }

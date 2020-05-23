@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -130,38 +131,130 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        public static void VerifyPublicFunctionPointerGetTypeInfo(SemanticModel model, SyntaxNode syntax, bool useConvertedType,
-            Action<ITypeSymbol> returnTypeVerifier,
-            params Action<ITypeSymbol>[] paramVerifiers)
+        public static void VerifyFunctionPointerSemanticInfo(
+            SemanticModel model,
+            SyntaxNode syntax,
+            string expectedSyntax,
+            string? expectedType,
+            string? expectedConvertedType = null,
+            string? expectedSymbol = null,
+            CandidateReason expectedCandidateReason = CandidateReason.None,
+            string[]? expectedSymbolCandidates = null)
         {
-            var typeInfo = model.GetTypeInfo(syntax);
-            var typeSymbol = (IFunctionPointerTypeSymbol)(useConvertedType ? typeInfo.ConvertedType : typeInfo.Type)!;
+            Assert.Equal(expectedSyntax, syntax.ToString());
+            var semanticInfo = model.GetSemanticInfoSummary(syntax);
+            ITypeSymbol? exprType;
 
-            if (!useConvertedType)
+            if (expectedType is null)
             {
-                Assert.Equal(typeInfo.Type, typeInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability);
+                exprType = semanticInfo.ConvertedType;
+                Assert.Null(semanticInfo.Type);
+            }
+            else
+            {
+                exprType = semanticInfo.Type;
+                AssertEx.Equal(expectedType, semanticInfo.Type.ToTestDisplayString(includeNonNullable: false));
             }
 
-            CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)((CSharp.Symbols.PublicModel.FunctionPointerTypeSymbol)typeSymbol).UnderlyingTypeSymbol);
-
-            returnTypeVerifier(typeSymbol.Signature.ReturnType);
-
-            Assert.Equal(paramVerifiers.Length, typeSymbol.Signature.Parameters.Length);
-
-            foreach (var (verifier, parameter) in paramVerifiers.Zip(typeSymbol.Signature.Parameters, (v, p) => (v, p)))
+            if (expectedConvertedType is null)
             {
-                Assert.Empty(parameter.Name);
-                verifier(parameter.Type);
+                Assert.Equal(semanticInfo.Type, semanticInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability);
+            }
+            else
+            {
+                AssertEx.Equal(expectedConvertedType, semanticInfo.ConvertedType.ToTestDisplayString(includeNonNullable: false));
             }
 
-            if (syntax is FunctionPointerTypeSyntax { Parameters: var parameterSyntaxes })
+            verifySymbolInfo(expectedSymbol, expectedCandidateReason, expectedSymbolCandidates, semanticInfo);
+
+            if (exprType is IFunctionPointerTypeSymbol ptrType)
             {
-                Assert.Equal(paramVerifiers.Length + 1, parameterSyntaxes.Count);
-                foreach (var (verifier, paramSyntax) in paramVerifiers.Append(returnTypeVerifier).Zip(parameterSyntaxes, (v, p) => (v, p)))
+                CommonVerifyFunctionPointer(ptrType.GetSymbol());
+            }
+
+            switch (syntax)
+            {
+                case FunctionPointerTypeSyntax { Parameters: var paramSyntaxes }:
+                    verifyNestedFunctionPointerSyntaxSemanticInfo(model, (IFunctionPointerTypeSymbol)exprType, paramSyntaxes);
+                    break;
+
+                case PrefixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.AddressOfExpression, Operand: var operand }:
+                    semanticInfo = model.GetSemanticInfoSummary(operand);
+                    Assert.Null(semanticInfo.Type);
+                    Assert.Null(semanticInfo.ConvertedType);
+
+                    verifySymbolInfo(expectedSymbol, expectedCandidateReason, expectedSymbolCandidates, semanticInfo);
+
+                    break;
+            }
+
+            static void verifySymbolInfo(
+                string? expectedSymbol,
+                CandidateReason expectedReason,
+                string[]? expectedSymbolCandidates,
+                CompilationUtils.SemanticInfoSummary semanticInfo)
+            {
+                if (expectedSymbol is object)
                 {
-                    var type = model.GetTypeInfo(paramSyntax.Type!).Type!;
-                    Assert.NotNull(type);
-                    verifier(type);
+                    Assert.Empty(semanticInfo.CandidateSymbols);
+                    AssertEx.Equal(expectedSymbol, semanticInfo.Symbol.ToTestDisplayString(includeNonNullable: false));
+                    Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+                }
+                else if (expectedSymbolCandidates is object)
+                {
+                    Assert.Null(semanticInfo.Symbol);
+                    Assert.Equal(expectedReason, semanticInfo.CandidateReason);
+                    AssertEx.Equal(expectedSymbolCandidates, semanticInfo.CandidateSymbols.Select(s => s.ToTestDisplayString(includeNonNullable: false)));
+                }
+                else
+                {
+                    Assert.Null(semanticInfo.Symbol);
+                    Assert.Empty(semanticInfo.CandidateSymbols);
+                    Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+                }
+            }
+
+            static void verifyNestedFunctionPointerSyntaxSemanticInfo(SemanticModel model, IFunctionPointerTypeSymbol ptrType, SeparatedSyntaxList<ParameterSyntax> paramSyntaxes)
+            {
+                // https://github.com/dotnet/roslyn/issues/43321 Nullability in type syntaxes that don't have an origin bound node
+                // can differ.
+                var signature = ptrType.Signature;
+                for (int i = 0; i < paramSyntaxes.Count - 1; i++)
+                {
+                    var paramSyntax = paramSyntaxes[i].Type!;
+                    var paramSemanticInfo = model.GetSemanticInfoSummary(paramSyntax);
+                    ITypeSymbol signatureParamType = signature.Parameters[i].Type;
+
+                    Assert.Equal<ISymbol>(signatureParamType, paramSemanticInfo.Type, SymbolEqualityComparer.Default);
+                    Assert.Equal(paramSemanticInfo.Type, paramSemanticInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability);
+
+                    Assert.Equal(CandidateReason.None, paramSemanticInfo.CandidateReason);
+                    Assert.Equal(signatureParamType, paramSemanticInfo.Type, SymbolEqualityComparer.Default);
+                    Assert.Empty(paramSemanticInfo.CandidateSymbols);
+
+                    if (paramSyntax is FunctionPointerTypeSyntax { Parameters: var paramParamSyntaxes })
+                    {
+                        var paramPtrType = (IFunctionPointerTypeSymbol)paramSemanticInfo.Type!;
+                        CommonVerifyFunctionPointer(paramPtrType.GetSymbol());
+                        verifyNestedFunctionPointerSyntaxSemanticInfo(model, paramPtrType, paramParamSyntaxes);
+                    }
+                }
+
+                var returnParam = paramSyntaxes[^1].Type;
+                var returnSemanticInfo = model.GetSemanticInfoSummary(returnParam!);
+
+                Assert.Equal(signature.ReturnType, returnSemanticInfo.Type, SymbolEqualityComparer.Default);
+                Assert.Equal(returnSemanticInfo.Type, returnSemanticInfo.ConvertedType, SymbolEqualityComparer.IncludeNullability);
+
+                Assert.Equal(CandidateReason.None, returnSemanticInfo.CandidateReason);
+                Assert.Equal(signature.ReturnType, returnSemanticInfo.Type, SymbolEqualityComparer.Default);
+                Assert.Empty(returnSemanticInfo.CandidateSymbols);
+
+                if (returnParam is FunctionPointerTypeSyntax { Parameters: var returnParamSyntaxes })
+                {
+                    var returnPtrType = (IFunctionPointerTypeSymbol)returnSemanticInfo.Type!;
+                    CommonVerifyFunctionPointer(returnPtrType.GetSymbol());
+                    verifyNestedFunctionPointerSyntaxSemanticInfo(model, returnPtrType, returnParamSyntaxes);
                 }
             }
         }

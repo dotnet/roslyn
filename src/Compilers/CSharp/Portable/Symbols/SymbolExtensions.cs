@@ -752,5 +752,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return symbol.GetSymbol<PropertySymbol>();
         }
+
+        [return: NotNullIfNotNull("symbol")]
+        internal static FunctionPointerTypeSymbol? GetSymbol(this IFunctionPointerTypeSymbol? symbol)
+        {
+            return symbol.GetSymbol<FunctionPointerTypeSymbol>();
+        }
     }
 }
