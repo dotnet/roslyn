@@ -3189,7 +3189,7 @@ unsafe class C
                 expectedConvertedType: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void>",
                 expectedSymbol: "void C.M(out System.String s)");
 
-            string[] expectedMembers = new[] { 
+            string[] expectedMembers = new[] {
                 "void C.M(System.Object o)",
                 "void C.M(System.String s)",
                 "void C.M(out System.String s)",
