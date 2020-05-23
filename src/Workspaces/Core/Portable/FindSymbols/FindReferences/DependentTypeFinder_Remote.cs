@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(functionId, cancellationToken))
             {
-                var project = solution.GetOriginatingProject(type);
-                if (project != null)
+                if (SerializableSymbolAndProjectId.TryCreate(type, solution, cancellationToken, out var serializedType))
                 {
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                     if (client != null)
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             solution,
                             new object?[]
                             {
-                                SerializableSymbolAndProjectId.Create(type, project, cancellationToken),
+                                serializedType,
                                 projects?.Select(p => p.Id).ToArray(),
                                 transitive,
                             },

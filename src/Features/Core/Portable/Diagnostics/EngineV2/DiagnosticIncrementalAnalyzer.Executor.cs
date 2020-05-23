@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             foreach (var (analyzer, telemetryInfo) in telemetry)
             {
-                bool isTelemetryCollectionAllowed = DiagnosticAnalyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
+                var isTelemetryCollectionAllowed = DiagnosticAnalyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
                 _telemetry.UpdateAnalyzerActionsTelemetry(analyzer, telemetryInfo, isTelemetryCollectionAllowed);
             }
         }

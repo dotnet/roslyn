@@ -151,7 +151,15 @@ namespace Microsoft.CodeAnalysis
                 _nextId++;
 
                 StartKey();
-                symbol.Accept(this);
+                if (BodyLevelSymbolKey.IsBodyLevelSymbol(symbol))
+                {
+                    WriteType(SymbolKeyType.BodyLevel);
+                    BodyLevelSymbolKey.Create(symbol, this);
+                }
+                else
+                {
+                    symbol.Accept(this);
+                }
 
                 if (!shouldWriteOrdinal)
                 {
@@ -334,25 +342,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override object VisitLabel(ILabelSymbol labelSymbol)
-            {
-                WriteType(SymbolKeyType.BodyLevel);
-                BodyLevelSymbolKey.Create(labelSymbol, this);
-                return null;
-            }
+                => throw ExceptionUtilities.Unreachable;
 
             public override object VisitLocal(ILocalSymbol localSymbol)
-            {
-                WriteType(SymbolKeyType.BodyLevel);
-                BodyLevelSymbolKey.Create(localSymbol, this);
-                return null;
-            }
+                => throw ExceptionUtilities.Unreachable;
 
             public override object VisitRangeVariable(IRangeVariableSymbol rangeVariableSymbol)
-            {
-                WriteType(SymbolKeyType.BodyLevel);
-                BodyLevelSymbolKey.Create(rangeVariableSymbol, this);
-                return null;
-            }
+                => throw ExceptionUtilities.Unreachable;
 
             public override object VisitMethod(IMethodSymbol methodSymbol)
             {
@@ -376,9 +372,7 @@ namespace Microsoft.CodeAnalysis
                             break;
 
                         case MethodKind.LocalFunction:
-                            WriteType(SymbolKeyType.BodyLevel);
-                            BodyLevelSymbolKey.Create(methodSymbol, this);
-                            break;
+                            throw ExceptionUtilities.Unreachable;
 
                         default:
                             WriteType(SymbolKeyType.Method);

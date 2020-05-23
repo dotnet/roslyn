@@ -269,8 +269,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             var declaredSymbolParametersCount = declaredSymbol.GetParameters().Length;
 
-            int telemetryNumberOfDeclarationsToUpdate = 0;
-            int telemetryNumberOfReferencesToUpdate = 0;
+            var telemetryNumberOfDeclarationsToUpdate = 0;
+            var telemetryNumberOfReferencesToUpdate = 0;
 
             foreach (var symbol in symbols)
             {
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
             var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
-            int numAddedParameters = 0;
+            var numAddedParameters = 0;
 
             // Iterate through the list of new parameters and combine any
             // preexisting parameters with added parameters to construct
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             var separators = ImmutableArray.CreateBuilder<SyntaxToken>();
 
-            for (int i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
+            for (var i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
             {
                 separators.Add(i < arguments.SeparatorCount
                     ? arguments.GetSeparator(i)
@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var seenOmitted = false;
             var paramsHandled = false;
 
-            for (int i = 0; i < updatedParameters.Length; i++)
+            for (var i = 0; i < updatedParameters.Length; i++)
             {
                 // Skip this parameter in list of arguments for extension method calls but not for reduced ones.
                 if (updatedParameters[i] != signaturePermutation.UpdatedConfiguration.ThisParameter

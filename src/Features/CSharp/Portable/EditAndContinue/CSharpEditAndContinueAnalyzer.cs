@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override SyntaxNode FindStatementAndPartner(SyntaxNode declarationBody, TextSpan span, SyntaxNode? partnerDeclarationBody, out SyntaxNode? partner, out int statementPart)
         {
-            int position = span.Start;
+            var position = span.Start;
 
             SyntaxUtilities.AssertIsBody(declarationBody, allowLambda: false);
 
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             while (true)
             {
-                bool isBody = node == declarationBody || LambdaUtilities.IsLambdaBodyStatementOrExpression(node);
+                var isBody = node == declarationBody || LambdaUtilities.IsLambdaBodyStatementOrExpression(node);
 
                 if (isBody || StatementSyntaxComparer.HasLabel(node))
                 {
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             var root = GetEncompassingAncestor(container);
 
-            SyntaxNode? current = node;
+            var current = node;
             while (current != root && current != null)
             {
                 if (LambdaUtilities.IsLambdaBodyStatementOrExpression(current, out var body))
@@ -2981,7 +2981,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             var result = new List<SyntaxNode>();
 
-            SyntaxNode? current = node;
+            var current = node;
             while (current != null)
             {
                 var kind = current.Kind();
