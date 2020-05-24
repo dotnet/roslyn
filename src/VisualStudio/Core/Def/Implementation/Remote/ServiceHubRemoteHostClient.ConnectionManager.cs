@@ -21,17 +21,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private readonly ConnectionFactory _connectionFactory;
             private readonly ReaderWriterLockSlim _shutdownLock;
-            private readonly int _maxPoolConnections;
+            private readonly int _capacity;
 
             // keyed to serviceName. each connection is for specific service such as CodeAnalysisService
             private readonly ConcurrentDictionary<RemoteServiceName, ConcurrentQueue<Connection>> _pools;
 
             private bool _isDisposed;
 
-            public ConnectionPool(ConnectionFactory connectionFactory, int maxPoolConnection)
+            public ConnectionPool(ConnectionFactory connectionFactory, int capacity)
             {
                 _connectionFactory = connectionFactory;
-                _maxPoolConnections = maxPoolConnection;
+                _capacity = capacity;
 
                 // initial value 4 is chosen to stop concurrent dictionary creating too many locks.
                 // and big enough for all our services such as codeanalysis, remotehost, snapshot and etc services
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     // queue must exist
                     var queue = _pools[serviceName];
-                    if (queue.Count >= _maxPoolConnections)
+                    if (queue.Count >= _capacity)
                     {
                         // let the connection actually go away
                         connection.Dispose();

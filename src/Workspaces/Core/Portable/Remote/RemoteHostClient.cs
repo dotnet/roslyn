@@ -21,7 +21,7 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// This represents client in client/servier model.
+    /// This represents client in client/server model.
     /// 
     /// user can create a connection to communicate with the server (remote host) through this client
     /// </summary>
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static Task<RemoteHostClient?> TryGetClientAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
         {
-            var service = services.GetService<IRemoteHostClientService>();
+            var service = services.GetService<IRemoteHostClientProvider>();
             if (service == null)
             {
                 return SpecializedTasks.Null<RemoteHostClient>();
