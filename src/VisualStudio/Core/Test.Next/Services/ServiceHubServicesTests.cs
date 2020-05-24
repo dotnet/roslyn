@@ -57,18 +57,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public void TestRemoteHostConnect()
-        {
-            using (var remoteHostService = CreateService())
-            {
-                var input = "Test";
-                var output = remoteHostService.Connect(input, uiCultureLCID: 0, cultureLCID: 0, serializedSession: null, cancellationToken: CancellationToken.None);
-
-                Assert.Equal(input, output);
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestRemoteHostSynchronize()
         {
             var code = @"class Test { void Method() { } }";

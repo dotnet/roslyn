@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Contract.ThrowIfFalse(compilation.Analyzers.Length != 0);
 
                 var workspace = project.Solution.Workspace;
-                var service = workspace.Services.GetService<IRemoteHostClientService>();
+                var service = workspace.Services.GetService<IRemoteHostClientProvider>();
                 if (service == null)
                 {
                     // host doesn't support RemoteHostService such as under unit test
