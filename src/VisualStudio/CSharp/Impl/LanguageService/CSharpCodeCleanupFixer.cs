@@ -78,7 +78,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             var hierarchyToProjectMap = _workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(context.OperationContext.UserCancellationToken);
-            context.OperationContext.UserCancellationToken.ThrowIfCancellationRequested();
 
             ProjectId projectId = null;
             if (ErrorHandler.Succeeded(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject))
@@ -224,7 +223,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 var solution = await applyFixAsync(progressTracker, cancellationToken).ConfigureAwait(true);
 
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
 
                 return workspace.TryApplyChanges(solution, progressTracker);
             }

@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -19,10 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new PropertySubpatternCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(PropertySubpatternCompletionProvider);
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30794")]
         public async Task PropertiesInRecursivePattern()
@@ -486,7 +484,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015")]
         public async Task PropertiesInRecursivePattern_PositionalInFirstProperty_AfterComma()
         {
             var markup =
@@ -530,7 +528,7 @@ class D
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015")]
         public async Task PropertiesInRecursivePattern_InPositional_Incomplete()
         {
             var markup =
@@ -550,7 +548,7 @@ public class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015")]
         public async Task PropertiesInRecursivePattern_InPositional_Incomplete_WithoutClosingBrace()
         {
             var markup =

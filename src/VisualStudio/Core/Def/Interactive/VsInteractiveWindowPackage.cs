@@ -45,8 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             Assumes.Present(_componentModel);
             Assumes.Present(menuCommandService);
 
-            InteractiveHost::Microsoft.CodeAnalysis.ErrorReporting.FatalError.Handler = FailFast.OnFatalException;
-            InteractiveHost::Microsoft.CodeAnalysis.ErrorReporting.FatalError.NonFatalHandler = WatsonReporter.Report;
+            InteractiveHost::Microsoft.CodeAnalysis.ErrorReporting.FatalError.Handler = WatsonReporter.ReportFatal;
+            InteractiveHost::Microsoft.CodeAnalysis.ErrorReporting.FatalError.NonFatalHandler = WatsonReporter.ReportNonFatal;
 
             // Load the Roslyn package so that its FatalError handlers are hooked up.
             shell.LoadPackage(Guids.RoslynPackageId, out var roslynPackage);
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var nonFatalHandlerSetter = type.GetDeclaredMethod("set_NonFatalHandler");
 
             handlerSetter.Invoke(null, new object[] { new Action<Exception>(FailFast.OnFatalException) });
-            nonFatalHandlerSetter.Invoke(null, new object[] { new Action<Exception>(WatsonReporter.Report) });
+            nonFatalHandlerSetter.Invoke(null, new object[] { new Action<Exception>(WatsonReporter.ReportNonFatal) });
         }
 
         protected TVsInteractiveWindowProvider InteractiveWindowProvider

@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using Roslyn.Utilities;
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// and assembly references may not work as expected.  In particular, things that were visible at bind time, based on the 
         /// name of the compilation, may not be visible at runtime and vice-versa.
         /// </remarks>
-        public string OutputNameOverride { get; private set; }
+        public string? OutputNameOverride { get; private set; }
 
         /// <summary>
         /// The name of the PDB file to be embedded in the PE image, or null to use the default.
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <remarks>
         /// If not specified the file name of the source module with an extension changed to "pdb" is used.
         /// </remarks>
-        public string PdbFilePath { get; private set; }
+        public string? PdbFilePath { get; private set; }
 
         /// <summary>
         /// A crypto hash algorithm used to calculate PDB Checksum stored in the PE/COFF File.
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// Runtime metadata version. 
         /// </summary>
-        public string RuntimeMetadataVersion { get; private set; }
+        public string? RuntimeMetadataVersion { get; private set; }
 
         // 1.2 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public EmitOptions(
@@ -159,20 +160,20 @@ namespace Microsoft.CodeAnalysis.Emit
                   tolerateErrors,
                   includePrivateMembers,
                   instrumentationKinds,
-                  pdbChecksumAlgorithm: default)
+                  pdbChecksumAlgorithm: null)
         {
         }
 
         public EmitOptions(
             bool metadataOnly = false,
             DebugInformationFormat debugInformationFormat = 0,
-            string pdbFilePath = null,
-            string outputNameOverride = null,
+            string? pdbFilePath = null,
+            string? outputNameOverride = null,
             int fileAlignment = 0,
             ulong baseAddress = 0,
             bool highEntropyVirtualAddressSpace = false,
             SubsystemVersion subsystemVersion = default,
-            string runtimeMetadataVersion = null,
+            string? runtimeMetadataVersion = null,
             bool tolerateErrors = false,
             bool includePrivateMembers = true,
             ImmutableArray<InstrumentationKind> instrumentationKinds = default,
@@ -210,12 +211,12 @@ namespace Microsoft.CodeAnalysis.Emit
         {
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as EmitOptions);
         }
 
-        public bool Equals(EmitOptions other)
+        public bool Equals(EmitOptions? other)
         {
             if (ReferenceEquals(other, null))
             {
@@ -255,12 +256,12 @@ namespace Microsoft.CodeAnalysis.Emit
                    Hash.Combine(Hash.CombineValues(InstrumentationKinds), 0)))))))))))));
         }
 
-        public static bool operator ==(EmitOptions left, EmitOptions right)
+        public static bool operator ==(EmitOptions? left, EmitOptions? right)
         {
             return object.Equals(left, right);
         }
 
-        public static bool operator !=(EmitOptions left, EmitOptions right)
+        public static bool operator !=(EmitOptions? left, EmitOptions? right)
         {
             return !object.Equals(left, right);
         }

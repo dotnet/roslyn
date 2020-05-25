@@ -15,13 +15,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
     internal class CSharpGoToDefinitionSymbolService : AbstractGoToDefinitionSymbolService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpGoToDefinitionSymbolService()
         {
         }
 
         protected override ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation)
-        {
-            return symbol;
-        }
+            => symbol;
     }
 }

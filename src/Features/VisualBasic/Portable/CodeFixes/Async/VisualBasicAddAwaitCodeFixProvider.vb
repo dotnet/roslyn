@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -26,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
         Friend ReadOnly Ids As ImmutableArray(Of String) = ImmutableArray.Create(BC30311, BC37055, BC42358)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -56,14 +58,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
                     If Not DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression, semanticModel, document.Project, cancellationToken) Then
                         Return Task.FromResult(Of SyntaxNode)(Nothing)
                     End If
-                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression, semanticModel, cancellationToken)))
+                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
                 Case BC37055
                     If Not DoesExpressionReturnTask(expression, semanticModel) Then
                         Return Task.FromResult(Of SyntaxNode)(Nothing)
                     End If
-                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression, semanticModel, cancellationToken)))
+                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
                 Case BC42358
-                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression, semanticModel, cancellationToken)))
+                    Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression)))
                 Case Else
                     Return SpecializedTasks.Null(Of SyntaxNode)()
             End Select
@@ -125,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
                 semanticModel.Compilation.ClassifyConversion(taskType, returnType).Exists
         End Function
 
-        Private Shared Function ConverToAwaitExpression(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ExpressionSyntax
+        Private Shared Function ConverToAwaitExpression(expression As ExpressionSyntax) As ExpressionSyntax
             Return SyntaxFactory.AwaitExpression(expression.WithoutTrivia().Parenthesize()) _
                                 .WithTriviaFrom(expression) _
                                 .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation)

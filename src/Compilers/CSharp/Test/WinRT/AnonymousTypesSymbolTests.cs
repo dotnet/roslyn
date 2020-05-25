@@ -426,14 +426,11 @@ class Query
             ).VerifyIL(
                 "<>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.ToString",
 @"{
-  // Code size      199 (0xc7)
+  // Code size      138 (0x8a)
   .maxstack  7
   .locals init (<Length>j__TPar V_0,
-                <Length>j__TPar V_1,
-                <at1>j__TPar V_2,
-                <at1>j__TPar V_3,
-                <C>j__TPar V_4,
-                <C>j__TPar V_5)
+                <at1>j__TPar V_1,
+                <C>j__TPar V_2)
   IL_0000:  ldnull
   IL_0001:  ldstr      ""{{ Length = {0}, at1 = {1}, C = {2} }}""
   IL_0006:  ldc.i4.3
@@ -444,71 +441,50 @@ class Query
   IL_000f:  ldfld      ""<Length>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<Length>i__Field""
   IL_0014:  stloc.0
   IL_0015:  ldloca.s   V_0
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  initobj    ""<Length>j__TPar""
-  IL_001f:  ldloc.1
-  IL_0020:  box        ""<Length>j__TPar""
-  IL_0025:  brtrue.s   IL_003b
-  IL_0027:  ldobj      ""<Length>j__TPar""
-  IL_002c:  stloc.1
-  IL_002d:  ldloca.s   V_1
-  IL_002f:  ldloc.1
-  IL_0030:  box        ""<Length>j__TPar""
-  IL_0035:  brtrue.s   IL_003b
-  IL_0037:  pop
-  IL_0038:  ldnull
-  IL_0039:  br.s       IL_0046
-  IL_003b:  constrained. ""<Length>j__TPar""
-  IL_0041:  callvirt   ""string object.ToString()""
-  IL_0046:  stelem.ref
-  IL_0047:  dup
-  IL_0048:  ldc.i4.1
-  IL_0049:  ldarg.0
-  IL_004a:  ldfld      ""<at1>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<at1>i__Field""
-  IL_004f:  stloc.2
-  IL_0050:  ldloca.s   V_2
-  IL_0052:  ldloca.s   V_3
-  IL_0054:  initobj    ""<at1>j__TPar""
-  IL_005a:  ldloc.3
-  IL_005b:  box        ""<at1>j__TPar""
-  IL_0060:  brtrue.s   IL_0076
-  IL_0062:  ldobj      ""<at1>j__TPar""
-  IL_0067:  stloc.3
-  IL_0068:  ldloca.s   V_3
-  IL_006a:  ldloc.3
-  IL_006b:  box        ""<at1>j__TPar""
-  IL_0070:  brtrue.s   IL_0076
-  IL_0072:  pop
-  IL_0073:  ldnull
-  IL_0074:  br.s       IL_0081
-  IL_0076:  constrained. ""<at1>j__TPar""
-  IL_007c:  callvirt   ""string object.ToString()""
-  IL_0081:  stelem.ref
-  IL_0082:  dup
-  IL_0083:  ldc.i4.2
-  IL_0084:  ldarg.0
-  IL_0085:  ldfld      ""<C>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<C>i__Field""
-  IL_008a:  stloc.s    V_4
-  IL_008c:  ldloca.s   V_4
-  IL_008e:  ldloca.s   V_5
-  IL_0090:  initobj    ""<C>j__TPar""
-  IL_0096:  ldloc.s    V_5
-  IL_0098:  box        ""<C>j__TPar""
-  IL_009d:  brtrue.s   IL_00b5
-  IL_009f:  ldobj      ""<C>j__TPar""
-  IL_00a4:  stloc.s    V_5
-  IL_00a6:  ldloca.s   V_5
-  IL_00a8:  ldloc.s    V_5
-  IL_00aa:  box        ""<C>j__TPar""
-  IL_00af:  brtrue.s   IL_00b5
-  IL_00b1:  pop
-  IL_00b2:  ldnull
-  IL_00b3:  br.s       IL_00c0
-  IL_00b5:  constrained. ""<C>j__TPar""
-  IL_00bb:  callvirt   ""string object.ToString()""
-  IL_00c0:  stelem.ref
-  IL_00c1:  call       ""string string.Format(System.IFormatProvider, string, params object[])""
-  IL_00c6:  ret
+  IL_0017:  dup
+  IL_0018:  ldobj      ""<Length>j__TPar""
+  IL_001d:  box        ""<Length>j__TPar""
+  IL_0022:  brtrue.s   IL_0028
+  IL_0024:  pop
+  IL_0025:  ldnull
+  IL_0026:  br.s       IL_0033
+  IL_0028:  constrained. ""<Length>j__TPar""
+  IL_002e:  callvirt   ""string object.ToString()""
+  IL_0033:  stelem.ref
+  IL_0034:  dup
+  IL_0035:  ldc.i4.1
+  IL_0036:  ldarg.0
+  IL_0037:  ldfld      ""<at1>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<at1>i__Field""
+  IL_003c:  stloc.1
+  IL_003d:  ldloca.s   V_1
+  IL_003f:  dup
+  IL_0040:  ldobj      ""<at1>j__TPar""
+  IL_0045:  box        ""<at1>j__TPar""
+  IL_004a:  brtrue.s   IL_0050
+  IL_004c:  pop
+  IL_004d:  ldnull
+  IL_004e:  br.s       IL_005b
+  IL_0050:  constrained. ""<at1>j__TPar""
+  IL_0056:  callvirt   ""string object.ToString()""
+  IL_005b:  stelem.ref
+  IL_005c:  dup
+  IL_005d:  ldc.i4.2
+  IL_005e:  ldarg.0
+  IL_005f:  ldfld      ""<C>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<C>i__Field""
+  IL_0064:  stloc.2
+  IL_0065:  ldloca.s   V_2
+  IL_0067:  dup
+  IL_0068:  ldobj      ""<C>j__TPar""
+  IL_006d:  box        ""<C>j__TPar""
+  IL_0072:  brtrue.s   IL_0078
+  IL_0074:  pop
+  IL_0075:  ldnull
+  IL_0076:  br.s       IL_0083
+  IL_0078:  constrained. ""<C>j__TPar""
+  IL_007e:  callvirt   ""string object.ToString()""
+  IL_0083:  stelem.ref
+  IL_0084:  call       ""string string.Format(System.IFormatProvider, string, params object[])""
+  IL_0089:  ret
 }"
             );
         }
@@ -875,14 +851,11 @@ class Query
             ).VerifyIL(
                 "<>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.ToString",
 @"{
-  // Code size      199 (0xc7)
+  // Code size      138 (0x8a)
   .maxstack  7
   .locals init (<ToString>j__TPar V_0,
-                <ToString>j__TPar V_1,
-                <Equals>j__TPar V_2,
-                <Equals>j__TPar V_3,
-                <GetHashCode>j__TPar V_4,
-                <GetHashCode>j__TPar V_5)
+                <Equals>j__TPar V_1,
+                <GetHashCode>j__TPar V_2)
   IL_0000:  ldnull
   IL_0001:  ldstr      ""{{ ToString = {0}, Equals = {1}, GetHashCode = {2} }}""
   IL_0006:  ldc.i4.3
@@ -893,71 +866,50 @@ class Query
   IL_000f:  ldfld      ""<ToString>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<ToString>i__Field""
   IL_0014:  stloc.0
   IL_0015:  ldloca.s   V_0
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  initobj    ""<ToString>j__TPar""
-  IL_001f:  ldloc.1
-  IL_0020:  box        ""<ToString>j__TPar""
-  IL_0025:  brtrue.s   IL_003b
-  IL_0027:  ldobj      ""<ToString>j__TPar""
-  IL_002c:  stloc.1
-  IL_002d:  ldloca.s   V_1
-  IL_002f:  ldloc.1
-  IL_0030:  box        ""<ToString>j__TPar""
-  IL_0035:  brtrue.s   IL_003b
-  IL_0037:  pop
-  IL_0038:  ldnull
-  IL_0039:  br.s       IL_0046
-  IL_003b:  constrained. ""<ToString>j__TPar""
-  IL_0041:  callvirt   ""string object.ToString()""
-  IL_0046:  stelem.ref
-  IL_0047:  dup
-  IL_0048:  ldc.i4.1
-  IL_0049:  ldarg.0
-  IL_004a:  ldfld      ""<Equals>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<Equals>i__Field""
-  IL_004f:  stloc.2
-  IL_0050:  ldloca.s   V_2
-  IL_0052:  ldloca.s   V_3
-  IL_0054:  initobj    ""<Equals>j__TPar""
-  IL_005a:  ldloc.3
-  IL_005b:  box        ""<Equals>j__TPar""
-  IL_0060:  brtrue.s   IL_0076
-  IL_0062:  ldobj      ""<Equals>j__TPar""
-  IL_0067:  stloc.3
-  IL_0068:  ldloca.s   V_3
-  IL_006a:  ldloc.3
-  IL_006b:  box        ""<Equals>j__TPar""
-  IL_0070:  brtrue.s   IL_0076
-  IL_0072:  pop
-  IL_0073:  ldnull
-  IL_0074:  br.s       IL_0081
-  IL_0076:  constrained. ""<Equals>j__TPar""
-  IL_007c:  callvirt   ""string object.ToString()""
-  IL_0081:  stelem.ref
-  IL_0082:  dup
-  IL_0083:  ldc.i4.2
-  IL_0084:  ldarg.0
-  IL_0085:  ldfld      ""<GetHashCode>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<GetHashCode>i__Field""
-  IL_008a:  stloc.s    V_4
-  IL_008c:  ldloca.s   V_4
-  IL_008e:  ldloca.s   V_5
-  IL_0090:  initobj    ""<GetHashCode>j__TPar""
-  IL_0096:  ldloc.s    V_5
-  IL_0098:  box        ""<GetHashCode>j__TPar""
-  IL_009d:  brtrue.s   IL_00b5
-  IL_009f:  ldobj      ""<GetHashCode>j__TPar""
-  IL_00a4:  stloc.s    V_5
-  IL_00a6:  ldloca.s   V_5
-  IL_00a8:  ldloc.s    V_5
-  IL_00aa:  box        ""<GetHashCode>j__TPar""
-  IL_00af:  brtrue.s   IL_00b5
-  IL_00b1:  pop
-  IL_00b2:  ldnull
-  IL_00b3:  br.s       IL_00c0
-  IL_00b5:  constrained. ""<GetHashCode>j__TPar""
-  IL_00bb:  callvirt   ""string object.ToString()""
-  IL_00c0:  stelem.ref
-  IL_00c1:  call       ""string string.Format(System.IFormatProvider, string, params object[])""
-  IL_00c6:  ret
+  IL_0017:  dup
+  IL_0018:  ldobj      ""<ToString>j__TPar""
+  IL_001d:  box        ""<ToString>j__TPar""
+  IL_0022:  brtrue.s   IL_0028
+  IL_0024:  pop
+  IL_0025:  ldnull
+  IL_0026:  br.s       IL_0033
+  IL_0028:  constrained. ""<ToString>j__TPar""
+  IL_002e:  callvirt   ""string object.ToString()""
+  IL_0033:  stelem.ref
+  IL_0034:  dup
+  IL_0035:  ldc.i4.1
+  IL_0036:  ldarg.0
+  IL_0037:  ldfld      ""<Equals>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<Equals>i__Field""
+  IL_003c:  stloc.1
+  IL_003d:  ldloca.s   V_1
+  IL_003f:  dup
+  IL_0040:  ldobj      ""<Equals>j__TPar""
+  IL_0045:  box        ""<Equals>j__TPar""
+  IL_004a:  brtrue.s   IL_0050
+  IL_004c:  pop
+  IL_004d:  ldnull
+  IL_004e:  br.s       IL_005b
+  IL_0050:  constrained. ""<Equals>j__TPar""
+  IL_0056:  callvirt   ""string object.ToString()""
+  IL_005b:  stelem.ref
+  IL_005c:  dup
+  IL_005d:  ldc.i4.2
+  IL_005e:  ldarg.0
+  IL_005f:  ldfld      ""<GetHashCode>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<GetHashCode>i__Field""
+  IL_0064:  stloc.2
+  IL_0065:  ldloca.s   V_2
+  IL_0067:  dup
+  IL_0068:  ldobj      ""<GetHashCode>j__TPar""
+  IL_006d:  box        ""<GetHashCode>j__TPar""
+  IL_0072:  brtrue.s   IL_0078
+  IL_0074:  pop
+  IL_0075:  ldnull
+  IL_0076:  br.s       IL_0083
+  IL_0078:  constrained. ""<GetHashCode>j__TPar""
+  IL_007e:  callvirt   ""string object.ToString()""
+  IL_0083:  stelem.ref
+  IL_0084:  call       ""string string.Format(System.IFormatProvider, string, params object[])""
+  IL_0089:  ret
 }"
             ).VerifyIL(
                 "<>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.ToString.get",

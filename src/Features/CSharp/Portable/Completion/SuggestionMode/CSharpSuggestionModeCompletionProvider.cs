@@ -2,31 +2,42 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.SuggestionMode;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 {
+    [ExportCompletionProvider(nameof(CSharpSuggestionModeCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(ObjectInitializerCompletionProvider))]
+    [Shared]
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpSuggestionModeCompletionProvider()
+        {
+        }
+
         protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
             Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default)
         {
             if (trigger.Kind != CompletionTriggerKind.Snippets)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var token = tree
                     .FindTokenOnLeftOfPosition(position, cancellationToken)
@@ -46,6 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 else if (IsAnonymousObjectCreation(token))
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.member_name, CSharpFeaturesResources.Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation);
+                }
+                else if (IsPotentialPatternVariableDeclaration(tree.FindTokenOnLeftOfPosition(position, cancellationToken)))
+                {
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.pattern_variable, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_pattern_variable_declaration);
                 }
                 else if (token.IsPreProcessorExpressionContext())
                 {
@@ -123,8 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             // A lambda that is being typed may be parsed as a tuple without names
             // For example, "(a, b" could be the start of either a tuple or lambda
             // But "(a: b, c" cannot be a lambda
-            if (token.SyntaxTree.IsPossibleTupleContext(token, position) && token.Parent.IsKind(SyntaxKind.TupleExpression) &&
-               !((TupleExpressionSyntax)token.Parent).HasNames())
+            if (token.SyntaxTree.IsPossibleTupleContext(token, position) &&
+                token.Parent.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpression) &&
+                !tupleExpression.HasNames())
             {
                 position = token.Parent.SpanStart;
             }
@@ -183,6 +199,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             }
 
             return typeSymbol.GetDelegateType(compilation);
+        }
+
+        private bool IsPotentialPatternVariableDeclaration(SyntaxToken token)
+        {
+            var patternSyntax = token.GetAncestor<PatternSyntax>();
+            if (patternSyntax == null)
+            {
+                return false;
+            }
+
+            for (var current = patternSyntax; current != null; current = current.Parent as PatternSyntax)
+            {
+                // Patterns containing 'or' cannot contain valid variable declarations, e.g. 'e is 1 or int $$'
+                if (current.IsKind(SyntaxKind.OrPattern))
+                {
+                    return false;
+                }
+
+                // Patterns containing 'not' cannot be valid variable declarations, e.g. 'e is not int $$' and 'e is not (1 and int $$)'
+                if (current.IsKind(SyntaxKind.NotPattern))
+                {
+                    return false;
+                }
+            }
+
+            // e is int o$$
+            // e is { P: 1 } o$$
+            var lastTokenInPattern = patternSyntax.GetLastToken();
+            if (lastTokenInPattern.Parent is SingleVariableDesignationSyntax variableDesignationSyntax &&
+                token.Parent == variableDesignationSyntax)
+            {
+                return patternSyntax is DeclarationPatternSyntax || patternSyntax is RecursivePatternSyntax;
+            }
+
+            return false;
         }
     }
 }

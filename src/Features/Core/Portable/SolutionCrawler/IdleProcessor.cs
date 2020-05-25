@@ -48,9 +48,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         protected void UpdateLastAccessTime()
-        {
-            _lastAccessTimeInMS = Environment.TickCount;
-        }
+            => _lastAccessTimeInMS = Environment.TickCount;
 
         protected async Task WaitForIdleAsync(IExpeditableDelaySource expeditableDelaySource)
         {

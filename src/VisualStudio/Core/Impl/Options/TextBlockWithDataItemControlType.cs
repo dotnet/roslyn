@@ -10,9 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     internal class TextBlockWithDataItemControlType : TextBlock
     {
         protected override AutomationPeer OnCreateAutomationPeer()
-        {
-            return new TextBlockWithDataItemControlTypeAutomationPeer(this);
-        }
+            => new TextBlockWithDataItemControlTypeAutomationPeer(this);
 
         private class TextBlockWithDataItemControlTypeAutomationPeer : TextBlockAutomationPeer
         {
@@ -21,9 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             protected override AutomationControlType GetAutomationControlTypeCore()
-            {
-                return AutomationControlType.DataItem;
-            }
+                => AutomationControlType.DataItem;
         }
     }
 }

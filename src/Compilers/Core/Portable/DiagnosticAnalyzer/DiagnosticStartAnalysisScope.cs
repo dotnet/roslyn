@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -197,7 +200,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 
-        internal override bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, out TValue value)
+        // Issue with enforcing nullability attributes in OHI https://github.com/dotnet/roslyn/issues/42169
+#pragma warning disable CS8765 // Type of parameter doesn't match overridden member because of nullability attributes.
+        internal override bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull][NotNullWhen(true)] out TValue value)
+#pragma warning restore CS8765
         {
             var compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactory.GetValueProvider(valueProvider);
             return compilationAnalysisValueProvider.TryGetValue(key, out value);

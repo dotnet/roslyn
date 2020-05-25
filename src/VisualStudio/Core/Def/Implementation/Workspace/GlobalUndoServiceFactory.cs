@@ -36,9 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton;
-        }
+            => _singleton;
 
         private class GlobalUndoService : IGlobalUndoService
         {
@@ -75,9 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             public bool IsGlobalTransactionOpen(Workspace workspace)
-            {
-                return ActiveTransactions > 0;
-            }
+                => ActiveTransactions > 0;
         }
     }
 }

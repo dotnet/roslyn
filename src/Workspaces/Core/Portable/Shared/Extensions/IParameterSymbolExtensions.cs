@@ -11,20 +11,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class IParameterSymbolExtensions
+    internal static partial class IParameterSymbolExtensions
     {
-        public static bool IsRefOrOut(this IParameterSymbol symbol)
-        {
-            switch (symbol.RefKind)
-            {
-                case RefKind.Ref:
-                case RefKind.Out:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
         public static IParameterSymbol RenameParameter(this IParameterSymbol parameter, string parameterName)
         {
             return parameter.Name == parameterName

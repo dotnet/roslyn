@@ -122,14 +122,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
         private class PathologicalComparer<T> : IEqualityComparer<T>
         {
             public bool Equals(T x, T y)
-            {
-                return EqualityComparer<T>.Default.Equals(x, y);
-            }
+                => EqualityComparer<T>.Default.Equals(x, y);
 
             public int GetHashCode(T obj)
-            {
-                return 0;
-            }
+                => 0;
         }
     }
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         public string DisplayName => EditorFeaturesResources.Find_References;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public FindReferencesCommandHandler(
             IStreamingFindUsagesPresenter streamingPresenter,
             IAsynchronousOperationListenerProvider listenerProvider)

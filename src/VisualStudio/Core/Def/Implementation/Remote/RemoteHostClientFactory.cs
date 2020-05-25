@@ -4,10 +4,12 @@
 
 #nullable enable
 
+using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 
@@ -17,14 +19,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal class RemoteHostClientFactory : IRemoteHostClientFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteHostClientFactory()
         {
         }
 
-        public async Task<RemoteHostClient?> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        public async Task<RemoteHostClient?> CreateAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
         {
             // this is the point where we can create different kind of remote host client in future (cloud or etc)
-            return await ServiceHubRemoteHostClient.CreateAsync(workspace, cancellationToken).ConfigureAwait(false);
+            return await ServiceHubRemoteHostClient.CreateAsync(services, cancellationToken).ConfigureAwait(false);
         }
     }
 }

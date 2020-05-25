@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using DocumentMap = MultiDictionary<Document, (SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>;
+    using DocumentMap = MultiDictionary<Document, (ISymbol symbol, IReferenceFinder finder)>;
 
     internal partial class FindReferencesSearchEngine
     {
@@ -49,18 +49,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task ProcessDocumentAsync(
             Document document,
             SemanticModel semanticModel,
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             IReferenceFinder finder)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbolAndProjectId.Symbol, _cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbol, _cancellationToken))
             {
                 try
                 {
                     var references = await finder.FindReferencesInDocumentAsync(
-                        symbolAndProjectId, document, semanticModel, _options, _cancellationToken).ConfigureAwait(false);
+                        symbol, document, semanticModel, _options, _cancellationToken).ConfigureAwait(false);
                     foreach (var (_, location) in references)
                     {
-                        await HandleLocationAsync(symbolAndProjectId, location).ConfigureAwait(false);
+                        await HandleLocationAsync(symbol, location).ConfigureAwait(false);
                     }
                 }
                 finally

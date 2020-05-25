@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -25,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             protected abstract IReadOnlyList<DocumentId> GetDocumentIds(Project fromProject);
 
-            protected abstract TextDocument GetDocument(Solution currentSolution);
+            protected abstract TextDocument? GetDocument(Solution currentSolution);
 
             public override void Do(IOleUndoManager pUndoManager)
             {

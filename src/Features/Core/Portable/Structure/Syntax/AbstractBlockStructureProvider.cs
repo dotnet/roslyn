@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Structure
         private void ProvideBlockStructureWorker(
             BlockStructureContext context, SyntaxNode syntaxRoot)
         {
-            var spans = ArrayBuilder<BlockSpan>.GetInstance();
+            using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var spans);
             BlockSpanCollector.CollectBlockSpans(
                 context.Document, syntaxRoot, _nodeProviderMap, _triviaProviderMap, spans, context.CancellationToken);
 
@@ -73,8 +73,6 @@ namespace Microsoft.CodeAnalysis.Structure
             {
                 context.AddBlockSpan(span);
             }
-
-            spans.Free();
         }
     }
 }

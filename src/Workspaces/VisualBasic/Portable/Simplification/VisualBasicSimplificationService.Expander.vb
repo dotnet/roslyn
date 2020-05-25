@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                         Dim inferredName = node.Expression.TryGetInferredMemberName()
                         If CanMakeNameExplicitInTuple(tuple, inferredName) Then
                             Dim identifier = SyntaxFactory.Identifier(inferredName)
-                            identifier = TryEscapeIdentifierToken(identifier, _semanticModel)
+                            identifier = TryEscapeIdentifierToken(identifier)
 
                             newSimpleArgument = newSimpleArgument.
                                 WithLeadingTrivia().
@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim found = False
 
                 For Each argument In tuple.Arguments
-                    Dim elementName = Nothing
+                    Dim elementName As Object
                     If argument.NameColonEquals IsNot Nothing Then
                         elementName = argument.NameColonEquals.Name.Identifier.ValueText
                     Else
@@ -378,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Dim inferredName = node.Expression.TryGetInferredMemberName()
                     If inferredName IsNot Nothing Then
                         Dim identifier = SyntaxFactory.Identifier(inferredName)
-                        identifier = TryEscapeIdentifierToken(identifier, _semanticModel)
+                        identifier = TryEscapeIdentifierToken(identifier)
 
                         Return SyntaxFactory.NamedFieldInitializer(SyntaxFactory.IdentifierName(identifier), newInitializer.Expression.WithoutLeadingTrivia()).
                             WithLeadingTrivia(node.GetLeadingTrivia()).
@@ -425,7 +425,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                         ' <rewritten_left>.<module_name>.<rewritten_right>
                         Dim moduleIdentifierToken = SyntaxFactory.Identifier(symbolForQualifiedName.ContainingType.Name)
-                        moduleIdentifierToken = TryEscapeIdentifierToken(moduleIdentifierToken, _semanticModel)
+                        moduleIdentifierToken = TryEscapeIdentifierToken(moduleIdentifierToken)
 
                         Dim qualifiedNameWithModuleName = rewrittenQualifiedName.CopyAnnotationsTo(SyntaxFactory.QualifiedName(
                             SyntaxFactory.QualifiedName(DirectCast(rewrittenQualifiedName, QualifiedNameSyntax).Left, SyntaxFactory.IdentifierName(moduleIdentifierToken)) _
@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                         ' <rewritten_left>.<module_name>.<rewritten_right>
                         Dim moduleIdentifierToken = SyntaxFactory.Identifier(symbolForMemberAccess.ContainingType.Name)
-                        moduleIdentifierToken = TryEscapeIdentifierToken(moduleIdentifierToken, _semanticModel)
+                        moduleIdentifierToken = TryEscapeIdentifierToken(moduleIdentifierToken)
 
                         Dim memberAccessWithModuleName = rewrittenMemberAccess.CopyAnnotationsTo(
                             SyntaxFactory.SimpleMemberAccessExpression(
@@ -596,7 +596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 '
                 ' 3. Always try to escape keyword identifiers
                 '
-                identifier = TryEscapeIdentifierToken(identifier, Me._semanticModel)
+                identifier = TryEscapeIdentifierToken(identifier)
                 If identifier <> rewrittenSimpleName.Identifier Then
                     Select Case newNode.Kind
                         Case SyntaxKind.IdentifierName,
@@ -752,8 +752,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                     Select Case parent.Kind
                         Case SyntaxKind.QualifiedName
-                            Dim qualifiedParent = DirectCast(parent, QualifiedNameSyntax)
-
                             result = rewrittenNode.CopyAnnotationsTo(
                                 SyntaxFactory.QualifiedName(
                                     DirectCast(left, NameSyntax),
@@ -814,7 +812,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                 Dim newLabelStatement = DirectCast(MyBase.VisitLabelStatement(node), LabelStatementSyntax)
 
-                Dim escapedLabelToken = TryEscapeIdentifierToken(newLabelStatement.LabelToken, Me._semanticModel)
+                Dim escapedLabelToken = TryEscapeIdentifierToken(newLabelStatement.LabelToken)
                 If newLabelStatement.LabelToken <> escapedLabelToken Then
                     newLabelStatement = newLabelStatement.WithLabelToken(escapedLabelToken)
                 End If

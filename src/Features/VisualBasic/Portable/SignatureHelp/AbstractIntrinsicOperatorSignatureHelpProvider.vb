@@ -67,12 +67,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim suffixParts = documentation.GetSuffix(semanticModel, position, Nothing, cancellationToken)
 
-            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
             Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
 
             Return CreateItem(
                 Nothing, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 isVariadic:=False,
                 documentationFactory:=Function(c) SpecializedCollections.SingletonEnumerable(New TaggedText(TextTags.Text, documentation.DocumentationText)),
                 prefixParts:=documentation.PrefixParts,

@@ -44,8 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         private static string GetOptionValue(object oldValue)
-        {
-            return oldValue == null ? "[null]" : oldValue.ToString();
-        }
+            => oldValue == null ? "[null]" : oldValue.ToString();
     }
 }

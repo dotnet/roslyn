@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
-    [Obsolete("This is a compatibility shim for TypeScript and Live Unit Testing; please do not use it.")]
+    [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
     internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject, IVisualStudioHostProject
     {
         internal const string ProjectGuidPropertyName = "ProjectGuid";
@@ -97,9 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal string BinOutputPath => GetOutputFilePath();
 
         protected virtual string GetOutputFilePath()
-        {
-            return VisualStudioProject.OutputFilePath;
-        }
+            => VisualStudioProject.OutputFilePath;
 
         protected IVsReportExternalErrors ExternalErrorReporter { get; }
 
@@ -205,9 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         protected void UpdateProjectDisplayName(string displayName)
-        {
-            this.DisplayName = displayName;
-        }
+            => this.DisplayName = displayName;
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal void AddDocument(IVisualStudioHostDocument document, bool isCurrentContext, bool hookupHandlers)

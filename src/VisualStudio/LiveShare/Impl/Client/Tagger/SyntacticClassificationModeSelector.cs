@@ -29,9 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
         }
 
         public static SyntacticClassificationModeSelector GetModeSelector(AbstractLspClientServiceFactory lspClientServiceFactory, ITextBuffer buffer)
-        {
-            return new SyntacticClassificationModeSelector(lspClientServiceFactory, buffer);
-        }
+            => new SyntacticClassificationModeSelector(lspClientServiceFactory, buffer);
 
         public SyntacticClassificationMode GetMode()
         {
@@ -40,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                 return (SyntacticClassificationMode)_modeCache;
             }
 
-            if (!Workspace.TryGetWorkspace(_buffer.AsTextContainer(), out var workspace))
+            if (!CodeAnalysis.Workspace.TryGetWorkspace(_buffer.AsTextContainer(), out var workspace))
             {
                 return SyntacticClassificationMode.TextMate;
             }

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class MetadataReferenceResolver
     {
-        public abstract override bool Equals(object other);
+        public abstract override bool Equals(object? other);
         public abstract override int GetHashCode();
         public abstract ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties);
 

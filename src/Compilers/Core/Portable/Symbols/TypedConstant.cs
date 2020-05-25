@@ -5,14 +5,10 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Symbols;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -36,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal TypedConstant(ITypeSymbolInternal type, ImmutableArray<TypedConstant> array)
-            : this(type, TypedConstantKind.Array, array.IsDefault ? null : (object)array)
+            : this(type, TypedConstantKind.Array, value: array.IsDefault ? null : (object)array)
         {
         }
 
@@ -94,7 +90,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Unlike <see cref="Value"/> returns <see cref="ISymbolInternal"/> when the value is a symbol.
         /// </summary>
-        internal object? ValueInternal
+        internal object ValueInternal
         {
             get
             {
@@ -103,7 +99,7 @@ namespace Microsoft.CodeAnalysis
                     throw new InvalidOperationException("TypedConstant is an array. Use Values property.");
                 }
 
-                return _value;
+                return _value!;
             }
         }
 
@@ -121,7 +117,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (this.IsNull)
                 {
-                    return default(ImmutableArray<TypedConstant>);
+                    return default;
                 }
 
                 return (ImmutableArray<TypedConstant>)_value!;
@@ -135,11 +131,11 @@ namespace Microsoft.CodeAnalysis
             return value;
         }
 
-        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNullWhen(returnValue: false)] out T value)
+        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNull][NotNullWhen(returnValue: true)] out T value)
         {
             if (_kind == TypedConstantKind.Error)
             {
-                value = default(T)!;
+                value = default;
                 return false;
             }
 
@@ -150,7 +146,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // the actual argument type doesn't match the type of the parameter - an error has already been reported by the binder
-            value = default(T)!;
+            value = default;
             return false;
         }
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -316,6 +317,34 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 csSimple: "E ? T : F",
                 vb: "If(E, T, F)",
                 vbSimple: "If(E, T, F)");
+        }
+
+        [Fact]
+        public void TestConditionalAccessExpression1()
+        {
+            Test(
+                f => f.ConditionalAccessExpression(
+                    f.IdentifierName("E"),
+                    f.MemberBindingExpression(
+                        f.IdentifierName("T"))),
+                cs: "E?.T",
+                csSimple: "E?.T",
+                vb: "E?.T",
+                vbSimple: "E?.T");
+        }
+
+        [Fact]
+        public void TestConditionalAccessExpression2()
+        {
+            Test(
+                f => f.ConditionalAccessExpression(
+                    f.IdentifierName("E"),
+                    f.ElementBindingExpression(
+                        f.Argument(f.IdentifierName("T")))),
+                cs: "E?[T]",
+                csSimple: "E?[T]",
+                vb: "E?(T)",
+                vbSimple: "E?(T)");
         }
 
         [Fact]

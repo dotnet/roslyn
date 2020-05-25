@@ -6,21 +6,24 @@
 
 using System.IO;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public class DotNetSdkTests : DotNetSdkTestBase
     {
         [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [WorkItem(22835, "https://github.com/dotnet/roslyn/issues/22835")]
         public void TestSourceLink()
         {
-            var sourcePackageDir = Temp.CreateDirectory();
-            // TODO: test escaping (https://github.com/dotnet/roslyn/issues/22835): .CreateDirectory("a=b, c");
-
+            var sourcePackageDir = Temp.CreateDirectory().CreateDirectory("a=b, c");
             var libFile = sourcePackageDir.CreateFile("lib.cs").WriteAllText("class Lib { public void M() { } }");
 
-            var root1 = Path.GetFullPath(ProjectDir.Path + "\\");
-            var root2 = Path.GetFullPath(sourcePackageDir.Path + "\\");
+            var root1 = Path.GetFullPath(ProjectDir.Path + Path.DirectorySeparatorChar);
+            var root2 = Path.GetFullPath(sourcePackageDir.Path + Path.DirectorySeparatorChar);
+
+            var escapedRoot1 = root1.Replace(",", ",,").Replace("=", "==");
+            var escapedRoot2 = root2.Replace(",", ",,").Replace("=", "==");
 
             var sourceLinkJsonPath = Path.Combine(ObjDir.Path, ProjectName + ".sourcelink.json");
 
@@ -86,7 +89,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     $@"{root1}sub1\: /_/sub1/",
                     $@"{root1}sub2\: /_/sub2/",
                     "true",
-                    $@"{root2}=/_1/,{root1}=/_/,PreviousPathMap",
+                    $@"{escapedRoot2}=/_1/,{escapedRoot1}=/_/,PreviousPathMap",
                     "true"
                 });
 
@@ -236,7 +239,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     $@"{root1}: /_/",
                     $@"{root2}: /_1/",
                     @"true",
-                    $@"{root1}=/_/,{root2}=/_1/"
+                    $@"{escapedRoot1}=/_/,{escapedRoot2}=/_1/,"
                 });
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
@@ -274,13 +277,55 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     $@"{root1}: /_/",
                     $@"{root2}: /_1/",
                     @"true",
-                    $@"{root1}=/_/,{root2}=/_1/"
+                    $@"{escapedRoot1}=/_/,{escapedRoot2}=/_1/,"
                 });
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 $@"[/_/]=[https://raw.githubusercontent.com/R1/*]," +
                 $@"[/_1/]=[https://raw.githubusercontent.com/Source/Package/*]",
                 File.ReadAllText(sourceLinkJsonPath));
+        }
+
+        [ConditionalTheory(typeof(DotNetSdkAvailable))]
+        [CombinatorialData]
+        [WorkItem(43476, "https://github.com/dotnet/roslyn/issues/43476")]
+        public void InitializeSourceRootMappedPathsReturnsSourceMap(bool deterministicSourcePaths)
+        {
+            ProjectDir.CreateFile("Project2.csproj").WriteAllText($@"
+<Project Sdk='Microsoft.NET.Sdk'>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DeterministicSourcePaths>{deterministicSourcePaths}</DeterministicSourcePaths>
+  </PropertyGroup>
+  <ItemGroup>
+    <SourceRoot Include=""X\""/>
+    <SourceRoot Include=""Y\"" ContainingRoot=""X\"" NestedRoot=""A""/>
+    <SourceRoot Include=""Z\"" ContainingRoot=""X\"" NestedRoot=""B""/>
+  </ItemGroup>
+</Project>
+");
+
+            VerifyValues(
+                customProps: $@"
+<ItemGroup>
+<ProjectReference Include=""Project2.csproj"" Targets=""InitializeSourceRootMappedPaths"" OutputItemType=""ReferencedProjectSourceRoots"" ReferenceOutputAssembly=""false"" />
+</ItemGroup>
+",
+                customTargets: null,
+                targets: new[]
+                {
+                    "ResolveProjectReferences;_BeforeVBCSCoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(ReferencedProjectSourceRoots)",
+                },
+                expectedResults: new[]
+                {
+                    @"X\",
+                    @"Y\",
+                    @"Z\",
+                });
         }
 
         /// <summary>

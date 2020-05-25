@@ -29,8 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor
         private readonly List<IExtensionErrorHandler> _errorHandlers;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorLayerExtensionManager(
-            [ImportMany]IEnumerable<IExtensionErrorHandler> errorHandlers)
+            [ImportMany] IEnumerable<IExtensionErrorHandler> errorHandlers)
         {
             _errorHandlers = errorHandlers.ToList();
         }
@@ -73,8 +74,17 @@ namespace Microsoft.CodeAnalysis.Editor
 
                         _errorReportingService?.ShowErrorInfoInActiveView(String.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled, provider.GetType().Name),
                             new InfoBarUI(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.HyperLink, () => ShowDetailedErrorInfo(exception), closeAfterAction: false),
-                            new InfoBarUI(WorkspacesResources.Enable, InfoBarUI.UIKind.Button, () => { EnableProvider(provider); LogEnableProvider(provider); }),
-                            new InfoBarUI(WorkspacesResources.Enable_and_ignore_future_errors, InfoBarUI.UIKind.Button, () => { EnableProvider(provider); IgnoreProvider(provider); LogEnableAndIgnoreProvider(provider); }),
+                            new InfoBarUI(WorkspacesResources.Enable, InfoBarUI.UIKind.Button, () =>
+                            {
+                                EnableProvider(provider);
+                                LogEnableProvider(provider);
+                            }),
+                            new InfoBarUI(WorkspacesResources.Enable_and_ignore_future_errors, InfoBarUI.UIKind.Button, () =>
+                            {
+                                EnableProvider(provider);
+                                IgnoreProvider(provider);
+                                LogEnableAndIgnoreProvider(provider);
+                            }),
                             new InfoBarUI(String.Empty, InfoBarUI.UIKind.Close, () => LogLeaveDisabled(provider)));
                     }
                     else
@@ -96,24 +106,16 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             private void ShowDetailedErrorInfo(Exception exception)
-            {
-                _errorReportingService.ShowDetailedErrorInfo(exception);
-            }
+                => _errorReportingService.ShowDetailedErrorInfo(exception);
 
             private static void LogLeaveDisabled(object provider)
-            {
-                LogAction(CodefixInfobar_LeaveDisabled, provider);
-            }
+                => LogAction(CodefixInfobar_LeaveDisabled, provider);
 
             private static void LogEnableAndIgnoreProvider(object provider)
-            {
-                LogAction(CodefixInfobar_EnableAndIgnoreFutureErrors, provider);
-            }
+                => LogAction(CodefixInfobar_EnableAndIgnoreFutureErrors, provider);
 
             private static void LogEnableProvider(object provider)
-            {
-                LogAction(CodefixInfobar_Enable, provider);
-            }
+                => LogAction(CodefixInfobar_Enable, provider);
 
             private static void LogAction(FunctionId functionId, object provider)
             {

@@ -3,18 +3,23 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+    <ExportCompletionProvider(NameOf(CrefCompletionProvider), LanguageNames.VisualBasic)>
+    <ExtensionOrder(After:=NameOf(PartialTypeCompletionProvider))>
+    <[Shared]>
     Partial Friend Class CrefCompletionProvider
         Inherits AbstractCrefCompletionProvider
 
@@ -26,14 +31,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Private ReadOnly _testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode)
+        Private _testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode)
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Public Sub New(Optional testSpeculativeNodeCallbackOpt As Action(Of SyntaxNode) = Nothing)
-            _testSpeculativeNodeCallbackOpt = testSpeculativeNodeCallbackOpt
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
         End Sub
 
         Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
@@ -58,7 +66,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
 
                 Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
-                Dim workspace = document.Project.Solution.Workspace
 
                 Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
                 If Not symbols.Any() Then
@@ -67,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
                 Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
-                Dim items = CreateCompletionItems(workspace, semanticModel, symbols, position)
+                Dim items = CreateCompletionItems(semanticModel, symbols, position)
                 context.AddItems(items)
 
                 If IsFirstCrefParameterContext(token) Then
@@ -178,14 +185,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Private Iterator Function CreateCompletionItems(
-                workspace As Workspace, semanticModel As SemanticModel,
+                semanticModel As SemanticModel,
                 symbols As IEnumerable(Of ISymbol), position As Integer) As IEnumerable(Of CompletionItem)
 
             Dim builder = SharedPools.Default(Of StringBuilder).Allocate()
             Try
                 For Each symbol In symbols
                     builder.Clear()
-                    Yield CreateCompletionItem(workspace, semanticModel, symbol, position, builder)
+                    Yield CreateCompletionItem(semanticModel, symbol, position, builder)
                 Next
             Finally
                 SharedPools.Default(Of StringBuilder).ClearAndFree(builder)
@@ -193,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Private Function CreateCompletionItem(
-                workspace As Workspace, semanticModel As SemanticModel,
+                semanticModel As SemanticModel,
                 symbol As ISymbol, position As Integer, builder As StringBuilder) As CompletionItem
 
             If symbol.IsUserDefinedOperator() Then
@@ -243,15 +250,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
         End Function
 
-        Private Shared s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)
-        Private Shared s_WithoutSpace As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, " "c)
+        Private Shared ReadOnly s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)
+        Private Shared ReadOnly s_WithoutSpace As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, " "c)
 
 #If False Then
         Private Shared s_defaultRules As CompletionItemRules =
             CompletionItemRules.Create(commitRules:=ImmutableArray.Create(
                 CommitRule.Create(CommitRuleKind.ExcludeKeysIfMatchEndOfTypedText, " ", "OF", isCaseSensitive:=False)))
 #Else
-        Private Shared s_defaultRules As CompletionItemRules = CompletionItemRules.Default
+        Private Shared ReadOnly s_defaultRules As CompletionItemRules = CompletionItemRules.Default
 #End If
 
         Private Function GetRules(displayText As String) As CompletionItemRules
@@ -269,5 +276,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return s_defaultRules.WithCommitCharacterRules(commitRules)
         End Function
+
+        Friend Function GetTestAccessor() As TestAccessor
+            Return New TestAccessor(Me)
+        End Function
+
+        Friend Structure TestAccessor
+            Private ReadOnly _crefCompletionProvider As CrefCompletionProvider
+
+            Public Sub New(crefCompletionProvider As CrefCompletionProvider)
+                _crefCompletionProvider = crefCompletionProvider
+            End Sub
+
+            Public Sub SetSpeculativeNodeCallback(value As Action(Of SyntaxNode))
+                _crefCompletionProvider._testSpeculativeNodeCallbackOpt = value
+            End Sub
+        End Structure
     End Class
 End Namespace

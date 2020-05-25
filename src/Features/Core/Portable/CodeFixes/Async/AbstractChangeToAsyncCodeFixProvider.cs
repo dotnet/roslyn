@@ -18,15 +18,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
             return null;
         }
 
-        protected abstract Task<string> GetDescription(Diagnostic diagnostic, SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken);
-        protected abstract Task<Tuple<SyntaxTree, SyntaxNode>> GetRootInOtherSyntaxTree(SyntaxNode node, SemanticModel semanticModel, Diagnostic diagnostic, CancellationToken cancellationToken);
+        protected abstract Task<string> GetDescriptionAsync(Diagnostic diagnostic, SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract Task<Tuple<SyntaxTree, SyntaxNode>> GetRootInOtherSyntaxTreeAsync(SyntaxNode node, SemanticModel semanticModel, Diagnostic diagnostic, CancellationToken cancellationToken);
 
         protected override async Task<CodeAction> GetCodeActionAsync(
             SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var result = await GetRootInOtherSyntaxTree(node, semanticModel, diagnostic, cancellationToken).ConfigureAwait(false);
+            var result = await GetRootInOtherSyntaxTreeAsync(node, semanticModel, diagnostic, cancellationToken).ConfigureAwait(false);
             if (result == null)
             {
                 return null;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
             var newRoot = result.Item2;
             var otherDocument = document.Project.Solution.GetDocument(syntaxTree);
             return new MyCodeAction(
-                await GetDescription(diagnostic, node, semanticModel, cancellationToken).ConfigureAwait(false),
+                await GetDescriptionAsync(diagnostic, node, semanticModel, cancellationToken).ConfigureAwait(false),
                 token => Task.FromResult(otherDocument.WithSyntaxRoot(newRoot)));
         }
 

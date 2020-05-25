@@ -6,7 +6,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -15,6 +14,10 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
+
+#if DEBUG
+using System.Diagnostics;
+#endif
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -55,7 +58,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable>(concurrencyLevel: 2, capacity: 20);
 
-                        _currentProjectProcessing = default;
+                        _currentProjectProcessing = null;
 
                         Start();
                     }
@@ -220,9 +223,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     private static void DisposeProjectCache(IDisposable projectCache)
-                    {
-                        projectCache?.Dispose();
-                    }
+                        => projectCache?.Dispose();
 
                     private void DisposeProjectCache()
                     {
@@ -346,8 +347,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                     {
                                         var isOpen = document.IsOpen();
 
-                                        await ProcessOpenDocumentIfNeeded(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
-                                        await ProcessCloseDocumentIfNeeded(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
+                                        await ProcessOpenDocumentIfNeededAsync(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
+                                        await ProcessCloseDocumentIfNeededAsync(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
                                     }
 
                                     // check whether we are having special reanalyze request
@@ -359,7 +360,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 {
                                     SolutionCrawlerLogger.LogProcessDocumentNotExist(Processor._logAggregator);
 
-                                    RemoveDocument(documentId);
+                                    await RemoveDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                                 }
 
                                 if (!cancellationToken.IsCancellationRequested)
@@ -390,7 +391,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private async Task ProcessOpenDocumentIfNeeded(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
+                    private async Task ProcessOpenDocumentIfNeededAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (!isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentOpened))
                         {
@@ -402,7 +403,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         await Processor.RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.DocumentOpenAsync(d, c), cancellationToken).ConfigureAwait(false);
                     }
 
-                    private async Task ProcessCloseDocumentIfNeeded(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
+                    private async Task ProcessCloseDocumentIfNeededAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentClosed))
                         {
@@ -451,16 +452,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private void RemoveDocument(DocumentId documentId)
-                    {
-                        RemoveDocument(Analyzers, documentId);
-                    }
+                    private Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+                        => RemoveDocumentAsync(Analyzers, documentId, cancellationToken);
 
-                    private static void RemoveDocument(ImmutableArray<IIncrementalAnalyzer> analyzers, DocumentId documentId)
+                    private static async Task RemoveDocumentAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, DocumentId documentId, CancellationToken cancellationToken)
                     {
                         foreach (var analyzer in analyzers)
                         {
-                            analyzer.RemoveDocument(documentId);
+                            await analyzer.RemoveDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                         }
                     }
 
@@ -553,7 +552,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // this shouldn't happen. would like to get some diagnostic
                         while (_workItemQueue.HasAnyWork)
                         {
-                            Environment.FailFast("How?");
+                            FailFast.Fail("How?");
                         }
                     }
                 }

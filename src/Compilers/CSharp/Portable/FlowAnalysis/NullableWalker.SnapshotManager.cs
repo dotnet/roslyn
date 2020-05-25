@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return updatedType;
                 }
 
-                return default;
+                return null;
             }
 
             internal NamedTypeSymbol? GetUpdatedDelegateTypeForLambda(LambdaSymbol lambda)

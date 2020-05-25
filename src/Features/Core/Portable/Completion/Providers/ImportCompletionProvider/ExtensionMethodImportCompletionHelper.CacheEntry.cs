@@ -99,6 +99,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         [ExportWorkspaceServiceFactory(typeof(IImportCompletionCacheService<CacheEntry, object>), ServiceLayer.Editor), Shared]
         private sealed class CacheServiceFactory : AbstractImportCompletionCacheServiceFactory<CacheEntry, object>
         {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public CacheServiceFactory()
+            {
+            }
         }
 
         private static IImportCompletionCacheService<CacheEntry, object> GetCacheService(Workspace workspace)

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
         private readonly IXamlRenameInfoService _renameService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlEditorInlineRenameService(IXamlRenameInfoService renameService)
         {
             _renameService = renameService;
@@ -65,6 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
             public TextSpan TriggerSpan => _renameInfo.TriggerSpan;
 
+            // This property isn't currently supported in XAML since it would involve modifying the IXamlRenameInfo interface.
+            public ImmutableArray<CodeAnalysis.DocumentSpan> DefinitionLocations => default;
+
             public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var references = new List<InlineRenameLocation>();
@@ -82,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                     references.ToImmutableArray());
             }
 
-            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken)
+            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)
             {
                 return location.TextSpan;
             }
@@ -92,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                 return replacementText;
             }
 
-            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken)
+            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken)
             {
                 return location.TextSpan;
             }

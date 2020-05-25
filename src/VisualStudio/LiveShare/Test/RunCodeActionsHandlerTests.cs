@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -26,10 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         {|caret:|}int i = 1;
     }
 }";
-            var (solution, ranges) = CreateTestSolution(markup);
-            var codeActionLocation = ranges["caret"].First();
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var codeActionLocation = locations["caret"].First();
 
-            var results = await TestHandleAsync<LSP.ExecuteCommandParams, object>(solution, CreateExecuteCommandParams(codeActionLocation, CSharpFeaturesResources.Use_implicit_type));
+            var results = await TestHandleAsync<LSP.ExecuteCommandParams, object>(workspace.CurrentSolution, CreateExecuteCommandParams(codeActionLocation, CSharpAnalyzersResources.Use_implicit_type), Methods.WorkspaceExecuteCommandName);
             Assert.True((bool)results);
         }
 

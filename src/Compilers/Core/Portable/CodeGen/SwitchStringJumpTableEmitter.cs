@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 uint hash = computeStringHashcodeDelegate((string?)stringConstant.Value);
 
-                HashBucket bucket;
+                HashBucket? bucket;
                 if (!stringHashMap.TryGetValue(hash, out bucket))
                 {
                     bucket = new HashBucket();

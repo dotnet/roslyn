@@ -400,9 +400,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         }
 
         private void SendFailureNotification(string message)
-        {
-            _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
-        }
+            => _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
 
         private Project _selectedProject;
         public Project SelectedProject
@@ -803,9 +801,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             }
 
             public ProjectSelectItem(Project project)
-            {
-                _project = project;
-            }
+                => _project = project;
         }
 
         public class DocumentSelectItem

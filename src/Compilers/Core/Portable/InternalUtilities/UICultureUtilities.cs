@@ -63,7 +63,7 @@ namespace Roslyn.Utilities
             try
             {
                 var type = typeof(object).GetTypeInfo().Assembly.GetType(threadTypeName);
-                if ((object)type == null)
+                if (type is null)
                 {
                     setter = null;
                     return false;

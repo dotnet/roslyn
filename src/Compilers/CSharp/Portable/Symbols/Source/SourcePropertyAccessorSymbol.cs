@@ -101,12 +101,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsExpressionBodied
-        {
-            get
-            {
-                return _isExpressionBodied;
-            }
-        }
+            => _isExpressionBodied;
+
+        internal sealed override ImmutableArray<string> NotNullMembers
+            => _property.NotNullMembers.Concat(base.NotNullMembers);
+
+        internal sealed override ImmutableArray<string> NotNullWhenTrueMembers
+            => _property.NotNullWhenTrueMembers.Concat(base.NotNullWhenTrueMembers);
+
+        internal sealed override ImmutableArray<string> NotNullWhenFalseMembers
+            => _property.NotNullWhenFalseMembers.Concat(base.NotNullWhenFalseMembers);
 
         private static void GetNameAndExplicitInterfaceImplementations(
             PropertySymbol explicitlyImplementedPropertyOpt,
@@ -691,7 +695,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
 
-            var compilation = this.DeclaringCompilation;
             var annotations = ReturnTypeFlowAnalysisAnnotations;
             if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
             {
@@ -711,6 +714,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var compilation = this.DeclaringCompilation;
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            }
+
+            if (!NotNullMembers.IsEmpty)
+            {
+                foreach (var attributeData in _property.MemberNotNullAttributeIfExists)
+                {
+                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(attributeData));
+                }
+            }
+
+            if (!NotNullWhenTrueMembers.IsEmpty || !NotNullWhenFalseMembers.IsEmpty)
+            {
+                foreach (var attributeData in _property.MemberNotNullWhenAttributeIfExists)
+                {
+                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(attributeData));
+                }
             }
         }
     }

@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         private class StartComparer : IComparer<SnapshotSpan>
         {
             public int Compare(SnapshotSpan x, SnapshotSpan y)
-            {
-                return x.Start.CompareTo(y.Start);
-            }
+                => x.Start.CompareTo(y.Start);
         }
     }
 }

@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.Structure
         /// This does not included providers imported via MEF composition.
         /// </summary>
         protected virtual ImmutableArray<BlockStructureProvider> GetBuiltInProviders()
-        {
-            return ImmutableArray<BlockStructureProvider>.Empty;
-        }
+            => ImmutableArray<BlockStructureProvider>.Empty;
 
         private ImmutableArray<BlockStructureProvider> GetImportedProviders()
         {
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Structure
                 await provider.ProvideBlockStructureAsync(context).ConfigureAwait(false);
             }
 
-            return CreateBlockStructure(document, context);
+            return CreateBlockStructure(context);
         }
 
         public override BlockStructure GetBlockStructure(
@@ -64,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Structure
                 provider.ProvideBlockStructure(context);
             }
 
-            return CreateBlockStructure(document, context);
+            return CreateBlockStructure(context);
         }
 
-        private static BlockStructure CreateBlockStructure(Document document, BlockStructureContext context)
+        private static BlockStructure CreateBlockStructure(BlockStructureContext context)
         {
             var options = context.Document.Project.Solution.Workspace.Options;
             var language = context.Document.Project.Language;

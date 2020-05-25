@@ -4,11 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
@@ -30,10 +32,20 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, LexicalClassificationsMethodName)]
     internal class CSharpLexicalClassificationsHandler : LexicalClassificationsHandler
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpLexicalClassificationsHandler()
+        {
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, LexicalClassificationsMethodName)]
     internal class VisualBasicLexicalClassificationsHandler : LexicalClassificationsHandler
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualBasicLexicalClassificationsHandler()
+        {
+        }
     }
 }

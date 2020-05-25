@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         public readonly TextSpan TextSpan;
 
         public ViewTextSpan(TextSpan textSpan)
-        {
-            this.TextSpan = textSpan;
-        }
+            => this.TextSpan = textSpan;
     }
 
     internal struct DisconnectedBufferGraph
@@ -79,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                     }
 
                 default:
-                    Contract.Fail();
-                    return default;
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 

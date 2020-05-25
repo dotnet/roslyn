@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         }
 
         internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-        {
-            return new ConstructorInitializerSignatureHelpProvider();
-        }
+            => new ConstructorInitializerSignatureHelpProvider();
 
         #region "Regular tests"
 

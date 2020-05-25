@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -114,9 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private bool DescendIntoChildren(SyntaxNode node)
-        {
-            return !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
-        }
+            => !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
 
         protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
         {
@@ -188,7 +186,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SwitchStatement,
             SwitchSection,
             CasePatternSwitchLabel,            // tied to parent
-            WhenClause,
+            SwitchExpression,
+            SwitchExpressionArm,               // tied to parent
+            WhenClause,                        // tied to parent
 
             YieldStatement,                    // tied to parent
             GotoStatement,
@@ -256,6 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.GroupClauseLambda:
                 case Label.QueryContinuation:
                 case Label.CasePatternSwitchLabel:
+                case Label.WhenClause:
+                case Label.SwitchExpressionArm:
                     return 1;
 
                 default:
@@ -312,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.EmptyStatement:
                     isLeaf = true;
-                    return Label.Ignored;
+                    return Label.ExpressionStatement;
 
                 case SyntaxKind.GotoStatement:
                     isLeaf = true;
@@ -392,6 +394,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.CasePatternSwitchLabel:
                     return Label.CasePatternSwitchLabel;
+
+                case SyntaxKind.SwitchExpression:
+                    return Label.SwitchExpression;
+
+                case SyntaxKind.SwitchExpressionArm:
+                    return Label.SwitchExpressionArm;
 
                 case SyntaxKind.TryStatement:
                     return Label.TryStatement;
@@ -505,19 +513,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         protected internal override int GetLabel(SyntaxNode node)
-        {
-            return (int)GetLabelImpl(node);
-        }
+            => (int)GetLabelImpl(node);
 
         internal static Label GetLabelImpl(SyntaxNode node)
-        {
-            return Classify(node.Kind(), node, out _);
-        }
+            => Classify(node.Kind(), node, out _);
 
         internal static bool HasLabel(SyntaxNode node)
-        {
-            return GetLabelImpl(node) != Label.Ignored;
-        }
+            => GetLabelImpl(node) != Label.Ignored;
 
         protected internal override int LabelCount
         {
@@ -525,9 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         protected internal override int TiedToAncestor(int label)
-        {
-            return TiedToAncestor((Label)label);
-        }
+            => TiedToAncestor((Label)label);
 
         #endregion
 
@@ -738,9 +738,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = simple.AsyncKeyword;
                     body = simple.Body;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
@@ -749,9 +749,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = parenthesized.AsyncKeyword;
                     body = parenthesized.Body;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.AnonymousMethodExpression:
@@ -768,9 +768,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = anonymous.AsyncKeyword;
                     body = anonymous.Block;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.LocalFunctionStatement:
@@ -1037,9 +1037,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             foreach (var child in block.ChildNodes())
             {
-                if (child.IsKind(SyntaxKind.LocalDeclarationStatement))
+                if (child.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax? localDecl))
                 {
-                    GetLocalNames(((LocalDeclarationStatementSyntax)child).Declaration, ref result);
+                    GetLocalNames(localDecl.Declaration, ref result);
                 }
             }
         }
@@ -1120,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        private static void GetLocalNames(SyntaxToken syntaxToken, [NotNull]ref List<SyntaxToken>? result)
+        private static void GetLocalNames(SyntaxToken syntaxToken, [NotNull] ref List<SyntaxToken>? result)
         {
             result ??= new List<SyntaxToken>();
             result.Add(syntaxToken);

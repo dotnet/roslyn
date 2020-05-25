@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     // DO NOT CHANGE NUMBERS ASSIGNED TO EXISTING KINDS OR YOU WILL BREAK BINARY COMPATIBILITY
@@ -196,6 +198,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         AsyncKeyword = 8435,
         AwaitKeyword = 8436,
         WhenKeyword = 8437,
+        OrKeyword = 8438,
+        AndKeyword = 8439,
+        NotKeyword = 8440,
         /// when adding a contextual keyword following functions must be adapted:
         /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
         /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
@@ -349,6 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitElementAccess = 8656,
         IsPatternExpression = 8657,
         RangeExpression = 8658,
+        ImplicitObjectCreationExpression = 8659,
 
         // binary expressions
         AddExpression = 8668,
@@ -586,8 +592,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         SwitchExpressionArm = 9026,
         VarPattern = 9027,
 
+        // new patterns added in C# 9.0
+        ParenthesizedPattern = 9028,
+        RelationalPattern = 9029,
+        TypePattern = 9030,
+        OrPattern = 9031,
+        AndPattern = 9032,
+        NotPattern = 9033,
+
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
-        // Please start with 9040 if you add more kinds below.
 
         DeclarationExpression = 9040,
         RefExpression = 9050,

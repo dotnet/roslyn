@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
         End Function
 
         Protected Overrides Function TryGetApplicableList(node As SyntaxNode) As ParameterListSyntax
-            Return VisualBasicSyntaxGenerator.GetParameterList(node)
+            Return node.GetParameterList()
         End Function
 
         Protected Overrides Function PositionIsApplicable(

@@ -275,23 +275,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public class PersistentStorageServiceFactory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public PersistentStorageServiceFactory()
             {
             }
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            {
-                return new Service();
-            }
+                => new Service();
 
             public class Service : IPersistentStorageService
             {
                 private readonly Storage _instance = new Storage();
 
                 IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
-                {
-                    return _instance;
-                }
+                    => _instance;
 
                 internal class Storage : IPersistentStorage
                 {

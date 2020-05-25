@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -54,9 +55,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected char Eat(SymbolKeyType type)
-            {
-                return Eat((char)type);
-            }
+                => Eat((char)type);
 
             protected char Eat(char c)
             {
@@ -66,14 +65,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected void EatCloseParen()
-            {
-                Eat(CloseParenChar);
-            }
+                => Eat(CloseParenChar);
 
             protected void EatOpenParen()
-            {
-                Eat(OpenParenChar);
-            }
+                => Eat(OpenParenChar);
 
             public int ReadInteger()
             {
@@ -106,9 +101,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected char EatSpace()
-            {
-                return Eat(SpaceChar);
-            }
+                => Eat(SpaceChar);
 
             public bool ReadBoolean()
             {
@@ -168,9 +161,7 @@ namespace Microsoft.CodeAnalysis
             protected abstract TStringResult CreateNullForString();
 
             private void EatDoubleQuote()
-            {
-                Eat(DoubleQuoteChar);
-            }
+                => Eat(DoubleQuoteChar);
 
             public PooledArrayBuilder<TStringResult> ReadStringArray()
                 => ReadArray(_readString);
@@ -268,9 +259,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected override object CreateNullForString()
-            {
-                return null;
-            }
+                => null;
         }
 
         private class SymbolKeyReader : Reader<string>
@@ -286,7 +275,6 @@ namespace Microsoft.CodeAnalysis
             public SymbolEquivalenceComparer Comparer { get; private set; }
 
             private readonly List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
-            private bool _resolveLocations;
 
             public SymbolKeyReader()
             {
@@ -300,7 +288,6 @@ namespace Microsoft.CodeAnalysis
                 _idToResult.Clear();
                 Compilation = null;
                 IgnoreAssemblyKey = false;
-                _resolveLocations = false;
                 Comparer = null;
                 _methodSymbolStack.Clear();
 
@@ -310,11 +297,11 @@ namespace Microsoft.CodeAnalysis
 
             public static SymbolKeyReader GetReader(
                 string data, Compilation compilation,
-                bool ignoreAssemblyKey, bool resolveLocations,
+                bool ignoreAssemblyKey,
                 CancellationToken cancellationToken)
             {
                 var reader = s_readerPool.Allocate();
-                reader.Initialize(data, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
+                reader.Initialize(data, compilation, ignoreAssemblyKey, cancellationToken);
                 return reader;
             }
 
@@ -322,13 +309,11 @@ namespace Microsoft.CodeAnalysis
                 string data,
                 Compilation compilation,
                 bool ignoreAssemblyKey,
-                bool resolveLocations,
                 CancellationToken cancellationToken)
             {
                 base.Initialize(data, cancellationToken);
                 Compilation = compilation;
                 IgnoreAssemblyKey = ignoreAssemblyKey;
-                _resolveLocations = resolveLocations;
 
                 Comparer = ignoreAssemblyKey
                     ? SymbolEquivalenceComparer.IgnoreAssembliesInstance
@@ -457,7 +442,7 @@ namespace Microsoft.CodeAnalysis
             /// will either be the same as the original amount written, or <c>default</c> will be 
             /// returned. It will never be less or more.  <c>default</c> will be returned if any 
             /// elements could not be resolved to the requested <typeparamref name="TSymbol"/> type 
-            /// in the provided <see cref="Compilation"/>.
+            /// in the provided <see cref="SymbolKeyReader.Compilation"/>.
             /// 
             /// Callers should <see cref="IDisposable.Dispose"/> the instance returned.  No check is
             /// necessary if <c>default</c> was returned before calling <see cref="IDisposable.Dispose"/>
@@ -497,9 +482,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected override string CreateNullForString()
-            {
-                return null;
-            }
+                => null;
 
             #endregion
 
@@ -521,15 +504,12 @@ namespace Microsoft.CodeAnalysis
                     var start = ReadInteger();
                     var length = ReadInteger();
 
-                    if (_resolveLocations)
+                    // The syntax tree can be null if we're resolving this location in a compilation
+                    // that does not contain this file.  In this case, just map this location to None.
+                    var syntaxTree = GetSyntaxTree(filePath);
+                    if (syntaxTree != null)
                     {
-                        // The syntax tree can be null if we're resolving this location in a compilation
-                        // that does not contain this file.  In this case, just map this location to None.
-                        var syntaxTree = GetSyntaxTree(filePath);
-                        if (syntaxTree != null)
-                        {
-                            return Location.Create(syntaxTree, new TextSpan(start, length));
-                        }
+                        return Location.Create(syntaxTree, new TextSpan(start, length));
                     }
                 }
                 else if (kind == LocationKind.MetadataFile)
@@ -537,26 +517,44 @@ namespace Microsoft.CodeAnalysis
                     var assemblyResolution = ReadSymbolKey();
                     var moduleName = ReadString();
 
-                    if (_resolveLocations)
+                    // We may be resolving in a compilation where we don't have a module
+                    // with this name.  In that case, just map this location to none.
+                    if (assemblyResolution.GetAnySymbol() is IAssemblySymbol assembly)
                     {
-                        // We may be resolving in a compilation where we don't have a module
-                        // with this name.  In that case, just map this location to none.
-                        if (assemblyResolution.GetAnySymbol() is IAssemblySymbol assembly)
+                        var module = GetModule(assembly.Modules, moduleName);
+                        if (module != null)
                         {
-                            var module = GetModule(assembly.Modules, moduleName);
-                            if (module != null)
+                            var location = FirstOrDefault(module.Locations);
+                            if (location != null)
                             {
-                                var location = FirstOrDefault(module.Locations);
-                                if (location != null)
-                                {
-                                    return location;
-                                }
+                                return location;
                             }
                         }
                     }
                 }
 
                 return Location.None;
+            }
+
+            public SymbolKeyResolution? ResolveLocation(Location location)
+            {
+                if (location.SourceTree != null)
+                {
+                    var node = location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, CancellationToken);
+                    var semanticModel = Compilation.GetSemanticModel(location.SourceTree);
+                    var symbol = semanticModel.GetDeclaredSymbol(node, CancellationToken);
+                    if (symbol != null)
+                        return new SymbolKeyResolution(symbol);
+
+                    var info = semanticModel.GetSymbolInfo(node, CancellationToken);
+                    if (info.Symbol != null)
+                        return new SymbolKeyResolution(info.Symbol);
+
+                    if (info.CandidateSymbols.Length > 0)
+                        return new SymbolKeyResolution(info.CandidateSymbols, info.CandidateReason);
+                }
+
+                return null;
             }
 
             private IModuleSymbol GetModule(IEnumerable<IModuleSymbol> modules, string moduleName)

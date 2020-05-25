@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
-        {
-            return new Tagger(buffer, _key, _tagInstance) as ITagger<T>;
-        }
+            => new Tagger(buffer, _key, _tagInstance) as ITagger<T>;
 
         private class Tagger : ITagger<TTag>
         {

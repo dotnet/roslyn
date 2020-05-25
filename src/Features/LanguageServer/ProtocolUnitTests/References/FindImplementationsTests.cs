@@ -27,9 +27,9 @@ class A : IA
     {
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunFindImplementationAsync(solution, locations["caret"].Single());
+            var results = await RunFindImplementationAsync(workspace.CurrentSolution, locations["caret"].Single());
             AssertLocationsEqual(locations["implementation"], results);
         }
 
@@ -55,9 +55,10 @@ class A : IA
     }
 }"
             };
-            var (solution, locations) = CreateTestSolution(markups);
 
-            var results = await RunFindImplementationAsync(solution, locations["caret"].Single());
+            using var workspace = CreateTestWorkspace(markups, out var locations);
+
+            var results = await RunFindImplementationAsync(workspace.CurrentSolution, locations["caret"].Single());
             AssertLocationsEqual(locations["implementation"], results);
         }
 
@@ -72,13 +73,14 @@ class A : IA
         {|caret:|}
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunFindImplementationAsync(solution, locations["caret"].Single());
+            var results = await RunFindImplementationAsync(workspace.CurrentSolution, locations["caret"].Single());
             Assert.Empty(results);
         }
 
         private static async Task<LSP.Location[]> RunFindImplementationAsync(Solution solution, LSP.Location caret)
-            => (LSP.Location[])await GetLanguageServer(solution).FindImplementationsAsync(solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), CancellationToken.None);
+            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentImplementationName,
+                solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
     }
 }

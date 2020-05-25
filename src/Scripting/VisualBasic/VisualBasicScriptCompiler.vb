@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
             diagnostics.Free()
 
             ' parse:
-            Dim tree = VisualBasicSyntaxTree.ParseText(script.Code, s_defaultOptions, script.Options.FilePath)
+            Dim tree = SyntaxFactory.ParseSyntaxTree(script.SourceText, If(script.Options.ParseOptions, s_defaultOptions), script.Options.FilePath)
 
             ' create compilation:
             Dim assemblyName As String = Nothing

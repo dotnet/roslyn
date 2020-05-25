@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         public IMoveToNamespaceOptionsService OptionsService { get; }
 
         protected AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
-        {
-            OptionsService = moveToNamespaceOptionsService;
-        }
+            => OptionsService = moveToNamespaceOptionsService;
 
         public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
             Document document,
@@ -173,15 +171,12 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 return Task.FromResult(MoveToNamespaceResult.Failed);
             }
 
-            switch (analysisResult.Container)
+            return analysisResult.Container switch
             {
-                case MoveToNamespaceAnalysisResult.ContainerType.Namespace:
-                    return MoveItemsInNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken);
-                case MoveToNamespaceAnalysisResult.ContainerType.NamedType:
-                    return MoveTypeToNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken);
-                default:
-                    throw new InvalidOperationException();
-            }
+                MoveToNamespaceAnalysisResult.ContainerType.Namespace => MoveItemsInNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken),
+                MoveToNamespaceAnalysisResult.ContainerType.NamedType => MoveTypeToNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken),
+                _ => throw new InvalidOperationException(),
+            };
         }
 
         private static async Task<ImmutableArray<ISymbol>> GetMemberSymbolsAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
@@ -259,7 +254,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
             // Since MoveTypeService doesn't handle linked files, we need to merge the diff ourselves, 
             // otherwise, we will end up with multiple linked documents with different content.
-            var mergedSolution = await PropagateChangeToLinkedDocuments(modifiedDocument, cancellationToken).ConfigureAwait(false);
+            var mergedSolution = await PropagateChangeToLinkedDocumentsAsync(modifiedDocument, cancellationToken).ConfigureAwait(false);
             var mergedDocument = mergedSolution.GetDocument(document.Id);
 
             var syntaxRoot = await mergedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -278,7 +273,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<Solution> PropagateChangeToLinkedDocuments(Document document, CancellationToken cancellationToken)
+        private static async Task<Solution> PropagateChangeToLinkedDocumentsAsync(Document document, CancellationToken cancellationToken)
         {
             // Need to make sure elastic trivia is formatted properly before pushing the text to other documents.
             var formattedDocument = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);

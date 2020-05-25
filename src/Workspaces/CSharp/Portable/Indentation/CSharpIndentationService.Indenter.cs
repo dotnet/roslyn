@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,7 +12,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Indentation
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
     {
         protected override bool ShouldUseTokenIndenter(Indenter indenter, out SyntaxToken syntaxToken)
             => ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.OptionSet, out syntaxToken);
+                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.OptionService, indenter.OptionSet, out syntaxToken);
 
         protected override ISmartTokenFormatter CreateSmartTokenFormatter(Indenter indenter)
         {
@@ -31,75 +31,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return new CSharpSmartTokenFormatter(indenter.OptionSet, rules, indenter.Root);
         }
 
-        protected override IndentationResult GetDesiredIndentationWorker(
-            Indenter indenter, SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition)
+        protected override IndentationResult? GetDesiredIndentationWorker(Indenter indenter, SyntaxToken? tokenOpt, SyntaxTrivia? triviaOpt)
+            => TryGetDesiredIndentation(indenter, triviaOpt) ??
+               TryGetDesiredIndentation(indenter, tokenOpt);
+
+        private IndentationResult? TryGetDesiredIndentation(Indenter indenter, SyntaxTrivia? triviaOpt)
         {
-            // okay, now check whether the text we found is trivia or actual token.
-            if (token.Span.Contains(lastNonWhitespacePosition))
-            {
-                // okay, it is a token case, do special work based on type of last token on previous line
-                return GetIndentationBasedOnToken(indenter, token);
-            }
-            else
-            {
-                // there must be trivia that contains or touch this position
-                Debug.Assert(token.FullSpan.Contains(lastNonWhitespacePosition));
+            // If we have a // comment, and it's the only thing on the line, then if we hit enter, we should align to
+            // that.  This helps for cases like:
+            //
+            //          int goo; // this comment
+            //                   // continues
+            //                   // onwards
+            //
+            // The user will have to manually indent `// continues`, but we'll respect that indentation from that point on.
 
-                // okay, now check whether the trivia is at the beginning of the line
-                var firstNonWhitespacePosition = previousLine.GetFirstNonWhitespacePosition();
-                if (!firstNonWhitespacePosition.HasValue)
-                {
-                    return indenter.IndentFromStartOfLine(0);
-                }
+            if (triviaOpt == null)
+                return null;
 
-                var trivia = indenter.Root.FindTrivia(firstNonWhitespacePosition.Value, findInsideTrivia: true);
-                if (trivia.Kind() == SyntaxKind.None || indenter.LineToBeIndented.LineNumber > previousLine.LineNumber + 1)
-                {
-                    // If the token belongs to the next statement and is also the first token of the statement, then it means the user wants
-                    // to start type a new statement. So get indentation from the start of the line but not based on the token.
-                    // Case:
-                    // static void Main(string[] args)
-                    // {
-                    //     // A
-                    //     // B
-                    //     
-                    //     $$
-                    //     return;
-                    // }
+            var trivia = triviaOpt.Value;
+            if (!trivia.IsSingleOrMultiLineComment() && !trivia.IsDocComment())
+                return null;
 
-                    var containingStatement = token.GetAncestor<StatementSyntax>();
-                    if (containingStatement != null && containingStatement.GetFirstToken() == token)
-                    {
-                        var position = indenter.GetCurrentPositionNotBelongToEndOfFileToken(indenter.LineToBeIndented.Start);
-                        return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, indenter.CancellationToken));
-                    }
+            var line = indenter.Text.Lines.GetLineFromPosition(trivia.FullSpan.Start);
+            if (line.GetFirstNonWhitespacePosition() != trivia.FullSpan.Start)
+                return null;
 
-                    // If the token previous of the base token happens to be a Comma from a separation list then we need to handle it different
-                    // Case:
-                    // var s = new List<string>
-                    //                 {
-                    //                     """",
-                    //                             """",/*sdfsdfsdfsdf*/
-                    //                                  // dfsdfsdfsdfsdf
-                    //                                  
-                    //                             $$
-                    //                 };
-                    var previousToken = token.GetPreviousToken();
-                    if (previousToken.IsKind(SyntaxKind.CommaToken))
-                    {
-                        return GetIndentationFromCommaSeparatedList(indenter, previousToken);
-                    }
-                    else if (!previousToken.IsKind(SyntaxKind.None))
-                    {
-                        // okay, beginning of the line is not trivia, use the last token on the line as base token
-                        return GetIndentationBasedOnToken(indenter, token);
-                    }
-                }
+            // Previous line just contained this single line comment.  Align us with it.
+            return new IndentationResult(trivia.FullSpan.Start, 0);
+        }
 
-                // this case we will keep the indentation of this trivia line
-                // this trivia can't be preprocessor by the way.
-                return indenter.GetIndentationOfLine(previousLine);
-            }
+        private IndentationResult? TryGetDesiredIndentation(Indenter indenter, SyntaxToken? tokenOpt)
+        {
+            if (tokenOpt == null)
+                return null;
+
+            return GetIndentationBasedOnToken(indenter, tokenOpt.Value);
         }
 
         private IndentationResult GetIndentationBasedOnToken(Indenter indenter, SyntaxToken token)

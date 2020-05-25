@@ -20,14 +20,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
     internal class VisualStudioGenerateTypeOptionsServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioGenerateTypeOptionsServiceFactory()
         {
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new VisualStudioGenerateTypeOptionsService();
-        }
+            => new VisualStudioGenerateTypeOptionsService();
 
         private class VisualStudioGenerateTypeOptionsService : IGenerateTypeOptionsService
         {

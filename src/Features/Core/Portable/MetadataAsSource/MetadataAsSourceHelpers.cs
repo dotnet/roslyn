@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
@@ -17,15 +13,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     /// </summary>
     internal class MetadataAsSourceHelpers
     {
-        private static readonly HashSet<SymbolKind> s_validSymbolKinds = new HashSet<SymbolKind>(new[]
-            {
-                SymbolKind.Event,
-                SymbolKind.Field,
-                SymbolKind.Method,
-                SymbolKind.NamedType,
-                SymbolKind.Property,
-                SymbolKind.Parameter,
-            });
 
 #if false
         public static void ValidateSymbolArgument(ISymbol symbol, string parameterName)

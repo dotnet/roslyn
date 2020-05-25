@@ -92,9 +92,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         }
 
         public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, int startLine, int startIndex, int endLine, int endIndex)
-        {
-            return TryGetSpan(snapshot, startLine, startIndex, endLine, endIndex).Value;
-        }
+            => TryGetSpan(snapshot, startLine, startIndex, endLine, endIndex).Value;
 
         public static SnapshotSpan? TryGetSpan(this ITextSnapshot snapshot, int startLine, int startIndex, int endLine, int endIndex)
         {

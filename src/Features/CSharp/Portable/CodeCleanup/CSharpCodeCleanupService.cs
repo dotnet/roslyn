@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements,
                     new[] { IDEDiagnosticIds.AddBracesDiagnosticId }),
 
-                new DiagnosticSet(CSharpFeaturesResources.Add_accessibility_modifiers,
+                new DiagnosticSet(AnalyzersResources.Add_accessibility_modifiers,
                     new[] { IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId }),
 
                 new DiagnosticSet(CSharpFeaturesResources.Sort_accessibility_modifiers,
@@ -81,7 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                     new[] { CSharpRemoveUnusedVariableCodeFixProvider.CS0168, CSharpRemoveUnusedVariableCodeFixProvider.CS0219 }),
 
                 new DiagnosticSet(CSharpFeaturesResources.Apply_object_collection_initialization_preferences,
-                    new[] { IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId })
+                    new[] { IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId }),
+
+                new DiagnosticSet(CSharpFeaturesResources.Apply_using_directive_placement_preferences,
+                    new[] { IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId })
             );
 
         public async Task<Document> CleanupAsync(
@@ -189,8 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         }
 
         public EnabledDiagnosticOptions GetAllDiagnostics()
-        {
-            return new EnabledDiagnosticOptions(s_diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
-        }
+            => new EnabledDiagnosticOptions(s_diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
     }
 }

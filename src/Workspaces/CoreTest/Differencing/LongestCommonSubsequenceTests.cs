@@ -11,29 +11,21 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 {
     public class LongestCommonSubsequenceTests
     {
-        LongestCommonSubsequenceString lcs = new LongestCommonSubsequenceString();
+        private readonly LongestCommonSubsequenceString lcs = new LongestCommonSubsequenceString();
 
         private class LongestCommonSubsequenceString : LongestCommonSubsequence<string>
         {
             protected override bool ItemsEqual(string oldSequence, int oldIndex, string newSequence, int newIndex)
-            {
-                return oldSequence[oldIndex] == newSequence[newIndex];
-            }
+                => oldSequence[oldIndex] == newSequence[newIndex];
 
             public IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(string oldSequence, string newSequence)
-            {
-                return GetMatchingPairs(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-            }
+                => GetMatchingPairs(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
 
             public IEnumerable<SequenceEdit> GetEdits(string oldSequence, string newSequence)
-            {
-                return GetEdits(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-            }
+                => GetEdits(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
 
             public double ComputeDistance(string oldSequence, string newSequence)
-            {
-                return ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-            }
+                => ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
         }
 
         private void VerifyMatchingPairs(IEnumerable<KeyValuePair<int, int>> actualPairs, string expectedPairsStr)
@@ -318,7 +310,6 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             var x9 = new string('x', 9);
             var x10 = new string('x', 10);
             var x99 = new string('x', 99);
-            var x100 = new string('x', 100);
             var x1000 = new string('x', 1000);
 
             var y1000 = new string('y', 1000);

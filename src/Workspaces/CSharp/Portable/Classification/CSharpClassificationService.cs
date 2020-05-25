@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
@@ -18,16 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     internal class CSharpEditorClassificationService : AbstractClassificationService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpEditorClassificationService()
         {
         }
 
         public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
             ClassificationHelpers.AddLexicalClassifications(text, textSpan, temp, cancellationToken);
             AddRange(temp, result);
-            temp.Free();
         }
 
         public override ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan)

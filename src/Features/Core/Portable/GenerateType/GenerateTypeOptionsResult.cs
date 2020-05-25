@@ -52,8 +52,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
         }
 
         private GenerateTypeOptionsResult(bool isCancelled)
-        {
-            IsCancelled = isCancelled;
-        }
+            => IsCancelled = isCancelled;
     }
 }

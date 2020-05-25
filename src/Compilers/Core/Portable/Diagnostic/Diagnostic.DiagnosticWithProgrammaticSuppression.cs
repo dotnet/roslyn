@@ -80,29 +80,29 @@ namespace Microsoft.CodeAnalysis
                 get { return _originalUnsuppressedDiagnostic.AdditionalLocations; }
             }
 
-            public override ImmutableDictionary<string, string> Properties
+            public override ImmutableDictionary<string, string?> Properties
             {
                 get { return _originalUnsuppressedDiagnostic.Properties; }
             }
 
             public override bool Equals(Diagnostic? obj)
             {
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
                 var other = obj as DiagnosticWithProgrammaticSuppression;
                 if (other == null)
                 {
                     return false;
                 }
 
-                if (ReferenceEquals(this, other))
-                {
-                    return true;
-                }
-
                 return Equals(_originalUnsuppressedDiagnostic, other._originalUnsuppressedDiagnostic) &&
                     Equals(_programmaticSuppressionInfo, other._programmaticSuppressionInfo);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 return this.Equals(obj as Diagnostic);
             }

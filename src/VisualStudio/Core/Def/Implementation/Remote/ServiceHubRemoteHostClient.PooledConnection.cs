@@ -13,17 +13,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal sealed partial class ServiceHubRemoteHostClient
     {
-        private partial class ConnectionManager
+        private partial class ConnectionPool
         {
             private class PooledConnection : Connection
             {
-                private readonly ConnectionManager _connectionManager;
-                private readonly string _serviceName;
-                private readonly JsonRpcConnection _connection;
+                private readonly ConnectionPool _pool;
+                private readonly RemoteServiceName _serviceName;
+                private readonly Connection _connection;
 
-                public PooledConnection(ConnectionManager pools, string serviceName, JsonRpcConnection connection)
+                public PooledConnection(ConnectionPool pool, RemoteServiceName serviceName, Connection connection)
                 {
-                    _connectionManager = pools;
+                    _pool = pool;
                     _serviceName = serviceName;
                     _connection = connection;
                 }
@@ -34,12 +34,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
                     => _connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
 
-                public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> directStreamReader, CancellationToken cancellationToken)
-                    => _connection.InvokeAsync(targetName, arguments, directStreamReader, cancellationToken);
+                public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
+                    => _connection.InvokeAsync(targetName, arguments, dataReader, cancellationToken);
 
                 protected override void DisposeImpl()
                 {
-                    _connectionManager.Free(_serviceName, _connection);
+                    _pool.Free(_serviceName, _connection);
                     base.DisposeImpl();
                 }
             }

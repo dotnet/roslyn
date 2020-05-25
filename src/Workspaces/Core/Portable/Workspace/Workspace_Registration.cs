@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
 
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the workspace associated with the specific text container.
         /// </summary>
-        public static bool TryGetWorkspace(SourceTextContainer textContainer, out Workspace workspace)
+        public static bool TryGetWorkspace(SourceTextContainer textContainer, [NotNullWhen(true)] out Workspace? workspace)
         {
             if (textContainer == null)
             {
@@ -67,9 +70,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static WorkspaceRegistration CreateRegistration(SourceTextContainer container)
-        {
-            return new WorkspaceRegistration();
-        }
+            => new WorkspaceRegistration();
 
         private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>.CreateValueCallback s_createRegistration = CreateRegistration;
 

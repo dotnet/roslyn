@@ -9,48 +9,11 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
-    /// <summary>
-    /// Information related to pinned solution
-    /// </summary>
-    internal sealed class PinnedSolutionInfo
-    {
-        /// <summary>
-        /// Unique ID for this pinned solution
-        /// 
-        /// This later used to find matching solution between VS and remote host
-        /// </summary>
-        public readonly int ScopeId;
-
-        /// <summary>
-        /// This indicates whether this scope is for primary branch or not (not forked solution)
-        /// 
-        /// Features like OOP will use this flag to see whether caching information related to this solution
-        /// can benefit other requests or not
-        /// </summary>
-        public readonly bool FromPrimaryBranch;
-
-        /// <summary>
-        /// This indicates a Solution.WorkspaceVersion of this solution. remote host engine uses this version
-        /// to decide whether caching this solution will benefit other requests or not
-        /// </summary>
-        public readonly int WorkspaceVersion;
-
-        public readonly Checksum SolutionChecksum;
-
-        public PinnedSolutionInfo(int scopeId, bool fromPrimaryBranch, int workspaceVersion, Checksum solutionChecksum)
-        {
-            ScopeId = scopeId;
-            FromPrimaryBranch = fromPrimaryBranch;
-            WorkspaceVersion = workspaceVersion;
-            SolutionChecksum = solutionChecksum;
-        }
-    }
-
     /// <summary>
     /// checksum scope that one can use to pin assets in memory while working on remote host
     /// </summary>
@@ -93,17 +56,6 @@ namespace Microsoft.CodeAnalysis.Execution
             storages.RegisterSnapshot(solutionInfo.ScopeId, storage);
 
             return new PinnedRemotableDataScope(storages, storage, solutionInfo);
-        }
-
-        /// <summary>
-        /// Add asset that is not part of solution to be part of this snapshot.
-        /// 
-        /// TODO: currently, this asset must be something <see cref="ISerializerService"/> can understand
-        ///       this should be changed so that custom serializer can be discoverable by <see cref="RemotableData.Kind"/> 
-        /// </summary>
-        public void AddAdditionalAsset(CustomAsset asset)
-        {
-            _storage.AddAdditionalAsset(asset);
         }
 
         public async ValueTask<RemotableData?> GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)

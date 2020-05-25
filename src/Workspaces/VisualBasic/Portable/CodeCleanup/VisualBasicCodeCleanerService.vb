@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
     Partial Friend Class VisualBasicCodeCleanerService
@@ -89,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                 Function(t)
                     If t.Kind() = SyntaxKind.StringLiteralToken OrElse
                        t.Kind() = SyntaxKind.InterpolatedStringTextToken Then
-                        Return Not VisualBasicSyntaxFactsService.Instance.IsOnSingleLine(t.Parent, fullSpan:=False)
+                        Return Not VisualBasicSyntaxFacts.Instance.IsOnSingleLine(t.Parent, fullSpan:=False)
                     End If
 
                     Return False
@@ -101,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                 Return Nothing
             End If
 
-            If Not VisualBasicSyntaxFactsService.Instance.IsOnSingleLine(node, fullSpan:=False) Then
+            If Not VisualBasicSyntaxFacts.Instance.IsOnSingleLine(node, fullSpan:=False) Then
                 Return node
             End If
 

@@ -4,14 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,8 +22,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(ObjectInitializerCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(ObjectCreationCompletionProvider))]
+    [Shared]
     internal class ObjectInitializerCompletionProvider : AbstractObjectInitializerCompletionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public ObjectInitializerCompletionProvider()
+        {
+        }
+
         protected override async Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // We're exclusive if this context could only be an object initializer and not also a
@@ -84,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
-        }
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
         protected override Tuple<ITypeSymbol, Location> GetInitializedType(
             Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -118,13 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // new Goo { bar = $$
-            if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
+            if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
             {
-                if (!(token.Parent.Parent is ObjectCreationExpressionSyntax objectCreation))
-                {
-                    return null;
-                }
-
                 var type = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
                 if (type is ITypeParameterSymbol typeParameterSymbol)
                 {
@@ -183,8 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override string EscapeIdentifier(ISymbol symbol)
-        {
-            return symbol.Name.EscapeIdentifier();
-        }
+            => symbol.Name.EscapeIdentifier();
     }
 }

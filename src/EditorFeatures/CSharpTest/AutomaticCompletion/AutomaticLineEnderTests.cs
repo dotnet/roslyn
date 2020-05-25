@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -844,15 +843,14 @@ $$
             => TestWorkspace.CreateCSharp(code);
 
         protected override Action CreateNextHandler(TestWorkspace workspace)
-        {
-            return () => { };
-        }
+            => () => { };
 
-        internal override IChainedCommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
-            ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperations)
+        internal override IChainedCommandHandler<AutomaticLineEnderCommandArgs> GetCommandHandler(TestWorkspace workspace)
         {
-            return new AutomaticLineEnderCommandHandler(undoRegistry, editorOperations);
+            return Assert.IsType<AutomaticLineEnderCommandHandler>(
+                workspace.GetService<ICommandHandler>(
+                    ContentTypeNames.CSharpContentType,
+                    PredefinedCommandHandlerNames.AutomaticLineEnder));
         }
     }
 }

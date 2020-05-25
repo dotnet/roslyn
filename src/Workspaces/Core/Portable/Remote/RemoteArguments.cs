@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -19,54 +18,55 @@ namespace Microsoft.CodeAnalysis.Remote
     internal class SerializableFindReferencesSearchOptions
     {
         public bool AssociatePropertyReferencesWithSpecificAccessor;
+        public bool Cascade;
 
         public static SerializableFindReferencesSearchOptions Dehydrate(FindReferencesSearchOptions options)
         {
             return new SerializableFindReferencesSearchOptions
             {
-                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor
+                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor,
+                Cascade = options.Cascade,
             };
         }
 
         public FindReferencesSearchOptions Rehydrate()
         {
-            return new FindReferencesSearchOptions(AssociatePropertyReferencesWithSpecificAccessor);
+            return new FindReferencesSearchOptions(
+                associatePropertyReferencesWithSpecificAccessor: AssociatePropertyReferencesWithSpecificAccessor,
+                cascade: Cascade);
         }
     }
 
-    internal class SerializableSymbolAndProjectId : IEquatable<SerializableSymbolAndProjectId>
+    internal class SerializableSymbolAndProjectId
     {
         public string SymbolKeyData;
         public ProjectId ProjectId;
 
-        public override int GetHashCode()
-            => Hash.Combine(SymbolKeyData, ProjectId.GetHashCode());
-
-        public override bool Equals(object obj)
-            => Equals(obj as SerializableSymbolAndProjectId);
-
-        public bool Equals(SerializableSymbolAndProjectId other)
-            => other != null && SymbolKeyData.Equals(other.SymbolKeyData) && ProjectId.Equals(other.ProjectId);
-
         public static SerializableSymbolAndProjectId Dehydrate(
-            IAliasSymbol alias, Document document)
+            IAliasSymbol alias, Document document, CancellationToken cancellationToken)
         {
             return alias == null
                 ? null
-                : Dehydrate(new SymbolAndProjectId(alias, document.Project.Id));
+                : Dehydrate(document.Project.Solution, alias, cancellationToken);
         }
 
         public static SerializableSymbolAndProjectId Dehydrate(
-            SymbolAndProjectId symbolAndProjectId)
+            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
-            return new SerializableSymbolAndProjectId
-            {
-                SymbolKeyData = symbolAndProjectId.Symbol.GetSymbolKey().ToString(),
-                ProjectId = symbolAndProjectId.ProjectId
-            };
+            var project = solution.GetOriginatingProject(symbol);
+            Contract.ThrowIfNull(project, WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
+
+            return Create(symbol, project, cancellationToken);
         }
 
-        public async Task<SymbolAndProjectId?> TryRehydrateAsync(
+        public static SerializableSymbolAndProjectId Create(ISymbol symbol, Project project, CancellationToken cancellationToken)
+            => new SerializableSymbolAndProjectId
+            {
+                SymbolKeyData = symbol.GetSymbolKey(cancellationToken).ToString(),
+                ProjectId = project.Id,
+            };
+
+        public async Task<ISymbol> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var projectId = ProjectId;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // The server and client should both be talking about the same compilation.  As such
             // locations in symbols are save to resolve as we rehydrate the SymbolKey.
             var symbol = SymbolKey.ResolveString(
-                SymbolKeyData, compilation, resolveLocations: true, cancellationToken: cancellationToken).GetAnySymbol();
+                SymbolKeyData, compilation, cancellationToken: cancellationToken).GetAnySymbol();
 
             if (symbol == null)
             {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            return new SymbolAndProjectId(symbol, projectId);
+            return symbol;
         }
     }
 
@@ -137,14 +137,10 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public override bool Equals(object obj)
-        {
-            return Equals(obj as SerializableSymbolUsageInfo);
-        }
+            => Equals(obj as SerializableSymbolUsageInfo);
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
-        }
+            => Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
     }
 
     internal class SerializableReferenceLocation
@@ -164,12 +160,12 @@ namespace Microsoft.CodeAnalysis.Remote
         public CandidateReason CandidateReason { get; set; }
 
         public static SerializableReferenceLocation Dehydrate(
-            ReferenceLocation referenceLocation)
+            ReferenceLocation referenceLocation, CancellationToken cancellationToken)
         {
             return new SerializableReferenceLocation
             {
                 Document = referenceLocation.Document.Id,
-                Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document),
+                Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document, cancellationToken),
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
                 SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
@@ -199,12 +195,10 @@ namespace Microsoft.CodeAnalysis.Remote
             Solution solution, CancellationToken cancellationToken)
         {
             if (Alias == null)
-            {
                 return null;
-            }
 
-            var symbolAndProjectId = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-            return symbolAndProjectId.GetValueOrDefault().Symbol as IAliasSymbol;
+            var symbol = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+            return symbol as IAliasSymbol;
         }
     }
 

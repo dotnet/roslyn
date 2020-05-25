@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static bool IsDesktopRuntime =>
 #if NET472
             true;
-#elif NETCOREAPP3_1
+#elif NETCOREAPP
             false;
 #elif NETSTANDARD2_0
             throw new PlatformNotSupportedException();
@@ -51,23 +51,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
 #if NET472
             return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
-#elif NETCOREAPP3_1
+#elif NETCOREAPP
             return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
 #elif NETSTANDARD2_0
             throw new PlatformNotSupportedException();
-#else
-#error Unsupported configuration
-#endif
-        }
-
-        internal static AnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader()
-        {
-#if NET472
-            return new DesktopAnalyzerAssemblyLoader();
-#elif NETCOREAPP3_1
-            return new CoreClrAnalyzerAssemblyLoader();
-#elif NETSTANDARD2_0
-            return new ThrowingAnalyzerAssemblyLoader();
 #else
 #error Unsupported configuration
 #endif

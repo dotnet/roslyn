@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis
             return FixedLocalizableString.Create(fixedResource);
         }
 
-        public sealed override string? ToString()
+        public sealed override string ToString()
         {
             return ToString(null);
         }
 
-        string? IFormattable.ToString(string? ignored, IFormatProvider? formatProvider)
+        string IFormattable.ToString(string? ignored, IFormatProvider? formatProvider)
         {
             return ToString(formatProvider);
         }

@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
     internal interface IRemoteDocumentHighlights
     {
         Task<IList<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
-            DocumentId documentId, int position, DocumentId[] documentIdsToSearch, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, int position, DocumentId[] documentIdsToSearch, CancellationToken cancellationToken);
     }
 
     internal struct SerializableDocumentHighlights

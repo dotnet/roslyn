@@ -257,30 +257,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Marshal.ThrowExceptionForHR(_textManager.GetUserPreferences4(null, languagePreferences, null));
 
             SetValueForOption(optionKey.Option, ref languagePreferences[0], value);
-            SetUserPreferencesMaybeAsync(languagePreferences);
+            _ = SetUserPreferencesMaybeAsync(languagePreferences);
 
             // Even if we didn't call back, say we completed the persist
             return true;
         }
 
-        private void SetUserPreferencesMaybeAsync(LANGPREFERENCES3[] languagePreferences)
+        private async Task SetUserPreferencesMaybeAsync(LANGPREFERENCES3[] languagePreferences)
         {
-            if (IsForeground())
-            {
-                Marshal.ThrowExceptionForHR(_textManager.SetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null));
-            }
-            else
-            {
-                Task.Factory.StartNew(
-                    async () =>
-                    {
-                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        this.SetUserPreferencesMaybeAsync(languagePreferences);
-                    },
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    TaskScheduler.Default).Unwrap();
-            }
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            Marshal.ThrowExceptionForHR(_textManager.SetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null));
         }
     }
 }

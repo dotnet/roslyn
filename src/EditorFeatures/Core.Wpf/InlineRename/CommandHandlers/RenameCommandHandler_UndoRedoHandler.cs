@@ -11,14 +11,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         ICommandHandler<UndoCommandArgs>, ICommandHandler<RedoCommandArgs>
     {
         public CommandState GetCommandState(UndoCommandArgs args)
-        {
-            return GetCommandState();
-        }
+            => GetCommandState();
 
         public CommandState GetCommandState(RedoCommandArgs args)
-        {
-            return GetCommandState();
-        }
+            => GetCommandState();
 
         public bool ExecuteCommand(UndoCommandArgs args, CommandExecutionContext context)
         {

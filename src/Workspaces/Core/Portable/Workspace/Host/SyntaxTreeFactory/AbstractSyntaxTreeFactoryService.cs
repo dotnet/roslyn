@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Host
         public abstract ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
 
         public virtual bool CanCreateRecoverableTree(SyntaxNode root)
-        {
-            return _hasCachingService && root.FullSpan.Length >= this.MinimumLengthForRecoverableTree;
-        }
+            => _hasCachingService && root.FullSpan.Length >= this.MinimumLengthForRecoverableTree;
 
         protected static SyntaxNode RecoverNode(SyntaxTree tree, TextSpan textSpan, int kind)
         {

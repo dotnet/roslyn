@@ -64,9 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         public int Refresh(uint refreshMode)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int SetBufferCoordinator(IVsTextBufferCoordinator pBC)
         {
@@ -93,8 +91,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         public int WaitForReadyState()
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
     }
 }

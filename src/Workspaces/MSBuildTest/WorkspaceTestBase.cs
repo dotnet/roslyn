@@ -247,8 +247,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.CSharpProject),
                 (@"CSharpProject\CSharpClass.cs", Resources.SourceFiles.CSharp.CSharpClass),
                 (@"CSharpProject\Properties\AssemblyInfo.cs", Resources.SourceFiles.CSharp.AssemblyInfo),
-                (@"CSharpProject\CSharpProject_ProjectReference.csproj", Resources.ProjectFiles.CSharp.DuplicateProjectReference),
-                (@"CSharpProject\CSharpConsole.cs", Resources.SourceFiles.CSharp.CSharpConsole));
+                (@"CSharpProject\CSharpProject_ProjectReference.csproj", Resources.ProjectFiles.CSharp.DuplicateReferences),
+                (@"CSharpProject\CSharpConsole.cs", Resources.SourceFiles.CSharp.CSharpConsole),
+                (@"CSharpProject\EmptyLibrary.dll", Resources.Dlls.EmptyLibrary));
         }
 
         protected FileSet GetAnalyzerReferenceSolutionFiles()
@@ -309,7 +310,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var docVersion = document.GetTopLevelChangeTextVersionAsync().Result;
             var projVersion = document.Project.GetSemanticVersionAsync().Result;
 
-            var text = document.GetTextAsync().Result;
             var newDoc = document.WithText(newText);
 
             var newDocVersion = newDoc.GetTopLevelChangeTextVersionAsync().Result;
@@ -326,7 +326,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var docVersion = document.GetTopLevelChangeTextVersionAsync().Result;
             var projVersion = document.Project.GetSemanticVersionAsync().Result;
 
-            var text = document.GetTextAsync().Result;
             var newDoc = document.WithText(newText);
 
             var newDocVersion = newDoc.GetTopLevelChangeTextVersionAsync().Result;

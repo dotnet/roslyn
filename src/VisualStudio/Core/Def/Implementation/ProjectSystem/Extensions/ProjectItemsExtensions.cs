@@ -14,9 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
     internal static class ProjectItemsExtensions
     {
         public static ProjectItem FindItem(this ProjectItems items, string itemName, StringComparer comparer)
-        {
-            return items.OfType<ProjectItem>().FirstOrDefault(p => comparer.Compare(p.Name, itemName) == 0);
-        }
+            => items.OfType<ProjectItem>().FirstOrDefault(p => comparer.Compare(p.Name, itemName) == 0);
 
         public static ProjectItem FindFolder(this ProjectItems items, string folderName)
         {
@@ -25,9 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
         }
 
         public static string GetUniqueName(this ProjectItems items, string itemName, string extension)
-        {
-            return NameGenerator.GenerateUniqueName(itemName, extension, n => items.FindItem(n, StringComparer.OrdinalIgnoreCase) == null);
-        }
+            => NameGenerator.GenerateUniqueName(itemName, extension, n => items.FindItem(n, StringComparer.OrdinalIgnoreCase) == null);
 
         public static string GetUniqueNameIgnoringProjectItem(this ProjectItems items, ProjectItem itemToIgnore, string itemName, string extension)
         {

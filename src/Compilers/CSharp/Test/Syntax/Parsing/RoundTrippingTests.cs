@@ -602,7 +602,7 @@ public class Class1
     }
 }
 ";
-            ParseAndRoundTripping(text, -1);
+            ParseAndRoundTripping(text, errorCount: 0);
         }
 
         [Fact]

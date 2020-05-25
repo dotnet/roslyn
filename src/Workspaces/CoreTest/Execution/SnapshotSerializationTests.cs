@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Execution;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await VerifySynchronizationObjectInServiceAsync(snapshotService, solutionSyncObject).ConfigureAwait(false);
 
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
 
             var projectsSyncObject = await snapshot.GetRemotableDataAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
 
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet);
 
             var projectSyncObject = await snapshot.GetRemotableDataAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
             await VerifySynchronizationObjectInServiceAsync(snapshotService, syncObject).ConfigureAwait(false);
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects).ConfigureAwait(false);
 
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
             await VerifySynchronizationObjectInServiceAsync(snapshotService, syncObject).ConfigureAwait(false);
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects).ConfigureAwait(false);
 
@@ -319,37 +320,37 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var workspace = new AdhocWorkspace();
 
-            var newQualifyFieldAccessValue = new CodeStyleOption<bool>(false, NotificationOption.Error);
-            var newQualifyMethodAccessValue = new CodeStyleOption<bool>(true, NotificationOption.Warning);
-            var newVarWhenTypeIsApparentValue = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
-            var newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue = new CodeStyleOption<bool>(true, NotificationOption.Silent);
+            var newQualifyFieldAccessValue = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
+            var newQualifyMethodAccessValue = new CodeStyleOption2<bool>(true, NotificationOption2.Warning);
+            var newVarWhenTypeIsApparentValue = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion);
+            var newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                                                 .WithChangedOption(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp, newQualifyFieldAccessValue)
-                                                 .WithChangedOption(CodeStyleOptions.QualifyMethodAccess, LanguageNames.VisualBasic, newQualifyMethodAccessValue)
+                                                 .WithChangedOption(CodeStyleOptions2.QualifyFieldAccess, LanguageNames.CSharp, newQualifyFieldAccessValue)
+                                                 .WithChangedOption(CodeStyleOptions2.QualifyMethodAccess, LanguageNames.VisualBasic, newQualifyMethodAccessValue)
                                                  .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, newVarWhenTypeIsApparentValue)
-                                                 .WithChangedOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue)));
+                                                 .WithChangedOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue)));
 
             await VerifyOptionSetsAsync(workspace, VerifyOptions).ConfigureAwait(false);
 
             void VerifyOptions(OptionSet options)
             {
-                var actualQualifyFieldAccessValue = options.GetOption(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp);
+                var actualQualifyFieldAccessValue = options.GetOption(CodeStyleOptions2.QualifyFieldAccess, LanguageNames.CSharp);
                 Assert.Equal(newQualifyFieldAccessValue, actualQualifyFieldAccessValue);
 
-                var actualQualifyMethodAccessValue = options.GetOption(CodeStyleOptions.QualifyMethodAccess, LanguageNames.VisualBasic);
+                var actualQualifyMethodAccessValue = options.GetOption(CodeStyleOptions2.QualifyMethodAccess, LanguageNames.VisualBasic);
                 Assert.Equal(newQualifyMethodAccessValue, actualQualifyMethodAccessValue);
 
                 var actualVarWhenTypeIsApparentValue = options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
                 Assert.Equal(newVarWhenTypeIsApparentValue, actualVarWhenTypeIsApparentValue);
 
-                var actualPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue = options.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic);
+                var actualPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue = options.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic);
                 Assert.Equal(newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue, actualPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue);
             }
         }
 
         [Fact]
-        public async Task Missing_Metadata_Serailization_Test()
+        public async Task Missing_Metadata_Serialization_Test()
         {
             var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
@@ -363,12 +364,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task Missing_Analyzer_Serailization_Test()
+        public async Task Missing_Analyzer_Serialization_Test()
         {
             var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
-            var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
+            var reference = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
 
             // make sure this doesn't throw
             var assetFromFile = new SolutionAsset(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
@@ -377,7 +378,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task Missing_Analyzer_Serailization_Desktop_Test()
+        public async Task Missing_Analyzer_Serialization_Desktop_Test()
         {
             var hostServices = MefHostServices.Create(
                 MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
@@ -385,7 +386,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var workspace = new AdhocWorkspace(hostServices);
             var serializer = workspace.Services.GetService<ISerializerService>();
 
-            var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
+            var reference = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
 
             // make sure this doesn't throw
             var assetFromFile = new SolutionAsset(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
@@ -394,7 +395,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task RoundTrip_Analyzer_Serailization_Test()
+        public async Task RoundTrip_Analyzer_Serialization_Test()
         {
             using var tempRoot = new TempRoot();
             var workspace = new AdhocWorkspace();
@@ -414,7 +415,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task RoundTrip_Analyzer_Serailization_Desktop_Test()
+        public async Task RoundTrip_Analyzer_Serialization_Desktop_Test()
         {
             using var tempRoot = new TempRoot();
             var hostServices = MefHostServices.Create(
@@ -437,7 +438,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         }
 
         [Fact]
-        public async Task ShadowCopied_Analyzer_Serailization_Desktop_Test()
+        public async Task ShadowCopied_Analyzer_Serialization_Desktop_Test()
         {
             var hostServices = MefHostServices.Create(
                 MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
@@ -456,29 +457,31 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         }
 
         [Fact]
-        public void WorkspaceAnalyzer_Serailization_Desktop_Test()
+        [WorkItem(1107294, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107294")]
+        public async Task SnapshotWithIdenticalAnalyzerFiles()
         {
             var hostServices = MefHostServices.Create(
                 MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
 
-            using var tempRoot = new TempRoot();
-            using var workspace = new AdhocWorkspace(hostServices);
-            var reference = CreateShadowCopiedAnalyzerReference(tempRoot);
+            var project = new AdhocWorkspace(hostServices).CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
-            var assetBuilder = new CustomAssetBuilder(workspace);
-            var asset = assetBuilder.Build(reference, CancellationToken.None);
+            using var temp = new TempRoot();
+            var dir = temp.CreateDirectory();
 
-            // verify checksum from custom asset builder uses different checksum than regular one
-            var service = workspace.Services.GetService<IReferenceSerializationService>();
-            var expectedChecksum = Checksum.Create(
-                WellKnownSynchronizationKind.AnalyzerReference,
-                service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None));
-            Assert.Equal(expectedChecksum, asset.Checksum);
+            // create two analyzer assembly files whose content is identical but path is different:
+            var file1 = dir.CreateFile("analyzer1.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
+            var file2 = dir.CreateFile("analyzer2.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
 
-            // verify usePathFromAssembly return different checksum for same reference
-            var fromFilePath = service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None);
-            var fromAssembly = service.CreateChecksum(reference, usePathFromAssembly: true, CancellationToken.None);
-            Assert.NotEqual(fromFilePath, fromAssembly);
+            var analyzer1 = new AnalyzerFileReference(file1.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
+            var analyzer2 = new AnalyzerFileReference(file2.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
+
+            project = project.AddAnalyzerReferences(new[] { analyzer1, analyzer2 });
+
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(project.Solution.Workspace.Services);
+            using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
+
+            var recovered = await GetSolutionAsync(snapshotService, snapshot).ConfigureAwait(false);
+            AssertEx.Equal(new[] { file1.Path, file2.Path }, recovered.GetProject(project.Id).AnalyzerReferences.Select(r => r.FullPath));
         }
 
         [Fact]
@@ -490,7 +493,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             var project = new AdhocWorkspace(hostServices).CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
             var metadata = new MissingMetadataReference();
-            var analyzer = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
+            var analyzer = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
 
             project = project.AddMetadataReference(metadata);
             project = project.AddAnalyzerReference(analyzer);
@@ -522,7 +525,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
             var source = serializer.CreateChecksum(await document.GetTextAsync().ConfigureAwait(false), CancellationToken.None);
             var metadata = serializer.CreateChecksum(new MissingMetadataReference(), CancellationToken.None);
-            var analyzer = serializer.CreateChecksum(new AnalyzerFileReference("missing", new MissingAnalyzerLoader()), CancellationToken.None);
+            var analyzer = serializer.CreateChecksum(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing"), new MissingAnalyzerLoader()), CancellationToken.None);
 
             Assert.NotEqual(source, metadata);
             Assert.NotEqual(source, analyzer);
@@ -681,7 +684,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             var checksum = snapshot.SolutionChecksum;
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
 
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet);
 
             var recoveredSolution = await GetSolutionAsync(snapshotService, snapshot);
@@ -695,7 +698,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
         private async Task<Solution> GetSolutionAsync(IRemotableDataService service, PinnedRemotableDataScope syncScope)
         {
-            var (solutionInfo, _) = await SolutionInfoCreator.CreateSolutionInfoAndOptionsAsync(new AssetProvider(service), syncScope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var (solutionInfo, _) = await new TestAssetProvider(service).CreateSolutionInfoAndOptionsAsync(syncScope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
 
             var workspace = new AdhocWorkspace();
             return workspace.AddSolution(solutionInfo);
@@ -733,9 +736,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
             protected override Assembly LoadFromPathImpl(string fullPath)
-            {
-                throw new FileNotFoundException(fullPath);
-            }
+                => throw new FileNotFoundException(fullPath);
         }
 
         private class MissingMetadataReference : PortableExecutableReference
@@ -746,19 +747,13 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             }
 
             protected override DocumentationProvider CreateDocumentationProvider()
-            {
-                return null;
-            }
+                => null;
 
             protected override Metadata GetMetadataImpl()
-            {
-                throw new FileNotFoundException("can't find");
-            }
+                => throw new FileNotFoundException("can't find");
 
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            {
-                return this;
-            }
+                => this;
         }
 
         private class MockShadowCopyAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
@@ -766,18 +761,14 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             private readonly ImmutableDictionary<string, string> _map;
 
             public MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string> map)
-            {
-                _map = map;
-            }
+                => _map = map;
 
             public void AddDependencyLocation(string fullPath)
             {
             }
 
             public Assembly LoadFromPath(string fullPath)
-            {
-                return Assembly.LoadFrom(_map[fullPath]);
-            }
+                => Assembly.LoadFrom(_map[fullPath]);
         }
 
         private class NotSerializableEncoding : Encoding

@@ -212,7 +212,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     break;
             }
 
+            // Apply the new options.
+            // We need to switch to UI thread to invoke TryApplyChanges.
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(options));
+
             if (options.GetOption(KeybindingResetOptions.NeedsReset))
             {
                 ShowGoldBar();
@@ -309,7 +313,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 cmds[0].cmdf = 0;
 
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
 
                 var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
                 if (ErrorHandler.Failed(hr))
@@ -331,7 +334,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 }
 
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
 
                 _oleCommandTarget = _serviceProvider.GetService<IOleCommandTarget, SUIHostCommandDispatcher>();
             }

@@ -30,19 +30,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public bool CheckInputFileTimes(System.Runtime.InteropServices.ComTypes.FILETIME output)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void BuildProject(object progress)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void Unused()
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void OnSourceFileAdded(string filename)
         {
@@ -54,19 +48,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void OnSourceFileRemoved(string filename)
-        {
-            RemoveFile(filename);
-        }
+            => RemoveFile(filename);
 
         public int OnResourceFileAdded(string filename, string resourceName, bool embedded)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int OnResourceFileRemoved(string filename)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int OnImportAdded(string filename, string project)
         {
@@ -124,14 +112,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void OnModuleAdded(string filename)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void OnModuleRemoved(string filename)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public int GetValidStartupClasses(IntPtr[] classNames, ref int count)
         {

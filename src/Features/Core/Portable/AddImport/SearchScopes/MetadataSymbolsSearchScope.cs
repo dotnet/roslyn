@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
 
                 var declarations = await info.FindAsync(
-                    searchQuery, _assembly, _assemblyProjectId,
+                    searchQuery, _assembly,
                     filter, CancellationToken).ConfigureAwait(false);
 
-                return declarations.SelectAsArray(d => d.Symbol);
+                return declarations;
             }
         }
     }

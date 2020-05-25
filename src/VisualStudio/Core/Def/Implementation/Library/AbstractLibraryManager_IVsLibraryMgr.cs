@@ -49,9 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         int IVsLibraryMgr.SetLibraryGroupEnabled(LIB_PERSISTTYPE lpt, int fEnable)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsLibraryMgr.ToggleCheckAt(uint nLibIndex)
         {

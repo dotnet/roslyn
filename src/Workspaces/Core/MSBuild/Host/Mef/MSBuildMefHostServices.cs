@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             };
 
             return MefHostServices.DefaultAssemblies.Concat(
-                MefHostServices.LoadNearbyAssemblies(assemblyNames));
+                MefHostServicesHelpers.LoadNearbyAssemblies(assemblyNames));
         }
     }
 }

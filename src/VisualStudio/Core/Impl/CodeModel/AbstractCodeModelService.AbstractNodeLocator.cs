@@ -24,9 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             protected abstract VirtualTreePoint? GetEndPoint(SourceText text, OptionSet options, SyntaxNode node, EnvDTE.vsCMPart part);
 
             protected int GetTabSize(OptionSet options)
-            {
-                return options.GetOption(FormattingOptions.TabSize, LanguageName);
-            }
+                => options.GetOption(FormattingOptions.TabSize, LanguageName);
 
             public VirtualTreePoint? GetStartPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
             {

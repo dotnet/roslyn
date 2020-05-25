@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     public static partial class SymbolFinder
     {
         internal static async Task FindReferencesAsync(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,
@@ -29,9 +28,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
-                // If ProjectId is null then this is a call through our old public API.  We don't have
-                // the necessary data to effectively run the call out of proc.
-                if (symbolAndProjectId.ProjectId != null)
+                var project = solution.GetOriginatingProject(symbol);
+                if (project != null)
                 {
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                     if (client != null)
@@ -42,34 +40,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
 
                         var success = await client.TryRunRemoteAsync(
-                            WellKnownServiceHubServices.CodeAnalysisService,
+                            WellKnownServiceHubService.CodeAnalysis,
                             nameof(IRemoteSymbolFinder.FindReferencesAsync),
+                            solution,
                             new object[]
                             {
-                                SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
+                                SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
                                 documents?.Select(d => d.Id).ToArray(),
                                 SerializableFindReferencesSearchOptions.Dehydrate(options),
                             },
-                            solution,
                             serverCallback,
                             cancellationToken).ConfigureAwait(false);
 
                         if (success)
-                        {
                             return;
-                        }
                     }
                 }
 
                 // Couldn't effectively search in OOP. Perform the search in-proc.
                 await FindReferencesInCurrentProcessAsync(
-                    symbolAndProjectId, solution, progress,
+                    symbol, solution, progress,
                     documents, options, cancellationToken).ConfigureAwait(false);
             }
         }
 
         internal static Task FindReferencesInCurrentProcessAsync(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbolAndProjectId,
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,
@@ -77,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             var finders = ReferenceFinders.DefaultReferenceFinders;
-            progress ??= StreamingFindReferencesProgress.Instance;
+            progress ??= NoOpStreamingFindReferencesProgress.Instance;
             var engine = new FindReferencesSearchEngine(
                 solution, documents, finders, progress, options, cancellationToken);
             return engine.FindReferencesAsync(symbolAndProjectId);

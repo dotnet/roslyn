@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
     [UseExportProvider]
     public class ExtractMethodBase
     {
-        protected async Task ExpectExtractMethodToFailAsync(string codeWithMarker, bool allowMovingDeclaration = true, bool dontPutOutOrRefOnStruct = true, string[] features = null)
+        protected async Task ExpectExtractMethodToFailAsync(string codeWithMarker, bool dontPutOutOrRefOnStruct = true, string[] features = null)
         {
             ParseOptions parseOptions = null;
             if (features != null)
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             using var workspace = TestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
             var testDocument = workspace.Documents.First();
             var textSpan = testDocument.SelectedSpans.Single();
-            var treeAfterExtractMethod = await ExtractMethodAsync(workspace, testDocument, succeed: false, allowMovingDeclaration: allowMovingDeclaration, dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
+            var treeAfterExtractMethod = await ExtractMethodAsync(workspace, testDocument, succeed: false, dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
         }
 
         protected async Task ExpectExtractMethodToFailAsync(
@@ -45,13 +45,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var testDocument = workspace.Documents.Single();
             var subjectBuffer = testDocument.GetTextBuffer();
 
-            var tree = await ExtractMethodAsync(workspace, testDocument, succeed: false, allowMovingDeclaration: allowMovingDeclaration, dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
+            var tree = await ExtractMethodAsync(workspace, testDocument, succeed: false, dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
 
             using (var edit = subjectBuffer.CreateEdit())
             {
                 edit.Replace(0, edit.Snapshot.Length, tree.ToFullString());
                 edit.Apply();
             }
+
+            if (expected == "")
+                Assert.True(false, subjectBuffer.CurrentSnapshot.GetText());
 
             Assert.Equal(expected, subjectBuffer.CurrentSnapshot.GetText());
         }
@@ -72,7 +75,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             string codeWithMarker,
             string expected,
             bool temporaryFailing = false,
-            bool allowMovingDeclaration = true,
             bool dontPutOutOrRefOnStruct = true,
             bool allowBestEffort = false,
             CSharpParseOptions parseOptions = null)
@@ -83,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             var tree = await ExtractMethodAsync(
                 workspace, testDocument,
-                allowMovingDeclaration: allowMovingDeclaration,
                 dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct,
                 allowBestEffort: allowBestEffort);
 
@@ -116,7 +117,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             TestWorkspace workspace,
             TestHostDocument testDocument,
             bool succeed = true,
-            bool allowMovingDeclaration = true,
             bool dontPutOutOrRefOnStruct = true,
             bool allowBestEffort = false)
         {
@@ -124,8 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             Assert.NotNull(document);
 
             var originalOptions = await document.GetOptionsAsync();
-            var options = originalOptions.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, allowMovingDeclaration)
-                                         .WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct);
+            var options = originalOptions.WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
             var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options);
@@ -162,8 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             Assert.NotNull(document);
 
-            var options = (await document.GetOptionsAsync(CancellationToken.None))
-                .WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, true);
+            var options = await document.GetOptionsAsync(CancellationToken.None);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
             var validator = new CSharpSelectionValidator(semanticDocument, namedSpans["b"].Single(), options);
@@ -188,11 +186,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var iterator = root.DescendantNodesAndSelf().Cast<SyntaxNode>();
 
             var originalOptions = await document.GetOptionsAsync();
-            var options = originalOptions.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, true);
 
             foreach (var node in iterator)
             {
-                var validator = new CSharpSelectionValidator(semanticDocument, node.Span, options);
+                var validator = new CSharpSelectionValidator(semanticDocument, node.Span, originalOptions);
                 var result = await validator.GetValidSelectionAsync(CancellationToken.None);
 
                 // check the obvious case

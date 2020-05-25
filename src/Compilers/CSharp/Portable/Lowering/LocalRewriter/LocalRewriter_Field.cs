@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -10,22 +12,22 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
-            BoundExpression rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+            BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
             return MakeFieldAccess(node.Syntax, rewrittenReceiver, node.FieldSymbol, node.ConstantValue, node.ResultKind, node.Type, node);
         }
 
         private BoundExpression MakeFieldAccess(
             SyntaxNode syntax,
-            BoundExpression rewrittenReceiver,
+            BoundExpression? rewrittenReceiver,
             FieldSymbol fieldSymbol,
-            ConstantValue constantValueOpt,
+            ConstantValue? constantValueOpt,
             LookupResultKind resultKind,
             TypeSymbol type,
-            BoundFieldAccess oldNodeOpt = null)
+            BoundFieldAccess? oldNodeOpt = null)
         {
             if (fieldSymbol.ContainingType.IsTupleType)
             {
-                return MakeTupleFieldAccess(syntax, fieldSymbol, rewrittenReceiver, constantValueOpt, resultKind);
+                return MakeTupleFieldAccess(syntax, fieldSymbol, rewrittenReceiver);
             }
 
             BoundExpression result = oldNodeOpt != null ?
@@ -50,9 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeTupleFieldAccess(
             SyntaxNode syntax,
             FieldSymbol tupleField,
-            BoundExpression rewrittenReceiver,
-            ConstantValue constantValueOpt,
-            LookupResultKind resultKind)
+            BoundExpression? rewrittenReceiver)
         {
             var tupleType = tupleField.ContainingType;
 
@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!TypeSymbol.Equals(underlyingField.ContainingType, currentLinkType, TypeCompareKind.ConsiderEverything2))
             {
                 WellKnownMember wellKnownTupleRest = NamedTypeSymbol.GetTupleTypeMember(NamedTypeSymbol.ValueTupleRestPosition, NamedTypeSymbol.ValueTupleRestPosition);
-                var tupleRestField = (FieldSymbol)NamedTypeSymbol.GetWellKnownMemberInType(currentLinkType.OriginalDefinition, wellKnownTupleRest, _diagnostics, syntax);
+                var tupleRestField = (FieldSymbol?)NamedTypeSymbol.GetWellKnownMemberInType(currentLinkType.OriginalDefinition, wellKnownTupleRest, _diagnostics, syntax);
 
-                if ((object)tupleRestField == null)
+                if (tupleRestField is null)
                 {
                     // error tolerance for cases when Rest is missing
                     return _factory.BadExpression(tupleField.Type);
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
             }
 
-            return MakeTupleFieldAccess(syntax, field, tuple, null, LookupResultKind.Empty);
+            return MakeTupleFieldAccess(syntax, field, tuple);
         }
     }
 }

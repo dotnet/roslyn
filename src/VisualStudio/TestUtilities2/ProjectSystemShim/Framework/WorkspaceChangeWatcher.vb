@@ -1,4 +1,8 @@
-﻿Imports Microsoft.CodeAnalysis
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
+
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Roslyn.Test.Utilities
 
@@ -24,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Sub
 
         Friend Async Function GetNewChangeEventsAsync() As Task(Of IEnumerable(Of WorkspaceChangeEventArgs))
-            Await _asynchronousOperationWaiter.CreateExpeditedWaitTask()
+            Await _asynchronousOperationWaiter.ExpeditedWaitAsync()
 
             ' Return the events so far, clearing the list if somebody wants to ask for further events
             Dim changeEvents = _changeEvents

@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Func<Stream> OpenPdbStreamImpl { get; set; }
 
         public MockCompilationOutputs(Guid mvid)
-        {
-            _mvid = mvid;
-        }
+            => _mvid = mvid;
 
         public override string AssemblyDisplayPath => "test-assembly";
         public override string PdbDisplayPath => "test-pdb";

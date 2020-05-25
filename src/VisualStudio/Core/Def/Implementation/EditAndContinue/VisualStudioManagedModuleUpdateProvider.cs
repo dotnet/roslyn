@@ -11,12 +11,14 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.UI.Interfaces;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
     [Export(typeof(IEditAndContinueManagedModuleUpdateProvider)), Shared]
+    [ExportMetadata("UIContext", Guids.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class VisualStudioManagedModuleUpdateProvider : IEditAndContinueManagedModuleUpdateProvider
     {
         private readonly IEditAndContinueWorkspaceService _encService;
@@ -24,35 +26,20 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioManagedModuleUpdateProvider(VisualStudioWorkspace workspace)
-        {
-            _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
-        }
-
-        public Task<ManagedModuleUpdateStatus> GetStatusAsync(CancellationToken cancellationToken)
-            => GetStatusAsync(null, cancellationToken);
+            => _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
         /// <summary>
-        /// Returns the state of the changes made to the source. 
-        /// The EnC manager calls this to determine whether there are any changes to the source 
-        /// and if so whether there are any rude edits.
-        /// 
-        /// TODO: Future work in the debugger https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1051385 will replace this with bool HasChangesAsync.
-        /// The debugger currently uses <see cref="SolutionUpdateStatus.Ready"/> as a signal to trigger emit of updates 
-        /// (i.e. to call <see cref="GetManagedModuleUpdatesAsync(CancellationToken)"/>). 
-        /// When <see cref="SolutionUpdateStatus.Blocked"/> is returned updates are not emitted.
-        /// Since <see cref="GetManagedModuleUpdatesAsync(CancellationToken)"/> already handles all validation and error reporting 
-        /// we either return <see cref="SolutionUpdateStatus.None"/> if there are no changes or <see cref="SolutionUpdateStatus.Ready"/> if there are any changes.
+        /// Returns true if any changes have been made to the source since the last changes had been applied.
         /// </summary>
-        public async Task<ManagedModuleUpdateStatus> GetStatusAsync(string sourceFilePath, CancellationToken cancellationToken)
+        public async Task<bool> HasChangesAsync(string sourceFilePath, CancellationToken cancellationToken)
         {
             try
             {
-                return (await _encService.HasChangesAsync(sourceFilePath, cancellationToken).ConfigureAwait(false)) ?
-                    ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None;
+                return await _encService.HasChangesAsync(sourceFilePath, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                return ManagedModuleUpdateStatus.Blocked;
+                return true;
             }
         }
 
@@ -61,12 +48,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 var (summary, deltas) = await _encService.EmitSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
-                return new ManagedModuleUpdates(summary.ToModuleUpdateStatus(), deltas.SelectAsArray(ModuleUtilities.ToModuleUpdate));
+                return new ManagedModuleUpdates(summary.ToModuleUpdateStatus(), deltas.SelectAsArray(ModuleUtilities.ToModuleUpdate).ToReadOnlyCollection());
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
                 _encService.ReportApplyChangesException(e.Message);
-                return new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
+                return new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<DkmManagedModuleUpdate>.Empty.ToReadOnlyCollection());
             }
         }
 

@@ -11,16 +11,15 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
-using Microsoft.CodeAnalysis.Remote.Services;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
@@ -36,9 +35,9 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// basically, this is used to manage lifetime of the service hub.
     /// </summary>
-    internal partial class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
+    internal partial class RemoteHostService : ServiceBase, IRemoteHostService, IAssetSource
     {
-        private readonly static TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);
         private readonly CancellationTokenSource _shutdownCancellationSource;
 
         // it is saved here more on debugging purpose.
@@ -46,7 +45,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private string? _host;
         private int _primaryInstance;
+#pragma warning disable IDE0052 // Remove unread private members
         private PerformanceReporter? _performanceReporter;
+#pragma warning restore IDE0052 // Remove unread private members
 
         static RemoteHostService()
         {
@@ -66,11 +67,17 @@ namespace Microsoft.CodeAnalysis.Remote
             StartService();
         }
 
+        /// <summary>
+        /// Remote API. Initializes ServiceHub process global state.
+        /// </summary>
         public string Connect(string host, int uiCultureLCID, int cultureLCID, string? serializedSession, CancellationToken cancellationToken)
         {
             return RunService(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                // initialize global assert storage
+                AssetStorage.Initialize(this);
 
                 _primaryInstance = InstanceId;
 
@@ -102,24 +109,39 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public void OnGlobalOperationStarted(string unused)
+        Task<ImmutableArray<(Checksum, object)>> IAssetSource.GetAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
-            RunService(() =>
+            return RunServiceAsync(() =>
             {
-                var globalOperationNotificationService = GetGlobalOperationNotificationService();
-                globalOperationNotificationService?.OnStarted();
-            }, CancellationToken.None);
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_GetAssetsAsync, (serviceId, checksums) => $"{serviceId} - {Checksum.GetChecksumsLogInfo(checksums)}", scopeId, checksums, cancellationToken))
+                {
+                    return EndPoint.InvokeAsync(
+                        nameof(IRemoteHostServiceCallback.GetAssetsAsync),
+                        new object[] { scopeId, checksums.ToArray() },
+                        (stream, cancellationToken) => Task.FromResult(RemoteHostAssetSerialization.ReadData(stream, scopeId, checksums, serializerService, cancellationToken)),
+                        cancellationToken);
+                }
+            }, cancellationToken);
         }
 
-        public void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
+        // TODO: remove (https://github.com/dotnet/roslyn/issues/43477)
+        Task<bool> IAssetSource.IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
         {
-            RunService(() =>
+            return RunServiceAsync(() =>
             {
-                var globalOperationNotificationService = GetGlobalOperationNotificationService();
-                globalOperationNotificationService?.OnStopped(operations, cancelled);
-            }, CancellationToken.None);
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_IsExperimentEnabledAsync, experimentName, cancellationToken))
+                {
+                    return EndPoint.InvokeAsync<bool>(
+                        nameof(IRemoteHostServiceCallback.IsExperimentEnabledAsync),
+                        new object[] { experimentName },
+                        cancellationToken);
+                }
+            }, cancellationToken);
         }
 
+        /// <summary>
+        /// Remote API.
+        /// </summary>
         public void SetLoggingFunctionIds(List<string> loggerTypes, List<string> functionIds, CancellationToken cancellationToken)
         {
             RunService(() =>
@@ -181,14 +203,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
             EnsureCulture(uiCultureLCID, cultureLCID);
 
+            WatsonReporter.InitializeFatalErrorHandlers(session);
+            WatsonReporter.InitializeLogger(Logger);
+
             // set roslyn loggers
             RoslynServices.SetTelemetrySession(session);
 
             RoslynLogger.SetLogger(AggregateLogger.Create(new VSTelemetryLogger(session), RoslynLogger.GetLogger()));
-
-            // set both handler as NFW
-            FatalError.Handler = ex => WatsonReporter.Report(ex, WatsonSeverity.Critical);
-            FatalError.NonFatalHandler = ex => WatsonReporter.Report(ex);
 
             // start performance reporter
             var diagnosticAnalyzerPerformanceTracker = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
@@ -218,16 +239,10 @@ namespace Microsoft.CodeAnalysis.Remote
         private static bool ExpectedCultureIssue(Exception ex)
         {
             // report exception
-            WatsonReporter.Report(ex);
+            WatsonReporter.ReportNonFatal(ex);
 
             // ignore expected exception
             return ex is ArgumentOutOfRangeException || ex is CultureNotFoundException;
-        }
-
-        private RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()
-        {
-            var notificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
-            return notificationService;
         }
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
@@ -263,34 +278,24 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, int workspaceVersion, CancellationToken cancellationToken)
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public Task SynchronizePrimaryWorkspaceAsync(PinnedSolutionInfo solutionInfo, Checksum checksum, int workspaceVersion, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
-                    var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
+                    var solutionService = CreateSolutionService(solutionInfo);
+                    await solutionService.UpdatePrimaryWorkspaceAsync(checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
 
-        public Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(async () =>
-            {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
-                {
-                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
-
-                    foreach (var asset in assets)
-                    {
-                        AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
-                    }
-                }
-            }, cancellationToken);
-        }
-
+        /// <summary>
+        /// Remote API.
+        /// </summary>
         public Task SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>

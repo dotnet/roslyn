@@ -4,9 +4,6 @@
 
 #nullable enable
 
-using System;
-using System.ComponentModel;
-
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>

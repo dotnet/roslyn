@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -22801,6 +22802,39 @@ End Class
         End Sub
 
         <Fact>
+        <WorkItem(41699, "https://github.com/dotnet/roslyn/issues/41699")>
+        Public Sub MissingBaseType_TupleTypeArgumentWithNames()
+            Dim sourceA =
+"Public Class A(Of T)
+End Class"
+            Dim comp = CreateCompilation(sourceA, assemblyName:="A")
+            Dim refA = comp.EmitToImageReference()
+
+            Dim sourceB =
+"Public Class B
+    Inherits A(Of (X As Object, Y As B))
+End Class"
+            comp = CreateCompilation(sourceB, references:={refA})
+            Dim refB = comp.EmitToImageReference()
+
+            Dim sourceC =
+"Module Program
+    Sub Main()
+        Dim b = New B()
+        b.ToString()
+    End Sub
+End Module"
+            comp = CreateCompilation(sourceC, references:={refB})
+            comp.AssertTheseDiagnostics(
+"BC30456: 'ToString' is not a member of 'B'.
+        b.ToString()
+        ~~~~~~~~~~
+BC30652: Reference required to assembly 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A(Of )'. Add one to your project.
+        b.ToString()
+        ~~~~~~~~~~")
+        End Sub
+
+        <Fact>
         <WorkItem(41207, "https://github.com/dotnet/roslyn/issues/41207")>
         <WorkItem(1056281, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056281")>
         Public Sub CustomFields_01()
@@ -22839,20 +22873,34 @@ class Program
 End Class
 "
 
-            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            Dim verifyField = Sub(comp As VisualBasicCompilation)
+                                  Dim field = comp.GetMember(Of FieldSymbol)("System.ValueTuple.F1")
+                                  Assert.Null(field.TupleUnderlyingField)
+                                  Dim toEmit = field.ContainingType.GetFieldsToEmit().Where(Function(f) f.Name = "F1").Single()
+                                  Assert.Same(field, toEmit)
+                              End Sub
+
+            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
             CompileAndVerify(comp1, expectedOutput:="123")
+            verifyField(comp1)
 
             Dim comp1Ref = {comp1.ToMetadataReference()}
             Dim comp1ImageRef = {comp1.EmitToImageReference()}
 
-            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
             CompileAndVerify(comp4, expectedOutput:="123")
 
-            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1Ref)
             CompileAndVerify(comp5, expectedOutput:="123")
+            verifyField(comp5)
 
-            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1ImageRef)
+            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1ImageRef)
             CompileAndVerify(comp6, expectedOutput:="123")
+            verifyField(comp6)
+
+            Dim comp7 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp7, expectedOutput:="123")
+            verifyField(comp7)
         End Sub
 
         <Fact>
@@ -22895,22 +22943,337 @@ class Program
 End Class
 "
 
-            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            Dim verifyField = Sub(comp As VisualBasicCompilation)
+                                  Dim field = comp.GetMember(Of FieldSymbol)("System.ValueTuple.F1")
+                                  Assert.Null(field.TupleUnderlyingField)
+                                  Dim toEmit = field.ContainingType.GetFieldsToEmit().Where(Function(f) f.Name = "F1").Single()
+                                  Assert.Same(field, toEmit)
+                              End Sub
+
+            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
             CompileAndVerify(comp1, expectedOutput:="123")
+            verifyField(comp1)
 
             Dim comp1Ref = {comp1.ToMetadataReference()}
             Dim comp1ImageRef = {comp1.EmitToImageReference()}
 
-            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe)
+            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
             CompileAndVerify(comp4, expectedOutput:="123")
 
-            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1Ref)
             CompileAndVerify(comp5, expectedOutput:="123")
+            verifyField(comp5)
 
-            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1ImageRef)
+            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1ImageRef)
             CompileAndVerify(comp6, expectedOutput:="123")
+            verifyField(comp6)
+
+            Dim comp7 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp7, expectedOutput:="123")
+            verifyField(comp7)
         End Sub
 
+        <Fact>
+        <WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")>
+        <WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")>
+        Public Sub CustomFields_03()
+            Dim source0 = "
+namespace System
+    public structure ValueTuple
+        public shared readonly F1 As Integer = 4
+
+        public Shared Function CombineHashCodes(h1 As Integer, h2 As Integer) As Integer
+            return F1 + h1 + h2
+        End Function
+    End Structure
+End Namespace
+"
+
+            Dim source1 = "
+class Program
+    shared sub Main()
+        System.Console.WriteLine(System.ValueTuple.CombineHashCodes(2, 3))
+    End Sub
+End Class
+"
+
+            Dim source2 = "
+class Program
+    public shared Sub Main()
+        System.Console.WriteLine(System.ValueTuple.F1 + 2 + 3)
+    End Sub
+End Class
+"
+
+            Dim verifyField = Sub(comp As VisualBasicCompilation)
+                                  Dim field = comp.GetMember(Of FieldSymbol)("System.ValueTuple.F1")
+                                  Assert.Null(field.TupleUnderlyingField)
+                                  Dim toEmit = field.ContainingType.GetFieldsToEmit().Single()
+                                  Assert.Same(field, toEmit)
+                              End Sub
+
+            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="9")
+            verifyField(comp1)
+
+            Dim comp1Ref = {comp1.ToMetadataReference()}
+            Dim comp1ImageRef = {comp1.EmitToImageReference()}
+
+            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp4, expectedOutput:="9")
+
+            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp5, expectedOutput:="9")
+            verifyField(comp5)
+
+            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1ImageRef)
+            CompileAndVerify(comp6, expectedOutput:="9")
+            verifyField(comp6)
+
+            Dim comp7 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp7, expectedOutput:="9")
+            verifyField(comp7)
+        End Sub
+
+        <Fact>
+        <WorkItem(43524, "https://github.com/dotnet/roslyn/issues/43524")>
+        <WorkItem(1095184, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1095184")>
+        Public Sub CustomFields_04()
+            Dim source0 = "
+namespace System
+    public structure ValueTuple
+        public F1 as Integer
+
+        public Function CombineHashCodes(h1 as Integer, h2 as Integer)  as Integer
+            return F1 + h1 + h2
+        End Function
+    End Structure
+End Namespace
+"
+
+            Dim source1 = "
+class Program
+    shared sub Main()
+        Dim tuple as System.ValueTuple = Nothing
+        tuple.F1 = 4
+        System.Console.WriteLine(tuple.CombineHashCodes(2, 3))
+    End Sub
+End Class
+"
+
+            Dim source2 = "
+class Program
+    public shared Sub Main()
+        Dim tuple as System.ValueTuple = Nothing
+        tuple.F1 = 4
+        System.Console.WriteLine(tuple.F1 + 2 + 3)
+    End Sub
+End Class
+"
+
+            Dim verifyField = Sub(comp As VisualBasicCompilation)
+                                  Dim field = comp.GetMember(Of FieldSymbol)("System.ValueTuple.F1")
+                                  Assert.Null(field.TupleUnderlyingField)
+                                  Dim toEmit = field.ContainingType.GetFieldsToEmit().Single()
+                                  Assert.Same(field, toEmit)
+                              End Sub
+
+            Dim comp1 = CreateCompilation(source0 + source1, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="9")
+            verifyField(comp1)
+
+            Dim comp1Ref = {comp1.ToMetadataReference()}
+            Dim comp1ImageRef = {comp1.EmitToImageReference()}
+
+            Dim comp4 = CreateCompilation(source0 + source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp4, expectedOutput:="9")
+
+            Dim comp5 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp5, expectedOutput:="9")
+            verifyField(comp5)
+
+            Dim comp6 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib40, options:=TestOptions.DebugExe, references:=comp1ImageRef)
+            CompileAndVerify(comp6, expectedOutput:="9")
+            verifyField(comp6)
+
+            Dim comp7 = CreateCompilation(source2, targetFramework:=TargetFramework.Mscorlib46, options:=TestOptions.DebugExe, references:=comp1Ref)
+            CompileAndVerify(comp7, expectedOutput:="9")
+            verifyField(comp7)
+        End Sub
+
+        <Fact>
+        <WorkItem(41702, "https://github.com/dotnet/roslyn/issues/41702")>
+        Public Sub TupleUnderlyingType_FromCSharp()
+            Dim source =
+"#pragma warning disable 169
+class Program
+{
+    static System.ValueTuple F0;
+    static (int, int) F1;
+    static (int A, int B) F2;
+    static (object, object, object, object, object, object, object, object) F3;
+    static (object, object B, object, object D, object, object F, object, object H) F4;
+}"
+            Dim comp = CreateCSharpCompilation(source, referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard))
+            comp.VerifyDiagnostics()
+            Dim containingType = comp.GlobalNamespace.GetTypeMembers("Program").Single()
+            VerifyTypeFromCSharp(DirectCast(DirectCast(containingType.GetMembers("F0").Single(), IFieldSymbol).Type, INamedTypeSymbol), TupleUnderlyingTypeValue.Nothing, "System.ValueTuple", "()")
+            VerifyTypeFromCSharp(DirectCast(DirectCast(containingType.GetMembers("F1").Single(), IFieldSymbol).Type, INamedTypeSymbol), TupleUnderlyingTypeValue.Nothing, "(System.Int32, System.Int32)", "(System.Int32, System.Int32)")
+            VerifyTypeFromCSharp(DirectCast(DirectCast(containingType.GetMembers("F2").Single(), IFieldSymbol).Type, INamedTypeSymbol), TupleUnderlyingTypeValue.Distinct, "(System.Int32 A, System.Int32 B)", "(A As System.Int32, B As System.Int32)")
+            VerifyTypeFromCSharp(DirectCast(DirectCast(containingType.GetMembers("F3").Single(), IFieldSymbol).Type, INamedTypeSymbol), TupleUnderlyingTypeValue.Nothing, "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)")
+            VerifyTypeFromCSharp(DirectCast(DirectCast(containingType.GetMembers("F4").Single(), IFieldSymbol).Type, INamedTypeSymbol), TupleUnderlyingTypeValue.Distinct, "(System.Object, System.Object B, System.Object, System.Object D, System.Object, System.Object F, System.Object, System.Object H)", "(System.Object, B As System.Object, System.Object, D As System.Object, System.Object, F As System.Object, System.Object, H As System.Object)")
+        End Sub
+
+        <Fact>
+        <WorkItem(41702, "https://github.com/dotnet/roslyn/issues/41702")>
+        Public Sub TupleUnderlyingType_FromVisualBasic()
+            Dim source =
+"Class Program
+    Private F0 As System.ValueTuple
+    Private F1 As (Integer, Integer)
+    Private F2 As (A As Integer, B As Integer)
+    Private F3 As (Object, Object, Object, Object, Object, Object, Object, Object)
+    Private F4 As (Object, B As Object, Object, D As Object, Object, F As Object, Object, H As Object)
+End Class"
+            Dim comp = CreateCompilation(source)
+            comp.AssertNoDiagnostics()
+            Dim containingType = comp.GlobalNamespace.GetTypeMembers("Program").Single()
+            VerifyTypeFromVisualBasic(DirectCast(DirectCast(containingType.GetMembers("F0").Single(), FieldSymbol).Type, NamedTypeSymbol), TupleUnderlyingTypeValue.Nothing, "System.ValueTuple", "System.ValueTuple")
+            VerifyTypeFromVisualBasic(DirectCast(DirectCast(containingType.GetMembers("F1").Single(), FieldSymbol).Type, NamedTypeSymbol), TupleUnderlyingTypeValue.Distinct, "(System.Int32, System.Int32)", "(System.Int32, System.Int32)")
+            VerifyTypeFromVisualBasic(DirectCast(DirectCast(containingType.GetMembers("F2").Single(), FieldSymbol).Type, NamedTypeSymbol), TupleUnderlyingTypeValue.Distinct, "(System.Int32 A, System.Int32 B)", "(A As System.Int32, B As System.Int32)")
+            VerifyTypeFromVisualBasic(DirectCast(DirectCast(containingType.GetMembers("F3").Single(), FieldSymbol).Type, NamedTypeSymbol), TupleUnderlyingTypeValue.Distinct, "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", "(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)")
+            VerifyTypeFromVisualBasic(DirectCast(DirectCast(containingType.GetMembers("F4").Single(), FieldSymbol).Type, NamedTypeSymbol), TupleUnderlyingTypeValue.Distinct, "(System.Object, System.Object B, System.Object, System.Object D, System.Object, System.Object F, System.Object, System.Object H)", "(System.Object, B As System.Object, System.Object, D As System.Object, System.Object, F As System.Object, System.Object, H As System.Object)")
+        End Sub
+
+        Private Enum TupleUnderlyingTypeValue
+            [Nothing]
+            Distinct
+            Same
+        End Enum
+
+        Private Shared Sub VerifyTypeFromCSharp(type As INamedTypeSymbol, expectedValue As TupleUnderlyingTypeValue, expectedCSharp As String, expectedVisualBasic As String)
+            VerifyDisplay(type, expectedCSharp, expectedVisualBasic)
+            VerifyPublicType(type, expectedValue)
+            VerifyPublicType(type.OriginalDefinition, TupleUnderlyingTypeValue.Nothing)
+        End Sub
+
+        Private Shared Sub VerifyTypeFromVisualBasic(type As NamedTypeSymbol, expectedValue As TupleUnderlyingTypeValue, expectedCSharp As String, expectedVisualBasic As String)
+            VerifyDisplay(type, expectedCSharp, expectedVisualBasic)
+            VerifyInternalType(type, expectedValue)
+            VerifyPublicType(type, expectedValue)
+            type = type.OriginalDefinition
+            VerifyInternalType(type, expectedValue)
+            VerifyPublicType(type, expectedValue)
+        End Sub
+
+        Private Shared Sub VerifyDisplay(type As INamedTypeSymbol, expectedCSharp As String, expectedVisualBasic As String)
+            Assert.Equal(expectedCSharp, CSharp.SymbolDisplay.ToDisplayString(type, SymbolDisplayFormat.TestFormat))
+            Assert.Equal(expectedVisualBasic, VisualBasic.SymbolDisplay.ToDisplayString(type, SymbolDisplayFormat.TestFormat))
+        End Sub
+
+        Private Shared Sub VerifyInternalType(type As NamedTypeSymbol, expectedValue As TupleUnderlyingTypeValue)
+            Dim underlyingType = type.TupleUnderlyingType
+
+            Select Case expectedValue
+                Case TupleUnderlyingTypeValue.Nothing
+                    Assert.Null(underlyingType)
+
+                Case TupleUnderlyingTypeValue.Distinct
+                    Assert.NotEqual(type, underlyingType)
+                    Assert.False(type.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
+                    Assert.False(type.Equals(underlyingType, TypeCompareKind.ConsiderEverything))
+                    VerifyPublicType(underlyingType, expectedValue:=TupleUnderlyingTypeValue.Nothing)
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(expectedValue)
+            End Select
+        End Sub
+
+        Private Shared Sub VerifyPublicType(type As INamedTypeSymbol, expectedValue As TupleUnderlyingTypeValue)
+            Dim underlyingType = type.TupleUnderlyingType
+
+            Select Case expectedValue
+                Case TupleUnderlyingTypeValue.Nothing
+                    Assert.Null(underlyingType)
+
+                Case TupleUnderlyingTypeValue.Distinct
+                    Assert.NotEqual(type, underlyingType)
+                    Assert.False(type.Equals(underlyingType, SymbolEqualityComparer.Default))
+                    Assert.False(type.Equals(underlyingType, SymbolEqualityComparer.ConsiderEverything))
+                    VerifyPublicType(underlyingType, expectedValue:=TupleUnderlyingTypeValue.Nothing)
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(expectedValue)
+            End Select
+        End Sub
+
+        <Fact>
+        <WorkItem(27322, "https://github.com/dotnet/roslyn/issues/27322")>
+        Public Sub Issue27322()
+            Dim source0 = "
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq.Expressions
+
+Module Module1
+
+    Sub Main()
+        Dim tupleA = (1, 3)
+        Dim tupleB = (1, ""123"".Length)
+
+        Dim ok1 As Expression(Of Func(Of Integer)) = Function() tupleA.Item1
+        Dim ok2 As Expression(Of Func(Of Integer)) = Function() tupleA.GetHashCode()
+        Dim ok3 As Expression(Of Func(Of Tuple(Of Integer, Integer))) = Function() tupleA.ToTuple()
+        Dim ok4 As Expression(Of Func(Of Boolean)) = Function() Equals(tupleA, tupleB)
+        Dim ok5 As Expression(Of Func(Of Integer)) = Function() Comparer(Of (Integer, Integer)).Default.Compare(tupleA, tupleB)
+        ok1.Compile()()
+        ok2.Compile()()
+        ok3.Compile()()
+        ok4.Compile()()
+        ok5.Compile()()
+
+        Dim err1 As Expression(Of Func(Of Boolean)) = Function() tupleA.Equals(tupleB)
+        Dim err2 As Expression(Of Func(Of Integer)) = Function() tupleA.CompareTo(tupleB)
+
+        err1.Compile()()
+        err2.Compile()()
+
+        System.Console.WriteLine(""Done"")
+    End Sub
+
+End Module
+"
+
+            Dim comp1 = CreateCompilation(source0, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="Done")
+        End Sub
+
+        <Fact>
+        <WorkItem(24517, "https://github.com/dotnet/roslyn/issues/24517")>
+        Public Sub Issue24517()
+            Dim source0 = "
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq.Expressions
+
+Module Module1
+
+    Sub Main()
+        Dim e1 As Expression(Of Func(Of ValueTuple(Of Integer, Integer))) = Function() new ValueTuple(Of Integer, Integer)(1, 2)
+        Dim e2 As Expression(Of Func(Of KeyValuePair(Of Integer, Integer))) = Function() new KeyValuePair(Of Integer, Integer)(1, 2)
+
+        e1.Compile()()
+        e2.Compile()()
+
+        System.Console.WriteLine(""Done"")
+    End Sub
+
+End Module
+"
+
+            Dim comp1 = CreateCompilation(source0, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="Done")
+        End Sub
     End Class
 
 End Namespace

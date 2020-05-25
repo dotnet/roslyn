@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember
         };
 
         protected bool ValidateTypeToGenerateIn(
-            Solution solution,
             INamedTypeSymbol typeToGenerateIn,
             bool isStatic,
             ISet<TypeKind> typeKinds)
@@ -115,6 +114,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 {
                     DetermineTypeToGenerateInWorker(
                         semanticModel, beforeDotExpression, out typeToGenerateIn, out isStatic, cancellationToken);
+                    if (typeToGenerateIn.IsNullable(out var underlyingType) &&
+                        underlyingType is INamedTypeSymbol underlyingNamedType)
+                    {
+                        typeToGenerateIn = underlyingNamedType;
+                    }
                 }
 
                 return;

@@ -2270,7 +2270,7 @@ public class C
             }
         }
 
-#if !NETCOREAPP3_1
+#if !NETCOREAPP
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         [WorkItem(399, "https://github.com/dotnet/roslyn/issues/399")]
         public void Bug399()

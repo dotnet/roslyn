@@ -185,9 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(TextAndVersion.Create(SourceText.From(_text), VersionStamp.Create(), _hostDocument.FilePath));
-            }
+                => Task.FromResult(TextAndVersion.Create(SourceText.From(_text), VersionStamp.Create(), _hostDocument.FilePath));
         }
 
         public IWpfTextView GetTextView()
@@ -245,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                             // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
                             workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
                         }
-                    };
+                    }
                 }
             }
 
@@ -253,9 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public SourceTextContainer GetOpenTextContainer()
-        {
-            return this.GetTextBuffer().AsTextContainer();
-        }
+            => this.GetTextBuffer().AsTextContainer();
 
         public IReadOnlyList<string> Folders
         {
@@ -311,8 +307,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public DocumentInfo ToDocumentInfo()
-        {
-            return DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: this.IsGenerated, _documentServiceProvider);
-        }
+            => DocumentInfo.Create(this.Id, this.Name, this.Folders, this.SourceCodeKind, loader: this.Loader, filePath: this.FilePath, isGenerated: this.IsGenerated, _documentServiceProvider);
     }
 }

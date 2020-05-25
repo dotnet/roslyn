@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
         Inherits AbstractGoToDefinitionSymbolService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

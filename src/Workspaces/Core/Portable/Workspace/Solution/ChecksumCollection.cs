@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
@@ -26,13 +29,55 @@ namespace Microsoft.CodeAnalysis.Serialization
         public Checksum this[int index] => (Checksum)Children[index];
 
         public IEnumerator<Checksum> GetEnumerator()
-        {
-            return this.Children.Cast<Checksum>().GetEnumerator();
-        }
+            => this.Children.Cast<Checksum>().GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
+
+        internal static async Task FindAsync<TKey, TValue>(
+            ImmutableSortedDictionary<TKey, TValue> documentStates,
+            HashSet<Checksum> searchingChecksumsLeft,
+            Dictionary<Checksum, object> result,
+            CancellationToken cancellationToken) where TValue : TextDocumentState
         {
-            return GetEnumerator();
+            foreach (var (_, state) in documentStates)
+            {
+                Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
+
+                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                if (searchingChecksumsLeft.Count == 0)
+                {
+                    return;
+                }
+            }
+        }
+
+        internal static void Find<T>(
+            IReadOnlyList<T> values,
+            ChecksumWithChildren checksums,
+            HashSet<Checksum> searchingChecksumsLeft,
+            Dictionary<Checksum, object> result,
+            CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(values.Count == checksums.Children.Count);
+
+            for (var i = 0; i < checksums.Children.Count; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (searchingChecksumsLeft.Count == 0)
+                {
+                    return;
+                }
+
+                var checksum = (Checksum)checksums.Children[i];
+                var value = values[i];
+
+                if (searchingChecksumsLeft.Remove(checksum))
+                {
+                    result[checksum] = value;
+                }
+            }
         }
     }
 

@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
 
             protected override bool ItemsEqual(IReadOnlyList<TNode> oldSequence, int oldIndex, IReadOnlyList<TNode> newSequence, int newIndex)
-            {
-                return _match.Contains(oldSequence[oldIndex], newSequence[newIndex]);
-            }
+                => _match.Contains(oldSequence[oldIndex], newSequence[newIndex]);
 
             internal Dictionary<TNode, TNode> GetMatchingNodes(IReadOnlyList<TNode> oldNodes, IReadOnlyList<TNode> newNodes)
             {

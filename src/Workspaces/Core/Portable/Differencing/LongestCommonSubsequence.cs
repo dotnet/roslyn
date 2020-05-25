@@ -179,9 +179,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
 
             internal void Initialize()
-            {
-                Array.Clear(_buffer, _start, _length);
-            }
+                => Array.Clear(_buffer, _start, _length);
 
             public int this[int index]
             {
@@ -408,7 +406,6 @@ namespace Microsoft.CodeAnalysis.Differencing
 
                     // start point
                     var yStart = currentV[kPrev];
-                    var xStart = yStart + kPrev;
 
                     // mid point
                     var yMid = right ? yStart : yStart + 1;

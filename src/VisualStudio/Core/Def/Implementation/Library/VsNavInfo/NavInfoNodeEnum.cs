@@ -13,9 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         private int _index;
 
         public NavInfoNodeEnum(ImmutableArray<NavInfoNode> nodes)
-        {
-            _nodes = nodes;
-        }
+            => _nodes = nodes;
 
         public int Clone(out IVsEnumNavInfoNodes ppEnum)
         {

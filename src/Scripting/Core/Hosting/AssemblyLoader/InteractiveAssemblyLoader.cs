@@ -390,6 +390,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             catch
             {
+                mvid = default;
                 return false;
             }
         }

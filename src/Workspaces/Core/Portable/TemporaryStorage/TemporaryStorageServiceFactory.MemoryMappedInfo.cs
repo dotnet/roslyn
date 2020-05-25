@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Host
                 _memoryMappedFile.Dispose();
             }
 
-            private unsafe sealed class SharedReadableStream : Stream, ISupportDirectMemoryAccess
+            private sealed unsafe class SharedReadableStream : Stream, ISupportDirectMemoryAccess
             {
                 private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
 
@@ -289,9 +289,7 @@ namespace Microsoft.CodeAnalysis.Host
                 /// Get underlying native memory directly.
                 /// </summary>
                 public IntPtr GetPointer()
-                {
-                    return (IntPtr)_start;
-                }
+                    => (IntPtr)_start;
             }
         }
     }

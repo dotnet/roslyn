@@ -71,9 +71,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             public void Clear()
-            {
-                Array.Clear(_nodes, 0, _nodes.Length);
-            }
+                => Array.Clear(_nodes, 0, _nodes.Length);
 
             private struct Node
             {

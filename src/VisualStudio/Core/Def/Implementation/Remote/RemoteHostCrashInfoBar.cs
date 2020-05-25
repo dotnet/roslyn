@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -22,10 +23,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private static bool s_infoBarReported = false;
 
-        public static void ShowInfoBar(Workspace workspace, Exception exception = null)
+        public static void ShowInfoBar(HostWorkspaceServices services, Exception? exception = null)
         {
-            // use info bar to show warning to users
-            if (workspace == null || s_infoBarReported)
+            if (s_infoBarReported)
             {
                 return;
             }
@@ -39,22 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 new InfoBarUI(ServicesVSResources.Learn_more, InfoBarUI.UIKind.HyperLink, () =>
                     BrowserHelper.StartBrowser(new Uri(OOPKilledMoreInfoLink)), closeAfterAction: false));
 
-            var service = workspace.Services.GetService<IRemoteHostClientService>();
-            var allowRestarting = workspace.Options.GetOption(RemoteHostOptions.RestartRemoteHostAllowed);
-            if (allowRestarting && service != null)
-            {
-                // this is hidden restart option. by default, user can't restart remote host that got killed
-                // by users
-                infoBarUIs.Add(
-                    new InfoBarUI("Restart external process", InfoBarUI.UIKind.Button, () =>
-                    {
-                        // start off new remote host
-                        var unused = service.RequestNewRemoteHostAsync(CancellationToken.None);
-                        s_infoBarReported = false;
-                    }, closeAfterAction: true));
-            }
-
-            var errorReportingService = workspace.Services.GetRequiredService<IErrorReportingService>();
+            var errorReportingService = services.GetRequiredService<IErrorReportingService>();
 
             if (exception != null)
             {

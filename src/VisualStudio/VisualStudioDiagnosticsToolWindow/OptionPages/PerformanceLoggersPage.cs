@@ -70,10 +70,10 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             var functionIds = GetFunctionIds(options).ToList();
 
             threadingContext.JoinableTaskFactory.Run(() => client.TryRunRemoteAsync(
-                WellKnownRemoteHostServices.RemoteHostService,
+                WellKnownServiceHubService.RemoteHost,
                 nameof(IRemoteHostService.SetLoggingFunctionIds),
-                new object[] { loggerTypes, functionIds },
                 solution: null,
+                new object[] { loggerTypes, functionIds },
                 callbackTarget: null,
                 CancellationToken.None));
         }

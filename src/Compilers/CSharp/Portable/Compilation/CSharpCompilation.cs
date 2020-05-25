@@ -67,6 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<Diagnostic> _lazyClsComplianceDiagnostics;
 
         private Conversions? _conversions;
+        /// <summary>
+        /// A conversions object that ignores nullability.
+        /// </summary>
         internal Conversions Conversions
         {
             get
@@ -335,6 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // TODO: Consider reusing some results of the assembly binding to improve perf
             // since most of the binding work is similar.
+            // https://github.com/dotnet/roslyn/issues/43397
 
             var compilation = new CSharpCompilation(
                 assemblyName,
@@ -606,7 +610,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            // Reference binding doesn't depend on previous submission so we can reuse it.
+            // Metadata references are inherited from the previous submission,
+            // so we can only reuse the manager if we can guarantee that these references are the same.
+            // Check if the previous script compilation doesn't change. 
+
+            // TODO: Consider comparing the metadata references if they have been bound already.
+            // https://github.com/dotnet/roslyn/issues/43397
+            bool reuseReferenceManager = ReferenceEquals(ScriptCompilationInfo?.PreviousScriptCompilation, info?.PreviousScriptCompilation);
 
             return new CSharpCompilation(
                 this.AssemblyName,
@@ -615,9 +625,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 info?.PreviousScriptCompilation,
                 info?.ReturnTypeOpt,
                 info?.GlobalsType,
-                info != null,
+                isSubmission: info != null,
                 _referenceManager,
-                reuseReferenceManager: true,
+                reuseReferenceManager,
                 syntaxAndDeclarations: _syntaxAndDeclarations);
         }
 
@@ -909,6 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO(tomat): Consider comparing #r's of the old and the new tree. If they are exactly the same we could still reuse.
             // This could be a perf win when editing a script file in the IDE. The services create a new compilation every keystroke
             // that replaces the tree with a new one.
+            // https://github.com/dotnet/roslyn/issues/43397
             var reuseReferenceManager = !oldTree.HasReferenceOrLoadDirectives() && !newTree.HasReferenceOrLoadDirectives();
             syntaxAndDeclarations = syntaxAndDeclarations.ReplaceSyntaxTree(oldTree, newTree);
 
@@ -1020,7 +1031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             RoslynDebug.Assert(directive.SyntaxTree.FilePath is object);
 
-            MetadataReference reference;
+            MetadataReference? reference;
             return ReferenceDirectiveMap.TryGetValue((directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
         }
 
@@ -1268,13 +1279,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private ConcurrentDictionary<string?, NamespaceSymbol>? _externAliasTargets;
+        private ConcurrentDictionary<string, NamespaceSymbol>? _externAliasTargets;
 
-        internal bool GetExternAliasTarget(string? aliasName, out NamespaceSymbol? @namespace)
+        internal bool GetExternAliasTarget(string aliasName, out NamespaceSymbol? @namespace)
         {
             if (_externAliasTargets == null)
             {
-                Interlocked.CompareExchange(ref _externAliasTargets, new ConcurrentDictionary<string?, NamespaceSymbol>(), null);
+                Interlocked.CompareExchange(ref _externAliasTargets, new ConcurrentDictionary<string, NamespaceSymbol>(), null);
             }
             else if (_externAliasTargets.TryGetValue(aliasName, out @namespace))
             {
@@ -1443,7 +1454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The type or namespace name '{0}' could not be found in the global namespace (are you missing an assembly reference?)
             return new CSDiagnosticInfo(
                 ErrorCode.ERR_GlobalSingleTypeNameNotFound,
-                new object[] { type.AssemblyQualifiedName },
+                new object[] { type.AssemblyQualifiedName ?? "" },
                 ImmutableArray<Symbol>.Empty,
                 ImmutableArray<Location>.Empty
             );
@@ -1464,11 +1475,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                         HostObjectType.Name,
                                                                                         useCLSCompliantNameArityEncoding: true);
 
-                    symbol = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(
+                    symbol = new MissingMetadataTypeSymbol.TopLevel(
                         new MissingAssemblySymbol(AssemblyIdentity.FromAssemblyDefinition(HostObjectType.GetTypeInfo().Assembly)).Modules[0],
                         ref mdName,
-                        CreateReflectionTypeNotFoundError(HostObjectType),
-                        SpecialType.None);
+                        SpecialType.None,
+                        CreateReflectionTypeNotFoundError(HostObjectType));
                 }
 
                 Interlocked.CompareExchange(ref _lazyHostObjectTypeSymbol, symbol, null);
@@ -2045,7 +2056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binderFactories = Interlocked.CompareExchange(ref _binderFactories, binderFactories, null) ?? binderFactories;
             }
 
-            BinderFactory previousFactory;
+            BinderFactory? previousFactory;
             var previousWeakReference = binderFactories[treeNum];
             if (previousWeakReference != null && previousWeakReference.TryGetTarget(out previousFactory))
             {
@@ -2062,14 +2073,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while (true)
             {
-                BinderFactory previousFactory;
+                BinderFactory? previousFactory;
                 WeakReference<BinderFactory>? previousWeakReference = slot;
                 if (previousWeakReference != null && previousWeakReference.TryGetTarget(out previousFactory))
                 {
+                    Debug.Assert(slot is object);
                     return previousFactory;
                 }
 
-                if (Interlocked.CompareExchange(ref slot, newWeakReference, previousWeakReference) == previousWeakReference)
+                if (Interlocked.CompareExchange(ref slot!, newWeakReference, previousWeakReference) == previousWeakReference)
                 {
                     return newFactory;
                 }
@@ -2805,7 +2817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonPEModuleBuilder moduleBuilder,
             Stream? xmlDocStream,
             Stream? win32Resources,
-            string outputNameOverride,
+            string? outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
@@ -2830,7 +2842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             DiagnosticBag? xmlDiagnostics = DiagnosticBag.GetInstance();
 
-            string assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension: null);
+            string? assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension: null);
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
 
             return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics);
@@ -2888,7 +2900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal string? GetRuntimeMetadataVersion(EmitOptions emitOptions, DiagnosticBag diagnostics)
         {
-            string runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions);
+            string? runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions);
             if (runtimeMDVersion != null)
             {
                 return runtimeMDVersion;
@@ -2904,7 +2916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return string.Empty; //prevent emitter from crashing.
         }
 
-        private string GetRuntimeMetadataVersion(EmitOptions emitOptions)
+        private string? GetRuntimeMetadataVersion(EmitOptions emitOptions)
         {
             var corAssembly = Assembly.CorLibrary as Symbols.Metadata.PE.PEAssemblySymbol;
 
@@ -3149,6 +3161,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType)
         {
             return CreatePointerTypeSymbol(elementType.EnsureCSharpSymbolOrNull(nameof(elementType)), elementType.NullableAnnotation.ToInternalAnnotation()).GetPublicSymbol();
+        }
+
+        protected override INamedTypeSymbol CommonCreateNativeIntegerTypeSymbol(bool signed)
+        {
+            return CreateNativeIntegerTypeSymbol(signed).GetPublicSymbol();
+        }
+
+        new internal NamedTypeSymbol CreateNativeIntegerTypeSymbol(bool signed)
+        {
+            return GetSpecialType(signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr).AsNativeInteger();
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
@@ -3451,11 +3473,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
+        internal override AnalyzerDriver CreateAnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager, SeverityFilter severityFilter)
         {
             Func<SyntaxNode, SyntaxKind> getKind = node => node.Kind();
             Func<SyntaxTrivia, bool> isComment = trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
-            return new AnalyzerDriver<SyntaxKind>(analyzers, getKind, analyzerManager, isComment);
+            return new AnalyzerDriver<SyntaxKind>(analyzers, getKind, analyzerManager, severityFilter, isComment);
         }
 
         internal void SymbolDeclaredEvent(Symbol symbol)
@@ -3620,7 +3642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private NamespaceOrTypeSymbol? GetCachedSymbol(MergedNamespaceOrTypeDeclaration declaration)
-                => _cache.TryGetValue(declaration, out NamespaceOrTypeSymbol symbol)
+                => _cache.TryGetValue(declaration, out NamespaceOrTypeSymbol? symbol)
                         ? symbol
                         : null;
 

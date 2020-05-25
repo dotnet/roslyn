@@ -143,6 +143,17 @@ class Goo
 }");
         }
 
+        [WorkItem(578750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578750")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttribute()
+        {
+            await VerifyKeywordAsync(@"
+class Goo
+{
+    [Attr] $$
+}");
+        }
+
         [Fact]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
@@ -247,7 +258,7 @@ class Goo
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction7()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 class Goo
 {
     public void M()

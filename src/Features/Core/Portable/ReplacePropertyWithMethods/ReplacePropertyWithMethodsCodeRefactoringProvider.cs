@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         private const string SetPrefix = "Set";
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ReplacePropertyWithMethodsCodeRefactoringProvider()
         {
         }
@@ -185,7 +187,9 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 name: uniqueName);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter - Method not completely implemented.
         private string GetDefinitionIssues(IEnumerable<ReferencedSymbol> getMethodReferences)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             // TODO: add things to be concerned about here.  For example:
             // 1. If any of the referenced symbols are from metadata.

@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
         Implements IOrganizeImportsService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

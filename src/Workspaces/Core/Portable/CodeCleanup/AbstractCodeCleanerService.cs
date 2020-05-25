@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             foreach (var span in spans)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var spanAlignedToTokens = GetSpanAlignedToTokens(syntaxFactsService, root, span, out var startToken, out var endToken);
+                _ = GetSpanAlignedToTokens(syntaxFactsService, root, span, out var startToken, out var endToken);
 
                 var previousToken = startToken.GetPreviousToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
                 var nextToken = endToken.GetNextToken(includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                         // Document was changed by the previous code cleaner, compute new spans.
                         var root = await currentDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                         previousDocument = currentDocument;
-                        spans = GetSpans(root, spanGetter); ;
+                        spans = GetSpans(root, spanGetter);
                     }
 
                     // If we are at the end and there were no changes to the document, use the original document for the cleanup.
@@ -590,9 +590,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private string GetCodeCleanerTypeName(ICodeCleanupProvider codeCleaner)
-        {
-            return codeCleaner.ToString();
-        }
+            => codeCleaner.ToString();
 
         private SyntaxNode InjectAnnotations(SyntaxNode node, Dictionary<SyntaxToken, List<SyntaxAnnotation>> map)
         {

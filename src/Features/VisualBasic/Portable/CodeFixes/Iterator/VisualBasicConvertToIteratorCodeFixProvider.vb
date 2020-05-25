@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -24,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
         Friend Shared ReadOnly Ids As ImmutableArray(Of String) = ImmutableArray.Create(BC30451)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -109,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
         Private Shared Function AddIteratorKeywordToMethod(root As SyntaxNode, methodStatementNode As MethodStatementSyntax) As SyntaxNode
             ' Add iterator keyword
             Dim iteratorToken As SyntaxToken = Token(SyntaxKind.IteratorKeyword).WithAdditionalAnnotations(Formatter.Annotation)
-            Dim newFunctionNode As MethodStatementSyntax = Nothing
+            Dim newFunctionNode As MethodStatementSyntax
 
             ' If the iterator keyword is going to be added to the front of the method declaration,
             ' we will need to move the trivia from the method onto the keyword.

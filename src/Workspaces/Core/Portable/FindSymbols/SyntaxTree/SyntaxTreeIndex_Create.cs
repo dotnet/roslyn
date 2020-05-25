@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
             var complexExtensionMethodInfoBuilder = ArrayBuilder<int>.GetInstance();
             var simpleExtensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
-            var usingAliases = PooledDictionary<string, string>.GetInstance();
+            using var _ = PooledDictionary<string, string>.GetInstance(out var usingAliases);
 
             try
             {
@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsDeconstruction = false;
                 var containsAwait = false;
                 var containsTupleExpressionOrTupleType = false;
+                var containsImplicitObjectCreation = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -116,6 +117,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsAwait = containsAwait || syntaxFacts.IsAwaitExpression(node);
                             containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
+                            containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
 
                             if (syntaxFacts.IsUsingAliasDirective(node) && infoFactory.TryGetAliasesFromUsingDirective(node, out var aliases))
                             {
@@ -263,7 +265,8 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsIndexerMemberCref,
                             containsDeconstruction,
                             containsAwait,
-                            containsTupleExpressionOrTupleType),
+                            containsTupleExpressionOrTupleType,
+                            containsImplicitObjectCreation),
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(
@@ -283,7 +286,6 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
 
                 simpleExtensionMethodInfoBuilder.Free();
                 complexExtensionMethodInfoBuilder.Free();
-                usingAliases.Free();
                 declaredSymbolInfos.Free();
             }
         }

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public abstract override bool Equals(object other);
+        public abstract override bool Equals(object? other);
         public abstract override int GetHashCode();
 
         /// <summary>

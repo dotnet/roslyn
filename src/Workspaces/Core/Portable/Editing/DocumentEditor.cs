@@ -52,8 +52,6 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Returns the changed <see cref="Document"/>.
         /// </summary>
         public Document GetChangedDocument()
-        {
-            return _document.WithSyntaxRoot(this.GetChangedRoot());
-        }
+            => _document.WithSyntaxRoot(this.GetChangedRoot());
     }
 }

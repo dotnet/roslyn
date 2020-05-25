@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         protected Color _graphicsTagColor;
 
         protected GraphicsTag(IEditorFormatMap editorFormatMap)
-        {
-            _editorFormatMap = editorFormatMap;
-        }
+            => _editorFormatMap = editorFormatMap;
 
         protected virtual void Initialize(IWpfTextView view)
         {

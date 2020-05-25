@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     internal static class ClassificationHelpers
     {
         private const string FromKeyword = "from";
-        private const string ValueKeyword = "value";
         private const string VarKeyword = "var";
         private const string UnmanagedKeyword = "unmanaged";
         private const string NotNullKeyword = "notnull";
@@ -193,11 +192,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return GetClassificationForTypeDeclarationIdentifier(token);
             }
-            else if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration) && ((DelegateDeclarationSyntax)token.Parent).Identifier == token)
+            else if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax? delegateDecl) && delegateDecl.Identifier == token)
             {
                 return ClassificationTypeNames.DelegateName;
             }
-            else if (token.Parent.IsKind(SyntaxKind.TypeParameter) && ((TypeParameterSyntax)token.Parent).Identifier == token)
+            else if (token.Parent.IsKind(SyntaxKind.TypeParameter, out TypeParameterSyntax? typeParameter) && typeParameter.Identifier == token)
             {
                 return ClassificationTypeNames.TypeParameterName;
             }
@@ -240,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 {
                     FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.FieldName,
                     LocalDeclarationStatementSyntax localDeclarationStatement => localDeclarationStatement.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName,
-                    EventFieldDeclarationSyntax aventFieldDeclarationSyntax => ClassificationTypeNames.EventName,
+                    EventFieldDeclarationSyntax _ => ClassificationTypeNames.EventName,
                     _ => ClassificationTypeNames.LocalName,
                 };
             }
@@ -343,9 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private static bool IsExtensionMethod(MethodDeclarationSyntax methodDeclaration)
-        {
-            return methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(SyntaxKind.ThisKeyword) == true;
-        }
+            => methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(SyntaxKind.ThisKeyword) == true;
 
         private static string? GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
             => identifier.Parent!.Kind() switch
@@ -453,13 +450,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static bool IsActualContextualKeyword(SyntaxToken token)
         {
-            if (token.Parent.IsKind(SyntaxKind.LabeledStatement))
+            if (token.Parent.IsKind(SyntaxKind.LabeledStatement, out LabeledStatementSyntax? statement) &&
+                statement.Identifier == token)
             {
-                var statement = (LabeledStatementSyntax)token.Parent;
-                if (statement.Identifier == token)
-                {
-                    return false;
-                }
+                return false;
             }
 
             // Ensure that the text and value text are the same. Otherwise, the identifier might

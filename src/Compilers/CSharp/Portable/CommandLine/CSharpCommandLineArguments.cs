@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -38,6 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSharpCommandLineArguments()
         {
+            // Always initialized by CSharpCommandLineParser.Parse
+            CompilationOptions = null!;
+            ParseOptions = null!;
         }
     }
 }

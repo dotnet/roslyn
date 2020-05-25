@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
-Imports Microsoft.VisualStudio.LanguageServices.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
@@ -19,16 +18,10 @@ Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Task = System.Threading.Tasks.Task
 
-' NOTE(DustinCa): The EditorFactory registration is in VisualStudioComponents\VisualBasicPackageRegistration.pkgdef.
-' The reason for this is because the ProvideEditorLogicalView does not allow a name value to specified in addition to
-' its GUID. This name value is used to identify untrusted logical views and link them to their physical view attributes.
-' The net result is that using the attributes only causes designers to be loaded in the preview tab, even when they
-' shouldn't be.
-
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
-    ' TODO(DustinCa): Put all of this in VisualBasicPackageRegistration.pkgdef rather than using attributes
-    ' (See setupauthoring\vb\components\vblanguageservice.pkgdef for an example).
 
+    ' The option page configuration is duplicated in PackageRegistration.pkgdef.
+    '
     ' VB option pages tree
     '   Basic
     '     General (from editor)
@@ -37,30 +30,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '     Advanced
     '     Code Style (category)
     '       General
-    '       Naming
-
-    <Guid(Guids.VisualBasicPackageIdString)>
-    <PackageRegistration(UseManagedResourcesOnly:=True, AllowsBackgroundLoading:=True)>
-    <ProvideRoslynVersionRegistration(Guids.VisualBasicPackageIdString, "Microsoft Visual Basic", 113, 114)>
-    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".bas")>
-    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".cls")>
-    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".ctl")>
-    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".dob")>
-    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".dsr")>
-    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".frm")>
-    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".pag")>
-    <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".vb")>
     <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
     <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
     <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>
     <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162)>
     <ProvideLanguageEditorOptionPage(GetType(IntelliSenseOptionPage), "Basic", Nothing, "IntelliSense", "#112", 312)>
-    <ProvideAutomationProperties("TextEditor", "Basic", Guids.TextManagerPackageString, 103, 105, Guids.VisualBasicPackageIdString)>
-    <ProvideAutomationProperties("TextEditor", "Basic-Specific", Guids.VisualBasicPackageIdString, 104, 106)>
-    <ProvideService(GetType(VisualBasicLanguageService), ServiceName:="Visual Basic Language Service", IsAsyncQueryable:=True)>
-    <ProvideService(GetType(IVbCompilerService), ServiceName:="Visual Basic Project System Shim", IsAsyncQueryable:=True)>
-    <ProvideService(GetType(IVbTempPECompilerFactory), ServiceName:="Visual Basic TempPE Compiler Factory Service", IsAsyncQueryable:=True)>
-    Friend Class VisualBasicPackage
+    <Guid(Guids.VisualBasicPackageIdString)>
+    Friend NotInheritable Class VisualBasicPackage
         Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)
         Implements IVbCompilerService
         Implements IVsUserSettingsQuery

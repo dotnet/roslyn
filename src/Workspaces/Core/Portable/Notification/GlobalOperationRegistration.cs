@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Notification
         public string Operation { get; }
 
         public void Done()
-        {
-            _done = true;
-        }
+            => _done = true;
 
         public void Dispose()
         {

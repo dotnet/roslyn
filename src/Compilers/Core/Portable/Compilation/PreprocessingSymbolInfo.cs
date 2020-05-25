@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
                 && object.Equals(this.IsDefined, other.IsDefined);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is PreprocessingSymbolInfo p && this.Equals(p);
         }

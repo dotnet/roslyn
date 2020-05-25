@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.VariableDeclarator:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.SwitchExpressionArm:
+                case SyntaxKind.GotoCaseStatement:
                     break;
                 case SyntaxKind.ArgumentList:
                     Debug.Assert(node.Parent is ConstructorInitializerSyntax);
@@ -97,6 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitNodeToBind(node.Initializer);
+        }
+
+        public override void VisitGotoStatement(GotoStatementSyntax node)
+        {
+            if (node.Kind() == SyntaxKind.GotoCaseStatement)
+                Visit(node.Expression);
         }
 
         private void VisitNodeToBind(CSharpSyntaxNode node)

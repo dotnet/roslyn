@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
         {
             for (var current = node; current != null; current = current.Parent)
             {
-                var parameterList = CSharpSyntaxGenerator.GetParameterList(current);
+                var parameterList = current.GetParameterList();
                 if (parameterList != null)
                 {
                     return current;
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
             {
                 var container = group.Key;
 
-                var parameterList = CSharpSyntaxGenerator.GetParameterList(container);
+                var parameterList = container.GetParameterList();
                 var outParameters =
                     parameterList.Parameters.Select(p => semanticModel.GetDeclaredSymbol(p, cancellationToken))
                                             .Where(p => p?.RefKind == RefKind.Out)

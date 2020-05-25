@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                         foreach (var caller in callers.Where(c => c.IsDirect))
                         {
-                            var callerNode = await graphBuilder.AddNodeForSymbolAsync(caller.CallingSymbol, relatedNode: node).ConfigureAwait(false);
+                            var callerNode = await graphBuilder.AddNodeAsync(caller.CallingSymbol, relatedNode: node).ConfigureAwait(false);
                             graphBuilder.AddLink(callerNode, CodeLinkCategories.Calls, node);
                         }
                     }

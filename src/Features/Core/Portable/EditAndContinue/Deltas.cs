@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue

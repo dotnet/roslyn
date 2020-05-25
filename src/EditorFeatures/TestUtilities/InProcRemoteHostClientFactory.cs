@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 {
     internal static class RemoteHostOptions
     {
-        public static readonly Option<bool> RemoteHostTest = new Option<bool>(
+        public static readonly Option2<bool> RemoteHostTest = new Option2<bool>(
             nameof(RemoteHostOptions), nameof(RemoteHostTest), defaultValue: false);
     }
 
@@ -25,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
     internal class RemoteHostOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteHostOptionsProvider()
         {
         }
@@ -37,15 +41,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
     internal class InProcRemoteHostClientFactory : IRemoteHostClientFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InProcRemoteHostClientFactory()
         {
         }
 
-        public Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        public Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
         {
-            if (workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest))
+            var optionService = services.GetRequiredService<IOptionService>();
+            if (optionService.GetOption(RemoteHostOptions.RemoteHostTest))
             {
-                return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
+                return InProcRemoteHostClient.CreateAsync(services, runCacheCleanup: false);
             }
 
             return SpecializedTasks.Null<RemoteHostClient>();

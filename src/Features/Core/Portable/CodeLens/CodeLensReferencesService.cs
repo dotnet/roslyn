@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            var cacheService = solution.Services.CacheService;
-
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -256,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken);
         }
 
-        public async Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
+        public async Task<string> GetFullyQualifiedNameAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             CancellationToken cancellationToken)
         {
             var document = solution.GetDocument(syntaxNode.GetLocation().SourceTree);

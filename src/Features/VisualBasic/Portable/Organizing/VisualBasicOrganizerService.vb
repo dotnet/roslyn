@@ -10,10 +10,11 @@ Imports Microsoft.CodeAnalysis.Organizing.Organizers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing
     <ExportLanguageService(GetType(IOrganizingService), LanguageNames.VisualBasic), [Shared]>
-    Friend Partial Class VisualBasicOrganizingService
+    Partial Friend Class VisualBasicOrganizingService
         Inherits AbstractOrganizingService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(<ImportMany()> organizers As IEnumerable(Of Lazy(Of ISyntaxOrganizer, LanguageMetadata)))
             MyBase.New(organizers.Where(Function(o) o.Metadata.Language = LanguageNames.VisualBasic).Select(Function(o) o.Value))
         End Sub

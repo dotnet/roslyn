@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -42,10 +42,29 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IReadOnlyList<ProjectInfo> Projects { get; }
 
-        private SolutionInfo(SolutionAttributes attributes, IEnumerable<ProjectInfo>? projects)
+        /// <summary>
+        /// The analyzers initially associated with this solution.
+        /// </summary>
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
+
+        private SolutionInfo(SolutionAttributes attributes, IReadOnlyList<ProjectInfo> projects, IReadOnlyList<AnalyzerReference> analyzerReferences)
         {
             Attributes = attributes;
-            Projects = projects.ToImmutableReadOnlyListOrEmpty();
+            Projects = projects;
+            AnalyzerReferences = analyzerReferences;
+        }
+
+        // 3.5.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        /// <summary>
+        /// Create a new instance of a SolutionInfo.
+        /// </summary>
+        public static SolutionInfo Create(
+            SolutionId id,
+            VersionStamp version,
+            string? filePath,
+            IEnumerable<ProjectInfo>? projects)
+        {
+            return Create(id, version, filePath, projects, analyzerReferences: null);
         }
 
         /// <summary>
@@ -55,40 +74,16 @@ namespace Microsoft.CodeAnalysis
             SolutionId id,
             VersionStamp version,
             string? filePath = null,
-            IEnumerable<ProjectInfo>? projects = null)
+            IEnumerable<ProjectInfo>? projects = null,
+            IEnumerable<AnalyzerReference>? analyzerReferences = null)
         {
-            return new SolutionInfo(new SolutionAttributes(id, version, filePath), projects);
-        }
-
-        private SolutionInfo With(
-            SolutionAttributes? attributes = null,
-            IEnumerable<ProjectInfo>? projects = null)
-        {
-            var newAttributes = attributes ?? Attributes;
-            var newProjects = projects ?? Projects;
-
-            if (newAttributes == Attributes &&
-                newProjects == Projects)
-            {
-                return this;
-            }
-
-            return new SolutionInfo(newAttributes, newProjects);
-        }
-
-        internal SolutionInfo WithVersion(VersionStamp version)
-        {
-            return With(attributes: new SolutionAttributes(Attributes.Id, version, Attributes.FilePath));
-        }
-
-        internal SolutionInfo WithFilePath(string? filePath)
-        {
-            return With(attributes: new SolutionAttributes(Attributes.Id, Attributes.Version, filePath));
-        }
-
-        internal SolutionInfo WithProjects(IEnumerable<ProjectInfo> projects)
-        {
-            return With(projects: projects);
+            return new SolutionInfo(
+                new SolutionAttributes(
+                    id ?? throw new ArgumentNullException(nameof(id)),
+                    version,
+                    filePath),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projects, nameof(projects)),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
         }
 
         internal ImmutableHashSet<string> GetProjectLanguages()
@@ -98,8 +93,10 @@ namespace Microsoft.CodeAnalysis
         /// type that contains information regarding this solution itself but
         /// no tree information such as project info
         /// </summary>
-        internal class SolutionAttributes : IChecksummedObject, IObjectWritable
+        internal sealed class SolutionAttributes : IChecksummedObject, IObjectWritable
         {
+            private Checksum? _lazyChecksum;
+
             /// <summary>
             /// The unique Id of the solution.
             /// </summary>
@@ -117,15 +114,13 @@ namespace Microsoft.CodeAnalysis
 
             public SolutionAttributes(SolutionId id, VersionStamp version, string? filePath)
             {
-                Id = id ?? throw new ArgumentNullException(nameof(id));
+                Id = id;
                 Version = version;
                 FilePath = filePath;
             }
 
             public SolutionAttributes WithVersion(VersionStamp versionStamp)
-            {
-                return new SolutionAttributes(Id, versionStamp, FilePath);
-            }
+                => new SolutionAttributes(Id, versionStamp, FilePath);
 
             bool IObjectWritable.ShouldReuseInSerialization => true;
 
@@ -149,19 +144,8 @@ namespace Microsoft.CodeAnalysis
                 return new SolutionAttributes(solutionId, VersionStamp.Create(), filePath);
             }
 
-            private Checksum? _lazyChecksum;
             Checksum IChecksummedObject.Checksum
-            {
-                get
-                {
-                    if (_lazyChecksum == null)
-                    {
-                        _lazyChecksum = Checksum.Create(WellKnownSynchronizationKind.SolutionAttributes, this);
-                    }
-
-                    return _lazyChecksum;
-                }
-            }
+                => _lazyChecksum ??= Checksum.Create(WellKnownSynchronizationKind.SolutionAttributes, this);
         }
     }
 }

@@ -19,12 +19,12 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using NuGet.VisualStudio;
 using Roslyn.Utilities;
 using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly Lazy<IVsPackageUninstaller> _packageUninstaller;
         private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
 
-        private ImmutableArray<PackageSource> _packageSources;
+        private JoinableTask<ImmutableArray<PackageSource>?> _packageSourcesAsync;
         private IVsPackage _nugetPackageManager;
 
         private CancellationTokenSource _tokenSource = new CancellationTokenSource();
@@ -93,41 +93,75 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageSourceProvider = packageSourceProvider;
         }
 
-        public ImmutableArray<PackageSource> GetPackageSources()
+        public async ValueTask<ImmutableArray<PackageSource>?> TryGetPackageSourcesAsync(bool allowSwitchToMainThread, CancellationToken cancellationToken)
         {
-            // Only read from _packageSources once, since OnSourceProviderSourcesChanged could reset it to default at
-            // any time while this method is running.
-            var packageSources = _packageSources;
-            if (packageSources != null)
+            // Only read from _packageSourcesAsync once, since OnSourceProviderSourcesChanged could reset it to default
+            // at any time while this method is running.
+            JoinableTask<ImmutableArray<PackageSource>?> packageSourcesAsync;
+            lock (_gate)
             {
-                return packageSources;
+                if (_packageSourcesAsync is null)
+                {
+                    _packageSourcesAsync = ThreadingContext.JoinableTaskFactory.RunAsync(() => GetPackageSourcesImplAsync());
+                }
+
+                packageSourcesAsync = _packageSourcesAsync;
+            }
+
+            if (packageSourcesAsync.IsCompleted)
+            {
+                // Since the task is already completed, we know this 'await' will complete synchronously.
+                return await packageSourcesAsync;
+            }
+            else if (allowSwitchToMainThread)
+            {
+                return await packageSourcesAsync.JoinAsync(cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                // The result was not available and switching to the main thread is not allowed. Return without caching
+                // a result.
+                return null;
+            }
+        }
+
+        private async Task<ImmutableArray<PackageSource>?> GetPackageSourcesImplAsync()
+        {
+            CancellationToken cancellationToken;
+            lock (_gate)
+            {
+                // Read the current cancellation token within the gate to ensure the token source is not disposed at the
+                // time of the read.
+                cancellationToken = _tokenSource.Token;
             }
 
             try
             {
-                packageSources = _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // The failure may have been caused by a workspace change. The task has already been invalidated at
+                // a higher level, so just return indicating the data is not complete.
+                return null;
+            }
+
+            try
+            {
+                return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
                     .SelectAsArray(r => new PackageSource(r.Key, r.Value));
             }
             catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
             {
                 // These exceptions can happen when the nuget.config file is broken.
-                packageSources = ImmutableArray<PackageSource>.Empty;
+                return ImmutableArray<PackageSource>.Empty;
             }
             catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
             {
                 // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
                 // https://github.com/dotnet/roslyn/issues/40857
-                packageSources = ImmutableArray<PackageSource>.Empty;
+                return ImmutableArray<PackageSource>.Empty;
             }
-
-            var previousPackageSources = ImmutableInterlocked.InterlockedCompareExchange(ref _packageSources, packageSources, default);
-            if (previousPackageSources != null)
-            {
-                // Another thread already initialized _packageSources
-                packageSources = previousPackageSources;
-            }
-
-            return packageSources;
         }
 
         public event EventHandler PackageSourcesChanged;
@@ -181,13 +215,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             OnSourceProviderSourcesChanged(this, EventArgs.Empty);
-            OnWorkspaceChanged(null, new WorkspaceChangeEventArgs(
-                WorkspaceChangeKind.SolutionAdded, null, null));
+            OnWorkspaceChanged(localSolutionChanged: true, localChangedProject: null);
         }
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
         {
-            _packageSources = default;
+            lock (_gate)
+            {
+                // Reset the task for loading package sources.
+                _packageSourcesAsync = null;
+            }
+
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -275,9 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private static string GetStatusBarText(string packageName, string installedVersion)
-        {
-            return installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
-        }
+            => installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
 
         private bool TryUninstallPackage(
             string packageName, EnvDTE.DTE dte, EnvDTE.Project dteProject)
@@ -350,8 +386,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             ThisCanBeCalledOnAnyThread();
 
-            var localSolutionChanged = false;
-            ProjectId localChangedProject = null;
+            var solutionChanged = false;
+            ProjectId chnagedProject = null;
             switch (e.Kind)
             {
                 default:
@@ -362,7 +398,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 case WorkspaceChangeKind.ProjectChanged:
                 case WorkspaceChangeKind.ProjectReloaded:
                 case WorkspaceChangeKind.ProjectRemoved:
-                    localChangedProject = e.ProjectId;
+                    chnagedProject = e.ProjectId;
                     break;
 
                 case WorkspaceChangeKind.SolutionAdded:
@@ -370,10 +406,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionReloaded:
                 case WorkspaceChangeKind.SolutionRemoved:
-                    localSolutionChanged = true;
+                    solutionChanged = true;
                     break;
             }
 
+            this.OnWorkspaceChanged(solutionChanged, chnagedProject);
+        }
+
+        private void OnWorkspaceChanged(bool localSolutionChanged, ProjectId localChangedProject)
+        {
             lock (_gate)
             {
                 // Augment the data that the foreground thread will process.
@@ -396,7 +437,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         async _ =>
                         {
                             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                            cancellationToken.ThrowIfCancellationRequested();
 
                             ProcessBatchedChangesOnForeground(cancellationToken);
                         },
@@ -441,7 +481,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 async () =>
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    cancellationToken.ThrowIfCancellationRequested();
 
                     ProcessBatchedChangesOnForeground(cancellationToken);
                 },
@@ -673,9 +712,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         public void ReportResult(IVsSearchTask pTask, IVsSearchItemResult pSearchItemResult)
-        {
-            pSearchItemResult.InvokeAction();
-        }
+            => pSearchItemResult.InvokeAction();
 
         public void ReportResults(IVsSearchTask pTask, uint dwResults, IVsSearchItemResult[] pSearchItemResults)
         {
@@ -684,18 +721,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private class SearchQuery : IVsSearchQuery
         {
             public SearchQuery(string packageName)
-            {
-                this.SearchString = packageName;
-            }
+                => this.SearchString = packageName;
 
             public string SearchString { get; }
 
             public uint ParseError => 0;
 
             public uint GetTokens(uint dwMaxTokens, IVsSearchToken[] rgpSearchTokens)
-            {
-                return 0;
-            }
+                => 0;
         }
     }
 }

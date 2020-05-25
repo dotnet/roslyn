@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
@@ -12,7 +13,6 @@ Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Utilities
 
@@ -394,9 +394,6 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBackspaceBeforeCompletedComputation() As Task
             ' Simulate a very slow completionImplementation provider.
-            Dim e = New ManualResetEvent(False)
-            Dim provider = CreateTriggeredCompletionProvider(e)
-
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <document>
                                 Class Program
@@ -404,7 +401,11 @@ End Class
                                         Program$$
                                     End Sub
                                 End Class
-                              </document>, extraCompletionProviders:={provider})
+                              </document>,
+                              extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".M")
@@ -417,7 +418,7 @@ End Class
                 state.SendBackspace()
 
                 ' allow the provider to continue
-                e.Set()
+                provider.e.Set()
 
                 ' At this point, completionImplementation will be available since the caret is still within the model's span.
                 Await state.AssertCompletionSession()
@@ -431,9 +432,6 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigationBeforeCompletedComputation() As Task
             ' Simulate a very slow completionImplementation provider.
-            Dim e = New ManualResetEvent(False)
-            Dim provider = CreateTriggeredCompletionProvider(e)
-
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <document>
                                 Class Program
@@ -441,7 +439,11 @@ End Class
                                         Program$$
                                     End Sub
                                 End Class
-                              </document>, extraCompletionProviders:={provider})
+                              </document>,
+                              extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
@@ -454,7 +456,7 @@ End Class
                 state.SendMoveToPreviousCharacter()
 
                 ' allow the provider to continue
-                e.Set()
+                provider.e.Set()
 
                 ' Async provider can handle keys pressed while waiting for providers.
                 Await state.AssertCompletionSession()
@@ -464,9 +466,6 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigationOutBeforeCompletedComputation() As Task
             ' Simulate a very slow completionImplementation provider.
-            Dim e = New ManualResetEvent(False)
-            Dim provider = CreateTriggeredCompletionProvider(e)
-
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <document>
                                 Class Program
@@ -474,7 +473,11 @@ End Class
                                         Program$$
                                     End Sub
                                 End Class
-                              </document>, extraCompletionProviders:={provider})
+                              </document>,
+                              extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
@@ -487,7 +490,7 @@ End Class
                 state.SendDownKey()
 
                 ' allow the provider to continue
-                e.Set()
+                provider.e.Set()
 
                 ' Caret was intended to be moved out of the span. 
                 ' Therefore, we should cancel the completion And move the caret.
@@ -972,13 +975,28 @@ End Class
             End Using
         End Function
 
-        Private Function CreateTriggeredCompletionProvider(e As ManualResetEvent) As CompletionProvider
-            Return New MockCompletionProvider(getItems:=Function(t, p, c)
-                                                            e.WaitOne()
-                                                            Return Nothing
-                                                        End Function,
-                                              isTriggerCharacter:=Function(t, p) True)
-        End Function
+        <ExportCompletionProvider(NameOf(TriggeredCompletionProvider), LanguageNames.VisualBasic)>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Friend Class TriggeredCompletionProvider
+            Inherits MockCompletionProvider
+
+            Public ReadOnly e As ManualResetEvent = New ManualResetEvent(False)
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+                MyBase.New(getItems:=Function(t, p, c)
+                                         Return Nothing
+                                     End Function,
+                       isTriggerCharacter:=Function(t, p) True)
+            End Sub
+
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                e.WaitOne()
+                Return MyBase.ProvideCompletionsAsync(context)
+            End Function
+        End Class
 
         <WorkItem(544297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544297")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -3249,6 +3267,7 @@ Class C
             Implements ISnippetInfoService
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 

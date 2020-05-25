@@ -1,7 +1,7 @@
 # Determine Which Tests Are Failing
 
 1. Click details to see more information about the failing run. 
-![GitHub Checks Show Unsuccessful Rosyln-Integration-CI Run](images/how-to-investigate-ci-test-failures-figure1.png)
+![GitHub Checks Show Unsuccessful Roslyn-Integration-CI Run](images/how-to-investigate-ci-test-failures-figure1.png)
 2. Click on the number of errors and warnings to open Azure DevOps.  
 ![GitHub Pipeline Details Of Unsuccessful Rosyln-Integration-CI Run](images/how-to-investigate-ci-test-failures-figure2.png)
 3. Click on the Tests tabs to see a list of failing tests.  
@@ -51,7 +51,7 @@ If the file is new for the test you are creating (check file timestamp compared 
 Here is an example from a test failure on Jenkins - it's reviewable even though the CI link is broken
  https://github.com/dotnet/roslyn/issues/26041
 
- # Troubleshooting Integration Test Run Failures
+# Troubleshooting Integration Test Run Failures
 
  1. Failure during **Checkout** because of locked file  
 ![Azure DevOps Pipeline Task List](images/how-to-investigate-ci-test-failures-figure14.png)  
@@ -67,3 +67,14 @@ Here is an example from a test failure on Jenkins - it's reviewable even though 
     ![Azure DevOps Agent Pool List](images/how-to-investigate-ci-test-failures-figure17.png)
     5. From the Azure DevOps Pipeline page choose to Retry the test run.  
     ![Azure DevOps Pipeline Dropdown](images/how-to-investigate-ci-test-failures-figure18.png)
+    
+ 2. ServiceHub crash
+
+    If you see integration tests failing for your PR with screenshots that show info-bar like so:
+    
+    ![ServiceHub failure info-bar](images/how-to-investigate-ci-test-failures-servicehub-failure-infobar.png) 
+    
+    This means the ServiceHub process crashed. Check the ServiceHub logs to see why. They are available in the log artifacts:
+    
+    ![ServiceHub log artifacts](images/how-to-investigate-ci-test-failures-servicehub-log-artifacts.png)
+ 

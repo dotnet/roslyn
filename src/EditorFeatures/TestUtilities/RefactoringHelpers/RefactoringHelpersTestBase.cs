@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
         protected readonly TWorkspaceFixture fixture;
 
         protected RefactoringHelpersTestBase(TWorkspaceFixture workspaceFixture)
-        {
-            this.fixture = workspaceFixture;
-        }
+            => this.fixture = workspaceFixture;
 
         public override void Dispose()
         {

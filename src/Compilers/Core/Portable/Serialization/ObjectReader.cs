@@ -16,6 +16,8 @@ namespace Roslyn.Utilities
 {
 #if COMPILERCORE
     using Resources = CodeAnalysisResources;
+#elif CODE_STYLE
+    using Resources = CodeStyleResources;
 #else
     using Resources = WorkspacesResources;
 #endif
@@ -247,7 +249,7 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// An reference-id to object map, that can share base data efficiently.
+        /// A reference-id to object map, that can share base data efficiently.
         /// </summary>
         private struct ReaderReferenceMap<T> : IDisposable
             where T : class

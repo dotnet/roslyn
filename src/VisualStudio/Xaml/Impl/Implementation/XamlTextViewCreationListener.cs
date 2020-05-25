@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Xaml;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
@@ -42,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         private readonly Dictionary<IVsHierarchy, VisualStudioProject> _xamlProjects = new Dictionary<IVsHierarchy, VisualStudioProject>();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlTextViewCreationListener(
             [Import(typeof(SVsServiceProvider))] System.IServiceProvider services,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,

@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string Classification = nameof(Classification);
         public const string CodeModel = nameof(CodeModel);
         public const string CompletionSet = nameof(CompletionSet);
-        public const string DesignerAttribute = nameof(DesignerAttribute);
         public const string DiagnosticService = nameof(DiagnosticService);
         public const string EncapsulateField = nameof(EncapsulateField);
         public const string ErrorList = nameof(ErrorList);
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string Snippets = nameof(Snippets);
         public const string SolutionCrawler = nameof(SolutionCrawler);
         public const string TodoCommentList = nameof(TodoCommentList);
-        public const string LanguageServerWorkspaceSymbolSearch = nameof(LanguageServerWorkspaceSymbolSearch);
+        public const string LanguageServer = nameof(LanguageServer);
         public const string Workspace = nameof(Workspace);
     }
 }

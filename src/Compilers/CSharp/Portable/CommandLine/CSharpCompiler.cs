@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var normalizedFilePath = normalizedFilePaths[i];
                 Debug.Assert(normalizedFilePath != null);
-                Debug.Assert(PathUtilities.IsAbsolute(normalizedFilePath));
+                Debug.Assert(sourceFiles[i].IsInputRedirected || PathUtilities.IsAbsolute(normalizedFilePath));
 
                 if (!uniqueFilePaths.Add(normalizedFilePath))
                 {
@@ -357,11 +358,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
         }
 
-        protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+        protected override void ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
-            CommonMessageProvider messageProvider)
+            CommonMessageProvider messageProvider,
+            out ImmutableArray<DiagnosticAnalyzer> analyzers,
+            out ImmutableArray<ISourceGenerator> generators)
         {
-            return Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader);
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, out analyzers, out generators);
         }
 
         protected override void ResolveEmbeddedFilesFromExternalSourceDirectives(
@@ -394,6 +397,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 embeddedFiles.Add(resolvedPath);
             }
+        }
+
+        private protected override Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag diagnostics)
+        {
+            // https://github.com/dotnet/roslyn/issues/42565: for now we gate behind langver == preview. We'll remove this before final shipping, as the feature is langver agnostic
+            if (((CSharpParseOptions)parseOptions).LanguageVersion != LanguageVersion.Preview)
+            {
+                return input;
+            }
+
+            var driver = new CSharpGeneratorDriver(parseOptions, generators, additionalTexts);
+            driver.RunFullGeneration(input, out var compilationOut, out var generatorDiagnostics);
+            diagnostics.AddRange(generatorDiagnostics);
+            return compilationOut;
         }
     }
 }

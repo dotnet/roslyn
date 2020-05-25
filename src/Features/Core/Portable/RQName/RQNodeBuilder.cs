@@ -25,13 +25,11 @@ namespace Microsoft.CodeAnalysis.Features.RQName
                 SymbolKind.Field => BuildField(symbol as IFieldSymbol),
                 SymbolKind.Event => BuildEvent(symbol as IEventSymbol),
                 SymbolKind.Property => BuildProperty(symbol as IPropertySymbol),
-                _ => default(UnresolvedRQNode),
+                _ => null,
             };
 
         private static RQNamespace BuildNamespace(INamespaceSymbol @namespace)
-        {
-            return new RQNamespace(RQNodeBuilder.GetNameParts(@namespace));
-        }
+            => new RQNamespace(RQNodeBuilder.GetNameParts(@namespace));
 
         private static IList<string> GetNameParts(INamespaceSymbol @namespace)
         {

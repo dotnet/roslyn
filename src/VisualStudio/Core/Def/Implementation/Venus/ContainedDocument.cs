@@ -78,6 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly IComponentModel _componentModel;
         private readonly Workspace _workspace;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly HostType _hostType;
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly AbstractFormattingRule _vbHelperFormattingRule;
@@ -113,6 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             BufferCoordinator = bufferCoordinator;
 
             _differenceSelectorService = componentModel.GetService<ITextDifferencingSelectorService>();
+            _editorOptionsFactoryService = _componentModel.GetService<IEditorOptionsFactoryService>();
             _snapshotTracker = new ReiteratedVersionSnapshotTracker(SubjectBuffer);
             _vbHelperFormattingRule = vbHelperFormattingRule;
 
@@ -173,9 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
 
         public SourceTextContainer GetOpenTextContainer()
-        {
-            return this.SubjectBuffer.AsTextContainer();
-        }
+            => this.SubjectBuffer.AsTextContainer();
 
         public void Dispose()
         {
@@ -403,9 +403,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         private bool TryGetWhitespaceOnlyChanges(string leftText, string rightText, List<TextSpan> spansInLeftText, List<TextSpan> spansInRightText)
-        {
-            return TryGetWhitespaceGroup(leftText, spansInLeftText) && TryGetWhitespaceGroup(rightText, spansInRightText) && spansInLeftText.Count == spansInRightText.Count;
-        }
+            => TryGetWhitespaceGroup(leftText, spansInLeftText) && TryGetWhitespaceGroup(rightText, spansInRightText) && spansInLeftText.Count == spansInRightText.Count;
 
         private bool TryGetWhitespaceGroup(string text, List<TextSpan> groups)
         {
@@ -874,8 +872,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private int GetBaseIndentation(SyntaxNode root, SourceText text, TextSpan span)
         {
             // Is this right?  We should probably get this from the IVsContainedLanguageHost instead.
-            var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
-            var editorOptions = editorOptionsFactory.GetOptions(DataBuffer);
+            var editorOptions = _editorOptionsFactoryService.GetOptions(DataBuffer);
 
             var additionalIndentation = GetAdditionalIndentation(root, text, span);
 

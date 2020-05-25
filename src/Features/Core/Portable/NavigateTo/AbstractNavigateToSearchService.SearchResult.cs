@@ -70,26 +70,20 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             private string ConstructSecondarySortString()
             {
-                var parts = ArrayBuilder<string>.GetInstance();
-                try
-                {
-                    parts.Add(DeclaredSymbolInfo.ParameterCount.ToString("X4"));
-                    parts.Add(DeclaredSymbolInfo.TypeParameterCount.ToString("X4"));
-                    parts.Add(DeclaredSymbolInfo.Name);
+                using var _ = ArrayBuilder<string>.GetInstance(out var parts);
 
-                    // For partial types, we break up the file name into pieces.  i.e. If we have
-                    // Outer.cs and Outer.Inner.cs  then we add "Outer" and "Outer Inner" to 
-                    // the secondary sort string.  That way "Outer.cs" will be weighted above
-                    // "Outer.Inner.cs"
-                    var fileName = Path.GetFileNameWithoutExtension(Document.FilePath ?? "");
-                    parts.AddRange(fileName.Split(s_dotArray));
+                parts.Add(DeclaredSymbolInfo.ParameterCount.ToString("X4"));
+                parts.Add(DeclaredSymbolInfo.TypeParameterCount.ToString("X4"));
+                parts.Add(DeclaredSymbolInfo.Name);
 
-                    return string.Join(" ", parts);
-                }
-                finally
-                {
-                    parts.Free();
-                }
+                // For partial types, we break up the file name into pieces.  i.e. If we have
+                // Outer.cs and Outer.Inner.cs  then we add "Outer" and "Outer Inner" to 
+                // the secondary sort string.  That way "Outer.cs" will be weighted above
+                // "Outer.Inner.cs"
+                var fileName = Path.GetFileNameWithoutExtension(Document.FilePath ?? "");
+                parts.AddRange(fileName.Split(s_dotArray));
+
+                return string.Join(" ", parts);
             }
 
             public string SecondarySort

@@ -6,11 +6,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Host;
+
+#if DEBUG
+using System.Diagnostics;
+#endif
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -19,14 +25,17 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// user can create a connection to communicate with the server (remote host) through this client
     /// </summary>
-    internal abstract partial class RemoteHostClient : IDisposable
+    internal abstract class RemoteHostClient : IDisposable
     {
-        public readonly Workspace Workspace;
+        public readonly HostWorkspaceServices Services;
         public event EventHandler<bool>? StatusChanged;
 
-        protected RemoteHostClient(Workspace workspace)
+        internal readonly IRemotableDataService RemotableDataService;
+
+        protected RemoteHostClient(HostWorkspaceServices services)
         {
-            Workspace = workspace;
+            Services = services;
+            RemotableDataService = services.GetRequiredService<IRemotableDataService>();
         }
 
         /// <summary>
@@ -44,31 +53,21 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public abstract Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken);
-
-        protected abstract void OnStarted();
+        protected abstract Task<Connection?> TryCreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken);
 
         protected void Started()
         {
-            OnStarted();
-
             OnStatusChanged(started: true);
         }
 
         public virtual void Dispose()
-        {
-            OnStatusChanged(started: false);
-        }
+            => OnStatusChanged(started: false);
 
         private void OnStatusChanged(bool started)
-        {
-            StatusChanged?.Invoke(this, started);
-        }
+            => StatusChanged?.Invoke(this, started);
 
         public static string CreateClientId(string prefix)
-        {
-            return $"VS ({prefix}) ({Guid.NewGuid().ToString()})";
-        }
+            => $"VS ({prefix}) ({Guid.NewGuid()})";
 
         public static Task<RemoteHostClient?> TryGetClientAsync(Project project, CancellationToken cancellationToken)
         {
@@ -81,8 +80,11 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public static Task<RemoteHostClient?> TryGetClientAsync(Workspace workspace, CancellationToken cancellationToken)
+            => TryGetClientAsync(workspace.Services, cancellationToken);
+
+        public static Task<RemoteHostClient?> TryGetClientAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
         {
-            var service = workspace.Services.GetService<IRemoteHostClientService>();
+            var service = services.GetService<IRemoteHostClientService>();
             if (service == null)
             {
                 return SpecializedTasks.Null<RemoteHostClient>();
@@ -92,37 +94,9 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Creates <see cref="SessionWithSolution"/> for the <paramref name="serviceName"/> if possible, otherwise returns <see langword="null"/>.
-        /// </summary>
-        public async Task<SessionWithSolution?> TryCreateSessionAsync(string serviceName, Solution solution, object? callbackTarget, CancellationToken cancellationToken)
-        {
-            var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (connection == null)
-            {
-                return null;
-            }
-
-            SessionWithSolution? session = null;
-            try
-            {
-                // transfer ownership of the connection to the session object:
-                session = await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                if (session == null)
-                {
-                    connection.Dispose();
-                }
-            }
-
-            return session;
-        }
-
-        /// <summary>
         /// Creates <see cref="KeepAliveSession"/> for the <paramref name="serviceName"/>, otherwise returns <see langword="null"/>.
         /// </summary>
-        public async Task<KeepAliveSession?> TryCreateKeepAliveSessionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+        public async Task<KeepAliveSession?> TryCreateKeepAliveSessionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (connection == null)
@@ -130,46 +104,80 @@ namespace Microsoft.CodeAnalysis.Remote
                 return null;
             }
 
-            return new KeepAliveSession(this, connection, serviceName, callbackTarget);
+            return new KeepAliveSession(connection, RemotableDataService);
         }
 
-        public async Task<bool> TryRunRemoteAsync(string serviceName, string targetName, IReadOnlyList<object> arguments, Solution? solution, object? callbackTarget, CancellationToken cancellationToken)
+        public async Task<bool> TryRunRemoteAsync(RemoteServiceName serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
         {
-            // TODO: revisit solution handling - see https://github.com/dotnet/roslyn/issues/24836
-
-            if (solution == null)
+            using var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
-                using var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-                if (connection == null)
-                {
-                    return false;
-                }
-
-                await connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                using var session = await TryCreateSessionAsync(serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
-                if (session == null)
-                {
-                    return false;
-                }
-
-                await session.Connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                return false;
             }
 
+            await RunRemoteAsync(connection, RemotableDataService, targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
             return true;
         }
 
-        public async Task<Optional<T>> TryRunRemoteAsync<T>(string serviceName, string targetName, Solution solution, IReadOnlyList<object> arguments, object? callbackTarget, CancellationToken cancellationToken)
+        public Task<Optional<T>> TryRunRemoteAsync<T>(RemoteServiceName serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
+            => TryRunRemoteAsync<T>(serviceName, targetName, solution, arguments, callbackTarget, dataReader: null, cancellationToken);
+
+        public async Task<Optional<T>> TryRunRemoteAsync<T>(RemoteServiceName serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, Func<Stream, CancellationToken, Task<T>>? dataReader, CancellationToken cancellationToken)
         {
-            using var session = await TryCreateSessionAsync(serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (session == null)
+            using var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
                 return default;
             }
 
-            return await session.Connection.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            return await RunRemoteAsync<T>(connection, RemotableDataService, targetName, solution, arguments, dataReader, cancellationToken).ConfigureAwait(false);
+        }
+
+        internal static async Task RunRemoteAsync(Connection connection, IRemotableDataService remoteDataService, string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
+        {
+            if (solution != null)
+            {
+                using var scope = await remoteDataService.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+                using var _ = ArrayBuilder<object?>.GetInstance(arguments.Count + 1, out var argumentsBuilder);
+
+                argumentsBuilder.Add(scope.SolutionInfo);
+                argumentsBuilder.AddRange(arguments);
+
+                await connection.InvokeAsync(targetName, argumentsBuilder, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        internal static async Task<T> RunRemoteAsync<T>(Connection connection, IRemotableDataService remoteDataService, string targetName, Solution? solution, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>>? dataReader, CancellationToken cancellationToken)
+        {
+            if (solution != null)
+            {
+                using var scope = await remoteDataService.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+                using var _ = ArrayBuilder<object?>.GetInstance(arguments.Count + 1, out var argumentsBuilder);
+
+                argumentsBuilder.Add(scope.SolutionInfo);
+                argumentsBuilder.AddRange(arguments);
+
+                if (dataReader != null)
+                {
+                    return await connection.InvokeAsync(targetName, argumentsBuilder, dataReader, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    return await connection.InvokeAsync<T>(targetName, argumentsBuilder, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            else if (dataReader != null)
+            {
+                return await connection.InvokeAsync(targetName, arguments, dataReader, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                return await connection.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -178,22 +186,15 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public class NoOpClient : RemoteHostClient
         {
-            public NoOpClient(Workspace workspace)
-                : base(workspace)
+            public NoOpClient(HostWorkspaceServices services)
+                : base(services)
             {
             }
 
             public override string ClientId => nameof(NoOpClient);
 
-            public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
-            {
-                return SpecializedTasks.Null<Connection>();
-            }
-
-            protected override void OnStarted()
-            {
-                // do nothing
-            }
+            protected override Task<Connection?> TryCreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
+                => SpecializedTasks.Null<Connection>();
         }
 
         /// <summary>
@@ -213,9 +214,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 _disposed = false;
             }
 
-            public abstract Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken);
-            public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken);
-            public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken);
+            public abstract Task InvokeAsync(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken);
+            public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken);
+            public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken);
 
             protected virtual void DisposeImpl()
             {

@@ -9,15 +9,14 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.VisualStudio.Debugger;
-using Microsoft.VisualStudio.Debugger.Clr;
-using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Debugger.UI.Interfaces;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
     [Export(typeof(IDebugStateChangeListener))]
+    [ExportMetadata("UIContext", Guids.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class VisualStudioDebugStateChangeListener : IDebugStateChangeListener
     {
         private readonly Workspace _workspace;
@@ -27,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         private IEditAndContinueWorkspaceService? _encService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDebugStateChangeListener(VisualStudioWorkspace workspace)
         {
             _workspace = workspace;
@@ -51,10 +51,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             }
         }
 
-        public void EnterBreakState()
+        public void EnterBreakState(IManagedActiveStatementProvider activeStatementProvider)
         {
             _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
-            _encService?.StartEditSession();
+            _encService?.StartEditSession(async cancellationToken =>
+            {
+                var infos = await activeStatementProvider.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
+                return infos.SelectAsArray(ModuleUtilities.ToActiveStatementDebugInfo);
+            });
         }
 
         public void ExitBreakState()

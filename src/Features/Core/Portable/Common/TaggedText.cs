@@ -73,9 +73,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override string ToString()
-        {
-            return Text;
-        }
+            => Text;
     }
 
     internal static class TaggedTextExtensions
@@ -264,143 +262,87 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static string GetFullText(this IEnumerable<TaggedText> parts)
-        {
-            return string.Join(string.Empty, parts.Select(p => p.ToString()));
-        }
+            => string.Join(string.Empty, parts.Select(p => p.ToString()));
 
         public static void AddAliasName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Alias, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Alias, text));
 
         public static void AddAssemblyName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Assembly, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Assembly, text));
 
         public static void AddClassName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Class, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Class, text));
 
         public static void AddDelegateName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Delegate, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Delegate, text));
 
         public static void AddEnumName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Enum, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Enum, text));
 
         public static void AddErrorTypeName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.ErrorType, text));
-        }
+            => parts.Add(new TaggedText(TextTags.ErrorType, text));
 
         public static void AddEventName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Event, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Event, text));
 
         public static void AddFieldName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Field, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Field, text));
 
         public static void AddInterfaceName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Interface, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Interface, text));
 
         public static void AddKeyword(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Keyword, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Keyword, text));
 
         public static void AddLabelName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Label, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Label, text));
 
         public static void AddLineBreak(this IList<TaggedText> parts, string text = "\r\n")
-        {
-            parts.Add(new TaggedText(TextTags.LineBreak, text));
-        }
+            => parts.Add(new TaggedText(TextTags.LineBreak, text));
 
         public static void AddNumericLiteral(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.NumericLiteral, text));
-        }
+            => parts.Add(new TaggedText(TextTags.NumericLiteral, text));
 
         public static void AddStringLiteral(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.StringLiteral, text));
-        }
+            => parts.Add(new TaggedText(TextTags.StringLiteral, text));
 
         public static void AddLocalName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Local, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Local, text));
 
         public static void AddMethodName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Method, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Method, text));
 
         public static void AddModuleName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Module, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Module, text));
 
         public static void AddNamespaceName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Namespace, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Namespace, text));
 
         public static void AddOperator(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Operator, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Operator, text));
 
         public static void AddParameterName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Parameter, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Parameter, text));
 
         public static void AddPropertyName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Property, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Property, text));
 
         public static void AddPunctuation(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Punctuation, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Punctuation, text));
 
         public static void AddRangeVariableName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.RangeVariable, text));
-        }
+            => parts.Add(new TaggedText(TextTags.RangeVariable, text));
 
         public static void AddStructName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Struct, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Struct, text));
 
         public static void AddSpace(this IList<TaggedText> parts, string text = " ")
-        {
-            parts.Add(new TaggedText(TextTags.Space, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Space, text));
 
         public static void AddText(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.Text, text));
-        }
+            => parts.Add(new TaggedText(TextTags.Text, text));
 
         public static void AddTypeParameterName(this IList<TaggedText> parts, string text)
-        {
-            parts.Add(new TaggedText(TextTags.TypeParameter, text));
-        }
+            => parts.Add(new TaggedText(TextTags.TypeParameter, text));
     }
 }

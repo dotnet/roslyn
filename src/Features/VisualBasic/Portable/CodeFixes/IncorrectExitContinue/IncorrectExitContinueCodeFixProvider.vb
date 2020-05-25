@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -38,6 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
         Friend Const BC30689 As String = "BC30689" ' Statement cannot appear outside of a method body.
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -102,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
                     codeActions = New List(Of CodeAction)
                 End If
 
-                Dim blockKinds = GetEnclosingContinuableBlockKinds(enclosingblocks, enclosingDeclaration)
+                Dim blockKinds = GetEnclosingContinuableBlockKinds(enclosingblocks)
 
                 Dim tokenAfterContinueToken = continueStatement.ContinueKeyword.GetNextToken(includeSkipped:=True)
                 Dim text = document.Text
@@ -174,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
             Return kinds.TakeWhile(Function(k) k <> SyntaxKind.FinallyBlock).GroupBy(Function(k) BlockKindToKeywordKind(k)).Select(Function(g) g.First())
         End Function
 
-        Private Function GetEnclosingContinuableBlockKinds(enclosingblocks As IEnumerable(Of SyntaxNode), enclosingDeclaration As ISymbol) As IEnumerable(Of SyntaxKind)
+        Private Function GetEnclosingContinuableBlockKinds(enclosingblocks As IEnumerable(Of SyntaxNode)) As IEnumerable(Of SyntaxKind)
             Return enclosingblocks.TakeWhile(Function(eb) eb.Kind() <> SyntaxKind.FinallyBlock) _
                                   .Where(Function(eb) eb.IsKind(SyntaxKind.WhileBlock,
                                                                 SyntaxKind.SimpleDoLoopBlock,

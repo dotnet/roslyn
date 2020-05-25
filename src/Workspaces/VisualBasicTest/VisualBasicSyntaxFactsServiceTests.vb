@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
@@ -508,9 +509,7 @@ Loop $$While index < 10")))
             MarkupTestFile.GetSpan(markup, code, span)
             Dim tree = SyntaxFactory.ParseSyntaxTree(code)
             Dim node = tree.GetRoot().FindNode(span)
-            Dim service = VisualBasicSyntaxFactsService.Instance
-
-            Return service.IsMethodLevelMember(node)
+            Return VisualBasicSyntaxFacts.Instance.IsMethodLevelMember(node)
         End Function
 
         Private Function WrapInMethod(methodBody As String) As String
@@ -528,9 +527,7 @@ End Class"
             MarkupTestFile.GetPosition(markup, code, position)
             Dim tree = SyntaxFactory.ParseSyntaxTree(code)
             Dim token = tree.GetRoot().FindToken(position)
-            Dim service = VisualBasicSyntaxFactsService.Instance
-
-            Return service.IsQueryKeyword(token)
+            Return VisualBasicSyntaxFacts.Instance.IsQueryKeyword(token)
         End Function
 
         <Fact, WorkItem(40917, "https://github.com/dotnet/roslyn/issues/40917")>
@@ -546,9 +543,7 @@ $$index += 1")))
             MarkupTestFile.GetPosition(markup, code, position)
             Dim tree = SyntaxFactory.ParseSyntaxTree(code)
             Dim node = tree.GetRoot().FindToken(position).Parent
-            Dim service = VisualBasicSyntaxFactsService.Instance
-
-            Return service.IsLeftSideOfCompoundAssignment(node)
+            Return VisualBasicSyntaxFacts.Instance.IsLeftSideOfCompoundAssignment(node)
         End Function
     End Class
 

@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -18,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                 SymbolDisplayMemberOptions.IncludeExplicitInterface);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCodeLensDisplayInfoService()
         {
         }
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                 return FeaturesResources.paren_Unknown_paren;
             }
 
-            if (CSharpSyntaxFactsService.Instance.IsGlobalAttribute(node))
+            if (CSharpSyntaxFacts.Instance.IsGlobalAttribute(node))
             {
                 return "assembly: " + node.ConvertToSingleLine();
             }

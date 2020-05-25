@@ -36,9 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         private SyntaxNode LookupNode()
-        {
-            return this.ParentAttribute.LookupNode();
-        }
+            => this.ParentAttribute.LookupNode();
 
         protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
         {

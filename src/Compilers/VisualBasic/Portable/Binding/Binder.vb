@@ -746,7 +746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' True if integer overflow checking is off.
+        ''' True if integer overflow checking is On.
         ''' </summary>
         Public Overridable ReadOnly Property CheckOverflow As Boolean
             Get

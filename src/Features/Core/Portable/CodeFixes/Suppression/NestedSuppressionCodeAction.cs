@@ -9,9 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     internal abstract class NestedSuppressionCodeAction : CodeAction
     {
         protected NestedSuppressionCodeAction(string title)
-        {
-            Title = title;
-        }
+            => Title = title;
 
         // Put suppressions at the end of everything.
         internal override CodeActionPriority Priority => CodeActionPriority.None;

@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public string FirstLine => _firstLine;
 
         public RudeEditDiagnosticDescription WithFirstLine(string value)
-        {
-            return new RudeEditDiagnosticDescription(_rudeEditKind, _squiggle, _arguments, value.Trim());
-        }
+            => new RudeEditDiagnosticDescription(_rudeEditKind, _squiggle, _arguments, value.Trim());
 
         public bool Equals(RudeEditDiagnosticDescription other)
         {
@@ -40,9 +38,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         public override bool Equals(object obj)
-        {
-            return obj is RudeEditDiagnosticDescription && Equals((RudeEditDiagnosticDescription)obj);
-        }
+            => obj is RudeEditDiagnosticDescription && Equals((RudeEditDiagnosticDescription)obj);
 
         public override int GetHashCode()
         {
