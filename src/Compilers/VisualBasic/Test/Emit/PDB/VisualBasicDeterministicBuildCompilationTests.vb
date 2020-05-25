@@ -180,7 +180,7 @@ End Class", fileName:="three.vb", options:=compilationOptions.ParseOptions, enco
     Private Iterator Function GetEmitOptions() As IEnumerable(Of EmitOptions)
         Dim emitOptions = New EmitOptions(debugInformationFormat:=DebugInformationFormat.Embedded)
         Yield emitOptions
-        Yield emitOptions.WithCodePage(Encoding.UTF8)
+        Yield emitOptions.WithDefaultSourceFileEncoding(Encoding.UTF8)
     End Function
 
     Private Iterator Function GetCompilationOptions() As IEnumerable(Of VisualBasicCompilationOptions)

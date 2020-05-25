@@ -28,8 +28,8 @@ namespace Roslyn.Test.Utilities.PDB
                 codePage: Encoding.UTF32);
 
             yield return emitOptions;
-            yield return emitOptions.WithCodePage(null);
-            yield return emitOptions.WithCodePage(Encoding.ASCII);
+            yield return emitOptions.WithDefaultSourceFileEncoding(null);
+            yield return emitOptions.WithDefaultSourceFileEncoding(Encoding.ASCII);
         }
 
         public static string GetCurrentCompilerVersion()

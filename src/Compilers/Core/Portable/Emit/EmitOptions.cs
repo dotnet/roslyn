@@ -481,14 +481,14 @@ namespace Microsoft.CodeAnalysis.Emit
             return new EmitOptions(this) { InstrumentationKinds = instrumentationKinds };
         }
 
-        public EmitOptions WithCodePage(Encoding? codePage)
+        public EmitOptions WithDefaultSourceFileEncoding(Encoding? defaultSourceFileEncoding)
         {
-            if (DefaultSourceFileEncoding == codePage)
+            if (DefaultSourceFileEncoding == defaultSourceFileEncoding)
             {
                 return this;
             }
 
-            return new EmitOptions(this) { DefaultSourceFileEncoding = codePage };
+            return new EmitOptions(this) { DefaultSourceFileEncoding = defaultSourceFileEncoding };
         }
     }
 }
