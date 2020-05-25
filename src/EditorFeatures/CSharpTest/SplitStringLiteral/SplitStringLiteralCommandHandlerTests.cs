@@ -940,5 +940,75 @@ $""[||]"";
     }
 }".Replace("\r\n", "\n"), lineEnding: "\n");
         }
+        
+        public void TestHonourEndOfLineOptionVerbatim()
+        {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var v = @""Hello [||]World!"";
+    }
+}".Replace("\r\n", "\n"),
+@"class C
+{
+    void M()
+    {
+        var v = @""Hello
+            [||]World!"";
+    }
+}".Replace("\r\n", "\n"), lineEnding: "\n");
+        }
+
+        public void TestHonourEndOfLineOptionInterpolated()
+        {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var world = ""World"";
+        var v = $""Hello [||]{world}!"";
+    }
+}".Replace("\r\n", "\n"),
+@"class C
+{
+    void M()
+    {
+        var world = ""World"";
+        var v = $""Hello "" +
+            ""[||]{world}!"";
+    }
+}".Replace("\r\n", "\n"), lineEnding: "\n");
+        }
+
+        public void TestHonourEndOfLineOptionVerbatimInterpolated()
+        {
+            // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
+            // When that issue is fixed, we can reenable verifyUndo
+            TestHandled(
+@"class C
+{
+    void M()
+    {
+        var world = ""World"";
+        var v = @$""Hello [||]{world}!"";
+    }
+}".Replace("\r\n", "\n"),
+@"class C
+{
+    void M()
+    {
+        var world = ""World"";
+        var v = @$""Hello "" +
+            ""[||]{world}!"";
+    }
+}".Replace("\r\n", "\n"), lineEnding: "\n");
+        }
     }
 }
