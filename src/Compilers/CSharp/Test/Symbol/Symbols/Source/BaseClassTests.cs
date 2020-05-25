@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -2300,6 +2301,59 @@ class Derived : Base
                 // (12,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.C')
                 //     class E : A<C*>.B { }
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
+        }
+
+        [Fact]
+        [WorkItem(1107185, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107185")]
+        public void Tuple_MissingNestedTypeArgument_01()
+        {
+            var source =
+@"interface I<T>
+{
+}
+class A : I<(object, A.B)>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0146: Circular base class dependency involving 'A' and 'A'
+                // class A : I<(object, A.B)>
+                Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "A").WithLocation(4, 24));
+        }
+
+        [Fact]
+        [WorkItem(1107185, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107185")]
+        public void Tuple_MissingNestedTypeArgument_02()
+        {
+            var source =
+@"class A<T>
+{
+}
+class B : A<(object, B.C)>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0146: Circular base class dependency involving 'B' and 'B'
+                // class B : A<(object, B.C)>
+                Diagnostic(ErrorCode.ERR_CircularBase, "C").WithArguments("B", "B").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void Tuple_MissingNestedTypeArgument_03()
+        {
+            var source =
+@"interface I<T>
+{
+}
+class A : I<System.ValueTuple<object, A.B>>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,41): error CS0146: Circular base class dependency involving 'A' and 'A'
+                // class A : I<System.ValueTuple<object, A.B>>
+                Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "A").WithLocation(4, 41));
         }
     }
 }

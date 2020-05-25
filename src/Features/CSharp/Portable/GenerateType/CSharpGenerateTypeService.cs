@@ -122,7 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
         protected override bool TryGetNameParts(ExpressionSyntax expression, out IList<string> nameParts)
         {
-            nameParts = new List<string>();
             return expression.TryGetNameParts(out nameParts);
         }
 
@@ -445,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return true;
         }
 
-        private IMethodSymbol GetMethodSymbolIfPresent(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
+        private static IMethodSymbol GetMethodSymbolIfPresent(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
             if (expression == null)
             {
@@ -473,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return null;
         }
 
-        private Accessibility DetermineAccessibilityConstraint(
+        private static Accessibility DetermineAccessibilityConstraint(
             State state,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -482,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 state.NameOrMemberAccessExpression as TypeSyntax, cancellationToken);
         }
 
-        private bool AllContainingTypesArePublicOrProtected(
+        private static bool AllContainingTypesArePublicOrProtected(
             State state,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -634,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return FindNamespaceInMemberDeclarations(namespaceDecl.Members, indexDone, containers);
         }
 
-        private bool IdentifierMatches(int indexDone, List<string> namespaceContainers, List<string> containers)
+        private static bool IdentifierMatches(int indexDone, List<string> namespaceContainers, List<string> containers)
         {
             for (var i = 0; i < namespaceContainers.Count; ++i)
             {
@@ -756,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return false;
         }
 
-        private bool IsAllContainingTypeDeclsPublic(SyntaxNode node)
+        private static bool IsAllContainingTypeDeclsPublic(SyntaxNode node)
         {
             // Make sure that all the containing Type Declarations are also Public
             var containingTypeDeclarations = node.GetAncestors<TypeDeclarationSyntax>();
@@ -821,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return updatedSolution;
         }
 
-        private ITypeSymbol GetPropertyType(
+        private static ITypeSymbol GetPropertyType(
             SimpleNameSyntax propertyName,
             SemanticModel semanticModel,
             ITypeInferenceService typeInference,
@@ -842,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return null;
         }
 
-        private IPropertySymbol CreatePropertySymbol(
+        private static IPropertySymbol CreatePropertySymbol(
             SimpleNameSyntax propertyName, ITypeSymbol propertyType)
         {
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
@@ -871,7 +870,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             CancellationToken cancellationToken,
             out IPropertySymbol property)
         {
-            property = null;
             var propertyType = GetPropertyType(propertyName, semanticModel, typeInference, cancellationToken);
             if (propertyType == null || propertyType is IErrorTypeSymbol)
             {

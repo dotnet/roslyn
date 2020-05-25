@@ -2756,4 +2756,13 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Convert_type_to_0" xml:space="preserve">
     <value>Convert type to '{0}'</value>
   </data>
+  <data name="from_metadata" xml:space="preserve">
+    <value>from metadata</value>
+  </data>
+  <data name="symbol_cannot_be_a_namespace" xml:space="preserve">
+    <value>'symbol' cannot be a namespace.</value>
+  </data>
+  <data name="Document_must_be_contained_in_the_workspace_that_created_this_service" xml:space="preserve">
+    <value>Document must be contained in the workspace that created this service</value>
+  </data>
 </root>

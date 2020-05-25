@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
         {
         }
 
-        private CSharpSyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+        private static CSharpSyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
         protected override void ProcessCompilationUnit(
             SyntaxTreeAnalysisContext context,

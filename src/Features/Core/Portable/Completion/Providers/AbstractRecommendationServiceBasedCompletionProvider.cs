@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbols.WhereAsArray(s => inferredTypes.Contains(GetSymbolType(s), SymbolEqualityComparer.Default) && !IsInstrinsic(s));
         }
 
-        private ITypeSymbol GetSymbolType(ISymbol symbol)
+        private static ITypeSymbol GetSymbolType(ISymbol symbol)
         {
             if (symbol is IMethodSymbol method)
             {

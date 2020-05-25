@@ -90,7 +90,7 @@ public class CustomGenerator : ISourceGenerator
 
     public void Execute(SourceGeneratorContext context)
     {
-        context.AddSource("myGeneratedFile.cs", SourceText.From($@"
+        context.AddSource("myGeneratedFile.cs", SourceText.From(@"
 namespace GeneratedNamespace
 {
     public class GeneratedClass

@@ -96,7 +96,8 @@ namespace Microsoft.CodeAnalysis.AddImports
 
             switch (import)
             {
-                case TExternSyntax e: return externContainer;
+                case TExternSyntax _:
+                    return externContainer;
                 case TUsingOrAliasSyntax u:
                     if (IsAlias(u))
                     {
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         {
             var usingDirective = contextNode.GetAncestor<TUsingOrAliasSyntax>();
 
-            SyntaxNode? node = usingDirective != null ? usingDirective.Parent! : contextNode;
+            var node = usingDirective != null ? usingDirective.Parent! : contextNode;
             return node.GetAncestor<TNamespaceDeclarationSyntax>() ??
                    (SyntaxNode?)node.GetAncestorOrThis<TCompilationUnitSyntax>();
         }

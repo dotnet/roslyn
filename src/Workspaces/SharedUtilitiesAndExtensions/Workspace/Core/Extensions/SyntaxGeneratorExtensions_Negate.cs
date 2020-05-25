@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     newRightOperand = generator.Negate(generatorInternal, rightOperand, semanticModel, cancellationToken);
                 }
 
-                var newBinaryExpressionSyntax = NewBinaryOperation(binaryOperation, newLeftOperand, negatedKind, newRightOperand, generator, cancellationToken)
+                var newBinaryExpressionSyntax = NewBinaryOperation(binaryOperation, newLeftOperand, negatedKind, newRightOperand, generator)
                     .WithTriviaFrom(expressionNode);
 
                 var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
@@ -292,8 +292,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxNode leftOperand,
             BinaryOperatorKind operationKind,
             SyntaxNode rightOperand,
-            SyntaxGenerator generator,
-            CancellationToken cancellationToken)
+            SyntaxGenerator generator)
         {
             switch (operationKind)
             {
@@ -306,11 +305,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         ? generator.ValueNotEqualsExpression(leftOperand, rightOperand)
                         : generator.ReferenceNotEqualsExpression(leftOperand, rightOperand);
                 case BinaryOperatorKind.LessThanOrEqual:
-                    return IsSpecialCaseBinaryExpression(binaryOperation, operationKind, cancellationToken)
+                    return IsSpecialCaseBinaryExpression(binaryOperation, operationKind)
                         ? generator.ValueEqualsExpression(leftOperand, rightOperand)
                         : generator.LessThanOrEqualExpression(leftOperand, rightOperand);
                 case BinaryOperatorKind.GreaterThanOrEqual:
-                    return IsSpecialCaseBinaryExpression(binaryOperation, operationKind, cancellationToken)
+                    return IsSpecialCaseBinaryExpression(binaryOperation, operationKind)
                         ? generator.ValueEqualsExpression(leftOperand, rightOperand)
                         : generator.GreaterThanOrEqualExpression(leftOperand, rightOperand);
                 case BinaryOperatorKind.LessThan:
@@ -337,8 +336,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static bool IsSpecialCaseBinaryExpression(
             IBinaryOperation binaryOperation,
-            BinaryOperatorKind operationKind,
-            CancellationToken cancellationToken)
+            BinaryOperatorKind operationKind)
         {
             if (binaryOperation == null)
             {

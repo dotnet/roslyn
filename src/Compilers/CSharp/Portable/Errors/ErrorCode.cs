@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InconsistentLambdaParameterUsage = 748,
         ERR_PartialMethodInvalidModifier = 750,
         ERR_PartialMethodOnlyInPartialClass = 751,
-        ERR_PartialMethodCannotHaveOutParameters = 752,
+        // ERR_PartialMethodCannotHaveOutParameters = 752, Removed as part of 'extended partial methods' feature
         // ERR_PartialMethodOnlyMethods = 753, Removed as it is subsumed by ERR_PartialMisplaced
         ERR_PartialMethodNotExplicit = 754,
         ERR_PartialMethodExtensionDifference = 755,
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodStaticDifference = 763,
         ERR_PartialMethodUnsafeDifference = 764,
         ERR_PartialMethodInExpressionTree = 765,
-        ERR_PartialMethodMustReturnVoid = 766,
+        // ERR_PartialMethodMustReturnVoid = 766, Removed as part of 'extended partial methods' feature
         ERR_ExplicitImplCollisionOnRefOut = 767,
         ERR_IndirectRecursiveConstructorCall = 768,
 
@@ -1785,20 +1785,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsRangeExpression = 8792,
         WRN_GivenExpressionAlwaysMatchesPattern = 8793,
         WRN_IsPatternAlways = 8794,
+        ERR_PartialMethodWithAccessibilityModsMustHaveImplementation = 8795,
+        ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods = 8796,
+        ERR_PartialMethodWithOutParamMustHaveAccessMods = 8797,
+        ERR_PartialMethodWithExtendedModMustHaveAccessMods = 8798,
+        ERR_PartialMethodAccessibilityDifference = 8799,
+        ERR_PartialMethodExtendedModDifference = 8800,
 
-        #endregion diagnostics introduced for C# 9.0
-
-        ERR_BadRecordDeclaration = 8800,
-        ERR_DuplicateRecordConstructor = 8801,
-        ERR_AssignmentInitOnly = 8802,
-        ERR_CantChangeInitOnlyOnOverride = 8803,
-        ERR_CloseUnimplementedInterfaceMemberWrongInitOnly = 8804,
-        ERR_ExplicitPropertyMismatchInitOnly = 8805,
-        ERR_BadInitAccessor = 8806,
-        ERR_InvalidWithReceiverType = 8807,
-        ERR_NoSingleCloneMethod = 8808,
-        ERR_ContainingTypeMustDeriveFromWithReturnType = 8809,
-        ERR_WithMemberIsNotRecordProperty = 8810,
+        ERR_BadRecordDeclaration = 8850,
+        ERR_DuplicateRecordConstructor = 8851,
+        ERR_AssignmentInitOnly = 8852,
+        ERR_CantChangeInitOnlyOnOverride = 8853,
+        ERR_CloseUnimplementedInterfaceMemberWrongInitOnly = 8854,
+        ERR_ExplicitPropertyMismatchInitOnly = 8855,
+        ERR_BadInitAccessor = 8856,
+        ERR_InvalidWithReceiverType = 8857,
+        ERR_NoSingleCloneMethod = 8858,
+        ERR_ContainingTypeMustDeriveFromWithReturnType = 8859,
+        ERR_WithMemberIsNotRecordProperty = 8860,
+        #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

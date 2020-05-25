@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 awaitable.Span);
         }
 
-        private bool IsValidAwaitableExpression(SyntaxNode invocation, SemanticModel model, ISyntaxFactsService syntaxFacts)
+        private static bool IsValidAwaitableExpression(SyntaxNode invocation, SemanticModel model, ISyntaxFactsService syntaxFacts)
         {
             if (syntaxFacts.IsExpressionOfInvocationExpression(invocation.Parent))
             {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             return false;
         }
 
-        private async Task<Document> AddAwaitAsync(
+        private static async Task<Document> AddAwaitAsync(
             Document document,
             TInvocationExpressionSyntax invocation,
             bool withConfigureAwait,
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 .AddParentheses(syntaxGenerator.AwaitExpression(withoutTrivia))
                 .WithTriviaFrom(invocation);
 
-            return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken).ConfigureAwait(false); ;
+            return await document.ReplaceNodeAsync(invocation, awaitExpression, cancellationToken).ConfigureAwait(false);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
