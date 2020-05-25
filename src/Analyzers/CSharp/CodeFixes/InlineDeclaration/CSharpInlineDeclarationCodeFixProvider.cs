@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private (VariableDeclaratorSyntax declarator, IdentifierNameSyntax identifier, SyntaxNode invocationOrCreation) FindDiagnosticNodes(
+        private static (VariableDeclaratorSyntax declarator, IdentifierNameSyntax identifier, SyntaxNode invocationOrCreation) FindDiagnosticNodes(
             Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             // Recover the nodes we care about.
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return (declarator, identifier, invocationOrCreation);
         }
 
-        private SyntaxNode ReplaceIdentifierWithInlineDeclaration(
+        private static SyntaxNode ReplaceIdentifierWithInlineDeclaration(
             OptionSet options, SemanticModel semanticModel,
             SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
             IdentifierNameSyntax identifier, SyntaxNode currentNode,
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
         }
 
-        private bool SemanticsChanged(
+        private static bool SemanticsChanged(
             SemanticModel semanticModel,
             SyntaxNode nodeToReplace,
             IdentifierNameSyntax identifier,
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return false;
         }
 
-        private SyntaxNode GetTopmostContainer(SyntaxNode expression)
+        private static SyntaxNode GetTopmostContainer(SyntaxNode expression)
         {
             return expression.GetAncestorsOrThis(
                 a => a is StatementSyntax ||
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                      a is ConstructorInitializerSyntax).LastOrDefault();
         }
 
-        private bool TryGetSpeculativeSemanticModel(
+        private static bool TryGetSpeculativeSemanticModel(
             SemanticModel semanticModel,
             int position, SyntaxNode topmostContainer,
             out SemanticModel speculativeModel)

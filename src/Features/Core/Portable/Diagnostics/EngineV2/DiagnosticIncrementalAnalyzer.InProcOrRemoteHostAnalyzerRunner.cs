@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Contract.ThrowIfFalse(compilation.Analyzers.Length != 0);
 
                 var workspace = project.Solution.Workspace;
-                var service = workspace.Services.GetService<IRemoteHostClientService>();
+                var service = workspace.Services.GetService<IRemoteHostClientProvider>();
                 if (service == null)
                 {
                     // host doesn't support RemoteHostService such as under unit test
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(
+            private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(
                 RemoteHostClient client, CompilationWithAnalyzers analyzerDriver, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
             {
                 var solution = project.Solution;
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result.HasValue ? result.Value : DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
             }
 
-            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
+            private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
             {
                 // handling of cancellation and exception
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);

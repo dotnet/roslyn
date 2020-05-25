@@ -34,21 +34,18 @@ namespace Roslyn.Test.Utilities.Remote
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubService.RemoteHost).ConfigureAwait(false);
 
-            var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
-            var instance = new InProcRemoteHostClient(current, services, inprocServices, remoteHostStream);
+            var clientId = CreateClientId(Process.GetCurrentProcess().Id.ToString());
+            var instance = new InProcRemoteHostClient(clientId, services, inprocServices, remoteHostStream);
 
             // make sure connection is done right
             string? telemetrySession = null;
             var uiCultureLCIDE = 0;
             var cultureLCID = 0;
 
-            var host = await instance._endPoint.InvokeAsync<string>(
-                nameof(IRemoteHostService.Connect),
-                new object?[] { current, uiCultureLCIDE, cultureLCID, telemetrySession },
+            await instance._endPoint.InvokeAsync(
+                nameof(IRemoteHostService.InitializeGlobalState),
+                new object?[] { clientId, uiCultureLCIDE, cultureLCID, telemetrySession },
                 CancellationToken.None).ConfigureAwait(false);
-
-            // TODO: change this to non fatal watson and make VS to use inproc implementation
-            Contract.ThrowIfFalse(host == current.ToString());
 
             instance.Started();
 

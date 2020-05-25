@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
         End Function
 
-        Private Function ShouldPreselect(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function ShouldPreselect(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean
             ' The Workspace might be null in the keyword recommender tests, since we don't create one for those.
             ' This function still gets test coverage through the all-up completion tests.
             Dim document = context.Workspace?.CurrentSolution.GetDocument(context.SyntaxTree)

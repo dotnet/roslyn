@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         public abstract Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
 
-        protected SyntaxToken StripNewLines(Document document, SyntaxToken token)
+        protected static SyntaxToken StripNewLines(Document document, SyntaxToken token)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 

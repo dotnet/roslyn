@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<WorkspaceEdit?> HandleRequestAsync(Solution oldSolution, RenameParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<WorkspaceEdit?> HandleRequestAsync(Solution oldSolution, RenameParams request, ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
         {
             WorkspaceEdit? workspaceEdit = null;
-            var document = oldSolution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = oldSolution.GetDocument(request.TextDocument, clientName);
             if (document != null)
             {
                 var renameService = document.Project.LanguageServices.GetRequiredService<IEditorInlineRenameService>();

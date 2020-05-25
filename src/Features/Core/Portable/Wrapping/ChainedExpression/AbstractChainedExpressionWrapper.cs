@@ -219,19 +219,19 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             return -1;
         }
 
-        private bool IsNode<TNode>(ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
+        private static bool IsNode<TNode>(ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
             => index < pieces.Count &&
                pieces[index] is var piece &&
                piece.IsNode &&
                piece.AsNode() is TNode;
 
-        private bool IsToken(int tokenKind, ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
+        private static bool IsToken(int tokenKind, ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
             => index < pieces.Count &&
                pieces[index] is var piece &&
                piece.IsToken &&
                piece.AsToken().RawKind == tokenKind;
 
-        private ImmutableArray<SyntaxNodeOrToken> GetSubRange(
+        private static ImmutableArray<SyntaxNodeOrToken> GetSubRange(
             ArrayBuilder<SyntaxNodeOrToken> pieces, int start, int end)
         {
             using var resultDisposer = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(end - start, out var result);

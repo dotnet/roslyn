@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return Task.FromResult(interfaceSet.ToImmutableArray<ISymbol>());
         }
 
-        private bool IsPreviousTokenValid(SyntaxToken tokenBeforeType)
+        private static bool IsPreviousTokenValid(SyntaxToken tokenBeforeType)
         {
             if (tokenBeforeType.Kind() == SyntaxKind.AsyncKeyword)
             {

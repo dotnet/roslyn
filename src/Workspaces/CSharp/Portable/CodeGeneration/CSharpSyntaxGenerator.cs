@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 _ => declaration,
             };
 
-        private AccessorListSyntax CreateAccessorList(AccessorListSyntax accessorListOpt, IEnumerable<SyntaxNode> accessorDeclarations)
+        private static AccessorListSyntax CreateAccessorList(AccessorListSyntax accessorListOpt, IEnumerable<SyntaxNode> accessorDeclarations)
         {
             var list = SyntaxFactory.List(accessorDeclarations.Cast<AccessorDeclarationSyntax>());
             return accessorListOpt == null
@@ -1680,7 +1680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 _ => declaration,
             }, Accessibility.NotApplicable);
 
-        private ExplicitInterfaceSpecifierSyntax CreateExplicitInterfaceSpecifier(ImmutableArray<ISymbol> explicitInterfaceImplementations)
+        private static ExplicitInterfaceSpecifierSyntax CreateExplicitInterfaceSpecifier(ImmutableArray<ISymbol> explicitInterfaceImplementations)
             => SyntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceImplementations[0].ContainingType.GenerateNameSyntax());
 
         public override SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode> types)

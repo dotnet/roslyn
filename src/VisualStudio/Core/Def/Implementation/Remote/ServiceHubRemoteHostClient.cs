@@ -29,6 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient, IRemoteHostServiceCallback
     {
+        private const int ConnectionPoolCapacity = 15;
+
         private readonly RemoteEndPoint _endPoint;
         private readonly HubClient _hubClient;
         private readonly HostGroup _hostGroup;
@@ -42,15 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Stream stream)
             : base(services)
         {
-            var optionService = services.GetRequiredService<IOptionService>();
-            if (optionService.GetOption(RemoteHostOptions.EnableConnectionPool))
-            {
-                int maxPoolConnection = optionService.GetOption(RemoteHostOptions.MaxPoolConnection);
-
-                _connectionPool = new ConnectionPool(
-                    connectionFactory: (serviceName, cancellationToken) => CreateConnectionAsync(serviceName, callbackTarget: null, cancellationToken),
-                    maxPoolConnection);
-            }
+            _connectionPool = new ConnectionPool(
+                connectionFactory: (serviceName, cancellationToken) => CreateConnectionAsync(serviceName, callbackTarget: null, cancellationToken),
+                capacity: ConnectionPoolCapacity);
 
             _hubClient = hubClient;
             _hostGroup = hostGroup;
@@ -64,10 +60,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
             => RemoteHostCrashInfoBar.ShowInfoBar(Services, unexpectedException);
 
-        public static async Task<RemoteHostClient?> CreateAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
             {
+                Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = RemoteHostOptions.IsServiceHubProcess64Bit(services)));
+
                 // let each client to have unique id so that we can distinguish different clients when service is restarted
                 var clientId = CreateClientId(Process.GetCurrentProcess().Id.ToString());
 
@@ -88,8 +86,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 try
                 {
                     // initialize the remote service
-                    _ = await client._endPoint.InvokeAsync<string>(
-                        nameof(IRemoteHostService.Connect),
+                    await client._endPoint.InvokeAsync<string>(
+                        nameof(IRemoteHostService.InitializeGlobalState),
                         new object[] { clientId, uiCultureLCID, cultureLCID, TelemetryService.DefaultSession.SerializeSettings() },
                         cancellationToken).ConfigureAwait(false);
 
@@ -127,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // TODO: Once https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1040692.
                 // ServiceHub may throw non-cancellation exceptions if it is called after VS started to shut down,
                 // even if our cancellation token is signaled. Cancel the operation and do not report an error in these cases.
-                // 
+                //
                 // If ServiceHub did not throw non-cancellation exceptions when cancellation token is signaled,
                 // we can assume that these exceptions indicate a failure and should be reported to the user.
                 cancellationToken.ThrowIfCancellationRequested();

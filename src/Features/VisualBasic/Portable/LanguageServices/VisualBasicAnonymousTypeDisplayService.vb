@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             End If
         End Function
 
-        Private Function GetDelegateAnonymousType(anonymousType As INamedTypeSymbol,
+        Private Shared Function GetDelegateAnonymousType(anonymousType As INamedTypeSymbol,
                                                   semanticModel As SemanticModel,
                                                   position As Integer) As IList(Of SymbolDisplayPart)
             Dim method = anonymousType.DelegateInvokeMethod
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Return members
         End Function
 
-        Private Function MassageDelegateParts(delegateInvoke As IMethodSymbol,
+        Private Shared Function MassageDelegateParts(delegateInvoke As IMethodSymbol,
                                               parts As IEnumerable(Of SymbolDisplayPart)) As IEnumerable(Of SymbolDisplayPart)
             ' So ugly.  We remove the 'Invoke' name that was added by the symbol display service.
             Dim result = New List(Of SymbolDisplayPart)
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Return result
         End Function
 
-        Private Function GetNormalAnonymousType(anonymousType As INamedTypeSymbol,
+        Private Shared Function GetNormalAnonymousType(anonymousType As INamedTypeSymbol,
                                                 semanticModel As SemanticModel,
                                                 position As Integer) As IList(Of SymbolDisplayPart)
             Dim members = New List(Of SymbolDisplayPart)()

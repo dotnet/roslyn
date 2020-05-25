@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
             }
         }
 
-        private bool CanFix(
+        private static bool CanFix(
             SemanticModel semanticModel, Diagnostic diagnostic, CancellationToken cancellationToken,
             [NotNullWhen(true)] out SimpleNameSyntax? leftName,
             [NotNullWhen(true)] out ISymbol? matchingMember,
