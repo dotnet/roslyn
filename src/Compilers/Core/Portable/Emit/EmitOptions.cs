@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// The CodePage used to parse source before producing a compilation.
         /// </summary>
-        public Encoding? CodePage { get; private set; }
+        public Encoding? DefaultSourceFileEncoding { get; private set; }
 
         // 1.2 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public EmitOptions(
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IncludePrivateMembers = includePrivateMembers;
             InstrumentationKinds = instrumentationKinds.NullToEmpty();
             PdbChecksumAlgorithm = pdbChecksumAlgorithm ?? HashAlgorithmName.SHA256;
-            CodePage = codePage;
+            DefaultSourceFileEncoding = codePage;
         }
 
         private EmitOptions(EmitOptions other) : this(
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Emit
             other.IncludePrivateMembers,
             other.InstrumentationKinds,
             other.PdbChecksumAlgorithm,
-            other.CodePage)
+            other.DefaultSourceFileEncoding)
         {
         }
 
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 TolerateErrors == other.TolerateErrors &&
                 IncludePrivateMembers == other.IncludePrivateMembers &&
                 InstrumentationKinds.NullToEmpty().SequenceEqual(other.InstrumentationKinds.NullToEmpty(), (a, b) => a == b) &&
-                CodePage == other.CodePage;
+                DefaultSourceFileEncoding == other.DefaultSourceFileEncoding;
         }
 
         public override int GetHashCode()
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Emit
                    Hash.Combine(TolerateErrors,
                    Hash.Combine(IncludePrivateMembers,
                    Hash.Combine(Hash.CombineValues(InstrumentationKinds),
-                   Hash.Combine(CodePage, 0))))))))))))));
+                   Hash.Combine(DefaultSourceFileEncoding, 0))))))))))))));
         }
 
         public static bool operator ==(EmitOptions? left, EmitOptions? right)
@@ -483,12 +483,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public EmitOptions WithCodePage(Encoding? codePage)
         {
-            if (CodePage == codePage)
+            if (DefaultSourceFileEncoding == codePage)
             {
                 return this;
             }
 
-            return new EmitOptions(this) { CodePage = codePage };
+            return new EmitOptions(this) { DefaultSourceFileEncoding = codePage };
         }
     }
 }

@@ -2561,7 +2561,7 @@ namespace Microsoft.CodeAnalysis
                         emitTestCoverageData: options.EmitTestCoverageData,
                         pePdbFilePath: options.PdbFilePath,
                         privateKeyOpt: privateKeyOpt,
-                        codePage: options.CodePage,
+                        codePage: options.DefaultSourceFileEncoding,
                         cancellationToken: cancellationToken);
                 }
             }

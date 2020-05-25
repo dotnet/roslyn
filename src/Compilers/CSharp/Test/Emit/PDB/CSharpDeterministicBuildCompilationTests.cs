@@ -37,13 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
             Assert.Equal(originalOptions.AllowUnsafe.ToString(), pdbOptions["unsafe"]);
 
-            if (emitOptions.CodePage is null)
+            if (emitOptions.DefaultSourceFileEncoding is null)
             {
                 Assert.False(pdbOptions.ContainsKey("codepage"));
             }
             else
             {
-                Assert.Equal(emitOptions.CodePage.ToString(), pdbOptions["codepage"]);
+                Assert.Equal(emitOptions.DefaultSourceFileEncoding.ToString(), pdbOptions["codepage"]);
             }
 
             var firstSyntaxTree = compilation.SyntaxTrees.FirstOrDefault() as CSharpSyntaxTree;

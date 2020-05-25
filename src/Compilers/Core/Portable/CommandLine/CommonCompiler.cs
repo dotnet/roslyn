@@ -1160,7 +1160,7 @@ namespace Microsoft.CodeAnalysis
                             emitTestCoverageData: emitOptions.EmitTestCoverageData,
                             pePdbFilePath: emitOptions.PdbFilePath,
                             privateKeyOpt: privateKeyOpt,
-                            codePage: emitOptions.CodePage,
+                            codePage: emitOptions.DefaultSourceFileEncoding,
                             cancellationToken: cancellationToken);
 
                         peStreamProvider.Close(diagnostics);

@@ -3508,7 +3508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        ImmutableArray<string> GetPreprocessorSymbols()
+        private ImmutableArray<string> GetPreprocessorSymbols()
         {
             var firstTree = SyntaxTrees
                 .FirstOrDefault(t => t is CSharpSyntaxTree) as CSharpSyntaxTree;
