@@ -17,7 +17,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Remoting.Messaging;
 using System.Runtime.Serialization.Formatters;
 using System.Text;
@@ -273,9 +272,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     SetErrorMode(GetErrorMode() | ErrorMode.SEM_FAILCRITICALERRORS | ErrorMode.SEM_NOOPENFILEERRORBOX | ErrorMode.SEM_NOGPFAULTERRORBOX);
                 }
-                // TODO:(miziga): delete
-                /*IpcServerChannel serverChannel = null;
-                IpcClientChannel clientChannel = null;*/
 
                 try
                 {
@@ -287,17 +283,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                         serverProvider.TypeFilterLevel = TypeFilterLevel.Full;
 
                         var clientProvider = new BinaryClientFormatterSinkProvider();
-
-                        //TODO(miziga): delete
-                        /*clientChannel = new IpcClientChannel(GenerateUniqueChannelLocalName(), clientProvider);
-                        ChannelServices.RegisterChannel(clientChannel, ensureSecurity: false);
-
-                        serverChannel = new IpcServerChannel(GenerateUniqueChannelLocalName(), serverPort, serverProvider);
-                        ChannelServices.RegisterChannel(serverChannel, ensureSecurity: false);*/
-
-                        //(miziga) move to initialize since called in InteractiveHost.cs right after client awaiting connection?
-                        /*NamedPipeServerStream serverStream = new NamedPipeServerStream(GenerateUniqueChannelLocalName(), PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-                        var jsonRPC = JsonRpc.Attach(serverStream);*/
 
                         RemotingConfiguration.RegisterWellKnownServiceType(
                             typeof(Service),
@@ -329,15 +314,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 finally
                 {
                     // TODO:(miziga): delete and make a finally or catch statement for the try
-                    /*if (serverChannel != null)
-                    {
-                        ChannelServices.UnregisterChannel(serverChannel);
-                    }
-
-                    if (clientChannel != null)
-                    {
-                        ChannelServices.UnregisterChannel(clientChannel);
-                    }*/
                 }
 
                 // force exit even if there are foreground threads running:
@@ -349,7 +325,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 get { return typeof(Service).Name; }
             }
 
-            // (miziga) refactor to be a channel name for pipes?
             private static string GenerateUniqueChannelLocalName()
             {
                 return typeof(Service).FullName + Guid.NewGuid();
@@ -426,10 +401,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 lock (_lastTaskGuard)
                 {
+                    // (miziga) change operation to completionSource? Use JsonRpc in InteractiveHost instead?
                     _lastTask = AddReferenceAsync(_lastTask, operation, reference);
                 }
             }
 
+            //(miziga) Json Rpc?
             private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, RemoteAsyncOperation<bool> operation, string reference)
             {
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
@@ -523,7 +500,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// </summary>
             public async Task<RemoteExecutionResult> ExecuteFileAsync(string path)
             {
-                //(miziga) method to be used in jsonRpc invoke call? is this method necessary or just a helper?
                 Debug.Assert(path != null);
 
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
@@ -773,7 +749,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return (Script<object>)script;
             }
 
-            //(miziga): file to be used in json RPC? requires operation: refactor to only need path? 
             private async Task<EvaluationState> ExecuteFileAsync(
                 TaskCompletionSource<RemoteExecutionResult> completionSource,
                 Task<EvaluationState> lastTask,
