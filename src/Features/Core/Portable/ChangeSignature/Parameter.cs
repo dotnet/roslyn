@@ -82,6 +82,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public bool TypeBinds { get; }
 
         public CallSiteKind CallSiteKind { get; }
+
+        /// <summary>
+        /// Display string for the Call Site column in the Change Signature dialog.
+        /// </summary>
         public string CallSiteValue { get; }
 
         /// <summary>
