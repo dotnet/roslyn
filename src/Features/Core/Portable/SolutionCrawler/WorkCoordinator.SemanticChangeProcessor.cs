@@ -193,17 +193,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                private bool IsInternal(ISymbol symbol)
+                private static bool IsInternal(ISymbol symbol)
                 {
                     return symbol.DeclaredAccessibility == Accessibility.Internal ||
                            symbol.DeclaredAccessibility == Accessibility.ProtectedAndInternal ||
                            symbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal;
                 }
 
-                private bool IsType(ISymbol symbol)
+                private static bool IsType(ISymbol symbol)
                     => symbol.Kind == SymbolKind.NamedType;
 
-                private bool IsMember(ISymbol symbol)
+                private static bool IsMember(ISymbol symbol)
                 {
                     return symbol.Kind == SymbolKind.Event ||
                            symbol.Kind == SymbolKind.Field ||

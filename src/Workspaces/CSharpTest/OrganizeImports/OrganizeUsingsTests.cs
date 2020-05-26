@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
     [UseExportProvider]
     public class OrganizeUsingsTests
     {
-        protected async Task CheckAsync(
+        protected static async Task CheckAsync(
             string initial, string final,
             bool placeSystemNamespaceFirst = false,
             bool separateImportGroups = false)

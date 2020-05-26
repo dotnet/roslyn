@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return null;
         }
 
-        private IList<bool> GetInsertionIndices(TypeDeclarationSyntax destination, CancellationToken cancellationToken)
+        private static IList<bool> GetInsertionIndices(TypeDeclarationSyntax destination, CancellationToken cancellationToken)
             => destination.GetInsertionIndices(cancellationToken);
 
         public override async Task<Document> AddEventAsync(
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private TDeclarationNode AddStatementsWorker<TDeclarationNode>(
+        private static TDeclarationNode AddStatementsWorker<TDeclarationNode>(
             TDeclarationNode destinationMember,
             IEnumerable<SyntaxNode> statements,
             CodeGenerationOptions options,

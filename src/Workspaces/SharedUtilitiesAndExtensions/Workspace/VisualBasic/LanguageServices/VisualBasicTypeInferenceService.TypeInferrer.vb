@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
             End Function
 
-            Private Function InferTypeInArgument(argument As ArgumentSyntax, index As Integer, symbols As IEnumerable(Of ISymbol)) As IEnumerable(Of TypeInferenceInfo)
+            Private Shared Function InferTypeInArgument(argument As ArgumentSyntax, index As Integer, symbols As IEnumerable(Of ISymbol)) As IEnumerable(Of TypeInferenceInfo)
                 Dim methods = symbols.OfType(Of IMethodSymbol)()
                 If methods.Any() Then
                     Dim parameters = methods.Select(Function(m) m.Parameters)
@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
             End Function
 
-            Private Function InferTypeInArgument(
+            Private Shared Function InferTypeInArgument(
                 argument As ArgumentSyntax,
                 index As Integer,
                 parameterizedSymbols As IEnumerable(Of ImmutableArray(Of IParameterSymbol))) As IEnumerable(Of TypeInferenceInfo)
@@ -1000,7 +1000,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
             End Function
 
-            Private Function GetArgumentListIndex(argumentList As ArgumentListSyntax, previousToken As SyntaxToken) As Integer
+            Private Shared Function GetArgumentListIndex(argumentList As ArgumentListSyntax, previousToken As SyntaxToken) As Integer
                 If previousToken = argumentList.OpenParenToken Then
                     Return 0
                 End If

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private (SyntaxToken firstToken, SyntaxToken lastToken) GetSpecificNodeSuppressionTokenRange(SyntaxNode node)
+        private static (SyntaxToken firstToken, SyntaxToken lastToken) GetSpecificNodeSuppressionTokenRange(SyntaxNode node)
         {
             var embeddedStatement = node.GetEmbeddedStatement();
             if (embeddedStatement != null)
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             };
         }
 
-        private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             var (firstToken, lastToken) = GetSpecificNodeSuppressionTokenRange(node);
             if (!firstToken.IsKind(SyntaxKind.None) || !lastToken.IsKind(SyntaxKind.None))
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             if (!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block)
             {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
         }
 
-        private void RemoveSuppressOperationForStatementMethodDeclaration(List<SuppressOperation> list, SyntaxNode node)
+        private static void RemoveSuppressOperationForStatementMethodDeclaration(List<SuppressOperation> list, SyntaxNode node)
         {
             if (!(!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block))
             {
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void RemoveSuppressOperationForBlock(List<SuppressOperation> list, SyntaxNode node)
+        private static void RemoveSuppressOperationForBlock(List<SuppressOperation> list, SyntaxNode node)
         {
             var bracePair = GetBracePair(node);
             if (!bracePair.IsValidBracePair())
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             RemoveSuppressOperation(list, bracePair.openBrace, bracePair.closeBrace);
         }
 
-        private (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracePair(SyntaxNode node)
+        private static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracePair(SyntaxNode node)
         {
             if (node is BaseMethodDeclarationSyntax methodDeclaration && methodDeclaration.Body != null)
             {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return node.GetBracePair();
         }
 
-        private void RemoveSuppressOperation(
+        private static void RemoveSuppressOperation(
             List<SuppressOperation> list,
             SyntaxToken startToken,
             SyntaxToken endToken)

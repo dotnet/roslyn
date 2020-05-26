@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return null;
         }
 
-        private bool IsBlank(VirtualChar ch)
+        private static bool IsBlank(VirtualChar ch)
         {
             // List taken from the native regex parser.
             switch (ch.Value)
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 : CreateToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
         }
 
-        private bool IsOptionChar(VirtualChar ch)
+        private static bool IsOptionChar(VirtualChar ch)
         {
             switch (ch.Value)
             {

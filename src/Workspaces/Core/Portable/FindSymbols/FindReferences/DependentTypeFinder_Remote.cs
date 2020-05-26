@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal static partial class DependentTypeFinder
     {
-        public static async Task<ImmutableArray<INamedTypeSymbol>?> TryFindAndCacheRemoteTypesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>?> TryFindRemoteTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,

@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             }
         }
 
-        private bool IsStaticMemberOrIsLocalFunction(IOperation operation)
+        private static bool IsStaticMemberOrIsLocalFunction(IOperation operation)
         {
             return operation switch
             {

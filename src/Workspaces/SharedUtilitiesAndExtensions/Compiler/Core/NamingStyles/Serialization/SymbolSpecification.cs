@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return true;
         }
 
-        private DeclarationModifiers CollapseModifiers(ImmutableArray<ModifierKind> requiredModifierList)
+        private static DeclarationModifiers CollapseModifiers(ImmutableArray<ModifierKind> requiredModifierList)
         {
             if (requiredModifierList == default)
             {
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return result;
         }
 
-        private bool AnyMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
+        private static bool AnyMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
             where TSymbolMatcher : ISymbolMatcher
         {
             foreach (var matcher in matchers)
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return false;
         }
 
-        private bool AnyMatches(ImmutableArray<Accessibility> matchers, ISymbol symbol)
+        private static bool AnyMatches(ImmutableArray<Accessibility> matchers, ISymbol symbol)
         {
             foreach (var matcher in matchers)
             {
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return false;
         }
 
-        private bool AllMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
+        private static bool AllMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
         where TSymbolMatcher : ISymbolMatcher
         {
             foreach (var matcher in matchers)

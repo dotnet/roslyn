@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private Accessibility DetermineAccessibility()
                 => _service.GetAccessibility(_state, _semanticDocument.SemanticModel, _intoNamespace, _cancellationToken);
 
-            private DeclarationModifiers DetermineModifiers()
+            private static DeclarationModifiers DetermineModifiers()
                 => default;
 
             private INamedTypeSymbol DetermineBaseType()

@@ -16,6 +16,11 @@
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <!--
+      Workaround for bug in VSSDK that assumes a pkgdef file exists when CreateVsixContainer is false
+      https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1111713
+    -->
+    <IncludeClientEnabledPkgFile>false</IncludeClientEnabledPkgFile>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Interactive\DesktopHost\InteractiveHost32.csproj">

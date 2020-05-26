@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        private async Task<ImmutableHashSet<ISymbol>?> GetNonConflictSymbolsAsync(Solution solution, SerializableSymbolAndProjectId[] nonConflictSymbolIds, CancellationToken cancellationToken)
+        private static async Task<ImmutableHashSet<ISymbol>?> GetNonConflictSymbolsAsync(Solution solution, SerializableSymbolAndProjectId[] nonConflictSymbolIds, CancellationToken cancellationToken)
         {
             if (nonConflictSymbolIds == null)
                 return null;
