@@ -36,7 +36,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         Omitted,
 
         /// <summary>
-        /// Populate each call site with available variables of matching types.
+        /// Populate each call site with an available variable of a matching types.
+        /// If no matching variable is found, this falls back to the 
+        /// <see cref="Todo"/> behavior.
         /// </summary>
         Inferred
     }
