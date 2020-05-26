@@ -1199,7 +1199,7 @@ namespace ConsoleApp426
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(0),
-                AddedParameterOrExistingIndex.CreateAdded("byte", "bb", callSiteValue: "34") };
+                AddedParameterOrExistingIndex.CreateAdded("byte", "bb", CallSiteKind.Value, callSiteValue: "34") };
 
             var updatedCode = @"
 using System.Linq;
@@ -1242,7 +1242,7 @@ class C
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", CallSiteKind.Value, callSiteValue: "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 using System;
