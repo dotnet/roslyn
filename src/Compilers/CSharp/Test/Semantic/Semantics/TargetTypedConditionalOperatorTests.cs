@@ -180,35 +180,6 @@ class C
         }
 
         [Fact]
-        public void BreakingChange_01()
-        {
-            var source = @"
-class C
-{
-    static void M(short x) { }
-    static void Main()
-    {
-        bool b = true;
-        M((short)(b ? 1 : 2));
-    }
-}
-";
-            CreateCompilation(
-                source, options: TestOptions.ReleaseExe,
-                parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()))
-                .VerifyDiagnostics(
-                );
-            CreateCompilation(
-                source, options: TestOptions.ReleaseExe,
-                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8))
-                .VerifyDiagnostics(
-                    // (8,19): error CS8652: The feature 'target-typed conditional expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         M((short)(b ? 1 : 2));
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "b ? 1 : 2").WithArguments("target-typed conditional expression").WithLocation(8, 19)
-                );
-        }
-
-        [Fact]
         public void BreakingChange_02()
         {
             // Prior to C# 9.0, this program compiles without error, as only the overload M(long, long)
@@ -236,6 +207,68 @@ class C
                         //         M(b ? 1 : 2, 1);
                         Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(short, short)", "C.M(long, long)").WithLocation(9, 9)
                     );
+            }
+        }
+
+        [Fact]
+        public void NonBreakingChange_01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        bool b = true;
+        _ = (short)(b ? 1 : 2);
+    }
+}
+";
+            foreach (var langVersion in new[] { LanguageVersion.CSharp8, MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion() })
+            {
+                var comp = CreateCompilation(
+                    source, options: TestOptions.ReleaseExe,
+                    parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion))
+                    .VerifyDiagnostics(
+                    );
+            }
+        }
+
+        [Fact]
+        public void NonBreakingChange_02()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        M(true, new A(), new B());
+    }
+    static void M(bool x, A a, B b)
+    {
+        _ = (C)(x ? a : b);
+    }
+}
+class A
+{
+    public static implicit operator B(A a) { System.Console.WriteLine(""A->B""); return new B(); }
+    public static implicit operator C(A a) { System.Console.WriteLine(""A->C""); return new C(); }
+}
+class B
+{
+    public static implicit operator C(B b) { System.Console.WriteLine(""B->C""); return new C(); }
+}
+class C { }
+";
+            foreach (var langVersion in new[] { LanguageVersion.CSharp8, MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion() })
+            {
+                var comp = CreateCompilation(
+                    source, options: TestOptions.ReleaseExe,
+                    parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion))
+                    .VerifyDiagnostics(
+                    );
+                CompileAndVerify(comp, expectedOutput:
+@"A->B
+B->C");
             }
         }
 
