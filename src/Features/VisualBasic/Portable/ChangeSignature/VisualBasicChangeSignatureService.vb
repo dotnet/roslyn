@@ -14,7 +14,6 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -325,15 +324,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return eventBlock
             End If
 
-            Dim getSemanticModelAndRecommendations As Func(Of Task(Of (SemanticModel, ImmutableArray(Of ISymbol)))) =
-                Async Function()
-                    Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-                    Dim recommendations = Await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
-                    semanticModel, originalNode.SpanStart, document.Project.Solution.Workspace, cancellationToken:=cancellationToken).ConfigureAwait(False)
-
-                    Return (semanticModel, recommendations)
-                End Function
-
             If vbnode.IsKind(SyntaxKind.RaiseEventStatement) Then
                 Dim raiseEventStatement = DirectCast(vbnode, RaiseEventStatementSyntax)
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
@@ -346,7 +336,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod:=False,
                     isParamsArrayExpanded:=False,
                     generateAttributeArguments:=False,
-                    getSemanticModelAndRecommendations).ConfigureAwait(False))
+                    document.Project.Solution.Workspace,
+                    semanticModel,
+                    originalNode.SpanStart,
+                    cancellationToken).ConfigureAwait(False))
             End If
 
             If vbnode.IsKind(SyntaxKind.InvocationExpression) Then
@@ -367,7 +360,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod,
                     IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken),
                     generateAttributeArguments:=False,
-                    getSemanticModelAndRecommendations).ConfigureAwait(False))
+                    document.Project.Solution.Workspace,
+                    semanticModel,
+                    originalNode.SpanStart,
+                    cancellationToken).ConfigureAwait(False))
             End If
 
             If vbnode.IsKind(SyntaxKind.SubNewStatement) Then
@@ -390,7 +386,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod:=False,
                     isParamsArrayExpanded:=False,
                     generateAttributeArguments:=True,
-                    getSemanticModelAndRecommendations).ConfigureAwait(False))
+                    document.Project.Solution.Workspace,
+                    semanticModel,
+                    originalNode.SpanStart,
+                    cancellationToken).ConfigureAwait(False))
             End If
 
             If vbnode.IsKind(SyntaxKind.ObjectCreationExpression) Then
@@ -409,7 +408,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod:=False,
                     IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken),
                     generateAttributeArguments:=False,
-                    getSemanticModelAndRecommendations).ConfigureAwait(False))
+                    document.Project.Solution.Workspace,
+                    semanticModel,
+                    originalNode.SpanStart,
+                    cancellationToken).ConfigureAwait(False))
             End If
 
             If vbnode.IsKind(SyntaxKind.PropertyStatement) Then
@@ -475,7 +477,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             isReducedExtensionMethod As Boolean,
             isParamsArrayExpanded As Boolean,
             generateAttributeArguments As Boolean,
-            getSemanticModelAndRecommendations As Func(Of Task(Of (SemanticModel, ImmutableArray(Of ISymbol))))) As Task(Of ArgumentListSyntax)
+            workspace As Workspace,
+            semanticModel As SemanticModel,
+            position As Integer,
+            cancellationToken As CancellationToken) As Task(Of ArgumentListSyntax)
 
             Dim newArguments = PermuteArgumentList(
                 argumentList.Arguments,
@@ -490,7 +495,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 isReducedExtensionMethod,
                 isParamsArrayExpanded,
                 generateAttributeArguments,
-                getSemanticModelAndRecommendations).ConfigureAwait(False)
+                workspace,
+                semanticModel,
+                position,
+                cancellationToken).ConfigureAwait(False)
 
             Return argumentList.
                 WithArguments(newArguments).

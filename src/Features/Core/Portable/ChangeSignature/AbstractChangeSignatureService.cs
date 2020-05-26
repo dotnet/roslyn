@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -770,7 +771,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
             bool generateAttributeArguments,
-            Func<Task<(SemanticModel, ImmutableArray<ISymbol>)>> getSemanticModelAndRecommendations)
+            Workspace workspace,
+            SemanticModel semanticModel,
+            int position,
+            CancellationToken cancellationToken)
         {
             var fullList = ArrayBuilder<SyntaxNode>.GetInstance();
             var separators = ArrayBuilder<SyntaxToken>.GetInstance();
@@ -812,11 +816,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                         var callsiteInferenceFailed = false;
 
-                        if (addedParameter.CallSiteKind == CallSiteKind.Inferred && addedParameter.TypeBinds && getSemanticModelAndRecommendations != null)
+                        if (addedParameter.CallSiteKind == CallSiteKind.Inferred && addedParameter.TypeBinds)
                         {
                             callsiteInferenceFailed = true;
 
-                            (var semanticModel, var recommendations) = await getSemanticModelAndRecommendations().ConfigureAwait(false);
+                            var recommendations = await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
+                                semanticModel, position, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                             var targetType = addedParameter.Type;
 

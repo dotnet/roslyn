@@ -25,7 +25,6 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -384,7 +383,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         invocation.ArgumentList,
                         symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension },
                         IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken),
-                        GetSemanticModelAndRecommendations).ConfigureAwait(false));
+                        document.Project.Solution.Workspace,
+                        semanticModel,
+                        originalNode.SpanStart,
+                        cancellationToken).ConfigureAwait(false));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax? objCreation))
@@ -404,7 +406,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         objCreation.ArgumentList,
                         isReducedExtensionMethod: false,
                         IsParamsArrayExpanded(semanticModel, objCreation, symbolInfo, cancellationToken),
-                        GetSemanticModelAndRecommendations).ConfigureAwait(false));
+                        document.Project.Solution.Workspace,
+                        semanticModel,
+                        originalNode.SpanStart,
+                        cancellationToken).ConfigureAwait(false));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax? constructorInit) ||
@@ -420,7 +425,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         constructorInit.ArgumentList,
                         isReducedExtensionMethod: false,
                         IsParamsArrayExpanded(semanticModel, constructorInit, symbolInfo, cancellationToken),
-                        GetSemanticModelAndRecommendations).ConfigureAwait(false));
+                        document.Project.Solution.Workspace,
+                        semanticModel,
+                        originalNode.SpanStart,
+                        cancellationToken).ConfigureAwait(false));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax? elementAccess))
@@ -435,7 +443,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         elementAccess.ArgumentList,
                         isReducedExtensionMethod: false,
                         IsParamsArrayExpanded(semanticModel, elementAccess, symbolInfo, cancellationToken),
-                        GetSemanticModelAndRecommendations).ConfigureAwait(false));
+                        document.Project.Solution.Workspace,
+                        semanticModel,
+                        originalNode.SpanStart,
+                        cancellationToken).ConfigureAwait(false));
             }
 
             if (updatedNode.IsKind(SyntaxKind.Attribute, out AttributeSyntax? attribute))
@@ -454,7 +465,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         signaturePermutation,
                         attribute.ArgumentList,
                         isReducedExtensionMethod: false,
-                        IsParamsArrayExpanded(semanticModel, attribute, symbolInfo, cancellationToken)).ConfigureAwait(false));
+                        IsParamsArrayExpanded(semanticModel, attribute, symbolInfo, cancellationToken),
+                        document.Project.Solution.Workspace,
+                        semanticModel,
+                        originalNode.SpanStart,
+                        cancellationToken).ConfigureAwait(false));
             }
 
             // Handle references in crefs
@@ -474,15 +489,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             Debug.Assert(false, "Unknown reference location");
             return null;
-
-            async Task<(SemanticModel, ImmutableArray<ISymbol>)> GetSemanticModelAndRecommendations()
-            {
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var recommendations = await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
-                    semanticModel, originalNode.SpanStart, document.Project.Solution.Workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                return (semanticModel, recommendations);
-            }
         }
 
         private async Task<T> UpdateArgumentListAsync<T>(
@@ -491,7 +497,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             T argumentList,
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
-            Func<Task<(SemanticModel, ImmutableArray<ISymbol>)>> getSemanticModelAndRecommendations) where T : BaseArgumentListSyntax
+            Workspace workspace,
+            SemanticModel semanticModel,
+            int position,
+            CancellationToken cancellationToken) where T : BaseArgumentListSyntax
         {
             // Reorders and removes arguments
             // e.g. P(a, b, c) ==> P(c, a)
@@ -511,7 +520,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 isReducedExtensionMethod,
                 isParamsArrayExpanded,
                 generateAttributeArguments: false,
-                getSemanticModelAndRecommendations).ConfigureAwait(false);
+                workspace,
+                semanticModel,
+                position,
+                cancellationToken).ConfigureAwait(false);
 
             return (T)argumentList
                 .WithArguments(newArguments)
@@ -523,7 +535,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SignatureChange signaturePermutation,
             AttributeArgumentListSyntax argumentList,
             bool isReducedExtensionMethod,
-            bool isParamsArrayExpanded)
+            bool isParamsArrayExpanded,
+            Workspace workspace,
+            SemanticModel semanticModel,
+            int position,
+            CancellationToken cancellationToken)
         {
             var newArguments = PermuteAttributeArgumentList(
                 declarationSymbol,
@@ -538,7 +554,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 isReducedExtensionMethod,
                 isParamsArrayExpanded,
                 generateAttributeArguments: true,
-                getSemanticModelAndRecommendations: null).ConfigureAwait(false);
+                workspace,
+                semanticModel,
+                position,
+                cancellationToken).ConfigureAwait(false);
 
             return argumentList
                 .WithArguments(newArguments)
@@ -662,13 +681,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
             bool generateAttributeArguments,
-            Func<Task<(SemanticModel, ImmutableArray<ISymbol>)>>? getSemanticModelAndRecommendations)
+            Workspace workspace,
+            SemanticModel semanticModel,
+            int position,
+            CancellationToken cancellationToken)
         {
             var newArgumentList = await AddNewArgumentsToListAsync(
                 declarationSymbol, newArguments,
                 signaturePermutation, isReducedExtensionMethod,
                 isParamsArrayExpanded, generateAttributeArguments,
-                getSemanticModelAndRecommendations).ConfigureAwait(false);
+                workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
             return SeparatedList(
                 TransferLeadingWhitespaceTrivia(newArgumentList, originalArguments),
