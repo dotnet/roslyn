@@ -85,7 +85,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private HashSet<string> GetNamespacesInScope(Document document, SyntaxContext syntaxContext, CancellationToken cancellationToken)
         {
             var semanticModel = syntaxContext.SemanticModel;
-            var importedNamespaces = GetImportedNamespaces(syntaxContext.LeftToken.Parent ?? syntaxContext.SyntaxTree.GetRoot(cancellationToken), semanticModel, cancellationToken);
+
+            // The location is the containing node of the LeftToken, or the compilation unit itsef if LeftToken
+            // indicates the beginning of the document (i.e. no parent).
+            var location = syntaxContext.LeftToken.Parent ?? syntaxContext.SyntaxTree.GetRoot(cancellationToken);
+            var importedNamespaces = GetImportedNamespaces(location, semanticModel, cancellationToken);
 
             // This hashset will be used to match namespace names, so it must have the same case-sensitivity as the source language.
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
