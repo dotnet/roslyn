@@ -183,7 +183,8 @@ class Deconstructable
                                                            Optional renameOverloads As Boolean = False,
                                                            Optional renameInStrings As Boolean = False,
                                                            Optional renameInComments As Boolean = False,
-                                                           Optional renameFile As Boolean = False) As Task
+                                                           Optional renameFile As Boolean = False,
+                                                           Optional fileToRename As DocumentId = Nothing) As Task
             Dim optionSet = workspace.Options
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameOverloads, renameOverloads)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInStrings, renameInStrings)
@@ -207,7 +208,11 @@ class Deconstructable
             Await VerifyTagsAreCorrect(workspace, replacementText)
 
             If renameFile Then
-                VerifyFileName(workspace, replacementText)
+                If fileToRename Is Nothing Then
+                    VerifyFileName(workspace, replacementText)
+                Else
+                    VerifyFileName(workspace.CurrentSolution.GetDocument(fileToRename), replacementText)
+                End If
             End If
         End Function
 
@@ -1900,6 +1905,34 @@ class [|$$Test1|]
                 Assert.False(committed)
 
                 Await VerifyTagsAreCorrect(workspace, "Test1")
+            End Using
+        End Function
+
+        <WpfTheory, WorkItem(44576, "https://github.com/dotnet/roslyn/issues/44576")>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameFromOtherFile(host As TestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class Test1
+                            {
+                                void Blah()
+                                {
+                                    [|$$Test2|] t2 = new [|Test2|]();
+                                }
+                            }
+                        </Document>
+                        <Document Name="Test2.cs">
+                            class Test2
+                            {
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, host)
+
+                Dim docToRename = workspace.Documents.First(Function(doc) doc.Name = "Test2.cs")
+                Await VerifyRenameOptionChangedSessionCommit(workspace, originalTextToRename:="Test2", renameTextPrefix:="Test2Changed", renameFile:=True, fileToRename:=docToRename.Id)
             End Using
         End Function
     End Class
