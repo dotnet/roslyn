@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return namedAttributeArguments.Length > 0;
         }
 
-        public static bool HasInvalidScope(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, out TargetScope targetScope)
+        public static bool HasValidScope(ImmutableArray<(string name, IOperation value)> namedAttributeArguments, out TargetScope targetScope)
         {
             if (!TryGetNamedArgument(namedAttributeArguments, SuppressMessageScope, out var scopeString, out _) ||
                 RoslynString.IsNullOrEmpty(scopeString))
@@ -92,13 +92,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             else if (!s_targetScopesMap.TryGetValue(scopeString, out targetScope))
             {
                 targetScope = TargetScope.None;
-                return true;
+                return false;
             }
 
-            return false;
+            return true;
         }
 
-        public bool HasInvalidOrMissingTarget(
+        public bool HasValidTarget(
             ImmutableArray<(string name, IOperation value)> namedAttributeArguments,
             TargetScope targetScope,
             out bool targetHasDocCommentIdFormat,
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (targetScope == TargetScope.Resource)
             {
                 // Legacy scope which we do not handle.
-                return false;
+                return true;
             }
 
             if (!TryGetNamedArgument(namedAttributeArguments, SuppressMessageTarget, out targetSymbolString, out targetValueOperation))
@@ -125,12 +125,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (targetScope == TargetScope.Module)
             {
                 // Compilation wide suppression with a non-null target is considered invalid.
-                return targetSymbolString != null;
+                return targetSymbolString == null;
             }
 
             var resolver = new TargetSymbolResolver(_compilation, targetScope, targetSymbolString);
             resolvedSymbols = resolver.Resolve(out targetHasDocCommentIdFormat);
-            return resolvedSymbols.IsEmpty;
+            return !resolvedSymbols.IsEmpty;
         }
 
         private static bool TryGetNamedArgument(

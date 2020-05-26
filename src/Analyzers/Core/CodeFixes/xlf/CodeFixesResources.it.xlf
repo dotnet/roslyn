@@ -32,9 +32,9 @@
         <target state="new">Remove redundant suppression</target>
         <note />
       </trans-unit>
-      <trans-unit id="Switch_suppression_format">
-        <source>Switch suppression format</source>
-        <target state="new">Switch suppression format</target>
+      <trans-unit id="Update_suppression_format">
+        <source>Update suppression format</source>
+        <target state="new">Update suppression format</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discard_underscore">

@@ -38,8 +38,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Avoid_legacy_format_target_0_in_SuppressMessageAttribute">
-        <source>Avoid legacy format target '{0}' in 'SuppressMessageAttribute''SuppressMessageAttribute'</source>
-        <target state="new">Avoid legacy format target '{0}' in 'SuppressMessageAttribute''SuppressMessageAttribute'</target>
+        <source>Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</source>
+        <target state="new">Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_legacy_format_target_in_SuppressMessageAttribute">

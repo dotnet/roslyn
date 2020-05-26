@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return id;
             }
 
+            /// <summary>
+            /// Attempts to resolve the "Target" argument of the global SuppressMessageAttribute to symbols in compilation.
+            /// </summary>
+            /// <param name="resolvedWithDocCommentIdFormat">Indicates if resolved "Target" argument is in Roslyn's <see cref="DocumentationCommentId"/> format.</param>
+            /// <returns>Resolved symbols for the the "Target" argument of the global SuppressMessageAttribute.</returns>
             public ImmutableArray<ISymbol> Resolve(out bool resolvedWithDocCommentIdFormat)
             {
                 resolvedWithDocCommentIdFormat = false;
@@ -103,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var candidateMembers = containingSymbol.GetMembers(segment);
                     if (candidateMembers.Length == 0)
                     {
-                        return results.ToImmutableAndFree();
+                        break;
                     }
 
                     if (segmentIsNamedTypeName.HasValue)
@@ -134,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         if (parameters == null)
                         {
                             // Failed to resolve parameter list
-                            return results.ToImmutableAndFree();
+                            break;
                         }
                     }
                     else if (nextChar == '.' || nextChar == '+')
@@ -158,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             // If we cannot resolve the name on the left of the delimiter, we have no 
                             // hope of finding the symbol.
-                            return results.ToImmutableAndFree();
+                            break;
                         }
 
                         if (containingSymbol.Kind == SymbolKind.NamedType)
@@ -185,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             results.Add(method);
                         }
 
-                        return results.ToImmutableAndFree();
+                        break;
                     }
 
                     ISymbol singleResult;
@@ -225,9 +230,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         results.Add(singleResult);
                     }
-
-                    return results.ToImmutableAndFree();
                 }
+
+                return results.ToImmutableAndFree();
             }
 
             private string ParseNextNameSegment()

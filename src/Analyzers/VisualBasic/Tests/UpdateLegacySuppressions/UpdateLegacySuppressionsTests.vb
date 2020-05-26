@@ -5,13 +5,13 @@
 Imports Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions.VisualBasicRemoveUnnecessarySuppressionsDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions.RemoveLegacySuppressionsCodeFixProvider)
+    Microsoft.CodeAnalysis.UpdateLegacySuppressions.UpdateLegacySuppressionsCodeFixProvider)
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessarySuppressions
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UpdateLegacySuppressions
 
-    <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessarySuppressions)>
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUpdateLegacySuppressions)>
     <WorkItem(44362, "https://github.com/dotnet/roslyn/issues/44362")>
-    Public Class RemoveLegacySuppressionsTests
+    Public Class UpdateLegacySuppressionsTests
         <Fact>
         Public Sub TestStandardProperties()
             VerifyVB.VerifyStandardProperties()

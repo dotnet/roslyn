@@ -11,13 +11,13 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions.CSharpRemoveUnnecessarySuppressionsDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions.RemoveLegacySuppressionsCodeFixProvider>;
+    Microsoft.CodeAnalysis.UpdateLegacySuppressions.UpdateLegacySuppressionsCodeFixProvider>;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppressions
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateLegacySuppressions
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessarySuppressions)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUpdateLegacySuppressions)]
     [WorkItem(44362, "https://github.com/dotnet/roslyn/issues/44362")]
-    public class RemoveLegacySuppressionsTests
+    public class UpdateLegacySuppressionsTests
     {
         [Fact]
         public void TestStandardProperties()

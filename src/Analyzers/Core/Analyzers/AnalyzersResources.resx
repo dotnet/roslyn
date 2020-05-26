@@ -320,6 +320,6 @@
     <value>Avoid legacy format target in 'SuppressMessageAttribute'</value>
   </data>
   <data name="Avoid_legacy_format_target_0_in_SuppressMessageAttribute" xml:space="preserve">
-    <value>Avoid legacy format target '{0}' in 'SuppressMessageAttribute''SuppressMessageAttribute'</value>
+    <value>Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</value>
   </data>
 </root>

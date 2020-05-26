@@ -76,19 +76,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                     return;
                 }
 
-                if (SuppressMessageAttributeState.HasInvalidScope(namedAttributeArguments, out var targetScope))
+                if (!SuppressMessageAttributeState.HasValidScope(namedAttributeArguments, out var targetScope))
                 {
                     reportDiagnostic(Diagnostic.Create(s_invalidScopeDescriptor, attributeSyntax.GetLocation()));
                     return;
                 }
 
-                if (_state.HasInvalidOrMissingTarget(namedAttributeArguments, targetScope, out var targetHasDocCommentIdFormat,
+                if (!_state.HasValidTarget(namedAttributeArguments, targetScope, out var targetHasDocCommentIdFormat,
                         out var targetSymbolString, out var targetValueOperation, out var resolvedSymbols))
                 {
                     reportDiagnostic(Diagnostic.Create(s_invalidOrMissingTargetDescriptor, attributeSyntax.GetLocation()));
                     return;
                 }
 
+                // We want to flag valid target which uses legacy format to update to Roslyn based DocCommentId format.
                 if (resolvedSymbols.Length > 0 && !targetHasDocCommentIdFormat)
                 {
                     RoslynDebug.Assert(!string.IsNullOrEmpty(targetSymbolString));
@@ -107,10 +108,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                         }
                     }
 
-#pragma warning disable CS8620 // Mismatch in nullability of 'properties' parameter and argument types - Parameter type for 'properties' has been updated to 'ImmutableDictionary<string, string?>?' in newer version of Microsoft.CodeAnalysis (3.7.x).
-                    reportDiagnostic(Diagnostic.Create(LegacyFormatTargetDescriptor, targetValueOperation.Syntax.GetLocation(), properties, targetSymbolString));
-#pragma warning restore CS8620
-
+                    reportDiagnostic(Diagnostic.Create(LegacyFormatTargetDescriptor, targetValueOperation.Syntax.GetLocation(), properties!, targetSymbolString));
                     return;
                 }
             }
