@@ -47,20 +47,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveInKeyword
             if (argumentSyntax == null || argumentSyntax.GetRefKind() != RefKind.In)
                 return;
 
-            var generator = context.Document.GetRequiredLanguageService<SyntaxGenerator>();
-
             context.RegisterCodeFix(
-                new MyCodeAction(ct => FixAsync(context.Document, generator, argumentSyntax, ct)),
-                context.Diagnostics);
+                new MyCodeAction(ct => FixAsync(context.Document, argumentSyntax, ct)), context.Diagnostics);
         }
 
         private static async Task<Document> FixAsync(
             Document document,
-            SyntaxGenerator generator,
             ArgumentSyntax argumentSyntax,
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             return document.WithSyntaxRoot(root.ReplaceNode(
                 argumentSyntax,

@@ -623,5 +623,6 @@
   </data>
   <data name="Remove_in_keyword" xml:space="preserve">
     <value>Remove 'in' keyword</value>
+    <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
   </data>
 </root>
