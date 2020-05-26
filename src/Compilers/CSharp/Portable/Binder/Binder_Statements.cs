@@ -2138,12 +2138,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.MethodGroup:
                     {
-                        reportMethodGroupErrors((BoundMethodGroup)operand);
+                        reportMethodGroupErrors((BoundMethodGroup)operand, fromFunctionPtr: false);
                         return;
                     }
                 case BoundKind.UnconvertedAddressOfOperator:
                     {
-                        reportMethodGroupErrors(((BoundUnconvertedAddressOfOperator)operand).Operand);
+                        reportMethodGroupErrors(((BoundUnconvertedAddressOfOperator)operand).Operand, fromFunctionPtr: true);
                         return;
                     }
                 case BoundKind.Literal:
@@ -2204,7 +2204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(operand.HasAnyErrors && operand.Kind != BoundKind.UnboundLambda, "Missing a case in implicit conversion error reporting");
 
-            void reportMethodGroupErrors(BoundMethodGroup methodGroup)
+            void reportMethodGroupErrors(BoundMethodGroup methodGroup, bool fromFunctionPtr)
             {
                 if (!Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
                 {
@@ -2230,19 +2230,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     switch (targetType.TypeKind)
                     {
-                        case TypeKind.FunctionPointer:
-                            if (operand.Kind == BoundKind.MethodGroup)
-                            {
-                                Error(diagnostics, ErrorCode.ERR_MissingAddressOf, location);
-                                return;
-                            }
+                        case TypeKind.FunctionPointer when fromFunctionPtr:
                             errorCode = ErrorCode.ERR_MethFuncPtrMismatch;
+                            break;
+                        case TypeKind.FunctionPointer:
+                            Error(diagnostics, ErrorCode.ERR_MissingAddressOf, location);
+                            return;
+                        case TypeKind.Delegate when fromFunctionPtr:
+                            errorCode = ErrorCode.ERR_CannotConvertAddressOfToDelegate;
                             break;
                         case TypeKind.Delegate:
                             errorCode = ErrorCode.ERR_MethDelegateMismatch;
                             break;
                         default:
-                            errorCode = ErrorCode.ERR_MethGrpToNonDel;
+                            errorCode = fromFunctionPtr ? ErrorCode.ERR_AddressOfToNonFunctionPointer : ErrorCode.ERR_MethGrpToNonDel;
                             break;
                     }
 
