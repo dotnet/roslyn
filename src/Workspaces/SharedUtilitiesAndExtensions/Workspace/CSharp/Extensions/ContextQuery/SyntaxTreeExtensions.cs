@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 if (token.IsKind(SyntaxKind.CloseBracketToken)
                     && parent.IsKind(SyntaxKind.AttributeList, out AttributeListSyntax attributeList)
-                    && !(attributeList.Target is { Identifier: { RawKind: (int)SyntaxKind.AssemblyKeyword } }))
+                    && !IsGlobalAttributeList(attributeList))
                 {
                     // Allow empty modifier tokens if we have an attribute list
                     parent = attributeList.Parent;
@@ -110,6 +110,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             return false;
+
+            // Local functions
+            static bool IsGlobalAttributeList(AttributeListSyntax attributeList)
+            {
+                if (attributeList.Target is { Identifier: { RawKind: var kind } })
+                {
+                    return kind == (int)SyntaxKind.AssemblyKeyword
+                        || kind == (int)SyntaxKind.ModuleKeyword;
+                }
+
+                return false;
+            }
         }
 
         public static bool IsMemberDeclarationContext(
