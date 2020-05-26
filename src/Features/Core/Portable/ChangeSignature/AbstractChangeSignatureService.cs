@@ -818,33 +818,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                         if (addedParameter.CallSiteKind == CallSiteKind.Inferred && addedParameter.TypeBinds)
                         {
-                            callsiteInferenceFailed = true;
-
-                            var recommendations = await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
-                                semanticModel, position, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                            var targetType = addedParameter.Type;
-
-                            var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
-                            var sourceSymbolsWithTypes = sourceSymbols.Where(s => s.GetSymbolType() != null);
-                            var orderedSourceSymbolsWithTypes = sourceSymbolsWithTypes.OrderByDescending(s => s.Locations.First().SourceSpan.Start);
-
-                            var localsAndParameters = orderedSourceSymbolsWithTypes.Where(s => s.IsKind(SymbolKind.Local) || s.IsKind(SymbolKind.Parameter));
-                            var propertiesAndFields = orderedSourceSymbolsWithTypes.Where(s => s.IsKind(SymbolKind.Property) || s.IsKind(SymbolKind.Field));
-
-                            var fullyOrderedSymbolsByKind = localsAndParameters.Concat(propertiesAndFields);
-
-                            foreach (var symbol in fullyOrderedSymbolsByKind)
-                            {
-                                var symbolType = symbol.GetSymbolType();
-
-                                if (semanticModel.Compilation.ClassifyCommonConversion(symbolType, targetType).IsImplicit)
-                                {
-                                    callsiteInferenceFailed = false;
-                                    expression = Generator.IdentifierName(symbol.Name);
-                                    break;
-                                }
-                            }
+                            (expression, callsiteInferenceFailed) = await GenerateInferredExpressionAsync(
+                                semanticModel,
+                                workspace,
+                                position,
+                                addedParameter.Type,
+                                cancellationToken).ConfigureAwait(false);
                         }
 
                         if (expression == null)
@@ -942,6 +921,38 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             return Generator.SeparatedList(fullList.ToImmutableAndFree(), separators.ToImmutableAndFree());
+        }
+
+        private async Task<(SyntaxNode expression, bool callsiteInferenceFailed)> GenerateInferredExpressionAsync(
+            SemanticModel semanticModel,
+            Workspace workspace,
+            int position,
+            ITypeSymbol targetType,
+            CancellationToken cancellationToken)
+        {
+            var recommendations = await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
+                semanticModel, position, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
+            var sourceSymbolsWithTypes = sourceSymbols.Where(s => s.GetSymbolType() != null);
+            var orderedSourceSymbolsWithTypes = sourceSymbolsWithTypes.OrderByDescending(s => s.Locations.First().SourceSpan.Start);
+
+            var localsAndParameters = orderedSourceSymbolsWithTypes.Where(s => s.IsKind(SymbolKind.Local) || s.IsKind(SymbolKind.Parameter));
+            var propertiesAndFields = orderedSourceSymbolsWithTypes.Where(s => s.IsKind(SymbolKind.Property) || s.IsKind(SymbolKind.Field));
+
+            var fullyOrderedSymbolsByKind = localsAndParameters.Concat(propertiesAndFields);
+
+            foreach (var symbol in fullyOrderedSymbolsByKind)
+            {
+                var symbolType = symbol.GetSymbolType();
+
+                if (semanticModel.Compilation.ClassifyCommonConversion(symbolType, targetType).IsImplicit)
+                {
+                    return (Generator.IdentifierName(symbol.Name), callsiteInferenceFailed: false);
+                }
+            }
+
+            return (expression: null, callsiteInferenceFailed: true);
         }
 
         protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, ImmutableArray<SyntaxNode> permutedParamNodes)
