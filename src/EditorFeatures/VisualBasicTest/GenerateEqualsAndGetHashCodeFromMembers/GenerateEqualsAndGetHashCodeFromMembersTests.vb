@@ -765,5 +765,58 @@ index:=1)
     Private [|a|] As Integer
 End Class")
         End Function
+
+        <WorkItem(43290, "https://github.com/dotnet/roslyn/issues/43290")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestAbstractBase() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Namespace System
+    Public Class HashCode
+    End Class
+End Namespace
+
+MustInherit Class Base
+    Public MustOverride Overrides Function Equals(obj As Object) As Boolean
+    Public MustOverride Overrides Function GetHashCode() As Integer
+End Class
+
+Class Derived
+    Inherits Base
+
+    [|Public P As Integer|]
+End Class
+",
+"
+Imports System
+
+Namespace System
+    Public Class HashCode
+    End Class
+End Namespace
+
+MustInherit Class Base
+    Public MustOverride Overrides Function Equals(obj As Object) As Boolean
+    Public MustOverride Overrides Function GetHashCode() As Integer
+End Class
+
+Class Derived
+    Inherits Base
+
+    Public P As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim derived = TryCast(obj, Derived)
+        Return derived IsNot Nothing AndAlso
+               P = derived.P
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Return HashCode.Combine(P)
+    End Function
+End Class
+",
+index:=1)
+        End Function
     End Class
 End Namespace

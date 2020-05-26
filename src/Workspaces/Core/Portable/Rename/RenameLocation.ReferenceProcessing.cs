@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Text.RegularExpressions;
 using System.Collections.Immutable;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -405,6 +406,14 @@ namespace Microsoft.CodeAnalysis.Rename
                             results.Add(new RenameLocation(aliasLocation, solution.GetRequiredDocument(aliasLocation.SourceTree).Id));
                         }
                     }
+                    else if (location.ContainingStringLocation != Location.None)
+                    {
+                        // Location within a string
+                        results.Add(new RenameLocation(
+                            location.Location,
+                            location.Document.Id,
+                            containingLocationForStringOrComment: location.ContainingStringLocation.SourceSpan));
+                    }
                     else
                     {
                         // The simple case, so just the single location and we're done
@@ -537,10 +546,51 @@ namespace Microsoft.CodeAnalysis.Rename
                 return new Regex(matchString, RegexOptions.CultureInvariant);
             }
 
-            internal static string ReplaceMatchingSubStrings(string replaceInsideString, string matchText, string replacementText)
+            internal static string ReplaceMatchingSubStrings(
+                string replaceInsideString,
+                string matchText,
+                string replacementText,
+                ImmutableSortedSet<TextSpan>? subSpansToReplace = null)
             {
-                var regex = GetRegexForMatch(matchText);
-                return regex.Replace(replaceInsideString, replacementText);
+                if (subSpansToReplace == null)
+                {
+                    // We do not have already computed sub-spans to replace inside the string.
+                    // Get regex for matches within the string and replace all matches with replacementText.
+                    var regex = GetRegexForMatch(matchText);
+                    return regex.Replace(replaceInsideString, replacementText);
+                }
+                else
+                {
+                    // We are provided specific matches to replace inside the string.
+                    // Process the input string from start to end, replacing matchText with replacementText
+                    // at the provided sub-spans within the string for these matches.
+                    var stringBuilder = new StringBuilder();
+                    var startOffset = 0;
+                    foreach (var subSpan in subSpansToReplace)
+                    {
+                        Debug.Assert(subSpan.Start <= replaceInsideString.Length);
+                        Debug.Assert(subSpan.End <= replaceInsideString.Length);
+
+                        // Verify that provided sub-span has a match with matchText.
+                        if (replaceInsideString.Substring(subSpan.Start, subSpan.Length) != matchText)
+                            continue;
+
+                        // Append the sub-string from last match till the next match
+                        var offset = subSpan.Start - startOffset;
+                        stringBuilder.Append(replaceInsideString.Substring(startOffset, offset));
+
+                        // Append the replacementText
+                        stringBuilder.Append(replacementText);
+
+                        // Update startOffset to process the next match.
+                        startOffset += offset + subSpan.Length;
+                    }
+
+                    // Append the remaining of the sub-string within replaceInsideString after the last match. 
+                    stringBuilder.Append(replaceInsideString.Substring(startOffset));
+
+                    return stringBuilder.ToString();
+                }
             }
         }
     }
