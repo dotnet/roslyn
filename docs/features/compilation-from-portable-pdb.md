@@ -13,13 +13,21 @@ This document will provide the expanded specification to the Portable PDB format
 
 ## List of Compiler Flags
 
+#### CSharp Flags That Can Be Derived From PDB
+
+* checksumalgorithm
+* link
+    - Represented by a metadata reference with `EmbededInteropTypes=true` 
+* main
+    - Already stored in PDB as the entry point token
+* moduleassemblyname
+* modulename
+
 #### CSharp Flags Not Included
 
 * appconfig
 * baseaddress
 * bugreport
-* checksumalgorithm 
-    - Already stored in PDB for each source file
 * debug
 * delaysign
 * doc
@@ -34,15 +42,7 @@ This document will provide the expanded specification to the Portable PDB format
 * incremental
 * keycontainer
 * keyfile
-* link
-    - Represented by a metadata reference with `EmbededInteropTypes=true` 
 * linkresource
-* main
-    - Already stored in PDB as the entry point token
-* moduleassemblyname
-    - Stored in metadata 
-* modulename
-    - Stored in metadata
 * noconfig
 * nologo
 * nostdlib
@@ -72,12 +72,15 @@ This document will provide the expanded specification to the Portable PDB format
 * win32manifest
 * win32res
 
+#### Visual Basic Flags That Can Be Derived From PDB
+
+* checksumalgorithm
+* main 
+
 #### Visual Basic Flags Not Included
 
 * baseaddress
 * bugreport
-* checksumalgorithm
-    - already stored in PDB for each source file
 * debug
 * delaysign
 * doc
@@ -89,8 +92,6 @@ This document will provide the expanded specification to the Portable PDB format
 * keyfile
 * libpath
 * linkresource
-* main
-    - already included in PDB information
 * moduleassemblyname
 * modulename
 * netcf
@@ -169,6 +170,7 @@ Aliases: UTF-8 Comma (, ) separate list of aliases (null terminated). May be emp
 MetadataImageKind: byte value representing Microsoft. CodeAnalysis. MetadataImageKind
 
 EmbedInteropTypes/MetadataImageKind: byte, reads as binary values starting in order from right to left
+
     
     MetadataImageKind: 1 if Assembly, 0 if Module
     EmbedInteropTypes: 1 if true
