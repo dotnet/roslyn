@@ -105,6 +105,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveInKey
 }");
         }
 
+        [Fact]
+        public async Task TestDontRemoveInKeyword()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    void M(in int i) { }
+    void N(int i)
+    {
+        M(in [|i|]);
+    }
+}");
+        }
+
         [Theory]
         [InlineData("in    [|i|]", "i")]
         [InlineData("  in  [|i|]", "  i")]
