@@ -472,8 +472,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             if (_referenceSpanToLinkedRenameSpanMap.ContainsKey(replacement.OriginalSpan) && kind != RenameSpanKind.Complexified)
                             {
                                 var linkedRenameSpan = _session._renameInfo.GetConflictEditSpan(
-                                    new InlineRenameLocation(newDocument, replacement.NewSpan), GetTriggerText(newDocument, replacement.NewSpan),
-                                    GetWithoutAttributeSuffix(_session.ReplacementText,
+                                     new InlineRenameLocation(newDocument, replacement.NewSpan), GetTriggerText(newDocument, replacement.NewSpan),
+                                     GetWithoutAttributeSuffix(_session.ReplacementText,
                                         document.GetLanguageService<LanguageServices.ISyntaxFactsService>().IsCaseSensitive), cancellationToken);
 
                                 if (linkedRenameSpan.HasValue)

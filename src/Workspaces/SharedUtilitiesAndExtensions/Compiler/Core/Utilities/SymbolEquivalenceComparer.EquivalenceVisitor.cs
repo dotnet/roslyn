@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 {
                     SymbolKind.ArrayType => ArrayTypesAreEquivalent((IArrayTypeSymbol)x, (IArrayTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Assembly => AssembliesAreEquivalent((IAssemblySymbol)x, (IAssemblySymbol)y),
-                    SymbolKind.DynamicType => DynamicTypesAreEquivalent((IDynamicTypeSymbol)x, (IDynamicTypeSymbol)y),
+                    SymbolKind.DynamicType => true,
                     SymbolKind.Event => EventsAreEquivalent((IEventSymbol)x, (IEventSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Field => FieldsAreEquivalent((IFieldSymbol)x, (IFieldSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Label => LabelsAreEquivalent((ILabelSymbol)x, (ILabelSymbol)y),
@@ -156,9 +156,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private bool AssembliesAreEquivalent(IAssemblySymbol x, IAssemblySymbol y)
                 => _symbolEquivalenceComparer._assemblyComparerOpt?.Equals(x, y) ?? true;
 
-            private bool DynamicTypesAreEquivalent(IDynamicTypeSymbol x, IDynamicTypeSymbol y)
-                => true;
-
             private bool FieldsAreEquivalent(IFieldSymbol x, IFieldSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
                 return
@@ -167,14 +164,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool LabelsAreEquivalent(ILabelSymbol x, ILabelSymbol y)
+            private static bool LabelsAreEquivalent(ILabelSymbol x, ILabelSymbol y)
             {
                 return
                     x.Name == y.Name &&
                     HaveSameLocation(x, y);
             }
 
-            private bool LocalsAreEquivalent(ILocalSymbol x, ILocalSymbol y)
+            private static bool LocalsAreEquivalent(ILocalSymbol x, ILocalSymbol y)
                 => HaveSameLocation(x, y);
 
             private bool MethodsAreEquivalent(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
@@ -251,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return TypeArgumentsAreEquivalent(x.TypeArguments, y.TypeArguments, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool AreCompatibleMethodKinds(MethodKind kind1, MethodKind kind2)
+            private static bool AreCompatibleMethodKinds(MethodKind kind1, MethodKind kind2)
             {
                 if (kind1 == kind2)
                 {
@@ -609,10 +606,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool RangeVariablesAreEquivalent(IRangeVariableSymbol x, IRangeVariableSymbol y)
+            private static bool RangeVariablesAreEquivalent(IRangeVariableSymbol x, IRangeVariableSymbol y)
                 => HaveSameLocation(x, y);
 
-            private bool PreprocessingSymbolsAreEquivalent(IPreprocessingSymbol x, IPreprocessingSymbol y)
+            private static bool PreprocessingSymbolsAreEquivalent(IPreprocessingSymbol x, IPreprocessingSymbol y)
                 => x.Name == y.Name;
         }
     }

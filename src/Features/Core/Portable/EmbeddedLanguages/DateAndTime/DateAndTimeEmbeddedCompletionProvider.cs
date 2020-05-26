@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             context.IsExclusive = true;
         }
 
-        private void ProvideStandardFormats(EmbeddedCompletionContext context)
+        private static void ProvideStandardFormats(EmbeddedCompletionContext context)
         {
             context.AddStandard("d", FeaturesResources.short_date, FeaturesResources.short_date_description);
             context.AddStandard("D", FeaturesResources.long_date, FeaturesResources.long_date_description);
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             context.AddStandard("Y", FeaturesResources.year_month, FeaturesResources.year_month_description);
         }
 
-        private void ProvideCustomFormats(EmbeddedCompletionContext context)
+        private static void ProvideCustomFormats(EmbeddedCompletionContext context)
         {
             context.AddCustom("d", FeaturesResources.day_of_the_month_1_2_digits, FeaturesResources.day_of_the_month_1_2_digits_description);
             context.AddCustom("dd", FeaturesResources.day_of_the_month_2_digits, FeaturesResources.day_of_the_month_2_digits_description);

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken)
-            => CanAddTo(destination, solution, cancellationToken, out var availableIndices);
+            => CanAddTo(destination, solution, cancellationToken, out _);
 
         private bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken,
             out IList<bool> availableIndices, bool checkGeneratedCode = false)

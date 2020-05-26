@@ -13,17 +13,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal sealed partial class ServiceHubRemoteHostClient
     {
-        private partial class ConnectionManager
+        private partial class ConnectionPool
         {
             private class PooledConnection : Connection
             {
-                private readonly ConnectionManager _connectionManager;
-                private readonly string _serviceName;
-                private readonly JsonRpcConnection _connection;
+                private readonly ConnectionPool _pool;
+                private readonly RemoteServiceName _serviceName;
+                private readonly Connection _connection;
 
-                public PooledConnection(ConnectionManager pools, string serviceName, JsonRpcConnection connection)
+                public PooledConnection(ConnectionPool pool, RemoteServiceName serviceName, Connection connection)
                 {
-                    _connectionManager = pools;
+                    _pool = pool;
                     _serviceName = serviceName;
                     _connection = connection;
                 }
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 protected override void DisposeImpl()
                 {
-                    _connectionManager.Free(_serviceName, _connection);
+                    _pool.Free(_serviceName, _connection);
                     base.DisposeImpl();
                 }
             }

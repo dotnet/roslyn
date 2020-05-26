@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpRemoveUnnecessaryParenthesesCodeFixProvider :
-        AbstractRemoveUnnecessaryParenthesesCodeFixProvider<ParenthesizedExpressionSyntax>
+        AbstractRemoveUnnecessaryParenthesesCodeFixProvider<SyntaxNode>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -20,10 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
         {
         }
 
-        protected override bool CanRemoveParentheses(ParenthesizedExpressionSyntax current, SemanticModel semanticModel)
-        {
-            return CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(
-                current, semanticModel, out _, out _);
-        }
+        protected override bool CanRemoveParentheses(SyntaxNode current, SemanticModel semanticModel)
+            => current switch
+            {
+                ParenthesizedExpressionSyntax p => CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, semanticModel, out _, out _),
+#if !CODE_STYLE
+                ParenthesizedPatternSyntax p => CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer.CanRemoveParenthesesHelper(p, out _, out _),
+#endif
+                _ => false,
+            };
     }
 }

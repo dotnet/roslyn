@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 builder.Add(new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, alt));
                 builder.Add(rewrittenConsequence);
+                builder.Add(BoundSequencePoint.CreateHidden());
                 builder.Add(new BoundGotoStatement(syntax, afterif));
                 builder.Add(new BoundLabelStatement(syntax, alt));
                 builder.Add(rewrittenAlternativeOpt);

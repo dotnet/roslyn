@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return root.ReplaceNode(outerIfOrElseIf, newIfOrElseIf.WithAdditionalAnnotations(Formatter.Annotation));
         }
 
-        private bool IsFirstStatementOfIfOrElseIf(
+        private static bool IsFirstStatementOfIfOrElseIf(
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode statement,
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return false;
         }
 
-        private bool IsFirstStatementIfStatement(
+        private static bool IsFirstStatementIfStatement(
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifOrElseIf,
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return false;
         }
 
-        private async Task<bool> CanBeMergedAsync(
+        private static async Task<bool> CanBeMergedAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             }
         }
 
-        private bool IsElseIfOrElseClauseEquivalent(
+        private static bool IsElseIfOrElseClauseEquivalent(
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode elseIfOrElseClause1,

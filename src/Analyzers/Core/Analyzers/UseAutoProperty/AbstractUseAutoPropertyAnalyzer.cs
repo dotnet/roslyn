@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var setMethod = property.SetMethod;
             if (setMethod != null)
             {
-                var setterField = GetSetterField(semanticModel, containingType, setMethod, cancellationToken);
+                var setterField = GetSetterField(semanticModel, setMethod, cancellationToken);
                 if (setterField != getterField)
                 {
                     // If there is a getter and a setter, they both need to agree on which field they are 
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             => true;
 
         private IFieldSymbol GetSetterField(
-            SemanticModel semanticModel, ISymbol containingType, IMethodSymbol setMethod, CancellationToken cancellationToken)
+            SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken)
         {
             return CheckFieldAccessExpression(semanticModel, GetSetterExpression(setMethod, semanticModel, cancellationToken));
         }
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken));
         }
 
-        private IFieldSymbol CheckFieldAccessExpression(SemanticModel semanticModel, TExpression expression)
+        private static IFieldSymbol CheckFieldAccessExpression(SemanticModel semanticModel, TExpression expression)
         {
             if (expression == null)
             {

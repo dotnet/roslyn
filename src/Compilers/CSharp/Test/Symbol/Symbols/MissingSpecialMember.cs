@@ -2148,12 +2148,12 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__op_Equality);
             compilation.VerifyEmitDiagnostics(
-                // (13,13): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                // (13,18): error CS0656: Missing compiler required member 'System.String.op_Equality'
                 //             case "hmm":
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""hmm"":").WithArguments("System.String", "op_Equality").WithLocation(13, 13),
-                // (33,13): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""hmm""").WithArguments("System.String", "op_Equality").WithLocation(13, 18),
+                // (33,18): error CS0656: Missing compiler required member 'System.String.op_Equality'
                 //             case "baz":
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""baz"":").WithArguments("System.String", "op_Equality").WithLocation(33, 13)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""baz""").WithArguments("System.String", "op_Equality").WithLocation(33, 18)
                 );
         }
 
@@ -2247,9 +2247,9 @@ struct X
                 // (9,13): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //     switch (x)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 13),
-                // (14,7): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                // (14,12): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //       case 1:
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "case 1:").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(14, 7)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(14, 12)
                 );
         }
 

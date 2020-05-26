@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         project.Solution, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     var symbols = await info.FindAsync(
-                            query, assembly, project.Id, filter, cancellationToken).ConfigureAwait(false);
+                            query, assembly, filter, cancellationToken).ConfigureAwait(false);
                     list.AddRange(symbols);
                 }
             }

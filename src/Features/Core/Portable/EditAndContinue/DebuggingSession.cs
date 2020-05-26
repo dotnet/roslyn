@@ -22,10 +22,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </summary>
     internal sealed class DebuggingSession : IDisposable
     {
-        public readonly Workspace Workspace;
-        public readonly IActiveStatementProvider ActiveStatementProvider;
-        public readonly IDebuggeeModuleMetadataProvider DebugeeModuleMetadataProvider;
-
         private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
         private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
 
@@ -38,7 +34,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// The current baseline for given project id.
         /// The baseline is updated when changes are committed at the end of edit session.
-        /// The backing module readers of some baselines need to be kept alive -- store them in 
+        /// The backing module readers of some baselines need to be kept alive -- store them in
         /// <see cref="_lazyBaselineModuleReaders"/> and dispose them at the end of the debugging session
         /// </summary>
         private readonly Dictionary<ProjectId, EmitBaseline> _projectEmitBaselines;
@@ -62,9 +58,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // The returned statements reflect the current state of the threads in the runtime.
         // When a change is successfully applied we remember changes in active statement spans.
         // These changes are passed to the next edit session.
-        // We use them to map the spans for active statements returned by the debugger. 
-        // 
-        // In the above case the sequence of events is 
+        // We use them to map the spans for active statements returned by the debugger.
+        //
+        // In the above case the sequence of events is
         // 1st break: get active statements returns (F, v=1, il=1, span1) the active statement is up-to-date
         // 1st apply: detected span change for active statement (F, v=1, il=1): span1->span2
         // 2nd break: previously updated statements contains (F, v=1, il=1)->span2
@@ -86,27 +82,30 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly CommittedSolution LastCommittedSolution;
 
         internal DebuggingSession(
-            Workspace workspace,
-            IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider,
-            IActiveStatementProvider activeStatementProvider,
+            Solution solution,
             Func<Project, CompilationOutputs> compilationOutputsProvider)
         {
-            Workspace = workspace;
-            DebugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
             _compilationOutputsProvider = compilationOutputsProvider;
             _projectModuleIds = new Dictionary<ProjectId, (Guid, Diagnostic)>();
             _projectEmitBaselines = new Dictionary<ProjectId, EmitBaseline>();
             _modulesPreparedForUpdate = new HashSet<Guid>();
 
-            ActiveStatementProvider = activeStatementProvider;
-
-            LastCommittedSolution = new CommittedSolution(this, workspace.CurrentSolution);
+            LastCommittedSolution = new CommittedSolution(this, solution);
             NonRemappableRegions = ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
         }
 
         // test only
         internal void Test_SetNonRemappableRegions(ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
             => NonRemappableRegions = nonRemappableRegions;
+
+        // test only
+        internal ImmutableHashSet<Guid> Test_GetModulesPreparedForUpdate()
+        {
+            lock (_modulesPreparedForUpdateGuard)
+            {
+                return _modulesPreparedForUpdate.ToImmutableHashSet();
+            }
+        }
 
         // test only
         internal EmitBaseline Test_GetProjectEmitBaseline(ProjectId id)
@@ -142,17 +141,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal CompilationOutputs GetCompilationOutputs(Project project)
             => _compilationOutputsProvider(project);
 
-        internal void PrepareModuleForUpdate(Guid mvid)
+        internal bool AddModulePreparedForUpdate(Guid mvid)
         {
             lock (_modulesPreparedForUpdateGuard)
             {
-                if (!_modulesPreparedForUpdate.Add(mvid))
-                {
-                    return;
-                }
+                return _modulesPreparedForUpdate.Add(mvid);
             }
-
-            DebugeeModuleMetadataProvider.PrepareModuleForUpdate(mvid);
         }
 
         public void CommitSolutionUpdate(PendingSolutionUpdate update)
@@ -247,7 +241,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         /// <returns>Null if the module corresponding to he project hasn't been loaded yet</returns>
         /// <exception cref="IOException">Error reading project's binary.</exception>
-        public EmitBaseline? GetOrCreateEmitBaseline(ProjectId projectId, Guid mvid)
+        public EmitBaseline? GetOrCreateEmitBaseline(ProjectId projectId, Guid mvid, IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider)
         {
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA, "SymReader requires MTA");
 
@@ -260,7 +254,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            var moduleInfo = DebugeeModuleMetadataProvider.TryGetBaselineModuleInfo(mvid);
+            var moduleInfo = debugeeModuleMetadataProvider.TryGetBaselineModuleInfo(mvid);
             if (moduleInfo == null)
             {
                 // Module not loaded.

@@ -207,20 +207,20 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
         }
 
-        private IEnumerable<TSymbol> TryFindMembersInThisOrBaseTypes<TSymbol>(
+        private static IEnumerable<TSymbol> TryFindMembersInThisOrBaseTypes<TSymbol>(
             INamedTypeSymbol containingType, ITypeSymbol type, string memberName) where TSymbol : class, ISymbol
         {
             var methods = type.GetAccessibleMembersInThisAndBaseTypes<TSymbol>(containingType);
             return methods.Where(m => m.Name == memberName);
         }
 
-        private TSymbol TryFindMemberInThisOrBaseTypes<TSymbol>(
+        private static TSymbol TryFindMemberInThisOrBaseTypes<TSymbol>(
             INamedTypeSymbol containingType, ITypeSymbol type, string memberName) where TSymbol : class, ISymbol
         {
             return TryFindMembersInThisOrBaseTypes<TSymbol>(containingType, type, memberName).FirstOrDefault();
         }
 
-        private bool TryGetIterationElementType(
+        private static bool TryGetIterationElementType(
             INamedTypeSymbol containingType, ITypeSymbol collectionType,
             INamedTypeSymbol ienumerableType, INamedTypeSymbol ienumeratorType,
             out ITypeSymbol iterationType)
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             return false;
         }
 
-        private bool TryGetIterationElementTypeFromGetEnumerator(
+        private static bool TryGetIterationElementTypeFromGetEnumerator(
             INamedTypeSymbol containingType, IMethodSymbol getEnumeratorMethod,
             INamedTypeSymbol ienumeratorType, out ITypeSymbol iterationType)
         {

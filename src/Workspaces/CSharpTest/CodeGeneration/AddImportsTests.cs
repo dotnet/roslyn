@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     [UseExportProvider]
     public class AddImportsTests
     {
-        private async Task<Document> GetDocument(string code, bool withAnnotations)
+        private static async Task<Document> GetDocument(string code, bool withAnnotations)
         {
             var ws = new AdhocWorkspace();
             var emptyProject = ws.AddProject(
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             return doc;
         }
 
-        private async Task TestAsync(string initialText, string importsAddedText, string simplifiedText, bool safe, bool useSymbolAnnotations, Func<OptionSet, OptionSet> optionsTransform = null)
+        private static async Task TestAsync(string initialText, string importsAddedText, string simplifiedText, bool safe, bool useSymbolAnnotations, Func<OptionSet, OptionSet> optionsTransform = null)
         {
             var doc = await GetDocument(initialText, useSymbolAnnotations);
             OptionSet options = await doc.GetOptionsAsync();

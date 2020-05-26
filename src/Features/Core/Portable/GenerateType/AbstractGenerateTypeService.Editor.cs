@@ -223,11 +223,11 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return namespaceToGenerateInto;
             }
 
-            private string AddGlobalDotToTheNamespace(string namespaceToBeGenerated)
+            private static string AddGlobalDotToTheNamespace(string namespaceToBeGenerated)
                 => "Global." + namespaceToBeGenerated;
 
             // Returns the length of the meaningful rootNamespace substring part of namespaceToGenerateInto
-            private int CheckIfRootNamespacePresentInNamespace(string namespaceToGenerateInto, string rootNamespace)
+            private static int CheckIfRootNamespacePresentInNamespace(string namespaceToGenerateInto, string rootNamespace)
             {
                 if (namespaceToGenerateInto == rootNamespace)
                 {
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return -1;
             }
 
-            private void AddFoldersToNamespaceContainers(List<string> container, IList<string> folders)
+            private static void AddFoldersToNamespaceContainers(List<string> container, IList<string> folders)
             {
                 // Add the folder as part of the namespace if there are not empty
                 if (folders != null && folders.Count != 0)
@@ -537,7 +537,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private async Task<IEnumerable<CodeActionOperation>> GetGenerateIntoTypeOperationsAsync(INamedTypeSymbol namedType)
             {
-                var codeGenService = GetCodeGenerationService();
                 var solution = _semanticDocument.Project.Solution;
                 var codeGenResult = await CodeGenerator.AddNamedTypeDeclarationAsync(
                     solution,
@@ -561,14 +560,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 var compilation = _semanticDocument.SemanticModel.Compilation;
                 return typeSymbol.RemoveUnnamedErrorTypes(compilation);
-            }
-
-            private ICodeGenerationService GetCodeGenerationService()
-            {
-                var language = _state.TypeToGenerateInOpt == null
-                    ? _state.SimpleName.Language
-                    : _state.TypeToGenerateInOpt.Language;
-                return _semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(language).GetService<ICodeGenerationService>();
             }
 
             private bool TryFindMatchingField(

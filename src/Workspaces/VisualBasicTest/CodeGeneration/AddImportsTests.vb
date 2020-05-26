@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
     End Class
 End NameSpace"
 
-        Private Async Function GetDocument(code As String, withAnnotations As Boolean, Optional globalImports As String() = Nothing) As Task(Of Document)
+        Private Shared Async Function GetDocument(code As String, withAnnotations As Boolean, Optional globalImports As String() = Nothing) As Task(Of Document)
             Dim ws As AdhocWorkspace = New AdhocWorkspace()
             Dim project As Project = ws.AddProject(
                 ProjectInfo.Create(
@@ -60,7 +60,7 @@ End NameSpace"
             Return doc
         End Function
 
-        Private Async Function TestAsync(initialText As String, importsAddedText As String, simplifiedText As String, safe As Boolean, useSymbolAnnotations As Boolean, Optional optionsTransform As Func(Of OptionSet, OptionSet) = Nothing, Optional globalImports As String() = Nothing) As Task
+        Private Shared Async Function TestAsync(initialText As String, importsAddedText As String, simplifiedText As String, safe As Boolean, useSymbolAnnotations As Boolean, Optional optionsTransform As Func(Of OptionSet, OptionSet) = Nothing, Optional globalImports As String() = Nothing) As Task
 
             Dim doc = Await GetDocument(initialText, useSymbolAnnotations, globalImports)
             Dim options = doc.Project.Solution.Workspace.Options

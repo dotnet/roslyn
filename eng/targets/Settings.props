@@ -17,14 +17,12 @@
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
     <RoslynPortableTargetFrameworks>netcoreapp3.1;net472</RoslynPortableTargetFrameworks>
-    <RoslynCheckCodeStyle Condition="'$(ContinuousIntegrationBuild)' != 'true' or '$(RoslynEnforceCodeStyle)' == 'true'">true</RoslynCheckCodeStyle>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <Features>strict, IOperation</Features>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GenerateFullPaths>true</GenerateFullPaths>
-    <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
     <!-- Set to non-existent file to prevent common targets from importing Microsoft.CodeAnalysis.targets -->
     <CodeAnalysisTargets>NON_EXISTENT_FILE</CodeAnalysisTargets>
@@ -149,14 +147,14 @@
 
   <!-- Language-specific analyzer packages -->
   <Choose>
-    <When Condition="'$(Language)' == 'VB' and '$(RoslynCheckCodeStyle)' == 'true'">
-      <ItemGroup>
+    <When Condition="'$(Language)' == 'VB'">
+      <ItemGroup Condition="'$(RoslynCheckCodeStyle)' == 'true'">
         <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(MicrosoftCodeAnalysisVisualBasicCodeStyleVersion)" PrivateAssets="all" />
       </ItemGroup>
     </When>
 
-    <When Condition="'$(Language)' == 'C#' and '$(RoslynCheckCodeStyle)' == 'true'">
-      <ItemGroup>
+    <When Condition="'$(Language)' == 'C#'">
+      <ItemGroup Condition="'$(RoslynCheckCodeStyle)' == 'true'">
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(MicrosoftCodeAnalysisCSharpCodeStyleVersion)" PrivateAssets="all" />
       </ItemGroup>
     </When>

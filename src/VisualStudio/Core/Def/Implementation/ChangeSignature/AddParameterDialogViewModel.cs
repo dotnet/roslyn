@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Windows;
 using Microsoft.CodeAnalysis;
@@ -122,35 +123,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
         }
 
-        internal bool TrySubmit()
+        internal bool CanSubmit([NotNullWhen(false)] out string? message)
         {
             if (string.IsNullOrEmpty(VerbatimTypeName) || string.IsNullOrEmpty(ParameterName))
             {
-                SendFailureNotification(ServicesVSResources.A_type_and_name_must_be_provided);
+                message = ServicesVSResources.A_type_and_name_must_be_provided;
                 return false;
             }
 
             if (!IsParameterTypeSyntacticallyValid(VerbatimTypeName))
             {
-                SendFailureNotification(ServicesVSResources.Parameter_type_contains_invalid_characters);
+                message = ServicesVSResources.Parameter_type_contains_invalid_characters;
                 return false;
             }
 
             if (!IsParameterNameValid(ParameterName))
             {
-                SendFailureNotification(ServicesVSResources.Parameter_name_contains_invalid_characters);
+                message = ServicesVSResources.Parameter_name_contains_invalid_characters;
                 return false;
             }
 
             if (IsCallsiteRegularValue && CallSiteValue.IsNullOrWhiteSpace())
             {
-                SendFailureNotification(ServicesVSResources.Enter_a_call_site_value_or_choose_a_different_value_injection_kind);
+                message = ServicesVSResources.Enter_a_call_site_value_or_choose_a_different_value_injection_kind;
                 return false;
             }
 
             if (IsOptional && DefaultValue.IsNullOrWhiteSpace())
             {
-                SendFailureNotification(ServicesVSResources.Optional_parameters_must_provide_a_default_value);
+                message = ServicesVSResources.Optional_parameters_must_provide_a_default_value;
+                return false;
+            }
+
+            message = null;
+            return true;
+        }
+
+        internal bool TrySubmit()
+        {
+            if (!CanSubmit(out var message))
+            {
+                SendFailureNotification(message);
                 return false;
             }
 
