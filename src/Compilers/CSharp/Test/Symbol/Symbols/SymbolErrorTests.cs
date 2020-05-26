@@ -12568,19 +12568,13 @@ public partial class C
     public partial void M<T>() where T : IA<T>;
     public partial void M<T>() where T : IA<T> { }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
                 // (6,44): error CS07: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
                 //     public partial class B<T, U> where U : IB<U, IA<T>> { }
                 Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(6, 44),
                 // (7,44): error CS07: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
                 //     public partial class B<T, U> where U : IB<U, IA<T>> { }
                 Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(7, 44),
-                // (11,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                //     public partial void M<T>() where T : IA<T>;
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M").WithLocation(11, 25),
-                // (12,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                //     public partial void M<T>() where T : IA<T> { }
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M").WithLocation(12, 25),
                 // (11,42): error CS07: Inconsistent accessibility: constraint type 'IA<T>' is less accessible than 'C.M<T>()'
                 //     public partial void M<T>() where T : IA<T>;
                 Diagnostic(ErrorCode.ERR_BadVisBound, "IA<T>").WithArguments("C.M<T>()", "IA<T>").WithLocation(11, 42),
@@ -13521,29 +13515,49 @@ public partial class C : Base
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (19,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartA"),
-                // (20,26): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartB"),
-                // (21,28): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartC"),
-                // (22,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartD"),
-                // (23,26): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartE"),
-                // (24,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartF"),
-                // (25,27): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartG"),
-                // (26,22): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartH"),
-                // (274): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartI"),
-                // (29,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartJ"),
+            CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
+                // (19,25): error CS8793: Partial method 'C.PartA()' must have an implementation part because it has accessibility modifiers.
+                //     public partial void PartA();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartA").WithArguments("C.PartA()").WithLocation(19, 25),
+                // (20,26): error CS8793: Partial method 'C.PartB()' must have an implementation part because it has accessibility modifiers.
+                //     private partial void PartB();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartB").WithArguments("C.PartB()").WithLocation(20, 26),
+                // (21,28): error CS8793: Partial method 'C.PartC()' must have an implementation part because it has accessibility modifiers.
+                //     protected partial void PartC();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartC").WithArguments("C.PartC()").WithLocation(21, 28),
+                // (22,27): error CS8793: Partial method 'C.PartD()' must have an implementation part because it has accessibility modifiers.
+                //     internal partial void PartD();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "PartD").WithArguments("C.PartD()").WithLocation(22, 27),
+                // (29,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.PartJ()'
+                //     extern partial void PartJ();
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "PartJ").WithArguments("C.PartJ()").WithLocation(29, 25),
+                // (23,26): error CS8796: Partial method 'C.PartE()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                //     virtual partial void PartE();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartE").WithArguments("C.PartE()").WithLocation(23, 26),
+                // (24,27): error CS0750: A partial method cannot have the 'abstract' modifier
+                //     abstract partial void PartF();
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartF").WithLocation(24, 27),
+                // (25,27): error CS8796: Partial method 'C.PartG()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                //     override partial void PartG();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartG").WithArguments("C.PartG()").WithLocation(25, 27),
+                // (26,22): error CS8796: Partial method 'C.PartH()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                //     new partial void PartH();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartH").WithArguments("C.PartH()").WithLocation(26, 22),
+                // (27,34): error CS8796: Partial method 'C.PartI()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                //     sealed override partial void PartI();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartI").WithArguments("C.PartI()").WithLocation(27, 34),
+                // (29,25): error CS8796: Partial method 'C.PartJ()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
+                //     extern partial void PartJ();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartJ").WithArguments("C.PartJ()").WithLocation(29, 25),
+                // (25,27): error CS0507: 'C.PartG()': cannot change access modifiers when overriding 'protected' inherited member 'Base.PartG()'
+                //     override partial void PartG();
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "PartG").WithArguments("C.PartG()", "protected", "Base.PartG()").WithLocation(25, 27),
+                // (27,34): error CS0507: 'C.PartI()': cannot change access modifiers when overriding 'protected' inherited member 'Base.PartI()'
+                //     sealed override partial void PartI();
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "PartI").WithArguments("C.PartI()", "protected", "Base.PartI()").WithLocation(27, 34),
                 // (28,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
-                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "System.Runtime.InteropServices.DllImport"));
+                //     [System.Runtime.InteropServices.DllImport("none")]
+                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "System.Runtime.InteropServices.DllImport").WithLocation(28, 6));
         }
 
         [Fact]
@@ -13577,11 +13591,10 @@ namespace NS
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodCannotHaveOutParameters, Line = 7, Column = 22 });
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
+            CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
+                // (7,22): error CS8795: Partial method 'C.F(out int)' must have accessibility modifiers because it has 'out' parameters.
+                //         partial void F(out int x);
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "F").WithArguments("NS.C.F(out int)").WithLocation(7, 22));
         }
 
         [Fact]
@@ -13671,7 +13684,10 @@ public partial class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (5,18): error CS0756: A partial method may not have multiple defining declarations
                 //     partial void Part(); // CS0756
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "Part").WithLocation(5, 18));
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "Part").WithLocation(5, 18),
+                // (5,18): error CS0111: Type 'C' already defines a member called 'Part' with the same parameter types
+                //     partial void Part(); // CS0756
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Part").WithArguments("Part", "C").WithLocation(5, 18));
         }
 
         [Fact]
@@ -13957,8 +13973,8 @@ namespace N
 
 public partial class C
 {
-    partial int Part(); // CS0766
-    partial int Part() //CS0766
+    partial int Part();
+    partial int Part()
     {
         return 1;
     }
@@ -13970,9 +13986,13 @@ public partial class C
 
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodMustReturnVoid, Line = 5, Column = 17 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodMustReturnVoid, Line = 6, Column = 17 });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (5,17): error CS8794: Partial method 'C.Part()' must have accessibility modifiers because it has a non-void return type.
+                //     partial int Part();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "Part").WithArguments("C.Part()").WithLocation(5, 17),
+                // (6,17): error CS8794: Partial method 'C.Part()' must have accessibility modifiers because it has a non-void return type.
+                //     partial int Part()
+                Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "Part").WithArguments("C.Part()").WithLocation(6, 17));
         }
 
         [Fact]
@@ -20498,11 +20518,11 @@ partial class C {
     partial void M(int i);
     partial void M(out int i) { i = 0; }  
 }").VerifyDiagnostics(
-                // (4,18): error CS0752: A partial method cannot have out parameters
-                //     partial void M(out int i) { i = 0; }  
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(4, 18),
+                // (4,18): error CS8795: Partial method 'C.M(out int)' must have accessibility modifiers because it has 'out' parameters.
+                //     partial void M(out int i) { i = 0; }
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(4, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(out int)'
-                //     partial void M(out int i) { i = 0; }  
+                //     partial void M(out int i) { i = 0; }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(out int)").WithLocation(4, 18));
         }
 
@@ -20525,7 +20545,7 @@ partial class C {
             CreateCompilation(@"
 partial class C {
     partial void M(ref int i);
-    partial void M(in int i) {}  
+    partial void M(in int i) {}
 }").VerifyDiagnostics(
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(in int)'
                 //     partial void M(in int i) {}  
@@ -20538,13 +20558,13 @@ partial class C {
             CreateCompilation(@"
 partial class C {
     partial void M(ref int i);
-    partial void M(out int i) { i = 0; }  
+    partial void M(out int i) { i = 0; }
 }").VerifyDiagnostics(
-                // (4,18): error CS0752: A partial method cannot have out parameters
-                //     partial void M(out int i) { i = 0; }  
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(4, 18),
+                // (4,18): error CS8795: Partial method 'C.M(out int)' must have accessibility modifiers because it has 'out' parameters.
+                //     partial void M(out int i) { i = 0; }
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(4, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(out int)'
-                //     partial void M(out int i) { i = 0; }  
+                //     partial void M(out int i) { i = 0; }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(out int)").WithLocation(4, 18));
         }
 
@@ -20582,11 +20602,11 @@ partial class C {
     partial void M(in int i);
     partial void M(out int i) { i = 0; }  
 }").VerifyDiagnostics(
-                // (4,18): error CS0752: A partial method cannot have out parameters
-                //     partial void M(out int i) { i = 0; }  
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(4, 18),
+                // (4,18): error CS8795: Partial method 'C.M(out int)' must have accessibility modifiers because it has 'out' parameters.
+                //     partial void M(out int i) { i = 0; }
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(4, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(out int)'
-                //     partial void M(out int i) { i = 0; }  
+                //     partial void M(out int i) { i = 0; }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(out int)").WithLocation(4, 18));
         }
 
@@ -20598,9 +20618,9 @@ partial class C {
     partial void M(out int i);
     partial void M(int i) {}  
 }").VerifyDiagnostics(
-                // (3,18): error CS0752: A partial method cannot have out parameters
+                // (3,18): error CS8794: Partial method C.M(out int) must have an implementation part because it has 'out' parameters.
                 //     partial void M(out int i);
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(3, 18),
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(3, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(int)'
                 //     partial void M(int i) {}  
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(int)").WithLocation(4, 18));
@@ -20612,13 +20632,13 @@ partial class C {
             CreateCompilation(@"
 partial class C {
     partial void M(out int i);
-    partial void M(ref int i) {}  
+    partial void M(ref int i) {}
 }").VerifyDiagnostics(
-                // (3,18): error CS0752: A partial method cannot have out parameters
+                // (3,18): error CS8794: Partial method C.M(out int) must have an implementation part because it has 'out' parameters.
                 //     partial void M(out int i);
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(3, 18),
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(3, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(ref int)'
-                //     partial void M(ref int i) {}  
+                //     partial void M(ref int i) {}
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(ref int)").WithLocation(4, 18));
         }
 
@@ -20630,9 +20650,9 @@ partial class C {
     partial void M(out int i);
     partial void M(in int i) {}  
 }").VerifyDiagnostics(
-                // (3,18): error CS0752: A partial method cannot have out parameters
+                // (3,18): error CS8794: Partial method C.M(out int) must have an implementation part because it has 'out' parameters.
                 //     partial void M(out int i);
-                Diagnostic(ErrorCode.ERR_PartialMethodCannotHaveOutParameters, "M").WithLocation(3, 18),
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "M").WithArguments("C.M(out int)").WithLocation(3, 18),
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(in int)'
                 //     partial void M(in int i) {}  
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(in int)").WithLocation(4, 18));

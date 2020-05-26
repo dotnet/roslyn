@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
+#pragma warning disable IDE0060 // Remove unused parameter - Majority of extension methods in this file have an unused 'SyntaxTree' this parameter for consistency with other Context related extension methods.
+
 namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal static partial class SyntaxTreeExtensions
@@ -968,7 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
-            var symbols = semanticModelOpt.LookupName(nameToken, namespacesAndTypesOnly: SyntaxFacts.IsInNamespaceOrTypeContext(name), cancellationToken: cancellationToken);
+            var symbols = semanticModelOpt.LookupName(nameToken, cancellationToken);
             return symbols.Any(s =>
             {
                 switch (s)

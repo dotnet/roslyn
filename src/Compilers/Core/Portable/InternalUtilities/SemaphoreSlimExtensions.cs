@@ -25,6 +25,7 @@ namespace Roslyn.Utilities
             return new SemaphoreDisposer(semaphore);
         }
 
+        [NonCopyable]
         internal struct SemaphoreDisposer : IDisposable
         {
             private readonly SemaphoreSlim _semaphore;

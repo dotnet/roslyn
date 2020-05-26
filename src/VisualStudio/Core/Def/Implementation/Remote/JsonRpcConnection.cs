@@ -11,31 +11,32 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal class JsonRpcConnection : RemoteHostClient.Connection
     {
-        private readonly Workspace _workspace;
+        private readonly HostWorkspaceServices _services;
 
         // communication channel related to service information
         private readonly RemoteEndPoint _serviceEndPoint;
 
         public JsonRpcConnection(
-            Workspace workspace,
+            HostWorkspaceServices services,
             TraceSource logger,
             object? callbackTarget,
             Stream serviceStream)
         {
-            _workspace = workspace;
+            _services = services;
             _serviceEndPoint = new RemoteEndPoint(serviceStream, logger, callbackTarget);
             _serviceEndPoint.UnexpectedExceptionThrown += UnexpectedExceptionThrown;
             _serviceEndPoint.StartListening();
         }
 
         private void UnexpectedExceptionThrown(Exception exception)
-            => RemoteHostCrashInfoBar.ShowInfoBar(_workspace, exception);
+            => RemoteHostCrashInfoBar.ShowInfoBar(_services, exception);
 
         public override Task InvokeAsync(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
             => _serviceEndPoint.InvokeAsync(targetName, arguments, cancellationToken);

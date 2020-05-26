@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         break;
                     }
 
-                case GlobalStatementSyntax global:
+                case GlobalStatementSyntax _:
                     return true;
                 case ConstructorInitializerSyntax constructorInitializer:
                     return constructorInitializer.ContainsInArgument(span);

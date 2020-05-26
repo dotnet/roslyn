@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             return default;
         }
 
-        private bool IsInDirective(SyntaxNode node)
+        private static bool IsInDirective(SyntaxNode node)
         {
             while (node != null)
             {
@@ -87,10 +87,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             return false;
         }
 
-        private VirtualCharSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
+        private static VirtualCharSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
             => TryConvertSimpleDoubleQuoteString(token, startDelimiter, endDelimiter, escapeBraces);
 
-        private VirtualCharSequence TryConvertStringToVirtualChars(
+        private static VirtualCharSequence TryConvertStringToVirtualChars(
             SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
         {
             var tokenText = token.Text;
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             // Second pass.  Convert those characters to Runes.
             using var _2 = ArrayBuilder<VirtualChar>.GetInstance(out var runeResults);
 
-            for (int i = 0; i < charResults.Count;)
+            for (var i = 0; i < charResults.Count;)
             {
                 var (ch, span) = charResults[i];
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 tokenText, offset, startIndexInclusive, endIndexExclusive, runeResults);
         }
 
-        private bool TryAddEscape(
+        private static bool TryAddEscape(
             ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
         {
             // Copied from Lexer.ScanEscapeSequence.
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             return false;
         }
 
-        private bool TryAddSingleCharacterEscape(
+        private static bool TryAddSingleCharacterEscape(
             ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
         {
             // Copied from Lexer.ScanEscapeSequence.
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             return true;
         }
 
-        private bool TryAddMultiCharacterEscape(
+        private static bool TryAddMultiCharacterEscape(
             ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
         {
             // Copied from Lexer.ScanEscapeSequence.
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             }
         }
 
-        private bool TryAddMultiCharacterEscape(
+        private static bool TryAddMultiCharacterEscape(
             ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index, char character)
         {
             var startIndex = index;

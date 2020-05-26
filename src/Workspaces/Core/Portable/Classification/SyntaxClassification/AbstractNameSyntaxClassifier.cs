@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
             return symbol;
         }
 
-        protected void TryClassifyStaticSymbol(
+        protected static void TryClassifyStaticSymbol(
             ISymbol? symbol,
             TextSpan span,
             ArrayBuilder<ClassifiedSpan> result)

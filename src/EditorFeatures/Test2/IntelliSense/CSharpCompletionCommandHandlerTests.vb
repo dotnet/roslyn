@@ -6360,7 +6360,7 @@ class C
         <WorkItem(35163, "https://github.com/dotnet/roslyn/issues/35163")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NonExpandedItemShouldAlwaysBePreferred_DisplayTextMatch(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function NonExpandedItemShouldBePreferred_SameDisplayText(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS1
@@ -6434,7 +6434,7 @@ namespace NS2
         <WorkItem(35163, "https://github.com/dotnet/roslyn/issues/35163")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NonExpandedItemShouldAlwaysBePreferred_FullDisplayTextMatch(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function NonExpandedItemShouldBePreferred_SameFullDisplayText(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
 namespace NS1
@@ -6655,7 +6655,7 @@ namespace NS2
         <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function ExpandedItemShouldBePreferred_IfIsOnlyCompleteMatch(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function CompletelyMatchedExpandedItemAndWorseThanPrefixMatchedNonExpandedItem(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 namespace NS1
@@ -6725,6 +6725,49 @@ namespace NS2
 
                 state.SendTab()
                 Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletelyMatchedExpandedItemAndPrefixMatchedNonExpandedItem(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace NS
+{
+    class C
+    {
+        void M()
+        {
+            object designer = null;
+            des$$
+        }
+    }
+}
+ 
+namespace OtherNS
+{
+    public class DES { }                              
+}
+</Document>,
+                              extraExportedTypes:={GetType(TestExperimentationService)}.ToList(),
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                ' make sure expander is selected so all unimported items are in the list
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                Await state.AssertSelectedCompletionItem(displayText:="designer")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
             End Using
         End Function
 
@@ -7002,6 +7045,62 @@ class C
                 Return Task.FromResult(CompletionChange.Create(New TextChange(item.Span, commitText)))
             End Function
         End Class
+
+        <WorkItem(43439, "https://github.com/dotnet/roslyn/issues/43439")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSelectNullOverNuint(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    public static void Main()
+    {
+        object o = $$
+    }
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                ' 'nu' should select 'null' instead of 'nuint' (even though 'nuint' sorts higher in the list textually).
+                state.SendTypeChars("nu")
+                Await state.AssertSelectedCompletionItem(displayText:="null", isHardSelected:=True)
+                Await state.AssertCompletionItemsContain("nuint", "")
+
+                ' even after 'nuint' is selected, deleting the 'i' should still take us back to 'null'.
+                state.SendTypeChars("i")
+                Await state.AssertSelectedCompletionItem(displayText:="nuint", isHardSelected:=True)
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem(displayText:="null", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WorkItem(43439, "https://github.com/dotnet/roslyn/issues/43439")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSelectNuintOverNullOnceInMRU(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    public static void Main()
+    {
+        object o = $$
+    }
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("nui")
+                Await state.AssertCompletionItemsContain("nuint", "")
+                state.SendTab()
+                Assert.Contains("nuint", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+
+                state.SendDeleteWordToLeft()
+
+                ' nuint should be in the mru now.  so typing 'nu' should select it instead of null.
+                state.SendTypeChars("nu")
+                Await state.AssertSelectedCompletionItem(displayText:="nuint", isHardSelected:=True)
+            End Using
+        End Function
 
         ' Simulates a situation where IntelliCode provides items not included into the Rolsyn original list.
         ' We want to ignore these items in CommitIfUnique.

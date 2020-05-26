@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         return PredefinedSuggestedActionCategoryNames.ErrorFix;
                     default:
                         throw ExceptionUtilities.Unreachable;
-                };
+                }
             }
 
             private static SuggestedActionSetPriority GetSuggestedActionSetPriority(CodeActionPriority key)

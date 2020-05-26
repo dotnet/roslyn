@@ -24,17 +24,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     [UseExportProvider]
     public class EditSessionActiveStatementsTests : TestBase
     {
-        internal sealed class TestActiveStatementProvider : IActiveStatementProvider
-        {
-            private readonly ImmutableArray<ActiveStatementDebugInfo> _infos;
-
-            public TestActiveStatementProvider(ImmutableArray<ActiveStatementDebugInfo> infos)
-                => _infos = infos;
-
-            public Task<ImmutableArray<ActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-                => Task.FromResult(_infos);
-        }
-
         internal static ImmutableArray<ActiveStatementDebugInfo> GetActiveStatementDebugInfos(
             string[] markedSources,
             string extension = ".cs",
@@ -113,21 +102,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     Workspace.ChangeSolution(adjustSolution(Workspace.CurrentSolution));
                 }
 
-                var activeStatementProvider = new TestActiveStatementProvider(activeStatements);
+                var solution = Workspace.CurrentSolution;
+
                 var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>();
                 var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
 
-                var debuggingSession = new DebuggingSession(Workspace, mockDebuggeModuleProvider.Object, activeStatementProvider, mockCompilationOutputsProvider);
+                var debuggingSession = new DebuggingSession(solution, mockCompilationOutputsProvider);
 
                 if (initialState != CommittedSolution.DocumentState.None)
                 {
-                    EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, Workspace.CurrentSolution, initialState);
+                    EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, solution, initialState);
                 }
 
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
 
+                var mockActiveStatementTrackingService = new TestActiveStatementSpanTracker();
                 var telemetry = new EditSessionTelemetry();
-                EditSession = new EditSession(debuggingSession, telemetry);
+                EditSession = new EditSession(debuggingSession, telemetry, cancellationToken => Task.FromResult(activeStatements), mockActiveStatementTrackingService, mockDebuggeModuleProvider.Object);
             }
 
             public ImmutableArray<DocumentId> GetDocumentIds()

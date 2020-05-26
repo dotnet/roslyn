@@ -333,6 +333,5 @@ public class Bar
             var z = l.ToList<CodeProperty>();
             Assert.Equal(2, z.Count);
         }
-
     }
 }

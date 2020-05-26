@@ -484,6 +484,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
             => (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
 
+#if DEBUG
         private static async Task VerifyDiagnosticLocationsAsync(ImmutableArray<Diagnostic> diagnostics, Project project, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
@@ -564,6 +565,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
             }
         }
+#endif
 
         public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(this IEnumerable<Diagnostic> diagnostics, Document targetDocument, TextSpan? span = null)
         {

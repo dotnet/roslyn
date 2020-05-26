@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
             End Function
 
             Public Overrides Function VisitImportsStatement(node As ImportsStatementSyntax) As SyntaxNode
-                Dim organizedImportsClauses = ImportsOrganizer.Organize(node.ImportsClauses, _placeSystemNamespaceFirst)
+                Dim organizedImportsClauses = ImportsOrganizer.Organize(node.ImportsClauses)
 
                 Dim result = node.WithImportsClauses(organizedImportsClauses)
                 If result IsNot node Then
@@ -59,19 +59,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
                 End If
             End Sub
 
-            Private Function GetNewText(Of TSyntax As SyntaxNode)(organizedList As SyntaxList(Of TSyntax)) As String
+            Private Shared Function GetNewText(Of TSyntax As SyntaxNode)(organizedList As SyntaxList(Of TSyntax)) As String
                 Return String.Join(String.Empty, organizedList.[Select](Function(t) t.ToFullString()))
             End Function
 
-            Private Function GetNewText(Of TSyntax As SyntaxNode)(organizedList As SeparatedSyntaxList(Of TSyntax)) As String
+            Private Shared Function GetNewText(Of TSyntax As SyntaxNode)(organizedList As SeparatedSyntaxList(Of TSyntax)) As String
                 Return String.Join(String.Empty, organizedList.GetWithSeparators().[Select](Function(t) t.ToFullString()))
             End Function
 
-            Private Function GetTextSpan(Of TSyntax As SyntaxNode)(list As SyntaxList(Of TSyntax)) As TextSpan
+            Private Shared Function GetTextSpan(Of TSyntax As SyntaxNode)(list As SyntaxList(Of TSyntax)) As TextSpan
                 Return TextSpan.FromBounds(list.First().FullSpan.Start, list.Last().FullSpan.[End])
             End Function
 
-            Private Function GetTextSpan(Of TSyntax As SyntaxNode)(list As SeparatedSyntaxList(Of TSyntax)) As TextSpan
+            Private Shared Function GetTextSpan(Of TSyntax As SyntaxNode)(list As SeparatedSyntaxList(Of TSyntax)) As TextSpan
                 Return TextSpan.FromBounds(list.First().FullSpan.Start, list.Last().FullSpan.[End])
             End Function
         End Class

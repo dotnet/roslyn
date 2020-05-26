@@ -309,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return type <> PredefinedType.None
         End Function
 
-        Private Function GetPredefinedType(token As SyntaxToken) As PredefinedType
+        Private Shared Function GetPredefinedType(token As SyntaxToken) As PredefinedType
             Select Case token.Kind
                 Case SyntaxKind.BooleanKeyword
                     Return PredefinedType.Boolean
@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return op <> PredefinedOperator.None
         End Function
 
-        Private Function GetPredefinedOperator(token As SyntaxToken) As PredefinedOperator
+        Private Shared Function GetPredefinedOperator(token As SyntaxToken) As PredefinedOperator
             Select Case token.Kind
                 Case SyntaxKind.PlusToken, SyntaxKind.PlusEqualsToken
                     Return PredefinedOperator.Addition
@@ -867,7 +867,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Private Function ContainsExclusively(outerSpan As TextSpan, innerSpan As TextSpan) As Boolean
+        Private Shared Function ContainsExclusively(outerSpan As TextSpan, innerSpan As TextSpan) As Boolean
             If innerSpan.IsEmpty Then
                 Return outerSpan.Contains(innerSpan.Start)
             End If
@@ -875,12 +875,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return outerSpan.Contains(innerSpan)
         End Function
 
-        Private Function GetSyntaxListSpan(Of T As SyntaxNode)(list As SyntaxList(Of T)) As TextSpan
+        Private Shared Function GetSyntaxListSpan(Of T As SyntaxNode)(list As SyntaxList(Of T)) As TextSpan
             Debug.Assert(list.Count > 0)
             Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
 
-        Private Function GetSeparatedSyntaxListSpan(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T)) As TextSpan
+        Private Shared Function GetSeparatedSyntaxListSpan(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T)) As TextSpan
             Debug.Assert(list.Count > 0)
             Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
@@ -2288,6 +2288,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                         Return p.ParameterList IsNot Nothing AndAlso p.ParameterList.Parameters.Count > 0 AndAlso p.Modifiers.Any(SyntaxKind.DefaultKeyword)
                     End If
             End Select
+            Return False
+        End Function
+
+        Public Function IsImplicitObjectCreation(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsImplicitObjectCreation
             Return False
         End Function
 

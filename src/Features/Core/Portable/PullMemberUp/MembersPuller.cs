@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
                 solution, pullMemberUpOptions.Destination, options: null, cancellationToken).ConfigureAwait(false);
-            var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(pullMemberUpOptions, solution, solutionEditor, destinationSyntaxNode, cancellationToken).ConfigureAwait(false);
+            var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
             var symbolsToPullUp = pullMemberUpOptions.MemberAnalysisResults.
                 SelectAsArray(analysisResult => GetSymbolsToPullUp(analysisResult));
 
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
                 solution, result.Destination, options: null, cancellationToken).ConfigureAwait(false);
-            var symbolToDeclarations = await InitializeSymbolToDeclarationsMapAsync(result, solution, solutionEditor, destinationSyntaxNode, cancellationToken).ConfigureAwait(false);
+            var symbolToDeclarations = await InitializeSymbolToDeclarationsMapAsync(result, cancellationToken).ConfigureAwait(false);
             // Add members to destination
             var pullUpMembersSymbols = result.MemberAnalysisResults.SelectAsArray(
                 memberResult =>
@@ -322,9 +322,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         private static async Task<ImmutableDictionary<ISymbol, ImmutableArray<SyntaxNode>>> InitializeSymbolToDeclarationsMapAsync(
             PullMembersUpOptions result,
-            Solution solution,
-            SolutionEditor solutionEditor,
-            SyntaxNode destinationSyntaxNode,
             CancellationToken cancellationToken)
         {
             // One member may have multiple syntax nodes (e.g partial method).

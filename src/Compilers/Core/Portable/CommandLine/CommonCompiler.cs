@@ -299,18 +299,20 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var directory = Path.GetDirectoryName(normalizedPath) ?? normalizedPath;
-
-                if (processedDirs.Contains(directory))
-                {
-                    diagnostics.Add(Diagnostic.Create(
-                        MessageProvider,
-                        MessageProvider.ERR_MultipleAnalyzerConfigsInSameDir,
-                        directory));
-                    break;
-                }
-                processedDirs.Add(directory);
-
                 var editorConfig = AnalyzerConfig.Parse(fileContent, normalizedPath);
+
+                if (!editorConfig.IsGlobal)
+                {
+                    if (processedDirs.Contains(directory))
+                    {
+                        diagnostics.Add(Diagnostic.Create(
+                            MessageProvider,
+                            MessageProvider.ERR_MultipleAnalyzerConfigsInSameDir,
+                            directory));
+                        break;
+                    }
+                    processedDirs.Add(directory);
+                }
                 configs.Add(editorConfig);
             }
 
@@ -323,7 +325,8 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            analyzerConfigSet = AnalyzerConfigSet.Create(configs);
+            analyzerConfigSet = AnalyzerConfigSet.Create(configs, out var setDiagnostics);
+            diagnostics.AddRange(setDiagnostics);
             return true;
         }
 
@@ -787,6 +790,15 @@ namespace Microsoft.CodeAnalysis
             // At this point we have a compilation with nothing yet computed. 
             // We pass it to the generators, which will realize any symbols they require. 
             compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, additionalTexts, diagnostics);
+
+            // https://github.com/dotnet/roslyn/issues/44087 
+            // Workaround by getting options for any generated trees that were produced.
+            // In the future we'll want to apply the config set rules at parse time, return the options, and add them in here
+            if (!sourceFileAnalyzerConfigOptions.IsDefault && generators.Length > 0)
+            {
+                var generatedOptions = compilation.SyntaxTrees.Skip(sourceFileAnalyzerConfigOptions.Length).Select(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath));
+                sourceFileAnalyzerConfigOptions = sourceFileAnalyzerConfigOptions.AddRange(generatedOptions);
+            }
 
             CompileAndEmit(
                 touchedFilesLogger,

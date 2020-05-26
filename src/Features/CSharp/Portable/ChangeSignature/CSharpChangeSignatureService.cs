@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             };
         }
 
-        private SyntaxNode? GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)
+        private static SyntaxNode? GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)
         {
             var matchKinds = restrictToDeclarations
                 ? _declarationKinds
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return null;
         }
 
-        private bool InSymbolHeader(SyntaxNode matchingNode, int position)
+        private static bool InSymbolHeader(SyntaxNode matchingNode, int position)
         {
             // Caret has to be after the attributes if the symbol has any.
             var lastAttributes = matchingNode.ChildNodes().LastOrDefault(n => n is AttributeListSyntax);
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return node.AncestorsAndSelf().Any(n => n == nodeContainingOriginal) ? matchingNode : null;
         }
 
-        private SyntaxNode? GetNodeContainingTargetNode(SyntaxNode matchingNode)
+        private static SyntaxNode? GetNodeContainingTargetNode(SyntaxNode matchingNode)
         {
             switch (matchingNode.Kind())
             {
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 .WithAdditionalAnnotations(changeSignatureFormattingAnnotation);
         }
 
-        private bool IsParamsArrayExpanded(SemanticModel semanticModel, SyntaxNode node, SymbolInfo symbolInfo, CancellationToken cancellationToken)
+        private static bool IsParamsArrayExpanded(SemanticModel semanticModel, SyntaxNode node, SymbolInfo symbolInfo, CancellationToken cancellationToken)
         {
             if (symbolInfo.Symbol == null)
             {
@@ -560,7 +560,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
             else
             {
+#pragma warning disable IDE0007 // Use implicit type - Using 'var' causes "error CS8506: No best type was found for the switch expression"
+                // TODO: File a bug on IDE0007 analyzer
                 BaseArgumentListSyntax? argumentList = node switch
+#pragma warning restore IDE0007 // Use implicit type
                 {
                     InvocationExpressionSyntax invocation => invocation.ArgumentList,
                     ObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
@@ -731,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return GetPermutedDocCommentTrivia(document, node, permutedParamNodes);
         }
 
-        private ImmutableArray<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
+        private static ImmutableArray<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
         {
             // Only reorder if count and order match originally.
             var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
