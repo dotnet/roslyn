@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 document, span, scope, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Solution> AddRenameTokenAsync(
+        private static async Task<Solution> AddRenameTokenAsync(
             Solution solution,
             (DocumentId documentId, TextSpan span) renamedToken,
             CancellationToken cancellationToken)

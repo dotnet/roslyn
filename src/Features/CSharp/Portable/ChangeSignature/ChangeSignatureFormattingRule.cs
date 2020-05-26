@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
         }
 
-        private void AddChangeSignatureIndentOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        private static void AddChangeSignatureIndentOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             if (node.Parent != null)
             {

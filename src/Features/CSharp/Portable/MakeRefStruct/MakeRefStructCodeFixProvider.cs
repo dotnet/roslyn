@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private StructDeclarationSyntax FindContainingStruct(SyntaxNode root, TextSpan span)
+        private static StructDeclarationSyntax FindContainingStruct(SyntaxNode root, TextSpan span)
         {
             var member = root.FindNode(span);
             // Could be declared in a class or even in a nested class inside a struct,

@@ -84,5 +84,4 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                 SyntacticClassificationModeSelector.GetModeSelector(_lspClientServiceFactory, buffer));
         }
     }
-
 }

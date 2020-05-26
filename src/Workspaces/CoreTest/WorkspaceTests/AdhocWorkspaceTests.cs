@@ -391,7 +391,7 @@ language: LanguageNames.CSharp);
             Assert.Equal(currentVersion, actualVersion);
         }
 
-        private AdhocWorkspace CreateWorkspaceWithRecoverableTrees(HostServices hostServices)
+        private static AdhocWorkspace CreateWorkspaceWithRecoverableTrees(HostServices hostServices)
         {
             var ws = new AdhocWorkspace(hostServices, workspaceKind: "NotKeptAlive");
             ws.TryApplyChanges(ws.CurrentSolution.WithOptions(ws.CurrentSolution.Options
@@ -407,7 +407,7 @@ language: LanguageNames.CSharp);
             await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspaceWithRecoverableTrees(hostServices));
         }
 
-        private async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)
+        private static async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)
         {
             var pid = ProjectId.CreateNewId();
             var text = SourceText.From("public class C { }");

@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             return default;
         }
 
-        private int TotalCount(MemberImplementationMap dictionary)
+        private static int TotalCount(MemberImplementationMap dictionary)
         {
             var result = 0;
             foreach (var (key, values) in dictionary)

@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return false;
             }
 
-            private bool HasUnexpressibleConstraint(ISymbol member)
+            private static bool HasUnexpressibleConstraint(ISymbol member)
             {
                 // interface IGoo<T> { void Bar<U>() where U : T; }
                 //

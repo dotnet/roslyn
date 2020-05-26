@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return allTypes.Select(t => FixType(t, semanticModel, allTypeParameters)).ToImmutableArray();
             }
 
-            private ITypeSymbol FixType(ITypeSymbol typeSymbol, SemanticModel semanticModel, IEnumerable<ITypeParameterSymbol> allTypeParameters)
+            private static ITypeSymbol FixType(ITypeSymbol typeSymbol, SemanticModel semanticModel, IEnumerable<ITypeParameterSymbol> allTypeParameters)
             {
                 var compilation = semanticModel.Compilation;
                 return typeSymbol.RemoveAnonymousTypes(compilation)
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return await TryDetermineTypeToGenerateInAsync(document, typeToGenerateIn, cancellationToken).ConfigureAwait(false);
             }
 
-            private bool IsValidAttributeParameterType(ITypeSymbol type)
+            private static bool IsValidAttributeParameterType(ITypeSymbol type)
             {
                 if (type.Kind == SymbolKind.ArrayType)
                 {
