@@ -95,8 +95,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         // Dispose may be called anytime.
         public void Dispose()
         {
-			// Run this in background to avoid deadlocking with UIThread operations performing with active outputs.
-            _ = Task.Run(() => SetOutputs(TextWriter.Null, TextWriter.Null));
+			// Run this in background to avoid deadlocking with UIThread operations performing with active outputs.            _ = Task.Run(() => SetOutputs(TextWriter.Null, TextWriter.Null));
 
             DisposeRemoteService();
             GC.SuppressFinalize(this);
@@ -254,14 +253,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             var initializedRemoteService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
             if (initializedRemoteService.Service == null)
             {
-                return default!;
-            }
+                return default!;            }
 
             return await Async<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);
         }
 
-        private static async Task<TResult> Async<TResult>(RemoteService remoteService, string targetName, params object?[] arguments)
-        {
+        private static async Task<TResult> Async<TResult>(RemoteService remoteService, string targetName, params object?[] arguments)        {
             try
             {
                 return await remoteService.JsonRpc.InvokeAsync<TResult>(targetName, arguments).ConfigureAwait(false);
@@ -270,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 return default!;
             }
-        }
+        }*/
 
         #region Operations
 
@@ -334,8 +331,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         public async Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
             Contract.ThrowIfNull(path);
-            return Async<RemoteExecutionResult>(nameof(Service.ExecuteFileAsync), path);        }
-
+            return Async<RemoteExecutionResult>(nameof(Service.ExecuteFileAsync), path);
+        }
         /// <summary>
         /// Asynchronously adds a reference to the set of available references for next submission.
         /// </summary>
@@ -353,11 +350,12 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <summary>
         /// Sets the current session's search paths and base directory.
         /// </summary>
-        public Task<RemoteExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
+        public async Task<RemoteExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
         {
             Contract.ThrowIfNull(referenceSearchPaths);
             Contract.ThrowIfNull(sourceSearchPaths);
             Contract.ThrowIfNull(baseDirectory);
+            var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
 
             return Async<RemoteExecutionResult>(nameof(Service.SetPathsAsync), referenceSearchPaths, sourceSearchPaths, baseDirectory);
         }

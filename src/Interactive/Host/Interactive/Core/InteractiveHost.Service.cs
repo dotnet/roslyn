@@ -15,7 +15,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
+using System.Runtime.Serialization.Formatters;using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -271,9 +271,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     SetErrorMode(GetErrorMode() | ErrorMode.SEM_FAILCRITICALERRORS | ErrorMode.SEM_NOOPENFILEERRORBOX | ErrorMode.SEM_NOGPFAULTERRORBOX);
                 }
-                // TODO:(miziga): delete
-                /*IpcServerChannel serverChannel = null;
-                IpcClientChannel clientChannel = null;*/
 
                 try
                 {
@@ -295,14 +292,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                     var jsonRPC = JsonRpc.Attach(serverStream, new Service());
                     await jsonRPC.Completion.ConfigureAwait(false);
 
-                    // the client can instantiate interactive host now:
-                    s_clientExited.Wait();
+                    // the client can instantiate interactive host now:                    s_clientExited.Wait();
                 }
                 finally
                 {
-                    // TODO:(miziga): delete and make a finally or catch statement for the try                }
-
-                // force exit even if there are foreground threads running:
+                    // TODO:(miziga): delete and make a finally or catch statement for the try
+                }                // force exit even if there are foreground threads running:
                 Environment.Exit(0);
             }
 
@@ -384,13 +379,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var completionSource = new TaskCompletionSource<bool>();
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = AddReferenceAsync(_lastTask, completionSource, reference!);
-                }
+                    _lastTask = AddReferenceAsync(_lastTask, completionSource, reference!);                }
                 return await completionSource.Task.ConfigureAwait(false);
             }
 
-            private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, TaskCompletionSource<bool> completionSource, string reference)
-            {
+            private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, TaskCompletionSource<bool> completionSource, string reference)            {
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
                 var success = false;
 
@@ -731,7 +724,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return (Script<object>)script;
             }
 
-            //(miziga): file to be used in json RPC? requires operation: refactor to only need path? 
             private async Task<EvaluationState> ExecuteFileAsync(
                 TaskCompletionSource<RemoteExecutionResult> completionSource,
                 Task<EvaluationState> lastTask,

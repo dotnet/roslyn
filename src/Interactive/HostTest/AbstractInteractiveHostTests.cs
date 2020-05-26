@@ -30,5 +30,5 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             typeof(InteractiveHost),
             typeof(CSharpCompilation)
         };
-    }
+        }    }
 }
