@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 if (client != null)
                 {
                     var result = await client.TryRunRemoteAsync<ReferenceCount>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteCodeLensReferencesService.GetReferenceCountAsync),
                         solution,
                         new object[] { documentId, syntaxNode.Span, maxSearchResults },
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 if (client != null)
                 {
                     var result = await client.TryRunRemoteAsync<IEnumerable<ReferenceMethodDescriptor>>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteCodeLensReferencesService.FindReferenceMethodsAsync),
                         solution,
                         new object[] { documentId, syntaxNode.Span },
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 if (client != null)
                 {
                     var result = await client.TryRunRemoteAsync<string>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteCodeLensReferencesService.GetFullyQualifiedNameAsync),
                         solution,
                         new object[] { documentId, syntaxNode.Span },
@@ -253,7 +253,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             if (client != null)
             {
                 var result = await client.TryRunRemoteAsync<IEnumerable<ReferenceLocationDescriptor>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteCodeLensReferencesService.FindReferenceLocationsAsync),
                     solution,
                     new object[] { documentId, syntaxNode.Span },

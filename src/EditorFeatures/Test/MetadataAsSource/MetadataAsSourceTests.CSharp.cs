@@ -43,14 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-using System;
-using System.Runtime.CompilerServices;
 
 public class [|C|]
 {{
-    [NativeIntegerAttribute]
     public nint i;
-    [NativeIntegerAttribute]
     public nuint i2;
 
     public C();
@@ -112,8 +108,6 @@ public class [|C|]
 // System.ValueTuple.dll
 #endregion
 
-using System;
-using System;
 using System.Collections;
 
 namespace System

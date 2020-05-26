@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -33,13 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             CancellationToken cancellationToken)
         {
             SyntaxNode replacementNode;
-            TextSpan issueSpan;
 
             if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax crefSyntax))
             {
                 if (!QualifiedCrefSimplifier.Instance.TrySimplify(
                         crefSyntax, semanticModel, optionSet,
-                        out var crefReplacement, out issueSpan, cancellationToken))
+                        out var crefReplacement, out _, cancellationToken))
                 {
                     return node;
                 }
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             else
             {
                 var expressionSyntax = (ExpressionSyntax)node;
-                if (!ExpressionSimplifier.Instance.TrySimplify(expressionSyntax, semanticModel, optionSet, out var expressionReplacement, out issueSpan, cancellationToken))
+                if (!ExpressionSimplifier.Instance.TrySimplify(expressionSyntax, semanticModel, optionSet, out var expressionReplacement, out _, cancellationToken))
                 {
                     return node;
                 }

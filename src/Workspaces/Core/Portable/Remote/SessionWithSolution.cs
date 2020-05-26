@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Remote
         internal readonly KeepAliveSession KeepAliveSession;
         private readonly PinnedRemotableDataScope _scope;
 
-
         public static async Task<SessionWithSolution> CreateAsync(KeepAliveSession keepAliveSession, Solution solution, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(keepAliveSession);
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // set connection state for this session.
                 // we might remove this in future. see https://github.com/dotnet/roslyn/issues/24836
                 await keepAliveSession.RunRemoteAsync(
-                    WellKnownServiceHubServices.ServiceHubServiceBase_Initialize,
+                    "Initialize",
                     solution: null,
                     new object[] { scope.SolutionInfo },
                     cancellationToken).ConfigureAwait(false);

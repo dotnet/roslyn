@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override INamedTypeSymbol ConstructUnboundGenericType()
             => null;
 
-        public ImmutableArray<ISymbol> CandidateSymbols
+        public static ImmutableArray<ISymbol> CandidateSymbols
         {
             get
             {

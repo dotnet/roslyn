@@ -57,6 +57,11 @@
         <target state="translated">'this.' 한정자 기본 설정 적용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_using_directive_placement_preferences">
+        <source>Apply preferred 'using' placement preferences</source>
+        <target state="new">Apply preferred 'using' placement preferences</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
         <target state="translated">'out' 매개 변수 할당</target>
@@ -89,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
-        <target state="new">Convert to regular string</target>
+        <target state="translated">일반 문자열로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
@@ -104,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
-        <target state="new">Convert to verbatim string</target>
+        <target state="translated">축자 문자열로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -136,6 +141,11 @@
         <source>Make 'ref struct'</source>
         <target state="translated">'ref struct'로 지정</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="new">Remove 'new' modifier</target>
+        <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>

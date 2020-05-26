@@ -92,14 +92,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     GetHashCode(x.ContainingSymbol, currentHash));
             }
 
-            private int CombineHashCodes(ILabelSymbol x, int currentHash)
+            private static int CombineHashCodes(ILabelSymbol x, int currentHash)
             {
                 return
                     Hash.Combine(x.Name,
                     Hash.Combine(x.Locations.FirstOrDefault(), currentHash));
             }
 
-            private int CombineHashCodes(ILocalSymbol x, int currentHash)
+            private static int CombineHashCodes(ILocalSymbol x, int currentHash)
                 => Hash.Combine(x.Locations.FirstOrDefault(), currentHash);
 
             private static int CombineHashCodes<T>(ImmutableArray<T> array, int currentHash, Func<int, T, int> func)
@@ -285,10 +285,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     GetHashCode(x.ContainingSymbol, currentHash);
             }
 
-            private int CombineHashCodes(IRangeVariableSymbol x, int currentHash)
+            private static int CombineHashCodes(IRangeVariableSymbol x, int currentHash)
                 => Hash.Combine(x.Locations.FirstOrDefault(), currentHash);
 
-            private int CombineHashCodes(IPreprocessingSymbol x, int currentHash)
+            private static int CombineHashCodes(IPreprocessingSymbol x, int currentHash)
                 => Hash.Combine(x.GetHashCode(), currentHash);
         }
     }

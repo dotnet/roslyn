@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             return rewriter.Visit(root);
         }
 
-        private INamespaceSymbol? GetExplicitNamespaceSymbol(ExpressionSyntax fullName, ExpressionSyntax namespacePart, SemanticModel model)
+        private static INamespaceSymbol? GetExplicitNamespaceSymbol(ExpressionSyntax fullName, ExpressionSyntax namespacePart, SemanticModel model)
         {
 
             // name must refer to something that is not a namespace, but be qualified with a namespace.
             var symbol = model.GetSymbolInfo(fullName).Symbol;
-            if (symbol != null && symbol.Kind != SymbolKind.Namespace && model.GetSymbolInfo(namespacePart).Symbol is INamespaceSymbol nsSymbol)
+            if (symbol != null && symbol.Kind != SymbolKind.Namespace && model.GetSymbolInfo(namespacePart).Symbol is INamespaceSymbol)
             {
                 // use the symbols containing namespace, and not the potentially less than fully qualified namespace in the full name expression.
                 var ns = symbol.ContainingNamespace;
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                 return node;
             }
 
-            private bool CanHaveDocComments(NameSyntax node)
+            private static bool CanHaveDocComments(NameSyntax node)
             {
                 // a node can only have doc comments in its leading trivia if it's the first node in a member declaration syntax.
 

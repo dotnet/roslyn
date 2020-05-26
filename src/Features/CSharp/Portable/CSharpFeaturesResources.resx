@@ -445,6 +445,9 @@
   <data name="Hide_base_member" xml:space="preserve">
     <value>Hide base member</value>
   </data>
+  <data name="Remove_new_modifier" xml:space="preserve">
+    <value>Remove 'new' modifier</value>
+  </data>
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
@@ -613,5 +616,9 @@
   </data>
   <data name="Compare_to_0" xml:space="preserve">
     <value>Compare to '{0}'</value>
+  </data>
+  <data name="Apply_using_directive_placement_preferences" xml:space="preserve">
+    <value>Apply preferred 'using' placement preferences</value>
+    <comment>'using' is a C# keyword and should not be localized</comment>
   </data>
 </root>

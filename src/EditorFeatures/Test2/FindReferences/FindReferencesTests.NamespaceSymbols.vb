@@ -372,5 +372,35 @@ namespace var { }
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestNamespace_TypeOrNamespaceUsageInfo(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        using {|TypeOrNamespaceUsageInfo.Import:[|N1|]|};
+        using {|TypeOrNamespaceUsageInfo.Qualified,Import:[|N1|]|}.N2;
+
+        namespace {|Definition:{|TypeOrNamespaceUsageInfo.NamespaceDeclaration:[|$$N1|]|}|}
+        {
+            public class Class1
+            {
+                public static int Field;
+            }
+        }
+        
+        namespace {|TypeOrNamespaceUsageInfo.Qualified,NamespaceDeclaration:[|N1|]|}.N2
+        {
+            public class Class2
+            {
+                public static int M() =>  {|TypeOrNamespaceUsageInfo.Qualified:[|N1|]|}.Class1.Field;
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
     End Class
 End Namespace

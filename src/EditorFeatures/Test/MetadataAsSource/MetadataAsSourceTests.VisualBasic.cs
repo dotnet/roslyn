@@ -44,7 +44,6 @@ End Module");
 ' mscorlib.v4_6_1038_0.dll
 #End Region
 
-Imports System
 Imports System.Runtime.InteropServices
 
 Namespace System
@@ -95,8 +94,6 @@ End Namespace";
 ' System.ValueTuple.dll
 #End Region
 
-Imports System
-Imports System
 Imports System.Collections
 
 Namespace System

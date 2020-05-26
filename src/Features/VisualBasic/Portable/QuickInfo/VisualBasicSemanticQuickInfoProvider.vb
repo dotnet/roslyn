@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
             Return Await CreateContentAsync(document.Project.Solution.Workspace, token, semantics, types, supportedPlatforms:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Async Function BuildContentForIntrinsicOperatorAsync(document As Document,
+        Private Shared Async Function BuildContentForIntrinsicOperatorAsync(document As Document,
                                                                      token As SyntaxToken,
                                                                      expression As SyntaxNode,
                                                                      documentation As AbstractIntrinsicOperatorDocumentation,

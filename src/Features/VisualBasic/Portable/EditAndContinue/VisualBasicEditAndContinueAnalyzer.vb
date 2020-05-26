@@ -1806,7 +1806,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case EditKind.Move
-                        ClassifyMove(_oldNode, _newNode)
+                        ReportError(RudeEditKind.Move)
                         Return
 
                     Case EditKind.Insert
@@ -1823,10 +1823,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
 #Region "Move and Reorder"
-            Private Sub ClassifyMove(oldNode As SyntaxNode, newNode As SyntaxNode)
-                ReportError(RudeEditKind.Move)
-            End Sub
-
             Private Sub ClassifyReorder(oldNode As SyntaxNode, newNode As SyntaxNode)
                 Select Case newNode.Kind
                     Case SyntaxKind.OptionStatement,
@@ -2049,7 +2045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
 
                 For Each member In type.Members
-                    Dim modifiers As SyntaxTokenList = Nothing
+                    Dim modifiers As SyntaxTokenList
 
                     Select Case member.Kind
                         Case SyntaxKind.DeclareFunctionStatement,
@@ -2619,7 +2615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
             End Sub
 
-            Private Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
+            Private Shared Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
                 ' Ignore Async and Iterator keywords when matching modifiers.
                 ' State machine checks are done in ComputeBodyMatch.
 
@@ -2893,7 +2889,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Protected Overrides Function GetExceptionHandlingAncestors(node As SyntaxNode, isNonLeaf As Boolean) As List(Of SyntaxNode)
             Dim result = New List(Of SyntaxNode)()
-            Dim initialNode = node
 
             While node IsNot Nothing
                 Dim kind = node.Kind

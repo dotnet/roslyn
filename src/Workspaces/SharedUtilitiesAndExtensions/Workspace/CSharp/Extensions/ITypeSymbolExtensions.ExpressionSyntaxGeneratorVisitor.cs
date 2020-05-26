@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             public override ExpressionSyntax DefaultVisit(ISymbol symbol)
                 => symbol.Accept(TypeSyntaxGeneratorVisitor.Create());
 
-            private TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
+            private static TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
                 where TExpressionSyntax : ExpressionSyntax
             {
                 syntax = syntax.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker);
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            private ExpressionSyntax CreateMemberAccessExpression(
+            private static ExpressionSyntax CreateMemberAccessExpression(
                 ISymbol symbol, ExpressionSyntax container, SimpleNameSyntax syntax)
             {
                 return AddInformationTo(SyntaxFactory.MemberAccessExpression(
