@@ -12158,6 +12158,7 @@ generated_code = auto");
         [CombinatorialData, Theory]
         public void TestAnalyzerFilteringBasedOnSeverity(DiagnosticSeverity defaultSeverity, bool errorlog)
         {
+            var currentCulture = Thread.CurrentThread.CurrentCulture;
             // This test verifies that analyzer execution is skipped at build time for the following:
             //   1. Analyzer reporting Hidden diagnostics
             //   2. Analyzer reporting Info diagnostics, when /errorlog is not specified
@@ -12185,8 +12186,20 @@ generated_code = auto");
             }
             else
             {
-                Assert.Contains("warning AD0001: Analyzer 'Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+NamedTypeAnalyzerWithConfigurableEnabledByDefault' threw an exception of type 'System.NotImplementedException'",
+                Assert.Contains(GetWarningMessage(currentCulture),
                     output, StringComparison.Ordinal);
+
+
+                string GetWarningMessage(CultureInfo culture)
+                {
+                    switch (culture.Name)
+                    {
+                        case "pt-BR":
+                            return "warning AD0001: O analisador 'Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+NamedTypeAnalyzerWithConfigurableEnabledByDefault' gerou uma exceção do tipo 'System.NotImplementedException' com a mensagem 'O método ou a operação não está implementada.'";
+                        default:
+                            return "warning AD0001: Analyzer 'Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+NamedTypeAnalyzerWithConfigurableEnabledByDefault' threw an exception of type 'System.NotImplementedException'";
+                    }
+                }
             }
         }
 
