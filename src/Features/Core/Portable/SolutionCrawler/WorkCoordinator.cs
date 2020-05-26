@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            private SyntaxPath GetSyntaxPath(SyntaxNode changedMember)
+            private static SyntaxPath GetSyntaxPath(SyntaxNode changedMember)
             {
                 // using syntax path might be too expansive since it will be created on every keystroke.
                 // but currently, we have no other way to track a node between two different tree (even for incrementally parsed one)

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
         }
 
-        protected string GetOrMapDiagnosticId(Diagnostic diagnostic, out bool includeTitle)
+        protected static string GetOrMapDiagnosticId(Diagnostic diagnostic, out bool includeTitle)
         {
             if (diagnostic.Id == IDEDiagnosticIds.FormattingDiagnosticId)
             {
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
         }
 
-        protected string GetScopeString(SymbolKind targetSymbolKind)
+        protected static string GetScopeString(SymbolKind targetSymbolKind)
         {
             switch (targetSymbolKind)
             {
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
         }
 
-        protected string GetTargetString(ISymbol targetSymbol)
+        protected static string GetTargetString(ISymbol targetSymbol)
             => "~" + DocumentationCommentId.CreateDeclarationId(targetSymbol);
     }
 }

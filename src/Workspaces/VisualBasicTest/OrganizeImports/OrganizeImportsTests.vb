@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.[Shared].Extensions
 Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImports
     <[UseExportProvider]>
     Public Class OrganizeImportsTests
-        Private Async Function CheckAsync(initial As XElement, final As XElement,
+        Private Shared Async Function CheckAsync(initial As XElement, final As XElement,
                                           Optional placeSystemNamespaceFirst As Boolean = False,
                                           Optional separateImportGroups As Boolean = False) As Task
             Using workspace = New AdhocWorkspace()
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImport
             End Using
         End Function
 
-        Private Async Function CheckWithFormatAsync(initial As XElement, final As XElement,
+        Private Shared Async Function CheckWithFormatAsync(initial As XElement, final As XElement,
                                           Optional placeSystemNamespaceFirst As Boolean = False,
                                           Optional separateImportGroups As Boolean = False) As Task
             Using workspace = New AdhocWorkspace()

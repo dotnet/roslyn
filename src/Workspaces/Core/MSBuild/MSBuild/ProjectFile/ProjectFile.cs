@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private bool IsInGAC(string filePath)
+        private static bool IsInGAC(string filePath)
         {
             return GlobalAssemblyCacheLocation.RootLocations.Any(gloc => PathUtilities.IsChildPath(gloc, filePath));
         }
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private bool IsFrameworkReferenceAssembly(string filePath)
+        private static bool IsFrameworkReferenceAssembly(string filePath)
         {
             return PathUtilities.IsChildPath(FrameworkRoot, filePath);
         }

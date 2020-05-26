@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 !IsForEachIterationVariableDiagnostic(diagnostic, document, cancellationToken);
         }
 
-        private IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
+        private static IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
             ImmutableArray<Diagnostic> diagnostics,
             ISyntaxFactsService syntaxFacts,
             SyntaxNode root,
@@ -245,13 +245,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             return GetDiagnosticsGroupedByMember(diagnostics, syntaxFacts, root);
         }
 
-        private IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
+        private static IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
             ImmutableArray<Diagnostic> diagnostics,
             ISyntaxFactsService syntaxFacts,
             SyntaxNode root)
             => diagnostics.GroupBy(d => syntaxFacts.GetContainingMemberDeclaration(root, d.Location.SourceSpan.Start));
 
-        private async Task<Document> PreprocessDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        private static async Task<Document> PreprocessDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             // Track all the member declaration nodes that have diagnostics.
             // We will post process all these tracked nodes after applying the fix (see "PostProcessDocumentAsync" below in this source file).
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
         }
 
-        private void FixAllExpressionValueIsUnusedDiagnostics(
+        private static void FixAllExpressionValueIsUnusedDiagnostics(
             IOrderedEnumerable<Diagnostic> diagnostics,
             SemanticModel semanticModel,
             SyntaxNode root,

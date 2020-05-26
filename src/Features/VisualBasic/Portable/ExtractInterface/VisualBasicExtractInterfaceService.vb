@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             Return fullDisplayName
         End Function
 
-        Private Function GetUpdatedImplementsClause(implementsClause As ImplementsClauseSyntax, qualifiedName As QualifiedNameSyntax) As ImplementsClauseSyntax
+        Private Shared Function GetUpdatedImplementsClause(implementsClause As ImplementsClauseSyntax, qualifiedName As QualifiedNameSyntax) As ImplementsClauseSyntax
             If implementsClause IsNot Nothing Then
                 Return implementsClause.AddInterfaceMembers(qualifiedName).WithAdditionalAnnotations(Formatter.Annotation)
             Else
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
             End If
         End Function
 
-        Private Function CreateFinalSolution(solutionWithInterfaceDocument As Solution, documentIds As IEnumerable(Of DocumentId), docToRootMap As Dictionary(Of DocumentId, CompilationUnitSyntax)) As Solution
+        Private Shared Function CreateFinalSolution(solutionWithInterfaceDocument As Solution, documentIds As IEnumerable(Of DocumentId), docToRootMap As Dictionary(Of DocumentId, CompilationUnitSyntax)) As Solution
             Dim finalSolution = solutionWithInterfaceDocument
 
             For Each docId In documentIds

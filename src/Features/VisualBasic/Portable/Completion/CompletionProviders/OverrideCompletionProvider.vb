@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return members.WhereAsArray(Function(m) Not m.IsKind(SymbolKind.Event))
         End Function
 
-        Private Function OverridesObjectMethod(method As IMethodSymbol) As Boolean
+        Private Shared Function OverridesObjectMethod(method As IMethodSymbol) As Boolean
             Dim overriddenMember = method
             Do While overriddenMember.OverriddenMethod IsNot Nothing
                 overriddenMember = overriddenMember.OverriddenMethod

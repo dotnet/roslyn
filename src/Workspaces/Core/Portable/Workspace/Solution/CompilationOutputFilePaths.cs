@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis
             AssemblyPath = assemblyPath;
         }
 
+#pragma warning disable CA1822 // Mark members as static - unshipped public API which will use instance members in future https://github.com/dotnet/roslyn/issues/35065
         public CompilationOutputFilePaths WithAssemblyPath(string? path)
+#pragma warning restore CA1822 // Mark members as static
             => new CompilationOutputFilePaths(assemblyPath: path);
 
         public override bool Equals(object? obj)

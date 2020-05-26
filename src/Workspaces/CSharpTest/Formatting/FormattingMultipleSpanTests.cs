@@ -177,7 +177,7 @@ class A { }";
             return AssertFormatAsync(expected, tuple.Item1, tuple.Item2, changedOptionSet: changedOptionSet);
         }
 
-        private Tuple<string, List<TextSpan>> PreprocessMarkers(string codeWithMarker)
+        private static Tuple<string, List<TextSpan>> PreprocessMarkers(string codeWithMarker)
         {
             var currentIndex = 0;
             var spans = new List<TextSpan>();
