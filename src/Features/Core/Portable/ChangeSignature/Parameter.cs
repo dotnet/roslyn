@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             DefaultValue = defaultValue;
             CallSiteKind = callSiteKind;
 
+            // Populate the call site text for the UI
             switch (CallSiteKind)
             {
                 case CallSiteKind.Value:
