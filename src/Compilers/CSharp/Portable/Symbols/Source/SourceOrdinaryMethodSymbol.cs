@@ -195,8 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // set ReturnsVoid flag
             this.SetReturnsVoid(returnsVoid);
 
-            this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
-
             var location = locations[0];
             // Checks taken from MemberDefiner::defineMethod
             if (this.Name == WellKnownMemberNames.DestructorName && this.ParameterCount == 0 && this.Arity == 0 && this.ReturnsVoid)
@@ -234,6 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 forceMethodTypeParameters(_lazyReturnType, this, declaredConstraints);
             }
+
+            this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
 
             // errors relevant for extension methods
             if (IsExtensionMethod)
