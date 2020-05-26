@@ -72,14 +72,9 @@
         <target state="translated">アナライザー診断 ID をアナライザー リリースに追加します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="DefineDiagnosticDescriptionCorrectlyDescription">
-        <source>The diagnostic description is recommended to be one or multiple sentences ending with a punctuation ('.', '!' or '?').</source>
-        <target state="new">The diagnostic description is recommended to be one or multiple sentences ending with a punctuation ('.', '!' or '?').</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
-        <source>Define diagnostic description correctly</source>
-        <target state="new">Define diagnostic description correctly</target>
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign.</source>
+        <target state="new">The diagnostic description should be one or multiple sentences ending with a punctuation sign.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
@@ -87,14 +82,9 @@
         <target state="new">Define diagnostic description correctly</target>
         <note />
       </trans-unit>
-      <trans-unit id="DefineDiagnosticMessageCorrectlyDescription">
-        <source>The diagnostic message is recommended to be either a single sentence not ending with a period ('.') or a multi-sentences message ending with a period ('.'). In both cases, the message should not contain any line return ('\r', '\n' or '\r\n').</source>
-        <target state="new">The diagnostic message is recommended to be either a single sentence not ending with a period ('.') or a multi-sentences message ending with a period ('.'). In both cases, the message should not contain any line return ('\r', '\n' or '\r\n').</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
-        <source>Define diagnostic message correctly</source>
-        <target state="new">Define diagnostic message correctly</target>
+        <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</source>
+        <target state="new">The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
@@ -102,14 +92,9 @@
         <target state="new">Define diagnostic message correctly</target>
         <note />
       </trans-unit>
-      <trans-unit id="DefineDiagnosticTitleCorrectlyDescription">
-        <source>The diagnostic title is recommended to be a short sentence without any period ('.)' nor any line return ('\r', '\n' or '\r\n').</source>
-        <target state="new">The diagnostic title is recommended to be a short sentence without any period ('.)' nor any line return ('\r', '\n' or '\r\n').</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
-        <source>Define diagnostic title correctly</source>
-        <target state="new">Define diagnostic title correctly</target>
+        <source>The diagnostic title should not contain a period or any line return character</source>
+        <target state="new">The diagnostic title should not contain a period or any line return character</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
