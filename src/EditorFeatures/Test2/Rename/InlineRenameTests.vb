@@ -452,12 +452,16 @@ public class [|$$C|] { }
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925"), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
         Public Async Function RenameInCommentsAndStringsCSharp(host As TestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
                                 <![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:Program.[|goo|]")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:Program.goo(System.Int32)")]
+
 class Program
 {
     /// <[|goo|]> [|goo|]! </[|goo|]>
@@ -489,6 +493,9 @@ class Program
                     <Project Language="C#" CommonReferences="true">
                         <Document>
                             <![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:Program.[|goo|]")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:Program.[|goo|](System.Int32)")]
+
 class Program
 {
     /// <[|goo|]> [|goo|]! </[|goo|]>
@@ -520,6 +527,9 @@ class Program
                     <Project Language="C#" CommonReferences="true">
                         <Document>
                             <![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:Program.[|goo|]")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:Program.[|goo|](System.Int32)")]
+
 class Program
 {
     /// <[|goo|]> [|goo|]! </[|goo|]>
@@ -550,12 +560,16 @@ class Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925"), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
         Public Async Function RenameInCommentsAndStringsVisualBasic(host As TestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">
                             <Document>
                                 <![CDATA[
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope:="member", Target:="~M:Program.[|goo|]")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope:="member", Target:="~M:Program.goo(System.Int32)")>
+
 Class Program
 	''' <[|goo|]> [|goo|]! </[|goo|]>
 	Public Sub [|$$goo|]()
@@ -585,6 +599,9 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
                             <![CDATA[
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope:="member", Target:="~M:Program.[|goo|]")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope:="member", Target:="~M:Program.[|goo|](System.Int32)")>
+
 Class Program
 	''' <[|goo|]> [|goo|]! </[|goo|]>
 	Public Sub [|$$goo|]()
@@ -614,6 +631,9 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
                             <![CDATA[
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope:="member", Target:="~M:Program.[|goo|]")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope:="member", Target:="~M:Program.[|goo|](System.Int32)")>
+
 Class Program
 	''' <[|goo|]> [|goo|]! </[|goo|]>
 	Public Sub [|$$goo|]()
@@ -1900,6 +1920,32 @@ class [|$$Test1|]
                 Assert.False(committed)
 
                 Await VerifyTagsAreCorrect(workspace, "Test1")
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        Public Async Function RenameConstructorReferencedInGlobalSuppression(host As TestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                <![CDATA[
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:[|C|].#ctor")]
+
+class [|C|]
+{
+    public [|$$C|]()
+    {
+    }
+}]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "D")
+                VerifyFileName(workspace, "Test1")
             End Using
         End Function
     End Class
