@@ -765,8 +765,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         statements,
                         SyntaxFactory.EndSubStatement()).WithAdditionalAnnotations(annotations)
 
-                    current = singleLineLambda.Parent
-
                     oldBlock = singleLineLambda
                     newBlock = multiLineLambda
 

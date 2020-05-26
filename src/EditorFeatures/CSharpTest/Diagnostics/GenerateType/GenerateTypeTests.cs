@@ -3365,8 +3365,7 @@ expectedDocumentName: "Bar.cs");
     {
         [|Bar|] b;
     }
-}",
-index: 1);
+}");
         }
 
         [WorkItem(539674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539674")]

@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Dim itemsAndSelected = If(type.TypeKind = TypeKind.Delegate,
-                GetDelegateTypeConstructors(objectCreationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, type, cancellationToken),
+                GetDelegateTypeConstructors(objectCreationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, type),
                 GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, anonymousTypeDisplayService, type, within, cancellationToken))
 
             Return CreateSignatureHelpItems(itemsAndSelected.Items,

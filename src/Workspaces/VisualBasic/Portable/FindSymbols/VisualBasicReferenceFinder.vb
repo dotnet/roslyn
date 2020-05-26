@@ -56,13 +56,12 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
             ' If this is a WinForms project, then the VB 'my' feature may have synthesized 
             ' a property that would return an instance of the main Form type for the project.
             ' Search for such properties and cascade to them as well.
-            Return GetMatchingMyPropertySymbols(namedType, project.Id, compilation, cancellationToken).
+            Return GetMatchingMyPropertySymbols(namedType, compilation, cancellationToken).
                 Distinct().ToImmutableArray()
         End Function
 
         Private Function GetMatchingMyPropertySymbols(
                 namedType As INamedTypeSymbol,
-                projectId As ProjectId,
                 compilation As Compilation,
                 cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
             Return From childNamespace In compilation.RootNamespace.GetNamespaceMembers()

@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
 
             ' A ForBlockSyntax can either be a ForBlock or a ForEachBlock. Get the control variable
             ' from that.
-            Dim controlVariable As SyntaxNode = Nothing
+            Dim controlVariable As SyntaxNode
             Select Case forBlock.Kind()
                 Case SyntaxKind.ForBlock
                     Dim forStatement = DirectCast(forBlock.ForOrForEachStatement, ForStatementSyntax)
