@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1499,6 +1499,201 @@ data class C(int X, int Y)
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(11, 1)
             );
+        }
+
+        [Fact]
+        public void Inheritance_01()
+        {
+            var source =
+@"data class A(int X, int Y)
+{
+    internal A() { }
+}
+data class B(object Y, object Z) : A
+{
+}
+class Program
+{
+    static void Main()
+    {
+        var b = new B(null, ""str"");
+        System.Console.WriteLine(""{0}, {1}, {2}"", b.X, b.Y, b.Z);
+    }
+}";
+            CompileAndVerify(source, expectedOutput: "0, , str");
+        }
+
+        [Fact]
+        public void Inheritance_02()
+        {
+            var source =
+@"class A
+{
+    internal int X { get; set; }
+    internal int Y { set { } }
+    internal int Z;
+}
+data class B(int X, int Y, int Z) : A
+{
+}
+class Program
+{
+    static void Main()
+    {
+        var b = new B(1, 2, 3);
+        b.X = 4;
+        b.Y = 5;
+        b.Z = 6;
+        ((A)b).X = 7;
+        ((A)b).Y = 8;
+        ((A)b).Z = 9;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (15,9): error CS0200: Property or indexer 'B.X' cannot be assigned to -- it is read only
+                //         b.X = 4;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "b.X").WithArguments("B.X").WithLocation(15, 9),
+                // (16,9): error CS0200: Property or indexer 'B.Y' cannot be assigned to -- it is read only
+                //         b.Y = 5;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "b.Y").WithArguments("B.Y").WithLocation(16, 9),
+                // (17,9): error CS0200: Property or indexer 'B.Z' cannot be assigned to -- it is read only
+                //         b.Z = 6;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "b.Z").WithArguments("B.Z").WithLocation(17, 9));
+        }
+
+        [Fact]
+        public void Inheritance_03()
+        {
+            var source =
+@"abstract class A
+{
+    public abstract int X { get; }
+    public virtual int Y { get; }
+}
+data class B(int X, int Y) : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS0534: 'B' does not implement inherited abstract member 'A.X.get'
+                // data class B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.X.get").WithLocation(6, 12));
+        }
+
+        [Fact]
+        public void Inheritance_04()
+        {
+            var source =
+@"using System;
+interface IA
+{
+    int X { get; }
+}
+interface IB
+{
+    int Y { get; }
+}
+data class C(int X, int Y) : IA, IB
+{
+}
+data struct S(int X, int Y) : IA, IB
+{
+}
+class Program
+{
+    static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(""{0}, {1}"", c.X, c.Y);
+        Console.WriteLine(""{0}, {1}"", ((IA)c).X, ((IB)c).Y);
+        var s = new S(3, 4);
+        Console.WriteLine(""{0}, {1}"", s.X, s.Y);
+        Console.WriteLine(""{0}, {1}"", ((IA)s).X, ((IB)s).Y);
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"1, 2
+1, 2
+3, 4
+3, 4");
+        }
+
+        [Fact]
+        public void Inheritance_05()
+        {
+            var source =
+@"interface IA
+{
+    int X { get; }
+}
+interface IB
+{
+    object Y { get; set; }
+}
+data class C(object X, object Y) : IA, IB
+{
+}
+data struct S(object X, object Y) : IA, IB
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,36): error CS0738: 'C' does not implement interface member 'IA.X'. 'C.X' cannot implement 'IA.X' because it does not have the matching return type of 'int'.
+                // data class C(object X, object Y) : IA, IB
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "IA").WithArguments("C", "IA.X", "C.X", "int").WithLocation(9, 36),
+                // (9,40): error CS0535: 'C' does not implement interface member 'IB.Y.set'
+                // data class C(object X, object Y) : IA, IB
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IB").WithArguments("C", "IB.Y.set").WithLocation(9, 40),
+                // (12,37): error CS0738: 'S' does not implement interface member 'IA.X'. 'S.X' cannot implement 'IA.X' because it does not have the matching return type of 'int'.
+                // data struct S(object X, object Y) : IA, IB
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "IA").WithArguments("S", "IA.X", "S.X", "int").WithLocation(12, 37),
+                // (12,41): error CS0535: 'S' does not implement interface member 'IB.Y.set'
+                // data struct S(object X, object Y) : IA, IB
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IB").WithArguments("S", "IB.Y.set").WithLocation(12, 41));
+        }
+
+        [Fact]
+        public void Overrides_01()
+        {
+            var source =
+@"class A
+{
+    public sealed override bool Equals(object other) => false;
+    public sealed override int GetHashCode() => 0;
+    public sealed override string ToString() => null;
+}
+data class B(int X, int Y) : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
+                // data class B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 12),
+                // (7,12): error CS0239: 'B.Equals(object?)': cannot override inherited member 'A.Equals(object)' because it is sealed
+                // data class B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.Equals(object?)", "A.Equals(object)").WithLocation(7, 12));
+        }
+
+        [Fact]
+        public void Overrides_02()
+        {
+            var source =
+@"abstract class A
+{
+    public abstract override bool Equals(object other);
+    public abstract override int GetHashCode();
+    public abstract override string ToString();
+}
+data class B(int X, int Y) : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0534: 'B' does not implement inherited abstract member 'A.ToString()'
+                // data class B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.ToString()").WithLocation(7, 12));
         }
     }
 }
