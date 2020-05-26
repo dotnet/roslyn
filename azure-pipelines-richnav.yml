@@ -1,4 +1,4 @@
-# Run on master CI builds 
+# Run on master CI builds
 trigger:
 - master
 
