@@ -719,6 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsExpressionContext(position, tokenOnLeftOfPosition, attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModelOpt) ||
                 syntaxTree.IsPrimaryFunctionExpressionContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsGenericTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken, semanticModelOpt) ||
+                syntaxTree.IsFunctionPointerTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken) ||
                 syntaxTree.IsFixedVariableDeclarationContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsImplicitOrExplicitOperatorTypeContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsIsOrAsTypeContext(position, tokenOnLeftOfPosition) ||
@@ -902,6 +903,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsFunctionPointerTypeArgumentContext(
+            this SyntaxTree syntaxTree,
+            int position,
+            SyntaxToken tokenOnLeftOfPosition,
+            CancellationToken cancellationToken)
+        {
+            var token = tokenOnLeftOfPosition;
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            switch (token.Kind())
+            {
+                case SyntaxKind.LessThanToken:
+                case SyntaxKind.CommaToken:
+                    return token.Parent is FunctionPointerTypeSyntax;
+            }
+
+            if (token.GetAncestor<FunctionPointerTypeSyntax>() == null)
+            {
+                return false;
+            }
+
+            return syntaxTree.IsInPartiallyWrittenFunctionPointer(position, cancellationToken);
+        }
+
         public static bool IsGenericTypeArgumentContext(
             this SyntaxTree syntaxTree,
             int position,
@@ -1000,11 +1025,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            if (token.IsKind(SyntaxKind.LessThanToken) && token.IsInFunctionPointer())
+            {
+                parameterIndex = 0;
+                return true;
+            }
+
             if (token.IsKind(SyntaxKind.CommaToken) &&
                 token.Parent.IsKind(SyntaxKind.ParameterList, out ParameterListSyntax parameterList) &&
                 parameterList.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
                 var commaIndex = parameterList.Parameters.GetWithSeparators().IndexOf(token);
+
+                parameterIndex = commaIndex / 2 + 1;
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.CommaToken) &&
+                token.Parent.IsKind(SyntaxKind.FunctionPointerType, out FunctionPointerTypeSyntax funcPtrType))
+            {
+                var commaIndex = funcPtrType.Parameters.GetWithSeparators().IndexOf(token);
 
                 parameterIndex = commaIndex / 2 + 1;
                 return true;

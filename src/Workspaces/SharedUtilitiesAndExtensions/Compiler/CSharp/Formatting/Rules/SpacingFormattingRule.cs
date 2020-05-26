@@ -320,6 +320,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
+            // Function pointer type adjustments
+            if (previousParentKind == SyntaxKind.FunctionPointerType && currentParentKind == SyntaxKind.FunctionPointerType)
+            {
+                if (currentKind == SyntaxKind.LessThanToken)
+                {
+                    switch (previousKind)
+                    {
+                        // No spacing between the * and < tokens if there is no calling convention
+                        case SyntaxKind.AsteriskToken:
+                        // No spacing between the calling convention and opening angle bracket of function pointer types:
+                        // delegate* cdecl<
+                        case SyntaxKind.IdentifierToken:
+                            return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+                    }
+                }
+
+                // Force a space between * and the calling convention
+                if (currentKind == SyntaxKind.IdentifierToken && previousKind == SyntaxKind.AsteriskToken)
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+            }
+
             // For spacing after the 'not' pattern operator
             if (previousToken.Parent.IsKind(SyntaxKindEx.NotPattern))
             {

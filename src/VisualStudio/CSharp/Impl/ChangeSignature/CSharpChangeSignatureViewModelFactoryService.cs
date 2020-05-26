@@ -44,7 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
             return parts.ToArray();
         }
 
-        public override bool IsTypeNameValid(string typeName) => !SyntaxFactory.ParseTypeName(typeName).ContainsDiagnostics;
+#nullable enable
+        public override bool IsTypeNameValid(string typeName, ParseOptions? parseOptions) => !SyntaxFactory.ParseTypeName(typeName, options: parseOptions).ContainsDiagnostics;
+#nullable restore
 
         public override SyntaxNode GetTypeNode(string typeName) => SyntaxFactory.ParseTypeName(typeName);
     }

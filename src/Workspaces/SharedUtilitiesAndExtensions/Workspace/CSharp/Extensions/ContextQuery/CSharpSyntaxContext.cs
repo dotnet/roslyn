@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsCatchFilterContext;
         public readonly bool IsDestructorTypeContext;
         public readonly bool IsLeftSideOfImportAliasDirective;
+        public readonly bool IsFunctionPointerTypeArgumentContext;
 
         private CSharpSyntaxContext(
             Workspace workspace,
@@ -106,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isAfterPatternContext,
             bool isRightSideOfNumericType,
             bool isInArgumentList,
+            bool isFunctionPointerTypeArgumentContext,
             CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
@@ -147,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsCatchFilterContext = isCatchFilterContext;
             this.IsDestructorTypeContext = isDestructorTypeContext;
             this.IsLeftSideOfImportAliasDirective = isLeftSideOfImportAliasDirective;
+            this.IsFunctionPointerTypeArgumentContext = isFunctionPointerTypeArgumentContext;
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -265,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isAfterPatternContext: syntaxTree.IsAtEndOfPattern(leftToken, position),
                 isRightSideOfNumericType: isRightSideOfNumericType,
                 isInArgumentList: isArgumentListToken,
+                isFunctionPointerTypeArgumentContext: syntaxTree.IsFunctionPointerTypeArgumentContext(position, leftToken, cancellationToken),
                 cancellationToken: cancellationToken);
         }
 
