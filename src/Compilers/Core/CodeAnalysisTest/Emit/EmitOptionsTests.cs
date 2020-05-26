@@ -89,7 +89,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 nameof(EmitOptions.RuntimeMetadataVersion),
                 nameof(EmitOptions.TolerateErrors),
                 nameof(EmitOptions.IncludePrivateMembers),
-                nameof(EmitOptions.InstrumentationKinds));
+                nameof(EmitOptions.InstrumentationKinds),
+                nameof(EmitOptions.DefaultSourceFileEncoding));
         }
 
         [Fact]

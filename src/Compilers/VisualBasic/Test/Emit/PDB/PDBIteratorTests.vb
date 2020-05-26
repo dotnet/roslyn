@@ -561,7 +561,7 @@ MethodDebugInformation (index: 0x31, size: 40):
 2: nil
 3: nil
 4: nil
-5: #22
+5: #b4
 {
   Kickoff Method: 0x06000002 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)

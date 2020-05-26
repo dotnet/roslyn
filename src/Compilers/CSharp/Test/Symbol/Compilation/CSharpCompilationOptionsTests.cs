@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -369,9 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "AllowUnsafe",
                 "Usings",
                 "TopLevelBinderFlags",
-                "NullableContextOptions",
-                "CodePage",
-                "PreprocessorSymbols");
+                "NullableContextOptions");
         }
 
         [Fact]
@@ -420,8 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
                 concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
-                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags,
-                nullableContextOptions);
+                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags, nullableContextOptions);
         }
 
         private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver
