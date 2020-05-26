@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BinaryOperatorKind.Float:
                 case BinaryOperatorKind.Double:
-                    if (!hasErrors && constantValueOpt != null && double.IsNaN(constantValueOpt.DoubleValue))
+                    if (!hasErrors && constantValueOpt != null && !constantValueOpt.IsBad && double.IsNaN(constantValueOpt.DoubleValue))
                     {
                         diagnostics.Add(ErrorCode.ERR_RelationalPatternWithNaN, node.Expression.Location);
                         hasErrors = true;

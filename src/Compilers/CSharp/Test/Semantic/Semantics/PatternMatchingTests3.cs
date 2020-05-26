@@ -5501,5 +5501,107 @@ class C
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(44518, "https://github.com/dotnet/roslyn/issues/44518")]
+        public void Crash_01()
+        {
+            var source =
+@"class C
+{
+    void M()
+    {
+        _ = is < true;
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (5,13): error CS1525: Invalid expression term 'is'
+                //         _ = is < true;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "is").WithArguments("is").WithLocation(5, 13)
+                );
+        }
+
+        [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
+        public void Crash_02()
+        {
+            var source =
+@"using System;
+public class C {
+    public void M(nint x) {
+        int z = x switch{
+                1=>//1,
+                2=>2,
+        };
+        Console.WriteLine(z);
+    }
+    public void M(nuint x) {
+        int z = x switch{
+                1=>//1,
+                2=>2,
+        };
+        Console.WriteLine(z);
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS1003: Syntax error, ',' expected
+                //                 2=>2,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 18),
+                // (6,18): error CS8504: Pattern missing
+                //                 2=>2,
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 18),
+                // (13,18): error CS1003: Syntax error, ',' expected
+                //                 2=>2,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(13, 18),
+                // (13,18): error CS8504: Pattern missing
+                //                 2=>2,
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(13, 18)
+                );
+        }
+
+        [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
+        public void Crash_03()
+        {
+            var source =
+@"public class C {
+    public void M(nint x) {
+        _ = x is >= 1 and;
+    }
+    public void M(nuint x) {
+        _ = x is >= 1 and;
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (3,26): error CS8504: Pattern missing
+                //         _ = x is >= 1 and;
+                Diagnostic(ErrorCode.ERR_MissingPattern, ";").WithLocation(3, 26),
+                // (6,26): error CS8504: Pattern missing
+                //         _ = x is >= 1 and;
+                Diagnostic(ErrorCode.ERR_MissingPattern, ";").WithLocation(6, 26)
+                );
+        }
+
+        [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
+        public void Crash_04()
+        {
+            var source =
+@"public class C {
+    public void M() {
+        _ = 0f is >= 0/0;
+        _ = 0d is >= 0/0;
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (3,22): error CS0020: Division by constant zero
+                //         _ = 0f is >= 0/0;
+                Diagnostic(ErrorCode.ERR_IntDivByZero, "0/0").WithLocation(3, 22),
+                // (4,22): error CS0020: Division by constant zero
+                //         _ = 0d is >= 0/0;
+                Diagnostic(ErrorCode.ERR_IntDivByZero, "0/0").WithLocation(4, 22)
+                );
+        }
     }
 }
