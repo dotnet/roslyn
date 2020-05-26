@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract ImmutableArray<string> GetImportedNamespaces(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract bool ShouldProvideCompletion(Document document, SyntaxContext syntaxContext);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
+        protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
 
         // For telemetry reporting
         protected abstract void LogCommit();
@@ -195,13 +196,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private static async Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken)
+        private async Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true);
             return leftToken.GetAncestor(syntaxFacts.IsUsingOrExternOrImport) is { } node
-                && !syntaxFacts.IsTerminator(node, leftToken);
+                && !IsFinalSemicolonOfUsingOrExtern(node, leftToken);
         }
 
         protected static bool IsAddingImportsSupported(Document document)

@@ -343,16 +343,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsStatementContainer(SyntaxNode node);
         IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node);
 
-        /// <summary>
-        /// Determines if <paramref name="token"/> is a terminating token of syntax <paramref name="node"/>. A
-        /// terminating token cannot be followed by a significant token in the same node.
-        /// </summary>
-        /// <param name="node">The syntax node.</param>
-        /// <param name="token">The token.</param>
-        /// <returns><see langword="true"/> if <paramref name="token"/> is known to be a terminating token of
-        /// <paramref name="node"/>; otherwise, <see langword="false"/>.</returns>
-        bool IsTerminator(SyntaxNode node, SyntaxToken token);
-
         bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
         bool AreEquivalent(SyntaxNode node1, SyntaxNode node2);
 
