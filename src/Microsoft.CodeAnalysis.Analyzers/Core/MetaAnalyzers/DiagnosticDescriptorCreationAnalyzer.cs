@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
@@ -67,6 +68,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableDoNotUseReservedDiagnosticIdTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDoNotUseReservedDiagnosticIdMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDoNotUseReservedDiagnosticIdDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+
+        private static readonly LocalizableString s_localizableDefineDiagnosticTitleCorrectlyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticTitleCorrectlyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableDefineDiagnosticTitleCorrectlyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticTitleCorrectlyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+
+        private static readonly LocalizableString s_localizableDefineDiagnosticMessageCorrectlyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticMessageCorrectlyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableDefineDiagnosticMessageCorrectlyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticMessageCorrectlyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+
+        private static readonly LocalizableString s_localizableDefineDiagnosticDescriptionCorrectlyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticDescriptionCorrectlyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableDefineDiagnosticDescriptionCorrectlyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticDescriptionCorrectlyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         /// <summary>
         /// RS1007 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorTitle"/>)
@@ -146,6 +156,42 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDoNotUseReservedDiagnosticIdDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        /// <summary>
+        /// RS1031 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DefineDiagnosticTitleCorrectlyTitle"/>)
+        /// </summary>
+        public static readonly DiagnosticDescriptor DefineDiagnosticTitleCorrectlyRule = new DiagnosticDescriptor(
+            DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId,
+            s_localizableDefineDiagnosticTitleCorrectlyTitle,
+            s_localizableDefineDiagnosticTitleCorrectlyMessage,
+            DiagnosticCategory.MicrosoftCodeAnalysisDesign,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: false,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
+        /// <summary>
+        /// RS1032 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DefineDiagnosticMessageCorrectlyTitle"/>)
+        /// </summary>
+        public static readonly DiagnosticDescriptor DefineDiagnosticMessageCorrectlyRule = new DiagnosticDescriptor(
+            DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId,
+            s_localizableDefineDiagnosticMessageCorrectlyTitle,
+            s_localizableDefineDiagnosticMessageCorrectlyMessage,
+            DiagnosticCategory.MicrosoftCodeAnalysisDesign,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: false,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
+        /// <summary>
+        /// RS1033 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DefineDiagnosticDescriptionCorrectlyTitle"/>)
+        /// </summary>
+        public static readonly DiagnosticDescriptor DefineDiagnosticDescriptionCorrectlyRule = new DiagnosticDescriptor(
+            DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId,
+            s_localizableDefineDiagnosticDescriptionCorrectlyTitle,
+            s_localizableDefineDiagnosticDescriptionCorrectlyMessage,
+            DiagnosticCategory.MicrosoftCodeAnalysisDesign,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: false,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
             UseLocalizableStringsInDescriptorRule,
             ProvideHelpUriInDescriptorRule,
@@ -167,7 +213,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             InvalidHeaderInAnalyzerReleasesFileRule,
             InvalidUndetectedEntryInAnalyzerReleasesFileRule,
             InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
-            EnableAnalyzerReleaseTrackingRule);
+            EnableAnalyzerReleaseTrackingRule,
+            DefineDiagnosticTitleCorrectlyRule,
+            DefineDiagnosticMessageCorrectlyRule,
+            DefineDiagnosticDescriptionCorrectlyRule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -208,7 +257,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         return;
                     }
 
-                    AnalyzeTitle(creationMethod, fieldInitializer, operationAnalysisContext.ReportDiagnostic);
+                    AnalyzeTitle(operationAnalysisContext, creationArguments, fieldInitializer);
+                    AnalyzeMessage(operationAnalysisContext, creationArguments);
+                    AnalyzeDescription(operationAnalysisContext, creationArguments);
                     AnalyzeHelpLinkUri(operationAnalysisContext, creationArguments, out var helpLink);
                     AnalyzeCustomTags(operationAnalysisContext, creationArguments);
                     var (isEnabledByDefault, defaultSeverity) = GetDefaultSeverityAndEnabledByDefault(operationAnalysisContext.Compilation, creationArguments);
@@ -305,16 +356,90 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     method.Parameters[0].Type.SpecialType == SpecialType.System_String;
         }
 
-        private static void AnalyzeTitle(IMethodSymbol descriptorCreationMethod, IFieldInitializerOperation creation, Action<Diagnostic> reportDiagnostic)
+        private static void AnalyzeTitle(OperationAnalysisContext operationAnalysisContext, ImmutableArray<IArgumentOperation> creationArguments, IFieldInitializerOperation creation)
         {
-            IParameterSymbol title = descriptorCreationMethod.Parameters.FirstOrDefault(p => p.Name == "title");
-            if (title != null &&
-                title.Type != null &&
-                title.Type.SpecialType == SpecialType.System_String)
+            IArgumentOperation titleArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("title", StringComparison.OrdinalIgnoreCase));
+            if (titleArgument?.Parameter.Type.SpecialType != SpecialType.System_String)
             {
-                Diagnostic diagnostic = creation.Value.CreateDiagnostic(UseLocalizableStringsInDescriptorRule, WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString);
-                reportDiagnostic(diagnostic);
+                return;
             }
+
+            operationAnalysisContext.ReportDiagnostic(creation.Value.CreateDiagnostic(UseLocalizableStringsInDescriptorRule, WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString));
+
+            if (!TryGetNonEmptyConstantStringValue(titleArgument, out var title))
+            {
+                return;
+            }
+
+            if (IsMultiSentences(title) || EndsWithPeriod(title) || ContainsLineReturn(title))
+            {
+                operationAnalysisContext.ReportDiagnostic(titleArgument.CreateDiagnostic(DefineDiagnosticTitleCorrectlyRule));
+            }
+        }
+
+        private static void AnalyzeMessage(OperationAnalysisContext operationAnalysisContext, ImmutableArray<IArgumentOperation> creationArguments)
+        {
+            IArgumentOperation messageArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("messageFormat", StringComparison.OrdinalIgnoreCase));
+            if (!TryGetNonEmptyConstantStringValue(messageArgument, out var message))
+            {
+                return;
+            }
+
+            var isMultiSentenceMessage = message.Contains(". ");
+            if ((IsMultiSentences(message) ^ EndsWithPeriod(message)) || ContainsLineReturn(message))
+            {
+                operationAnalysisContext.ReportDiagnostic(messageArgument.CreateDiagnostic(DefineDiagnosticMessageCorrectlyRule));
+            }
+        }
+
+        private static void AnalyzeDescription(OperationAnalysisContext operationAnalysisContext, ImmutableArray<IArgumentOperation> creationArguments)
+        {
+            IArgumentOperation descriptionArgument = creationArguments.FirstOrDefault(a => a.Parameter.Name.Equals("description", StringComparison.OrdinalIgnoreCase));
+            if (!TryGetNonEmptyConstantStringValue(descriptionArgument, out var description))
+            {
+                return;
+            }
+
+            if (!EndsWithPunctuation(description))
+            {
+                operationAnalysisContext.ReportDiagnostic(descriptionArgument.CreateDiagnostic(DefineDiagnosticDescriptionCorrectlyRule));
+            }
+        }
+
+        private static bool TryGetNonEmptyConstantStringValue([NotNullWhen(true)] IArgumentOperation? argumentOperation, [NotNullWhen(true)] out string? value)
+        {
+            value = null;
+
+            if (argumentOperation == null ||
+                !argumentOperation.Value.ConstantValue.HasValue)
+            {
+                return false;
+            }
+
+            if (!(argumentOperation.Value.ConstantValue.Value is string s) ||
+                s.Length == 0)
+            {
+                return false;
+            }
+
+            value = s;
+            return true;
+        }
+
+        private static bool IsMultiSentences(string s)
+            => s.Contains(". "); // Assumes that a string is a multi-sentences if it contains a period followed by a whitespace ('. ').
+
+        private static bool EndsWithPeriod(string s)
+            => s[s.Length - 1] == '.';
+
+        private static bool ContainsLineReturn(string s)
+            => s.Contains("\r") || s.Contains("\n");
+
+        private static bool EndsWithPunctuation(string s)
+        {
+            var lastChar = s[s.Length - 1];
+
+            return lastChar.Equals('.') || lastChar.Equals('!') || lastChar.Equals('?');
         }
 
         private static void AnalyzeHelpLinkUri(OperationAnalysisContext operationAnalysisContext, ImmutableArray<IArgumentOperation> creationArguments, out string? helpLink)
