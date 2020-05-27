@@ -76,10 +76,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             _initialWorkingDirectory = workingDirectory;
             _outputGuard = new object();
             _errorOutputGuard = new object();
-
-            var serverProvider = new BinaryServerFormatterSinkProvider { TypeFilterLevel = TypeFilterLevel.Full };
-            // (miziga) initializing pipe for replacement of remote channel
-            _clientStream = new NamedPipeClientStream(".", GenerateUniqueChannelLocalName(), PipeDirection.InOut, PipeOptions.Asynchronous);
         }
 
         #region Test hooks
@@ -94,11 +90,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                     lazyRemoteService.InitializedService.TryGetValue(out var initializedService)) ? initializedService.Service.Process : null;
         }
 
-        internal Service? TryGetService()
+        /*internal Service? TryGetService()
         {
             var initializedService = TryGetOrCreateRemoteServiceAsync().Result;
             return initializedService.Service?.Service;
-        }
+        }*/
 
         // Triggered whenever we create a fresh process.
         // The ProcessExited event is not hooked yet.
@@ -126,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var remoteServerPort = "InteractiveHostChannel-" + Guid.NewGuid();
 
                 var processInfo = new ProcessStartInfo(hostPath);
+                //(miziga) same name as pipe
                 processInfo.Arguments = GenerateUniqueChannelLocalName() + " " + currentProcessId;
                 processInfo.WorkingDirectory = _initialWorkingDirectory;
                 processInfo.CreateNoWindow = true;
@@ -155,26 +152,25 @@ namespace Microsoft.CodeAnalysis.Interactive
                     newProcessId = 0;
                 }
 
+                // (miziga) initializing pipe for replacement of remote channel
+                _clientStream = new NamedPipeClientStream(".", GenerateUniqueChannelLocalName(), PipeDirection.InOut, PipeOptions.Asynchronous);
+
                 // instantiate remote service:
-                Service newService;
                 try
                 {
-                    newService = (Service)Activator.GetObject(
-                        typeof(Service),
-                        "ipc://" + remoteServerPort + "/" + Service.ServiceName);
-
                     cancellationToken.ThrowIfCancellationRequested();
                     await _clientStream.ConnectAsync().ConfigureAwait(false);
                     jsonRpc = JsonRpc.Attach(_clientStream);
                     //(miziga) await and configureawait necessary?
-                    await newService.InitializeAsync(_replServiceProviderType, culture.Name).ConfigureAwait(false);
+                    //(miziga) call initialize through rpc
+                    await jsonRpc.InvokeAsync<Task>("InitializeAsync", _replServiceProviderType, culture.Name).ConfigureAwait(false);
                 }
                 catch (RemotingException) when (!CheckAlive(newProcess, hostPath))
                 {
                     return null;
                 }
 
-                return new RemoteService(this, newProcess, newProcessId, newService);
+                return new RemoteService(this, newProcess, newProcessId);
             }
             catch (OperationCanceledException)
             {
@@ -368,9 +364,29 @@ namespace Microsoft.CodeAnalysis.Interactive
             return default;
         }
 
-        private async Task<TResult> Async<TResult>(Action<Service, RemoteAsyncOperation<TResult>> action)
+        private async Task<TResult> Async<TResult>(string targetName, params object[] arguments)
         {
-            try
+            return await jsonRpc.InvokeAsync<TResult>(targetName, arguments).ConfigureAwait(false);
+            /*try
+            {
+                // async call to remote process:
+                action(_remoteService.Service, this);
+
+                _remoteService.Process.Exited += _processExitedHandler;
+                if (!_remoteService.Process.IsAlive())
+                {
+                    ProcessExited();
+                }
+
+                return _completion.Task;
+            }
+            catch (RemotingException) when (!_remoteService.Process.IsAlive())
+            {
+                // the operation might have terminated the process:
+                ProcessExited();
+                return _completion.Task;
+            }*/
+            /*try
             {
                 var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
                 if (initializedService.Service == null)
@@ -383,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
-            }
+            }*/
         }
 
         // (miziga) unused method - delete?
@@ -446,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<RemoteExecutionResult> ExecuteAsync(string code)
         {
             Contract.ThrowIfNull(code);
-            return Async<RemoteExecutionResult>((service, operation) => service.Execute(operation, code));
+            return Async<RemoteExecutionResult>("Execute", code);
         }
 
         /// <summary>
@@ -458,11 +474,13 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// This method is thread safe but operations are sent to the remote process
         /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
-        public async Task<RemoteExecutionResult> ExecuteFileAsync(string path)
+        public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
-            Contract.ThrowIfNull(path);
-            return await jsonRpc.InvokeAsync<RemoteExecutionResult>("ExecuteFileAsync", path).ConfigureAwait(false);
-        }
+            if (path == null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+            return Async<RemoteExecutionResult>("ExecuteFileAsync", path);        }
 
         /// <summary>
         /// Asynchronously adds a reference to the set of available references for next submission.
@@ -475,20 +493,20 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<bool> AddReferenceAsync(string reference)
         {
             Contract.ThrowIfNull(reference);
-            return Async<bool>((service, operation) => service.AddReference(operation, reference));
+            return Async<bool>("AddReference", reference);
         }
 
         /// <summary>
         /// Sets the current session's search paths and base directory.
         /// </summary>
-        public async Task<RemoteExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
+        public Task<RemoteExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
         {
             Contract.ThrowIfNull(referenceSearchPaths);
             Contract.ThrowIfNull(sourceSearchPaths);
             Contract.ThrowIfNull(baseDirectory);
             var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
 
-            return await jsonRpc.InvokeAsync<RemoteExecutionResult>("SetPaths", completionSource, referenceSearchPaths, sourceSearchPaths, baseDirectory).ConfigureAwait(false);
+            return Async<RemoteExecutionResult>("SetPaths", completionSource, referenceSearchPaths, sourceSearchPaths, baseDirectory);
         }
 
         #endregion

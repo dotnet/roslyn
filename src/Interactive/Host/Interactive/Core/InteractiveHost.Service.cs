@@ -180,13 +180,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                     resetEvent.Wait();
                 }
 
-                NamedPipeServerStream serverStream = new NamedPipeServerStream(GenerateUniqueChannelLocalName(), PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-                await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
-                // (miziga) should there be a target? 
-                var jsonRPC = JsonRpc.Attach(serverStream, new Service());
-                // (miziga) should this be here or in RunServer? 
-                await jsonRPC.Completion.ConfigureAwait(false);
-
                 // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(
                     Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
@@ -245,20 +238,20 @@ namespace Microsoft.CodeAnalysis.Interactive
                 s_clientExited.Set();
             }
 
-            internal static void RunServer(string[] args)
+            internal static async Task RunServerAsync(string[] args)
             {
                 if (args.Length != 3)
                 {
-                    throw new ArgumentException("Expecting arguments: <server port> <semaphore name> <client process id>");
+                    throw new ArgumentException("Expecting arguments: <client process id>");
                 }
 
-                RunServer(args[0], args[1], int.Parse(args[2], CultureInfo.InvariantCulture));
+                await RunServerAsync(int.Parse(args[2], CultureInfo.InvariantCulture)).ConfigureAwait(false);
             }
 
             /// <summary>
             /// Implements remote server.
             /// </summary>
-            private static void RunServer(string serverPort, string semaphoreName, int clientProcessId)
+            private static async Task RunServerAsync(string serverPort, string semaphoreName, int clientProcessId)
             {
                 if (!AttachToClientProcess(clientProcessId))
                 {
@@ -275,40 +268,29 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 try
                 {
-                    using (var semaphore = Semaphore.OpenExisting(semaphoreName))
+
+                    NamedPipeServerStream serverStream = new NamedPipeServerStream(GenerateUniqueChannelLocalName(), PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                    await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
+                    // (miziga) should there be a target? 
+                    var jsonRPC = JsonRpc.Attach(serverStream, new Service()); 
+                    await jsonRPC.Completion.ConfigureAwait(false);
+                    // (miziga) moved to initialize
+                    /*using (var resetEvent = new ManualResetEventSlim(false))
                     {
-                        // DEBUG: semaphore.WaitOne();
-
-                        var serverProvider = new BinaryServerFormatterSinkProvider();
-                        serverProvider.TypeFilterLevel = TypeFilterLevel.Full;
-
-                        var clientProvider = new BinaryClientFormatterSinkProvider();
-
-                        RemotingConfiguration.RegisterWellKnownServiceType(
-                            typeof(Service),
-                            ServiceName,
-                            WellKnownObjectMode.Singleton);
-
-                        // (miziga) move to initialize
-                        /*using (var resetEvent = new ManualResetEventSlim(false))
+                        var uiThread = new Thread(() =>
                         {
-                            var uiThread = new Thread(() =>
-                            {
-                                s_control = new Control();
-                                s_control.CreateControl();
-                                resetEvent.Set();
-                                Application.Run();
-                            });
-                            uiThread.SetApartmentState(ApartmentState.STA);
-                            uiThread.IsBackground = true;
-                            uiThread.Start();
-                            resetEvent.Wait();
-                        }*/
+                            s_control = new Control();
+                            s_control.CreateControl();
+                            resetEvent.Set();
+                            Application.Run();
+                        });
+                        uiThread.SetApartmentState(ApartmentState.STA);
+                        uiThread.IsBackground = true;
+                        uiThread.Start();
+                        resetEvent.Wait();
+                    }*/
 
-                        // the client can instantiate interactive host now:
-                        semaphore.Release();
-                    }
-
+                    // the client can instantiate interactive host now:
                     s_clientExited.Wait();
                 }
                 finally
@@ -386,8 +368,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Reads given initialization file (.rsp) and loads and executes all assembly references and files, respectively specified in it.
             /// Execution is performed on the UI thread.
             /// </summary>
-			public void InitializeContext(TaskCompletionSource<RemoteExecutionResult> completionSource, string initializationFile, bool isRestarting)            {
-                Debug.Assert(completionSource != null);
+            public void InitializeContext(string initializationFile, bool isRestarting)
+			{
+                var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
                 lock (_lastTaskGuard)
                 {
                     _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFile, isRestarting);
@@ -397,20 +380,20 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Adds an assembly reference to the current session.
             /// </summary>
-            public void AddReference(RemoteAsyncOperation<bool> operation, string reference)
+            public void AddReference(string reference)
             {
+                Debug.Assert(reference != null);
                 lock (_lastTaskGuard)
                 {
                     // (miziga) change operation to completionSource? Use JsonRpc in InteractiveHost instead?
-                    _lastTask = AddReferenceAsync(_lastTask, operation, reference);
+                    _lastTask = AddReferenceAsync(_lastTask, reference);
                 }
             }
 
-            //(miziga) Json Rpc?
-            private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, RemoteAsyncOperation<bool> operation, string reference)
+            private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, string reference)
             {
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
-                bool success = false;
+                //bool success = false;
 
                 try
                 {
@@ -418,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     if (!resolvedReferences.IsDefaultOrEmpty)
                     {
                         state = state.WithOptions(state.ScriptOptions.AddReferences(resolvedReferences));
-                        success = true;
+                        //success = true;
                     }
                     else
                     {
@@ -431,7 +414,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    operation.Completed(success);
+                    // (miziga)completionSource?
+                    //operation.Completed(success);
                 }
 
                 return state;
@@ -440,8 +424,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Executes given script snippet on the UI thread in the context of the current session.
             /// </summary>
-            public void Execute(RemoteAsyncOperation<RemoteExecutionResult> operation, string text)
+            public void Execute(string text)
             {
+                Debug.Assert(text != null);
+
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
 
                 lock (_lastTaskGuard)

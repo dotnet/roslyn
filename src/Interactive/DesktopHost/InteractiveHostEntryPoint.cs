@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             try
             {
-                InteractiveHost.Service.RunServer(args);
+                InteractiveHost.Service.RunServerAsync(args);
                 return 0;
             }
             catch (Exception e)
