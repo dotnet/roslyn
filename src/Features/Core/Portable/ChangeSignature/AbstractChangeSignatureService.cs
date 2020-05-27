@@ -803,7 +803,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                             !SupportsOptionalAndParamsArrayParametersSimultaneously();
 
                         var isCallsiteActuallyOmitted = addedParameter.CallSiteKind == CallSiteKind.Omitted && !forcedCallsiteErrorDueToParamsArray;
-                        var isCallsiteActuallyErrored = addedParameter.CallSiteKind == CallSiteKind.Todo || forcedCallsiteErrorDueToParamsArray;
+                        var isCallsiteActuallyTODO = addedParameter.CallSiteKind == CallSiteKind.Todo || forcedCallsiteErrorDueToParamsArray;
 
                         if (isCallsiteActuallyOmitted)
                         {
@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                         if (expression == null)
                         {
-                            expression = Generator.ParseExpression((isCallsiteActuallyErrored || callsiteInferenceFailed) ? "TODO" : addedParameter.CallSiteValue);
+                            expression = Generator.ParseExpression((isCallsiteActuallyTODO || callsiteInferenceFailed) ? "TODO" : addedParameter.CallSiteValue);
                         }
 
                         // TODO: Need to be able to specify which kind of attribute argument it is to the SyntaxGenerator.
