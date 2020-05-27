@@ -400,8 +400,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                             //  / \
                             // A   B
                             //
-                            // We cannot substitute var for 'x' in the following switch expression,
-                            // as it will introduce a compiler error.
+                            // Substituting 'var' for 'x' in the following switch expression will introduce a compiler error
+                            // due to the potential for ambiguity (e.g. if C inherited from another class D).
                             // C x = i switch
                             // {
                             //     0 => new A(),
