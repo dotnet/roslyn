@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 case PrefixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.AddressOfExpression, Operand: var operand }:
                     // Members should only be accessible from the underlying operand
                     Assert.Empty(semanticInfo.MemberGroup);
+                    Assert.Equal(expectedSymbol is null ? ConversionKind.NoConversion : ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
 
                     semanticInfo = model.GetSemanticInfoSummary(operand);
                     Assert.Null(semanticInfo.Type);
