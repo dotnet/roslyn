@@ -212,7 +212,7 @@ namespace Analyzer.Utilities.Extensions
             // if it is the given method.
             return method.ReturnsVoid &&
                 method.Parameters.Length == 0 &&
-                method.IsImplementationOfInterfaceMethod(null, iAsyncDisposable, "Dispose");
+                method.IsImplementationOfInterfaceMethod(null, iAsyncDisposable, "DisposeAsync");
         }
 
         /// <summary>
