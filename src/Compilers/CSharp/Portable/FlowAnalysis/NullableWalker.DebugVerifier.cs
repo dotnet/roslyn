@@ -187,6 +187,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(node.BoundContainingTypeOpt);
                 return null;
             }
+
+            public override BoundNode? VisitWithExpression(BoundWithExpression node)
+            {
+                Visit(node.Receiver);
+                // PROTOTYPE: We shouldn't need to implement this method manually here.
+                // Either BoundNodeClassWriter should be made aware of tuples,
+                // or the `BoundWithExpression.Arguments` should be changed to
+                // `ImmutableArray<BoundExpression>` as in `BoundObjectInitializerExpressionBase.Initializers`.
+                foreach (var (_, expr) in node.Arguments)
+                {
+                    Visit(expr);
+                }
+                return null;
+            }
         }
 #endif
     }

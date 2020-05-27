@@ -1500,5 +1500,226 @@ data class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(11, 1)
             );
         }
+        
+        public void WithExpr_DefiniteAssignment_01()
+        {
+            var src = @"
+data class B(int X)
+{
+    static void M(B b)
+    {
+        int y;
+        _ = b with { X = y = 42 };
+        y.ToString();
+    }
+}";
+            var comp = CreateCompilation(src);
+            // PROTOTYPE: records don't auto-generate Clone at the moment
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
+                //         _ = b with { X = y = 42 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void WithExpr_DefiniteAssignment_02()
+        {
+            var src = @"
+data class B(int X, string Y)
+{
+    static void M(B b)
+    {
+        int z;
+        _ = b with { X = z = 42, Y = z.ToString() };
+    }
+}";
+            var comp = CreateCompilation(src);
+            // PROTOTYPE: records don't auto-generate Clone at the moment
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
+                //         _ = b with { X = y = 42 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void WithExpr_DefiniteAssignment_03()
+        {
+            var src = @"
+data class B(int X, string Y)
+{
+    static void M(B b)
+    {
+        int z;
+        _ = b with { Y = z.ToString(), X = z = 42 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            // PROTOTYPE: records don't auto-generate Clone at the moment
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
+                //         _ = b with { Y = z.ToString(), X = z = 42 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(7, 13),
+                // (7,26): error CS0165: Use of unassigned local variable 'z'
+                //         _ = b with { Y = z.ToString(), X = z = 42 };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(7, 26));
+        }
+
+        [Fact]
+        public void WithExpr_DefiniteAssignment_04()
+        {
+            var src = @"
+data class B(int X)
+{
+    static void M()
+    {
+        B b;
+        _ = (b = new B(42)) with { X = b.X };
+    }
+}";
+            var comp = CreateCompilation(src);
+            // PROTOTYPE: records don't auto-generate Clone at the moment
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
+                //         _ = (b = new B(42)) with { X = b.X };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "(b = new B(42))").WithArguments("B").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void WithExpr_DefiniteAssignment_05()
+        {
+            var src = @"
+data class B(int X)
+{
+    static void M()
+    {
+        B b;
+        _ = new B(b.X) with { X = (b = new B(42)).X };
+    }
+}";
+            var comp = CreateCompilation(src);
+            // PROTOTYPE: records don't auto-generate Clone at the moment
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
+                //         _ = new B(b.X) with { X = new B(42).X };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new B(b.X)").WithArguments("B").WithLocation(7, 13),
+                // (7,19): error CS0165: Use of unassigned local variable 'b'
+                //         _ = new B(b.X) with { X = new B(42).X };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(7, 19));
+        }
+
+        [Fact]
+        public void WithExpr_DefiniteAssignment_06()
+        {
+            var src = @"
+data class B(int X)
+{
+    static void M(B b)
+    {
+        int y;
+        _ = b with { X = M(out y) };
+        y.ToString();
+    }
+
+    static int M(out int y) { y = 42; return 43; }
+}";
+            var comp = CreateCompilation(src);
+            // PROTOTYPE: records don't auto-generate Clone at the moment
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
+                //         _ = b with { X = M(out y) };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void WithExpr_DefiniteAssignment_07()
+        {
+            var src = @"
+data class B(int X)
+{
+    static void M(B b)
+    {
+        _ = b with { X = M(out int y) };
+        y.ToString();
+    }
+
+    static int M(out int y) { y = 42; return 43; }
+}";
+            var comp = CreateCompilation(src);
+            // PROTOTYPE: records don't auto-generate Clone at the moment
+            comp.VerifyDiagnostics(
+                // (6,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
+                //         _ = b with { X = M(out int y) };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(6, 13));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_01()
+        {
+            var src = @"
+#nullable enable
+data class B(int X)
+{
+    static void M(B b)
+    {
+        string? s = null;
+        _ = b with { X = M(out s) };
+        s.ToString();
+    }
+
+    static int M(out string s) { s = ""a""; return 42; }
+}";
+            var comp = CreateCompilation(src);
+            // PROTOTYPE: records don't auto-generate Clone at the moment
+            comp.VerifyDiagnostics(
+                // (8,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
+                //         _ = b with { X = M(out s) };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(8, 13));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_02()
+        {
+            var src = @"
+#nullable enable
+data class B(string X)
+{
+    static void M(B b, string? s)
+    {
+        b.X.ToString();
+        _ = b with { X = s }; // 1
+        b.X.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(src);
+            // PROTOTYPE: we fail a Debug.Assert due to a conversion here
+            // PROTOTYPE: records don't auto-generate Clone at the moment
+            comp.VerifyDiagnostics(
+                // (8,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
+                //         _ = b with { X = M(out s) };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(8, 13));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_03()
+        {
+            var src = @"
+#nullable enable
+data class B(string? X)
+{
+    static void M(B b, string s)
+    {
+        b.X.ToString(); // 1
+        _ = b with { X = s };
+        b.X.ToString();
+    }
+}";
+            var comp = CreateCompilation(src);
+            // PROTOTYPE: we fail a Debug.Assert due to a conversion here
+            // PROTOTYPE: records don't auto-generate Clone at the moment
+            comp.VerifyDiagnostics(
+                // (8,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
+                //         _ = b with { X = M(out s) };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(8, 13));
+        }
     }
 }
