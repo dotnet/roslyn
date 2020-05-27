@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             try
             {
-                await InteractiveHost.Service.RunServerAsync(args).ConfigureAwait(false);
+                await InteractiveHost.Service.RunServerAsync(args).ConfigureAwait(false
                 return 0;
             }
             catch (Exception e)

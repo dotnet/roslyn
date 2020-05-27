@@ -176,13 +176,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                     resetEvent.Wait();
                 }
 
-                NamedPipeServerStream serverStream = new NamedPipeServerStream(GenerateUniqueChannelLocalName(), PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-                await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
-                // (miziga) should there be a target? 
-                var jsonRPC = JsonRpc.Attach(serverStream, new Service());
-                // (miziga) should this be here or in RunServer? 
-                await jsonRPC.Completion.ConfigureAwait(false);
-
                 // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(
                     Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
@@ -274,9 +267,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 try
                 {
-                    using (var resetEvent = new ManualResetEventSlim(false))
-                    {
-                        var uiThread = new Thread(() =>                        {
+                    using (var resetEvent = new ManualResetEventSlim(false))                    {
+                        var uiThread = new Thread(() =>
+                        {
                             s_control = new Control();
                             s_control.CreateControl();
                             resetEvent.Set();
@@ -285,15 +278,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                         uiThread.SetApartmentState(ApartmentState.STA);
                         uiThread.IsBackground = true;
                         uiThread.Start();
-                        resetEvent.Wait();                    }
+                        resetEvent.Wait();
+                    }
 
                     var serverStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
                     await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
                     var jsonRPC = JsonRpc.Attach(serverStream, new Service());
                     await jsonRPC.Completion.ConfigureAwait(false);
 
-                    // the client can instantiate interactive host now:                    s_clientExited.Wait();
-                }
+                    // the client can instantiate interactive host now:
+                    s_clientExited.Wait();                }
                 finally
                 {
                     // TODO:(miziga): delete and make a finally or catch statement for the try
@@ -362,8 +356,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Execution is performed on the UI thread.
             /// </summary>
             public async Task<RemoteExecutionResult> InitializeContextAsync(string? initializationFile, bool isRestarting)
-            {                var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
-                lock (_lastTaskGuard)
+            {                
+			var completionSource = new TaskCompletionSource<RemoteExecutionResult>();                lock (_lastTaskGuard)
                 {
                     _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFile, isRestarting);
                 }
@@ -376,15 +370,15 @@ namespace Microsoft.CodeAnalysis.Interactive
             public async Task<bool> AddReferenceAsync(string reference)
             {
                 Debug.Assert(reference != null);
-                var completionSource = new TaskCompletionSource<bool>();
-                lock (_lastTaskGuard)
+                var completionSource = new TaskCompletionSource<bool>();                lock (_lastTaskGuard)
                 {
-                    _lastTask = AddReferenceAsync(_lastTask, completionSource, reference!);                }
-                return await completionSource.Task.ConfigureAwait(false);
-            }
 
-            private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, TaskCompletionSource<bool> completionSource, string reference)            {
-                var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
+					_lastTask = AddReferenceAsync(_lastTask, completionSource, reference!);
+                }
+                return await completionSouce.Task.ConfigureAwait(false);            }
+
+            private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, TaskCompletionSource<bool> completionSource, string reference)
+            {                var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
                 var success = false;
 
                 try
@@ -393,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     if (!resolvedReferences.IsDefaultOrEmpty)
                     {
                         state = state.WithOptions(state.ScriptOptions.AddReferences(resolvedReferences));
-                        success = true;
+                        //success = true;
                     }
                     else
                     {
@@ -406,8 +400,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    completionSource.SetResult(success);
-                }
+                    completionSource.SetResult(success);                }
 
                 return state;
             }

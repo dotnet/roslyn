@@ -69,9 +69,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             _initialWorkingDirectory = workingDirectory;
             _outputGuard = new object();
             _errorOutputGuard = new object();
-		}
-
-        #region Test hooks
+		}        #region Test hooks
 
         internal event Action<char[], int>? OutputReceived;
         internal event Action<char[], int>? ErrorOutputReceived;
@@ -81,7 +79,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         internal async Task<RemoteService> TryGetServiceAsync()
             => (await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false)).Service;
-
         // Triggered whenever we create a fresh process.
         // The ProcessExited event is not hooked yet.
         internal event Action<Process>? InteractiveHostProcessCreated;
@@ -251,12 +248,10 @@ namespace Microsoft.CodeAnalysis.Interactive
         private async Task<TResult> Async<TResult>(string targetName, params object?[] arguments)
         {
             var initializedRemoteService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
-            if (initializedRemoteService.Service == null)
-            {
-                return default!;            }
-
-            return await Async<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);
-        }
+            if (initializedRemoteService.Service == null)            {
+                return default!;
+            }
+            return await Async<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);        }
 
         private static async Task<TResult> Async<TResult>(RemoteService remoteService, string targetName, params object?[] arguments)        {
             try
@@ -328,12 +323,11 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// This method is thread safe but operations are sent to the remote process
         /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
-        public async Task<RemoteExecutionResult> ExecuteFileAsync(string path)
+        public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
             Contract.ThrowIfNull(path);
             return Async<RemoteExecutionResult>(nameof(Service.ExecuteFileAsync), path);
-        }
-        /// <summary>
+        }        /// <summary>
         /// Asynchronously adds a reference to the set of available references for next submission.
         /// </summary>
         /// <param name="reference">The reference to add.</param>
@@ -350,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <summary>
         /// Sets the current session's search paths and base directory.
         /// </summary>
-        public async Task<RemoteExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
+        public Task<RemoteExecutionResult> SetPathsAsync(string[] referenceSearchPaths, string[] sourceSearchPaths, string baseDirectory)
         {
             Contract.ThrowIfNull(referenceSearchPaths);
             Contract.ThrowIfNull(sourceSearchPaths);
