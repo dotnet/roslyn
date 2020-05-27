@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         private LazyRemoteService? _lazyRemoteService;
         private int _remoteServiceInstanceId;
-
         private NamedPipeClientStream _clientStream;
-        private JsonRpc jsonRpc;
 
         private TextWriter _output;
         private TextWriter _errorOutput;
@@ -122,8 +120,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var remoteServerPort = "InteractiveHostChannel-" + Guid.NewGuid();
 
                 var processInfo = new ProcessStartInfo(hostPath);
-                //(miziga) same name as pipe
-                processInfo.Arguments = GenerateUniqueChannelLocalName() + " " + currentProcessId;
+                //(miziga) same name as pipe - store somewhere
+                string pipeName = GenerateUniqueChannelLocalName();
+                processInfo.Arguments = pipeName + " " + currentProcessId;
                 processInfo.WorkingDirectory = _initialWorkingDirectory;
                 processInfo.CreateNoWindow = true;
                 processInfo.UseShellExecute = false;
@@ -153,24 +152,22 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 // (miziga) initializing pipe for replacement of remote channel
-                _clientStream = new NamedPipeClientStream(".", GenerateUniqueChannelLocalName(), PipeDirection.InOut, PipeOptions.Asynchronous);
+                _clientStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                JsonRpc jsonRpc = JsonRpc.Attach(_clientStream);
 
                 // instantiate remote service:
                 try
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await _clientStream.ConnectAsync().ConfigureAwait(false);
-                    jsonRpc = JsonRpc.Attach(_clientStream);
-                    //(miziga) await and configureawait necessary?
-                    //(miziga) call initialize through rpc
-                    await jsonRpc.InvokeAsync<Task>("InitializeAsync", _replServiceProviderType, culture.Name).ConfigureAwait(false);
+                    await jsonRpc.InvokeAsync<Task>("Initialize", _replServiceProviderType, culture.Name).ConfigureAwait(false);
                 }
                 catch (RemotingException) when (!CheckAlive(newProcess, hostPath))
                 {
                     return null;
                 }
 
-                return new RemoteService(this, newProcess, newProcessId);
+                return new RemoteService(this, newProcess, newProcessId, jsonRpc);
             }
             catch (OperationCanceledException)
             {
@@ -366,40 +363,31 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         private async Task<TResult> Async<TResult>(string targetName, params object[] arguments)
         {
-            return await jsonRpc.InvokeAsync<TResult>(targetName, arguments).ConfigureAwait(false);
-            /*try
+            var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
+            TaskCompletionSource<TResult> _completion = new TaskCompletionSource<TResult>();
+            EventHandler _processExitedHandler = new EventHandler((_, __) =>
             {
-                // async call to remote process:
-                action(_remoteService.Service, this);
+                initializedService.ServiceOpt.Process.Exited -= _processExitedHandler;
+                _completion.TrySetResult(default(TResult));
+            });
 
-                _remoteService.Process.Exited += _processExitedHandler;
-                if (!_remoteService.Process.IsAlive())
+            try
+            {
+                initializedService.ServiceOpt.Process.Exited += _processExitedHandler;
+                if (!initializedService.ServiceOpt.Process.IsAlive())
                 {
-                    ProcessExited();
+                    initializedService.ServiceOpt.Process.Exited -= _processExitedHandler;
+                    _completion.TrySetResult(default(TResult));
                 }
 
-                return _completion.Task;
+                return await initializedService.ServiceOpt._jsonRpc.InvokeAsync<TResult>(targetName, arguments).ConfigureAwait(false);
             }
-            catch (RemotingException) when (!_remoteService.Process.IsAlive())
+            catch (RemotingException) when (!initializedService.ServiceOpt.Process.IsAlive())
             {
                 // the operation might have terminated the process:
-                ProcessExited();
-                return _completion.Task;
-            }*/
-            /*try
-            {
-                var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
-                if (initializedService.Service == null)
-                {
-                    return default!;
-                }
-
-                return await new RemoteAsyncOperation<TResult>(initializedService.Service).ExecuteAsync(action).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.Report(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }*/
+                initializedService.ServiceOpt.Process.Exited -= _processExitedHandler;
+                _completion.TrySetResult(default(TResult));
+                return await _completion.Task.ConfigureAwait(false);            }
         }
 
         // (miziga) unused method - delete?

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             public override object? InitializeLifetimeService() => null;
 
-            public Task<TResult> ExecuteAsync(Action<Service, RemoteAsyncOperation<TResult>> action)
+            /*public Task<TResult> ExecuteAsync(Action<Service, RemoteAsyncOperation<TResult>> action)
             {
                 try
                 {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     ProcessExited();
                     return _completion.Task;
                 }
-            }
+            }*/
 
             /// <summary>
             /// Might be called remotely from the service.

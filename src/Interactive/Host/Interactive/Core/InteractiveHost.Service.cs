@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return null;
             }
 
-            public async Task InitializeAsync(Type replServiceProviderType, string cultureName)
+            public void Initialize(Type replServiceProviderType, string cultureName)
             {
                 Contract.ThrowIfFalse(_serviceState == null, "Service already initialized");
 
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Implements remote server.
             /// </summary>
-            private static async Task RunServerAsync(string serverPort, string semaphoreName, int clientProcessId)
+            private static async Task RunServerAsync(int clientProcessId)
             {
                 if (!AttachToClientProcess(clientProcessId))
                 {

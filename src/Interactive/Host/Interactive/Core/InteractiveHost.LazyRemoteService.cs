@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     });
 
                     // try to execute initialization script:
-                    var initializationResult = await Host.Async<RemoteExecutionResult>("InitializeContext", Options.InitializationFile, isRestarting: InstanceId > 1).ConfigureAwait(false);
+                    var initializationResult = await Host.Async<RemoteExecutionResult>("InitializeContext", Options.InitializationFile, InstanceId > 1).ConfigureAwait(false);
 
                     initializing = false;
 
