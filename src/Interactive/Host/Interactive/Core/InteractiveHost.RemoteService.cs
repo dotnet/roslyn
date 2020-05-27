@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             public readonly Process Process;
             //public readonly Service Service;
-            public JsonRpc _jsonRpc;
+            public readonly JsonRpc JsonRpc; // make readonly JsonRpc
             private readonly int _processId;
             private readonly SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
             private readonly bool _joinOutputWritingThreadsOnDisposal;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 //Debug.Assert(jsonRpc != null);
 
                 Process = process;
-                _jsonRpc = jsonRpc;
+                JsonRpc = jsonRpc;
 
                 _host = host;
                 _joinOutputWritingThreadsOnDisposal = host._joinOutputWritingThreadsOnDisposal;

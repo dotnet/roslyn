@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture)).Wait();
 
             // (miziga) without try get service, what should this be replaced with?
-            var remoteService = _host.TryGetService();
-            Assert.NotNull(remoteService);
+            //var remoteService = _host.TryGetService();
+            //Assert.NotNull(remoteService);
 
             _host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir).Wait();
 
@@ -119,6 +119,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             return task.Result.Success;
         }
 
+        //private bool IsShadowCopy(string path)
+        //{
+        //    return _host.TryGetService().IsShadowCopy(path);
+        //}
         public string ReadErrorOutputToEnd()
         {
             return ReadOutputToEnd(isError: true);
@@ -146,8 +150,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             var mark = markPrefix + Guid.NewGuid().ToString();
 
             // writes mark to the STDOUT/STDERR pipe in the remote process:
-            _host.TryGetService()!.RemoteConsoleWrite(Encoding.UTF8.GetBytes(mark), isError);
-
+            var remoteService = await _host.TryGetServiceAsync();
+            ._jsonRpc.Invoke("RemoteConsoleWriteAsync", Encoding.UTF8.GetBytes(mark), isError);
             while (true)
             {
                 var data = writer.Prefix(mark, ref _outputReadPosition[isError ? 0 : 1]);
@@ -322,13 +326,13 @@ while(true) {}
 
             Assert.True(mayTerminate.WaitOne());
 
-            var service = _host.TryGetService();
-            Assert.NotNull(service);
+            // TODO: var service = _host.TryGetService();
+            // Assert.NotNull(service);
 
             var process = _host.TryGetProcess();
             Assert.NotNull(process);
 
-            service!.EmulateClientExit();
+            // service!.EmulateClientExit();
 
             // the process should terminate with exit code 0:
             process!.WaitForExit();
@@ -445,7 +449,7 @@ WriteLine(5);
             var mayTerminate = new ManualResetEvent(false);
             _host.ErrorOutputReceived += (_, __) => mayTerminate.Set();
 
-            _host.TryGetService()!.HookMaliciousAssemblyResolve();
+            // TODO: _host.TryGetService()!.HookMaliciousAssemblyResolve();
             var executeTask = _host.AddReferenceAsync("nonexistingassembly" + Guid.NewGuid());
 
             Assert.True(mayTerminate.WaitOne());
