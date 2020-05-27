@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -250,8 +251,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         return InlineRenameFileRenameInfo.TypeWithMultipleLocations;
                     }
 
+                    // Get the document that the symbol is defined in to compare
+                    // the name with the symbol name. If they match allow
+                    // rename file rename as part of the symbol rename
                     var symbolSourceDocument = _document.Project.Solution.GetDocument(RenameSymbol.Locations.Single().SourceTree);
-                    if (symbolSourceDocument is object && OriginalNameMatches(symbolSourceDocument, RenameSymbol.Name))
+                    if (symbolSourceDocument != null && WorkspacePathUtilities.TypeNameMatchesDocumentName(symbolSourceDocument, RenameSymbol.Name))
                     {
                         return InlineRenameFileRenameInfo.Allowed;
                     }
@@ -260,12 +264,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 return InlineRenameFileRenameInfo.NotAllowed;
-
-                // Local Functions
-
-                static bool OriginalNameMatches(Document document, string name)
-                    => Path.GetFileNameWithoutExtension(document.Name)
-                        .Equals(name, StringComparison.OrdinalIgnoreCase);
             }
         }
     }
