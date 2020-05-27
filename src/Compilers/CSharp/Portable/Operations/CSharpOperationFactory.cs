@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     Debug.Assert(boundConversion.Conversion.MethodSymbol is object);
                     return new AddressOfOperation(
                         CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand, boundConversion.SymbolOpt, suppressVirtualCalls: false),
-                        _semanticModel, syntax, type, constantValue, isImplicit);
+                        _semanticModel, syntax, type, constantValue, boundConversion.WasCompilerGenerated);
                 }
 
                 // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,
