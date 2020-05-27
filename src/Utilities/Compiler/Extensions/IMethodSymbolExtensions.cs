@@ -210,8 +210,7 @@ namespace Analyzer.Utilities.Extensions
 
             // Identify the implementor of IAsyncDisposable.Dispose in the given method's containing type and check
             // if it is the given method.
-            return Equals(method.ReturnType, iAsyncDisposable) &&
-                method.Parameters.Length == 0 &&
+            return method.Parameters.Length == 0 &&
                 method.IsImplementationOfInterfaceMethod(null, iAsyncDisposable, "DisposeAsync");
         }
 
