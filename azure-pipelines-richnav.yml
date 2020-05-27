@@ -1,6 +1,10 @@
 # Run on master CI builds
 trigger:
-- master
+  branches:
+    include:
+    - master
+
+pr: none
 
 jobs:
 - job: RichCodeNav_Indexing
@@ -14,6 +18,12 @@ jobs:
   steps:
     - script: eng/cibuild.cmd -configuration Debug -prepareMachine
       displayName: Build
+      
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk'
+      inputs:
+        packageType: sdk
+        version: 2.1.503
 
     - task: RichCodeNavIndexer@0
       displayName: RichCodeNav Upload
