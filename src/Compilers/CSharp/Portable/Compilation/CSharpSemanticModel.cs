@@ -3247,7 +3247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We try to match the results given for a similar piece of syntax here: bad invocations.
                         // A BoundUnconvertedAddressOfOperator represents this syntax: &M
                         // Similarly, a BoundCall for a bad invocation represents this syntax: M(args)
-                        // Calling GetSymbolInfo on the syntax will return a list of candidate symbols that were
+                        // Calling GetSymbolInfo on the syntax will return an array of candidate symbols that were
                         // looked up, but calling GetMemberGroup will return an empty array. So, we ignore the member
                         // group result in the call below.
                         symbols = GetMethodGroupSemanticSymbols(
