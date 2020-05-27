@@ -179,6 +179,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                         if (!name.Contains("-" + RemoteServiceName.Prefix) &&
                             !name.Contains("-" + RemoteServiceName.IntelliCodeServiceName) &&
                             !name.Contains("-" + RemoteServiceName.RazorServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.TestingAnalysisServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.LiveUnitTestingServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.TestSourceLocationLookupServiceName) &&
                             !name.Contains("-CodeLens") &&
                             !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
                             !name.Contains("-hub"))
