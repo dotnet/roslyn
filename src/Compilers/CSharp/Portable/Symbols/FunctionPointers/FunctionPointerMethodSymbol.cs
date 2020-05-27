@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation)
         {
             return new FunctionPointerMethodSymbol(
-                // https://github.com/dotnet/roslyn/issues/39865 allow setting this in creation
                 CallingConvention.Default,
                 returnRefKind,
                 returnType,
@@ -278,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RefKind = refKind;
             CallingConvention = callingConvention;
             ReturnTypeWithAnnotations = returnTypeWithAnnotations;
-            _parameters = parameterTypes.ZipAsArray(parameterRefKinds, (Method: this, Comp: compilation), (type, refKind, arg, i) =>
+            _parameters = parameterTypes.ZipAsArray(parameterRefKinds, (Method: this, Comp: compilation), (type, refKind, i, arg) =>
                 new FunctionPointerParameterSymbol(type, refKind, i, arg.Method, refCustomModifiers: getCustomModifierForRefKind(refKind, arg.Comp)));
 
             static ImmutableArray<CustomModifier> getCustomModifierForRefKind(RefKind refKind, CSharpCompilation compilation)

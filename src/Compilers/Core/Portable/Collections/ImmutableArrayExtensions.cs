@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static ImmutableArray<TResult> ZipAsArray<T1, T2, TArg, TResult>(this ImmutableArray<T1> self, ImmutableArray<T2> other, TArg arg, Func<T1, T2, TArg, int, TResult> map)
+        public static ImmutableArray<TResult> ZipAsArray<T1, T2, TArg, TResult>(this ImmutableArray<T1> self, ImmutableArray<T2> other, TArg arg, Func<T1, T2, int, TArg, TResult> map)
         {
             Debug.Assert(self.Length == other.Length);
             if (self.IsEmpty)
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis
             var builder = ArrayBuilder<TResult>.GetInstance(self.Length);
             for (int i = 0; i < self.Length; i++)
             {
-                builder.Add(map(self[i], other[i], arg, i));
+                builder.Add(map(self[i], other[i], i, arg));
             }
             return builder.ToImmutableAndFree();
         }

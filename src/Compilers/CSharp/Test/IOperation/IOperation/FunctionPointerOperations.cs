@@ -186,34 +186,6 @@ IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&
         }
 
         [Fact]
-        public void FunctionPointerLoad_UnknownMethod()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
-unsafe class C
-{
-    static void M2()
-    {
-        delegate*<void> ptr = /*<bind>*/&M1/*</bind>*/;
-    }
-}");
-
-            var expectedOperationTree = @"
-IAddressOfOperation (OperationKind.AddressOf, Type: ?*, IsInvalid) (Syntax: '&M1')
-  Reference: 
-    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M1')
-      Children(0)
-";
-
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // (6,42): error CS0103: The name 'M1' does not exist in the current context
-                //         delegate*<void> ptr = /*<bind>*/&M1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(6, 42)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [Fact]
         public void FunctionPointerInvocation()
         {
             var comp = CreateFunctionPointerCompilation(@"
@@ -395,7 +367,7 @@ IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
         }
 
         [Fact]
-        public void FunctionPointerLoad_InCFG()
+        public void FunctionPointerAddressOf_InCFG()
         {
             var comp = CreateFunctionPointerCompilation(@"
 unsafe class C

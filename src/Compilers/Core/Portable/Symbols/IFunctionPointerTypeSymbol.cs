@@ -6,8 +6,7 @@
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents a function pointer type such as "delegate*&lt;void&gt;". Pointer types
-    /// are used only in unsafe code.
+    /// Represents a function pointer type such as "delegate*&lt;void&gt;".
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
