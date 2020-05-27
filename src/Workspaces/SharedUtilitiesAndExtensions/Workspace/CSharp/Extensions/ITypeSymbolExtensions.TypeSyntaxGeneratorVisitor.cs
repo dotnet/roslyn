@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 var elementTypeSyntax = underlyingType.GenerateTypeSyntax();
-                var ranks = new List<ArrayRankSpecifierSyntax>();
+                using var _ = ArrayBuilder<ArrayRankSpecifierSyntax>.GetInstance(out var ranks);
 
                 var arrayType = symbol;
                 while (arrayType != null && !arrayType.Equals(underlyingType))
@@ -104,12 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             public override TypeSyntax VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return AddInformationTo(
-                    SyntaxFactory.IdentifierName("dynamic"), symbol);
-            }
+                => AddInformationTo(SyntaxFactory.IdentifierName("dynamic"), symbol);
 
-            public bool TryCreateNativeIntegerType(INamedTypeSymbol symbol, out TypeSyntax syntax)
+            public static bool TryCreateNativeIntegerType(INamedTypeSymbol symbol, out TypeSyntax syntax)
             {
 #if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
                 // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
