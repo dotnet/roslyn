@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -31,7 +32,7 @@ namespace RunTests.Cache
             return _testExecutor.GetCommandLine(assemblyInfo);
         }
 
-        public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
+        public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, Action<Process> addProcess, CancellationToken cancellationToken)
         {
             ContentFile contentFile;
             try
@@ -44,7 +45,7 @@ namespace RunTests.Cache
                 Logger.LogError(ex, msg + Environment.NewLine + ex.Message);
                 contentFile = null;
 
-                var testResult = await _testExecutor.RunTestAsync(assemblyInfo, cancellationToken);
+                var testResult = await _testExecutor.RunTestAsync(assemblyInfo, addProcess, cancellationToken);
                 return new TestResult(
                     testResult.AssemblyInfo,
                     testResult.TestResultInfo,
@@ -53,10 +54,10 @@ namespace RunTests.Cache
                     diagnostics: msg);
             }
 
-            return await RunTestWithCachingAsync(assemblyInfo, contentFile, cancellationToken);
+            return await RunTestWithCachingAsync(assemblyInfo, addProcess, contentFile, cancellationToken);
         }
 
-        private async Task<TestResult> RunTestWithCachingAsync(AssemblyInfo assemblyInfo, ContentFile contentFile, CancellationToken cancellationToken)
+        private async Task<TestResult> RunTestWithCachingAsync(AssemblyInfo assemblyInfo, Action<Process> addProcess, ContentFile contentFile, CancellationToken cancellationToken)
         {
             var assemblyPath = assemblyInfo.AssemblyPath;
             var builder = new StringBuilder();
@@ -81,7 +82,7 @@ namespace RunTests.Cache
             }
 
             Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
-            var testResult = await _testExecutor.RunTestAsync(assemblyInfo, cancellationToken);
+            var testResult = await _testExecutor.RunTestAsync(assemblyInfo, addProcess, cancellationToken);
             await CacheTestResult(contentFile, testResult).ConfigureAwait(true);
             return testResult;
         }

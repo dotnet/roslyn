@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -50,7 +49,7 @@ namespace RunTests
             var max = (_options.TestVsi || _options.Sequential) ? 1 : (int)(Environment.ProcessorCount * 1.5);
             var cacheCount = 0;
             var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
-            var running = new List<Task<TestResult>>();
+            var running = new List<(List<Process> processes, Task<TestResult> resultTask)>();
             var completed = new List<TestResult>();
             var failures = 0;
 
@@ -61,7 +60,7 @@ namespace RunTests
                 var i = 0;
                 while (i < running.Count)
                 {
-                    var task = running[i];
+                    var (_, task) = running[i];
                     if (task.IsCompleted)
                     {
                         try
@@ -95,8 +94,40 @@ namespace RunTests
 
                 while (running.Count < max && waiting.Count > 0)
                 {
-                    var task = _testExecutor.RunTestAsync(waiting.Pop(), cancellationToken);
-                    running.Add(task);
+                    var processes = new List<Process>();
+                    Action<Process> addProcess =
+                        process =>
+                        {
+                            lock (processes)
+                            {
+                                processes.Add(process);
+                            }
+                        };
+
+                    var task = _testExecutor.RunTestAsync(waiting.Pop(), addProcess, cancellationToken);
+                    running.Add((processes, task));
+                }
+
+                if (running.Count > 0)
+                {
+                    // Boost the priority of the longest running test process
+                    Process process;
+                    lock (running[0].processes)
+                    {
+                        process = running[0].processes.FirstOrDefault(process => !process.HasExited);
+                    }
+
+                    try
+                    {
+                        if (process is object)
+                        {
+                            process.PriorityClass = ProcessPriorityClass.Normal;
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore failures to set the priority
+                    }
                 }
 
                 // Display the current status of the TestRunner.
@@ -110,7 +141,7 @@ namespace RunTests
 
                 if (running.Count > 0)
                 {
-                    await Task.WhenAny(running.ToArray());
+                    await Task.WhenAny(running.Select(x => x.resultTask).ToArray());
                 }
             } while (running.Count > 0);
 

@@ -2,17 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using RunTests.Cache;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using RunTests.Cache;
 
 namespace RunTests
 {
@@ -70,20 +68,20 @@ namespace RunTests
             return Path.Combine(Options.OutputDirectory, assemblyInfo.ResultsFileName);
         }
 
-        public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
+        public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, Action<Process> addProcess, CancellationToken cancellationToken)
         {
-            var result = await RunTestAsyncInternal(assemblyInfo, retry: false, cancellationToken);
+            var result = await RunTestAsyncInternal(assemblyInfo, addProcess, retry: false, cancellationToken);
 
             // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
             if (Options.TestVsi && !Options.UseHtml && !result.Succeeded)
             {
-                return await RunTestAsyncInternal(assemblyInfo, retry: true, cancellationToken);
+                return await RunTestAsyncInternal(assemblyInfo, addProcess, retry: true, cancellationToken);
             }
 
             return result;
         }
 
-        private async Task<TestResult> RunTestAsyncInternal(AssemblyInfo assemblyInfo, bool retry, CancellationToken cancellationToken)
+        private async Task<TestResult> RunTestAsyncInternal(AssemblyInfo assemblyInfo, Action<Process> addProcess, bool retry, CancellationToken cancellationToken)
         {
             try
             {
@@ -124,8 +122,9 @@ namespace RunTests
                         displayWindow: false,
                         captureOutput: true,
                         environmentVariables: environmentVariables),
-                    lowPriority: false,
+                    lowPriority: true,
                     cancellationToken: cancellationToken);
+                addProcess(xunitProcessInfo.Process);
                 Logger.Log($"Create xunit process with id {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName}");
 
                 // Now that xunit is running we should kick off a procDump process if it was specified
@@ -139,6 +138,7 @@ namespace RunTests
                         displayWindow: false);
                     Directory.CreateDirectory(procDumpInfo.DumpDirectory);
                     procDumpProcessInfo = ProcessRunner.CreateProcess(procDumpStartInfo, cancellationToken: cancellationToken);
+                    addProcess(procDumpProcessInfo.Value.Process);
                     Logger.Log($"Create procdump process with id {procDumpProcessInfo.Value.Id} for xunit {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName}");
                 }
 
