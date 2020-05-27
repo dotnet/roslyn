@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
 
         [Fact]
-        public void ZipAsArrayWithPredicate()
+        public void ZipAsArrayWithIndex()
         {
             var empty = ImmutableArray.Create<object>();
             Assert.True(empty.SequenceEqual(empty.ZipAsArray(empty, (item1, item2) => item1)));
