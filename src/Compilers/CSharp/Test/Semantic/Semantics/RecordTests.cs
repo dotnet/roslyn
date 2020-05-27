@@ -5,10 +5,13 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -1505,26 +1508,145 @@ data class C(int X, int Y)
         public void Inheritance_01()
         {
             var source =
-@"data class A(int X, int Y)
+@"class A
 {
     internal A() { }
+    public object P1 { get; set; }
+    internal object P2 { get; set; }
+    protected internal object P3 { get; set; }
+    protected object P4 { get; set; }
+    private protected object P5 { get; set; }
+    private object P6 { get; set; }
 }
-data class B(object Y, object Z) : A
+data class B(object P1, object P2, object P3, object P4, object P5, object P6) : A
 {
-}
-class Program
-{
-    static void Main()
-    {
-        var b = new B(null, ""str"");
-        System.Console.WriteLine(""{0}, {1}, {2}"", b.X, b.Y, b.Z);
-    }
 }";
-            CompileAndVerify(source, expectedOutput: "0, , str");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object B.P1 { get; }",
+                "System.Object B.P2 { get; }",
+                "System.Object B.P3 { get; }",
+                "System.Object B.P4 { get; }",
+                "System.Object B.P5 { get; }",
+                "System.Object B.P6 { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
         public void Inheritance_02()
+        {
+            var source =
+@"class A
+{
+    internal A() { }
+    private protected object P1 { get; set; }
+    private object P2 { get; set; }
+    private data class B(object P1, object P2) : A
+    {
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "A.B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object A.B.P1 { get; }",
+                "System.Object A.B.P2 { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Inheritance_03(bool useCompilationReference)
+        {
+            var sourceA =
+@"public class A
+{
+    public A() { }
+    internal object P { get; set; }
+}
+data class B1(object P) : A
+{
+}";
+            var comp = CreateCompilation(sourceA);
+            AssertEx.Equal(new[] { "System.Object B1.P { get; }" }, GetProperties(comp, "B1").ToTestDisplayStrings());
+            var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
+
+            var sourceB =
+@"data class B2(object P) : A
+{
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            AssertEx.Equal(new[] { "System.Object B2.P { get; }" }, GetProperties(comp, "B2").ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Inheritance_04()
+        {
+            var source =
+@"class A
+{
+    internal A() { }
+    public object P1 { get { return null; } set { } }
+    public object P2 { get; init; }
+    public object P3 { get; }
+    public object P4 { set { } }
+    public virtual object P5 { get; set; }
+    public static object P6 { get; set; }
+    public ref object P7 => throw null;
+}
+data class B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
+{
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object B.P1 { get; }",
+                "System.Object B.P2 { get; }",
+                "System.Object B.P3 { get; }",
+                "System.Object B.P4 { get; }",
+                "System.Object B.P5 { get; }",
+                "System.Object B.P6 { get; }",
+                "System.Object B.P7 { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_05()
+        {
+            var source =
+@"class A
+{
+    internal A() { }
+    public object P1 { get; set; }
+    public int P2 { get; set; }
+}
+data class B(int P1, object P2) : A
+{
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Int32 B.P1 { get; }",
+                "System.Object B.P2 { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_06()
         {
             var source =
 @"class A
@@ -1563,7 +1685,7 @@ class Program
         }
 
         [Fact]
-        public void Inheritance_03()
+        public void Inheritance_07()
         {
             var source =
 @"abstract class A
@@ -1582,7 +1704,7 @@ data class B(int X, int Y) : A
         }
 
         [Fact]
-        public void Inheritance_04()
+        public void Inheritance_08()
         {
             var source =
 @"using System;
@@ -1620,7 +1742,7 @@ class Program
         }
 
         [Fact]
-        public void Inheritance_05()
+        public void Inheritance_09()
         {
             var source =
 @"interface IA
@@ -1674,6 +1796,22 @@ data class B(int X, int Y) : A
                 // (7,12): error CS0239: 'B.Equals(object?)': cannot override inherited member 'A.Equals(object)' because it is sealed
                 // data class B(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.Equals(object?)", "A.Equals(object)").WithLocation(7, 12));
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Int32 B.<X>k__BackingField",
+                "System.Int32 B.X.get",
+                "System.Int32 B.X { get; }",
+                "System.Int32 B.<Y>k__BackingField",
+                "System.Int32 B.Y.get",
+                "System.Int32 B.Y { get; }",
+                "System.Boolean B.Equals(B? )",
+                "System.Boolean B.Equals(System.Object? )",
+                "System.Int32 B.GetHashCode()",
+                "B..ctor(System.Int32 X, System.Int32 Y)"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -1694,6 +1832,27 @@ data class B(int X, int Y) : A
                 // (7,12): error CS0534: 'B' does not implement inherited abstract member 'A.ToString()'
                 // data class B(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.ToString()").WithLocation(7, 12));
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Int32 B.<X>k__BackingField",
+                "System.Int32 B.X.get",
+                "System.Int32 B.X { get; }",
+                "System.Int32 B.<Y>k__BackingField",
+                "System.Int32 B.Y.get",
+                "System.Int32 B.Y { get; }",
+                "System.Boolean B.Equals(B? )",
+                "System.Boolean B.Equals(System.Object? )",
+                "System.Int32 B.GetHashCode()",
+                "B..ctor(System.Int32 X, System.Int32 Y)"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        private static ImmutableArray<Symbol> GetProperties(CSharpCompilation comp, string typeName)
+        {
+            return comp.GetMember<NamedTypeSymbol>(typeName).GetMembers().WhereAsArray(m => m.Kind == SymbolKind.Property);
         }
     }
 }
