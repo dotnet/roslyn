@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture)).Wait();
 
+            // (miziga) without try get service, what should this be replaced with?
             var remoteService = _host.TryGetService();
             Assert.NotNull(remoteService);
 
@@ -78,8 +79,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             try
             {
                 var process = _host.TryGetProcess();
-
-                //gDisposeInteractiveHostProcess(_host);
 
                 // the process should be terminated 
                 if (process != null && !process.HasExited)
