@@ -13,91 +13,103 @@ This document will provide the expanded specification to the Portable PDB format
 
 ## List of Compiler Flags
 
-#### CSharp Flags That Can Be Derived From PDB
+#### CSharp Flags That Can Be Derived From PDB or Assembly
 
+* baseaddress
 * checksumalgorithm
+* debug
+* deterministic
+* embed
+* filealign
+* highentropyva
 * link
     - Represented by a metadata reference with `EmbededInteropTypes=true` 
+* linkresource
+    - Will be represented in metadata reference embedded in pdb
 * main
     - Already stored in PDB as the entry point token
 * moduleassemblyname
 * modulename
+* nowin32manifest
+* pdb
+* platform
+* publicsign
+* resource
+    - Will be represented in metadata reference embedded in pdb
+* subsystemversion
+* target
+* win32icon
+* win32manifest
+* win32res
 
 #### CSharp Flags Not Included
 
 * appconfig
-* baseaddress
 * bugreport
-* debug
 * delaysign
 * doc
-* deterministic
-* embed
 * errorendlocation
 * errorlog
 * errorreport
-* filealign
 * fullpaths
-* highentropyva
 * incremental
 * keycontainer
 * keyfile
-* linkresource
 * noconfig
 * nologo
 * nostdlib
 * nowarn
-* nowin32manifest
-* optimize
 * out
 * parallel
 * pathmap
-* pdb
-* platform
 * preferreduilang
-* publicsign
 * recurse
 * refout
 * refonly
 * reportanalyzer
 * resource
 * ruleset
-* subsystemversion
-* target
 * utf8output
 * version
 * warn
 * warnaserror
+
+#### Visual Basic Flags That Can Be Derived From PDB or Assembly
+
+* baseaddress
+* checksumalgorithm
+* debug
+* filealign
+* highentropyva
+* linkresource
+    - Will be represented in metadata reference embedded in pdb
+* main 
+* nostdlib
+    - Will be represented in metadata reference embedded in pdb
+* platform
+* resource
+    - Will be represented in metadata reference embedded in pdb
+* subsystemversion
+* target
 * win32icon
 * win32manifest
-* win32res
-
-#### Visual Basic Flags That Can Be Derived From PDB
-
-* checksumalgorithm
-* main 
+* win32resource
 
 #### Visual Basic Flags Not Included
 
-* baseaddress
 * bugreport
-* debug
 * delaysign
 * doc
 * errorreport
-* filealign
 * help
-* highentropyva
 * keycontainer
 * keyfile
 * libpath
-* linkresource
 * moduleassemblyname
 * modulename
 * netcf
 * noconfig
 * nologo
-* nostdlib
 * nowarn
 * nowin32manifest
 * optimize
@@ -106,25 +118,18 @@ This document will provide the expanded specification to the Portable PDB format
 * optioninfer
 * out
 * parallel
-* platform
 * preferreduilang
 * quiet
 * recurse
 * refonly
 * refout
-* resource
 * rootnamespace
 * ruleset
 * sdkpath
-* subsystemversion
-* target
 * utf8output
 * vbruntime
 * verbose
 * warnaserror
-* win32icon
-* win32manifest
-* win32resource
 
 #### Compiler Version
 
@@ -143,13 +148,13 @@ Size of image: 4 byte integer
 
 Example:
 
-File name: `Foo.exe` 
+File name: `example.exe` 
 
 COFF header Timestamp field: `0x542d5742` 
 
 COFF header SizeOfImage field: `0x32000` 
 
-Lookup key: `foo.exe/542d574232000/foo.exe` 
+Lookup key: `example.exe/542d574232000/example.exe` 
 
 To fully support metadata references, we'll need to be able to find the exact PE image that was used in the compilation. We'll do this by storing the parts that make up the symbol server key.
 
@@ -190,26 +195,30 @@ The remaining values will be stored as key value pairs in the pdb. The storage f
 
 Example: 
 
-`compilerversion\01.2.3\0sourceencoding\0utf-8\0checked\01\0unsafe\01\0langversion\0latest\0nullable\0Enable` 
+`compilerversion\01.2.3-example-sha\0sourceencoding\0utf-8\0checked\01\0unsafe\01\0langversion\0latest\0nullable\0Enable` 
 
 ##### Options For CSharp
 
 See [compiler options](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/listed-alphabetically) documentation
 
-1. "compilerversion"
-2. "[codepage](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/codepage-compiler-option)"
-3. "[checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/checked-compiler-option)"
-4. "[unsafe](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/unsafe-compiler-option)"
-5. "[langversion](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/langversion-compiler-option)"
-6. "[nullable](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references)"
-7. "[define](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/define-compiler-option)"
+* "[checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/checked-compiler-option)"
+* "[codepage](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/codepage-compiler-option)"
+* "compilerversion"
+* "[define](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/define-compiler-option)"
+* "[langversion](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/langversion-compiler-option)"
+* "[nullable](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references)"
+* "[optimize](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/optimize-compiler-option)"
+* "[unsafe](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/unsafe-compiler-option)"
+
 
 ##### Options For Visual Basic
 
 See [compiler options](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/compiler-options-listed-alphabetically) documentation
 
-1. "compilerversion"
-2. "[removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks)"
-3. "[langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion)"
-4. "[define](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/define)"
-5. "[optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict)"
+* "compilerversion"
+* "[define](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/define)"
+* "[langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion)"
+* "[optimize](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optimize)"
+* "[optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict)"
+* "[removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks)"
+

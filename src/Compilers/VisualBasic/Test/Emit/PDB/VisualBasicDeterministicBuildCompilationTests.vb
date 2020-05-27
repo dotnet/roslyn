@@ -31,6 +31,9 @@ Public Class VisualBasicDeterministicBuildCompilationTests
         Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions("checked"))
         Assert.Equal(originalOptions.OptionStrict.ToString(), pdbOptions("optionstrict"))
 
+        Dim isOptimized = If(originalOptions.OptimizationLevel = OptimizationLevel.Release, True, False)
+        Assert.Equal(isOptimized.ToString(), pdbOptions("optimize"))
+
         Dim preprocessorStrings = originalOptions.ParseOptions.PreprocessorSymbols.Select(Function(p)
                                                                                               If (p.Value Is Nothing) Then
                                                                                                   Return p.Key
@@ -192,7 +195,7 @@ End Class", fileName:="three.vb", options:=compilationOptions.ParseOptions, enco
 
             ' Use constructor that requires all arguments. If New arguments are added, it's possible they need to be
             ' included in the pdb serialization And added to tests here
-            Yield New VisualBasicCompilationOptions(
+            Dim defaultOptions = New VisualBasicCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
                 moduleName:=Nothing,
                 mainTypeName:=Nothing,
@@ -224,6 +227,9 @@ End Class", fileName:="three.vb", options:=compilationOptions.ParseOptions, enco
                 publicSign:=False,
                 reportSuppressedDiagnostics:=False,
                 metadataImportOptions:=MetadataImportOptions.Public)
+
+            Yield defaultOptions
+            Yield defaultOptions.WithOptimizationLevel(OptimizationLevel.Release)
         Next
     End Function
 

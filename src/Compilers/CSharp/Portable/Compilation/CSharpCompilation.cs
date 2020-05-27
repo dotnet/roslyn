@@ -3493,6 +3493,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             WriteValue("unsafe", Options.AllowUnsafe.ToString());
             WriteValue("langversion", LanguageVersion.ToDisplayString());
 
+            var isOptimized = Options.OptimizationLevel == OptimizationLevel.Release ? true : false;
+            WriteValue("optimize", isOptimized.ToString());
+
             var preprocessorSymbols = GetPreprocessorSymbols();
             if (preprocessorSymbols.Any())
             {

@@ -37,6 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
             Assert.Equal(originalOptions.AllowUnsafe.ToString(), pdbOptions["unsafe"]);
 
+            var isOptimized = originalOptions.OptimizationLevel == OptimizationLevel.Release ? true : false;
+            Assert.Equal(isOptimized.ToString(), pdbOptions["optimize"]);
+
             if (emitOptions.DefaultSourceFileEncoding is null)
             {
                 Assert.False(pdbOptions.ContainsKey("codepage"));
@@ -275,6 +278,7 @@ public struct StructWithValue
             yield return defaultOptions;
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Disable);
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Warnings);
+            yield return defaultOptions.WithOptimizationLevel(OptimizationLevel.Release);
         }
     }
 }
