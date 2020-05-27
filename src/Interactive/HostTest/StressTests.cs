@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             try
             {
-                foreach (var process in _processes)
+                /*foreach (var process in _processes)
                 {
                     DisposeInteractiveHostProcess(process);
-                }
+                }*/
 
                 foreach (var thread in _threads)
                 {

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             {
                 var process = _host.TryGetProcess();
 
-                DisposeInteractiveHostProcess(_host);
+                //gDisposeInteractiveHostProcess(_host);
 
                 // the process should be terminated 
                 if (process != null && !process.HasExited)
