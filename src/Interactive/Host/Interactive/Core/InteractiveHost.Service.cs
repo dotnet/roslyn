@@ -222,20 +222,20 @@ namespace Microsoft.CodeAnalysis.Interactive
                 s_clientExited.Set();
             }
 
-            internal static async Task RunServerAsync(string[] args, string pipeName)
+            internal static async Task RunServerAsync(string[] args)
             {
-                if (args.Length != 3)
+                if (args.Length != 2)
                 {
-                    throw new ArgumentException("Expecting arguments: <client process id> <pipe name>");
+                    throw new ArgumentException("Expecting arguments: <pipe name> <client process id>");
                 }
 
-                await RunServerAsync(int.Parse(args[2], CultureInfo.InvariantCulture), pipeName).ConfigureAwait(false);
+                await RunServerAsync(args[0], int.Parse(args[1], CultureInfo.InvariantCulture)).ConfigureAwait(false);
             }
 
             /// <summary>
             /// Implements remote server.
             /// </summary>
-            private static async Task RunServerAsync(int clientProcessId, string pipeName)
+            private static async Task RunServerAsync(string pipeName, int clientProcessId)
             {
                 if (!AttachToClientProcess(clientProcessId))
                 {
@@ -252,12 +252,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 try
                 {
-
-                    NamedPipeServerStream serverStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-                    await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
-                    // (miziga) should there be a target? 
-                    var jsonRPC = JsonRpc.Attach(serverStream, new Service());
-                    await jsonRPC.Completion.ConfigureAwait(false);
                     using (var resetEvent = new ManualResetEventSlim(false))
                     {
                         var uiThread = new Thread(() =>
@@ -272,6 +266,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                         uiThread.Start();
                         resetEvent.Wait();
                     }
+
+                    NamedPipeServerStream serverStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                    await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
+                    var jsonRPC = JsonRpc.Attach(serverStream, new Service());
+                    await jsonRPC.Completion.ConfigureAwait(false);
 
                     // the client can instantiate interactive host now:
                     s_clientExited.Wait();
@@ -914,13 +913,18 @@ namespace Microsoft.CodeAnalysis.Interactive
                 });
             }
 
-            public void RemoteConsoleWrite(byte[] data, bool isError)
+            /// <summary>
+            /// Remote API for testing purposes.
+            /// </summary>
+            public Task RemoteConsoleWriteAsync(byte[] data, bool isError)
             {
                 using (var stream = isError ? Console.OpenStandardError() : Console.OpenStandardOutput())
                 {
                     stream.Write(data, 0, data.Length);
                     stream.Flush();
                 }
+
+                return Task.CompletedTask;
             }
 
             #endregion

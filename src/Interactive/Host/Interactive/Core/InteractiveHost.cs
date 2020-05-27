@@ -87,12 +87,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                     lazyRemoteService.InitializedService.TryGetValue(out var initializedService)) ? initializedService.Service.Process : null;
         }
 
-        /*internal Service? TryGetService()
+        internal async Task<RemoteService> TryGetServiceAsync()
         {
-            var initializedService = TryGetOrCreateRemoteServiceAsync().Result;
-            return initializedService.Service?.Service;
-        }*/
-
+            var service = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
+            return service.ServiceOpt;
+        }
         // Triggered whenever we create a fresh process.
         // The ProcessExited event is not hooked yet.
         internal event Action<Process>? InteractiveHostProcessCreated;
@@ -359,28 +358,20 @@ namespace Microsoft.CodeAnalysis.Interactive
             return default;
         }
 
-        private async Task<TResult> Async<TResult>(RemoteService remoteService, string targetName, params object[] arguments)
+        private async Task<TResult> Async<TResult>(string targetName, params object[] arguments)
         {
-            return await remoteService._jsonRpc.InvokeAsync<TResult>(targetName, arguments).ConfigureAwait(false);
+            InitializedRemoteService initializedRemoteService = TryGetOrCreateRemoteServiceAsync().Result;
+            RemoteService remoteService = initializedRemoteService.ServiceOpt;
+            return await Async<TResult>(remoteService, targetName, arguments).ConfigureAwait(false);
         }
 
-        private static async Task<TResult> Async<TResult>(RemoteService remoteService, Action<Service, RemoteAsyncOperation<TResult>> action)
+        private static async Task<TResult> Async<TResult>(RemoteService remoteService, string targetName, params object[] arguments)
         {
-            //var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
-            TaskCompletionSource<TResult> _completion = new TaskCompletionSource<TResult>();
-
             try
             {
-                //remoteService.Process.Exited += _processExitedHandler;
-                if (!remoteService.Process.IsAlive())
-                {
-                    //remoteService.Process.Exited -= _processExitedHandler;
-                    return default;
-                }
-
-                return await remoteService._jsonRpc.InvokeAsync<TResult>(remoteService, targetName, arguments).ConfigureAwait(false);
+                return await remoteService.JsonRpc.InvokeAsync<TResult>(targetName, arguments).ConfigureAwait(false);
             }
-            catch (Exception) when (!remoteService.Process.IsAlive())
+            catch (Exception e) when (e is ObjectDisposedException || !remoteService.Process.IsAlive())
             {
                 return default;
             }            catch (Exception e) when (FatalError.Report(e))
