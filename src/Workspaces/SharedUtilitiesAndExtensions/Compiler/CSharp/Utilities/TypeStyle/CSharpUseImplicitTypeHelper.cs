@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -362,13 +363,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             if (initializer.IsKind(SyntaxKind.SwitchExpression))
             {
                 // We compare the variable declaration type to each arm's type to see if there is an exact match, or if the
-                // arm type inherits from the variable declaration type. If not, we must use the explicit type instead of var.
+                // arm type inherits from the variable declaration type. We also must verify that the arm types are all
+                // in the same line of inheritance. If not, we must use the explicit type instead of var.
                 // Even if 'true' is returned from this method, it is not guaranteed that we can use var. Further checks should occur
                 // after this method is called, such as checking if multiple implicit coversions exist.
                 var declarationType = semanticModel.GetTypeInfo(typeName).Type;
                 var noValidTypeExpressions = true;
                 if (declarationType != null)
                 {
+                    using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var seenTypes);
                     foreach (var arm in ((SwitchExpressionSyntax)initializer).Arms)
                     {
                         var expression = arm.Expression;
@@ -381,10 +384,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                         {
                             noValidTypeExpressions = false;
                             var expressionType = semanticModel.GetTypeInfo(expression).Type;
-                            if (expressionType != null && !expressionType.InheritsFromOrEquals(declarationType))
+                            if (expressionType == null)
+                            {
+                                continue;
+                            }
+
+                            if (!expressionType.InheritsFromOrEquals(declarationType))
                             {
                                 return true;
                             }
+
+                            // All arms must be in the same direct line of inheritance.
+                            // e.g. Given the tree:
+                            //   C
+                            //  / \
+                            // A   B
+                            //
+                            // We cannot substitute var for 'x' in the following switch expression,
+                            // as it will introduce a compiler error.
+                            // C x = i switch
+                            // {
+                            //     0 => new A(),
+                            //     1 => new B(),
+                            //     _ => throw new ArgumentException(),
+                            // };
+                            if (expressionType.Equals(declarationType) || seenTypes.Contains(expressionType))
+                            {
+                                continue;
+                            }
+
+                            var invalidType = seenTypes.Any(
+                                t => !t.InheritsFromOrEquals(expressionType) && !expressionType.InheritsFromOrEquals(t));
+                            if (invalidType)
+                            {
+                                return true;
+                            }
+
+                            seenTypes.Add(expressionType);
                         }
                     }
                 }
