@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal sealed class RemoteService
         {
             public readonly Process Process;
-            public readonly JsonRpc JsonRpc;            private readonly int _processId;
-            private readonly SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
+            public readonly JsonRpc JsonRpc;
+            private readonly int _processId;            private readonly SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
             private readonly bool _joinOutputWritingThreadsOnDisposal;
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)

@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 s_clientExited.Set();
             }
 
-            internal static async Task RunServerAsync(string[] args, string pipeName)
+            internal static async Task RunServerAsync(string[] args)
             {
                 if (args.Length != 2)
                 {
@@ -282,9 +282,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     var serverStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
                     await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
                     var jsonRPC = JsonRpc.Attach(serverStream, new Service());
-                    await jsonRPC.Completion.ConfigureAwait(false);
-
-                    // the client can instantiate interactive host now:
+                    await jsonRPC.Completion.ConfigureAwait(false);                    // the client can instantiate interactive host now:
                     s_clientExited.Wait();                }
                 finally
                 {

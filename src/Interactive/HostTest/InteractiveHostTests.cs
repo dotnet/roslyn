@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture));
 
-            await _host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir);
-            // assert and remove logo:
+            await _host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir);            // assert and remove logo:
             var output = SplitLines(await ReadOutputToEnd());
             var errorOutput = await ReadErrorOutputToEnd();
 
@@ -126,8 +125,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         //    return _host.TryGetService().IsShadowCopy(path);
         //}
 
-        public Task<string> ReadErrorOutputToEnd()
-        {
+        public Task<string> ReadErrorOutputToEnd()        {
             return ReadOutputToEnd(isError: true);
         }
 
@@ -153,8 +151,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             // writes mark to the STDOUT/STDERR pipe in the remote process:
             var remoteService = await _host.TryGetServiceAsync().ConfigureAwait(false);
-            await remoteService.JsonRpc.InvokeAsync<Task>("RemoteConsoleWriteAsync", Encoding.UTF8.GetBytes(mark), isError).ConfigureAwait(false);
-            while (true)
+            await remoteService.JsonRpc.InvokeAsync<Task>("RemoteConsoleWriteAsync", Encoding.UTF8.GetBytes(mark), isError).ConfigureAwait(false);            while (true)
             {
                 var data = writer.Prefix(mark, ref _outputReadPosition[isError ? 0 : 1]);
                 if (data != null)
@@ -458,7 +455,6 @@ WriteLine(5);
             _host.ErrorOutputReceived += (_, __) => mayTerminate.Set();
 
             // TODO: _host.TryGetService()!.HookMaliciousAssemblyResolve();
-
             Assert.True(mayTerminate.WaitOne());
             await _host.AddReferenceAsync("nonexistingassembly" + Guid.NewGuid());
 
