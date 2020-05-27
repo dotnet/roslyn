@@ -189,6 +189,77 @@ File Size: 4 byte integer
 
 MVID: 16 byte integer (GUID)
 
+#### Retriving Metadata References
+
+Metadata references are stored in the CustomDebugInformation in a PDB using the GUID `7E4D4708-096E-4C5C-AEDA-CB10BA6A740D`. 
+
+Example how to retrieve and read this information using `System.Reflection.Metadata`: 
+
+```csharp
+var metadataReferencesGuid = new Guid("7E4D4708-096E-4C5C-AEDA-CB10BA6A740D");
+var path = "path/to/pdb";
+
+using var stream = File.OpenRead(path);
+using var metadataReaderProvider = MetadataReaderProvider.FromPortablePdbStream(stream);
+var metadataReader = metadataReaderProvider.GetMetadataReader();
+
+foreach (var handle in metadataReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition))
+{
+    var customDebugInformation = metadataReader.GetCustomDebugInformation(handle);
+    if (metadataReader.GetGuid(customDebugInformation.Kind) == metadataReferencesGuid)
+    {
+        var blobReader = metadataReader.GetBlobReader(customDebugInformation.Value);
+        
+        // Each loop is one reference
+        while (blobReader.RemainingBytes > 0)
+        {
+            // Order of information
+            // File name (null terminated string): A.exe
+            // Extern Alias (null terminated string): a1,a2,a3
+            // EmbedInteropTypes/MetadataImageKind (byte)
+            // COFF header Timestamp field (4 byte int)
+            // COFF header SizeOfImage field (4 byte int)
+            // MVID (Guid, 24 bytes)
+
+            var terminatorIndex = blobReader.IndexOf(0);
+            Assert.NotEqual(-1, terminatorIndex);
+
+            var name = blobReader.ReadUTF8(terminatorIndex);
+
+            // Skip the null terminator
+            blobReader.ReadByte();
+
+            terminatorIndex = blobReader.IndexOf(0);
+            Assert.NotEqual(-1, terminatorIndex);
+
+            var externAliases = blobReader.ReadUTF8(terminatorIndex);
+
+            // Skip the null terminator
+            blobReader.ReadByte();
+
+            var embedInteropTypesAndKind = blobReader.ReadByte();
+            var embedInteropTypes = (embedInteropTypesAndKind & 0b10) == 0b10;
+            var kind = (embedInteropTypesAndKind & 0b1) == 0b1
+                ? MetadataImageKind.Assembly
+                : MetadataImageKind.Module;
+
+            var timestamp = blobReader.ReadInt32();
+            var imageSize = blobReader.ReadInt32();
+            var mvid = blobReader.ReadGuid();
+
+            Console.WriteLine(name);
+            Console.WriteLine($"Extern Aliases: \"{externAliases}\"");
+            Console.WriteLine($"Embed Interop Types: {embedInteropTypes}");
+            Console.WriteLine($"Metadata Image Kind: {kind}");
+            Console.WriteLine($"Timestamp: {timestamp}");
+            Console.WriteLine($"Image Size: {imageSize}");
+            Console.WriteLine($"MVID: {mvid}");
+            Console.WriteLine();
+        }
+    }
+}
+```
+
 #### Compiler Flag Key Value Pairs
 
 The remaining values will be stored as key value pairs in the pdb. The storage format will be UTF8 encoded key value pairs that are null terminated. Order is not guaranteed. Any values left out can be assumed to be the default for the type. Keys may be different for Visual Basic and CSharp. They are serialized to reflect the command line arguments representing the same values
@@ -221,4 +292,51 @@ See [compiler options](https://docs.microsoft.com/en-us/dotnet/visual-basic/refe
 * "[optimize](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optimize)"
 * "[optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict)"
 * "[removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks)"
+
+
+#### Retriving Compiler Flags
+
+Compiler flags are stored in the CustomDebugInformation in a PDB using the GUID `B5FEEC05-8CD0-4A83-96DA-466284BB4BD8`. 
+
+Example how to retrieve and read this information using `System.Reflection.Metadata`: 
+
+```csharp
+var compilationOptionsGuid = new Guid("B5FEEC05-8CD0-4A83-96DA-466284BB4BD8");
+var path = "path/to/pdb";
+
+using var stream = File.OpenRead(path);
+using var metadataReaderProvider = MetadataReaderProvider.FromPortablePdbStream(stream);
+var metadataReader = metadataReaderProvider.GetMetadataReader();
+
+foreach (var handle in metadataReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition))
+{
+    var customDebugInformation = metadataReader.GetCustomDebugInformation(handle);
+    if (metadataReader.GetGuid(customDebugInformation.Kind) == compilationOptionsGuid)
+    {
+        var blobReader = metadataReader.GetBlobReader(customDebugInformation.Value);
+        
+        // Compiler flag bytes are UTF-8 null-terminated key-value pairs
+        var nullIndex = blobReader.IndexOf(0);
+        string key = null;
+        while (nullIndex >= 0)
+        {
+            var key = blobReader.ReadUTF8(nullIndex);
+
+            // Skip the null terminator
+            blobReader.ReadByte();
+            
+            nullIndex = blobReader.IndexOf(0);
+            var value = blobReader.ReadUTF8(nullIndex);
+
+            // Skip the null terminator
+            blobReader.ReadByte();
+
+            nullIndex = blobReader.IndexOf(0);
+
+            // key and value now have strings containing serialized compiler flag information
+            Console.WriteLine($"{key} = {value}");
+        }
+    }
+}
+```
 
