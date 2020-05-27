@@ -159,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsSuppression = "CodeActions.Suppression";
             public const string CodeActionsSyncNamespace = "CodeActions.SyncNamespace";
             public const string CodeActionsUnsealClass = "CodeActions.UnsealClass";
+            public const string CodeActionsUpdateLegacySuppressions = "CodeActions.UpdateLegacySuppressions";
             public const string CodeActionsUpdateProjectToAllowUnsafe = "CodeActions.UpdateProjectToAllowUnsafe";
             public const string CodeActionsUpgradeProject = "CodeActions.UpgradeProject";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
