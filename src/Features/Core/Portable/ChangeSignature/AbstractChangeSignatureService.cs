@@ -934,17 +934,23 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 semanticModel, position, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
-            var sourceSymbolsWithTypes = sourceSymbols.Where(s => s.GetSymbolType() != null);
-            var orderedSourceSymbolsWithTypes = sourceSymbolsWithTypes.OrderByDescending(s => s.Locations.First().SourceSpan.Start);
+            var orderedLocalAndParameterSymbols = sourceSymbols
+                .Where(s => s.IsKind(SymbolKind.Local) || s.IsKind(SymbolKind.Parameter))
+                .OrderByDescending(s => s.Locations.First().SourceSpan.Start);
 
-            var localsAndParameters = orderedSourceSymbolsWithTypes.Where(s => s.IsKind(SymbolKind.Local) || s.IsKind(SymbolKind.Parameter));
-            var propertiesAndFields = orderedSourceSymbolsWithTypes.Where(s => s.IsKind(SymbolKind.Property) || s.IsKind(SymbolKind.Field));
+            var orderedPropertiesAndFields = sourceSymbols
+                .Where(s => s.IsKind(SymbolKind.Property) || s.IsKind(SymbolKind.Field))
+                .OrderByDescending(s => s.Locations.First().SourceSpan.Start);
 
-            var fullyOrderedSymbolsByKind = localsAndParameters.Concat(propertiesAndFields);
+            var fullyOrderedSymbols = orderedLocalAndParameterSymbols.Concat(orderedPropertiesAndFields);
 
-            foreach (var symbol in fullyOrderedSymbolsByKind)
+            foreach (var symbol in fullyOrderedSymbols)
             {
                 var symbolType = symbol.GetSymbolType();
+                if (symbolType == null)
+                {
+                    continue;
+                }
 
                 if (semanticModel.Compilation.ClassifyCommonConversion(symbolType, targetType).IsImplicit)
                 {
