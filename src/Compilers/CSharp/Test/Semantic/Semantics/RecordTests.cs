@@ -1649,5 +1649,96 @@ class D
   IL_0020:  ret
 }");
         }
+
+        [Fact]
+        public void WithExprAssignToRef1()
+        {
+            var src = @"
+using System;
+data class C(int Y)
+{
+    private readonly int[] _a = new[] { 0 };
+    public ref int X => ref _a[0];
+
+    public C Clone() => new C(0);
+
+    public static void Main()
+    {
+        var c = new C(0) { X = 5 };
+        Console.WriteLine(c.X);
+        c = c with { X = 1 };
+        Console.WriteLine(c.X);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+5
+1");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  IL_0000:  ldc.i4.0
+  IL_0001:  newobj     ""C..ctor(int)""
+  IL_0006:  dup
+  IL_0007:  callvirt   ""ref int C.X.get""
+  IL_000c:  ldc.i4.5
+  IL_000d:  stind.i4
+  IL_000e:  dup
+  IL_000f:  callvirt   ""ref int C.X.get""
+  IL_0014:  ldind.i4
+  IL_0015:  call       ""void System.Console.WriteLine(int)""
+  IL_001a:  callvirt   ""C C.Clone()""
+  IL_001f:  dup
+  IL_0020:  callvirt   ""ref int C.X.get""
+  IL_0025:  ldc.i4.1
+  IL_0026:  stind.i4
+  IL_0027:  callvirt   ""ref int C.X.get""
+  IL_002c:  ldind.i4
+  IL_002d:  call       ""void System.Console.WriteLine(int)""
+  IL_0032:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExprAssignToRef2()
+        {
+            var src = @"
+using System;
+data class C(int Y)
+{
+    private readonly int[] _a = new[] { 0 };
+    public ref int X
+    {
+        get => ref _a[0];
+        set { }
+    }
+
+    public C Clone() => new C(0);
+
+    public static void Main()
+    {
+        var a = new[] { 0 };
+        var c = new C(0) { X = ref a[0] };
+        Console.WriteLine(c.X);
+        c = c with { X = ref a[0] };
+        Console.WriteLine(c.X);
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS8147: Properties which return by reference cannot have set accessors
+                //         set { }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.X.set").WithLocation(9, 9),
+                // (17,32): error CS1525: Invalid expression term 'ref'
+                //         var c = new C(0) { X = ref a[0] };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a[0]").WithArguments("ref").WithLocation(17, 32),
+                // (17,32): error CS1073: Unexpected token 'ref'
+                //         var c = new C(0) { X = ref a[0] };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(17, 32),
+                // (19,26): error CS1073: Unexpected token 'ref'
+                //         c = c with { X = ref a[0] };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(19, 26)
+            );
+        }
     }
 }
