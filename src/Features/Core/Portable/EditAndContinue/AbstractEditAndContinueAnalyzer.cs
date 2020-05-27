@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Document? oldDocument,
             ImmutableArray<ActiveStatement> baseActiveStatements,
             Document document,
-            IActiveStatementSpanTracker activeStatementSpanTracker,
+            IActiveStatementTrackingService? trackingService,
             CancellationToken cancellationToken)
         {
             DocumentAnalysisResults.Log.Write("Analyzing document {0}", document.Name);
@@ -429,6 +429,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         baseActiveStatements,
                         newText,
                         newRoot,
+                        document.Id,
+                        trackingService,
                         newActiveStatements,
                         newExceptionRegions);
 
@@ -486,7 +488,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     oldText,
                     newText,
                     document.Id,
-                    activeStatementSpanTracker,
+                    trackingService,
                     baseActiveStatements,
                     newActiveStatements,
                     newExceptionRegions,
@@ -639,7 +641,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SourceText oldText,
             SourceText newText,
             DocumentId documentId,
-            IActiveStatementSpanTracker activeStatementSpanTracker,
+            IActiveStatementTrackingService? trackingService,
             ImmutableArray<ActiveStatement> oldActiveStatements,
             [Out] ActiveStatement[] newActiveStatements,
             [Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
@@ -650,17 +652,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
             Debug.Assert(updatedMethods.Count == 0);
 
+            using var _ = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance(out var updatedTrackingSpans);
+
             for (var i = 0; i < script.Edits.Length; i++)
             {
                 var edit = script.Edits[i];
 
-                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, activeStatementSpanTracker, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
+                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, documentId, trackingService, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, updatedTrackingSpans, diagnostics);
                 ReportSyntacticRudeEdits(diagnostics, script.Match, edit, editMap);
             }
 
-            UpdateUneditedSpans(diagnostics, script.Match, oldText, newText, documentId, activeStatementSpanTracker, oldActiveStatements, newActiveStatements, newExceptionRegions);
+            UpdateUneditedSpans(diagnostics, script.Match, oldText, newText, documentId, trackingService, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedTrackingSpans);
 
             Debug.Assert(newActiveStatements.All(a => a != null));
+
+            if (updatedTrackingSpans.Count > 0)
+            {
+                trackingService!.UpdateActiveStatementSpans(newText, updatedTrackingSpans);
+            }
         }
 
         private void UpdateUneditedSpans(
@@ -669,10 +678,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SourceText oldText,
             SourceText newText,
             DocumentId documentId,
-            IActiveStatementSpanTracker activeStatementSpanTracker,
+            IActiveStatementTrackingService? trackingService,
             ImmutableArray<ActiveStatement> oldActiveStatements,
             [In, Out] ActiveStatement[] newActiveStatements,
-            [In, Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions)
+            [In, Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
+            [In, Out] ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)> updatedTrackingSpans)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
@@ -685,7 +695,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (newActiveStatements[i] == null)
                 {
                     Contract.ThrowIfFalse(newExceptionRegions[i].IsDefault);
-                    var isTracked = activeStatementSpanTracker.TryGetSpan(new ActiveStatementId(documentId, i), newText, out var trackedSpan);
+                    TextSpan trackedSpan = default;
+                    var isTracked = trackingService != null &&
+                                     trackingService.TryGetSpan(new ActiveStatementId(documentId, i), newText, out trackedSpan);
                     if (!TryGetTextSpan(oldText.Lines, oldActiveStatements[i].Span, out var oldStatementSpan))
                     {
                         DocumentAnalysisResults.Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
@@ -765,6 +777,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var newStatementSpan = FindClosestActiveSpan(newStatement, statementPart);
 
                     newActiveStatements[i] = oldActiveStatements[i].WithSpan(newText.Lines.GetLinePositionSpan(newStatementSpan));
+
+                    // Update tracking span if we found a matching active statement whose span is different.
+                    if (isTracked && newStatementSpan != trackedSpan)
+                    {
+                        updatedTrackingSpans.Add((new ActiveStatementId(documentId, i), new ActiveStatementTextSpan(oldActiveStatements[i].Flags, newStatementSpan)));
+                    }
                 }
             }
         }
@@ -773,11 +791,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<ActiveStatement> oldActiveStatements,
             SourceText newText,
             SyntaxNode newRoot,
+            DocumentId documentId,
+            IActiveStatementTrackingService? trackingService,
             [In, Out] ActiveStatement[] newActiveStatements,
             [In, Out] ImmutableArray<LinePositionSpan>[]? newExceptionRegions)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(newExceptionRegions == null || oldActiveStatements.Length == newExceptionRegions.Length);
+
+            using var _ = ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)>.GetInstance(out var updatedTrackingSpans);
 
             // Active statements in methods that were not updated 
             // are not changed but their spans might have been. 
@@ -807,6 +829,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 newActiveStatements[i] = oldActiveStatements[i].WithSpan(newText.Lines.GetLinePositionSpan(newStatementSpan));
+
+                // Update tracking span if we found a matching active statement whose span is different.
+                TextSpan trackedSpan = default;
+                var isTracked = trackingService != null &&
+                                trackingService.TryGetSpan(new ActiveStatementId(documentId, i), newText, out trackedSpan);
+
+                if (isTracked && newStatementSpan != trackedSpan)
+                {
+                    updatedTrackingSpans.Add((new ActiveStatementId(documentId, i), new ActiveStatementTextSpan(oldActiveStatements[i].Flags, newStatementSpan)));
+                }
+            }
+
+            if (updatedTrackingSpans.Count > 0)
+            {
+                trackingService!.UpdateActiveStatementSpans(newText, updatedTrackingSpans);
             }
         }
 
@@ -915,11 +952,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SourceText oldText,
             SourceText newText,
             DocumentId documentId,
-            IActiveStatementSpanTracker activeStatementSpanTracker,
+            IActiveStatementTrackingService? trackingService,
             ImmutableArray<ActiveStatement> oldActiveStatements,
             [Out] ActiveStatement[] newActiveStatements,
             [Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
             [Out] List<UpdatedMemberInfo> updatedMembers,
+            [Out] ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)> updatedTrackingSpans,
             [Out] List<RudeEditDiagnostic> diagnostics)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
@@ -1017,7 +1055,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Tracking spans corresponding to the active statements from the tracking service.
                 // We seed the method body matching algorithm with tracking spans (unless they were deleted)
                 // to get precise matching.
-                var isTracked = activeStatementSpanTracker.TryGetSpan(new ActiveStatementId(documentId, ordinal), newText, out var trackedSpan);
+                TextSpan trackedSpan = default;
+                var isTracked = trackingService?.TryGetSpan(new ActiveStatementId(documentId, ordinal), newText, out trackedSpan) ?? false;
 
                 if (isTracked)
                 {
@@ -1156,6 +1195,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(newActiveStatements[ordinal] == null && newSpan != default);
 
                 newActiveStatements[ordinal] = oldActiveStatements[ordinal].WithSpan(newText.Lines.GetLinePositionSpan(newSpan));
+
+                // Update tracking span if we found a matching active statement whose span is different.
+                // It could have been deleted or moved out of the method/lambda body, in which case we set it to empty.
+                var span = activeNodes[i].TrackedSpan;
+                if (span.HasValue && span.Value != newSpan)
+                {
+                    updatedTrackingSpans.Add((new ActiveStatementId(documentId, ordinal), new ActiveStatementTextSpan(oldActiveStatements[ordinal].Flags, newSpan)));
+                }
             }
         }
 
@@ -3859,24 +3906,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 SourceText oldText,
                 SourceText newText,
                 DocumentId documentId,
-                IActiveStatementSpanTracker activeStatementSpanTracker,
+                IActiveStatementTrackingService trackingServiceOpt,
                 ImmutableArray<ActiveStatement> oldActiveStatements,
                 [Out] ActiveStatement[] newActiveStatements,
                 [Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
                 [Out] List<UpdatedMemberInfo> updatedMethods,
                 [Out] List<RudeEditDiagnostic> diagnostics)
             {
-                _abstractEditAndContinueAnalyzer.AnalyzeSyntax(script, editMap, oldText, newText, documentId, activeStatementSpanTracker, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
+                _abstractEditAndContinueAnalyzer.AnalyzeSyntax(script, editMap, oldText, newText, documentId, trackingServiceOpt, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
             }
 
             internal void AnalyzeUnchangedDocument(
                 ImmutableArray<ActiveStatement> oldActiveStatements,
                 SourceText newText,
                 SyntaxNode newRoot,
+                DocumentId documentId,
+                IActiveStatementTrackingService trackingServiceOpt,
                 [In, Out] ActiveStatement[] newActiveStatements,
-                [In, Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions)
+                [In, Out] ImmutableArray<LinePositionSpan>[] newExceptionRegionsOpt)
             {
-                _abstractEditAndContinueAnalyzer.AnalyzeUnchangedDocument(oldActiveStatements, newText, newRoot, newActiveStatements, newExceptionRegions);
+                _abstractEditAndContinueAnalyzer.AnalyzeUnchangedDocument(oldActiveStatements, newText, newRoot, documentId, trackingServiceOpt, newActiveStatements, newExceptionRegionsOpt);
             }
 
             internal BidirectionalMap<SyntaxNode> ComputeMap(
