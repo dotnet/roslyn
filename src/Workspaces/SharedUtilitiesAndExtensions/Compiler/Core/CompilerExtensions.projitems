@@ -191,6 +191,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectWriterExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\IFunctionPointerTypeSymbolWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\ISymbolWrapper`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\LightupHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\SymbolKindEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\WrapperHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\IPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\PrecedenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\UnusedParametersPreference.cs" />
