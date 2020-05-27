@@ -7,10 +7,12 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Security.RightsManagement;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -19,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal sealed class RemoteService
         {
             public readonly Process Process;
-            public readonly Service Service;
+            //public readonly Service Service;
+            public JsonRpc _jsonRpc;
             private readonly int _processId;
             private readonly SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
             private readonly bool _joinOutputWritingThreadsOnDisposal;
@@ -30,10 +33,16 @@ namespace Microsoft.CodeAnalysis.Interactive
             private Thread? _readErrorOutputThread;      // nulled on dispose
             private volatile ProcessExitHandlerStatus _processExitHandlerStatus;  // set to Handled on dispose
 
-            internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
+            //(miziga) should there be a jsonRpc object in parameters?
+            internal RemoteService(InteractiveHost host, Process process, int processId, JsonRpc jsonRpc)
             {
+                Debug.Assert(host != null);
+                Debug.Assert(process != null);
+                //(miziga) can you even check if a jsonRpc is null? necessary?
+                //Debug.Assert(jsonRpc != null);
+
                 Process = process;
-                Service = service;
+                _jsonRpc = jsonRpc;
 
                 _host = host;
                 _joinOutputWritingThreadsOnDisposal = host._joinOutputWritingThreadsOnDisposal;
