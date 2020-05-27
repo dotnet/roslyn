@@ -91,10 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: MaybeNull]
         public virtual TResult VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node) => this.DefaultVisit(node);
 
-        /// <summary>Called when the visitor visits a WithExpressionSyntax node.</summary>
-        [return: MaybeNull]
-        public virtual TResult VisitWithExpression(WithExpressionSyntax node) => this.DefaultVisit(node);
-
         /// <summary>Called when the visitor visits a MemberAccessExpressionSyntax node.</summary>
         [return: MaybeNull]
         public virtual TResult VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
@@ -230,6 +226,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a ObjectCreationExpressionSyntax node.</summary>
         [return: MaybeNull]
         public virtual TResult VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a WithExpressionSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitWithExpression(WithExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousObjectMemberDeclaratorSyntax node.</summary>
         [return: MaybeNull]
@@ -963,9 +963,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a PostfixUnaryExpressionSyntax node.</summary>
         public virtual void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node) => this.DefaultVisit(node);
 
-        /// <summary>Called when the visitor visits a WithExpressionSyntax node.</summary>
-        public virtual void VisitWithExpression(WithExpressionSyntax node) => this.DefaultVisit(node);
-
         /// <summary>Called when the visitor visits a MemberAccessExpressionSyntax node.</summary>
         public virtual void VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -1067,6 +1064,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a ObjectCreationExpressionSyntax node.</summary>
         public virtual void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a WithExpressionSyntax node.</summary>
+        public virtual void VisitWithExpression(WithExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousObjectMemberDeclaratorSyntax node.</summary>
         public virtual void VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node) => this.DefaultVisit(node);
@@ -1632,9 +1632,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNode? VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
             => node.Update((ExpressionSyntax?)Visit(node.Operand) ?? throw new ArgumentNullException("operand"), VisitToken(node.OperatorToken));
 
-        public override SyntaxNode? VisitWithExpression(WithExpressionSyntax node)
-            => node.Update((ExpressionSyntax?)Visit(node.Receiver) ?? throw new ArgumentNullException("receiver"), VisitToken(node.WithKeyword), VisitToken(node.OpenBraceToken), VisitList(node.Initializers), VisitToken(node.CloseBraceToken));
-
         public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
             => node.Update((ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.OperatorToken), (SimpleNameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"));
 
@@ -1736,6 +1733,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
             => node.Update(VisitToken(node.NewKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ArgumentListSyntax?)Visit(node.ArgumentList), (InitializerExpressionSyntax?)Visit(node.Initializer));
+
+        public override SyntaxNode? VisitWithExpression(WithExpressionSyntax node)
+            => node.Update((ExpressionSyntax?)Visit(node.Receiver) ?? throw new ArgumentNullException("receiver"), VisitToken(node.WithKeyword), (InitializerExpressionSyntax?)Visit(node.Initializer) ?? throw new ArgumentNullException("initializer"));
 
         public override SyntaxNode? VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
             => node.Update((NameEqualsSyntax?)Visit(node.NameEquals), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
@@ -2568,24 +2568,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => throw new ArgumentOutOfRangeException(),
             };
 
-        /// <summary>Creates a new WithExpressionSyntax instance.</summary>
-        public static WithExpressionSyntax WithExpression(ExpressionSyntax receiver, SyntaxToken withKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, SyntaxToken closeBraceToken)
-        {
-            if (receiver == null) throw new ArgumentNullException(nameof(receiver));
-            if (withKeyword.Kind() != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
-            if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
-            if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
-            return (WithExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.WithExpression((Syntax.InternalSyntax.ExpressionSyntax)receiver.Green, (Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, initializers.Node.ToGreenSeparatedList<Syntax.InternalSyntax.AnonymousObjectMemberDeclaratorSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
-        }
-
-        /// <summary>Creates a new WithExpressionSyntax instance.</summary>
-        public static WithExpressionSyntax WithExpression(ExpressionSyntax receiver, SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers)
-            => SyntaxFactory.WithExpression(receiver, SyntaxFactory.Token(SyntaxKind.WithKeyword), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), initializers, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
-
-        /// <summary>Creates a new WithExpressionSyntax instance.</summary>
-        public static WithExpressionSyntax WithExpression(ExpressionSyntax receiver)
-            => SyntaxFactory.WithExpression(receiver, SyntaxFactory.Token(SyntaxKind.WithKeyword), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
-
         /// <summary>Creates a new MemberAccessExpressionSyntax instance.</summary>
         public static MemberAccessExpressionSyntax MemberAccessExpression(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
         {
@@ -3218,7 +3200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ObjectInitializerExpression:
                 case SyntaxKind.CollectionInitializerExpression:
                 case SyntaxKind.ArrayInitializerExpression:
-                case SyntaxKind.ComplexElementInitializerExpression: break;
+                case SyntaxKind.ComplexElementInitializerExpression:
+                case SyntaxKind.WithInitializerExpression: break;
                 default: throw new ArgumentException(nameof(kind));
             }
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
@@ -3261,6 +3244,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new ObjectCreationExpressionSyntax instance.</summary>
         public static ObjectCreationExpressionSyntax ObjectCreationExpression(TypeSyntax type)
             => SyntaxFactory.ObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), type, default, default);
+
+        /// <summary>Creates a new WithExpressionSyntax instance.</summary>
+        public static WithExpressionSyntax WithExpression(ExpressionSyntax receiver, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
+        {
+            if (receiver == null) throw new ArgumentNullException(nameof(receiver));
+            if (withKeyword.Kind() != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
+            if (initializer == null) throw new ArgumentNullException(nameof(initializer));
+            return (WithExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.WithExpression((Syntax.InternalSyntax.ExpressionSyntax)receiver.Green, (Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new WithExpressionSyntax instance.</summary>
+        public static WithExpressionSyntax WithExpression(ExpressionSyntax receiver, InitializerExpressionSyntax initializer)
+            => SyntaxFactory.WithExpression(receiver, SyntaxFactory.Token(SyntaxKind.WithKeyword), initializer);
 
         /// <summary>Creates a new AnonymousObjectMemberDeclaratorSyntax instance.</summary>
         public static AnonymousObjectMemberDeclaratorSyntax AnonymousObjectMemberDeclarator(NameEqualsSyntax? nameEquals, ExpressionSyntax expression)

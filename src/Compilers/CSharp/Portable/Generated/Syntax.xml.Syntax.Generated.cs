@@ -921,74 +921,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PostfixUnaryExpressionSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(this.Operand, operatorToken);
     }
 
-    public sealed partial class WithExpressionSyntax : ExpressionSyntax
-    {
-        private ExpressionSyntax? receiver;
-        private SyntaxNode? initializers;
-
-        internal WithExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
-          : base(green, parent, position)
-        {
-        }
-
-        public ExpressionSyntax Receiver => GetRedAtZero(ref this.receiver)!;
-
-        public SyntaxToken WithKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.WithExpressionSyntax)this.Green).withKeyword, GetChildPosition(1), GetChildIndex(1));
-
-        public SyntaxToken OpenBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.WithExpressionSyntax)this.Green).openBraceToken, GetChildPosition(2), GetChildIndex(2));
-
-        public SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> Initializers
-        {
-            get
-            {
-                var red = GetRed(ref this.initializers, 3);
-                return red != null ? new SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax>(red, GetChildIndex(3)) : default;
-            }
-        }
-
-        public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.WithExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(4), GetChildIndex(4));
-
-        internal override SyntaxNode? GetNodeSlot(int index)
-            => index switch
-            {
-                0 => GetRedAtZero(ref this.receiver)!,
-                3 => GetRed(ref this.initializers, 3)!,
-                _ => null,
-            };
-
-        internal override SyntaxNode? GetCachedSlot(int index)
-            => index switch
-            {
-                0 => this.receiver,
-                3 => this.initializers,
-                _ => null,
-            };
-
-        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWithExpression(this);
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWithExpression(this);
-
-        public WithExpressionSyntax Update(ExpressionSyntax receiver, SyntaxToken withKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, SyntaxToken closeBraceToken)
-        {
-            if (receiver != this.Receiver || withKeyword != this.WithKeyword || openBraceToken != this.OpenBraceToken || initializers != this.Initializers || closeBraceToken != this.CloseBraceToken)
-            {
-                var newNode = SyntaxFactory.WithExpression(receiver, withKeyword, openBraceToken, initializers, closeBraceToken);
-                var annotations = GetAnnotations();
-                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
-            }
-
-            return this;
-        }
-
-        public WithExpressionSyntax WithReceiver(ExpressionSyntax receiver) => Update(receiver, this.WithKeyword, this.OpenBraceToken, this.Initializers, this.CloseBraceToken);
-        public WithExpressionSyntax WithWithKeyword(SyntaxToken withKeyword) => Update(this.Receiver, withKeyword, this.OpenBraceToken, this.Initializers, this.CloseBraceToken);
-        public WithExpressionSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(this.Receiver, this.WithKeyword, openBraceToken, this.Initializers, this.CloseBraceToken);
-        public WithExpressionSyntax WithInitializers(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers) => Update(this.Receiver, this.WithKeyword, this.OpenBraceToken, initializers, this.CloseBraceToken);
-        public WithExpressionSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.Receiver, this.WithKeyword, this.OpenBraceToken, this.Initializers, closeBraceToken);
-
-        public WithExpressionSyntax AddInitializers(params AnonymousObjectMemberDeclaratorSyntax[] items) => WithInitializers(this.Initializers.AddRange(items));
-    }
-
     /// <summary>Class which represents the syntax node for member access expression.</summary>
     public sealed partial class MemberAccessExpressionSyntax : ExpressionSyntax
     {
@@ -2982,6 +2914,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             var argumentList = this.ArgumentList ?? SyntaxFactory.ArgumentList();
             return WithArgumentList(argumentList.WithArguments(argumentList.Arguments.AddRange(items)));
         }
+    }
+
+    public sealed partial class WithExpressionSyntax : ExpressionSyntax
+    {
+        private ExpressionSyntax? receiver;
+        private InitializerExpressionSyntax? initializer;
+
+        internal WithExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public ExpressionSyntax Receiver => GetRedAtZero(ref this.receiver)!;
+
+        public SyntaxToken WithKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.WithExpressionSyntax)this.Green).withKeyword, GetChildPosition(1), GetChildIndex(1));
+
+        /// <summary>InitializerExpressionSyntax representing the initializer expression for the with expression.</summary>
+        public InitializerExpressionSyntax Initializer => GetRed(ref this.initializer, 2)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                0 => GetRedAtZero(ref this.receiver)!,
+                2 => GetRed(ref this.initializer, 2)!,
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                0 => this.receiver,
+                2 => this.initializer,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWithExpression(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWithExpression(this);
+
+        public WithExpressionSyntax Update(ExpressionSyntax receiver, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
+        {
+            if (receiver != this.Receiver || withKeyword != this.WithKeyword || initializer != this.Initializer)
+            {
+                var newNode = SyntaxFactory.WithExpression(receiver, withKeyword, initializer);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public WithExpressionSyntax WithReceiver(ExpressionSyntax receiver) => Update(receiver, this.WithKeyword, this.Initializer);
+        public WithExpressionSyntax WithWithKeyword(SyntaxToken withKeyword) => Update(this.Receiver, withKeyword, this.Initializer);
+        public WithExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.Receiver, this.WithKeyword, initializer);
+
+        public WithExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items) => WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
     }
 
     public sealed partial class AnonymousObjectMemberDeclaratorSyntax : CSharpSyntaxNode

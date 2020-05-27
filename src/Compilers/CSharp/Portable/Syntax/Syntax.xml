@@ -452,22 +452,6 @@
       <summary>Creates a PostfixUnaryExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="WithExpressionSyntax" Base="ExpressionSyntax">
-    <!-- PROTOTYPE: Add comments for all of these things -->
-    <Kind Name="WithExpression"/>
-    <Field Name="Receiver" Type="ExpressionSyntax" />
-    <Field Name="WithKeyword" Type="SyntaxToken">
-      <Kind Name="WithKeyword" />
-    </Field>
-    <Field Name="OpenBraceToken" Type="SyntaxToken">
-      <Kind Name="OpenBraceToken"/>
-    </Field>
-    <!-- PROTOTYPE: This is the same syntax as for an anonymous object creation, but do we want to share the nodes? -->
-    <Field Name="Initializers" Type="SeparatedSyntaxList&lt;AnonymousObjectMemberDeclaratorSyntax&gt;" AllowTrailingSeparator="true" />
-    <Field Name="CloseBraceToken" Type="SyntaxToken">
-      <Kind Name="CloseBraceToken"/>
-    </Field>
-  </Node>
   <Node Name="MemberAccessExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="SimpleMemberAccessExpression"/>
     <Kind Name="PointerMemberAccessExpression"/>
@@ -1422,6 +1406,7 @@
     <Kind Name="CollectionInitializerExpression"/>
     <Kind Name="ArrayInitializerExpression"/>
     <Kind Name="ComplexElementInitializerExpression"/>
+    <Kind Name="WithInitializerExpression" />
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
       <PropertyComment>
@@ -1518,6 +1503,18 @@
     <FactoryComment>
       <summary>Creates an ObjectCreationExpressionSyntax node.</summary>
     </FactoryComment>
+  </Node>
+  <Node Name="WithExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="WithExpression"/>
+    <Field Name="Receiver" Type="ExpressionSyntax" />
+    <Field Name="WithKeyword" Type="SyntaxToken">
+      <Kind Name="WithKeyword" />
+    </Field>
+    <Field Name="Initializer" Type="InitializerExpressionSyntax">
+        <PropertyComment>
+            <summary>InitializerExpressionSyntax representing the initializer expression for the with expression.</summary>
+        </PropertyComment>
+    </Field>
   </Node>
   <Node Name="AnonymousObjectMemberDeclaratorSyntax" Base="CSharpSyntaxNode">
     <Kind Name="AnonymousObjectMemberDeclarator"/>

@@ -614,7 +614,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         SuppressNullableWarningExpression = 9054,
         NullableDirectiveTrivia = 9055,
 
-        WithExpression = 9060,
-        InitAccessorDeclaration = 9061,
+        InitAccessorDeclaration = 9060,
+
+        WithExpression = 9061,
+        WithInitializerExpression = 9062,
     }
 }

@@ -4,6 +4,9 @@
 
 #nullable enable
 
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -782,7 +785,10 @@ data class C(int X, int Y)
             comp.VerifyDiagnostics(
                 // (8,22): error CS1525: Invalid expression term '='
                 //         c = c with { = 5 };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(8, 22)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(8, 22),
+                // (8,22): error CS1061: 'C' does not contain a definition for '' and no accessible extension method '' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         c = c with { = 5 };
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "").WithArguments("C", "").WithLocation(8, 22)
             );
         }
 
@@ -1307,8 +1313,7 @@ class C
             comp.VerifyDiagnostics(
                 // (10,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(10, 22)
-            );
+                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(10, 22));
         }
 
         [Fact]
@@ -1426,6 +1431,74 @@ class C : B
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithSemanticModel1()
+        {
+            var src = @"
+data class C(int X, string Y)
+{
+    public static void Main()
+    {
+        var c = new C(0, ""a"");
+        c = c with { X = 2 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var model = comp.GetSemanticModel(tree);
+            var withExpr = root.DescendantNodes().OfType<WithExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(withExpr);
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            Assert.True(c.ISymbol.Equals(typeInfo.Type));
+
+            var x = c.GetMembers("X").Single();
+            var xId = withExpr.DescendantNodes().Single(id => id.ToString() == "X");
+            var symbolInfo = model.GetSymbolInfo(xId);
+            Assert.True(x.ISymbol.Equals(symbolInfo.Symbol));
+        }
+
+        [Fact]
+        public void WithBadExprArg()
+        {
+            var src = @"
+data class C(int X, int Y)
+{
+    public C Clone() => null;
+    public static void Main()
+    {
+        var c = new C(0, 0);
+        c = c with { 5 };
+        c = c with { { X = 2 } };
+    }
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,22): error CS8811: Arguments to a `with` expression must be simple assignments
+                //         c = c with { 5 };
+                Diagnostic(ErrorCode.ERR_BadWithExpressionArgument, "5").WithLocation(8, 22),
+                // (9,22): error CS1513: } expected
+                //         c = c with { { X = 2 } };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(9, 22),
+                // (9,22): error CS1002: ; expected
+                //         c = c with { { X = 2 } };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(9, 22),
+                // (9,24): error CS0120: An object reference is required for the non-static field, method, or property 'C.X'
+                //         c = c with { { X = 2 } };
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "X").WithArguments("C.X").WithLocation(9, 24),
+                // (9,30): error CS1002: ; expected
+                //         c = c with { { X = 2 } };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(9, 30),
+                // (9,33): error CS1597: Semicolon after method or accessor block is not valid
+                //         c = c with { { X = 2 } };
+                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(9, 33),
+                // (11,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(11, 1)
+            );
         }
     }
 }

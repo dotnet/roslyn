@@ -996,7 +996,7 @@ type_of_expression
   ;
 
 with_expression
-  : expression 'with' '{' (anonymous_object_member_declarator (',' anonymous_object_member_declarator)* ','?)? '}'
+  : expression 'with' initializer_expression
   ;
 
 xml_node
