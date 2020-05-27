@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _boundNode;
 
-        public CSharpLazyNoneOperation(CSharpOperationFactory operationFactory, BoundNode boundNode, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit, ITypeSymbol type = null) :
+        public CSharpLazyNoneOperation(CSharpOperationFactory operationFactory, BoundNode boundNode, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit, ITypeSymbol type) :
             base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit, type)
         {
             _operationFactory = operationFactory;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly BoundPattern _boundNode;
 
         public CSharpLazyNonePatternOperation(CSharpOperationFactory operationFactory, BoundPattern boundNode, SemanticModel semanticModel, SyntaxNode node, bool isImplicit) :
-            base(semanticModel, node, constantValue: default, isImplicit: isImplicit)
+            base(semanticModel, node, constantValue: default, isImplicit: isImplicit, type: null)
         {
             _operationFactory = operationFactory;
             _boundNode = boundNode;

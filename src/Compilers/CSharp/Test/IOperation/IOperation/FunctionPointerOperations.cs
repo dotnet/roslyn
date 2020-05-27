@@ -520,7 +520,7 @@ Block[B0] - Entry
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'ptr(b ? s1 : s2);')
               Expression: 
-                IOperation:  (OperationKind.None, Type: null) (Syntax: 'ptr(b ? s1 : s2)')
+                IOperation:  (OperationKind.None, Type: System.Void) (Syntax: 'ptr(b ? s1 : s2)')
                   Children(2):
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: delegate*<System.String, System.Void>, IsImplicit) (Syntax: 'ptr')
                       IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b ? s1 : s2')

@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         }
                     }
 
-                    return new CSharpLazyNoneOperation(this, boundNode, _semanticModel, boundNode.Syntax, constantValue, isImplicit: isImplicit);
+                    return new CSharpLazyNoneOperation(this, boundNode, _semanticModel, boundNode.Syntax, constantValue, isImplicit: isImplicit, type: null);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(boundNode.Kind);
@@ -943,7 +943,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (boundConversion is { Type: FunctionPointerTypeSymbol { Signature: var signature }, Syntax: var expression })
                 {
                     Debug.Assert(boundConversion.Conversion.MethodSymbol is object);
-                    SyntaxNode referenceSyntax = (expression is PrefixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.AddressOfExpression, Operand: var operand }) ? operand : expression;
                     return new AddressOfOperation(
                         CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand, boundConversion.SymbolOpt, suppressVirtualCalls: false),
                         _semanticModel,
