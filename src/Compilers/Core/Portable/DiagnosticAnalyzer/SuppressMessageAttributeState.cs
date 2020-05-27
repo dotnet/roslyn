@@ -379,16 +379,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return true;
         }
-
-        internal enum TargetScope
-        {
-            None,
-            Module,
-            Namespace,
-            Resource,
-            Type,
-            Member,
-            NamespaceAndDescendants
-        }
     }
 }

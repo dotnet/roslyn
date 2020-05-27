@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
         ''' Returns true, if the VB language keyword for predefined type matches its
         ''' actual framework type name.
         ''' </summary>
-        Private Function KeywordMatchesTypeName(kind As SyntaxKind) As Boolean
+        Private Shared Function KeywordMatchesTypeName(kind As SyntaxKind) As Boolean
             Select Case kind
                 Case _
                 SyntaxKind.BooleanKeyword,

@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 return UnimplementedConstructors.Length > 0;
             }
 
-            private bool IsMissing(
+            private static bool IsMissing(
                 IMethodSymbol constructor,
                 ImmutableArray<IMethodSymbol> classConstructors,
                 bool isCaseSensitive)

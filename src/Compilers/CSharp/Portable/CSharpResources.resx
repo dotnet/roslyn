@@ -2112,13 +2112,10 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit</value>
   </data>
   <data name="ERR_PartialMethodInvalidModifier" xml:space="preserve">
-    <value>A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers</value>
+    <value>A partial method cannot have the 'abstract' modifier</value>
   </data>
   <data name="ERR_PartialMethodOnlyInPartialClass" xml:space="preserve">
     <value>A partial method must be declared within a partial class, partial struct, or partial interface</value>
-  </data>
-  <data name="ERR_PartialMethodCannotHaveOutParameters" xml:space="preserve">
-    <value>A partial method cannot have out parameters</value>
   </data>
   <data name="ERR_PartialMethodNotExplicit" xml:space="preserve">
     <value>A partial method may not explicitly implement an interface method</value>
@@ -2155,9 +2152,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_PartialMethodInExpressionTree" xml:space="preserve">
     <value>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</value>
-  </data>
-  <data name="ERR_PartialMethodMustReturnVoid" xml:space="preserve">
-    <value>Partial methods must have a void return type</value>
   </data>
   <data name="WRN_ObsoleteOverridingNonObsolete" xml:space="preserve">
     <value>Obsolete member '{0}' overrides non-obsolete member '{1}'</value>
@@ -6105,6 +6099,27 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RelationalPatternWithNaN" xml:space="preserve">
     <value>Relational patterns may not be used for a floating-point NaN.</value>
+  </data>
+  <data name="IDS_FeatureExtendedPartialMethods" xml:space="preserve">
+    <value>extended partial methods</value>
+  </data>
+  <data name="ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods" xml:space="preserve">
+    <value>Partial method '{0}' must have accessibility modifiers because it has a non-void return type.</value>
+  </data>
+  <data name="ERR_PartialMethodWithOutParamMustHaveAccessMods" xml:space="preserve">
+    <value>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</value>
+  </data>
+  <data name="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation" xml:space="preserve">
+    <value>Partial method '{0}' must have an implementation part because it has accessibility modifiers.</value>
+  </data>
+  <data name="ERR_PartialMethodWithExtendedModMustHaveAccessMods" xml:space="preserve">
+    <value>Partial method '{0}' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.</value>
+  </data>
+  <data name="ERR_PartialMethodAccessibilityDifference" xml:space="preserve">
+    <value>Both partial method declarations must have identical accessibility modifiers.</value>
+  </data>
+  <data name="ERR_PartialMethodExtendedModDifference" xml:space="preserve">
+    <value>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</value>
   </data>
   <data name="IDS_TopLevelStatements" xml:space="preserve">
     <value>top-level statements</value>

@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     return await createAsync().ConfigureAwait(false);
                 }
-            };
+            }
         }
 
         bool IObjectWritable.ShouldReuseInSerialization => true;

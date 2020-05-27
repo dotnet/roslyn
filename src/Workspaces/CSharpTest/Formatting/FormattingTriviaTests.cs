@@ -1792,5 +1792,32 @@ class F
             var actual = formatted.ToFullString();
             Assert.Equal(expected, actual);
         }
+
+        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SingleLineComment_AtEndOfFile_DoesNotAddNewLine()
+        {
+            await AssertNoFormattingChangesAsync(@"class Program { }
+
+// Test");
+        }
+
+        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task MultiLineComment_AtEndOfFile_DoesNotAddNewLine()
+        {
+            await AssertNoFormattingChangesAsync(@"class Program { }
+
+/* Test */");
+        }
+
+        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task DocComment_AtEndOfFile_DoesNotAddNewLine()
+        {
+            await AssertNoFormattingChangesAsync(@"class Program { }
+
+/// Test");
+        }
     }
 }

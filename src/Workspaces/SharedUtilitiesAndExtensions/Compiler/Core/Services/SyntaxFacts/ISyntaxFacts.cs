@@ -92,7 +92,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
         bool IsUsingOrExternOrImport(SyntaxNode node);
         bool IsUsingAliasDirective(SyntaxNode node);
-        bool IsGlobalAttribute(SyntaxNode node);
+        bool IsGlobalAssemblyAttribute(SyntaxNode node);
+        bool IsGlobalModuleAttribute(SyntaxNode node);
         bool IsDeclaration(SyntaxNode node);
         bool IsTypeDeclaration(SyntaxNode node);
 
@@ -397,6 +398,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// that arguments name.
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
+
+        /// <summary>
+        /// Given a <see cref="SyntaxNode"/>, that represents an attribute argument return the string representation of
+        /// that arguments name.
+        /// </summary>
+        string GetNameForAttributeArgument(SyntaxNode argument);
 
         bool IsNameOfSubpattern(SyntaxNode node);
         bool IsPropertyPatternClause(SyntaxNode node);

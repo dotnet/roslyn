@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var serverCallback = new FindLiteralsServerCallback(solution, progress);
 
                     var success = await client.TryRunRemoteAsync(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
                         solution,
                         new object[] { value, typeCode },

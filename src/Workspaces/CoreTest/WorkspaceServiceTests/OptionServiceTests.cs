@@ -217,10 +217,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         [Fact]
         public void TestPerLanguageCodeStyleOptions()
         {
-            PerLanguageOption2<CodeStyleOption2<bool>> perLanguageOption2 = new PerLanguageOption2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
-            PerLanguageOption<CodeStyleOption<bool>> perLanguageOption = perLanguageOption2.ToPublicOption();
-            CodeStyleOption2<bool> newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!perLanguageOption2.DefaultValue.Value, perLanguageOption2.DefaultValue.Notification);
-            CodeStyleOption<bool> newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
+            var perLanguageOption2 = new PerLanguageOption2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
+            var perLanguageOption = perLanguageOption2.ToPublicOption();
+            var newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!perLanguageOption2.DefaultValue.Value, perLanguageOption2.DefaultValue.Notification);
+            var newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
 
             // Test "OptionKey" based overloads for get/set options on OptionSet and OptionService using different public and internal type combinations.
 
@@ -263,10 +263,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         [Fact]
         public void TestLanguageSpecificCodeStyleOptions()
         {
-            Option2<CodeStyleOption2<bool>> option2 = new Option2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
-            Option<CodeStyleOption<bool>> option = option2.ToPublicOption();
-            CodeStyleOption2<bool> newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!option2.DefaultValue.Value, option2.DefaultValue.Notification);
-            CodeStyleOption<bool> newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
+            var option2 = new Option2<CodeStyleOption2<bool>>("test", "test", new CodeStyleOption2<bool>(false, NotificationOption2.Warning));
+            var option = option2.ToPublicOption();
+            var newValueCodeStyleOption2 = new CodeStyleOption2<bool>(!option2.DefaultValue.Value, option2.DefaultValue.Notification);
+            var newValueCodeStyleOption = (CodeStyleOption<bool>)newValueCodeStyleOption2!;
 
             // Test "OptionKey" based overloads for get/set options on OptionSet and OptionService using different public and internal type combinations.
 

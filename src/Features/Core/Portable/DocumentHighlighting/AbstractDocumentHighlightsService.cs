@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             if (client != null)
             {
                 var result = await client.TryRunRemoteAsync<IList<SerializableDocumentHighlights>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                     solution,
                     new object[]
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
+        private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
