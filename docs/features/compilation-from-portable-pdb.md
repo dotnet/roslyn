@@ -317,7 +317,6 @@ foreach (var handle in metadataReader.GetCustomDebugInformation(EntityHandle.Mod
         
         // Compiler flag bytes are UTF-8 null-terminated key-value pairs
         var nullIndex = blobReader.IndexOf(0);
-        string key = null;
         while (nullIndex >= 0)
         {
             var key = blobReader.ReadUTF8(nullIndex);
