@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
         End Function
 
-        Private Function IsAfterCompleteAsClause(Of T As {SyntaxNode})(
+        Private Shared Function IsAfterCompleteAsClause(Of T As {SyntaxNode})(
                 context As VisualBasicSyntaxContext, childGetter As Func(Of T, SimpleAsClauseSyntax), cancellationToken As CancellationToken) As Boolean
 
             Dim targetToken = context.TargetToken

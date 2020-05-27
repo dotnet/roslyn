@@ -266,13 +266,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             return false;
         }
 
-        private bool IsNull(IOperation operation)
+        private static bool IsNull(IOperation operation)
         {
             return operation.ConstantValue.HasValue &&
                    operation.ConstantValue.Value == null;
         }
 
-        private IConditionalOperation GetContainingIfOperation(
+        private static IConditionalOperation GetContainingIfOperation(
             SemanticModel semanticModel, IThrowOperation throwOperation,
             CancellationToken cancellationToken)
         {

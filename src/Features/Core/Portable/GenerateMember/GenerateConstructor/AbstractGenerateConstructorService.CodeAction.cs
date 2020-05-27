@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 => _withFields
                     ? string.Format(FeaturesResources.Generate_constructor_in_0, _state.TypeToGenerateIn.Name)
                     : string.Format(FeaturesResources.Generate_constructor_in_0_without_fields, _state.TypeToGenerateIn.Name);
+
+            public override string EquivalenceKey => Title;
         }
     }
 }

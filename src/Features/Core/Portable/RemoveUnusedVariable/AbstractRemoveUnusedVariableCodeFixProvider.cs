@@ -107,14 +107,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             }
         }
 
-        protected void RemoveNode(SyntaxEditor editor, SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected static void RemoveNode(SyntaxEditor editor, SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
             var localDeclaration = node.GetAncestorOrThis<TLocalDeclarationStatement>();
             var removeOptions = CreateSyntaxRemoveOptions(localDeclaration, syntaxFacts);
             editor.RemoveNode(node, removeOptions);
         }
 
-        private SyntaxRemoveOptions CreateSyntaxRemoveOptions(TLocalDeclarationStatement localDeclaration, ISyntaxFactsService syntaxFacts)
+        private static SyntaxRemoveOptions CreateSyntaxRemoveOptions(TLocalDeclarationStatement localDeclaration, ISyntaxFactsService syntaxFacts)
         {
             var removeOptions = SyntaxGenerator.DefaultRemoveOptions;
 

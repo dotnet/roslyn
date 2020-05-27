@@ -1894,7 +1894,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TopLevelStatement()
         {
-            string source = @"
+            var source = @"
 int i = 0;
 [|switch|] (i)
 {
@@ -1904,7 +1904,7 @@ int i = 0;
         return 7;
 }";
 
-            string fixedSource = @"
+            var fixedSource = @"
 int i = 0;
 return i switch
 {
@@ -1932,7 +1932,7 @@ return i switch
         public async Task TopLevelStatement_FollowedWithThrow()
         {
             // We should be rewriting the declaration for 'j' to get 'var j = i switch ...'
-            string source = @"
+            var source = @"
 int i = 0;
 int j;
 [|switch|] (i)
@@ -1947,7 +1947,7 @@ int j;
 throw null;
 ";
 
-            string fixedSource = @"
+            var fixedSource = @"
 int i = 0;
 int j;
 j = i switch

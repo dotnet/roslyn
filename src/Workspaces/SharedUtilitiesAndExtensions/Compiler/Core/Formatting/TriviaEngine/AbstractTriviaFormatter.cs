@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return new SyntaxTriviaList(triviaList);
         }
 
-        private void AddRange(ArrayBuilder<SyntaxTrivia> result, SyntaxTriviaList triviaList)
+        private static void AddRange(ArrayBuilder<SyntaxTrivia> result, SyntaxTriviaList triviaList)
         {
             foreach (var trivia in triviaList)
                 result.Add(trivia);
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             };
         }
 
-        private int GetRuleLines(LineColumnRule rule, LineColumn lineColumnAfterTrivia1, LineColumnDelta existingWhitespaceBetween)
+        private static int GetRuleLines(LineColumnRule rule, LineColumn lineColumnAfterTrivia1, LineColumnDelta existingWhitespaceBetween)
         {
             var adjustedRuleLines = Math.Max(0, rule.Lines - GetTrailingLinesAtEndOfTrivia1(lineColumnAfterTrivia1));
 
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// this is based on our structured trivia's implementation detail that some structured trivia can have
         /// one new line at the end of the trivia
         /// </summary>
-        private int GetTrailingLinesAtEndOfTrivia1(LineColumn lineColumnAfterTrivia1)
+        private static int GetTrailingLinesAtEndOfTrivia1(LineColumn lineColumnAfterTrivia1)
             => (lineColumnAfterTrivia1.Column == 0 && lineColumnAfterTrivia1.Line > 0) ? 1 : 0;
 
         private void AddExtraLines(int linesBetweenTokens, ArrayBuilder<SyntaxTrivia> changes)

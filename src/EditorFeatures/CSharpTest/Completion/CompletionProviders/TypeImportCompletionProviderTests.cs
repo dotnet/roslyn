@@ -846,7 +846,8 @@ namespace Baz
     {
         $$
     }
-}"; var expectedCodeAfterCommit = @"
+}";
+            var expectedCodeAfterCommit = @"
 using Foo.Bar;
 
 namespace Baz

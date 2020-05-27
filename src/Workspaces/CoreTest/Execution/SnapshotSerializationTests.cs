@@ -630,7 +630,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             }
         }
 
-        private async Task<string> GetXmlDocumentAsync(HostServices services)
+        private static async Task<string> GetXmlDocumentAsync(HostServices services)
         {
             using var tempRoot = new TempRoot();
             // get original assembly location
@@ -670,7 +670,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             return xmlDocComment;
         }
 
-        private async Task VerifyOptionSetsAsync(Workspace workspace, Action<OptionSet> verifyOptionValues)
+        private static async Task VerifyOptionSetsAsync(Workspace workspace, Action<OptionSet> verifyOptionValues)
         {
             var solution = new AdhocWorkspace()
                 .CurrentSolution.AddProject("Project1", "Project.dll", LanguageNames.CSharp)
@@ -696,7 +696,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             verifyOptionValues(recoveredSolution.Options);
         }
 
-        private async Task<Solution> GetSolutionAsync(IRemotableDataService service, PinnedRemotableDataScope syncScope)
+        private static async Task<Solution> GetSolutionAsync(IRemotableDataService service, PinnedRemotableDataScope syncScope)
         {
             var (solutionInfo, _) = await new TestAssetProvider(service).CreateSolutionInfoAndOptionsAsync(syncScope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
 

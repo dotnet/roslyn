@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.SyntaxTree.IsLocalFunctionDeclarationContext(position, SyntaxKindSet.AllLocalFunctionModifiers, cancellationToken);
         }
 
-        private bool IsUnsafeDefaultExpressionContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeDefaultExpressionContext(CSharpSyntaxContext context)
         {
             return
                 context.TargetToken.IsUnsafeContext() &&
                 context.SyntaxTree.IsDefaultExpressionContext(context.Position, context.LeftToken);
         }
 
-        private bool IsUnsafeCastTypeContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeCastTypeContext(CSharpSyntaxContext context)
         {
             if (context.TargetToken.IsUnsafeContext())
             {
@@ -80,14 +80,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsUnsafeParameterTypeContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeParameterTypeContext(CSharpSyntaxContext context)
         {
             return
                 context.TargetToken.IsUnsafeContext() &&
                 context.IsParameterTypeContext;
         }
 
-        private bool IsUnsafeLocalVariableDeclarationContext(CSharpSyntaxContext context)
+        private static bool IsUnsafeLocalVariableDeclarationContext(CSharpSyntaxContext context)
         {
             if (context.TargetToken.IsUnsafeContext())
             {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsMemberReturnTypeContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsMemberReturnTypeContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var syntaxTree = context.SyntaxTree;
             return

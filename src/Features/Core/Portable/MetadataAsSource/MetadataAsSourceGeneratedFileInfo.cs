@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             this.TemporaryFilePath = Path.Combine(rootPath, directoryName, topLevelNamedType.Name + extension);
         }
 
-        public Encoding Encoding => Encoding.UTF8;
+        public static Encoding Encoding => Encoding.UTF8;
 
         /// <summary>
         /// Creates a ProjectInfo to represent the fake project created for metadata as source documents.
