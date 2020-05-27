@@ -81,6 +81,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (_shutdownLock.DisposableRead())
                 {
+                    // There is a race between checking the current pool capacity i nthe condition and 
+                    // and queueing connections to the pool in the else branch.
+                    // The amount of pooled connections may thus exceed the capacity at times,
+                    // or some connections might not end up returned into the pool and reused.
                     if (_isDisposed || pool.Count >= _capacityPerService)
                     {
                         connection.Dispose();
