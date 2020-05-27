@@ -159,8 +159,16 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsDisposeImplementation(this IMethodSymbol method, Compilation compilation)
         {
             INamedTypeSymbol? iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
+            return method.IsDisposeImplementation(iDisposable);
+        }
+
+        /// <summary>
+        /// Checks if the given method implements IAsyncDisposable.Dispose()
+        /// </summary>
+        public static bool IsAsyncDisposeImplementation(this IMethodSymbol method, Compilation compilation)
+        {
             INamedTypeSymbol? iAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
-            return method.IsDisposeImplementation(iDisposable) || method.IsDisposeImplementation(iAsyncDisposable);
+            return method.IsDisposeImplementation(iAsyncDisposable);
         }
 
         /// <summary>
