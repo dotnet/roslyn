@@ -7073,6 +7073,221 @@ class C
             End Using
         End Function
 
+        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLambdaParameterInferenceInJoin1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    public class Book
+    {
+        public int Id { get; set; }
+        public int OwnerId { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Nickname { get; set; }
+    }
+
+    static void Main()
+    {
+        var books = new List&lt;Book&gt;();
+        var persons = new List&lt;Person&gt;();
+
+        var join = persons.Join(books, person => person.Id, book => book.$$, (person, book) => new
+        {
+            person.Id,
+            person.Nickname,
+            book.Name
+        });
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("OwnerId", "")
+            End Using
+        End Function
+
+        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLambdaParameterInferenceInJoin2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    public class Book
+    {
+        public int Id { get; set; }
+        public int OwnerId { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Nickname { get; set; }
+    }
+
+    static void Main()
+    {
+        var books = new List&lt;Book&gt;();
+        var persons = new List&lt;Person&gt;();
+
+        var join = persons.Join(books, person => person.Id, book => book.OwnerId, (person, book) => new
+        {
+            person.Id,
+            person.Nickname,
+            book.$$
+        });
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("Name", "")
+            End Using
+        End Function
+
+        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLambdaParameterInferenceInGroupJoin1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    public class Book
+    {
+        public int Id { get; set; }
+        public int OwnerId { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Nickname { get; set; }
+    }
+
+    static void Main()
+    {
+        var books = new List&lt;Book&gt;();
+        var persons = new List&lt;Person&gt;();
+
+        var join = persons.GroupJoin(books, person => person.Id, book => book.$$, (person, books1) => new
+        {
+            person.Id,
+            person.Nickname,
+            books1.Select(s => s.Name)
+        });
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("OwnerId", "")
+            End Using
+        End Function
+
+        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLambdaParameterInferenceInGroupJoin2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    public class Book
+    {
+        public int Id { get; set; }
+        public int OwnerId { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Nickname { get; set; }
+    }
+
+    static void Main()
+    {
+        var books = new List&lt;Book&gt;();
+        var persons = new List&lt;Person&gt;();
+
+        var join = persons.GroupJoin(books, person => person.Id, book => book.OwnerId, (person, books1) => new
+        {
+            person.Id,
+            person.Nickname,
+            books1.$$
+        });
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("Select", "<>")
+            End Using
+        End Function
+
+        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLambdaParameterInferenceInGroupJoin3(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    public class Book
+    {
+        public int Id { get; set; }
+        public int OwnerId { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Nickname { get; set; }
+    }
+
+    static void Main()
+    {
+        var books = new List&lt;Book&gt;();
+        var persons = new List&lt;Person&gt;();
+
+        var join = persons.GroupJoin(books, person => person.Id, book => book.OwnerId, (person, books1) => new
+        {
+            person.Id,
+            person.Nickname,
+            books1.Select(s => s.$$)
+        });
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("Name", "")
+            End Using
+        End Function
+
         ' Simulates a situation where IntelliCode provides items not included into the Rolsyn original list.
         ' We want to ignore these items in CommitIfUnique.
         ' This situation should not happen. Tests with this provider were added to cover protective scenarios.
