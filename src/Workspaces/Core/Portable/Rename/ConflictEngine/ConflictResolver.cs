@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 : ImmutableArray.Create(symbolInfo.Symbol);
         }
 
-        private static SyntaxNode GetExpansionTargetForLocationPerLanguage(SyntaxToken tokenOrNode, Document document)
+        private static SyntaxNode? GetExpansionTargetForLocationPerLanguage(SyntaxToken tokenOrNode, Document document)
         {
             var renameRewriterService = document.GetRequiredLanguageService<IRenameRewriterLanguageService>();
             var complexifiedTarget = renameRewriterService.GetExpansionTargetForLocation(tokenOrNode);
