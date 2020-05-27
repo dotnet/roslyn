@@ -168,7 +168,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsAsyncDisposeImplementation(this IMethodSymbol method, Compilation compilation)
         {
             INamedTypeSymbol? iAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
-            return method.IsDisposeImplementation(iAsyncDisposable);
+            return method.IsAsyncDisposeImplementation(iAsyncDisposable);
         }
 
         /// <summary>
@@ -191,6 +191,28 @@ namespace Analyzer.Utilities.Extensions
             return method.ReturnsVoid &&
                 method.Parameters.Length == 0 &&
                 method.IsImplementationOfInterfaceMethod(null, iDisposable, "Dispose");
+        }
+
+        /// <summary>
+        /// Checks if the given method implements <see cref="IAsyncDisposable.Dispose"/> or overrides an implementation of <see cref="IAsyncDisposable.Dispose"/>.
+        /// </summary>
+        public static bool IsAsyncDisposeImplementation([NotNullWhen(returnValue: true)] this IMethodSymbol? method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iAsyncDisposable)
+        {
+            if (method == null)
+            {
+                return false;
+            }
+
+            if (method.IsOverride)
+            {
+                return method.OverriddenMethod.IsAsyncDisposeImplementation(iAsyncDisposable);
+            }
+
+            // Identify the implementor of IAsyncDisposable.Dispose in the given method's containing type and check
+            // if it is the given method.
+            return method.ReturnsVoid &&
+                method.Parameters.Length == 0 &&
+                method.IsImplementationOfInterfaceMethod(null, iAsyncDisposable, "Dispose");
         }
 
         /// <summary>
