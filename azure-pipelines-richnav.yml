@@ -1,6 +1,10 @@
 # Run on master CI builds
 trigger:
-- master
+  branches:
+    include:
+    - master
+
+pr: none
 
 jobs:
 - job: RichCodeNav_Indexing
