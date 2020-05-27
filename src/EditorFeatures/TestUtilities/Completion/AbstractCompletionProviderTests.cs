@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = commit.NewPosition ?? textView.Caret.Position.BufferPosition.Position;
 
-            Assert.Equal(actualExpectedCode, actualCodeAfterCommit);
+            AssertEx.EqualOrDiff(actualExpectedCode, actualCodeAfterCommit);
             Assert.Equal(expectedCaretPosition, caretPosition);
         }
 
