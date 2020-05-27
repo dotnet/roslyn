@@ -57,7 +57,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture));
 
             await _host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir);
-
             // assert and remove logo:
             var output = SplitLines(await ReadOutputToEnd());
             var errorOutput = await ReadErrorOutputToEnd();
@@ -84,9 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             {
                 var process = _host.TryGetProcess();
 
-                _host.Dispose();
-
-                // the process should be terminated 
+                _host.Dispose();                // the process should be terminated 
                 if (process != null && !process.HasExited)
                 {
                     process.WaitForExit();

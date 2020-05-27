@@ -174,9 +174,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     uiThread.IsBackground = true;
                     uiThread.Start();
                     resetEvent.Wait();
-                }
-
-                // TODO (tomat): we should share the copied files with the host
+                }                // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(
                     Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
                     noShadowCopyDirectories: s_systemNoShadowCopyDirectories,
@@ -237,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 s_clientExited.Set();
             }
 
-            internal static async Task RunServerAsync(string[] args)
+            internal static async Task RunServerAsync(string[] args, string pipeName)
             {
                 if (args.Length != 2)
                 {
@@ -267,8 +265,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 try
                 {
-                    using (var resetEvent = new ManualResetEventSlim(false))                    {
-                        var uiThread = new Thread(() =>
+                    using (var resetEvent = new ManualResetEventSlim(false))
+                    {                        var uiThread = new Thread(() =>
                         {
                             s_control = new Control();
                             s_control.CreateControl();
@@ -307,14 +305,13 @@ namespace Microsoft.CodeAnalysis.Interactive
             // Used by ResetInteractive - consider improving (we should remember the parameters for auto-reset, e.g.)
 
             public async Task<RemoteExecutionResult> SetPathsAsync(
-                string[] referenceSearchPaths,                string[] sourceSearchPaths,
-                string? baseDirectory)
-            {
+                string[] referenceSearchPaths,
+                string[] sourceSearchPaths,
+                string? baseDirectory)            {
                 Debug.Assert(referenceSearchPaths != null);
                 Debug.Assert(sourceSearchPaths != null);
                 Debug.Assert(baseDirectory != null);
-                var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
-                lock (_lastTaskGuard)
+                var completionSource = new TaskCompletionSource<RemoteExecutionResult>();                lock (_lastTaskGuard)
                 {
                     _lastTask = SetPathsAsync(_lastTask, completionSource, referenceSearchPaths, sourceSearchPaths, baseDirectory);
                 }
@@ -327,7 +324,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 TaskCompletionSource<RemoteExecutionResult> completionSource,
                 string[]? referenceSearchPaths,
                 string[]? sourceSearchPaths,
-                string? baseDirectory)            {
+                string? baseDirectory)
+            {
                 var serviceState = GetServiceState();
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
 
@@ -356,9 +354,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Execution is performed on the UI thread.
             /// </summary>
             public async Task<RemoteExecutionResult> InitializeContextAsync(string? initializationFile, bool isRestarting)
-            {                
-			var completionSource = new TaskCompletionSource<RemoteExecutionResult>();                lock (_lastTaskGuard)
-                {
+            {
+				var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
+                lock (_lastTaskGuard)                {
                     _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFile, isRestarting);
                 }
                 return await completionSource.Task.ConfigureAwait(false);
@@ -370,24 +368,24 @@ namespace Microsoft.CodeAnalysis.Interactive
             public async Task<bool> AddReferenceAsync(string reference)
             {
                 Debug.Assert(reference != null);
-                var completionSource = new TaskCompletionSource<bool>();                lock (_lastTaskGuard)
-                {
-
+                var completionSource = new TaskCompletionSource<bool>();
+                lock (_lastTaskGuard)                {
+                    _lastTask = AddReferenceAsync(_lastTask, reference);
 					_lastTask = AddReferenceAsync(_lastTask, completionSource, reference!);
                 }
-                return await completionSouce.Task.ConfigureAwait(false);            }
-
+                return await completionSouce.Task.ConfigureAwait(false);
+            }
             private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, TaskCompletionSource<bool> completionSource, string reference)
-            {                var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
+            {
+                var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
                 var success = false;
-
                 try
                 {
                     var resolvedReferences = state.ScriptOptions.MetadataResolver.ResolveReference(reference, baseFilePath: null, properties: MetadataReferenceProperties.Assembly);
                     if (!resolvedReferences.IsDefaultOrEmpty)
                     {
                         state = state.WithOptions(state.ScriptOptions.AddReferences(resolvedReferences));
-                        //success = true;
+                        success = true;
                     }
                     else
                     {
@@ -400,8 +398,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 finally
                 {
-                    completionSource.SetResult(success);                }
-
+                    completionSource.SetResult(success);
+                }
                 return state;
             }
 

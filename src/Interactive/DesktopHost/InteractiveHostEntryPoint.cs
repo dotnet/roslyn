@@ -4,10 +4,8 @@
 
 #nullable enable
 
-using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
+using System;using System.Diagnostics;
+using System.Threading.Tasks;using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             try
             {
-                await InteractiveHost.Service.RunServerAsync(args).ConfigureAwait(false
+                await InteractiveHost.Service.RunServerAsync(args).ConfigureAwait(false);
                 return 0;
             }
             catch (Exception e)
