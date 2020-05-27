@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         private LazyRemoteService? _lazyRemoteService;
         private int _remoteServiceInstanceId;
-
         private TextWriter _output;
         private TextWriter _errorOutput;
         private readonly object _outputGuard;
@@ -248,13 +247,14 @@ namespace Microsoft.CodeAnalysis.Interactive
         private async Task<TResult> Async<TResult>(string targetName, params object?[] arguments)
         {
             var initializedRemoteService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
-            if (initializedRemoteService.Service == null)            {
-                return default!;
-            }
-            return await Async<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);        }
+            if (initializedRemoteService.Service == null)
+            {
+                return default!;            }
+            return await Async<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);
+        }
 
-        private static async Task<TResult> Async<TResult>(RemoteService remoteService, string targetName, params object?[] arguments)        {
-            try
+        private static async Task<TResult> Async<TResult>(RemoteService remoteService, string targetName, params object?[] arguments)
+        {            try
             {
                 return await remoteService.JsonRpc.InvokeAsync<TResult>(targetName, arguments).ConfigureAwait(false);
             }
