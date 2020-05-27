@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Diagnostics.Analyzers;
 
 namespace Roslyn.Diagnostics.CSharp.Analyzers
@@ -22,40 +22,61 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var title = RoslynDiagnosticsAnalyzersResources.TestExportsShouldNotBeDiscoverableCodeFix;
+            var title = RoslynDiagnosticsAnalyzersResources.AvoidOptSuffixForNullableEnableCodeRuleIdTitleCodeFixTitle;
 
             foreach (var diagnostic in context.Diagnostics)
             {
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        title,
-                        cancellationToken => RemoveOptSuffixOnVariableAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
-                        equivalenceKey: title),
-                    diagnostic);
-            }
+                var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+                if (root == null)
+                {
+                    continue;
+                }
 
-            return Task.CompletedTask;
+                var variable = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
+                if (variable == null)
+                {
+                    continue;
+                }
+
+                var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+                var variableSymbol = semanticModel.GetDeclaredSymbol(variable, context.CancellationToken);
+                if (variableSymbol == null)
+                {
+                    continue;
+                }
+
+                var newName = variableSymbol.Name.Substring(0, variableSymbol.Name.Length - CSharpAvoidOptSuffixForNullableEnableCode.OptSuffix.Length);
+
+                // There is no symbol matching the new name so we can register the codefix
+                if (semanticModel.LookupSymbols(diagnostic.Location.SourceSpan.Start, variableSymbol.ContainingType, newName).IsEmpty)
+                {
+                    context.RegisterCodeFix(
+                        new MyCodeAction(
+                            title,
+                            cancellationToken => RemoveOptSuffixOnVariableAsync(context.Document, variableSymbol, newName, cancellationToken),
+                            equivalenceKey: title),
+                        diagnostic);
+                }
+            }
         }
 
-        private static async Task<Document> RemoveOptSuffixOnVariableAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        private static async Task<Document> RemoveOptSuffixOnVariableAsync(Document document, ISymbol variableSymbol, string newName, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var variable = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
-            var variableSymbol = semanticModel.GetDeclaredSymbol(variable, cancellationToken);
-
-            var newSolution = await Renamer.RenameSymbolAsync(
-                    document.Project.Solution,
-                    variableSymbol,
-                    variableSymbol.Name.Substring(0, variableSymbol.Name.Length - CSharpAvoidOptSuffixForNullableEnableCode.OptSuffix.Length),
-                    document.Project.Solution.Options,
-                    cancellationToken)
+            var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, variableSymbol, newName, document.Project.Solution.Options, cancellationToken)
                 .ConfigureAwait(false);
 
             return newSolution.GetDocument(document.Id)!;
+        }
+
+        // Needed for Telemetry (https://github.com/dotnet/roslyn/issues/4919)
+        private class MyCodeAction : DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
+            {
+            }
         }
     }
 }
