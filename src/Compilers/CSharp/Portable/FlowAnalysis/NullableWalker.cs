@@ -2222,13 +2222,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitWhileStatement(node);
         }
 
-        public override BoundNode VisitWithExpression(BoundWithExpression expr)
+        public override BoundNode VisitWithExpression(BoundWithExpression withExpr)
         {
-            // TODO: assignments need to be checked for nullable compatibility
-            base.VisitWithExpression(expr);
-            SetResultType(expr,
-                expr.CloneMethod?.ReturnTypeWithAnnotations.ToTypeWithState()
-                    ?? TypeWithState.Create(expr.Type, NullableFlowState.NotNull));
+            Debug.Assert(!IsConditionalState);
+
+            var receiver = withExpr.Receiver;
+            VisitRvalue(receiver);
+            _ = CheckPossibleNullReceiver(receiver, checkNullableValueType: false);
+
+            var resultSlot = GetOrCreatePlaceholderSlot(withExpr);
+            // carry over the null state of members of 'receiver' to the result of the with-expression.
+            TrackNullableStateForAssignment(receiver, ResultType.ToTypeWithAnnotations(), resultSlot, ResultType, MakeSlot(receiver));
+
+            foreach (var (leftSymbol, right) in withExpr.Arguments)
+            {
+                if (leftSymbol is PropertySymbol prop)
+                {
+                    // PROTOTYPE: attributes on positional record parameters do not propagate
+                    // to the synthesized properties. Perhaps this is by design?
+                    // If we want them to propagate then perhaps we should move
+                    // members such as SourcePropertySymbol.HasAllowNull, etc. to SourceOrRecordPropertySymbol.
+                    var leftAnnotations = GetPropertySetterAnnotations(prop);
+                    var leftLValueType = ApplyLValueAnnotations(prop.TypeWithAnnotations, leftAnnotations);
+
+                    var rightState = VisitOptionalImplicitConversion(right, targetTypeOpt: leftLValueType, useLegacyWarnings: false, trackMembers: true, AssignmentKind.Assignment);
+                    CheckDisallowedNullAssignment(rightState, leftAnnotations, right.Syntax.Location);
+                    var propSlot = GetOrCreateSlot(prop, resultSlot);
+                    TrackNullableStateForAssignment(right, leftLValueType, propSlot, rightState, MakeSlot(right));
+
+                    // PROTOTYPE: Should we AdjustSetValue for properties?
+                    // e.g. a property with [AllowNull, NotNull] would have a NotNull state after assigning a maybe-null.
+                    // This isn't safe at runtime but it is consistent with what we allow users to do with auto properties.
+                    // AdjustSetValue(left, declaredType, leftLValueType, ref rightState);
+                }
+            }
+
+            SetResultType(withExpr,
+                withExpr.CloneMethod?.ReturnTypeWithAnnotations.ToTypeWithState()
+                    ?? TypeWithState.Create(withExpr.Type, NullableFlowState.NotNull));
             return null;
         }
 
@@ -6982,49 +7013,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private FlowAnalysisAnnotations GetLValueAnnotations(BoundExpression expr)
+        private static FlowAnalysisAnnotations GetPropertySetterAnnotations(PropertySymbol property)
         {
-            // Annotations are ignored when binding an attribute to avoid cycles. (Members used
-            // in attributes are error scenarios, so missing warnings should not be important.)
-            if (IsAnalyzingAttribute)
+            var accessor = property.GetOwnOrInheritedSetMethod();
+            if (accessor is object)
             {
-                return FlowAnalysisAnnotations.None;
+                return accessor.Parameters.Last().FlowAnalysisAnnotations;
             }
-
-            var annotations = expr switch
+            if (property is SourcePropertySymbol sourceProperty)
             {
-                BoundPropertyAccess property => getSetterAnnotations(property.PropertySymbol),
-                BoundIndexerAccess indexer => getSetterAnnotations(indexer.Indexer),
-                BoundFieldAccess field => getFieldAnnotations(field.FieldSymbol),
-                BoundObjectInitializerMember { MemberSymbol: PropertySymbol prop } => getSetterAnnotations(prop),
-                BoundObjectInitializerMember { MemberSymbol: FieldSymbol field } => getFieldAnnotations(field),
-                BoundParameter { ParameterSymbol: ParameterSymbol parameter }
-                    => ToInwardAnnotations(GetParameterAnnotations(parameter) & ~FlowAnalysisAnnotations.NotNull), // NotNull is enforced upon method exit
-                _ => FlowAnalysisAnnotations.None
-            };
-
-            return annotations & (FlowAnalysisAnnotations.DisallowNull | FlowAnalysisAnnotations.AllowNull);
-
-            static FlowAnalysisAnnotations getFieldAnnotations(FieldSymbol field)
-            {
-                return field.AssociatedSymbol is PropertySymbol property ?
-                    getSetterAnnotations(property) :
-                    field.FlowAnalysisAnnotations;
+                return getPropertyAnnotations(sourceProperty);
             }
-
-            static FlowAnalysisAnnotations getSetterAnnotations(PropertySymbol property)
-            {
-                var accessor = property.GetOwnOrInheritedSetMethod();
-                if (accessor is object)
-                {
-                    return accessor.Parameters.Last().FlowAnalysisAnnotations;
-                }
-                if (property is SourcePropertySymbol sourceProperty)
-                {
-                    return getPropertyAnnotations(sourceProperty);
-                }
-                return FlowAnalysisAnnotations.None;
-            }
+            return FlowAnalysisAnnotations.None;
 
             static FlowAnalysisAnnotations getPropertyAnnotations(SourcePropertySymbol property)
             {
@@ -7038,6 +7038,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     annotations |= FlowAnalysisAnnotations.DisallowNull;
                 }
                 return annotations;
+            }
+        }
+
+        private FlowAnalysisAnnotations GetLValueAnnotations(BoundExpression expr)
+        {
+            // Annotations are ignored when binding an attribute to avoid cycles. (Members used
+            // in attributes are error scenarios, so missing warnings should not be important.)
+            if (IsAnalyzingAttribute)
+            {
+                return FlowAnalysisAnnotations.None;
+            }
+
+            var annotations = expr switch
+            {
+                BoundPropertyAccess property => GetPropertySetterAnnotations(property.PropertySymbol),
+                BoundIndexerAccess indexer => GetPropertySetterAnnotations(indexer.Indexer),
+                BoundFieldAccess field => getFieldAnnotations(field.FieldSymbol),
+                BoundObjectInitializerMember { MemberSymbol: PropertySymbol prop } => GetPropertySetterAnnotations(prop),
+                BoundObjectInitializerMember { MemberSymbol: FieldSymbol field } => getFieldAnnotations(field),
+                BoundParameter { ParameterSymbol: ParameterSymbol parameter }
+                    => ToInwardAnnotations(GetParameterAnnotations(parameter) & ~FlowAnalysisAnnotations.NotNull), // NotNull is enforced upon method exit
+                _ => FlowAnalysisAnnotations.None
+            };
+
+            return annotations & (FlowAnalysisAnnotations.DisallowNull | FlowAnalysisAnnotations.AllowNull);
+
+            static FlowAnalysisAnnotations getFieldAnnotations(FieldSymbol field)
+            {
+                return field.AssociatedSymbol is PropertySymbol property ?
+                    GetPropertySetterAnnotations(property) :
+                    field.FlowAnalysisAnnotations;
             }
         }
 
