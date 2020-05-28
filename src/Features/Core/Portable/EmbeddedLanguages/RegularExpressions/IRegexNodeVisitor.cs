@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         void Visit(RegexNegativeLookaheadGroupingNode node);
         void Visit(RegexPositiveLookbehindGroupingNode node);
         void Visit(RegexNegativeLookbehindGroupingNode node);
-        void Visit(RegexNonBacktrackingGroupingNode node);
+        void Visit(RegexAtomicGroupingNode node);
         void Visit(RegexCaptureGroupingNode node);
         void Visit(RegexBalancingGroupingNode node);
         void Visit(RegexConditionalCaptureGroupingNode node);

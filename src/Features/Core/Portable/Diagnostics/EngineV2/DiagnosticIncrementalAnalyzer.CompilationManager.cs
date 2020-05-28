@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         [Conditional("DEBUG")]
-        private void AssertAnalyzers(CompilationWithAnalyzers? compilation, IEnumerable<StateSet> stateSets)
+        private static void AssertAnalyzers(CompilationWithAnalyzers? compilation, IEnumerable<StateSet> stateSets)
         {
             if (compilation == null)
             {

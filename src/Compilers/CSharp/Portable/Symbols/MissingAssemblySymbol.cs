@@ -190,5 +190,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override AssemblyMetadata GetMetadata() => null;
+
+        internal sealed override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
+        {
+            return SpecializedCollections.EmptyEnumerable<NamedTypeSymbol>();
+        }
     }
 }

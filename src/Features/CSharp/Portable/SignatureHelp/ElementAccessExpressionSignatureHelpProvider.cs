@@ -105,11 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(accessibleIndexers.Select(p =>
-                Convert(p, openBrace, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
+                Convert(p, openBrace, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null);
         }
 
-        private TextSpan GetTextSpan(ExpressionSyntax expression, SyntaxToken openBracket)
+        private static TextSpan GetTextSpan(ExpressionSyntax expression, SyntaxToken openBracket)
         {
             if (openBracket.Parent is BracketedArgumentListSyntax)
             {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 }
                 else
                 {
-                    return CompleteElementAccessExpression.GetTextSpan(expression, openBracket);
+                    return CompleteElementAccessExpression.GetTextSpan(openBracket);
                 }
             }
             else if (openBracket.Parent is ArrayRankSpecifierSyntax)
@@ -155,7 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             if (expression.Parent is ConditionalAccessExpressionSyntax)
             {
                 // The typed code looks like: <expression>?[
-                var conditional = (ConditionalAccessExpressionSyntax)expression.Parent;
                 var elementBinding = SyntaxFactory.ElementBindingExpression(newBracketedArgumentList);
                 var conditionalAccessExpression = SyntaxFactory.ConditionalAccessExpression(expression, elementBinding);
                 offset = expression.SpanStart - conditionalAccessExpression.SpanStart;
@@ -176,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return SignatureHelpUtilities.GetSignatureHelpState(argumentList, position);
         }
 
-        private bool TryGetComIndexers(
+        private static bool TryGetComIndexers(
             SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken,
             out ImmutableArray<IPropertySymbol> indexers, out ITypeSymbol expressionType)
         {
@@ -194,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return false;
         }
 
-        private bool TryGetIndexers(
+        private static bool TryGetIndexers(
             int position, SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken,
             out ImmutableArray<IPropertySymbol> indexers, out ITypeSymbol expressionType)
         {
@@ -220,13 +219,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return true;
         }
 
-        private SignatureHelpItem Convert(
+        private static SignatureHelpItem Convert(
             IPropertySymbol indexer,
             SyntaxToken openToken,
             SemanticModel semanticModel,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
-            CancellationToken cancellationToken)
+            IDocumentationCommentFormattingService documentationCommentFormattingService)
         {
             var position = openToken.SpanStart;
             var item = CreateItem(indexer, semanticModel, position,
@@ -235,12 +233,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 indexer.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(indexer, position, semanticModel),
                 GetSeparatorParts(),
-                GetPostambleParts(indexer),
-                indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                GetPostambleParts(),
+                indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
             return item;
         }
 
-        private IList<SymbolDisplayPart> GetPreambleParts(
+        private static IList<SymbolDisplayPart> GetPreambleParts(
             IPropertySymbol indexer,
             int position,
             SemanticModel semanticModel)
@@ -275,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SymbolDisplayPart> GetPostambleParts(IPropertySymbol indexer)
+        private static IList<SymbolDisplayPart> GetPostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseBracketToken));
@@ -298,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     token != expression.ArgumentList.CloseBracketToken;
             }
 
-            internal static TextSpan GetTextSpan(SyntaxNode expression, SyntaxToken openBracket)
+            internal static TextSpan GetTextSpan(SyntaxToken openBracket)
             {
                 Contract.ThrowIfFalse(openBracket.Parent is BracketedArgumentListSyntax &&
                     (openBracket.Parent.Parent is ElementAccessExpressionSyntax || openBracket.Parent.Parent is ElementBindingExpressionSyntax));

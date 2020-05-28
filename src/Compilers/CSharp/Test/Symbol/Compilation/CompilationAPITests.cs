@@ -598,35 +598,35 @@ namespace A.B {
 
             // use exported type with invalid alias
             comp = CSharpCompilation.Create("APP2",
-             options: TestOptions.ReleaseDll,
+             options: TestOptions.ReleaseExe,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
                     "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
-                    options: TestOptions.Regular) },
+                    options: TestOptions.RegularPreview) },
              references: new MetadataReference[] { MscorlibRef, mtref }
              );
 
             comp.VerifyDiagnostics(
-                // (1,19): error CS1002: ; expected
-                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
-                // (1,20): error CS1031: Type expected
-                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),
                 // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
-                // (1,61): error CS8124: Tuple must contain at least two elements.
-                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "").WithLocation(1, 61),
                 // (1,61): error CS1026: ) expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
-                // (1,14): error CS0430: The extern alias 'Alias' was not specified in a /reference option
+                // (1,61): error CS1002: ; expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_BadExternAlias, "Alias").WithArguments("Alias").WithLocation(1, 14),
-                // (1,1): hidden CS8020: Unused extern alias.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 61),
+                // (1,14): error CS8112: Local function 'Alias()' must declare a body because it is not marked 'static extern'.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "Alias").WithArguments("Alias()").WithLocation(1, 14),
+                // (1,8): error CS0246: The type or namespace name 'alias' could not be found (are you missing a using directive or an assembly reference?)
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias").WithArguments("alias").WithLocation(1, 8),
+                // (1,14): warning CS0626: Method, operator, or accessor 'Alias()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Alias").WithArguments("Alias()").WithLocation(1, 14),
+                // (1,14): warning CS8321: The local function 'Alias' is declared but never used
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Alias").WithArguments("Alias").WithLocation(1, 14)
                 );
         }
 
@@ -666,7 +666,7 @@ namespace A.B {
 
             // use exported type with invalid alias
             comp = CSharpCompilation.Create("APP2",
-             options: TestOptions.ReleaseDll,
+             options: TestOptions.ReleaseExe,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
                     "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
                     options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) },
@@ -674,30 +674,36 @@ namespace A.B {
              );
 
             comp.VerifyDiagnostics(
-                // (1,19): error CS1002: ; expected
+                // (1,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
-                // (1,19): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("top-level statements").WithLocation(1, 1),
+                // (1,1): error CS8652: The feature 'extern local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("tuples", "7.0").WithLocation(1, 19),
-                // (1,20): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("extern local functions").WithLocation(1, 1),
+                // (1,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "Alias").WithArguments("local functions", "7.0").WithLocation(1, 14),
                 // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
-                // (1,61): error CS8124: Tuple must contain at least two elements.
-                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "").WithLocation(1, 61),
                 // (1,61): error CS1026: ) expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
-                // (1,14): error CS0430: The extern alias 'Alias' was not specified in a /reference option
+                // (1,61): error CS1002: ; expected
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_BadExternAlias, "Alias").WithArguments("Alias").WithLocation(1, 14),
-                // (1,1): hidden CS8020: Unused extern alias.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 61),
+                // (1,14): error CS8112: Local function 'Alias()' must declare a body because it is not marked 'static extern'.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "Alias").WithArguments("Alias()").WithLocation(1, 14),
+                // (1,8): error CS0246: The type or namespace name 'alias' could not be found (are you missing a using directive or an assembly reference?)
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias").WithArguments("alias").WithLocation(1, 8),
+                // (1,14): warning CS0626: Method, operator, or accessor 'Alias()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Alias").WithArguments("Alias()").WithLocation(1, 14),
+                // (1,14): warning CS8321: The local function 'Alias' is declared but never used
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Alias").WithArguments("Alias").WithLocation(1, 14)
                 );
         }
 
@@ -1608,7 +1614,7 @@ class A
             compilation.VerifyDiagnostics();
 
             Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
+            Assert.Same(CSharpCompilation.EntryPoint.None, compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
         }
 
         [Fact]
@@ -1624,7 +1630,7 @@ class A
             compilation.VerifyDiagnostics();
 
             Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
+            Assert.Same(CSharpCompilation.EntryPoint.None, compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
         }
 
         [Fact]

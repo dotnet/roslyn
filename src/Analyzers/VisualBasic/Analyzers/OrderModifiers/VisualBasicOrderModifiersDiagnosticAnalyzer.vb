@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
             Next
         End Sub
 
-        Private Function ShouldCheck(statement As DeclarationStatementSyntax) As Boolean
+        Private Shared Function ShouldCheck(statement As DeclarationStatementSyntax) As Boolean
             Dim modifiers = statement.GetModifiers()
             If modifiers.Count >= 2 Then
                 ' We'll see modifiers twice in some circumstances.  First, on a VB block

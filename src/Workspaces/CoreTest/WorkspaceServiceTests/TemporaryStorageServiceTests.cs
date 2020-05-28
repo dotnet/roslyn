@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void TestTemporaryStorage(ITemporaryStorageService temporaryStorageService, SourceText text)
+        private static void TestTemporaryStorage(ITemporaryStorageService temporaryStorageService, SourceText text)
         {
             // create a temporary storage location
             var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None);
@@ -183,9 +183,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             GC.Collect(2);
         }
 
-        // We want to keep this test around, but not have it disabled/associated with a bug
-        // [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        private void TestTemporaryStorageScaling()
+        [Fact(Skip = "This test exists so it can be locally executed for scale testing, when required. Do not remove this test or unskip it in CI.")]
+        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestTemporaryStorageScaling()
         {
             // This will churn through 4GB of memory.  It validates that we don't
             // use up our address space in a 32 bit process.

@@ -3,12 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
-Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavigation
     <[UseExportProvider]>
@@ -233,10 +231,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
-                Dim provider = New TextStructureNavigatorProvider(
-                               workspace.GetService(Of ITextStructureNavigatorSelectorService),
-                               workspace.GetService(Of IContentTypeRegistryService),
-                               workspace.GetService(Of IWaitIndicator))
+                Dim provider = Assert.IsType(Of TextStructureNavigatorProvider)(
+                    workspace.GetService(Of ITextStructureNavigatorProvider)(ContentTypeNames.VisualBasicContentType))
 
                 Dim navigator = provider.CreateTextStructureNavigator(buffer)
 

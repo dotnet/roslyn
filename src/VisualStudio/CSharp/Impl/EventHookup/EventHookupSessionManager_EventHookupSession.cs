@@ -124,7 +124,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                         async t =>
                         {
                             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                            cancellationToken.ThrowIfCancellationRequested();
 
                             if (t.Result != null)
                             {

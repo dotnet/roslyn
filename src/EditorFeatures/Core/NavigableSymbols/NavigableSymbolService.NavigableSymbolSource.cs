@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -19,15 +20,18 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
     {
         private partial class NavigableSymbolSource : INavigableSymbolSource
         {
+            private readonly IThreadingContext _threadingContext;
             private readonly IStreamingFindUsagesPresenter _presenter;
             private readonly IWaitIndicator _waitIndicator;
 
             private bool _disposed;
 
             public NavigableSymbolSource(
+                IThreadingContext threadingContext,
                 IStreamingFindUsagesPresenter streamingPresenter,
                 IWaitIndicator waitIndicator)
             {
+                _threadingContext = threadingContext;
                 _presenter = streamingPresenter;
                 _waitIndicator = waitIndicator;
             }
@@ -66,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 }
 
                 var snapshotSpan = new SnapshotSpan(snapshot, context.Span.ToSpan());
-                return new NavigableSymbol(definitions.ToImmutableArray(), snapshotSpan, document, _presenter, _waitIndicator);
+                return new NavigableSymbol(definitions.ToImmutableArray(), snapshotSpan, document, _threadingContext, _presenter, _waitIndicator);
             }
         }
     }

@@ -636,7 +636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             If bindResult.IsDefaultOrEmpty Then
                                 If Me.ProduceXmlDiagnostics Then
-                                    ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), reference.ToFullString().TrimEnd(Nothing), useSiteInfo, errorLocations, ERRID.WRN_XMLDocCrefAttributeNotFound1)
+                                    ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), reference.ToFullString().TrimEnd(), useSiteInfo, errorLocations, ERRID.WRN_XMLDocCrefAttributeNotFound1)
                                 End If
                                 attribute.Value = "?:" + attribute.Value
 
@@ -648,11 +648,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' those out, from the rest we take the symbol with 'smallest' location
                                 Dim symbolCommentId As String = Nothing
                                 Dim smallestSymbol As Symbol = Nothing
-                                Dim errid As ERRID = ERRID.WRN_XMLDocCrefAttributeNotFound1
+                                Dim errid As ERRID = errid.WRN_XMLDocCrefAttributeNotFound1
 
                                 For Each symbol In bindResult
                                     If symbol.Kind = SymbolKind.TypeParameter Then
-                                        errid = ERRID.WRN_XMLDocCrefToTypeParameter
+                                        errid = errid.WRN_XMLDocCrefToTypeParameter
                                         Continue For
                                     End If
 

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         NegativeLookaheadGrouping,
         PositiveLookbehindGrouping,
         NegativeLookbehindGrouping,
-        NonBacktrackingGrouping,
+        AtomicGrouping,
         CaptureGrouping,
         BalancingGrouping,
         ConditionalCaptureGrouping,

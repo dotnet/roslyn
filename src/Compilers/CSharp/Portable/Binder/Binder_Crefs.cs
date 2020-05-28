@@ -882,6 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 RefKind refKind = parameter.RefKindKeyword.Kind().GetRefKind();
 
+                Debug.Assert(parameterListSyntax.Parent is object);
                 TypeSymbol type = BindCrefParameterOrReturnType(parameter.Type, (MemberCrefSyntax)parameterListSyntax.Parent, diagnostics);
 
                 parameterBuilder.Add(new SignatureOnlyParameterSymbol(TypeWithAnnotations.Create(type), ImmutableArray<CustomModifier>.Empty, isParams: false, refKind: refKind));
@@ -919,6 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (HasNonObsoleteError(localDiagnostics.DiagnosticBag))
                 {
+                    Debug.Assert(typeSyntax.Parent is object);
                     ErrorCode code = typeSyntax.Parent.Kind() == SyntaxKind.ConversionOperatorMemberCref
                         ? ErrorCode.WRN_BadXMLRefReturnType
                         : ErrorCode.WRN_BadXMLRefParamType;
@@ -960,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static CrefSyntax GetRootCrefSyntax(MemberCrefSyntax syntax)
         {
-            SyntaxNode parentSyntax = syntax.Parent; // Could be null when speculating.
+            SyntaxNode? parentSyntax = syntax.Parent; // Could be null when speculating.
             return parentSyntax == null || parentSyntax.IsKind(SyntaxKind.XmlCrefAttribute)
                 ? syntax
                 : (CrefSyntax)parentSyntax;

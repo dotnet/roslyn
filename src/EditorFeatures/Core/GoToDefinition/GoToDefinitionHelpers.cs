@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
@@ -96,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         public static bool TryGoToDefinition(
             ISymbol symbol,
             Solution solution,
+            IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter,
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
@@ -105,24 +107,24 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
+            return threadingContext.JoinableTaskFactory.Run(
+                () => streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                    threadingContext, solution.Workspace, title, definitions));
         }
 
         public static bool TryGoToDefinition(
             ImmutableArray<DefinitionItem> definitions,
             Solution solution,
             string title,
-            IStreamingFindUsagesPresenter streamingPresenter,
-            CancellationToken cancellationToken)
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingPresenter)
         {
             if (definitions.IsDefaultOrEmpty)
-            {
                 return false;
-            }
 
-            return streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
+            return threadingContext.JoinableTaskFactory.Run(() =>
+                streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                    threadingContext, solution.Workspace, title, definitions));
         }
     }
 }

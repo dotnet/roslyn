@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
-    interface IPooled
+    internal interface IPooled
     {
         void Free();
     }

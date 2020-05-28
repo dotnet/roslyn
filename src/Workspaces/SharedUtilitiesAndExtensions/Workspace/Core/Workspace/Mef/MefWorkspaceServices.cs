@@ -164,7 +164,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             foreach (var language in this.SupportedLanguages)
             {
+#pragma warning disable RS0030 // Do not used banned API 'GetLanguageServices', use 'GetExtendedLanguageServices' instead - allowed in this context.
                 var services = (MefLanguageServices)this.GetLanguageServices(language);
+#pragma warning restore RS0030 // Do not used banned APIs
                 if (services.TryGetService(typeof(TLanguageService), out var service))
                 {
                     if (filter(service.Metadata.Data))

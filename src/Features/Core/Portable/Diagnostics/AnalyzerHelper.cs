@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class AnalyzerHelper
     {
-        private const string CSharpCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer";
-        private const string VisualBasicCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer";
 
         // These are the error codes of the compiler warnings. 
         // Keep the ids the same so that de-duplication against compiler errors
@@ -486,6 +484,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
             => (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
 
+#if DEBUG
         private static async Task VerifyDiagnosticLocationsAsync(ImmutableArray<Diagnostic> diagnostics, Project project, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
@@ -566,6 +565,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
             }
         }
+#endif
 
         public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(this IEnumerable<Diagnostic> diagnostics, Document targetDocument, TextSpan? span = null)
         {

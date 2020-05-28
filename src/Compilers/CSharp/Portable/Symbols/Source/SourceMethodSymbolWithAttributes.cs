@@ -44,11 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case AccessorDeclarationSyntax accessor:
                     return (CSharpSyntaxNode?)accessor.Body ?? accessor.ExpressionBody;
                 case ArrowExpressionClauseSyntax arrowExpression:
-                    Debug.Assert(arrowExpression.Parent.Kind() == SyntaxKind.PropertyDeclaration ||
+                    Debug.Assert(arrowExpression.Parent!.Kind() == SyntaxKind.PropertyDeclaration ||
                                  arrowExpression.Parent.Kind() == SyntaxKind.IndexerDeclaration);
                     return arrowExpression;
                 case LocalFunctionStatementSyntax localFunction:
                     return (CSharpSyntaxNode?)localFunction.Body ?? localFunction.ExpressionBody;
+                case CompilationUnitSyntax _ when this is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
+                    return (CSharpSyntaxNode)entryPoint.ReturnTypeSyntax;
                 default:
                     return null;
             }
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal CSharpSyntaxNode SyntaxNode
+        internal virtual CSharpSyntaxNode SyntaxNode
         {
             get
             {
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
             {
@@ -647,7 +649,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             bool hasErrors = false;
 
-            if (!this.IsExtern || !this.IsStatic)
+            var implementationPart = this.PartialImplementationPart ?? this;
+            if (!implementationPart.IsExtern || !implementationPart.IsStatic)
             {
                 diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;

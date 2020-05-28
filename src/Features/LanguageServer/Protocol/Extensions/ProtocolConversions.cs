@@ -4,14 +4,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -60,21 +61,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.NuGet, LSP.CompletionItemKind.Text }
         };
 
-        /// <summary>
-        /// Workaround for razor file paths being provided with a preceding slash on windows.
-        /// Long term fix in razor here - https://github.com/dotnet/aspnetcore/issues/19948
-        /// </summary>
         public static Uri GetUriFromFilePath(string filePath)
         {
             if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
-            }
-
-            // Remove preceding slash if we're on Window as it's an invalid URI.
-            if (filePath.StartsWith("/") && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                filePath = filePath.Substring(1);
             }
 
             return new Uri(filePath, UriKind.Absolute);
@@ -380,6 +371,92 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 default:
                     return Glyph.None;
             }
+        }
+
+        // The mappings here are roughly based off of SymbolUsageInfoExtensions.ToSymbolReferenceKinds.
+        public static LSP.ReferenceKind[] SymbolUsageInfoToReferenceKinds(SymbolUsageInfo symbolUsageInfo)
+        {
+            var referenceKinds = ArrayBuilder<LSP.ReferenceKind>.GetInstance();
+            if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
+            {
+                var usageInfo = symbolUsageInfo.ValueUsageInfoOpt.Value;
+                if (usageInfo.IsReadFrom())
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Read);
+                }
+
+                if (usageInfo.IsWrittenTo())
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Write);
+                }
+
+                if (usageInfo.IsReference())
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Reference);
+                }
+
+                if (usageInfo.IsNameOnly())
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Name);
+                }
+            }
+
+            if (symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.HasValue)
+            {
+                var usageInfo = symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
+                if ((usageInfo & TypeOrNamespaceUsageInfo.Qualified) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Qualified);
+                }
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.TypeArgument) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.TypeArgument);
+                }
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.TypeConstraint) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.TypeConstraint);
+                }
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.Base) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.BaseType);
+                }
+
+                // Preserving the same mapping logic that SymbolUsageInfoExtensions.ToSymbolReferenceKinds uses
+                if ((usageInfo & TypeOrNamespaceUsageInfo.ObjectCreation) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Constructor);
+                }
+
+                if ((usageInfo & TypeOrNamespaceUsageInfo.Import) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Import);
+                }
+
+                // Preserving the same mapping logic that SymbolUsageInfoExtensions.ToSymbolReferenceKinds uses
+                if ((usageInfo & TypeOrNamespaceUsageInfo.NamespaceDeclaration) != 0)
+                {
+                    referenceKinds.Add(LSP.ReferenceKind.Declaration);
+                }
+            }
+
+            return referenceKinds.ToArrayAndFree();
+        }
+
+        public static string ProjectIdToProjectContextId(ProjectId id)
+        {
+            return id.Id + "|" + id.DebugName;
+        }
+
+        public static ProjectId ProjectContextToProjectId(ProjectContext projectContext)
+        {
+            var delimiter = projectContext.Id.IndexOf('|');
+
+            return ProjectId.CreateFromSerialized(
+                Guid.Parse(projectContext.Id.Substring(0, delimiter)),
+                debugName: projectContext.Id.Substring(delimiter + 1));
         }
     }
 }

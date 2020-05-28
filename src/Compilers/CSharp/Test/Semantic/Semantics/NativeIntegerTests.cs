@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -188,6 +190,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Same(type, type.ConstructedFrom);
             Assert.Equal(isNativeInt, type.IsNativeIntegerType);
             Assert.Equal(signed ? "IntPtr" : "UIntPtr", type.Name);
+
+            if (isNativeInt)
+            {
+                VerifyMembers(type);
+            }
         }
 
         private static void VerifyTypes(INamedTypeSymbol underlyingType, INamedTypeSymbol nativeIntegerType, bool signed)
@@ -198,53 +205,94 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Same(underlyingType.ContainingSymbol, nativeIntegerType.ContainingSymbol);
             Assert.Same(underlyingType.Name, nativeIntegerType.Name);
 
-            Assert.Empty(nativeIntegerType.GetTypeMembers());
+            VerifyMembers(underlyingType, nativeIntegerType, signed);
 
-            var memberNames = nativeIntegerType.MemberNames;
-            var members = nativeIntegerType.GetMembers();
-            Assert.Equal(members.SelectAsArray(m => m.Name), memberNames);
-
-            var baseMembers = members.SelectAsArray(m => ((IMethodSymbol)m).OverriddenMethod);
-            Assert.Empty(baseMembers);
-
-            verifyInterfaces(underlyingType, underlyingType.Interfaces, nativeIntegerType, nativeIntegerType.Interfaces);
+            VerifyInterfaces(underlyingType, underlyingType.Interfaces, nativeIntegerType, nativeIntegerType.Interfaces);
 
             Assert.NotSame(underlyingType, nativeIntegerType);
             Assert.Same(underlyingType, nativeIntegerType.NativeIntegerUnderlyingType);
-            Assert.Equal(underlyingType, nativeIntegerType);
-            Assert.Equal(nativeIntegerType, underlyingType);
-            Assert.True(underlyingType.Equals(nativeIntegerType));
-            Assert.True(((IEquatable<ISymbol>)underlyingType).Equals(nativeIntegerType));
-            Assert.True(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.Default));
-            Assert.True(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.IncludeNullability));
-            Assert.True(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.ConsiderEverything));
+            Assert.NotEqual(underlyingType, nativeIntegerType);
+            Assert.NotEqual(nativeIntegerType, underlyingType);
+            Assert.False(underlyingType.Equals(nativeIntegerType));
+            Assert.False(((IEquatable<ISymbol>)underlyingType).Equals(nativeIntegerType));
+            Assert.False(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.Default));
+            Assert.False(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.IncludeNullability));
+            Assert.False(underlyingType.Equals(nativeIntegerType, SymbolEqualityComparer.ConsiderEverything));
+            Assert.True(underlyingType.Equals(nativeIntegerType, TypeCompareKind.IgnoreNativeIntegers));
             Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
+        }
 
-            static void verifyInterfaces(INamedTypeSymbol underlyingType, ImmutableArray<INamedTypeSymbol> underlyingInterfaces, INamedTypeSymbol nativeIntegerType, ImmutableArray<INamedTypeSymbol> nativeIntegerInterfaces)
+        private static void VerifyInterfaces(INamedTypeSymbol underlyingType, ImmutableArray<INamedTypeSymbol> underlyingInterfaces, INamedTypeSymbol nativeIntegerType, ImmutableArray<INamedTypeSymbol> nativeIntegerInterfaces)
+        {
+            Assert.Equal(underlyingInterfaces.Length, nativeIntegerInterfaces.Length);
+
+            for (int i = 0; i < underlyingInterfaces.Length; i++)
             {
-                underlyingInterfaces = underlyingInterfaces.WhereAsArray(t => t.Name == "IEquatable" && t.ContainingNamespace.Name == "System");
+                verifyInterface(underlyingInterfaces[i], nativeIntegerInterfaces[i]);
+            }
 
-                Assert.Equal(underlyingInterfaces.Length, nativeIntegerInterfaces.Length);
+            void verifyInterface(INamedTypeSymbol underlyingInterface, INamedTypeSymbol nativeIntegerInterface)
+            {
+                Assert.True(underlyingInterface.Equals(nativeIntegerInterface, TypeCompareKind.IgnoreNativeIntegers));
 
-                for (int i = 0; i < underlyingInterfaces.Length; i++)
+                for (int i = 0; i < underlyingInterface.TypeArguments.Length; i++)
                 {
-                    verifyInterface(underlyingInterfaces[i], nativeIntegerInterfaces[i]);
+                    var underlyingTypeArgument = underlyingInterface.TypeArguments[i];
+                    var nativeIntegerTypeArgument = nativeIntegerInterface.TypeArguments[i];
+                    Assert.Equal(underlyingTypeArgument.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions), nativeIntegerTypeArgument.Equals(nativeIntegerType, TypeCompareKind.AllIgnoreOptions));
                 }
+            }
+        }
 
-                void verifyInterface(INamedTypeSymbol underlyingInterface, INamedTypeSymbol nativeIntegerInterface)
+        private static void VerifyMembers(INamedTypeSymbol underlyingType, INamedTypeSymbol nativeIntegerType, bool signed)
+        {
+            Assert.Empty(nativeIntegerType.GetTypeMembers());
+
+            var nativeIntegerMembers = nativeIntegerType.GetMembers();
+            var underlyingMembers = underlyingType.GetMembers();
+
+            var nativeIntegerMemberNames = nativeIntegerType.MemberNames;
+            AssertEx.Equal(nativeIntegerMembers.SelectAsArray(m => m.Name), nativeIntegerMemberNames);
+
+            var expectedMembers = underlyingMembers.WhereAsArray(m => includeUnderlyingMember(m)).Sort(SymbolComparison).SelectAsArray(m => m.ToTestDisplayString());
+            var actualMembers = nativeIntegerMembers.WhereAsArray(m => includeNativeIntegerMember(m)).Sort(SymbolComparison).SelectAsArray(m => m.ToTestDisplayString().Replace(signed ? "nint" : "nuint", signed ? "System.IntPtr" : "System.UIntPtr"));
+            AssertEx.Equal(expectedMembers, actualMembers);
+
+            static bool includeUnderlyingMember(ISymbol underlyingMember)
+            {
+                if (underlyingMember.DeclaredAccessibility != Accessibility.Public)
                 {
-                    Assert.Equal(underlyingInterface, nativeIntegerInterface);
-
-                    for (int i = 0; i < underlyingInterface.TypeArguments.Length; i++)
-                    {
-                        var underlyingTypeArgument = underlyingInterface.TypeArguments[i];
-                        var nativeIntegerTypeArgument = nativeIntegerInterface.TypeArguments[i];
-                        if (underlyingTypeArgument.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
+                    return false;
+                }
+                switch (underlyingMember.Kind)
+                {
+                    case SymbolKind.Method:
+                        var method = (IMethodSymbol)underlyingMember;
+                        if (method.IsGenericMethod)
                         {
-                            Assert.True(nativeIntegerTypeArgument.IsNativeIntegerType);
+                            return false;
                         }
-                    }
+                        switch (method.MethodKind)
+                        {
+                            case MethodKind.Ordinary:
+                                return !IsSkippedMethodName(method.Name);
+                            case MethodKind.PropertyGet:
+                            case MethodKind.PropertySet:
+                                return includeUnderlyingMember(method.AssociatedSymbol);
+                            default:
+                                return false;
+                        }
+                    case SymbolKind.Property:
+                        var property = (IPropertySymbol)underlyingMember;
+                        return property.Parameters.Length == 0 && !IsSkippedPropertyName(property.Name);
+                    default:
+                        return false;
                 }
+            }
+
+            static bool includeNativeIntegerMember(ISymbol nativeIntegerMember)
+            {
+                return !(nativeIntegerMember is IMethodSymbol { MethodKind: MethodKind.Constructor });
             }
         }
 
@@ -256,62 +304,109 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Same(underlyingType.ContainingSymbol, nativeIntegerType.ContainingSymbol);
             Assert.Same(underlyingType.Name, nativeIntegerType.Name);
 
-            Assert.Empty(nativeIntegerType.GetTypeMembers());
+            VerifyMembers(underlyingType, nativeIntegerType, signed);
 
-            var memberNames = nativeIntegerType.MemberNames;
-            var members = nativeIntegerType.GetMembers();
-            Assert.Equal(members.SelectAsArray(m => m.Name), memberNames);
-
-            var baseMembers = members.SelectAsArray(m => ((MethodSymbol)m).OverriddenMethod);
-            Assert.Empty(baseMembers);
-
-            verifyInterfaces(underlyingType, underlyingType.InterfacesNoUseSiteDiagnostics(), nativeIntegerType, nativeIntegerType.InterfacesNoUseSiteDiagnostics());
-            verifyInterfaces(underlyingType, underlyingType.GetDeclaredInterfaces(null), nativeIntegerType, nativeIntegerType.GetDeclaredInterfaces(null));
+            VerifyInterfaces(underlyingType, underlyingType.InterfacesNoUseSiteDiagnostics(), nativeIntegerType, nativeIntegerType.InterfacesNoUseSiteDiagnostics());
+            VerifyInterfaces(underlyingType, underlyingType.GetDeclaredInterfaces(null), nativeIntegerType, nativeIntegerType.GetDeclaredInterfaces(null));
 
             Assert.Null(underlyingType.NativeIntegerUnderlyingType);
             Assert.Same(nativeIntegerType, underlyingType.AsNativeInteger());
             Assert.Same(underlyingType, nativeIntegerType.NativeIntegerUnderlyingType);
-            verifyEqualButDistinct(underlyingType, underlyingType.AsNativeInteger());
-            verifyEqualButDistinct(nativeIntegerType, nativeIntegerType.NativeIntegerUnderlyingType);
-            verifyEqualButDistinct(underlyingType, nativeIntegerType);
+            VerifyEqualButDistinct(underlyingType, underlyingType.AsNativeInteger());
+            VerifyEqualButDistinct(nativeIntegerType, nativeIntegerType.NativeIntegerUnderlyingType);
+            VerifyEqualButDistinct(underlyingType, nativeIntegerType);
 
             VerifyTypes(underlyingType.GetPublicSymbol(), nativeIntegerType.GetPublicSymbol(), signed);
+        }
 
-            static void verifyEqualButDistinct(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType)
+        private static void VerifyEqualButDistinct(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType)
+        {
+            Assert.NotSame(underlyingType, nativeIntegerType);
+            Assert.NotEqual(underlyingType, nativeIntegerType);
+            Assert.NotEqual(nativeIntegerType, underlyingType);
+            Assert.False(underlyingType.Equals(nativeIntegerType, TypeCompareKind.ConsiderEverything));
+            Assert.False(nativeIntegerType.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
+            Assert.True(underlyingType.Equals(nativeIntegerType, TypeCompareKind.IgnoreNativeIntegers));
+            Assert.True(nativeIntegerType.Equals(underlyingType, TypeCompareKind.IgnoreNativeIntegers));
+            Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
+        }
+
+        private static void VerifyInterfaces(NamedTypeSymbol underlyingType, ImmutableArray<NamedTypeSymbol> underlyingInterfaces, NamedTypeSymbol nativeIntegerType, ImmutableArray<NamedTypeSymbol> nativeIntegerInterfaces)
+        {
+            Assert.Equal(underlyingInterfaces.Length, nativeIntegerInterfaces.Length);
+
+            for (int i = 0; i < underlyingInterfaces.Length; i++)
             {
-                Assert.NotSame(underlyingType, nativeIntegerType);
-                Assert.Equal(underlyingType, nativeIntegerType);
-                Assert.Equal(nativeIntegerType, underlyingType);
-                Assert.True(underlyingType.Equals(nativeIntegerType, TypeCompareKind.ConsiderEverything));
-                Assert.True(nativeIntegerType.Equals(underlyingType, TypeCompareKind.ConsiderEverything));
-                Assert.Equal(underlyingType.GetHashCode(), nativeIntegerType.GetHashCode());
+                verifyInterface(underlyingInterfaces[i], nativeIntegerInterfaces[i]);
             }
 
-            static void verifyInterfaces(NamedTypeSymbol underlyingType, ImmutableArray<NamedTypeSymbol> underlyingInterfaces, NamedTypeSymbol nativeIntegerType, ImmutableArray<NamedTypeSymbol> nativeIntegerInterfaces)
+            void verifyInterface(NamedTypeSymbol underlyingInterface, NamedTypeSymbol nativeIntegerInterface)
             {
-                underlyingInterfaces = underlyingInterfaces.WhereAsArray(t => t.Name == "IEquatable" && t.ContainingNamespace.Name == "System");
+                Assert.True(underlyingInterface.Equals(nativeIntegerInterface, TypeCompareKind.IgnoreNativeIntegers));
 
-                Assert.Equal(underlyingInterfaces.Length, nativeIntegerInterfaces.Length);
-
-                for (int i = 0; i < underlyingInterfaces.Length; i++)
+                for (int i = 0; i < underlyingInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length; i++)
                 {
-                    verifyInterface(underlyingInterfaces[i], nativeIntegerInterfaces[i]);
+                    var underlyingTypeArgument = underlyingInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type;
+                    var nativeIntegerTypeArgument = nativeIntegerInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type;
+                    Assert.Equal(underlyingTypeArgument.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions), nativeIntegerTypeArgument.Equals(nativeIntegerType, TypeCompareKind.AllIgnoreOptions));
                 }
+            }
+        }
 
-                void verifyInterface(NamedTypeSymbol underlyingInterface, NamedTypeSymbol nativeIntegerInterface)
+        private static void VerifyMembers(NamedTypeSymbol underlyingType, NamedTypeSymbol nativeIntegerType, bool signed)
+        {
+            Assert.Empty(nativeIntegerType.GetTypeMembers());
+
+            var nativeIntegerMembers = nativeIntegerType.GetMembers();
+            var underlyingMembers = underlyingType.GetMembers();
+
+            var nativeIntegerMemberNames = nativeIntegerType.MemberNames;
+            AssertEx.Equal(nativeIntegerMembers.SelectAsArray(m => m.Name), nativeIntegerMemberNames);
+
+            var expectedMembers = underlyingMembers.WhereAsArray(m => includeUnderlyingMember(m)).Sort(SymbolComparison);
+            var actualMembers = nativeIntegerMembers.WhereAsArray(m => includeNativeIntegerMember(m)).Sort(SymbolComparison);
+
+            Assert.Equal(expectedMembers.Length, actualMembers.Length);
+            for (int i = 0; i < expectedMembers.Length; i++)
+            {
+                VerifyMember(actualMembers[i], expectedMembers[i], signed);
+            }
+
+            static bool includeUnderlyingMember(Symbol underlyingMember)
+            {
+                if (underlyingMember.DeclaredAccessibility != Accessibility.Public)
                 {
-                    Assert.Equal(underlyingInterface, nativeIntegerInterface);
-
-                    for (int i = 0; i < underlyingInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length; i++)
-                    {
-                        var underlyingTypeArgument = underlyingInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type;
-                        var nativeIntegerTypeArgument = nativeIntegerInterface.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type;
-                        if (underlyingTypeArgument.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
+                    return false;
+                }
+                switch (underlyingMember.Kind)
+                {
+                    case SymbolKind.Method:
+                        var method = (MethodSymbol)underlyingMember;
+                        if (method.IsGenericMethod)
                         {
-                            Assert.True(nativeIntegerTypeArgument.IsNativeIntegerType);
+                            return false;
                         }
-                    }
+                        switch (method.MethodKind)
+                        {
+                            case MethodKind.Ordinary:
+                                return !IsSkippedMethodName(method.Name);
+                            case MethodKind.PropertyGet:
+                            case MethodKind.PropertySet:
+                                return includeUnderlyingMember(method.AssociatedSymbol);
+                            default:
+                                return false;
+                        }
+                    case SymbolKind.Property:
+                        var property = (PropertySymbol)underlyingMember;
+                        return property.ParameterCount == 0 && !IsSkippedPropertyName(property.Name);
+                    default:
+                        return false;
                 }
+            }
+
+            static bool includeNativeIntegerMember(Symbol nativeIntegerMember)
+            {
+                return !(nativeIntegerMember is MethodSymbol { MethodKind: MethodKind.Constructor });
             }
         }
 
@@ -319,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         {
             var memberNames = type.MemberNames;
             var allMembers = type.GetMembers();
-            Assert.Equal(allMembers, type.GetMembers(), ReferenceEqualityComparer.Instance);
+            Assert.Equal(allMembers, type.GetMembers()); // same array
 
             foreach (var member in allMembers)
             {
@@ -351,7 +446,168 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             {
                 Assert.Same(type, member.ContainingSymbol);
                 Assert.Same(type, member.ContainingType);
+
+                if (member is MethodSymbol method)
+                {
+                    var parameters = method.Parameters;
+                    Assert.Equal(parameters, method.Parameters); // same array
+                }
             }
+        }
+
+        private static void VerifyMembers(INamedTypeSymbol type)
+        {
+            var memberNames = type.MemberNames;
+            var allMembers = type.GetMembers();
+            Assert.Equal(allMembers, type.GetMembers(), ReferenceEqualityComparer.Instance); // same member instances
+
+            foreach (var member in allMembers)
+            {
+                Assert.Contains(member.Name, memberNames);
+                verifyMember(type, member);
+            }
+
+            foreach (var memberName in memberNames)
+            {
+                var members = type.GetMembers(memberName);
+                Assert.False(members.IsDefaultOrEmpty);
+                verifyMembers(type, allMembers, members);
+            }
+
+            static void verifyMembers(INamedTypeSymbol type, ImmutableArray<ISymbol> allMembers, ImmutableArray<ISymbol> members)
+            {
+                foreach (var member in members)
+                {
+                    Assert.Contains(member, allMembers);
+                    verifyMember(type, member);
+                }
+            }
+
+            static void verifyMember(INamedTypeSymbol type, ISymbol member)
+            {
+                Assert.Same(type, member.ContainingSymbol);
+                Assert.Same(type, member.ContainingType);
+            }
+        }
+
+        private static void VerifyMember(Symbol member, Symbol underlyingMember, bool signed)
+        {
+            var specialType = signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr;
+
+            Assert.Equal(member.Name, underlyingMember.Name);
+            Assert.Equal(member.DeclaredAccessibility, underlyingMember.DeclaredAccessibility);
+            Assert.Equal(member.IsStatic, underlyingMember.IsStatic);
+
+            Assert.NotEqual(member, underlyingMember);
+            Assert.True(member.Equals(underlyingMember, TypeCompareKind.IgnoreNativeIntegers));
+            Assert.False(member.Equals(underlyingMember, TypeCompareKind.ConsiderEverything));
+            Assert.Same(underlyingMember, getUnderlyingMember(member));
+            Assert.Equal(member.GetHashCode(), underlyingMember.GetHashCode());
+
+            switch (member.Kind)
+            {
+                case SymbolKind.Method:
+                    {
+                        var method = (MethodSymbol)member;
+                        var underlyingMethod = (MethodSymbol)underlyingMember;
+                        verifyTypes(method.ReturnTypeWithAnnotations, underlyingMethod.ReturnTypeWithAnnotations);
+                        for (int i = 0; i < method.ParameterCount; i++)
+                        {
+                            VerifyMember(method.Parameters[i], underlyingMethod.Parameters[i], signed);
+                        }
+                    }
+                    break;
+                case SymbolKind.Property:
+                    {
+                        var property = (PropertySymbol)member;
+                        var underlyingProperty = (PropertySymbol)underlyingMember;
+                        verifyTypes(property.TypeWithAnnotations, underlyingProperty.TypeWithAnnotations);
+                    }
+                    break;
+                case SymbolKind.Parameter:
+                    {
+                        var parameter = (ParameterSymbol)member;
+                        var underlyingParameter = (ParameterSymbol)underlyingMember;
+                        verifyTypes(parameter.TypeWithAnnotations, underlyingParameter.TypeWithAnnotations);
+                    }
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
+            }
+
+            var explicitImplementations = member.GetExplicitInterfaceImplementations();
+            Assert.Equal(0, explicitImplementations.Length);
+
+            void verifyTypes(TypeWithAnnotations fromMember, TypeWithAnnotations fromUnderlyingMember)
+            {
+                Assert.True(fromMember.Equals(fromUnderlyingMember, TypeCompareKind.IgnoreNativeIntegers));
+                // No use of underlying type in native integer member.
+                Assert.False(containsType(fromMember, useNativeInteger: false));
+                // No use of native integer in underlying member.
+                Assert.False(containsType(fromUnderlyingMember, useNativeInteger: true));
+                // Use of underlying type in underlying member should match use of native type in native integer member.
+                Assert.Equal(containsType(fromMember, useNativeInteger: true), containsType(fromUnderlyingMember, useNativeInteger: false));
+                Assert.NotEqual(containsType(fromMember, useNativeInteger: true), fromMember.Equals(fromUnderlyingMember, TypeCompareKind.ConsiderEverything));
+            }
+
+            bool containsType(TypeWithAnnotations type, bool useNativeInteger)
+            {
+                return type.Type.VisitType((type, unused1, unused2) => type.SpecialType == specialType && useNativeInteger == type.IsNativeIntegerType, (object)null) is { };
+            }
+
+            static Symbol getUnderlyingMember(Symbol nativeIntegerMember)
+            {
+                switch (nativeIntegerMember.Kind)
+                {
+                    case SymbolKind.Method:
+                        return ((WrappedMethodSymbol)nativeIntegerMember).UnderlyingMethod;
+                    case SymbolKind.Property:
+                        return ((WrappedPropertySymbol)nativeIntegerMember).UnderlyingProperty;
+                    case SymbolKind.Parameter:
+                        return ((WrappedParameterSymbol)nativeIntegerMember).UnderlyingParameter;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(nativeIntegerMember.Kind);
+                }
+            }
+        }
+
+        private static bool IsSkippedMethodName(string name)
+        {
+            switch (name)
+            {
+                case "Add":
+                case "Subtract":
+                case "ToInt32":
+                case "ToInt64":
+                case "ToUInt32":
+                case "ToUInt64":
+                case "ToPointer":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static bool IsSkippedPropertyName(string name)
+        {
+            switch (name)
+            {
+                case "Size":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static int SymbolComparison(Symbol x, Symbol y) => SymbolComparison(x.ToTestDisplayString(), y.ToTestDisplayString());
+
+        private static int SymbolComparison(ISymbol x, ISymbol y) => SymbolComparison(x.ToTestDisplayString(), y.ToTestDisplayString());
+
+        private static int SymbolComparison(string x, string y)
+        {
+            return string.CompareOrdinal(normalizeDisplayString(x), normalizeDisplayString(y));
+
+            static string normalizeDisplayString(string s) => s.Replace("System.IntPtr", "nint").Replace("System.UIntPtr", "nuint");
         }
 
         [Fact]
@@ -440,6 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             Assert.Null(underlyingType.NativeIntegerUnderlyingType);
             VerifyErrorType(nativeIntegerType.NativeIntegerUnderlyingType, specialType, isNativeInt: false);
+            VerifyEqualButDistinct(nativeIntegerType.NativeIntegerUnderlyingType, nativeIntegerType);
 
             VerifyErrorTypes(underlyingType.GetPublicSymbol(), nativeIntegerType.GetPublicSymbol(), signed);
         }
@@ -920,26 +1177,14 @@ class Program
         nint n = 42;
         F0(n);
         F1(n);
-        _ = F2(n);
+        F2(n);
         F3<nint>(n);
         F3<IntPtr>(n);
         F3((IntPtr)n);
     }
 }";
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (11,12): error CS1503: Argument 1: cannot convert from 'nint' to 'System.ISerializable'
-                //         F0(n);
-                Diagnostic(ErrorCode.ERR_BadArgType, "n").WithArguments("1", "nint", "System.ISerializable").WithLocation(11, 12),
-                // (13,9): error CS8209: A value of type 'void' may not be assigned.
-                //         _ = F2(n);
-                Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(13, 9),
-                // (14,18): error CS1503: Argument 1: cannot convert from 'nint' to 'System.IOther<nint>'
-                //         F3<nint>(n);
-                Diagnostic(ErrorCode.ERR_BadArgType, "n").WithArguments("1", "nint", "System.IOther<nint>").WithLocation(14, 18),
-                // (15,20): error CS1503: Argument 1: cannot convert from 'nint' to 'System.IOther<System.IntPtr>'
-                //         F3<IntPtr>(n);
-                Diagnostic(ErrorCode.ERR_BadArgType, "n").WithArguments("1", "nint", "System.IOther<System.IntPtr>").WithLocation(15, 20));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1188,13 +1433,16 @@ namespace System
 
             static void verifyInterfaces(CSharpCompilation comp, NamedTypeSymbol type, SpecialType specialType, bool includesIEquatable)
             {
+                var underlyingType = type.NativeIntegerUnderlyingType;
+
                 Assert.True(type.IsNativeIntegerType);
-                Assert.Equal(specialType, type.NativeIntegerUnderlyingType.SpecialType);
+                Assert.Equal(specialType, underlyingType.SpecialType);
 
                 var interfaces = type.InterfacesNoUseSiteDiagnostics(null);
                 Assert.Equal(interfaces, type.GetDeclaredInterfaces(null));
+                VerifyInterfaces(underlyingType, underlyingType.InterfacesNoUseSiteDiagnostics(null), type, interfaces);
 
-                Assert.Equal(includesIEquatable ? 1 : 0, interfaces.Length);
+                Assert.Equal(1, interfaces.Length);
 
                 if (includesIEquatable)
                 {
@@ -1305,6 +1553,1274 @@ namespace System
                 VerifyErrorType(((Compilation)comp).CreateNativeIntegerTypeSymbol(signed: true), SpecialType.System_IntPtr, isNativeInt: true);
                 VerifyErrorType(((Compilation)comp).CreateNativeIntegerTypeSymbol(signed: false), SpecialType.System_UIntPtr, isNativeInt: true);
             }
+        }
+
+        /// <summary>
+        /// Static members Zero, Size, Add(), Subtract() are explicitly excluded from nint and nuint.
+        /// Other static members are implicitly included on nint and nuint.
+        /// </summary>
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void StaticMembers(bool useCompilationReference)
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr
+    {
+        public static readonly IntPtr Zero;
+        public static int Size => 0;
+        public static IntPtr MaxValue => default;
+        public static IntPtr MinValue => default;
+        public static IntPtr Add(IntPtr ptr, int offset) => default;
+        public static IntPtr Subtract(IntPtr ptr, int offset) => default;
+        public static IntPtr Parse(string s) => default;
+        public static bool TryParse(string s, out IntPtr value)
+        {
+            value = default;
+            return false;
+        }
+    }
+    public struct UIntPtr
+    {
+        public static readonly UIntPtr Zero;
+        public static int Size => 0;
+        public static UIntPtr MaxValue => default;
+        public static UIntPtr MinValue => default;
+        public static UIntPtr Add(UIntPtr ptr, int offset) => default;
+        public static UIntPtr Subtract(UIntPtr ptr, int offset) => default;
+        public static UIntPtr Parse(string s) => default;
+        public static bool TryParse(string s, out UIntPtr value)
+        {
+            value = default;
+            return false;
+        }
+    }
+}";
+            var comp = CreateEmptyCompilation(sourceA);
+            comp.VerifyDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    static nint F1()
+    {
+        _ = nint.Zero;
+        _ = nint.Size;
+        var x1 = nint.MaxValue;
+        var x2 = nint.MinValue;
+        _ = nint.Add(x1, 2);
+        _ = nint.Subtract(x1, 3);
+        var x3 = nint.Parse(null);
+        _ = nint.TryParse(null, out var x4);
+        return 0;
+    }
+    static nuint F2()
+    {
+        _ = nuint.Zero;
+        _ = nuint.Size;
+        var y1 = nuint.MaxValue;
+        var y2 = nuint.MinValue;
+        _ = nuint.Add(y1, 2);
+        _ = nuint.Subtract(y1, 3);
+        var y3 = nuint.Parse(null);
+        _ = nuint.TryParse(null, out var y4);
+        return 0;
+    }
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,18): error CS0117: 'nint' does not contain a definition for 'Zero'
+                //         _ = nint.Zero;
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Zero").WithArguments("nint", "Zero").WithLocation(5, 18),
+                // (6,18): error CS0117: 'nint' does not contain a definition for 'Size'
+                //         _ = nint.Size;
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Size").WithArguments("nint", "Size").WithLocation(6, 18),
+                // (9,18): error CS0117: 'nint' does not contain a definition for 'Add'
+                //         _ = nint.Add(x1, x2);
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Add").WithArguments("nint", "Add").WithLocation(9, 18),
+                // (10,18): error CS0117: 'nint' does not contain a definition for 'Subtract'
+                //         _ = nint.Subtract(x1, x2);
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Subtract").WithArguments("nint", "Subtract").WithLocation(10, 18),
+                // (17,19): error CS0117: 'nuint' does not contain a definition for 'Zero'
+                //         _ = nuint.Zero;
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Zero").WithArguments("nuint", "Zero").WithLocation(17, 19),
+                // (18,19): error CS0117: 'nuint' does not contain a definition for 'Size'
+                //         _ = nuint.Size;
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Size").WithArguments("nuint", "Size").WithLocation(18, 19),
+                // (21,19): error CS0117: 'nuint' does not contain a definition for 'Add'
+                //         _ = nuint.Add(y1, y2);
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Add").WithArguments("nuint", "Add").WithLocation(21, 19),
+                // (22,19): error CS0117: 'nuint' does not contain a definition for 'Subtract'
+                //         _ = nuint.Subtract(y1, y2);
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Subtract").WithArguments("nuint", "Subtract").WithLocation(22, 19));
+
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F1").ReturnType, signed: true);
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F2").ReturnType, signed: false);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var actualLocals = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => model.GetDeclaredSymbol(d).ToTestDisplayString());
+            var expectedLocals = new[]
+            {
+                "nint x1",
+                "nint x2",
+                "nint x3",
+                "nuint y1",
+                "nuint y2",
+                "nuint y3",
+            };
+            AssertEx.Equal(expectedLocals, actualLocals);
+
+            static void verifyType(NamedTypeSymbol type, bool signed)
+            {
+                Assert.True(type.IsNativeIntegerType);
+
+                VerifyType(type, signed: signed, isNativeInt: true);
+                VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
+
+                var members = type.GetMembers().Sort(SymbolComparison);
+                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var expectedMembers = new[]
+                {
+                    $"System.Boolean {type}.TryParse(System.String s, out {type} value)",
+                    $"{type} {type}.MaxValue {{ get; }}",
+                    $"{type} {type}.MaxValue.get",
+                    $"{type} {type}.MinValue {{ get; }}",
+                    $"{type} {type}.MinValue.get",
+                    $"{type} {type}.Parse(System.String s)",
+                    $"{type}..ctor()",
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+
+                var property = (PropertySymbol)members.Single(m => m.Name == "MaxValue");
+                var getMethod = (MethodSymbol)members.Single(m => m.Name == "get_MaxValue");
+                Assert.Same(getMethod, property.GetMethod);
+                Assert.Null(property.SetMethod);
+
+                var underlyingType = type.NativeIntegerUnderlyingType;
+                VerifyMembers(underlyingType, type, signed);
+                VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
+            }
+        }
+
+        /// <summary>
+        /// Instance members ToInt32(), ToInt64(), ToPointer() are explicitly excluded from nint and nuint.
+        /// Other instance members are implicitly included on nint and nuint.
+        /// </summary>
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void InstanceMembers(bool useCompilationReference)
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Int64 { }
+    public struct UInt32 { }
+    public struct UInt64 { }
+    public interface IFormatProvider { }
+    public struct IntPtr
+    {
+        public int ToInt32() => default;
+        public long ToInt64() => default;
+        public uint ToUInt32() => default;
+        public ulong ToUInt64() => default;
+        unsafe public void* ToPointer() => default;
+        public int CompareTo(object other) => default;
+        public int CompareTo(IntPtr other) => default;
+        public bool Equals(IntPtr other) => default;
+        public string ToString(string format) => default;
+        public string ToString(IFormatProvider provider) => default;
+        public string ToString(string format, IFormatProvider provider) => default;
+    }
+    public struct UIntPtr
+    {
+        public int ToInt32() => default;
+        public long ToInt64() => default;
+        public uint ToUInt32() => default;
+        public ulong ToUInt64() => default;
+        unsafe public void* ToPointer() => default;
+        public int CompareTo(object other) => default;
+        public int CompareTo(UIntPtr other) => default;
+        public bool Equals(UIntPtr other) => default;
+        public string ToString(string format) => default;
+        public string ToString(IFormatProvider provider) => default;
+        public string ToString(string format, IFormatProvider provider) => default;
+    }
+}";
+            var comp = CreateEmptyCompilation(sourceA, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"using System;
+class Program
+{
+    unsafe static void F1(nint i)
+    {
+        _ = i.ToInt32();
+        _ = i.ToInt64();
+        _ = i.ToUInt32();
+        _ = i.ToUInt64();
+        _ = i.ToPointer();
+        _ = i.CompareTo(null);
+        _ = i.CompareTo(i);
+        _ = i.Equals(i);
+        _ = i.ToString((string)null);
+        _ = i.ToString((IFormatProvider)null);
+        _ = i.ToString((string)null, (IFormatProvider)null);
+    }
+    unsafe static void F2(nuint u)
+    {
+        _ = u.ToInt32();
+        _ = u.ToInt64();
+        _ = u.ToUInt32();
+        _ = u.ToUInt64();
+        _ = u.ToPointer();
+        _ = u.CompareTo(null);
+        _ = u.CompareTo(u);
+        _ = u.Equals(u);
+        _ = u.ToString((string)null);
+        _ = u.ToString((IFormatProvider)null);
+        _ = u.ToString((string)null, (IFormatProvider)null);
+    }
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS1061: 'nint' does not contain a definition for 'ToInt32' and no accessible extension method 'ToInt32' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = i.ToInt32();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToInt32").WithArguments("nint", "ToInt32").WithLocation(6, 15),
+                // (7,15): error CS1061: 'nint' does not contain a definition for 'ToInt64' and no accessible extension method 'ToInt64' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = i.ToInt64();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToInt64").WithArguments("nint", "ToInt64").WithLocation(7, 15),
+                // (8,15): error CS1061: 'nint' does not contain a definition for 'ToUInt32' and no accessible extension method 'ToUInt32' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = i.ToUInt32();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToUInt32").WithArguments("nint", "ToUInt32").WithLocation(8, 15),
+                // (9,15): error CS1061: 'nint' does not contain a definition for 'ToUInt64' and no accessible extension method 'ToUInt64' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = i.ToUInt64();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToUInt64").WithArguments("nint", "ToUInt64").WithLocation(9, 15),
+                // (10,15): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = i.ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments("nint", "ToPointer").WithLocation(10, 15),
+                // (20,15): error CS1061: 'nuint' does not contain a definition for 'ToInt32' and no accessible extension method 'ToInt32' accepting a first argument of type 'nuint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = u.ToInt32();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToInt32").WithArguments("nuint", "ToInt32").WithLocation(20, 15),
+                // (21,15): error CS1061: 'nuint' does not contain a definition for 'ToInt64' and no accessible extension method 'ToInt64' accepting a first argument of type 'nuint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = u.ToInt64();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToInt64").WithArguments("nuint", "ToInt64").WithLocation(21, 15),
+                // (22,15): error CS1061: 'nuint' does not contain a definition for 'ToUInt32' and no accessible extension method 'ToUInt32' accepting a first argument of type 'nuint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = u.ToUInt32();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToUInt32").WithArguments("nuint", "ToUInt32").WithLocation(22, 15),
+                // (23,15): error CS1061: 'nuint' does not contain a definition for 'ToUInt64' and no accessible extension method 'ToUInt64' accepting a first argument of type 'nuint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = u.ToUInt64();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToUInt64").WithArguments("nuint", "ToUInt64").WithLocation(23, 15),
+                // (24,15): error CS1061: 'nuint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nuint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = u.ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments("nuint", "ToPointer").WithLocation(24, 15));
+
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F1").Parameters[0].Type, signed: true);
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F2").Parameters[0].Type, signed: false);
+
+            static void verifyType(NamedTypeSymbol type, bool signed)
+            {
+                Assert.True(type.IsNativeIntegerType);
+
+                VerifyType(type, signed: signed, isNativeInt: true);
+                VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
+
+                var members = type.GetMembers().Sort(SymbolComparison);
+                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var expectedMembers = new[]
+                {
+                    $"System.Boolean {type}.Equals({type} other)",
+                    $"System.Int32 {type}.CompareTo(System.Object other)",
+                    $"System.Int32 {type}.CompareTo({type} other)",
+                    $"System.String {type}.ToString(System.IFormatProvider provider)",
+                    $"System.String {type}.ToString(System.String format)",
+                    $"System.String {type}.ToString(System.String format, System.IFormatProvider provider)",
+                    $"{type}..ctor()",
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+
+                var underlyingType = type.NativeIntegerUnderlyingType;
+                VerifyMembers(underlyingType, type, signed);
+                VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
+            }
+        }
+
+        /// <summary>
+        /// Instance members ToInt32(), ToInt64(), ToPointer() are explicitly excluded from nint and nuint.
+        /// Other instance members are implicitly included on nint and nuint.
+        /// </summary>
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ConstructorsAndOperators(bool useCompilationReference)
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Int64 { }
+    public struct UInt32 { }
+    public struct UInt64 { }
+    public unsafe struct IntPtr
+    {
+        public IntPtr(int i) { }
+        public IntPtr(long l) { }
+        public IntPtr(void* p) { }
+        public static explicit operator IntPtr(int i) => default;
+        public static explicit operator IntPtr(long l) => default;
+        public static explicit operator IntPtr(void* p) => default;
+        public static explicit operator int(IntPtr i) => default;
+        public static explicit operator long(IntPtr i) => default;
+        public static explicit operator void*(IntPtr i) => default;
+        public static IntPtr operator+(IntPtr x, int y) => default;
+        public static IntPtr operator-(IntPtr x, int y) => default;
+        public static bool operator==(IntPtr x, IntPtr y) => default;
+        public static bool operator!=(IntPtr x, IntPtr y) => default;
+    }
+    public unsafe struct UIntPtr
+    {
+        public UIntPtr(uint i) { }
+        public UIntPtr(ulong l) { }
+        public UIntPtr(void* p) { }
+        public static explicit operator UIntPtr(uint i) => default;
+        public static explicit operator UIntPtr(ulong l) => default;
+        public static explicit operator UIntPtr(void* p) => default;
+        public static explicit operator uint(UIntPtr i) => default;
+        public static explicit operator ulong(UIntPtr i) => default;
+        public static explicit operator void*(UIntPtr i) => default;
+        public static UIntPtr operator+(UIntPtr x, int y) => default;
+        public static UIntPtr operator-(UIntPtr x, int y) => default;
+        public static bool operator==(UIntPtr x, UIntPtr y) => default;
+        public static bool operator!=(UIntPtr x, UIntPtr y) => default;
+    }
+}";
+            var comp = CreateEmptyCompilation(sourceA, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (12,26): warning CS0660: 'IntPtr' defines operator == or operator != but does not override Object.Equals(object o)
+                //     public unsafe struct IntPtr
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutEquals, "IntPtr").WithArguments("System.IntPtr").WithLocation(12, 26),
+                // (12,26): warning CS0661: 'IntPtr' defines operator == or operator != but does not override Object.GetHashCode()
+                //     public unsafe struct IntPtr
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "IntPtr").WithArguments("System.IntPtr").WithLocation(12, 26),
+                // (28,26): warning CS0660: 'UIntPtr' defines operator == or operator != but does not override Object.Equals(object o)
+                //     public unsafe struct UIntPtr
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutEquals, "UIntPtr").WithArguments("System.UIntPtr").WithLocation(28, 26),
+                // (28,26): warning CS0661: 'UIntPtr' defines operator == or operator != but does not override Object.GetHashCode()
+                //     public unsafe struct UIntPtr
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "UIntPtr").WithArguments("System.UIntPtr").WithLocation(28, 26));
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    unsafe static void F1(nint x, nint y)
+    {
+        void* p = default;
+        _ = new nint();
+        _ = new nint(1);
+        _ = new nint(2L);
+        _ = new nint(p);
+        _ = (nint)1;
+        _ = (nint)2L;
+        _ = (nint)p;
+        _ = (int)x;
+        _ = (long)x;
+        _ = (void*)x;
+        _ = x + 1;
+        _ = x - 2;
+        _ = x == y;
+        _ = x != y;
+    }
+    unsafe static void F2(nuint x, nuint y)
+    {
+        void* p = default;
+        _ = new nuint();
+        _ = new nuint(1);
+        _ = new nuint(2UL);
+        _ = new nuint(p);
+        _ = (nuint)1;
+        _ = (nuint)2UL;
+        _ = (nuint)p;
+        _ = (uint)x;
+        _ = (ulong)x;
+        _ = (void*)x;
+        _ = x + 1;
+        _ = x - 2;
+        _ = x == y;
+        _ = x != y;
+    }
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (7,17): error CS1729: 'nint' does not contain a constructor that takes 1 arguments
+                //         _ = new nint(1);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "nint").WithArguments("nint", "1").WithLocation(7, 17),
+                // (8,17): error CS1729: 'nint' does not contain a constructor that takes 1 arguments
+                //         _ = new nint(2L);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "nint").WithArguments("nint", "1").WithLocation(8, 17),
+                // (9,17): error CS1729: 'nint' does not contain a constructor that takes 1 arguments
+                //         _ = new nint(p);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "nint").WithArguments("nint", "1").WithLocation(9, 17),
+                // (25,17): error CS1729: 'nuint' does not contain a constructor that takes 1 arguments
+                //         _ = new nuint(1);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "nuint").WithArguments("nuint", "1").WithLocation(25, 17),
+                // (26,17): error CS1729: 'nuint' does not contain a constructor that takes 1 arguments
+                //         _ = new nuint(2UL);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "nuint").WithArguments("nuint", "1").WithLocation(26, 17),
+                // (27,17): error CS1729: 'nuint' does not contain a constructor that takes 1 arguments
+                //         _ = new nuint(p);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "nuint").WithArguments("nuint", "1").WithLocation(27, 17));
+
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F1").Parameters[0].Type, signed: true);
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F2").Parameters[0].Type, signed: false);
+
+            static void verifyType(NamedTypeSymbol type, bool signed)
+            {
+                Assert.True(type.IsNativeIntegerType);
+
+                VerifyType(type, signed: signed, isNativeInt: true);
+                VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
+
+                var members = type.GetMembers().Sort(SymbolComparison);
+                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var expectedMembers = new[]
+                {
+                    $"{type}..ctor()",
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+
+                var underlyingType = type.NativeIntegerUnderlyingType;
+                VerifyMembers(underlyingType, type, signed);
+                VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
+            }
+        }
+
+        /// <summary>
+        /// Overrides from IntPtr and UIntPtr are implicitly included on nint and nuint.
+        /// </summary>
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void OverriddenMembers(bool useCompilationReference)
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object
+    {
+        public virtual string ToString() => null;
+        public virtual int GetHashCode() => 0;
+        public virtual bool Equals(object obj) => false;
+    }
+    public class String { }
+    public abstract class ValueType
+    {
+        public override string ToString() => null;
+        public override int GetHashCode() => 0;
+        public override bool Equals(object obj) => false;
+    }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr
+    {
+        public override string ToString() => null;
+        public override int GetHashCode() => 0;
+        public override bool Equals(object obj) => false;
+    }
+    public struct UIntPtr
+    {
+        public override string ToString() => null;
+        public override int GetHashCode() => 0;
+        public override bool Equals(object obj) => false;
+    }
+}";
+            var comp = CreateEmptyCompilation(sourceA);
+            comp.VerifyDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    static void F1(nint x, nint y)
+    {
+        _ = x.ToString();
+        _ = x.GetHashCode();
+        _ = x.Equals(y);
+    }
+    static void F2(nuint x, nuint y)
+    {
+        _ = x.ToString();
+        _ = x.GetHashCode();
+        _ = x.Equals(y);
+    }
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F1").Parameters[0].Type, signed: true);
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F2").Parameters[0].Type, signed: false);
+
+            static void verifyType(NamedTypeSymbol type, bool signed)
+            {
+                Assert.True(type.IsNativeIntegerType);
+
+                VerifyType(type, signed: signed, isNativeInt: true);
+                VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
+
+                var members = type.GetMembers().Sort(SymbolComparison);
+                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var expectedMembers = new[]
+                {
+                    $"System.Boolean {type}.Equals(System.Object obj)",
+                    $"System.Int32 {type}.GetHashCode()",
+                    $"System.String {type}.ToString()",
+                    $"{type}..ctor()",
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+
+                var underlyingType = type.NativeIntegerUnderlyingType;
+                VerifyMembers(underlyingType, type, signed);
+                VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
+            }
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ExplicitImplementations_01(bool useCompilationReference)
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Int64 { }
+    public struct UInt32 { }
+    public struct UInt64 { }
+    public interface I<T>
+    {
+        T P { get; }
+        T F();
+    }
+    public struct IntPtr : I<IntPtr>
+    {
+        IntPtr I<IntPtr>.P => this;
+        IntPtr I<IntPtr>.F() => this;
+    }
+    public struct UIntPtr : I<UIntPtr>
+    {
+        UIntPtr I<UIntPtr>.P => this;
+        UIntPtr I<UIntPtr>.F() => this;
+    }
+}";
+            var comp = CreateEmptyCompilation(sourceA);
+            comp.VerifyDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static T F1<T>(I<T> t)
+    {
+        return default;
+    }
+    static I<T> F2<T>(I<T> t)
+    {
+        return t;
+    }
+    static void M1(nint x)
+    {
+        var x1 = F1(x);
+        var x2 = F2(x).P;
+        _ = x.P;
+        _ = x.F();
+    }
+    static void M2(nuint y)
+    {
+        var y1 = F1(y);
+        var y2 = F2(y).P;
+        _ = y.P;
+        _ = y.F();
+    }
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (16,15): error CS1061: 'nint' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = x.P;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("nint", "P").WithLocation(16, 15),
+                // (17,15): error CS1061: 'nint' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = x.F();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("nint", "F").WithLocation(17, 15),
+                // (23,15): error CS1061: 'nuint' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'nuint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = y.P;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("nuint", "P").WithLocation(23, 15),
+                // (24,15): error CS1061: 'nuint' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'nuint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = y.F();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("nuint", "F").WithLocation(24, 15));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var actualLocals = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => model.GetDeclaredSymbol(d).ToTestDisplayString());
+            var expectedLocals = new[]
+            {
+                "nint x1",
+                "nint x2",
+                "nuint y1",
+                "nuint y2",
+            };
+            AssertEx.Equal(expectedLocals, actualLocals);
+
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.M1").Parameters[0].Type, signed: true);
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.M2").Parameters[0].Type, signed: false);
+
+            static void verifyType(NamedTypeSymbol type, bool signed)
+            {
+                Assert.True(type.IsNativeIntegerType);
+
+                VerifyType(type, signed: signed, isNativeInt: true);
+                VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
+
+                var underlyingType = type.NativeIntegerUnderlyingType;
+                var members = type.GetMembers().Sort(SymbolComparison);
+                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var expectedMembers = new[]
+                {
+                    $"{type}..ctor()",
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+
+                VerifyMembers(underlyingType, type, signed);
+                VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
+            }
+        }
+
+        [Fact]
+        public void ExplicitImplementations_02()
+        {
+            var sourceA =
+@"Namespace System
+    Public Class [Object]
+    End Class
+    Public Class [String]
+    End Class
+    Public MustInherit Class ValueType
+    End Class
+    Public Structure Void
+    End Structure
+    Public Structure [Boolean]
+    End Structure
+    Public Structure Int32
+    End Structure
+    Public Structure Int64
+    End Structure
+    Public Structure UInt32
+    End Structure
+    Public Structure UInt64
+    End Structure
+    Public Interface I(Of T)
+        ReadOnly Property P As T
+        Function F() As T
+    End Interface
+    Public Structure IntPtr
+        Implements I(Of IntPtr)
+        Public ReadOnly Property P As IntPtr Implements I(Of IntPtr).P
+            Get
+                Return Nothing
+            End Get
+        End Property
+        Public Function F() As IntPtr Implements I(Of IntPtr).F
+            Return Nothing
+        End Function
+    End Structure
+    Public Structure UIntPtr
+        Implements I(Of UIntPtr)
+        Public ReadOnly Property P As UIntPtr Implements I(Of UIntPtr).P
+            Get
+                Return Nothing
+            End Get
+        End Property
+        Public Function F() As UIntPtr Implements I(Of UIntPtr).F
+            Return Nothing
+        End Function
+    End Structure
+End Namespace";
+            var compA = CreateVisualBasicCompilation(sourceA, referencedAssemblies: Array.Empty<MetadataReference>());
+            compA.VerifyDiagnostics();
+            var refA = compA.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static T F1<T>(I<T> t)
+    {
+        return default;
+    }
+    static I<T> F2<T>(I<T> t)
+    {
+        return t;
+    }
+    static void M1(nint x)
+    {
+        var x1 = F1(x);
+        var x2 = F2(x).P;
+        _ = x.P;
+        _ = x.F();
+    }
+    static void M2(nuint y)
+    {
+        var y1 = F1(y);
+        var y2 = F2(y).P;
+        _ = y.P;
+        _ = y.F();
+    }
+}";
+            var compB = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            compB.VerifyDiagnostics();
+
+            var tree = compB.SyntaxTrees[0];
+            var model = compB.GetSemanticModel(tree);
+            var actualLocals = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => model.GetDeclaredSymbol(d).ToTestDisplayString());
+            var expectedLocals = new[]
+            {
+                "nint x1",
+                "nint x2",
+                "nuint y1",
+                "nuint y2",
+            };
+            AssertEx.Equal(expectedLocals, actualLocals);
+
+            verifyType((NamedTypeSymbol)compB.GetMember<MethodSymbol>("Program.M1").Parameters[0].Type, signed: true);
+            verifyType((NamedTypeSymbol)compB.GetMember<MethodSymbol>("Program.M2").Parameters[0].Type, signed: false);
+
+            static void verifyType(NamedTypeSymbol type, bool signed)
+            {
+                Assert.True(type.IsNativeIntegerType);
+
+                VerifyType(type, signed: signed, isNativeInt: true);
+                VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
+
+                var underlyingType = type.NativeIntegerUnderlyingType;
+                var members = type.GetMembers().Sort(SymbolComparison);
+                foreach (var member in members)
+                {
+                    Assert.True(member.GetExplicitInterfaceImplementations().IsEmpty);
+                }
+
+                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var expectedMembers = new[]
+                {
+                    $"{type} {type}.F()",
+                    $"{type} {type}.P {{ get; }}",
+                    $"{type} {type}.P.get",
+                    $"{type}..ctor()",
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+
+                VerifyMembers(underlyingType, type, signed);
+                VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
+            }
+        }
+
+        [Fact]
+        public void NonPublicMembers_InternalUse()
+        {
+            var source =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr
+    {
+        private static IntPtr F1() => default;
+        internal IntPtr F2() => default;
+        public static IntPtr F3()
+        {
+            nint i = 0;
+            _ = nint.F1();
+            _ = i.F2();
+            return nint.F3();
+        }
+    }
+    public struct UIntPtr
+    {
+        private static UIntPtr F1() => default;
+        internal UIntPtr F2() => default;
+        public static UIntPtr F3()
+        {
+            nuint i = 0;
+            _ = nuint.F1();
+            _ = i.F2();
+            return nuint.F3();
+        }
+    }
+}";
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (16,22): error CS0117: 'nint' does not contain a definition for 'F1'
+                //             _ = nint.F1();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("nint", "F1").WithLocation(16, 22),
+                // (17,19): error CS1061: 'nint' does not contain a definition for 'F2' and no accessible extension method 'F2' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //             _ = i.F2();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F2").WithArguments("nint", "F2").WithLocation(17, 19),
+                // (28,23): error CS0117: 'nuint' does not contain a definition for 'F1'
+                //             _ = nuint.F1();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("nuint", "F1").WithLocation(28, 23),
+                // (29,19): error CS1061: 'nuint' does not contain a definition for 'F2' and no accessible extension method 'F2' accepting a first argument of type 'nuint' could be found (are you missing a using directive or an assembly reference?)
+                //             _ = i.F2();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F2").WithArguments("nuint", "F2").WithLocation(29, 19));
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void NonPublicMembers(bool useCompilationReference)
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr
+    {
+        private static IntPtr F1() => default;
+        internal IntPtr F2() => default;
+        public static IntPtr F3() => default;
+    }
+    public struct UIntPtr
+    {
+        private static UIntPtr F1() => default;
+        internal UIntPtr F2() => default;
+        public static UIntPtr F3() => default;
+    }
+}";
+            var comp = CreateEmptyCompilation(sourceA);
+            comp.VerifyDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    static void F1(nint x)
+    {
+        _ = nint.F1();
+        _ = x.F2();
+        _ = nint.F3();
+    }
+    static void F2(nuint y)
+    {
+        _ = nuint.F1();
+        _ = y.F2();
+        _ = nuint.F3();
+    }
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,18): error CS0117: 'nint' does not contain a definition for 'F1'
+                //         _ = nint.F1();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("nint", "F1").WithLocation(5, 18),
+                // (6,15): error CS1061: 'nint' does not contain a definition for 'F2' and no accessible extension method 'F2' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = x.F2();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F2").WithArguments("nint", "F2").WithLocation(6, 15),
+                // (11,19): error CS0117: 'nuint' does not contain a definition for 'F1'
+                //         _ = nuint.F1();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "F1").WithArguments("nuint", "F1").WithLocation(11, 19),
+                // (12,15): error CS1061: 'nuint' does not contain a definition for 'F2' and no accessible extension method 'F2' accepting a first argument of type 'nuint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = y.F2();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F2").WithArguments("nuint", "F2").WithLocation(12, 15));
+
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F1").Parameters[0].Type, signed: true);
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F2").Parameters[0].Type, signed: false);
+
+            static void verifyType(NamedTypeSymbol type, bool signed)
+            {
+                Assert.True(type.IsNativeIntegerType);
+
+                VerifyType(type, signed: signed, isNativeInt: true);
+                VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
+
+                var underlyingType = type.NativeIntegerUnderlyingType;
+                var members = type.GetMembers().Sort(SymbolComparison);
+                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var expectedMembers = new[]
+                {
+                    $"{type} {type}.F3()",
+                    $"{type}..ctor()",
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+
+                VerifyMembers(underlyingType, type, signed);
+                VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
+            }
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void OtherMembers(bool useCompilationReference)
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Int64 { }
+    public struct UInt32 { }
+    public struct UInt64 { }
+    public struct IntPtr
+    {
+        public static T M<T>(T t) => t;
+        public IntPtr this[int index] => default;
+    }
+    public struct UIntPtr
+    {
+        public static T M<T>(T t) => t;
+        public UIntPtr this[int index] => default;
+    }
+    public class Attribute { }
+}
+namespace System.Reflection
+{
+    public class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(string member) { }
+    }
+}";
+            var comp = CreateEmptyCompilation(sourceA);
+            comp.VerifyDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"class Program
+{
+    static void F1(nint x)
+    {
+        _ = x.M<nint>();
+        _ = x[0];
+    }
+    static void F2(nuint y)
+    {
+        _ = y.M<nuint>();
+        _ = y[0];
+    }
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,15): error CS1061: 'nint' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = x.M<nint>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<nint>").WithArguments("nint", "M").WithLocation(5, 15),
+                // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'nint'
+                //         _ = x[0];
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[0]").WithArguments("nint").WithLocation(6, 13),
+                // (10,15): error CS1061: 'nuint' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'nuint' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = y.M<nuint>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<nuint>").WithArguments("nuint", "M").WithLocation(10, 15),
+                // (11,13): error CS0021: Cannot apply indexing with [] to an expression of type 'nuint'
+                //         _ = y[0];
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "y[0]").WithArguments("nuint").WithLocation(11, 13));
+
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F1").Parameters[0].Type, signed: true);
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F2").Parameters[0].Type, signed: false);
+
+            static void verifyType(NamedTypeSymbol type, bool signed)
+            {
+                Assert.True(type.IsNativeIntegerType);
+
+                VerifyType(type, signed: signed, isNativeInt: true);
+                VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
+
+                var underlyingType = type.NativeIntegerUnderlyingType;
+                var members = type.GetMembers().Sort(SymbolComparison);
+                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var expectedMembers = new[]
+                {
+                    $"{type}..ctor()",
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+
+                VerifyMembers(underlyingType, type, signed);
+                VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
+            }
+        }
+
+        // Custom modifiers are copied to native integer types but not substituted.
+        [Fact]
+        public void CustomModifiers()
+        {
+            var sourceA =
+@".assembly mscorlib
+{
+  .ver 0:0:0:0
+}
+.class public System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig newslot virtual instance string ToString() cil managed { ldnull throw }
+  .method public hidebysig newslot virtual instance bool Equals(object obj) cil managed { ldnull throw }
+  .method public hidebysig newslot virtual instance int32 GetHashCode() cil managed { ldnull throw }
+}
+.class public abstract System.ValueType extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public System.String extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Void extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Boolean extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Int32 extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public interface System.IComparable`1<T>
+{
+}
+.class public sealed System.IntPtr extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig static native int modopt(native int) F1() cil managed { ldnull throw }
+  .method public hidebysig static native int& modopt(native int) F2() cil managed { ldnull throw }
+  .method public hidebysig static void F3(native int modopt(native int) i) cil managed { ret }
+  .method public hidebysig static void F4(native int& modopt(native int) i) cil managed { ret }
+  .method public hidebysig instance class System.IComparable`1<native int modopt(native int)> F5() cil managed { ldnull throw }
+  .method public hidebysig instance void F6(native int modopt(class System.IComparable`1<native int>) i) cil managed { ret }
+  .method public hidebysig instance native int modopt(native int) get_P() cil managed { ldnull throw }
+  .method public hidebysig instance native int& modopt(native int) get_Q() cil managed { ldnull throw }
+  .method public hidebysig instance void set_P(native int modopt(native int) i) cil managed { ret }
+  .property instance native int modopt(native int) P()
+  {
+    .get instance native int modopt(native int) System.IntPtr::get_P()
+    .set instance void System.IntPtr::set_P(native int modopt(native int))
+  }
+  .property instance native int& modopt(native int) Q()
+  {
+    .get instance native int& modopt(native int) System.IntPtr::get_Q()
+  }
+}
+.class public sealed System.UIntPtr extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig static native uint modopt(native uint) F1() cil managed { ldnull throw }
+  .method public hidebysig static native uint& modopt(native uint) F2() cil managed { ldnull throw }
+  .method public hidebysig static void F3(native uint modopt(native uint) i) cil managed { ret }
+  .method public hidebysig static void F4(native uint& modopt(native uint) i) cil managed { ret }
+  .method public hidebysig instance class System.IComparable`1<native uint modopt(native uint)> F5() cil managed { ldnull throw }
+  .method public hidebysig instance void F6(native uint modopt(class System.IComparable`1<native uint>) i) cil managed { ret }
+  .method public hidebysig instance native uint modopt(native uint) get_P() cil managed { ldnull throw }
+  .method public hidebysig instance native uint& modopt(native uint) get_Q() cil managed { ldnull throw }
+  .method public hidebysig instance void set_P(native uint modopt(native uint) i) cil managed { ret }
+  .property instance native uint modopt(native uint) P()
+  {
+    .get instance native uint modopt(native uint) System.UIntPtr::get_P()
+    .set instance void System.UIntPtr::set_P(native uint modopt(native uint))
+  }
+  .property instance native uint& modopt(native uint) Q()
+  {
+    .get instance native uint& modopt(native uint) System.UIntPtr::get_Q()
+  }
+}";
+            var refA = CompileIL(sourceA, prependDefaultHeader: false, autoInherit: false);
+            var sourceB =
+@"class Program
+{
+    static void F1(nint i)
+    {
+        _ = nint.F1();
+        _ = nint.F2();
+        nint.F3(i);
+        nint.F4(ref i);
+        _ = i.F5();
+        i.F6(i);
+        _ = i.P;
+        _ = i.Q;
+        i.P = i;
+    }
+    static void F2(nuint u)
+    {
+        _ = nuint.F1();
+        _ = nuint.F2();
+        nuint.F3(u);
+        nuint.F4(ref u);
+        _ = u.F5();
+        u.F6(u);
+        _ = u.P;
+        _ = u.Q;
+        u.P = u;
+    }
+}";
+
+            var comp = CreateEmptyCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F1").Parameters[0].Type, signed: true);
+            verifyType((NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F2").Parameters[0].Type, signed: false);
+
+            static void verifyType(NamedTypeSymbol type, bool signed)
+            {
+                Assert.True(type.IsNativeIntegerType);
+
+                VerifyType(type, signed: signed, isNativeInt: true);
+                VerifyType(type.GetPublicSymbol(), signed: signed, isNativeInt: true);
+
+                var underlyingType = type.NativeIntegerUnderlyingType;
+                var members = type.GetMembers().Sort(SymbolComparison);
+                var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
+                var expectedMembers = new[]
+                {
+                    $"System.IComparable<{type} modopt({underlyingType})> {type}.F5()",
+                    $"{type} modopt({underlyingType}) {type}.F1()",
+                    $"{type} modopt({underlyingType}) {type}.P {{ get; set; }}",
+                    $"{type} modopt({underlyingType}) {type}.P.get",
+                    $"{type}..ctor()",
+                    $"ref modopt({underlyingType}) {type} {type}.F2()",
+                    $"ref modopt({underlyingType}) {type} {type}.Q {{ get; }}",
+                    $"ref modopt({underlyingType}) {type} {type}.Q.get",
+                    $"void {type}.F3({type} modopt({underlyingType}) i)",
+                    $"void {type}.F4(ref modopt({underlyingType}) {type} i)",
+                    $"void {type}.F6({type} modopt(System.IComparable<{underlyingType}>) i)",
+                    $"void {type}.P.set",
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+
+                VerifyMembers(underlyingType, type, signed);
+                VerifyMembers(underlyingType.GetPublicSymbol(), type.GetPublicSymbol(), signed);
+            }
+        }
+
+        [Fact]
+        public void DefaultConstructors()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        F(new nint());
+        F(new nuint());
+    }
+    static void F(object o)
+    {
+        System.Console.WriteLine(o);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,15): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         F(new nint());
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(5, 15),
+                // (6,15): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         F(new nuint());
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(6, 15));
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"0
+0");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  box        ""System.IntPtr""
+  IL_0007:  call       ""void Program.F(object)""
+  IL_000c:  ldc.i4.0
+  IL_000d:  conv.i
+  IL_000e:  box        ""System.UIntPtr""
+  IL_0013:  call       ""void Program.F(object)""
+  IL_0018:  ret
+}");
+        }
+
+        [Fact]
+        public void NewConstraint()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        F<nint>();
+        F<nuint>();
+    }
+    static void F<T>() where T : new()
+    {
+        System.Console.WriteLine(new T());
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,11): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         F<nint>();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(5, 11),
+                // (6,11): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         F<nuint>();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("native-sized integers").WithLocation(6, 11));
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"0
+0");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size       11 (0xb)
+  .maxstack  0
+  IL_0000:  call       ""void Program.F<nint>()""
+  IL_0005:  call       ""void Program.F<nuint>()""
+  IL_000a:  ret
+}");
         }
 
         [Fact]
@@ -2312,6 +3828,113 @@ unsafe class Program
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "sizeof(nuint)").WithArguments("Program.D").WithLocation(6, 19));
         }
 
+        // PEVerify should succeed. Previously, PEVerify reported duplicate
+        // TypeRefs for System.IntPtr in i.ToString() and (object)i.
+        [Fact]
+        public void MultipleTypeRefs_01()
+        {
+            string source =
+@"class Program
+{
+    static string F1(nint i)
+    {
+        return i.ToString();
+    }
+    static object F2(nint i)
+    {
+        return i;
+    }
+    static void Main()
+    {
+        System.Console.WriteLine(F1(-42));
+        System.Console.WriteLine(F2(42));
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"-42
+42");
+            verifier.VerifyIL("Program.F1",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""string System.IntPtr.ToString()""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("Program.F2",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""System.IntPtr""
+  IL_0006:  ret
+}");
+        }
+
+        // PEVerify should succeed. Previously, PEVerify reported duplicate
+        // TypeRefs for System.UIntPtr in UIntPtr.get_MaxValue and (object)u.
+        [Fact]
+        public void MultipleTypeRefs_02()
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct UInt64 { }
+    public struct UIntPtr
+    {
+        public static UIntPtr MaxValue => default;
+        public static UIntPtr MinValue => default;
+    }
+}";
+            var comp = CreateEmptyCompilation(sourceA);
+            comp.VerifyDiagnostics();
+            var refA = comp.EmitToImageReference(options: EmitOptions.Default.WithRuntimeMetadataVersion("4.0.0.0"));
+
+            var sourceB =
+@"class Program
+{
+    static ulong F1()
+    {
+        return nuint.MaxValue;
+    }
+    static object F2()
+    {
+        nuint u = 42;
+        return u;
+    }
+}";
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            // PEVerify is skipped because it reports "Type load failed" because of the above corlib,
+            // not because of duplicate TypeRefs in this assembly. Replace the above corlib with the
+            // actual corlib when that assembly contains UIntPtr.MaxValue or if we decide to support
+            // nuint.MaxValue (since MaxValue could be used in this test instead).
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("Program.F1",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  call       ""System.UIntPtr System.UIntPtr.MaxValue.get""
+  IL_0005:  conv.u8
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("Program.F2",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  conv.i
+  IL_0003:  box        ""System.UIntPtr""
+  IL_0008:  ret
+}");
+        }
+
         [WorkItem(42453, "https://github.com/dotnet/roslyn/issues/42453")]
         [Fact]
         public void ReadOnlyField_VirtualMethods()
@@ -2362,30 +3985,23 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            // PEVerify fails with "MyInt::ToString][mdToken=0x6000007][offset 0x00000001] Cannot change initonly field outside its .ctor."
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+            var verifier = CompileAndVerify(comp, expectedOutput:
 $@"42
 {42.GetHashCode()}
 False
 42
 {42.GetHashCode()}");
-            // The code generated below does not correspond to the code generated for `ToString()` when `_i` is `int`.
-            // For `int _i`, we generate:
-            //   ldarg.0
-            //   ldfld      ""int MyInt._i""
-            //   call       ""string int.ToString()""
-            // The code below is valid but equivalent to code for a struct type that does not override ToString().
-            // https://github.com/dotnet/roslyn/issues/42453: Should NativeIntegerTypeSymbol.GetMembers() include
-            // ToString(), Equals(), GetHashCode()? That would fix this difference and avoid the PEVerify failure above.
             verifier.VerifyIL("MyInt.ToString",
 @"{
-  // Code size       18 (0x12)
+  // Code size       15 (0xf)
   .maxstack  1
+  .locals init (System.IntPtr V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""nint MyInt._i""
-  IL_0006:  constrained. ""System.IntPtr""
-  IL_000c:  callvirt   ""string object.ToString()""
-  IL_0011:  ret
+  IL_0001:  ldfld      ""nint MyInt._i""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""string System.IntPtr.ToString()""
+  IL_000e:  ret
 }");
             verifier.VerifyIL("MyInt.GetHashCode",
 @"{
@@ -2402,26 +4018,28 @@ False
 }");
             verifier.VerifyIL("MyInt.Equals",
 @"{
-  // Code size       54 (0x36)
+  // Code size       51 (0x33)
   .maxstack  3
-  .locals init (nint? V_0)
+  .locals init (System.IntPtr V_0,
+                nint? V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""nint MyInt._i""
-  IL_0006:  ldarg.1
-  IL_0007:  isinst     ""MyInt""
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_001b
-  IL_000f:  pop
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  initobj    ""nint?""
-  IL_0018:  ldloc.0
-  IL_0019:  br.s       IL_0025
-  IL_001b:  ldfld      ""nint MyInt._i""
-  IL_0020:  newobj     ""nint?..ctor(nint)""
-  IL_0025:  box        ""nint?""
-  IL_002a:  constrained. ""System.IntPtr""
-  IL_0030:  callvirt   ""bool object.Equals(object)""
-  IL_0035:  ret
+  IL_0001:  ldfld      ""nint MyInt._i""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldarg.1
+  IL_000a:  isinst     ""MyInt""
+  IL_000f:  dup
+  IL_0010:  brtrue.s   IL_001e
+  IL_0012:  pop
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  initobj    ""nint?""
+  IL_001b:  ldloc.1
+  IL_001c:  br.s       IL_0028
+  IL_001e:  ldfld      ""nint MyInt._i""
+  IL_0023:  newobj     ""nint?..ctor(nint)""
+  IL_0028:  box        ""nint?""
+  IL_002d:  call       ""bool System.IntPtr.Equals(object)""
+  IL_0032:  ret
 }");
         }
 
@@ -3989,93 +5607,109 @@ case 0: 2
 case 9999: 1
 default: 0
 0");
-            verifier.VerifyIL("Program.M",
-@"{
-  // Code size      170 (0xaa)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0026
-  IL_0003:  ldarg.0
-  IL_0004:  ldc.i4.2
-  IL_0005:  conv.i
-  IL_0006:  beq.s      IL_0038
-  IL_0008:  ldarg.0
-  IL_0009:  ldc.i4.6
-  IL_000a:  conv.i
-  IL_000b:  beq.s      IL_004a
-  IL_000d:  ldarg.0
-  IL_000e:  ldc.i4     0x270f
-  IL_0013:  conv.i
-  IL_0014:  beq.s      IL_005c
-  IL_0016:  ldarg.0
-  IL_0017:  ldc.i4     0xff
-  IL_001c:  conv.i
-  IL_001d:  beq.s      IL_006e
-  IL_001f:  ldarg.0
-  IL_0020:  ldc.i4.m1
-  IL_0021:  conv.i
-  IL_0022:  beq.s      IL_0095
-  IL_0024:  br.s       IL_0080
-  IL_0026:  ldarg.0
-  IL_0027:  ldc.i4.1
-  IL_0028:  sub
-  IL_0029:  starg.s    V_0
-  IL_002b:  ldstr      ""case 0: ""
-  IL_0030:  ldarg.0
-  IL_0031:  call       ""void Program.Report(string, nint)""
-  IL_0036:  br.s       IL_005c
-  IL_0038:  ldarg.0
-  IL_0039:  ldc.i4.1
-  IL_003a:  sub
-  IL_003b:  starg.s    V_0
-  IL_003d:  ldstr      ""case 2: ""
-  IL_0042:  ldarg.0
-  IL_0043:  call       ""void Program.Report(string, nint)""
-  IL_0048:  br.s       IL_006e
-  IL_004a:  ldarg.0
-  IL_004b:  ldc.i4.1
-  IL_004c:  sub
-  IL_004d:  starg.s    V_0
-  IL_004f:  ldstr      ""case 6: ""
-  IL_0054:  ldarg.0
-  IL_0055:  call       ""void Program.Report(string, nint)""
-  IL_005a:  br.s       IL_0038
-  IL_005c:  ldarg.0
-  IL_005d:  ldc.i4.1
-  IL_005e:  sub
-  IL_005f:  starg.s    V_0
-  IL_0061:  ldstr      ""case 9999: ""
-  IL_0066:  ldarg.0
-  IL_0067:  call       ""void Program.Report(string, nint)""
-  IL_006c:  br.s       IL_0080
-  IL_006e:  ldarg.0
-  IL_006f:  ldc.i4.1
-  IL_0070:  sub
-  IL_0071:  starg.s    V_0
-  IL_0073:  ldstr      ""case 0xff: ""
-  IL_0078:  ldarg.0
-  IL_0079:  call       ""void Program.Report(string, nint)""
-  IL_007e:  br.s       IL_0026
-  IL_0080:  ldarg.0
-  IL_0081:  ldc.i4.1
-  IL_0082:  sub
-  IL_0083:  starg.s    V_0
-  IL_0085:  ldstr      ""default: ""
-  IL_008a:  ldarg.0
-  IL_008b:  call       ""void Program.Report(string, nint)""
-  IL_0090:  ldarg.0
-  IL_0091:  ldc.i4.0
-  IL_0092:  conv.i
-  IL_0093:  ble.s      IL_00a8
-  IL_0095:  ldc.i4     0x3e7
-  IL_009a:  conv.i
-  IL_009b:  starg.s    V_0
-  IL_009d:  ldstr      ""case -1: ""
-  IL_00a2:  ldarg.0
-  IL_00a3:  call       ""void Program.Report(string, nint)""
-  IL_00a8:  ldarg.0
-  IL_00a9:  ret
-}");
+            verifier.VerifyIL("Program.M", @"
+    {
+      // Code size      201 (0xc9)
+      .maxstack  3
+      .locals init (long V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  conv.i8
+      IL_0002:  stloc.0
+      IL_0003:  ldloc.0
+      IL_0004:  ldc.i4.6
+      IL_0005:  conv.i8
+      IL_0006:  bgt.s      IL_0031
+      IL_0008:  ldloc.0
+      IL_0009:  ldc.i4.m1
+      IL_000a:  conv.i8
+      IL_000b:  sub
+      IL_000c:  dup
+      IL_000d:  ldc.i4.3
+      IL_000e:  conv.i8
+      IL_000f:  ble.un.s   IL_0014
+      IL_0011:  pop
+      IL_0012:  br.s       IL_002a
+      IL_0014:  conv.u4
+      IL_0015:  switch    (
+            IL_00b4,
+            IL_0045,
+            IL_009f,
+            IL_0057)
+      IL_002a:  ldloc.0
+      IL_002b:  ldc.i4.6
+      IL_002c:  conv.i8
+      IL_002d:  beq.s      IL_0069
+      IL_002f:  br.s       IL_009f
+      IL_0031:  ldloc.0
+      IL_0032:  ldc.i4     0xff
+      IL_0037:  conv.i8
+      IL_0038:  beq.s      IL_008d
+      IL_003a:  ldloc.0
+      IL_003b:  ldc.i4     0x270f
+      IL_0040:  conv.i8
+      IL_0041:  beq.s      IL_007b
+      IL_0043:  br.s       IL_009f
+      IL_0045:  ldarg.0
+      IL_0046:  ldc.i4.1
+      IL_0047:  sub
+      IL_0048:  starg.s    V_0
+      IL_004a:  ldstr      ""case 0: ""
+      IL_004f:  ldarg.0
+      IL_0050:  call       ""void Program.Report(string, nint)""
+      IL_0055:  br.s       IL_007b
+      IL_0057:  ldarg.0
+      IL_0058:  ldc.i4.1
+      IL_0059:  sub
+      IL_005a:  starg.s    V_0
+      IL_005c:  ldstr      ""case 2: ""
+      IL_0061:  ldarg.0
+      IL_0062:  call       ""void Program.Report(string, nint)""
+      IL_0067:  br.s       IL_008d
+      IL_0069:  ldarg.0
+      IL_006a:  ldc.i4.1
+      IL_006b:  sub
+      IL_006c:  starg.s    V_0
+      IL_006e:  ldstr      ""case 6: ""
+      IL_0073:  ldarg.0
+      IL_0074:  call       ""void Program.Report(string, nint)""
+      IL_0079:  br.s       IL_0057
+      IL_007b:  ldarg.0
+      IL_007c:  ldc.i4.1
+      IL_007d:  sub
+      IL_007e:  starg.s    V_0
+      IL_0080:  ldstr      ""case 9999: ""
+      IL_0085:  ldarg.0
+      IL_0086:  call       ""void Program.Report(string, nint)""
+      IL_008b:  br.s       IL_009f
+      IL_008d:  ldarg.0
+      IL_008e:  ldc.i4.1
+      IL_008f:  sub
+      IL_0090:  starg.s    V_0
+      IL_0092:  ldstr      ""case 0xff: ""
+      IL_0097:  ldarg.0
+      IL_0098:  call       ""void Program.Report(string, nint)""
+      IL_009d:  br.s       IL_0045
+      IL_009f:  ldarg.0
+      IL_00a0:  ldc.i4.1
+      IL_00a1:  sub
+      IL_00a2:  starg.s    V_0
+      IL_00a4:  ldstr      ""default: ""
+      IL_00a9:  ldarg.0
+      IL_00aa:  call       ""void Program.Report(string, nint)""
+      IL_00af:  ldarg.0
+      IL_00b0:  ldc.i4.0
+      IL_00b1:  conv.i
+      IL_00b2:  ble.s      IL_00c7
+      IL_00b4:  ldc.i4     0x3e7
+      IL_00b9:  conv.i
+      IL_00ba:  starg.s    V_0
+      IL_00bc:  ldstr      ""case -1: ""
+      IL_00c1:  ldarg.0
+      IL_00c2:  call       ""void Program.Report(string, nint)""
+      IL_00c7:  ldarg.0
+      IL_00c8:  ret
+    }
+");
         }
 
         [Fact]
@@ -4140,93 +5774,103 @@ case 0: 2
 case 9999: 1
 default: 0
 0");
-            verifier.VerifyIL("Program.M",
-@"{
-  // Code size      174 (0xae)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_002a
-  IL_0003:  ldarg.0
-  IL_0004:  ldc.i4.2
-  IL_0005:  conv.i
-  IL_0006:  beq.s      IL_003c
-  IL_0008:  ldarg.0
-  IL_0009:  ldc.i4.6
-  IL_000a:  conv.i
-  IL_000b:  beq.s      IL_004e
-  IL_000d:  ldarg.0
-  IL_000e:  ldc.i4     0x270f
-  IL_0013:  conv.i
-  IL_0014:  beq.s      IL_0060
-  IL_0016:  ldarg.0
-  IL_0017:  ldc.i4     0xff
-  IL_001c:  conv.i
-  IL_001d:  beq.s      IL_0072
-  IL_001f:  ldarg.0
-  IL_0020:  ldc.i4     0x7fffffff
-  IL_0025:  conv.i
-  IL_0026:  beq.s      IL_0099
-  IL_0028:  br.s       IL_0084
-  IL_002a:  ldarg.0
-  IL_002b:  ldc.i4.1
-  IL_002c:  sub
-  IL_002d:  starg.s    V_0
-  IL_002f:  ldstr      ""case 0: ""
-  IL_0034:  ldarg.0
-  IL_0035:  call       ""void Program.Report(string, nuint)""
-  IL_003a:  br.s       IL_0060
-  IL_003c:  ldarg.0
-  IL_003d:  ldc.i4.1
-  IL_003e:  sub
-  IL_003f:  starg.s    V_0
-  IL_0041:  ldstr      ""case 2: ""
-  IL_0046:  ldarg.0
-  IL_0047:  call       ""void Program.Report(string, nuint)""
-  IL_004c:  br.s       IL_0072
-  IL_004e:  ldarg.0
-  IL_004f:  ldc.i4.1
-  IL_0050:  sub
-  IL_0051:  starg.s    V_0
-  IL_0053:  ldstr      ""case 6: ""
-  IL_0058:  ldarg.0
-  IL_0059:  call       ""void Program.Report(string, nuint)""
-  IL_005e:  br.s       IL_003c
-  IL_0060:  ldarg.0
-  IL_0061:  ldc.i4.1
-  IL_0062:  sub
-  IL_0063:  starg.s    V_0
-  IL_0065:  ldstr      ""case 9999: ""
-  IL_006a:  ldarg.0
-  IL_006b:  call       ""void Program.Report(string, nuint)""
-  IL_0070:  br.s       IL_0084
-  IL_0072:  ldarg.0
-  IL_0073:  ldc.i4.1
-  IL_0074:  sub
-  IL_0075:  starg.s    V_0
-  IL_0077:  ldstr      ""case 0xff: ""
-  IL_007c:  ldarg.0
-  IL_007d:  call       ""void Program.Report(string, nuint)""
-  IL_0082:  br.s       IL_002a
-  IL_0084:  ldarg.0
-  IL_0085:  ldc.i4.1
-  IL_0086:  sub
-  IL_0087:  starg.s    V_0
-  IL_0089:  ldstr      ""default: ""
-  IL_008e:  ldarg.0
-  IL_008f:  call       ""void Program.Report(string, nuint)""
-  IL_0094:  ldarg.0
-  IL_0095:  ldc.i4.0
-  IL_0096:  conv.i
-  IL_0097:  ble.un.s   IL_00ac
-  IL_0099:  ldc.i4     0x3e7
-  IL_009e:  conv.i
-  IL_009f:  starg.s    V_0
-  IL_00a1:  ldstr      ""case int.MaxValue: ""
-  IL_00a6:  ldarg.0
-  IL_00a7:  call       ""void Program.Report(string, nuint)""
-  IL_00ac:  ldarg.0
-  IL_00ad:  ret
-}");
+            verifier.VerifyIL("Program.M", @"
+    {
+      // Code size      184 (0xb8)
+      .maxstack  2
+      .locals init (ulong V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  conv.u8
+      IL_0002:  stloc.0
+      IL_0003:  ldloc.0
+      IL_0004:  ldc.i4.6
+      IL_0005:  conv.i8
+      IL_0006:  bgt.un.s   IL_0017
+      IL_0008:  ldloc.0
+      IL_0009:  brfalse.s  IL_0034
+      IL_000b:  ldloc.0
+      IL_000c:  ldc.i4.2
+      IL_000d:  conv.i8
+      IL_000e:  beq.s      IL_0046
+      IL_0010:  ldloc.0
+      IL_0011:  ldc.i4.6
+      IL_0012:  conv.i8
+      IL_0013:  beq.s      IL_0058
+      IL_0015:  br.s       IL_008e
+      IL_0017:  ldloc.0
+      IL_0018:  ldc.i4     0xff
+      IL_001d:  conv.i8
+      IL_001e:  beq.s      IL_007c
+      IL_0020:  ldloc.0
+      IL_0021:  ldc.i4     0x270f
+      IL_0026:  conv.i8
+      IL_0027:  beq.s      IL_006a
+      IL_0029:  ldloc.0
+      IL_002a:  ldc.i4     0x7fffffff
+      IL_002f:  conv.i8
+      IL_0030:  beq.s      IL_00a3
+      IL_0032:  br.s       IL_008e
+      IL_0034:  ldarg.0
+      IL_0035:  ldc.i4.1
+      IL_0036:  sub
+      IL_0037:  starg.s    V_0
+      IL_0039:  ldstr      ""case 0: ""
+      IL_003e:  ldarg.0
+      IL_003f:  call       ""void Program.Report(string, nuint)""
+      IL_0044:  br.s       IL_006a
+      IL_0046:  ldarg.0
+      IL_0047:  ldc.i4.1
+      IL_0048:  sub
+      IL_0049:  starg.s    V_0
+      IL_004b:  ldstr      ""case 2: ""
+      IL_0050:  ldarg.0
+      IL_0051:  call       ""void Program.Report(string, nuint)""
+      IL_0056:  br.s       IL_007c
+      IL_0058:  ldarg.0
+      IL_0059:  ldc.i4.1
+      IL_005a:  sub
+      IL_005b:  starg.s    V_0
+      IL_005d:  ldstr      ""case 6: ""
+      IL_0062:  ldarg.0
+      IL_0063:  call       ""void Program.Report(string, nuint)""
+      IL_0068:  br.s       IL_0046
+      IL_006a:  ldarg.0
+      IL_006b:  ldc.i4.1
+      IL_006c:  sub
+      IL_006d:  starg.s    V_0
+      IL_006f:  ldstr      ""case 9999: ""
+      IL_0074:  ldarg.0
+      IL_0075:  call       ""void Program.Report(string, nuint)""
+      IL_007a:  br.s       IL_008e
+      IL_007c:  ldarg.0
+      IL_007d:  ldc.i4.1
+      IL_007e:  sub
+      IL_007f:  starg.s    V_0
+      IL_0081:  ldstr      ""case 0xff: ""
+      IL_0086:  ldarg.0
+      IL_0087:  call       ""void Program.Report(string, nuint)""
+      IL_008c:  br.s       IL_0034
+      IL_008e:  ldarg.0
+      IL_008f:  ldc.i4.1
+      IL_0090:  sub
+      IL_0091:  starg.s    V_0
+      IL_0093:  ldstr      ""default: ""
+      IL_0098:  ldarg.0
+      IL_0099:  call       ""void Program.Report(string, nuint)""
+      IL_009e:  ldarg.0
+      IL_009f:  ldc.i4.0
+      IL_00a0:  conv.i
+      IL_00a1:  ble.un.s   IL_00b6
+      IL_00a3:  ldc.i4     0x3e7
+      IL_00a8:  conv.i
+      IL_00a9:  starg.s    V_0
+      IL_00ab:  ldstr      ""case int.MaxValue: ""
+      IL_00b0:  ldarg.0
+      IL_00b1:  call       ""void Program.Report(string, nuint)""
+      IL_00b6:  ldarg.0
+      IL_00b7:  ret
+    }
+");
         }
 
         [Fact]
@@ -7049,7 +8693,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                binaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
+                binaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -7066,7 +8710,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                binaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
+                binaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string");
@@ -7103,7 +8747,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                binaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string");
@@ -7124,7 +8768,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -7141,7 +8785,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                binaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string");
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
@@ -7178,7 +8822,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.IntPtr", "object");
                 binaryOps(symbol, "System.IntPtr", "string");
                 binaryOps(symbol, "System.IntPtr", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "System.IntPtr", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "System.IntPtr", includeVoidError: true));
@@ -7190,7 +8834,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr", "ushort", (symbol == "-") ? $"System.IntPtr System.IntPtr.{name}(System.IntPtr pointer, int offset)" : null, null);
                 binaryOps(symbol, "System.IntPtr", "int", (symbol == "-") ? $"System.IntPtr System.IntPtr.{name}(System.IntPtr pointer, int offset)" : null, null);
                 binaryOps(symbol, "System.IntPtr", "uint");
-                binaryOps(symbol, "System.IntPtr", "nint", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)", $"nint nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr", "nint", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "System.IntPtr", "nuint");
                 binaryOps(symbol, "System.IntPtr", "long");
                 binaryOps(symbol, "System.IntPtr", "ulong");
@@ -7227,7 +8871,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr?", "ushort", (symbol == "-") ? $"System.IntPtr System.IntPtr.{name}(System.IntPtr pointer, int offset)" : null, null);
                 binaryOps(symbol, "System.IntPtr?", "int", (symbol == "-") ? $"System.IntPtr System.IntPtr.{name}(System.IntPtr pointer, int offset)" : null, null);
                 binaryOps(symbol, "System.IntPtr?", "uint");
-                binaryOps(symbol, "System.IntPtr?", "nint", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)", $"nint nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr?", "nint", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "System.IntPtr?", "nuint");
                 binaryOps(symbol, "System.IntPtr?", "long");
                 binaryOps(symbol, "System.IntPtr?", "ulong");
@@ -7244,7 +8888,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr?", "ushort?", (symbol == "-") ? $"System.IntPtr System.IntPtr.{name}(System.IntPtr pointer, int offset)" : null, null);
                 binaryOps(symbol, "System.IntPtr?", "int?", (symbol == "-") ? $"System.IntPtr System.IntPtr.{name}(System.IntPtr pointer, int offset)" : null, null);
                 binaryOps(symbol, "System.IntPtr?", "uint?");
-                binaryOps(symbol, "System.IntPtr?", "nint?", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)", $"nint nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr?", "nint?", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "System.IntPtr?", "nuint?");
                 binaryOps(symbol, "System.IntPtr?", "long?");
                 binaryOps(symbol, "System.IntPtr?", "ulong?");
@@ -7265,7 +8909,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr", "int", (symbol == "-") ? $"System.UIntPtr System.UIntPtr.{name}(System.UIntPtr pointer, int offset)" : null, null);
                 binaryOps(symbol, "System.UIntPtr", "uint");
                 binaryOps(symbol, "System.UIntPtr", "nint");
-                binaryOps(symbol, "System.UIntPtr", "nuint", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)", $"nuint nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.UIntPtr", "long");
                 binaryOps(symbol, "System.UIntPtr", "ulong");
                 binaryOps(symbol, "System.UIntPtr", "float");
@@ -7302,7 +8946,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr?", "int", (symbol == "-") ? $"System.UIntPtr System.UIntPtr.{name}(System.UIntPtr pointer, int offset)" : null, null);
                 binaryOps(symbol, "System.UIntPtr?", "uint");
                 binaryOps(symbol, "System.UIntPtr?", "nint");
-                binaryOps(symbol, "System.UIntPtr?", "nuint", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)", $"nuint nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.UIntPtr?", "long");
                 binaryOps(symbol, "System.UIntPtr?", "ulong");
                 binaryOps(symbol, "System.UIntPtr?", "float");
@@ -7319,7 +8963,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr?", "int?", (symbol == "-") ? $"System.UIntPtr System.UIntPtr.{name}(System.UIntPtr pointer, int offset)" : null, null);
                 binaryOps(symbol, "System.UIntPtr?", "uint?");
                 binaryOps(symbol, "System.UIntPtr?", "nint?");
-                binaryOps(symbol, "System.UIntPtr?", "nuint?", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)", $"nuint nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.UIntPtr?", "long?");
                 binaryOps(symbol, "System.UIntPtr?", "ulong?");
                 binaryOps(symbol, "System.UIntPtr?", "float?");
@@ -7349,7 +8993,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                binaryOps(symbol, "nint", "System.IntPtr", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr left, nint right)");
+                binaryOps(symbol, "nint", "System.IntPtr", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
@@ -7366,7 +9010,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                binaryOps(symbol, "nint", "System.IntPtr?", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr left, nint right)");
+                binaryOps(symbol, "nint", "System.IntPtr?", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string");
@@ -7403,7 +9047,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                binaryOps(symbol, "nint?", "System.IntPtr?", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr left, nint right)");
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string");
@@ -7424,7 +9068,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                binaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -7441,7 +9085,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                binaryOps(symbol, "nuint", "System.UIntPtr?", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string");
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
@@ -7478,7 +9122,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.IntPtr", "object");
                 binaryOps(symbol, "System.IntPtr", "string");
                 binaryOps(symbol, "System.IntPtr", "void*");
@@ -7490,7 +9134,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr", "ushort");
                 binaryOps(symbol, "System.IntPtr", "int");
                 binaryOps(symbol, "System.IntPtr", "uint");
-                binaryOps(symbol, "System.IntPtr", "nint", $"bool System.IntPtr.{name}(System.IntPtr left, nint right)", $"bool nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr", "nint", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "System.IntPtr", "nuint");
                 binaryOps(symbol, "System.IntPtr", "long");
                 binaryOps(symbol, "System.IntPtr", "ulong");
@@ -7527,7 +9171,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr?", "ushort");
                 binaryOps(symbol, "System.IntPtr?", "int");
                 binaryOps(symbol, "System.IntPtr?", "uint");
-                binaryOps(symbol, "System.IntPtr?", "nint", $"bool System.IntPtr.{name}(System.IntPtr left, nint right)", $"bool nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr?", "nint", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "System.IntPtr?", "nuint");
                 binaryOps(symbol, "System.IntPtr?", "long");
                 binaryOps(symbol, "System.IntPtr?", "ulong");
@@ -7544,7 +9188,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr?", "ushort?");
                 binaryOps(symbol, "System.IntPtr?", "int?");
                 binaryOps(symbol, "System.IntPtr?", "uint?");
-                binaryOps(symbol, "System.IntPtr?", "nint?", $"bool System.IntPtr.{name}(System.IntPtr left, nint right)", $"bool nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr?", "nint?", $"bool nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "System.IntPtr?", "nuint?");
                 binaryOps(symbol, "System.IntPtr?", "long?");
                 binaryOps(symbol, "System.IntPtr?", "ulong?");
@@ -7565,7 +9209,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr", "int");
                 binaryOps(symbol, "System.UIntPtr", "uint");
                 binaryOps(symbol, "System.UIntPtr", "nint");
-                binaryOps(symbol, "System.UIntPtr", "nuint", $"bool System.UIntPtr.{name}(System.UIntPtr left, nuint right)", $"bool nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.UIntPtr", "long");
                 binaryOps(symbol, "System.UIntPtr", "ulong");
                 binaryOps(symbol, "System.UIntPtr", "float");
@@ -7602,7 +9246,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr?", "int");
                 binaryOps(symbol, "System.UIntPtr?", "uint");
                 binaryOps(symbol, "System.UIntPtr?", "nint");
-                binaryOps(symbol, "System.UIntPtr?", "nuint", $"bool System.UIntPtr.{name}(System.UIntPtr left, nuint right)", $"bool nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr?", "nuint", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.UIntPtr?", "long");
                 binaryOps(symbol, "System.UIntPtr?", "ulong");
                 binaryOps(symbol, "System.UIntPtr?", "float");
@@ -7619,7 +9263,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr?", "int?");
                 binaryOps(symbol, "System.UIntPtr?", "uint?");
                 binaryOps(symbol, "System.UIntPtr?", "nint?");
-                binaryOps(symbol, "System.UIntPtr?", "nuint?", $"bool System.UIntPtr.{name}(System.UIntPtr left, nuint right)", $"bool nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr?", "nuint?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.UIntPtr?", "long?");
                 binaryOps(symbol, "System.UIntPtr?", "ulong?");
                 binaryOps(symbol, "System.UIntPtr?", "float?");
@@ -7649,7 +9293,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint", "float", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
-                binaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
+                binaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -7666,7 +9310,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                binaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
+                binaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
@@ -7703,7 +9347,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint?", "float?", $"float float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
-                binaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
@@ -7724,7 +9368,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "double", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -7741,7 +9385,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                binaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
@@ -7778,7 +9422,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "double?", $"double double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal?", $"decimal decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.IntPtr", "object");
                 binaryOps(symbol, "System.IntPtr", "string", $"string string.{name}(object left, string right)", $"string string.{name}(string left, object right)");
                 binaryOps(symbol, "System.IntPtr", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "System.IntPtr", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "System.IntPtr", includeVoidError: true));
@@ -7790,7 +9434,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr", "ushort", $"System.IntPtr System.IntPtr.{name}(System.IntPtr pointer, int offset)", null);
                 binaryOps(symbol, "System.IntPtr", "int", $"System.IntPtr System.IntPtr.{name}(System.IntPtr pointer, int offset)", null);
                 binaryOps(symbol, "System.IntPtr", "uint");
-                binaryOps(symbol, "System.IntPtr", "nint", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)", $"nint nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr", "nint", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "System.IntPtr", "nuint");
                 binaryOps(symbol, "System.IntPtr", "long");
                 binaryOps(symbol, "System.IntPtr", "ulong");
@@ -7827,7 +9471,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr?", "ushort", $"System.IntPtr System.IntPtr.{name}(System.IntPtr pointer, int offset)", null);
                 binaryOps(symbol, "System.IntPtr?", "int", $"System.IntPtr System.IntPtr.{name}(System.IntPtr pointer, int offset)", null);
                 binaryOps(symbol, "System.IntPtr?", "uint");
-                binaryOps(symbol, "System.IntPtr?", "nint", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)", $"nint nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr?", "nint", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "System.IntPtr?", "nuint");
                 binaryOps(symbol, "System.IntPtr?", "long");
                 binaryOps(symbol, "System.IntPtr?", "ulong");
@@ -7844,7 +9488,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr?", "ushort?", $"System.IntPtr System.IntPtr.{name}(System.IntPtr pointer, int offset)", null);
                 binaryOps(symbol, "System.IntPtr?", "int?", $"System.IntPtr System.IntPtr.{name}(System.IntPtr pointer, int offset)", null);
                 binaryOps(symbol, "System.IntPtr?", "uint?");
-                binaryOps(symbol, "System.IntPtr?", "nint?", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)", $"nint nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr?", "nint?", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "System.IntPtr?", "nuint?");
                 binaryOps(symbol, "System.IntPtr?", "long?");
                 binaryOps(symbol, "System.IntPtr?", "ulong?");
@@ -7865,7 +9509,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr", "int", $"System.UIntPtr System.UIntPtr.{name}(System.UIntPtr pointer, int offset)", null);
                 binaryOps(symbol, "System.UIntPtr", "uint");
                 binaryOps(symbol, "System.UIntPtr", "nint");
-                binaryOps(symbol, "System.UIntPtr", "nuint", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)", $"nuint nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.UIntPtr", "long");
                 binaryOps(symbol, "System.UIntPtr", "ulong");
                 binaryOps(symbol, "System.UIntPtr", "float");
@@ -7902,7 +9546,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr?", "int", $"System.UIntPtr System.UIntPtr.{name}(System.UIntPtr pointer, int offset)", null);
                 binaryOps(symbol, "System.UIntPtr?", "uint");
                 binaryOps(symbol, "System.UIntPtr?", "nint");
-                binaryOps(symbol, "System.UIntPtr?", "nuint", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)", $"nuint nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.UIntPtr?", "long");
                 binaryOps(symbol, "System.UIntPtr?", "ulong");
                 binaryOps(symbol, "System.UIntPtr?", "float");
@@ -7919,7 +9563,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr?", "int?", $"System.UIntPtr System.UIntPtr.{name}(System.UIntPtr pointer, int offset)", null);
                 binaryOps(symbol, "System.UIntPtr?", "uint?");
                 binaryOps(symbol, "System.UIntPtr?", "nint?");
-                binaryOps(symbol, "System.UIntPtr?", "nuint?", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)", $"nuint nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.UIntPtr?", "long?");
                 binaryOps(symbol, "System.UIntPtr?", "ulong?");
                 binaryOps(symbol, "System.UIntPtr?", "float?");
@@ -8249,7 +9893,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                binaryOps(symbol, "nint", "System.IntPtr", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
+                binaryOps(symbol, "nint", "System.IntPtr", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"bool nint.{name}(nint left, nint right)");
@@ -8266,7 +9910,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                binaryOps(symbol, "nint", "System.IntPtr?", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
+                binaryOps(symbol, "nint", "System.IntPtr?", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string");
@@ -8286,7 +9930,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint?", "float", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
-                binaryOps(symbol, "nint?", "System.IntPtr", $"bool nint.{name}(nint left, nint right)", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
+                binaryOps(symbol, "nint?", "System.IntPtr", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "nint?", "System.UIntPtr");
                 binaryOps(symbol, "nint?", "bool?");
                 binaryOps(symbol, "nint?", "char?", $"bool nint.{name}(nint left, nint right)");
@@ -8303,7 +9947,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint?", "float?", $"bool float.{name}(float left, float right)");
                 binaryOps(symbol, "nint?", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
-                binaryOps(symbol, "nint?", "System.IntPtr?", $"bool nint.{name}(nint left, System.IntPtr right)", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string");
@@ -8324,7 +9968,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                binaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -8341,7 +9985,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                binaryOps(symbol, "nuint", "System.UIntPtr?", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string");
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
@@ -8361,7 +10005,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "double", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr");
-                binaryOps(symbol, "nuint?", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
+                binaryOps(symbol, "nuint?", "System.UIntPtr", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -8378,7 +10022,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "double?", $"bool double.{name}(double left, double right)");
                 binaryOps(symbol, "nuint?", "decimal?", $"bool decimal.{name}(decimal left, decimal right)");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"bool nuint.{name}(nuint left, System.UIntPtr right)", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "System.IntPtr", "object");
                 binaryOps(symbol, "System.IntPtr", "string");
                 binaryOps(symbol, "System.IntPtr", "void*");
@@ -8390,7 +10034,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr", "ushort");
                 binaryOps(symbol, "System.IntPtr", "int");
                 binaryOps(symbol, "System.IntPtr", "uint");
-                binaryOps(symbol, "System.IntPtr", "nint", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)", $"bool nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr", "nint", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "System.IntPtr", "nuint");
                 binaryOps(symbol, "System.IntPtr", "long");
                 binaryOps(symbol, "System.IntPtr", "ulong");
@@ -8407,7 +10051,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr", "ushort?");
                 binaryOps(symbol, "System.IntPtr", "int?");
                 binaryOps(symbol, "System.IntPtr", "uint?");
-                binaryOps(symbol, "System.IntPtr", "nint?", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)", $"bool nint.{name}(nint left, nint right)");
+                binaryOps(symbol, "System.IntPtr", "nint?", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "System.IntPtr", "nuint?");
                 binaryOps(symbol, "System.IntPtr", "long?");
                 binaryOps(symbol, "System.IntPtr", "ulong?");
@@ -8427,7 +10071,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr?", "ushort");
                 binaryOps(symbol, "System.IntPtr?", "int");
                 binaryOps(symbol, "System.IntPtr?", "uint");
-                binaryOps(symbol, "System.IntPtr?", "nint", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)", $"bool nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr?", "nint", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "System.IntPtr?", "nuint");
                 binaryOps(symbol, "System.IntPtr?", "long");
                 binaryOps(symbol, "System.IntPtr?", "ulong");
@@ -8444,7 +10088,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr?", "ushort?");
                 binaryOps(symbol, "System.IntPtr?", "int?");
                 binaryOps(symbol, "System.IntPtr?", "uint?");
-                binaryOps(symbol, "System.IntPtr?", "nint?", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)", $"bool nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr?", "nint?", $"bool System.IntPtr.{name}(System.IntPtr value1, System.IntPtr value2)");
                 binaryOps(symbol, "System.IntPtr?", "nuint?");
                 binaryOps(symbol, "System.IntPtr?", "long?");
                 binaryOps(symbol, "System.IntPtr?", "ulong?");
@@ -8465,7 +10109,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr", "int");
                 binaryOps(symbol, "System.UIntPtr", "uint");
                 binaryOps(symbol, "System.UIntPtr", "nint");
-                binaryOps(symbol, "System.UIntPtr", "nuint", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)", $"bool nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr", "nuint", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "System.UIntPtr", "long");
                 binaryOps(symbol, "System.UIntPtr", "ulong");
                 binaryOps(symbol, "System.UIntPtr", "float");
@@ -8482,7 +10126,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr", "int?");
                 binaryOps(symbol, "System.UIntPtr", "uint?");
                 binaryOps(symbol, "System.UIntPtr", "nint?");
-                binaryOps(symbol, "System.UIntPtr", "nuint?", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "System.UIntPtr", "nuint?", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "System.UIntPtr", "long?");
                 binaryOps(symbol, "System.UIntPtr", "ulong?");
                 binaryOps(symbol, "System.UIntPtr", "float?");
@@ -8502,7 +10146,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr?", "int");
                 binaryOps(symbol, "System.UIntPtr?", "uint");
                 binaryOps(symbol, "System.UIntPtr?", "nint");
-                binaryOps(symbol, "System.UIntPtr?", "nuint", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)", $"bool nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr?", "nuint", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "System.UIntPtr?", "long");
                 binaryOps(symbol, "System.UIntPtr?", "ulong");
                 binaryOps(symbol, "System.UIntPtr?", "float");
@@ -8519,7 +10163,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr?", "int?");
                 binaryOps(symbol, "System.UIntPtr?", "uint?");
                 binaryOps(symbol, "System.UIntPtr?", "nint?");
-                binaryOps(symbol, "System.UIntPtr?", "nuint?", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)", $"bool nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr?", "nuint?", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "System.UIntPtr?", "long?");
                 binaryOps(symbol, "System.UIntPtr?", "ulong?");
                 binaryOps(symbol, "System.UIntPtr?", "float?");
@@ -8549,7 +10193,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint", "float");
                 binaryOps(symbol, "nint", "double");
                 binaryOps(symbol, "nint", "decimal");
-                binaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
+                binaryOps(symbol, "nint", "System.IntPtr", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr");
                 binaryOps(symbol, "nint", "bool?");
                 binaryOps(symbol, "nint", "char?", $"nint nint.{name}(nint left, nint right)");
@@ -8566,7 +10210,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint", "float?");
                 binaryOps(symbol, "nint", "double?");
                 binaryOps(symbol, "nint", "decimal?");
-                binaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
+                binaryOps(symbol, "nint", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint", "System.UIntPtr?");
                 binaryOps(symbol, "nint", "object");
                 binaryOps(symbol, "nint?", "string");
@@ -8603,7 +10247,7 @@ $@"class MyInt
                 binaryOps(symbol, "nint?", "float?");
                 binaryOps(symbol, "nint?", "double?");
                 binaryOps(symbol, "nint?", "decimal?");
-                binaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, System.IntPtr right)", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)");
+                binaryOps(symbol, "nint?", "System.IntPtr?", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "nint?", "System.UIntPtr?");
                 binaryOps(symbol, "nuint", "object");
                 binaryOps(symbol, "nuint", "string");
@@ -8624,7 +10268,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "double");
                 binaryOps(symbol, "nuint", "decimal");
                 binaryOps(symbol, "nuint", "System.IntPtr");
-                binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
+                binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -8641,7 +10285,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "double?");
                 binaryOps(symbol, "nuint", "decimal?");
                 binaryOps(symbol, "nuint", "System.IntPtr?");
-                binaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
+                binaryOps(symbol, "nuint", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "object");
                 binaryOps(symbol, "nuint?", "string");
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
@@ -8678,7 +10322,7 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "double?");
                 binaryOps(symbol, "nuint?", "decimal?");
                 binaryOps(symbol, "nuint?", "System.IntPtr?");
-                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, System.UIntPtr right)", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)");
+                binaryOps(symbol, "nuint?", "System.UIntPtr?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.IntPtr", "object");
                 binaryOps(symbol, "System.IntPtr", "string");
                 binaryOps(symbol, "System.IntPtr", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "System.IntPtr", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "System.IntPtr", includeVoidError: true));
@@ -8690,7 +10334,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr", "ushort");
                 binaryOps(symbol, "System.IntPtr", "int");
                 binaryOps(symbol, "System.IntPtr", "uint");
-                binaryOps(symbol, "System.IntPtr", "nint", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)", $"nint nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr", "nint", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "System.IntPtr", "nuint");
                 binaryOps(symbol, "System.IntPtr", "long");
                 binaryOps(symbol, "System.IntPtr", "ulong");
@@ -8727,7 +10371,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr?", "ushort");
                 binaryOps(symbol, "System.IntPtr?", "int");
                 binaryOps(symbol, "System.IntPtr?", "uint");
-                binaryOps(symbol, "System.IntPtr?", "nint", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)", $"nint nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr?", "nint", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "System.IntPtr?", "nuint");
                 binaryOps(symbol, "System.IntPtr?", "long");
                 binaryOps(symbol, "System.IntPtr?", "ulong");
@@ -8744,7 +10388,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.IntPtr?", "ushort?");
                 binaryOps(symbol, "System.IntPtr?", "int?");
                 binaryOps(symbol, "System.IntPtr?", "uint?");
-                binaryOps(symbol, "System.IntPtr?", "nint?", $"nint System.IntPtr.{name}(System.IntPtr left, nint right)", $"nint nint.{name}(nint left, System.IntPtr right)");
+                binaryOps(symbol, "System.IntPtr?", "nint?", $"nint nint.{name}(nint left, nint right)");
                 binaryOps(symbol, "System.IntPtr?", "nuint?");
                 binaryOps(symbol, "System.IntPtr?", "long?");
                 binaryOps(symbol, "System.IntPtr?", "ulong?");
@@ -8765,7 +10409,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr", "int");
                 binaryOps(symbol, "System.UIntPtr", "uint");
                 binaryOps(symbol, "System.UIntPtr", "nint");
-                binaryOps(symbol, "System.UIntPtr", "nuint", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)", $"nuint nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.UIntPtr", "long");
                 binaryOps(symbol, "System.UIntPtr", "ulong");
                 binaryOps(symbol, "System.UIntPtr", "float");
@@ -8802,7 +10446,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr?", "int");
                 binaryOps(symbol, "System.UIntPtr?", "uint");
                 binaryOps(symbol, "System.UIntPtr?", "nint");
-                binaryOps(symbol, "System.UIntPtr?", "nuint", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)", $"nuint nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr?", "nuint", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.UIntPtr?", "long");
                 binaryOps(symbol, "System.UIntPtr?", "ulong");
                 binaryOps(symbol, "System.UIntPtr?", "float");
@@ -8819,7 +10463,7 @@ $@"class MyInt
                 binaryOps(symbol, "System.UIntPtr?", "int?");
                 binaryOps(symbol, "System.UIntPtr?", "uint?");
                 binaryOps(symbol, "System.UIntPtr?", "nint?");
-                binaryOps(symbol, "System.UIntPtr?", "nuint?", $"nuint System.UIntPtr.{name}(System.UIntPtr left, nuint right)", $"nuint nuint.{name}(nuint left, System.UIntPtr right)");
+                binaryOps(symbol, "System.UIntPtr?", "nuint?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "System.UIntPtr?", "long?");
                 binaryOps(symbol, "System.UIntPtr?", "ulong?");
                 binaryOps(symbol, "System.UIntPtr?", "float?");

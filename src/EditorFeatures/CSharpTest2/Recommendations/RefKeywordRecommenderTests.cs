@@ -713,7 +713,8 @@ $$");
 @"$$ readonly struct { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task TestAfterNew()
         {
             await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular,

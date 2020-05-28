@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End If
         End Sub
 
-        Private Sub AddChangeSignatureIndentOperation(list As List(Of IndentBlockOperation), node As SyntaxNode)
+        Private Shared Sub AddChangeSignatureIndentOperation(list As List(Of IndentBlockOperation), node As SyntaxNode)
             If node.Parent IsNot Nothing Then
                 Dim firstToken As SyntaxToken = node.GetFirstToken()
                 Dim lastToken As SyntaxToken = node.GetLastToken()
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End If
         End Sub
 
-        Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If previousToken.IsKind(SyntaxKind.CommaToken) AndAlso
                (previousToken.Parent.IsKind(SyntaxKind.ParameterList) OrElse previousToken.Parent.IsKind(SyntaxKind.ArgumentList)) Then
                 Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)

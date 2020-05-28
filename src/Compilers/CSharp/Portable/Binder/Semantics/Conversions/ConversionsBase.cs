@@ -2308,7 +2308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return HasImplicitReferenceConversion(source.Type, destination.Type, ref useSiteInfo);
         }
 
-        private bool HasImplicitReferenceConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal bool HasImplicitReferenceConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);

@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     internal class CSharpHelpContextService : AbstractHelpContextService
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpHelpContextService()
         {
         }
@@ -146,8 +146,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                 if (symbol == null)
                 {
-                    var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
-                    var overloads = semanticModel.GetMemberGroup(bindableParent);
+                    var bindableParent = document.GetLanguageService<ISyntaxFactsService>().TryGetBindableParent(token);
+                    var overloads = bindableParent != null ? semanticModel.GetMemberGroup(bindableParent) : ImmutableArray<ISymbol>.Empty;
                     symbol = overloads.FirstOrDefault();
                 }
             }

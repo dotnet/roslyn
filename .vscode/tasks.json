@@ -16,23 +16,23 @@
         "group": "build"
     },
     {
-        "label": "build skip analyzers",
+        "label": "build with analyzers",
         "command": "./build.sh",
         "type": "shell",
         "args": [
-          "--skipAnalyzers"
+          "--runAnalyzers"
         ],
         "windows": {
           "command": "./build.cmd",
           "args": [
-            "-skipAnalyzers"
+            "-runAnalyzers"
           ],
         },
         "problemMatcher": "$msCompile",
         "group": "build"
     },
     {
-        "label": "build csc skip analyzers",
+        "label": "build csc",
         "command": "./.dotnet/dotnet",
         "type": "shell",
         "args": [
@@ -45,15 +45,44 @@
         "group": "build"
     },
     {
-        "label": "build current project skip analyzers",
-        "command": "./.dotnet/dotnet",
+        "label": "build current project",
         "type": "shell",
+        "command": "./.dotnet/dotnet",
         "args": [
           "pwsh",
           "${workspaceRoot}/scripts/vscode-build.ps1",
           "-filePath",
-          "${file}"
+          "${file}",
+          "-msbuildEngine",
+          "dotnet"
         ],
+        "windows": {
+          "command": "powershell",
+          "args": [
+            "${workspaceRoot}/scripts/vscode-build.ps1",
+            "-filePath",
+            "${file}",
+            "-msbuildEngine",
+            "dotnet"
+          ],
+        },
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "msbuild current project",
+        "type": "shell",
+        "command": "echo 'Task not supported on this OS'",
+        "windows": {
+          "command": "powershell",
+          "args": [
+            "${workspaceRoot}/scripts/vscode-build.ps1",
+            "-filePath",
+            "${file}",
+            "-msbuildEngine",
+            "vs"
+          ],
+        },
         "problemMatcher": "$msCompile",
         "group": "build"
     },
@@ -72,14 +101,8 @@
         "label": "update xlf files",
         "command": "./build.sh",
         "type": "shell",
-        "args": [
-          "--skipAnalyzers"
-        ],
         "windows": {
-          "command": "./build.cmd",
-          "args": [
-            "-skipAnalyzers"
-          ],
+          "command": "./build.cmd"
         },
         "options": {
           "env": { "UpdateXlfOnBuild": "true" }
@@ -96,6 +119,8 @@
           "${workspaceRoot}/scripts/vscode-run-tests.ps1",
           "-filePath",
           "${file}",
+          "-msbuildEngine",
+          "dotnet",
           "-framework",
           "netcoreapp3.1",
           "-filter",
@@ -113,6 +138,8 @@
           "${workspaceRoot}/scripts/vscode-run-tests.ps1",
           "-filePath",
           "${file}",
+          "-msbuildEngine",
+          "dotnet",
           "-framework",
           "netcoreapp3.1"
         ],

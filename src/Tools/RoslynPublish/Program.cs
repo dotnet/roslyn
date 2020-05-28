@@ -88,6 +88,5 @@ namespace RoslynPublish
 
             return parseSucceed;
         }
-
     }
 }

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddIndentBlockOperationsForFromClause(List<IndentBlockOperation> list, FromClauseSyntax fromClause)
+        private static void AddIndentBlockOperationsForFromClause(List<IndentBlockOperation> list, FromClauseSyntax fromClause)
         {
             // Only add the indent block operation if the 'in' keyword is present. Otherwise, we'll get the following:
             //
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (previousToken.IsNestedQueryExpression())
             {
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // skip the very first from keyword
             if (currentToken.IsFirstFromKeywordInExpression())
             {
-                return nextOperation.Invoke();
+                return nextOperation.Invoke(in previousToken, in currentToken);
             }
 
             switch (currentToken.Kind())
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     break;
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
         private readonly struct CachedOptions : IEquatable<CachedOptions>

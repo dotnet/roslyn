@@ -1957,6 +1957,9 @@ If the "H" format specifier is used without other custom format specifiers, it's
   <data name="Create_and_assign_remaining_as_properties" xml:space="preserve">
     <value>Create and assign remaining as properties</value>
   </data>
+  <data name="Add_explicit_cast" xml:space="preserve">
+    <value>Add explicit cast</value>
+  </data>
   <data name="Example" xml:space="preserve">
     <value>Example:</value>
     <comment>Singular form when we want to show an example, but only have one to show.</comment>
@@ -2533,13 +2536,13 @@ If the RegexOptions parameter of a regular expression pattern matching method in
   <data name="Regex_no" xml:space="preserve">
     <value>no</value>
   </data>
-  <data name="Regex_nonbacktracking_subexpression_long" xml:space="preserve">
-    <value>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+  <data name="Regex_atomic_group_long" xml:space="preserve">
+    <value>Atomic groups (known in some other regular expression engines as a nonbacktracking subexpression, an atomic subexpression, or a once-only subexpression) disable backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
 
 This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</value>
   </data>
-  <data name="Regex_nonbacktracking_subexpression_short" xml:space="preserve">
-    <value>nonbacktracking subexpression</value>
+  <data name="Regex_atomic_group_short" xml:space="preserve">
+    <value>atomic group</value>
   </data>
   <data name="Regex_noncapturing_group_long" xml:space="preserve">
     <value>This construct does not capture the substring that is matched by a subexpression:
@@ -2749,5 +2752,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="_0_cannot_be_null_or_whitespace" xml:space="preserve">
     <value>'{0}' cannot be null or whitespace</value>
+  </data>
+  <data name="Convert_type_to_0" xml:space="preserve">
+    <value>Convert type to '{0}'</value>
+  </data>
+  <data name="from_metadata" xml:space="preserve">
+    <value>from metadata</value>
+  </data>
+  <data name="symbol_cannot_be_a_namespace" xml:space="preserve">
+    <value>'symbol' cannot be a namespace.</value>
+  </data>
+  <data name="Document_must_be_contained_in_the_workspace_that_created_this_service" xml:space="preserve">
+    <value>Document must be contained in the workspace that created this service</value>
   </data>
 </root>

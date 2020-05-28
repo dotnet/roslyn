@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Execution;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -456,6 +457,34 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         }
 
         [Fact]
+        [WorkItem(1107294, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107294")]
+        public async Task SnapshotWithIdenticalAnalyzerFiles()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var project = new AdhocWorkspace(hostServices).CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
+
+            using var temp = new TempRoot();
+            var dir = temp.CreateDirectory();
+
+            // create two analyzer assembly files whose content is identical but path is different:
+            var file1 = dir.CreateFile("analyzer1.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
+            var file2 = dir.CreateFile("analyzer2.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
+
+            var analyzer1 = new AnalyzerFileReference(file1.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
+            var analyzer2 = new AnalyzerFileReference(file2.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
+
+            project = project.AddAnalyzerReferences(new[] { analyzer1, analyzer2 });
+
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(project.Solution.Workspace.Services);
+            using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
+
+            var recovered = await GetSolutionAsync(snapshotService, snapshot).ConfigureAwait(false);
+            AssertEx.Equal(new[] { file1.Path, file2.Path }, recovered.GetProject(project.Id).AnalyzerReferences.Select(r => r.FullPath));
+        }
+
+        [Fact]
         public async Task SnapshotWithMissingReferencesTest()
         {
             var hostServices = MefHostServices.Create(
@@ -601,7 +630,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             }
         }
 
-        private async Task<string> GetXmlDocumentAsync(HostServices services)
+        private static async Task<string> GetXmlDocumentAsync(HostServices services)
         {
             using var tempRoot = new TempRoot();
             // get original assembly location
@@ -641,7 +670,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             return xmlDocComment;
         }
 
-        private async Task VerifyOptionSetsAsync(Workspace workspace, Action<OptionSet> verifyOptionValues)
+        private static async Task VerifyOptionSetsAsync(Workspace workspace, Action<OptionSet> verifyOptionValues)
         {
             var solution = new AdhocWorkspace()
                 .CurrentSolution.AddProject("Project1", "Project.dll", LanguageNames.CSharp)
@@ -667,7 +696,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             verifyOptionValues(recoveredSolution.Options);
         }
 
-        private async Task<Solution> GetSolutionAsync(IRemotableDataService service, PinnedRemotableDataScope syncScope)
+        private static async Task<Solution> GetSolutionAsync(IRemotableDataService service, PinnedRemotableDataScope syncScope)
         {
             var (solutionInfo, _) = await new TestAssetProvider(service).CreateSolutionInfoAndOptionsAsync(syncScope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
 

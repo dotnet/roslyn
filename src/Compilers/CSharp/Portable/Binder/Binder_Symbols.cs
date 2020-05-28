@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.TupleType:
                     {
                         var tupleTypeSyntax = (TupleTypeSyntax)syntax;
-                        return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(tupleTypeSyntax.CloseParenToken), BindTupleType(tupleTypeSyntax, diagnostics));
+                        return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(tupleTypeSyntax.CloseParenToken), BindTupleType(tupleTypeSyntax, diagnostics, basesBeingResolved));
                     }
 
                 case SyntaxKind.RefType:
@@ -459,7 +459,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
+                    {
+                        // This is invalid syntax for a type.  This arises when a constant pattern that fails to bind
+                        // is attempted to be bound as a type pattern.
+                        diagnostics.Add(ErrorCode.ERR_TypeExpected, syntax.GetLocation());
+                        return TypeWithAnnotations.Create(CreateErrorType());
+                    }
             }
 
             void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeWithAnnotations typeArgument = default)
@@ -595,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return type;
         }
 
-        private TypeSymbol BindTupleType(TupleTypeSyntax syntax, BindingDiagnosticBag diagnostics)
+        private TypeSymbol BindTupleType(TupleTypeSyntax syntax, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved)
         {
             int numElements = syntax.Elements.Count;
             var types = ArrayBuilder<TypeWithAnnotations>.GetInstance(numElements);
@@ -610,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var argumentSyntax = syntax.Elements[i];
 
-                var argumentType = BindType(argumentSyntax.Type, diagnostics);
+                var argumentType = BindType(argumentSyntax.Type, diagnostics, basesBeingResolved);
                 types.Add(argumentType);
 
                 string name = null;
@@ -1388,6 +1393,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeSymbol;
         }
 
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, Location location, DiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
+            Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
+            ReportUseSiteDiagnostics(typeSymbol, diagnostics, location);
+            return typeSymbol;
+        }
+
         /// <summary>
         /// This is a layer on top of the Compilation version that generates a diagnostic if the special
         /// member isn't found.
@@ -1462,17 +1475,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known
         /// type isn't found.
         /// </summary>
+        internal NamedTypeSymbol GetWellKnownType(WellKnownType type, BindingDiagnosticBag diagnostics, SyntaxNode node)
+        {
+            return GetWellKnownType(this.Compilation, type, diagnostics, node.Location);
+        }
+
+        internal static NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, BindingDiagnosticBag diagnostics, SyntaxNode node)
+        {
+            return GetWellKnownType(compilation, type, diagnostics, node.Location);
+        }
+
         internal static NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, BindingDiagnosticBag diagnostics, Location location)
         {
             NamedTypeSymbol typeSymbol = compilation.GetWellKnownType(type);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
             ReportUseSite(typeSymbol, diagnostics, location);
             return typeSymbol;
-        }
-
-        internal NamedTypeSymbol GetWellKnownType(WellKnownType type, BindingDiagnosticBag diagnostics, SyntaxNode node)
-        {
-            return GetWellKnownType(this.Compilation, type, diagnostics, node.Location);
         }
 
         /// <summary>

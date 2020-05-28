@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 additionalDocumentInfos,
                 projectInfo.IsSubmission)
                 .WithOutputRefFilePath(projectInfo.OutputRefFilePath)
+                .WithCompilationOutputFilePaths(projectInfo.CompilationOutputFilePaths)
                 .WithHasAllInformation(projectInfo.HasAllInformation)
                 .WithRunAnalyzers(projectInfo.RunAnalyzers)
                 .WithDefaultNamespace(projectInfo.DefaultNamespace)

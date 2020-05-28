@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsForEachStatement => _contextInfo.ContainsForEachStatement;
         public bool ContainsDeconstruction => _contextInfo.ContainsDeconstruction;
         public bool ContainsAwait => _contextInfo.ContainsAwait;
+        public bool ContainsImplicitObjectCreation => _contextInfo.ContainsImplicitObjectCreation;
         public bool ContainsLockStatement => _contextInfo.ContainsLockStatement;
         public bool ContainsUsingStatement => _contextInfo.ContainsUsingStatement;
         public bool ContainsQueryExpression => _contextInfo.ContainsQueryExpression;
@@ -39,5 +40,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsElementAccessExpression => _contextInfo.ContainsElementAccessExpression;
         public bool ContainsIndexerMemberCref => _contextInfo.ContainsIndexerMemberCref;
         public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
+        public bool ContainsGlobalAttributes => _contextInfo.ContainsGlobalAttributes;
     }
 }

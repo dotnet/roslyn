@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return ImmutableArray<CompletionProvider>.Empty;
         }
 
-        internal protected CompletionProvider GetProvider(CompletionItem item)
+        protected internal CompletionProvider GetProvider(CompletionItem item)
         {
             CompletionProvider provider = null;
 
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 (expandItemsAvailableFromTriggeredProviders || expandItemsAvailableFromAugmentingProviders));
         }
 
-        private bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
+        private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
             Document document, SourceText text, int caretPosition)
         {
             // Only validate on insertion triggers.
