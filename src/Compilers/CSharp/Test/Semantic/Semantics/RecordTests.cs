@@ -1119,6 +1119,50 @@ X");
   IL_002d:  pop
   IL_002e:  ret
 }");
+
+            var comp = verifier.Compilation;
+            var tree = comp.SyntaxTrees.First();
+            var root = tree.GetRoot();
+            var model = comp.GetSemanticModel(tree);
+
+            var withExpr1 = root.DescendantNodes().OfType<WithExpressionSyntax>().First();
+            comp.VerifyOperationTree(withExpr1, @"
+IWithExpressionOperation (OperationKind.WithExpression, Type: C) (Syntax: 'c with { Y  ...  = W(""X"") }')
+  Value: 
+    ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
+  CloneMethod: C C.Clone()
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ Y = W(""Y"" ...  = W(""X"") }')
+      Initializers(2):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Y = W(""Y"")')
+            Left: 
+              IPropertyReferenceOperation: System.Int32 C.Y { get; init; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Y')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Y')
+            Right: 
+              IInvocationOperation (System.Int32 C.W(System.String s)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'W(""Y"")')
+                Instance Receiver: 
+                  null
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument, Type: null) (Syntax: '""Y""')
+                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Y"") (Syntax: '""Y""')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = W(""X"")')
+            Left: 
+              IPropertyReferenceOperation: System.Int32 C.X { get; init; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
+            Right: 
+              IInvocationOperation (System.Int32 C.W(System.String s)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'W(""X"")')
+                Instance Receiver: 
+                  null
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument, Type: null) (Syntax: '""X""')
+                      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""X"") (Syntax: '""X""')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+");
         }
 
         [Fact]
@@ -1514,6 +1558,22 @@ data class C(int X, string Y)
             var xId = withExpr.DescendantNodes().Single(id => id.ToString() == "X");
             var symbolInfo = model.GetSymbolInfo(xId);
             Assert.True(x.ISymbol.Equals(symbolInfo.Symbol));
+
+            comp.VerifyOperationTree(withExpr, @"
+IWithExpressionOperation (OperationKind.WithExpression, Type: C) (Syntax: 'c with { X = 2 }')
+  Value:
+    ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
+  CloneMethod: C C.Clone()
+  Initializer:
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ X = 2 }')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = 2')
+            Left:
+              IPropertyReferenceOperation: System.Int32 C.X { get; init; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
+            Right:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')");
         }
 
         [Fact]
@@ -1555,6 +1615,33 @@ data class C(int X, int Y)
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(11, 1)
             );
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var model = comp.GetSemanticModel(tree);
+
+            var withExpr1 = root.DescendantNodes().OfType<WithExpressionSyntax>().First();
+            comp.VerifyOperationTree(withExpr1, @"
+IWithExpressionOperation (OperationKind.WithExpression, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
+  Value:
+    ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
+  CloneMethod: C C.Clone()
+  Initializer:
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ 5 }')
+      Initializers(1):
+          IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '5')
+            Children(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5, IsInvalid) (Syntax: '5')");
+
+            var withExpr2 = root.DescendantNodes().OfType<WithExpressionSyntax>().Skip(1).Single();
+            comp.VerifyOperationTree(withExpr2, @"
+IWithExpressionOperation (OperationKind.WithExpression, Type: C, IsInvalid) (Syntax: 'c with { ')
+  Value:
+    ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
+  CloneMethod: C C.Clone()
+  Initializer:
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ ')
+      Initializers(0)");
         }
 
         [Fact]

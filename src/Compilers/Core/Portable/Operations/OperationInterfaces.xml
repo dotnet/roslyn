@@ -3001,4 +3001,30 @@
       </Comments>
     </Property>
   </Node>
+  <Node Name="IWithExpressionOperation" Base="IOperation" ChildrenOrder="Value,Initializer">
+    <Comments>
+      <summary>
+        Represents cloning of an object instance.
+        <para>
+          Current usage:
+          (1) C# with expression.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="Value" Type="IOperation">
+      <Comments>
+        <summary>Value to be cloned.</summary>
+      </Comments>
+    </Property>
+    <Property Name="CloneMethod" Type="IMethodSymbol">
+      <Comments>
+        <summary>Clone method to be invoked on the value.</summary>
+      </Comments>
+    </Property>
+    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation">
+      <Comments>
+        <summary>With collection initializer.</summary>
+      </Comments>
+    </Property>
+  </Node>
 </Tree>

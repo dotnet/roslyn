@@ -1974,6 +1974,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.DimensionSizes, "DimensionSizes", logElementCount: true);
         }
 
+        public override void VisitWithExpression(IWithExpressionOperation operation)
+        {
+            LogString(nameof(IWithExpressionOperation));
+            LogCommonPropertiesAndNewLine(operation);
+            Visit(operation.Value, "Value");
+            Indent();
+            LogSymbol(operation.CloneMethod, nameof(operation.CloneMethod));
+            LogNewLine();
+            Unindent();
+            Visit(operation.Initializer, "Initializer");
+        }
+
         #endregion
     }
 }
