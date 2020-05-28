@@ -3000,15 +3000,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
-                foreach (ParameterSymbol param in ctor.Parameters)
+                var inheritedProperties = PooledDictionary<string, PropertySymbol>.GetInstance();
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                addInheritedProperties(inheritedProperties, this, this, ref useSiteDiagnostics);
+                foreach (ParameterSymbol param in recordParameters)
                 {
                     var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
-                    if (!memberSignatures.ContainsKey(property))
+                    if (!memberSignatures.ContainsKey(property) &&
+                        !(inheritedProperties.TryGetValue(property.Name, out var inheritedProperty) && matchesRecordProperty(inheritedProperty, param.TypeWithAnnotations)))
                     {
                         members.Add(property);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
                         members.Add(property.BackingField);
+                    }
+                }
+                inheritedProperties.Free();
+            }
+
+            static bool matchesRecordProperty(PropertySymbol property, TypeWithAnnotations requiredType)
+            {
+                Debug.Assert(property.ParameterCount == 0);
+
+                return !property.IsStatic &&
+                    property.RefKind == RefKind.None &&
+                    requiredType.Equals(property.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
+            }
+
+            static void addInheritedProperties(Dictionary<string, PropertySymbol> properties, NamedTypeSymbol within, NamedTypeSymbol type, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+            {
+                type = type.BaseTypeNoUseSiteDiagnostics;
+                if (type is null)
+                {
+                    return;
+                }
+                addInheritedProperties(properties, within, type, ref useSiteDiagnostics);
+                foreach (var member in type.GetMembers())
+                {
+                    if (member is PropertySymbol property &&
+                        AccessCheck.IsSymbolAccessible(property, within, ref useSiteDiagnostics))
+                    {
+                        properties[property.Name] = property;
                     }
                 }
             }
@@ -3018,7 +3050,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var objEquals = new SynthesizedRecordObjEquals(this, thisEquals);
                 if (!memberSignatures.ContainsKey(objEquals))
                 {
-                    // PROTOTYPE: Don't add if the overridden method is sealed
+                    // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
                     members.Add(objEquals);
                 }
             }
@@ -3028,7 +3060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var hashCode = new SynthesizedRecordGetHashCode(this);
                 if (!memberSignatures.ContainsKey(hashCode))
                 {
-                    // PROTOTYPE: Don't add if the overridden method is sealed
+                    // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
                     members.Add(hashCode);
                 }
             }
