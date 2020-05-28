@@ -3196,10 +3196,7 @@ unsafe class C
                 "void C.M(System.Int32 i)"
             };
 
-            AssertEx.Equal(expectedMembers, model.GetMemberGroup(addressOfs[0]).Select(m => m.ToTestDisplayString(includeNonNullable: false)));
             AssertEx.Equal(expectedMembers, model.GetMemberGroup(addressOfs[0].Operand).Select(m => m.ToTestDisplayString(includeNonNullable: false)));
-
-            AssertEx.Equal(expectedMembers, model.GetMemberGroup(addressOfs[1]).Select(m => m.ToTestDisplayString(includeNonNullable: false)));
             AssertEx.Equal(expectedMembers, model.GetMemberGroup(addressOfs[1].Operand).Select(m => m.ToTestDisplayString(includeNonNullable: false)));
         }
 
@@ -3232,16 +3229,12 @@ class C : I1, I2
 
             var addressOf = syntaxTree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
 
-            string[] expectedSymbolCandidates = new[] { "void IHelpers.M(I1 i1)", "void IHelpers.M(I2 i2)" };
             FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, addressOf,
                 expectedSyntax: "&IHelpers.M",
                 expectedType: null,
                 expectedConvertedType: "delegate*<C, System.Void>",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
-                expectedSymbolCandidates: expectedSymbolCandidates);
-
-            AssertEx.Equal(expectedSymbolCandidates, model.GetMemberGroup(addressOf).Select(m => m.ToTestDisplayString(includeNonNullable: false)));
-            AssertEx.Equal(expectedSymbolCandidates, model.GetMemberGroup(addressOf.Operand).Select(m => m.ToTestDisplayString(includeNonNullable: false)));
+                expectedSymbolCandidates: new[] { "void IHelpers.M(I1 i1)", "void IHelpers.M(I2 i2)" });
         }
 
         [Fact]
@@ -4057,6 +4050,8 @@ class C
                 expectedConvertedType: "delegate*<System.Void>",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
                 expectedSymbolCandidates: new[] { "void C.M1()" });
+
+            AssertEx.Equal(new[] { "void C.M1()" }, model.GetMemberGroup(methodGroup1).Select(m => m.ToTestDisplayString(includeNonNullable: false)));
 
             VerifyOperationTreeForNode(comp, model, variableDeclaratorSyntax, expectedOperationTree: @"
 IVariableDeclaratorOperation (Symbol: delegate*<System.Void> a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = M1')

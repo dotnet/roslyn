@@ -1588,11 +1588,6 @@ unsafe class C
                 expectedConvertedType: "delegate*<System.String, System.Int32, System.Void>",
                 expectedSymbol: "void C.M2(System.String s, System.Int32 i)");
 
-            AssertEx.Equal("void C.M2(System.String s, System.Int32 i)",
-                           model.GetMemberGroup(varInitializer).Single().ToTestDisplayString());
-            AssertEx.Equal("void C.M2(System.String s, System.Int32 i)",
-                           model.GetMemberGroup(((PrefixUnaryExpressionSyntax)varInitializer).Operand).Single().ToTestDisplayString());
-
             var assignment = mDeclSyntax.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
 
             FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, assignment,
@@ -1635,11 +1630,6 @@ unsafe class C
                 expectedType: null,
                 expectedConvertedType: "delegate*<System.String, System.Int32, System.Void>",
                 expectedSymbol: "void C.M2(System.String s, System.Int32 i)");
-
-            AssertEx.Equal("void C.M2(System.String s, System.Int32 i)",
-                           model.GetMemberGroup(returnExpression).Single().ToTestDisplayString());
-            AssertEx.Equal("void C.M2(System.String s, System.Int32 i)",
-                           model.GetMemberGroup(((PrefixUnaryExpressionSyntax)returnExpression).Operand).Single().ToTestDisplayString());
         }
 
         [Fact]
@@ -1718,11 +1708,6 @@ class C
                 expectedConvertedType: "delegate*<System.Int32, System.String>",
                 expectedSymbol: "System.String C.M1(System.Int32 i)");
 
-            AssertEx.Equal("System.String C.M1(System.Int32 i)",
-                           model.GetMemberGroup(addressOfSyntax).Single().ToTestDisplayString());
-            AssertEx.Equal("System.String C.M1(System.Int32 i)",
-                           model.GetMemberGroup(((PrefixUnaryExpressionSyntax)addressOfSyntax).Operand).Single().ToTestDisplayString());
-
             Assert.Equal("ptr2 = &M1", decls[1].ToString());
             addressOfSyntax = (PrefixUnaryExpressionSyntax)decls[1].Initializer!.Value;
 
@@ -1732,11 +1717,6 @@ class C
                 expectedConvertedType: "delegate*<System.Int32, System.Void>",
                 expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
                 expectedSymbolCandidates: new[] { "System.String C.M1(System.Int32 i)" });
-
-            AssertEx.Equal("System.String C.M1(System.Int32 i)",
-                           model.GetMemberGroup(addressOfSyntax).Single().ToTestDisplayString());
-            AssertEx.Equal("System.String C.M1(System.Int32 i)",
-                           model.GetMemberGroup(((PrefixUnaryExpressionSyntax)addressOfSyntax).Operand).Single().ToTestDisplayString());
 
             var invocations = m2DeclSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
             Assert.Equal(2, invocations.Length);
@@ -1773,11 +1753,6 @@ class C
                 expectedType: null,
                 expectedConvertedType: "delegate*<System.Int32, System.String>",
                 expectedSymbol: "System.String C.M1(System.Int32 i)");
-
-            AssertEx.Equal("System.String C.M1(System.Int32 i)",
-                           model.GetMemberGroup(initializerValue).Single().ToTestDisplayString());
-            AssertEx.Equal("System.String C.M1(System.Int32 i)",
-                           model.GetMemberGroup(((PrefixUnaryExpressionSyntax)initializerValue).Operand).Single().ToTestDisplayString());
 
             var invocationExpr = m3DeclSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 

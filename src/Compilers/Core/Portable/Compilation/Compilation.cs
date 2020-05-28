@@ -953,6 +953,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException">
         /// If returnType is <see langword="null"/>, or if parameterTypes or parameterRefKinds are default,
         /// or if any of the types in parameterTypes are null.</exception>
+         // https://github.com/dotnet/roslyn/issues/39865 allow setting calling convention in creation
         public IFunctionPointerTypeSymbol CreateFunctionPointerTypeSymbol(ITypeSymbol returnType, RefKind returnRefKind, ImmutableArray<ITypeSymbol> parameterTypes, ImmutableArray<RefKind> parameterRefKinds)
         {
             return CommonCreateFunctionPointerTypeSymbol(returnType, returnRefKind, parameterTypes, parameterRefKinds);

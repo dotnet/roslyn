@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         }
                     }
 
-                    return new CSharpLazyNoneOperation(this, boundNode, _semanticModel, boundNode.Syntax, constantValue, isImplicit: isImplicit);
+                    return new CSharpLazyNoneOperation(this, boundNode, _semanticModel, boundNode.Syntax, constantValue, isImplicit: isImplicit, type: null);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(boundNode.Kind);
@@ -440,26 +440,17 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundFunctionPointerInvocationOperation(BoundFunctionPointerInvocation boundFunctionPointerInvocation)
         {
+            ITypeSymbol type = boundFunctionPointerInvocation.Type.GetPublicSymbol();
+            SyntaxNode syntax = boundFunctionPointerInvocation.Syntax;
+            Optional<object> constantValue = ConvertToOptional(boundFunctionPointerInvocation.ConstantValue);
+            bool isImplicit = boundFunctionPointerInvocation.WasCompilerGenerated;
+
             if (boundFunctionPointerInvocation.ResultKind != LookupResultKind.Viable)
             {
-                return new CSharpLazyInvalidOperation(
-                    this,
-                    boundFunctionPointerInvocation,
-                    _semanticModel,
-                    boundFunctionPointerInvocation.Syntax,
-                    boundFunctionPointerInvocation.Type.GetPublicSymbol(),
-                    ConvertToOptional(boundFunctionPointerInvocation.ConstantValue),
-                    isImplicit: boundFunctionPointerInvocation.WasCompilerGenerated);
+                return new CSharpLazyInvalidOperation(this, boundFunctionPointerInvocation, _semanticModel, syntax, type, constantValue, isImplicit);
             }
 
-            return new CSharpLazyNoneOperation(
-                this,
-                boundFunctionPointerInvocation,
-                _semanticModel,
-                boundFunctionPointerInvocation.Syntax,
-                constantValue: ConvertToOptional(boundFunctionPointerInvocation.ConstantValue),
-                isImplicit: boundFunctionPointerInvocation.WasCompilerGenerated,
-                type: boundFunctionPointerInvocation.Type.GetPublicSymbol());
+            return new CSharpLazyNoneOperation(this, boundFunctionPointerInvocation, _semanticModel, syntax, constantValue, isImplicit, type);
         }
 
         private IOperation CreateBoundUnconvertedAddressOfOperatorOperation(BoundUnconvertedAddressOfOperator boundUnconvertedAddressOf)
@@ -940,25 +931,21 @@ namespace Microsoft.CodeAnalysis.Operations
             BoundExpression boundOperand = boundConversion.Operand;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
-                if (boundConversion is { Type: FunctionPointerTypeSymbol { Signature: var signature }, Syntax: var expression })
+                SyntaxNode syntax = boundConversion.Syntax;
+                ITypeSymbol type = boundConversion.Type.GetPublicSymbol();
+                Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
+
+                if (boundConversion.Type is FunctionPointerTypeSymbol)
                 {
                     Debug.Assert(boundConversion.Conversion.MethodSymbol is object);
-                    SyntaxNode referenceSyntax = (expression is PrefixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.AddressOfExpression, Operand: var operand }) ? operand : expression;
                     return new AddressOfOperation(
                         CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand, boundConversion.SymbolOpt, suppressVirtualCalls: false),
-                        _semanticModel,
-                        syntax: expression,
-                        type: boundConversion.Type.GetPublicSymbol(),
-                        constantValue: default,
-                        isImplicit: boundConversion.WasCompilerGenerated);
+                        _semanticModel, syntax, type, constantValue, boundConversion.WasCompilerGenerated);
                 }
 
                 // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,
                 // overload resolution succeeded. The resulting method could be invalid for other reasons, but we don't
                 // hide the resolved method.
-                SyntaxNode syntax = boundConversion.Syntax;
-                ITypeSymbol type = boundConversion.Type.GetPublicSymbol();
-                Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
                 return new CSharpLazyDelegateCreationOperation(this, boundConversion, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else

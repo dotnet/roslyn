@@ -1560,8 +1560,8 @@
         <note />
       </trans-unit>
       <trans-unit id="NotSameNumberParameterTypesAndRefKinds">
-        <source>Given {0} parameter types and {1} parameter ref kinds. These arrays must be the same length.</source>
-        <target state="new">Given {0} parameter types and {1} parameter ref kinds. These arrays must be the same length.</target>
+        <source>Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</source>
+        <target state="new">Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutIsNotValidForReturn">
