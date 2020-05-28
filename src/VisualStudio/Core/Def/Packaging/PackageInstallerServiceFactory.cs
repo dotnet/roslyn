@@ -361,25 +361,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var metadata = installedPackages.FirstOrDefault(m => m.Id == packageName);
                 return metadata?.VersionString;
             }
-            catch (ArgumentException e) when (IsKnownNugetIssue(e))
-            {
-                // Nuget may throw an ArgumentException when there is something about the project 
-                // they do not like/support.
-            }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
             }
 
             return null;
-        }
-
-        private bool IsKnownNugetIssue(ArgumentException exception)
-        {
-            // See https://github.com/NuGet/Home/issues/4706
-            // Nuget throws on legal projects.  We do not want to report this exception
-            // as it is known (and NFWs are expensive), but we do want to report if we 
-            // run into anything else.
-            return exception.Message.Contains("is not a valid version string");
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -560,11 +546,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 }
 
                 isEnabled = true;
-            }
-            catch (ArgumentException e) when (IsKnownNugetIssue(e))
-            {
-                // Nuget may throw an ArgumentException when there is something about the project 
-                // they do not like/support.
             }
             catch (InvalidOperationException)
             {
