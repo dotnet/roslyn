@@ -554,7 +554,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConsList<TypeSymbol> basesBeingResolved,
             bool disallowRestrictedTypes)
         {
-            TypeWithAnnotations type = BindType(node.ElementType, diagnostics, basesBeingResolved);
+            // We need to temporarily disable suppression of unsafe diagnostics, since
+            // an array can be used as a generic type argument and if we suppress unsafe diagnostics,
+            // nothing would be reported for this:
+            //
+            // class C<T>
+            // {
+            //     T Field;
+            // }
+            //
+            // var instance = new C<int*[]>();
+            var binder = WithFlags(Flags & ~BinderFlags.SuppressUnsafeDiagnostics);
+            TypeWithAnnotations type = binder.BindType(node.ElementType, diagnostics, basesBeingResolved);
+
             if (type.IsStatic)
             {
                 // CS0719: '{0}': array elements cannot be of static type
