@@ -58,8 +58,14 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
         private static void ReportOnInvalidIdentifier(SyntaxToken identifier, SemanticModel semanticModel, Action<Diagnostic> reportAction)
         {
-            if (identifier.Text.EndsWith(OptSuffix, StringComparison.Ordinal) &&
-                semanticModel.GetNullableContext(identifier.SpanStart).AnnotationsEnabled())
+            if (!identifier.Text.EndsWith(OptSuffix, StringComparison.Ordinal) ||
+                !semanticModel.GetNullableContext(identifier.SpanStart).AnnotationsEnabled())
+            {
+                return;
+            }
+
+            var symbol = semanticModel.GetDeclaredSymbol(identifier.Parent);
+            if (symbol?.GetMemberOrLocalOrParameterType()?.NullableAnnotation() == Analyzer.Utilities.Lightup.NullableAnnotation.Annotated)
             {
                 reportAction(identifier.CreateDiagnostic(Rule));
             }

@@ -29,11 +29,6 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             foreach (var diagnostic in context.Diagnostics)
             {
                 var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-                if (root == null)
-                {
-                    continue;
-                }
-
                 var variable = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
                 if (variable == null)
                 {
@@ -62,19 +57,15 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
             }
         }
 
-        private static async Task<Document> RemoveOptSuffixOnVariableAsync(Document document, ISymbol variableSymbol, string newName, CancellationToken cancellationToken)
-        {
-            var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, variableSymbol, newName, document.Project.Solution.Options, cancellationToken)
+        private static async Task<Solution> RemoveOptSuffixOnVariableAsync(Document document, ISymbol variableSymbol, string newName, CancellationToken cancellationToken)
+            => await Renamer.RenameSymbolAsync(document.Project.Solution, variableSymbol, newName, document.Project.Solution.Options, cancellationToken)
                 .ConfigureAwait(false);
 
-            return newSolution.GetDocument(document.Id)!;
-        }
-
         // Needed for Telemetry (https://github.com/dotnet/roslyn/issues/4919)
-        private class MyCodeAction : DocumentChangeAction
+        private class MyCodeAction : SolutionChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
+                : base(title, createChangedSolution, equivalenceKey)
             {
             }
         }
