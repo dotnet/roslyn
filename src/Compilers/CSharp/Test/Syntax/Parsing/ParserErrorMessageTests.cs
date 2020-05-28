@@ -53,7 +53,7 @@ class Test : Itest
                 // (10,4): error CS1519: Invalid token '{' in class, struct, or interface member declaration
                 //    {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(10, 4),
-                // (12,4): error CS9002: Top-level statements must precede namespace and type declarations.
+                // (12,4): error CS8803: Top-level statements must precede namespace and type declarations.
                 //    public static int Main()
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"public static int Main()
    {
@@ -652,7 +652,7 @@ partial delegate E { }
                 // (2,20): error CS1002: ; expected
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 20),
-                // (2,20): error CS9002: Top-level statements must precede namespace and type declarations.
+                // (2,20): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(2, 20),
                 // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
@@ -3886,7 +3886,7 @@ namespace x
    // (1,16): error CS0116: A namespace cannot directly contain members such as fields or methods
    // public class S.D 
    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "D").WithLocation(1, 16),
-   // (2,1): error CS9002: Top-level statements must precede namespace and type declarations.
+   // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
    // {
    Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
 ").WithLocation(2, 1),
