@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -909,9 +910,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             SyntaxToken tokenOnLeftOfPosition,
             CancellationToken cancellationToken)
         {
+#if !CODE_STYLE
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
+            // https://github.com/dotnet/roslyn/issues/39865: When the syntax rewrite is done, the parents here will need to change.
             switch (token.Kind())
             {
                 case SyntaxKind.LessThanToken:
@@ -919,12 +922,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return token.Parent is FunctionPointerTypeSyntax;
             }
 
-            if (token.GetAncestor<FunctionPointerTypeSyntax>() == null)
-            {
-                return false;
-            }
-
-            return syntaxTree.IsInPartiallyWrittenFunctionPointer(position, cancellationToken);
+            return token.Parent is ParameterSyntax { Parent: FunctionPointerTypeSyntax _ };
+#else
+            return false;
+#endif
         }
 
         public static bool IsGenericTypeArgumentContext(
@@ -1025,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.LessThanToken) && token.IsInFunctionPointer())
+            if (token.IsKind(SyntaxKind.LessThanToken) && token.Parent.IsKind(SyntaxKindEx.FunctionPointerType))
             {
                 parameterIndex = 0;
                 return true;
@@ -1041,14 +1042,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+#if !CODE_STYLE
             if (token.IsKind(SyntaxKind.CommaToken) &&
-                token.Parent.IsKind(SyntaxKind.FunctionPointerType, out FunctionPointerTypeSyntax funcPtrType))
+                token.Parent.IsKind(SyntaxKindEx.FunctionPointerType, out FunctionPointerTypeSyntax funcPtrType))
             {
                 var commaIndex = funcPtrType.Parameters.GetWithSeparators().IndexOf(token);
 
                 parameterIndex = commaIndex / 2 + 1;
                 return true;
             }
+#endif
 
             if (token.IsKind(SyntaxKind.CloseBracketToken) &&
                 token.Parent.IsKind(SyntaxKind.AttributeList) &&

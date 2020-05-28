@@ -21,16 +21,9 @@ namespace Microsoft.CodeAnalysis
                 var returnRefKind = reader.ReadRefKind();
                 var returnType = reader.ReadSymbolKey();
                 using var paramRefKinds = reader.ReadRefKindArray();
-                var paramTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
+                using var paramTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
 
-                if (paramTypes.IsDefault)
-                {
-                    return default;
-                }
-
-                using var _ = paramTypes;
-
-                if (!(returnType.GetAnySymbol() is ITypeSymbol returnTypeSymbol))
+                if (paramTypes.IsDefault || !(returnType.GetAnySymbol() is ITypeSymbol returnTypeSymbol))
                 {
                     return default;
                 }

@@ -48,6 +48,7 @@ public class C
     public B this[B b] { get { return b; } }
     public event D E;
     public event D E2 { add; remove; }
+    public delegate*<C, B> Ptr;
 }
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
@@ -781,6 +782,21 @@ class C
 
             var method = found as IMethodSymbol;
             Assert.True(method.Parameters[0].Type.IsTupleType);
+        }
+
+        [Fact]
+        public void TestFunctionPointerTypeSymbols()
+        {
+            var source = @"
+class C
+{
+    public delegate*<ref string, out int, in C, ref C> ptr1;
+    public delegate*<ref readonly C> ptr1;
+}";
+
+            var comp = GetCompilation(source, LanguageNames.CSharp);
+            var fields = GetDeclaredSymbols(comp).OfType<IFieldSymbol>().Select(f => f.Type);
+            TestRoundTrip(fields, comp);
         }
 
         private void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)

@@ -588,5 +588,27 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeAfterRef()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<ref $$");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("in")]
+        [InlineData("out")]
+        [InlineData("")]
+        [InlineData("ref readonly")]
+        public async Task TestNotInFunctionPointerTypeNoRef(string modifier)
+        {
+            await VerifyAbsenceAsync($@"
+class C
+{{
+    delegate*<{modifier} $$");
+        }
     }
 }

@@ -30,7 +30,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             return false;
         }
-
-        public static bool IsInFunctionPointer(this SyntaxToken node) => node.Parent.IsKind(SyntaxKind.FunctionPointerType);
     }
 }

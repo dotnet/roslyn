@@ -92,11 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static bool IsInPartiallyWrittenFunctionPointer(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            return syntaxTree.IsInPartiallyWrittenGenericOrFunctionPointer(position, lookForFunctionPointer: true, cancellationToken, out _, out _);
-        }
-
         public static bool IsInPartiallyWrittenGeneric(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
@@ -115,18 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInPartiallyWrittenGeneric(
             this SyntaxTree syntaxTree,
             int position,
-            CancellationToken cancellationToken,
-            out SyntaxToken genericIdentifier,
-            out SyntaxToken lessThanToken)
-        {
-            return IsInPartiallyWrittenGenericOrFunctionPointer(syntaxTree, position, lookForFunctionPointer: false, cancellationToken, out genericIdentifier, out lessThanToken);
-        }
-
-
-        private static bool IsInPartiallyWrittenGenericOrFunctionPointer(
-            this SyntaxTree syntaxTree,
-            int position,
-            bool lookForFunctionPointer,
             CancellationToken cancellationToken,
             out SyntaxToken genericIdentifier,
             out SyntaxToken lessThanToken)
@@ -170,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             // but we need to know the simple name that precedes the <
                             // it could be
                             // ~~~~~~goo<a,b,...
-                            if (!lookForFunctionPointer && token.Kind() == SyntaxKind.IdentifierToken)
+                            if (token.Kind() == SyntaxKind.IdentifierToken)
                             {
                                 // okay now check whether it is actually partially written
                                 if (IsFullyWrittenGeneric(token, lessThanToken))
@@ -180,15 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                                 genericIdentifier = token;
                                 return true;
-                            }
-                            else if (lookForFunctionPointer && token.Kind() == SyntaxKind.AsteriskToken)
-                            {
-                                token = token.GetPreviousToken(includeSkipped: true);
-                                if (token.Kind() == SyntaxKind.DelegateKeyword)
-                                {
-                                    genericIdentifier = token;
-                                    return true;
-                                }
                             }
 
                             return false;

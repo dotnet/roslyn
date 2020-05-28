@@ -716,5 +716,14 @@ class Program
     }
 }");
         }
+
+        [Fact]
+        public async Task TestInFunctionPointerType()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    delegate*<$$");
+        }
     }
 }

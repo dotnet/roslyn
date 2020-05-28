@@ -208,11 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="offset">The starting offset in the string</param>
         <EditorBrowsable(EditorBrowsableState.Never)>
         Public Shared Function ParseTypeName(text As String, offset As Integer, consumeFullText As Boolean) As TypeSyntax
-            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
-                p.GetNextToken()
-                Dim node = p.ParseGeneralType()
-                Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), TypeSyntax)
-            End Using
+            Return ParseTypeName(text, offset, options:=Nothing, consumeFullText)
         End Function
 
         ''' <summary>

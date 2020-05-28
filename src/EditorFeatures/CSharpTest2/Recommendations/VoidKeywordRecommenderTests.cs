@@ -727,5 +727,60 @@ class C
     }
 }");
         }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointer01()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<$$");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointer02()
+        {
+            await VerifyKeywordAsync(@"
+class C<T>
+{
+    C<delegate*<$$");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointer03()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<int, $$");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointer04()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<int, v$$");
+        }
+
+        [Theory]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        [InlineData("readonly")]
+        [InlineData("out")]
+        [InlineData("in")]
+        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerAfterRefKind(string refKind)
+        {
+            await VerifyAbsenceAsync($@"
+class C
+{{
+    delegate*<int, {refKind} $$");
+        }
     }
 }
