@@ -208,9 +208,10 @@ namespace Analyzer.Utilities.Extensions
                 return method.OverriddenMethod.IsAsyncDisposeImplementation(iAsyncDisposable);
             }
 
+            INamedTypeSymbol? valueTaskType= compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemValueTask);
             // Identify the implementor of IAsyncDisposable.Dispose in the given method's containing type and check
             // if it is the given method.
-            return method.Parameters.Length == 0 &&
+            return method.ReturnType.Equals(valueTaskType) && method.Parameters.Length == 0 &&
                 method.IsImplementationOfInterfaceMethod(null, iAsyncDisposable, "DisposeAsync");
         }
 
