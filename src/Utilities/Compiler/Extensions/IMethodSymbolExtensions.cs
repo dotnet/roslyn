@@ -168,7 +168,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsAsyncDisposeImplementation(this IMethodSymbol method, Compilation compilation)
         {
             INamedTypeSymbol? iAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
-            INamedTypeSymbol? valueTaskType = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemValueTask);
+            INamedTypeSymbol? valueTaskType = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
             return method.IsAsyncDisposeImplementation(iAsyncDisposable, valueTaskType);
         }
 
