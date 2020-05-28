@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return (property.OpenBraceToken, property.CloseBraceToken);
 #if !CODE_STYLE
                 case WithExpressionSyntax withExpr:
-                    return (withExpr.OpenBraceToken, withExpr.CloseBraceToken);
+                    return (withExpr.Initializer.OpenBraceToken, withExpr.Initializer.CloseBraceToken);
 #endif
             }
 
