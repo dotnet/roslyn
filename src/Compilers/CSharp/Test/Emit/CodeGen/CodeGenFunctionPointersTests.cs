@@ -14,6 +14,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -3169,6 +3170,34 @@ unsafe class C
   IL_0027:  ret
 }
 ");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var addressOfs = syntaxTree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().ToArray();
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, addressOfs[0],
+                expectedSyntax: "&M",
+                expectedType: null,
+                expectedConvertedType: "delegate*<System.String, System.Void>",
+                expectedSymbol: "void C.M(System.String s)");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, addressOfs[1],
+                expectedSyntax: "&M",
+                expectedType: null,
+                expectedConvertedType: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void>",
+                expectedSymbol: "void C.M(out System.String s)");
+
+            string[] expectedMembers = new[] {
+                "void C.M(System.Object o)",
+                "void C.M(System.String s)",
+                "void C.M(out System.String s)",
+                "void C.M(System.Int32 i)"
+            };
+
+            AssertEx.Equal(expectedMembers, model.GetMemberGroup(addressOfs[0].Operand).Select(m => m.ToTestDisplayString(includeNonNullable: false)));
+            AssertEx.Equal(expectedMembers, model.GetMemberGroup(addressOfs[1].Operand).Select(m => m.ToTestDisplayString(includeNonNullable: false)));
         }
 
         [Fact]
@@ -3194,6 +3223,18 @@ class C : I1, I2
                 //         delegate*<C, void> ptr = &IHelpers.M;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "IHelpers.M").WithArguments("IHelpers.M(I1)", "IHelpers.M(I2)").WithLocation(13, 35)
             );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var addressOf = syntaxTree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, addressOf,
+                expectedSyntax: "&IHelpers.M",
+                expectedType: null,
+                expectedConvertedType: "delegate*<C, System.Void>",
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "void IHelpers.M(I1 i1)", "void IHelpers.M(I2 i2)" });
         }
 
         [Fact]
@@ -3407,6 +3448,55 @@ public class C
                 //         delegate*<int> ptr2 = &i.GetValueOrDefault;
                 Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "i.GetValueOrDefault").WithArguments("int?.GetValueOrDefault()").WithLocation(8, 32)
             );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var declarators = syntaxTree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Initializer!.Value.IsKind(SyntaxKind.AddressOfExpression)).ToArray();
+            var addressOfs = declarators.Select(d => d.Initializer!.Value).ToArray();
+            Assert.Equal(2, addressOfs.Length);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, addressOfs[0],
+                expectedSyntax: "&M",
+                expectedType: null,
+                expectedConvertedType: "delegate*<System.Void>",
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "void C.M()" });
+
+            VerifyOperationTreeForNode(comp, model, declarators[0], expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.Void> ptr1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr1 = &M')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= &M')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid, IsImplicit) (Syntax: '&M')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&M')
+            Reference: 
+              IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M')
+                Children(1):
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+            ");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, addressOfs[1],
+                expectedSyntax: "&i.GetValueOrDefault",
+                expectedType: null,
+                expectedConvertedType: "delegate*<System.Int32>",
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "System.Int32 System.Int32?.GetValueOrDefault()", "System.Int32 System.Int32?.GetValueOrDefault(System.Int32 defaultValue)" });
+
+            VerifyOperationTreeForNode(comp, model, declarators[1], expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.Int32> ptr2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr2 = &i.G ... ueOrDefault')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= &i.GetValueOrDefault')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Int32>, IsInvalid, IsImplicit) (Syntax: '&i.GetValueOrDefault')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&i.GetValueOrDefault')
+            Reference: 
+              IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i.GetValueOrDefault')
+                Children(1):
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32?, IsInvalid) (Syntax: 'i')
+            ");
         }
 
         [Fact]
@@ -3429,6 +3519,33 @@ unsafe class C
                 //         delegate*<int, int> ptr = &M;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&M").WithArguments("M", "delegate*<int, int>").WithLocation(9, 35)
             );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var declarator = syntaxTree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var addressOf = declarator.Initializer!.Value;
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, addressOf,
+                expectedSyntax: "&M",
+                expectedType: null,
+                expectedConvertedType: "delegate*<System.Int32, System.Int32>",
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "System.Int32 C.M(System.String s)", "System.Int32 C.M(ref System.Int32 i)" });
+
+            VerifyOperationTreeForNode(comp, model, declarator, expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.Int32, System.Int32> ptr) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr = &M')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= &M')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Int32, System.Int32>, IsInvalid, IsImplicit) (Syntax: '&M')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&M')
+            Reference: 
+              IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M')
+                Children(1):
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+");
         }
 
         [Fact]
@@ -3449,6 +3566,33 @@ unsafe class C
                 //         delegate*<string, string, void> ptr = &M;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(string, object)", "C.M(object, string)").WithLocation(8, 48)
             );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var declarator = syntaxTree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var addressOf = declarator.Initializer!.Value;
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, addressOf,
+                expectedSyntax: "&M",
+                expectedType: null,
+                expectedConvertedType: "delegate*<System.String, System.String, System.Void>",
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "void C.M(System.String s, System.Object o)", "void C.M(System.Object o, System.String s)" });
+
+            VerifyOperationTreeForNode(comp, model, declarator, expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.String, System.String, System.Void> ptr) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'ptr = &M')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= &M')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.String, System.String, System.Void>, IsInvalid, IsImplicit) (Syntax: '&M')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&M')
+            Reference: 
+              IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M')
+                Children(1):
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+");
         }
 
         [Fact]
@@ -3893,6 +4037,33 @@ class C
                 //         M2(M1);
                 Diagnostic(ErrorCode.ERR_MissingAddressOf, "M1").WithLocation(8, 12)
             );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var variableDeclaratorSyntax = syntaxTree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+
+            var methodGroup1 = variableDeclaratorSyntax.Initializer!.Value;
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, methodGroup1,
+                expectedSyntax: "M1",
+                expectedType: null,
+                expectedConvertedType: "delegate*<System.Void>",
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "void C.M1()" });
+
+            AssertEx.Equal(new[] { "void C.M1()" }, model.GetMemberGroup(methodGroup1).Select(m => m.ToTestDisplayString(includeNonNullable: false)));
+
+            VerifyOperationTreeForNode(comp, model, variableDeclaratorSyntax, expectedOperationTree: @"
+IVariableDeclaratorOperation (Symbol: delegate*<System.Void> a) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'a = M1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= M1')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Void>, IsInvalid, IsImplicit) (Syntax: 'M1')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
+            Children(1):
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M1')
+");
         }
 
         [Fact]
@@ -4665,6 +4836,21 @@ unsafe class C
   IL_000a:  ret
 }
 ");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model,
+                syntaxTree.GetRoot()
+                    .DescendantNodes()
+                    .OfType<LiteralExpressionSyntax>()
+                    .Where(l => l.IsKind(SyntaxKind.DefaultLiteralExpression))
+                    .Single(),
+                expectedSyntax: "default",
+                expectedType: "delegate*<System.Void>",
+                expectedSymbol: null,
+                expectedSymbolCandidates: null);
         }
 
         [Fact]

@@ -352,6 +352,7 @@
     <Field Name="InvokedExpression" Type="BoundExpression"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+    <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind" />
   </Node>
 
   <Node Name="BoundRefTypeOperator" Base="BoundExpression">

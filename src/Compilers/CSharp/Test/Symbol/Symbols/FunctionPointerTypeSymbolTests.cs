@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 #nullable enable
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -21,11 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
         }
 
-        [InlineData("", RefKind.None)]
-        [InlineData("ref", RefKind.Ref)]
-        [InlineData("ref readonly", RefKind.RefReadOnly)]
+        [InlineData("", RefKind.None, "delegate*<System.Object>")]
+        [InlineData("ref", RefKind.Ref, "delegate*<ref System.Object>")]
+        [InlineData("ref readonly", RefKind.RefReadOnly,
+                    "delegate*<ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Object>")]
         [Theory]
-        public void ValidReturnModifiers(string modifier, RefKind expectedKind)
+        public void ValidReturnModifiers(string modifier, RefKind expectedKind, string expectedPublicType)
         {
             var comp = CreateFunctionPointerCompilation($@"
 class C
@@ -42,6 +46,19 @@ class C
             Assert.Equal(expectedKind, pointerType.Signature.RefKind);
             Assert.Equal(SpecialType.System_Object, pointerType.Signature.ReturnType.SpecialType);
             Assert.Empty(pointerType.Signature.Parameters);
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var paramType = syntaxTree.GetRoot()
+                .DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .Single().ParameterList.Parameters
+                .Single().Type;
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, paramType!,
+                expectedSyntax: $"delegate*<{modifier} object>",
+                expectedType: expectedPublicType,
+                expectedSymbol: expectedPublicType);
         }
 
         [Fact]
@@ -103,6 +120,56 @@ class C
             verifyRefKind(RefKind.Ref, mParams[6]);
             verifyRefKind(RefKind.None, mParams[7]);
 
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var parameterDecls = syntaxTree.GetRoot().DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .SelectMany(m => m.ParameterList.Parameters)
+                .Select(p => p.Type!)
+                .ToArray();
+
+            Assert.Equal(8, parameterDecls.Length);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[0],
+                expectedSyntax: "delegate*<readonly string>",
+                expectedType: "delegate*<System.String>",
+                expectedSymbol: "delegate*<System.String>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[1],
+                expectedSyntax: "delegate*<readonly ref string>",
+                expectedType: "delegate*<ref System.String>",
+                expectedSymbol: "delegate*<ref System.String>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[2],
+                expectedSyntax: "delegate*<ref ref readonly string>",
+                expectedType: "delegate*<ref System.String>",
+                expectedSymbol: "delegate*<ref System.String>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[3],
+                expectedSyntax: "delegate*<ref readonly readonly string>",
+                expectedType: "delegate*<ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.String>",
+                expectedSymbol: "delegate*<ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.String>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[4],
+                expectedSyntax: "delegate*<this string>",
+                expectedType: "delegate*<System.String>",
+                expectedSymbol: "delegate*<System.String>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[5],
+                expectedSyntax: "delegate*<params string>",
+                expectedType: "delegate*<System.String>",
+                expectedSymbol: "delegate*<System.String>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[6],
+                expectedSyntax: "delegate*<ref ref string>",
+                expectedType: "delegate*<ref System.String>",
+                expectedSymbol: "delegate*<ref System.String>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[7],
+                expectedSyntax: "delegate*<out string>",
+                expectedType: "delegate*<System.String>",
+                expectedSymbol: "delegate*<System.String>");
+
             static void verifyRefKind(RefKind expected, ParameterSymbol actual)
                 => Assert.Equal(expected, ((FunctionPointerTypeSymbol)actual.Type).Signature.RefKind);
         }
@@ -132,6 +199,26 @@ class C
 
             Assert.Equal(RefKind.Ref, firstSignature.RefKind);
             Assert.Equal(RefKind.RefReadOnly, secondSignature.RefKind);
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var parameterDecls = syntaxTree.GetRoot().DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .SelectMany(m => m.ParameterList.Parameters)
+                .Select(p => p.Type!)
+                .ToArray();
+
+            Assert.Equal(2, parameterDecls.Length);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[0],
+                expectedSyntax: "delegate*<ref void>",
+                expectedType: "delegate*<ref System.Void>",
+                expectedSymbol: "delegate*<ref System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[1],
+                expectedSyntax: "delegate*<ref readonly void>",
+                expectedType: "delegate*<ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Void>",
+                expectedSymbol: "delegate*<ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Void>");
         }
 
         [InlineData("", CallingConvention.Default)]
@@ -155,6 +242,16 @@ class C
             FunctionPointerUtilities.CommonVerifyFunctionPointer(pointerType);
             Assert.Equal(expectedConvention, pointerType.Signature.CallingConvention);
             Assert.Equal(SpecialType.System_String, pointerType.Signature.ReturnType.SpecialType);
+
+            // https://github.com/dotnet/roslyn/issues/43321 test public calling convention exposure when added to the API
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model,
+                syntaxTree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().Single(),
+                expectedSyntax: $"delegate* {convention}<string>",
+                expectedType: "delegate*<System.String>",
+                expectedSymbol: "delegate*<System.String>");
         }
 
         [Fact]
@@ -175,6 +272,16 @@ class C
             var pointerType = (FunctionPointerTypeSymbol)m.Parameters.Single().Type;
             FunctionPointerUtilities.CommonVerifyFunctionPointer(pointerType);
             Assert.Equal(CallingConvention.Default, pointerType.Signature.CallingConvention);
+
+            // https://github.com/dotnet/roslyn/issues/43321 test public calling convention exposure when added to the API
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model,
+                syntaxTree.GetRoot().DescendantNodes().OfType<FunctionPointerTypeSyntax>().Single(),
+                expectedSyntax: "delegate* invalid<void>",
+                expectedType: "delegate*<System.Void>",
+                expectedSymbol: "delegate*<System.Void>");
         }
 
         [Fact]
@@ -222,6 +329,46 @@ class C
             Assert.Equal(t, sixthParamParam.ReturnType);
             Assert.Empty(sixthParamParam.Parameters);
 
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var parameterDecls = syntaxTree.GetRoot().DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .SelectMany(m => m.ParameterList.Parameters)
+                .Select(p => p.Type!)
+                .ToArray();
+
+            Assert.Equal(6, parameterDecls.Length);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[0],
+                expectedSyntax: "delegate*<int, void>",
+                expectedType: "delegate*<System.Int32, System.Void>",
+                expectedSymbol: "delegate*<System.Int32, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[1],
+                expectedSyntax: "delegate*<object, void>",
+                expectedType: "delegate*<System.Object, System.Void>",
+                expectedSymbol: "delegate*<System.Object, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[2],
+                expectedSyntax: "delegate*<C, void>",
+                expectedType: "delegate*<C, System.Void>",
+                expectedSymbol: "delegate*<C, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[3],
+                expectedSyntax: "delegate*<object, object, void>",
+                expectedType: "delegate*<System.Object, System.Object, System.Void>",
+                expectedSymbol: "delegate*<System.Object, System.Object, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[4],
+                expectedSyntax: "delegate*<T, object, void>",
+                expectedType: "delegate*<T, System.Object, System.Void>",
+                expectedSymbol: "delegate*<T, System.Object, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[5],
+                expectedSyntax: "delegate*<delegate*<T>, void>",
+                expectedType: "delegate*<delegate*<T>, System.Void>",
+                expectedSymbol: "delegate*<delegate*<T>, System.Void>");
+
             MethodSymbol getParam(int index)
             {
                 var type = ((FunctionPointerTypeSymbol)parameterTypes[index].Type);
@@ -262,6 +409,36 @@ class C
 
             var fourthParam = getParam(3);
             Assert.Equal(RefKind.None, fourthParam.Parameters.Single().RefKind);
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var parameterDecls = syntaxTree.GetRoot().DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .SelectMany(m => m.ParameterList.Parameters)
+                .Select(p => p.Type!)
+                .ToArray();
+
+            Assert.Equal(4, parameterDecls.Length);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[0],
+                expectedSyntax: "delegate*<ref string, void>",
+                expectedType: "delegate*<ref System.String, System.Void>",
+                expectedSymbol: "delegate*<ref System.String, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[1],
+                expectedSyntax: "delegate*<in string, void>",
+                expectedType: "delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.String, System.Void>",
+                expectedSymbol: "delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.String, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[2],
+                expectedSyntax: "delegate*<out string, void>",
+                expectedType: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void>",
+                expectedSymbol: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[3],
+                expectedSyntax: "delegate*<string, void>",
+                expectedType: "delegate*<System.String, System.Void>",
+                expectedSymbol: "delegate*<System.String, System.Void>");
 
             MethodSymbol getParam(int index)
             {
@@ -350,6 +527,61 @@ class C
             var ninthParam = getParam(8);
             Assert.Equal(RefKind.Ref, ninthParam.Parameters.Single().RefKind);
 
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var parameterDecls = syntaxTree.GetRoot().DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .SelectMany(m => m.ParameterList.Parameters)
+                .Select(p => p.Type!)
+                .ToArray();
+
+            Assert.Equal(9, parameterDecls.Length);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[0],
+                expectedSyntax: "delegate*<params string[], void>",
+                expectedType: "delegate*<System.String[], System.Void>",
+                expectedSymbol: "delegate*<System.String[], System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[1],
+                expectedSyntax: "delegate*<this string, void>",
+                expectedType: "delegate*<System.String, System.Void>",
+                expectedSymbol: "delegate*<System.String, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[2],
+                expectedSyntax: "delegate*<readonly ref string, void>",
+                expectedType: "delegate*<ref System.String, System.Void>",
+                expectedSymbol: "delegate*<ref System.String, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[3],
+                expectedSyntax: "delegate*<in out string, void>",
+                expectedType: "delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.String, System.Void>",
+                expectedSymbol: "delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.String, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[4],
+                expectedSyntax: "delegate*<out in string, void>",
+                expectedType: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void>",
+                expectedSymbol: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[5],
+                expectedSyntax: "delegate*<in ref string, void>",
+                expectedType: "delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.String, System.Void>",
+                expectedSymbol: "delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.String, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[6],
+                expectedSyntax: "delegate*<ref in string, void>",
+                expectedType: "delegate*<ref System.String, System.Void>",
+                expectedSymbol: "delegate*<ref System.String, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[7],
+                expectedSyntax: "delegate*<out ref string, void>",
+                expectedType: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void>",
+                expectedSymbol: "delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, parameterDecls[8],
+                expectedSyntax: "delegate*<ref out string, void>",
+                expectedType: "delegate*<ref System.String, System.Void>",
+                expectedSymbol: "delegate*<ref System.String, System.Void>");
+
             MethodSymbol getParam(int index)
             {
                 var type = ((FunctionPointerTypeSymbol)parameterTypes[index].Type);
@@ -376,6 +608,19 @@ class C
             var m = c.GetMethod("M");
             var signature = ((FunctionPointerTypeSymbol)m.Parameters.Single().Type).Signature;
             Assert.True(signature.Parameters.Single().Type.IsVoidType());
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var paramType = syntaxTree.GetRoot()
+                .DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .Single().ParameterList.Parameters
+                .Single().Type;
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, paramType!,
+                expectedSyntax: "delegate*<void, void>",
+                expectedType: "delegate*<System.Void, System.Void>",
+                expectedSymbol: "delegate*<System.Void, System.Void>");
         }
 
         [Fact]
@@ -831,11 +1076,18 @@ class C
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
 
+            var functionPointerTypeSyntax = syntaxTree.GetRoot()
+                .DescendantNodes()
+                .OfType<FunctionPointerTypeSyntax>()
+                .Single();
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, functionPointerTypeSyntax,
+                expectedSyntax: "delegate*<int[a]>",
+                expectedType: "delegate*<System.Int32[]>",
+                expectedSymbol: "delegate*<System.Int32[]>");
+
             var misplacedDeclaration =
-                ((ArrayTypeSyntax)syntaxTree.GetRoot()
-                    .DescendantNodes()
-                    .OfType<FunctionPointerTypeSyntax>()
-                    .Single()
+                ((ArrayTypeSyntax)functionPointerTypeSyntax
                     .Parameters.Single().Type!)
                     .RankSpecifiers.Single()
                     .Sizes.Single();
@@ -843,6 +1095,18 @@ class C
             var a = (ILocalSymbol)model.GetSymbolInfo(misplacedDeclaration).Symbol!;
             Assert.NotNull(a);
             Assert.Equal("System.Int32 a", a.ToTestDisplayString());
+
+            VerifyOperationTreeForNode(comp, model, functionPointerTypeSyntax.Parent, expectedOperationTree: @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'delegate*<int[a]> local')
+  Ignored Dimensions(1):
+      ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: delegate*<System.Int32[]> local) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'local')
+        Initializer: 
+          null
+  Initializer: 
+    null
+");
         }
 
         [Fact]
@@ -919,6 +1183,35 @@ class E
                     // (10,24): warning CS0168: The variable 'd' is declared but never used
                     //         delegate*<C.D> d;
                     Diagnostic(ErrorCode.WRN_UnreferencedVar, "d").WithArguments("d").WithLocation(10, 24));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var functionPointerTypeSyntax = syntaxTree.GetRoot()
+                .DescendantNodes()
+                .OfType<FunctionPointerTypeSyntax>()
+                .Single();
+
+            Assert.Equal("delegate*<C.D>", functionPointerTypeSyntax.ToString());
+
+            var typeInfo = model.GetTypeInfo(functionPointerTypeSyntax);
+            Assert.Equal("delegate*<C.D>", typeInfo.Type.ToTestDisplayString());
+            Assert.True(((IFunctionPointerTypeSymbol)typeInfo.Type!).Signature.ReturnType.IsErrorType());
+
+            var nestedTypeInfo = model.GetTypeInfo(functionPointerTypeSyntax.Parameters.Single().Type!);
+            Assert.Equal("C.D", nestedTypeInfo.Type!.ToTestDisplayString());
+            Assert.False(nestedTypeInfo.Type!.IsErrorType());
+
+
+            VerifyOperationTreeForNode(comp, model, functionPointerTypeSyntax.Parent, expectedOperationTree: @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'delegate*<C.D> d')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: delegate*<C.D> d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd')
+        Initializer: 
+          null
+  Initializer: 
+    null
+");
         }
 
         [Fact]
@@ -948,6 +1241,20 @@ class Program
                 // class R2 : R1<delegate*<void>>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("delegate*<void>").WithLocation(6, 7)
             );
+
+            var syntaxTree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(syntaxTree);
+
+            var baseNameSyntax = syntaxTree.GetRoot()
+                .DescendantNodes()
+                .OfType<SimpleBaseTypeSyntax>()
+                .Single()
+                .Type;
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, baseNameSyntax,
+                expectedSyntax: "R1<delegate*<void>>",
+                expectedType: "R1<delegate*<System.Void>>",
+                expectedSymbol: "R1<delegate*<System.Void>>");
         }
 
         [Fact]
@@ -1048,6 +1355,56 @@ unsafe static class C
                 //         var b = new { Ptrs = new[] { ptr } };
                 Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Ptrs = new[] { ptr }").WithArguments("delegate*<void>[]").WithLocation(7, 23)
             );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var anonymousObjectCreations = syntaxTree.GetRoot()
+                .DescendantNodes()
+                .OfType<AnonymousObjectCreationExpressionSyntax>()
+                .ToArray();
+
+            Assert.Equal(2, anonymousObjectCreations.Length);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, anonymousObjectCreations[0],
+                expectedSyntax: "new { Ptr = ptr }",
+                expectedType: "<anonymous type: delegate*<System.Void> Ptr>",
+                expectedSymbol: "<anonymous type: delegate*<System.Void> Ptr>..ctor(delegate*<System.Void> Ptr)");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, anonymousObjectCreations[1],
+                expectedSyntax: "new { Ptrs = new[] { ptr } }",
+                expectedType: "<anonymous type: delegate*<System.Void>[] Ptrs>",
+                expectedSymbol: "<anonymous type: delegate*<System.Void>[] Ptrs>..ctor(delegate*<System.Void>[] Ptrs)");
+
+            VerifyOperationTreeForNode(comp, model, anonymousObjectCreations[0], expectedOperationTree: @"
+IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: delegate*<System.Void> Ptr>, IsInvalid) (Syntax: 'new { Ptr = ptr }')
+  Initializers(1):
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'Ptr = ptr')
+        Left: 
+          IPropertyReferenceOperation: delegate*<System.Void> <anonymous type: delegate*<System.Void> Ptr>.Ptr { get; } (OperationKind.PropertyReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'Ptr')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: delegate*<System.Void> Ptr>, IsInvalid, IsImplicit) (Syntax: 'new { Ptr = ptr }')
+        Right: 
+          IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'ptr')
+");
+
+            VerifyOperationTreeForNode(comp, model, anonymousObjectCreations[1], expectedOperationTree: @"
+IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: delegate*<System.Void>[] Ptrs>, IsInvalid) (Syntax: 'new { Ptrs  ... ] { ptr } }')
+  Initializers(1):
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: delegate*<System.Void>[], IsInvalid) (Syntax: 'Ptrs = new[] { ptr }')
+        Left: 
+          IPropertyReferenceOperation: delegate*<System.Void>[] <anonymous type: delegate*<System.Void>[] Ptrs>.Ptrs { get; } (OperationKind.PropertyReference, Type: delegate*<System.Void>[], IsInvalid) (Syntax: 'Ptrs')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: delegate*<System.Void>[] Ptrs>, IsInvalid, IsImplicit) (Syntax: 'new { Ptrs  ... ] { ptr } }')
+        Right: 
+          IArrayCreationOperation (OperationKind.ArrayCreation, Type: delegate*<System.Void>[], IsInvalid) (Syntax: 'new[] { ptr }')
+            Dimension Sizes(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'new[] { ptr }')
+            Initializer: 
+              IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{ ptr }')
+                Element Values(1):
+                    IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'ptr')
+");
         }
 
         [Fact]
@@ -1101,6 +1458,358 @@ unsafe class C
             Assert.Equal("delegate*<int>", f1.ToDisplayString());
             Assert.Equal("delegate*<ref System.Int32 modopt(System.Object)>", f2.ToTestDisplayString());
             Assert.Equal("delegate*<int>", f2.ToDisplayString());
+        }
+
+        [Fact]
+        public void PublicApi_CreateInvalidInputs()
+        {
+            var comp = (Compilation)CreateCompilation("");
+            var @string = comp.GetSpecialType(SpecialType.System_String);
+            Assert.Throws<ArgumentNullException>("returnType", () => comp.CreateFunctionPointerTypeSymbol(returnType: null!, RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty));
+            Assert.Throws<ArgumentNullException>("parameterTypes", () => comp.CreateFunctionPointerTypeSymbol(returnType: @string, RefKind.None, parameterTypes: default, parameterRefKinds: ImmutableArray<RefKind>.Empty));
+            Assert.Throws<ArgumentNullException>("parameterTypes[0]", () => comp.CreateFunctionPointerTypeSymbol(returnType: @string, RefKind.None, parameterTypes: ImmutableArray.Create((ITypeSymbol?)null)!, parameterRefKinds: ImmutableArray.Create(RefKind.None)));
+            Assert.Throws<ArgumentNullException>("parameterRefKinds", () => comp.CreateFunctionPointerTypeSymbol(returnType: @string, RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: default));
+            Assert.Throws<ArgumentException>(() => comp.CreateFunctionPointerTypeSymbol(returnType: @string, RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray.Create(RefKind.None)));
+            Assert.Throws<ArgumentException>(() => comp.CreateFunctionPointerTypeSymbol(returnType: @string, RefKind.Out, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty));
+        }
+
+        [Fact]
+        public void PublicApi_CreateTypeSymbolNoRefKinds()
+        {
+            var comp = (Compilation)CreateCompilation(@"class C {}");
+
+            var c = comp.GetTypeByMetadataName("C")!;
+
+            var ptr = comp.CreateFunctionPointerTypeSymbol(
+                c.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.None),
+                RefKind.None,
+                ImmutableArray.Create(c.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.NotAnnotated), c.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated)),
+                ImmutableArray.Create(RefKind.None, RefKind.None));
+
+            Assert.Equal("delegate*<C!, C?, C>", ptr.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void PublicApi_CreateInRefReadonlyTypeSymbol()
+        {
+            var comp = (Compilation)CreateCompilation("");
+            var @string = comp.GetSpecialType(SpecialType.System_String);
+
+            var ptr = comp.CreateFunctionPointerTypeSymbol(
+                @string,
+                RefKind.RefReadOnly,
+                ImmutableArray.Create((ITypeSymbol)@string),
+                ImmutableArray.Create(RefKind.In));
+
+            Assert.Equal("delegate*<in modreq(System.Runtime.InteropServices.InAttribute) System.String, ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.String>",
+                         ptr.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void PublicApi_CreateOutTypeSymbol()
+        {
+            var comp = (Compilation)CreateCompilation("");
+            var @string = comp.GetSpecialType(SpecialType.System_String);
+            var @void = comp.GetSpecialType(SpecialType.System_Void);
+
+            var ptr = comp.CreateFunctionPointerTypeSymbol(
+                @void,
+                RefKind.None,
+                ImmutableArray.Create((ITypeSymbol)@string),
+                ImmutableArray.Create(RefKind.Out));
+
+            Assert.Equal("delegate*<out modreq(System.Runtime.InteropServices.OutAttribute) System.String, System.Void>",
+                         ptr.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void PublicApi_InOutAttributeMissing()
+        {
+            var comp = (Compilation)CreateCompilation("");
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_OutAttribute);
+            var @string = comp.GetSpecialType(SpecialType.System_String);
+
+            var ptr = comp.CreateFunctionPointerTypeSymbol(
+                @string,
+                RefKind.RefReadOnly,
+                ImmutableArray.Create((ITypeSymbol)@string),
+                ImmutableArray.Create(RefKind.Out));
+
+            Assert.Equal("System.Runtime.InteropServices.InAttribute[missing]", ptr.Signature.RefCustomModifiers.Single().Modifier.ToTestDisplayString());
+            Assert.Equal("System.Runtime.InteropServices.OutAttribute[missing]", ptr.Signature.Parameters.Single().RefCustomModifiers.Single().Modifier.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void PublicApi_SemanticInfo01()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+unsafe class C
+{
+    public static string M1(C c) => null;
+    public static void M2(string s, int i) {}
+    public delegate*<string, int, void> M(delegate*<C, string> ptr)
+    {
+        delegate*<string, int, void> ptr2 = &M2;
+        ptr = &M1;
+        ptr(null);
+        return &M2;
+    }
+}");
+
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var mDeclSyntax = syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Skip(2).Single();
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, mDeclSyntax.ReturnType,
+                expectedSyntax: "delegate*<string, int, void>",
+                expectedType: "delegate*<System.String, System.Int32, System.Void>",
+                expectedSymbol: "delegate*<System.String, System.Int32, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, mDeclSyntax.ParameterList.Parameters[0].Type!,
+                expectedSyntax: "delegate*<C, string>",
+                expectedType: "delegate*<C, System.String>",
+                expectedSymbol: "delegate*<C, System.String>");
+
+            var varDecl = mDeclSyntax.DescendantNodes().OfType<VariableDeclarationSyntax>().Single();
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, varDecl.Type,
+                expectedSyntax: "delegate*<string, int, void>",
+                expectedType: "delegate*<System.String, System.Int32, System.Void>",
+                expectedSymbol: "delegate*<System.String, System.Int32, System.Void>");
+
+            var varInitializer = varDecl.Variables.Single().Initializer!.Value;
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, varInitializer,
+                expectedSyntax: "&M2",
+                expectedType: null,
+                expectedConvertedType: "delegate*<System.String, System.Int32, System.Void>",
+                expectedSymbol: "void C.M2(System.String s, System.Int32 i)");
+
+            var assignment = mDeclSyntax.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, assignment,
+                expectedSyntax: "ptr = &M1",
+                expectedType: "delegate*<C, System.String>",
+                expectedSymbol: null,
+                expectedSymbolCandidates: null);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, assignment.Left,
+                expectedSyntax: "ptr",
+                expectedType: "delegate*<C, System.String>",
+                expectedSymbol: "delegate*<C, System.String> ptr");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, assignment.Right,
+                expectedSyntax: "&M1",
+                expectedType: null,
+                expectedConvertedType: "delegate*<C, System.String>",
+                expectedSymbol: "System.String C.M1(C c)");
+
+            InvocationExpressionSyntax invocationExpressionSyntax = mDeclSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocationExpressionSyntax,
+                expectedSyntax: "ptr(null)",
+                expectedType: "System.String",
+                expectedSymbol: "delegate*<C, System.String>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocationExpressionSyntax.Expression,
+                expectedSyntax: "ptr",
+                expectedType: "delegate*<C, System.String>",
+                expectedSymbol: "delegate*<C, System.String> ptr");
+
+            var typeInfo = model.GetTypeInfo(invocationExpressionSyntax);
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var returnExpression = mDeclSyntax.DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression!;
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model,
+                returnExpression,
+                expectedSyntax: "&M2",
+                expectedType: null,
+                expectedConvertedType: "delegate*<System.String, System.Int32, System.Void>",
+                expectedSymbol: "void C.M2(System.String s, System.Int32 i)");
+        }
+
+        [Fact]
+        public void PublicApi_SemanticInfo02()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+class C
+{
+    public static string M1(int i) => null;
+    public unsafe void M2()
+    {
+        delegate*<int, string> ptr = &M1;
+        delegate*<int, void> ptr2 = &M1;
+        _ = ptr(1);
+        _ = ptr();
+    }
+
+    public void M3()
+    {
+        delegate*<int, string> ptr = &M1;
+        _ = ptr(1);
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (8,38): error CS0407: 'string C.M1(int)' has the wrong return type
+                //         delegate*<int, void> ptr2 = &M1;
+                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("C.M1(int)", "string").WithLocation(8, 38),
+                // (10,13): error CS8756: Function pointer 'delegate*<int, string>' does not take 0 arguments
+                //         _ = ptr();
+                Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, "ptr()").WithArguments("delegate*<int, string>", "0").WithLocation(10, 13),
+                // (15,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         delegate*<int, string> ptr = &M1;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(15, 9),
+                // (16,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = ptr(1);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ptr(1)").WithLocation(16, 13)
+            );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var methodDecls = syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+
+            var ptrTypes = methodDecls
+                .SelectMany(m => m.DescendantNodes().OfType<FunctionPointerTypeSyntax>())
+                .ToArray();
+
+            Assert.Equal(3, ptrTypes.Length);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, ptrTypes[0],
+                expectedSyntax: "delegate*<int, string>",
+                expectedType: "delegate*<System.Int32, System.String>",
+                expectedSymbol: "delegate*<System.Int32, System.String>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, ptrTypes[1],
+                expectedSyntax: "delegate*<int, void>",
+                expectedType: "delegate*<System.Int32, System.Void>",
+                expectedSymbol: "delegate*<System.Int32, System.Void>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, ptrTypes[2],
+                expectedSyntax: "delegate*<int, string>",
+                expectedType: "delegate*<System.Int32, System.String>",
+                expectedSymbol: "delegate*<System.Int32, System.String>");
+
+            var m2DeclSyntax = methodDecls[1];
+            var decls = m2DeclSyntax.DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+
+            Assert.Equal("ptr = &M1", decls[0].ToString());
+            var addressOfSyntax = (PrefixUnaryExpressionSyntax)decls[0].Initializer!.Value;
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, addressOfSyntax,
+                expectedSyntax: "&M1",
+                expectedType: null,
+                expectedConvertedType: "delegate*<System.Int32, System.String>",
+                expectedSymbol: "System.String C.M1(System.Int32 i)");
+
+            Assert.Equal("ptr2 = &M1", decls[1].ToString());
+            addressOfSyntax = (PrefixUnaryExpressionSyntax)decls[1].Initializer!.Value;
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, addressOfSyntax,
+                expectedSyntax: "&M1",
+                expectedType: null,
+                expectedConvertedType: "delegate*<System.Int32, System.Void>",
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "System.String C.M1(System.Int32 i)" });
+
+            var invocations = m2DeclSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+            Assert.Equal(2, invocations.Length);
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[0],
+                expectedSyntax: "ptr(1)",
+                expectedType: "System.String",
+                expectedSymbol: "delegate*<System.Int32, System.String>");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[0].Expression,
+                expectedSyntax: "ptr",
+                expectedType: "delegate*<System.Int32, System.String>",
+                expectedSymbol: "delegate*<System.Int32, System.String> ptr");
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[1],
+                expectedSyntax: "ptr()",
+                expectedType: "System.String",
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "delegate*<System.Int32, System.String>" });
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocations[1].Expression,
+                expectedSyntax: "ptr",
+                expectedType: "delegate*<System.Int32, System.String>",
+                expectedSymbol: "delegate*<System.Int32, System.String> ptr");
+
+            var m3DeclSyntax = methodDecls[2];
+
+            var variableDeclaratorSyntax = m3DeclSyntax.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            Assert.Equal("ptr = &M1", variableDeclaratorSyntax.ToString());
+
+            var initializerValue = variableDeclaratorSyntax.Initializer!.Value;
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, initializerValue,
+                expectedSyntax: "&M1",
+                expectedType: null,
+                expectedConvertedType: "delegate*<System.Int32, System.String>",
+                expectedSymbol: "System.String C.M1(System.Int32 i)");
+
+            var invocationExpr = m3DeclSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, invocationExpr,
+                expectedSyntax: "ptr(1)",
+                expectedType: "System.String",
+                expectedSymbol: "delegate*<System.Int32, System.String>");
+        }
+
+        [Fact]
+        public void PublicApi_DeclaredSymbol_BadSymbols()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+#pragma warning disable CS0168 // Unused local
+unsafe class C
+{
+    void M()
+    {
+        delegate*<out int> ptr1;
+        delegate*<in int> ptr2;
+        delegate*<ref readonly int, void> ptr3;
+        delegate*<void, void> ptr4;
+        delegate*<ref void> ptr5;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (7,19): error CS8797: 'out' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                //         delegate*<out int> ptr1;
+                Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "out").WithArguments("out").WithLocation(7, 19),
+                // (8,19): error CS8797: 'in' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                //         delegate*<in int> ptr2;
+                Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "in").WithArguments("in").WithLocation(8, 19),
+                // (9,23): error CS8755: 'readonly' cannot be used as a modifier on a function pointer parameter.
+                //         delegate*<ref readonly int, void> ptr3;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "readonly").WithArguments("readonly").WithLocation(9, 23),
+                // (10,19): error CS1536: Invalid parameter type 'void'
+                //         delegate*<void, void> ptr4;
+                Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(10, 19),
+                // (11,19): error CS1547: Keyword 'void' cannot be used in this context
+                //         delegate*<ref void> ptr5;
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "ref void").WithLocation(11, 19)
+            );
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var decls = syntaxTree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+
+            Assert.Equal(5, decls.Length);
+
+            Assert.Equal("delegate*<System.Int32> ptr1", model.GetDeclaredSymbol(decls[0]).ToTestDisplayString());
+            Assert.Equal("delegate*<System.Int32> ptr2", model.GetDeclaredSymbol(decls[1]).ToTestDisplayString());
+            Assert.Equal("delegate*<ref System.Int32, System.Void> ptr3", model.GetDeclaredSymbol(decls[2]).ToTestDisplayString());
+            Assert.Equal("delegate*<System.Void, System.Void> ptr4", model.GetDeclaredSymbol(decls[3]).ToTestDisplayString());
+            Assert.Equal("delegate*<ref System.Void> ptr5", model.GetDeclaredSymbol(decls[4]).ToTestDisplayString());
         }
     }
 }

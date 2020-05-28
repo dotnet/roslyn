@@ -92,6 +92,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 suppressUseSiteDiagnostics);
         }
 
+        /// <summary>
+        /// Creates a function pointer method symbol from individual parts. This method should only be used when diagnostics are not needed.
+        /// </summary>
+        internal static FunctionPointerMethodSymbol CreateFromParts(
+            TypeWithAnnotations returnType,
+            RefKind returnRefKind,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            CSharpCompilation compilation)
+        {
+            return new FunctionPointerMethodSymbol(
+                CallingConvention.Default,
+                returnRefKind,
+                returnType,
+                parameterTypes,
+                parameterRefKinds,
+                compilation);
+        }
+
         public static FunctionPointerMethodSymbol CreateFromMetadata(CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
             => new FunctionPointerMethodSymbol(callingConvention, retAndParamTypes);
 
@@ -239,6 +258,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 _parameters = ImmutableArray<FunctionPointerParameterSymbol>.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Creates a function pointer method symbol from individual parts. This method should only be used when diagnostics are not needed.
+        /// </summary>
+        private FunctionPointerMethodSymbol(
+            CallingConvention callingConvention,
+            RefKind refKind,
+            TypeWithAnnotations returnTypeWithAnnotations,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            CSharpCompilation compilation)
+        {
+            Debug.Assert(refKind != RefKind.Out);
+            RefCustomModifiers = getCustomModifierForRefKind(refKind, compilation);
+            RefKind = refKind;
+            CallingConvention = callingConvention;
+            ReturnTypeWithAnnotations = returnTypeWithAnnotations;
+            _parameters = parameterTypes.ZipAsArray(parameterRefKinds, (Method: this, Comp: compilation), (type, refKind, i, arg) =>
+                new FunctionPointerParameterSymbol(type, refKind, i, arg.Method, refCustomModifiers: getCustomModifierForRefKind(refKind, arg.Comp)));
+
+            static ImmutableArray<CustomModifier> getCustomModifierForRefKind(RefKind refKind, CSharpCompilation compilation)
+            {
+                var attributeType = refKind switch
+                {
+                    RefKind.In => compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute),
+                    RefKind.Out => compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_OutAttribute),
+                    _ => null
+                };
+
+                if (attributeType is null)
+                {
+                    Debug.Assert(refKind != RefKind.Out && refKind != RefKind.In);
+                    return ImmutableArray<CustomModifier>.Empty;
+                }
+
+                return ImmutableArray.Create(CSharpCustomModifier.CreateRequired(attributeType));
             }
         }
 
