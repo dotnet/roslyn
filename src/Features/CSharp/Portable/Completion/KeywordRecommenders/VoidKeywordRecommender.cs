@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsTypeOfExpressionContext ||
                 syntaxTree.IsSizeOfExpressionContext(position, context.LeftToken) ||
                 context.IsDelegateReturnTypeContext ||
-                IsFunctionPointerNonRefType(context) ||
+                context.IsFunctionPointerTypeArgumentContext ||
                 IsUnsafeLocalVariableDeclarationContext(context) ||
                 IsUnsafeParameterTypeContext(context) ||
                 IsUnsafeCastTypeContext(context) ||
@@ -52,22 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsFixedVariableDeclarationContext ||
                 context.SyntaxTree.IsLocalFunctionDeclarationContext(position, SyntaxKindSet.AllLocalFunctionModifiers, cancellationToken);
         }
-
-        private bool IsFunctionPointerNonRefType(CSharpSyntaxContext context)
-            => context.IsFunctionPointerTypeArgumentContext
-               && !context.PrecedingModifiers.Contains(kind =>
-               {
-                   switch (kind)
-                   {
-                       case SyntaxKind.RefKeyword:
-                       case SyntaxKind.ReadOnlyKeyword:
-                       case SyntaxKind.OutKeyword:
-                       case SyntaxKind.InKeyword:
-                           return true;
-                       default:
-                           return false;
-                   }
-               });
 
         private bool IsUnsafeDefaultExpressionContext(CSharpSyntaxContext context)
         {

@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     {
         SymbolDisplayPart[] GeneratePreviewDisplayParts(AddedParameterViewModel addedParameterViewModel);
 
-        bool IsTypeNameValid(string typeName, ParseOptions? options);
+        bool IsTypeNameValid(string typeName);
 
         SyntaxNode GetTypeNode(string typeName);
     }

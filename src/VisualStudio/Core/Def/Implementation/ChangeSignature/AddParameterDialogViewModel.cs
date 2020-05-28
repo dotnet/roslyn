@@ -226,8 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private bool IsParameterTypeSyntacticallyValid(string typeName)
         {
             var languageService = Document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
-            _ = Document.TryGetSyntaxTree(out var syntaxTree);
-            return languageService.IsTypeNameValid(typeName, syntaxTree?.Options);
+            return languageService.IsTypeNameValid(typeName);
         }
 
         private bool DoesTypeFullyBind(ITypeSymbol? type)

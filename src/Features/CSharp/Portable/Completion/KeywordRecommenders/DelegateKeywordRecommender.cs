@@ -30,13 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsGlobalStatementContext ||
-                ((context.IsNonAttributeExpressionContext || context.IsTypeContext) && !context.IsConstantExpressionContext) ||
+                (ValidTypeContext(context) && !context.IsConstantExpressionContext) ||
                 IsAfterAsyncKeywordInExpressionContext(context, cancellationToken) ||
                 context.IsTypeDeclarationContext(
                     validModifiers: s_validModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
+
+            static bool ValidTypeContext(CSharpSyntaxContext context) => context.IsNonAttributeExpressionContext || context.IsTypeContext;
         }
 
         private static bool IsAfterAsyncKeywordInExpressionContext(CSharpSyntaxContext context, CancellationToken cancellationToken)

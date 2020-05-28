@@ -768,19 +768,31 @@ class C
     delegate*<int, v$$");
         }
 
-        [Theory]
-        [InlineData("ref")]
-        [InlineData("ref readonly")]
-        [InlineData("readonly")]
-        [InlineData("out")]
-        [InlineData("in")]
-        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInFunctionPointerAfterRefKind(string refKind)
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeAfterComma()
         {
-            await VerifyAbsenceAsync($@"
+            await VerifyKeywordAsync(@"
 class C
-{{
-    delegate*<int, {refKind} $$");
+{
+    delegate*<int, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeAfterModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterDelegateAsterisk()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    delegate*$$");
         }
     }
 }

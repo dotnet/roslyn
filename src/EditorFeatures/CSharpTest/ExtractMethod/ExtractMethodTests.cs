@@ -11216,5 +11216,34 @@ class C
 
             await TestExtractMethodAsync(code, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInvolvingFunctionPointerWithTypeParameter()
+        {
+            var code = @"
+class C
+{
+    void M<T1, T2>(delegate*<T1, T2> ptr1)
+    {
+        _ = [|ptr1|]();
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M<T1, T2>(delegate*<T1, T2> ptr1)
+    {
+        _ = GetPtr1(ptr1)();
+    }
+
+    private static delegate*<T1, T2> GetPtr1<T1, T2>(delegate*<T1, T2> ptr1)
+    {
+        return ptr1;
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
     }
 }

@@ -184,6 +184,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 return false;
             }
+            else if (x.MethodKind == MethodKindEx.FunctionPointerSignature)
+            {
+                return false;
+            }
 
             return true;
         }
