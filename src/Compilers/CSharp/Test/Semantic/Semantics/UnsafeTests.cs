@@ -9281,5 +9281,30 @@ namespace Interop
             var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void PointerTypeArrayInTypeParameter()
+        {
+            var source =
+@"
+#pragma warning disable CS0169 // Unused fields
+class C<T>
+{
+    T Field;
+}
+
+class Evil
+{
+    C<int*[]> EvilField;
+}
+";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (9,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     C<int*[]> EvilField;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 7)
+            );
+        }
     }
 }
