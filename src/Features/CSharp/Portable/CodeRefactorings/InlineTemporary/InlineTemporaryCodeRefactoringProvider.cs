@@ -366,6 +366,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 scope = parentExpressions.LastOrDefault().Parent;
             }
 
+            if (scope.IsKind(SyntaxKind.GlobalStatement))
+            {
+                scope = scope.Parent;
+            }
+
             return scope;
         }
 
@@ -437,6 +442,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             {
                 var newLabeledStatement = labeledStatement.ReplaceNode(newLocalDeclaration, SyntaxFactory.ParseStatement(""));
                 return newScope.ReplaceNode(labeledStatement, newLabeledStatement);
+            }
+
+            // If the local is parented by a global statement, we need to remove the parent global statement.
+            if (newLocalDeclaration.IsParentKind(SyntaxKind.GlobalStatement, out GlobalStatementSyntax globalStatement))
+            {
+                return newScope.RemoveNode(globalStatement, SyntaxRemoveOptions.KeepNoTrivia);
             }
 
             return newScope.RemoveNode(newLocalDeclaration, SyntaxRemoveOptions.KeepNoTrivia);

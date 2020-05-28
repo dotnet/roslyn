@@ -348,7 +348,8 @@ on a new line """),
                 Local("stuff"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task VerbatimStringLiteral6()
         {
             await TestAsync(
@@ -459,7 +460,8 @@ on a new line """),
                 String(@"""bar"""));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task VarContextualKeywordAtNamespaceLevel()
         {
             var code = @"var goo = 2;";
@@ -472,7 +474,8 @@ on a new line """),
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task LinqKeywordsAtNamespaceLevel()
         {
             // the contextual keywords are actual keywords since we parse top level field declaration and only give a semantic error

@@ -78,11 +78,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var tokenOnLeftOfPosition = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
+            var parent = token.Parent;
 
             var modifierTokens = syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition);
             if (modifierTokens.IsEmpty())
             {
-                return false;
+                if (token.IsKind(SyntaxKind.CloseBracketToken)
+                    && parent.IsKind(SyntaxKind.AttributeList, out AttributeListSyntax attributeList)
+                    && !IsGlobalAttributeList(attributeList))
+                {
+                    // Allow empty modifier tokens if we have an attribute list
+                    parent = attributeList.Parent;
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             if (modifierTokens.IsSubsetOf(validModifiers))
@@ -90,15 +101,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // the parent is the member
                 // the grandparent is the container of the member
                 // in interactive, it's possible that there might be an intervening "incomplete" member for partially
-                // typed declarations that parse ambiguously. For example, "internal e".
-                if (token.Parent.IsKind(SyntaxKind.CompilationUnit) ||
-                   (token.Parent.IsKind(SyntaxKind.IncompleteMember) && token.Parent.IsParentKind(SyntaxKind.CompilationUnit)))
+                // typed declarations that parse ambiguously. For example, "internal e". It's also possible for a
+                // complete member to be parsed based on data after the caret, e.g. "unsafe $$ void L() { }".
+                if (parent.IsKind(SyntaxKind.CompilationUnit) ||
+                   (parent is MemberDeclarationSyntax && parent.IsParentKind(SyntaxKind.CompilationUnit)))
                 {
                     return true;
                 }
             }
 
             return false;
+
+            // Local functions
+            static bool IsGlobalAttributeList(AttributeListSyntax attributeList)
+            {
+                if (attributeList.Target is { Identifier: { RawKind: var kind } })
+                {
+                    return kind == (int)SyntaxKind.AssemblyKeyword
+                        || kind == (int)SyntaxKind.ModuleKeyword;
+                }
+
+                return false;
+            }
         }
 
         public static bool IsMemberDeclarationContext(
@@ -303,8 +327,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var token = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-            // Local functions are always valid in a statement context
-            if (syntaxTree.IsStatementContext(position, leftToken, cancellationToken))
+            // Local functions are always valid in a statement context. They are also valid for top-level statements (as
+            // opposed to global functions which are defined in the global statement context of scripts).
+            if (syntaxTree.IsStatementContext(position, leftToken, cancellationToken)
+                || (!syntaxTree.IsScript() && syntaxTree.IsGlobalStatementContext(position, cancellationToken)))
             {
                 return true;
             }
@@ -328,7 +354,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
                 token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
 
-                return syntaxTree.IsStatementContext(beforeModifiersPosition, token, cancellationToken);
+                // If one or more attribute lists are present before the caret, check to see if those attribute lists
+                // were written in a local function declaration context.
+                while (token.IsKind(SyntaxKind.CloseBracketToken) && token.Parent.IsKind(SyntaxKind.AttributeList, out AttributeListSyntax attributeList))
+                {
+                    beforeModifiersPosition = attributeList.OpenBracketToken.SpanStart;
+                    leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
+                    token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
+                }
+
+                return syntaxTree.IsStatementContext(beforeModifiersPosition, token, cancellationToken)
+                    || (!syntaxTree.IsScript() && syntaxTree.IsGlobalStatementContext(beforeModifiersPosition, cancellationToken));
             }
 
             return false;
@@ -728,6 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsParameterTypeContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsPossibleLambdaOrAnonymousMethodParameterTypeContext(position, tokenOnLeftOfPosition, cancellationToken) ||
                 syntaxTree.IsStatementContext(position, tokenOnLeftOfPosition, cancellationToken) ||
+                syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||
                 syntaxTree.IsTypeParameterConstraintContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsUsingAliasContext(position, cancellationToken) ||
                 syntaxTree.IsUsingStaticContext(position, cancellationToken) ||
@@ -1876,11 +1913,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsGlobalStatementContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            if (!syntaxTree.IsScript())
-            {
-                return false;
-            }
-
 #if false
             if (syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken))
             {

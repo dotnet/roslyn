@@ -74,10 +74,56 @@ namespace N$$.P
                                 <Document>$$</Document>,
                                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.SendTypeChars("us")
+                state.SendTypeChars("usi")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("using", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(44459, "https://github.com/dotnet/roslyn/issues/44459")>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/44459"), CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSelectUsingOverUshort(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+$$
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                ' 'us' should select 'using' instead of 'ushort' (even though 'ushort' sorts higher in the list textually).
+                state.SendTypeChars("us")
+                Await state.AssertSelectedCompletionItem(displayText:="using", isHardSelected:=True)
+                Await state.AssertCompletionItemsContain("ushort", "")
+
+                ' even after 'ushort' is selected, deleting the 'h' should still take us back to 'using'.
+                state.SendTypeChars("h")
+                Await state.AssertSelectedCompletionItem(displayText:="ushort", isHardSelected:=True)
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem(displayText:="using", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WorkItem(44459, "https://github.com/dotnet/roslyn/issues/44459")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSelectUshortOverUsingOnceInMRU(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+$$
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("ush")
+                Await state.AssertCompletionItemsContain("ushort", "")
+                state.SendTab()
+                Assert.Contains("ushort", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+
+                state.SendDeleteWordToLeft()
+
+                ' 'ushort' should be in the MRU now. so typing 'us' should select it instead of 'using'.
+                state.SendTypeChars("us")
+                Await state.AssertSelectedCompletionItem(displayText:="ushort", isHardSelected:=True)
             End Using
         End Function
 

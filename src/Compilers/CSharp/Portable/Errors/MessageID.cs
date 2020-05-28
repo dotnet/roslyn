@@ -199,6 +199,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNotPattern = MessageBase + 12775,
         IDS_FeatureRelationalPattern = MessageBase + 12776,
         IDS_FeatureExtendedPartialMethods = MessageBase + 12777,
+
+        IDS_TopLevelStatements = MessageBase + 12780,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -319,6 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRelationalPattern:
                 case MessageID.IDS_FeatureNativeInt:
                 case MessageID.IDS_FeatureExtendedPartialMethods: // semantic check
+                case MessageID.IDS_TopLevelStatements:
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.
