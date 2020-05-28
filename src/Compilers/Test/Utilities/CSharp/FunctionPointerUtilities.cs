@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Assert.Empty(semanticInfo.MemberGroup);
                     var expectedConversionKind = (expectedType, expectedConvertedType, expectedSymbol) switch
                     {
-                        (null, null, object _) => ConversionKind.Identity,
+                        (null, null, _) => ConversionKind.Identity,
                         (_, _, null) => ConversionKind.NoConversion,
                         (_, _, _) => ConversionKind.MethodGroup,
                     };
