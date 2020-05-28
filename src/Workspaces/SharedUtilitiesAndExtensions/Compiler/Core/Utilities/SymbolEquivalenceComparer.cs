@@ -186,6 +186,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
             else if (x.MethodKind == MethodKindEx.FunctionPointerSignature)
             {
+                // We use the signature of a function pointer type to determine equivalence, but
+                // function pointer types do not have containing types.
                 return false;
             }
 

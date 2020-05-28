@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsGlobalStatementContext ||
-                (ValidTypeContext(context) && !context.IsConstantExpressionContext) ||
+                ValidTypeContext(context) ||
                 IsAfterAsyncKeywordInExpressionContext(context, cancellationToken) ||
                 context.IsTypeDeclarationContext(
                     validModifiers: s_validModifiers,
@@ -38,7 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     canBePartial: false,
                     cancellationToken: cancellationToken);
 
-            static bool ValidTypeContext(CSharpSyntaxContext context) => context.IsNonAttributeExpressionContext || context.IsTypeContext;
+            static bool ValidTypeContext(CSharpSyntaxContext context)
+                => (context.IsNonAttributeExpressionContext || context.IsTypeContext)
+                   && !context.IsConstantExpressionContext
+                   && !context.LeftToken.IsTopLevelOfUsingAliasDirective();
         }
 
         private static bool IsAfterAsyncKeywordInExpressionContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
