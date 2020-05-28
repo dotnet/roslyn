@@ -7178,7 +7178,7 @@ a.cs(1,7): error CS1001: Identifier expected
 a.cs(1,7): error CS1514: { expected
 a.cs(1,7): error CS1513: } expected
 a.cs(1,7): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-a.cs(1,7): error CS9002: Top-level statements must precede namespace and type declarations.
+a.cs(1,7): error CS8803: Top-level statements must precede namespace and type declarations.
 a.cs(1,7): error CS1525: Invalid expression term '??'
 a.cs(1,9): error CS1525: Invalid expression term '{'
 a.cs(1,9): error CS1002: ; expected

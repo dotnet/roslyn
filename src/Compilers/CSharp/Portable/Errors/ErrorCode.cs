@@ -1797,11 +1797,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodAccessibilityDifference = 8799,
         ERR_PartialMethodExtendedModDifference = 8800,
 
-        ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 9000,
-        ERR_SimpleProgramMultipleUnitsWithTopLevelStatements = 9001,
-        ERR_TopLevelStatementAfterNamespaceOrType = 9002,
-        ERR_SimpleProgramDisallowsMainType = 9003,
-        ERR_SimpleProgramNotAnExecutable = 9004,
+        ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 8801,
+        ERR_SimpleProgramMultipleUnitsWithTopLevelStatements = 8802,
+        ERR_TopLevelStatementAfterNamespaceOrType = 8803,
+        ERR_SimpleProgramDisallowsMainType = 8804,
+        ERR_SimpleProgramNotAnExecutable = 8805,
 
         #endregion
 
