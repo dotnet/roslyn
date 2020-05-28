@@ -2115,6 +2115,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type = null;
                     nullability = new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.NotNull);
                 }
+                else if (boundExpr == highestBoundNode && boundExpr is BoundUnconvertedAddressOfOperator && boundNodeForSyntacticParent is BoundConversion { ExplicitCastInCode: true })
+                {
+                    // There was an explicit cast of an address of to a type it wasn't compatible with.
+                    type = null;
+                    convertedType = null;
+                    convertedNullability = nullability;
+                    conversion = Conversion.NoConversion;
+                }
                 else
                 {
                     convertedType = type;

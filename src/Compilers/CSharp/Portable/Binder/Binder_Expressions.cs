@@ -2354,7 +2354,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.UnconvertedAddressOfOperator:
                     {
-                        diagnostics.Add(ErrorCode.ERR_AddressOfToNonFunctionPointer , syntax.Location, ((BoundUnconvertedAddressOfOperator)operand).Operand.Name, targetType);
+                        var errorCode = targetType.TypeKind switch
+                        {
+                            TypeKind.FunctionPointer => ErrorCode.ERR_MethFuncPtrMismatch,
+                            TypeKind.Delegate => ErrorCode.ERR_CannotConvertAddressOfToDelegate,
+                            _ => ErrorCode.ERR_AddressOfToNonFunctionPointer
+                        };
+
+                        diagnostics.Add(errorCode, syntax.Location, ((BoundUnconvertedAddressOfOperator)operand).Operand.Name, targetType);
                         return;
                     }
             }
