@@ -94,7 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var cloneReturnType = cloneMethod?.ReturnType;
+            // Even if a clone method is not present, we should come up with
+            // a type to lookup members of the with-expression in for error recovery
+            var cloneReturnType = cloneMethod?.ReturnType ?? receiverType;
+            RoslynDebug.AssertNotNull(cloneReturnType);
 
             var args = ArrayBuilder<(Symbol?, BoundExpression)>.GetInstance();
             // Bind with expression arguments

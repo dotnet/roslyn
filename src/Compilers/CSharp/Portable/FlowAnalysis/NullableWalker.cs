@@ -2224,6 +2224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitWithExpression(BoundWithExpression expr)
         {
+            // TODO: assignments need to be checked for nullable compatibility
             base.VisitWithExpression(expr);
             SetResultType(expr,
                 expr.CloneMethod?.ReturnTypeWithAnnotations.ToTypeWithState()

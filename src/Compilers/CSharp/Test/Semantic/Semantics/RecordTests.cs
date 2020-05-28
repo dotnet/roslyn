@@ -1706,20 +1706,54 @@ data class B(string X)
 #nullable enable
 data class B(string? X)
 {
-    static void M(B b, string s)
+    static void M1(B b, string s, bool flag)
     {
-        b.X.ToString(); // 1
+        if (flag) { b.X.ToString(); } // 1
         _ = b with { X = s };
-        b.X.ToString();
+        if (flag) { b.X.ToString(); } // 2
+    }
+
+    static void M2(B b, string s, bool flag)
+    {
+        if (flag) { b.X.ToString(); } // 1
+        b = b with { X = s };
+        if (flag) { b.X.ToString(); }
     }
 }";
             var comp = CreateCompilation(src);
-            // PROTOTYPE: we fail a Debug.Assert due to a conversion here
             // PROTOTYPE: records don't auto-generate Clone at the moment
             comp.VerifyDiagnostics(
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         b.X.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(7, 9),
                 // (8,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
-                //         _ = b with { X = M(out s) };
+                //         _ = b with { X = s };
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(8, 13));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_04()
+        {
+            var src = @"
+#nullable enable
+data class B(int X)
+{
+    static void M(B? b)
+    {
+        _ = b with { X = 42 }; // 1
+        _ = b.ToString();
+    }
+}";
+            var comp = CreateCompilation(src);
+            // PROTOTYPE: with-expression should check receiver nullability
+            // PROTOTYPE: records don't auto-generate Clone at the moment
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
+                //         _ = b with { X = 42 }; // 1
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(7, 13),
+                // (8,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = b.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b").WithLocation(8, 13));
         }
     }
 }
