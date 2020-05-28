@@ -3722,10 +3722,10 @@ class C
                 // (8,24): error CS0119: 'Action' is a type, which is not valid in the given context
                 //         Action ptr1 = (Action)&M;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Action").WithArguments("System.Action", "type").WithLocation(8, 24),
-                // (9,23): error CS8800: Cannot convert a & method group 'M' to delegate type 'M'.
+                // (9,23): error CS8800: Cannot convert & method group 'M' to delegate type 'M'.
                 //         Action ptr2 = (Action)(&M);
                 Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "(Action)(&M)").WithArguments("M", "System.Action").WithLocation(9, 23),
-                // (10,23): error CS8800: Cannot convert a & method group 'M' to delegate type 'M'.
+                // (10,23): error CS8800: Cannot convert & method group 'M' to delegate type 'M'.
                 //         Action ptr3 = &M;
                 Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "&M").WithArguments("M", "System.Action").WithLocation(10, 23)
             );

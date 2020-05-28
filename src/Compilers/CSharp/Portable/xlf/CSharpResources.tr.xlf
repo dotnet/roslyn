@@ -123,8 +123,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
-        <source>Cannot convert a &amp; method group '{0}' to delegate type '{0}'.</source>
-        <target state="new">Cannot convert a &amp; method group '{0}' to delegate type '{0}'.</target>
+        <source>Cannot convert &amp; method group '{0}' to delegate type '{0}'.</source>
+        <target state="new">Cannot convert &amp; method group '{0}' to delegate type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotUseFunctionPointerAsFixedLocal">

@@ -6161,7 +6161,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'RefKind.Out' is not a valid ref kind for a return type.</value>
   </data>
   <data name="ERR_CannotConvertAddressOfToDelegate" xml:space="preserve">
-    <value>Cannot convert a &amp; method group '{0}' to delegate type '{0}'.</value>
+    <value>Cannot convert &amp; method group '{0}' to delegate type '{0}'.</value>
   </data>
   <data name="ERR_AddressOfToNonFunctionPointer" xml:space="preserve">
     <value>Cannot convert &amp; method group '{0}' to non-function pointer type '{1}'.</value>
