@@ -333,14 +333,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// In VB, this includes all block statements such as a MultiLineIfBlockSyntax.
         /// </summary>
         bool IsExecutableBlock(SyntaxNode node);
-        SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
+        IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
         SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
 
+#nullable enable
         /// <summary>
         /// A node that can host a list of statements or a single statement. In addition to
         /// every "executable block", this also includes C# embedded statement owners.
         /// </summary>
-        bool IsStatementContainer(SyntaxNode node);
+        bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node);
+#nullable restore
+
         IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node);
 
         bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
