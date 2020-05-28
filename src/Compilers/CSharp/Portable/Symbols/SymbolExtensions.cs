@@ -419,6 +419,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return returnType;
         }
 
+        internal static FlowAnalysisAnnotations GetFlowAnalysisAnnotations(this Symbol symbol)
+        {
+            return symbol switch
+            {
+                MethodSymbol method => method.ReturnTypeFlowAnalysisAnnotations,
+                PropertySymbol property => property.GetOwnOrInheritedGetMethod()?.ReturnTypeFlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None,
+                ParameterSymbol parameter => parameter.FlowAnalysisAnnotations,
+                FieldSymbol field => field.FlowAnalysisAnnotations,
+                _ => FlowAnalysisAnnotations.None
+            };
+        }
+
         internal static void GetTypeOrReturnType(this Symbol symbol, out RefKind refKind, out TypeWithAnnotations returnType,
                                                  out ImmutableArray<CustomModifier> refCustomModifiers)
         {

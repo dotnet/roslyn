@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// CONSIDER: most types won't have indexers, so we could move the indexer list
         /// into a subclass to spare most instances the space required for the field.
         /// </remarks>
-        private sealed class MembersAndInitializers
+        protected sealed class MembersAndInitializers
         {
             internal readonly ImmutableArray<Symbol> NonTypeNonIndexerMembers;
             internal readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers;
@@ -1340,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //       we often need to get members just to do a lookup.
         //       All additional checks and diagnostics may be not
         //       needed yet or at all.
-        private MembersAndInitializers GetMembersAndInitializers()
+        protected MembersAndInitializers GetMembersAndInitializers()
         {
             var membersAndInitializers = _lazyMembersAndInitializers;
             if (membersAndInitializers != null)
@@ -1689,6 +1689,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case (SourceOrdinaryMethodSymbol { IsPartialImplementation: true }, SourceOrdinaryMethodSymbol { IsPartialDefinition: true }):
                     // these could be 2 parts of the same partial method.
                     // Partial methods are allowed to collide by signature.
+                    return;
+                case (SynthesizedSimpleProgramEntryPointSymbol { }, SynthesizedSimpleProgramEntryPointSymbol { }):
                     return;
             }
 
@@ -2402,7 +2404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private MembersAndInitializers BuildMembersAndInitializers(DiagnosticBag diagnostics)
+        protected virtual MembersAndInitializers BuildMembersAndInitializers(DiagnosticBag diagnostics)
         {
             var builder = new MembersAndInitializersBuilder();
             AddDeclaredNontypeMembers(builder, diagnostics);
@@ -3341,7 +3343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 AddInitializer(ref instanceInitializers, ref builder.InstanceSyntaxLength, null, globalStatement);
                             }
-                            else if (reportMisplacedGlobalCode)
+                            else if (reportMisplacedGlobalCode && !SyntaxFacts.IsSimpleProgramTopLevelStatement((GlobalStatementSyntax)m))
                             {
                                 diagnostics.Add(ErrorCode.ERR_GlobalStatement, new SourceLocation(globalStatement));
                             }

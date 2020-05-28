@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ArrowExpressionClauseSyntax syntax,
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), location)
+            base(containingType, syntax.GetReference(), location, isIterator: false)
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
@@ -209,7 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
             : base(containingType,
                    syntax.GetReference(),
-                   location)
+                   location,
+                   isIterator: SyntaxFacts.HasYieldOperations(syntax.Body))
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;

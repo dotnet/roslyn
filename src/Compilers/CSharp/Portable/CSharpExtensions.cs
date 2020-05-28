@@ -1243,6 +1243,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Given a compilation unit syntax, get the corresponding Simple Program entry point symbol.
+        /// </summary>
+        public static IMethodSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, CompilationUnitSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
         /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
         /// the declaration assembly.
         /// </summary>

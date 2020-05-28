@@ -49,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return arrowExpression;
                 case LocalFunctionStatementSyntax localFunction:
                     return (CSharpSyntaxNode?)localFunction.Body ?? localFunction.ExpressionBody;
+                case CompilationUnitSyntax _ when this is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
+                    return (CSharpSyntaxNode)entryPoint.ReturnTypeSyntax;
                 default:
                     return null;
             }
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal CSharpSyntaxNode SyntaxNode
+        internal virtual CSharpSyntaxNode SyntaxNode
         {
             get
             {
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
             {

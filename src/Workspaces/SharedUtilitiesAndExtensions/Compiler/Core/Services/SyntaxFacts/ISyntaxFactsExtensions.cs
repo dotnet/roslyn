@@ -372,6 +372,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsTupleExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TupleExpression;
 
+        public static bool ContainsGlobalStatement(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+            => node.ChildNodes().Any(c => c.RawKind == syntaxFacts.SyntaxKinds.GlobalStatement);
+
         #endregion
 
         #region statements
@@ -398,19 +401,22 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #region members/declarations
 
-        public static bool IsAttribute(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
+        public static bool IsAttribute(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.Attribute;
 
-        public static bool IsParameter(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
+        public static bool IsGlobalAttribute(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => syntaxFacts.IsGlobalAssemblyAttribute(node) || syntaxFacts.IsGlobalModuleAttribute(node);
+
+        public static bool IsParameter(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.Parameter;
 
-        public static bool IsTypeConstraint(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
+        public static bool IsTypeConstraint(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TypeConstraint;
 
-        public static bool IsVariableDeclarator(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
+        public static bool IsVariableDeclarator(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.VariableDeclarator;
 
-        public static bool IsTypeArgumentList(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
+        public static bool IsTypeArgumentList(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TypeArgumentList;
 
         #endregion

@@ -29,10 +29,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (statement != null)
             {
                 var nextToken = statement.GetLastToken().GetNextToken();
-                return nextToken.GetAncestors<StatementSyntax>().FirstOrDefault(s => s.Parent == statement.Parent);
+                return nextToken.GetAncestors<StatementSyntax>().FirstOrDefault(s => s.Parent == statement.Parent || AreInSiblingTopLevelStatements(s, statement));
             }
 
             return null;
+
+            static bool AreInSiblingTopLevelStatements(StatementSyntax one, StatementSyntax other)
+            {
+                return one.IsParentKind(SyntaxKind.GlobalStatement) &&
+                    other.IsParentKind(SyntaxKind.GlobalStatement);
+            }
         }
     }
 }

@@ -487,6 +487,26 @@
         <target state="translated">Hedef çalışma zamanı, bir arabirim üyesi için 'protected', 'protected internal' veya 'private protected' erişilebilirliğini desteklemez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
+        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
+        <target state="new">Cannot specify /main if there is a compilation unit with top-level statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
+        <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
+        <target state="new">Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramMultipleUnitsWithTopLevelStatements">
+        <source>Only one compilation unit can have top-level statements.</source>
+        <target state="new">Only one compilation unit can have top-level statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramNotAnExecutable">
+        <source>Program using top-level statements must be an executable.</source>
+        <target state="new">Program using top-level statements must be an executable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Tek öğeli bir ayrıştırma deseni, kesinleştirme için başka bir söz dizimi gerektirir. ')' kapanış parantezinden sonra '_' atma belirleyicisinin eklenmesi önerilir.</target>
@@ -530,6 +550,11 @@
       <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
         <source>Parentheses are required around the switch governing expression.</source>
         <target state="translated">Switch yönetim ifadesinin parantez içine alınması gerekir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
+        <source>Top-level statements must precede namespace and type declarations.</source>
+        <target state="new">Top-level statements must precede namespace and type declarations.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TripleDotNotAllowed">
@@ -1164,6 +1189,11 @@
       <trans-unit id="IDS_RELATEDWARNING">
         <source>(Location of symbol related to previous warning)</source>
         <target state="translated">(Önceki uyarıyla ilgili sembolün konumu)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_TopLevelStatements">
+        <source>top-level statements</source>
+        <target state="new">top-level statements</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">
@@ -7895,13 +7925,13 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored">
-        <source>The entry point of the program is global script code; ignoring '{0}' entry point.</source>
-        <target state="translated">Programın giriş noktası genel betik kodudur; '{0}' giriş noktası yoksayılıyor.</target>
+        <source>The entry point of the program is global code; ignoring '{0}' entry point.</source>
+        <target state="needs-review-translation">Programın giriş noktası genel betik kodudur; '{0}' giriş noktası yoksayılıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored_Title">
-        <source>The entry point of the program is global script code; ignoring entry point</source>
-        <target state="translated">Programın giriş noktası genel betik kodudur, giriş noktası yoksayılıyor</target>
+        <source>The entry point of the program is global code; ignoring entry point</source>
+        <target state="needs-review-translation">Programın giriş noktası genel betik kodudur, giriş noktası yoksayılıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticInAsOrIs">
