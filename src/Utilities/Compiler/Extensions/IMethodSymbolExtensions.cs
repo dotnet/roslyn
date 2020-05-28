@@ -168,7 +168,8 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsAsyncDisposeImplementation(this IMethodSymbol method, Compilation compilation)
         {
             INamedTypeSymbol? iAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
-            return method.IsAsyncDisposeImplementation(iAsyncDisposable);
+            INamedTypeSymbol? valueTaskType = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemValueTask);
+            return method.IsAsyncDisposeImplementation(iAsyncDisposable, valueTaskType);
         }
 
         /// <summary>
@@ -196,7 +197,7 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Checks if the given method implements "IAsyncDisposable.Dispose" or overrides an implementation of "IAsyncDisposable.Dispose".
         /// </summary>
-        public static bool IsAsyncDisposeImplementation([NotNullWhen(returnValue: true)] this IMethodSymbol? method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iAsyncDisposable)
+        public static bool IsAsyncDisposeImplementation([NotNullWhen(returnValue: true)] this IMethodSymbol? method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iAsyncDisposable, INamedTypeSymbol? valueTaskType)
         {
             if (method == null)
             {
@@ -205,10 +206,9 @@ namespace Analyzer.Utilities.Extensions
 
             if (method.IsOverride)
             {
-                return method.OverriddenMethod.IsAsyncDisposeImplementation(iAsyncDisposable);
+                return method.OverriddenMethod.IsAsyncDisposeImplementation(iAsyncDisposable, valueTaskType);
             }
 
-            INamedTypeSymbol? valueTaskType= compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemValueTask);
             // Identify the implementor of IAsyncDisposable.Dispose in the given method's containing type and check
             // if it is the given method.
             return method.ReturnType.Equals(valueTaskType) && method.Parameters.Length == 0 &&
