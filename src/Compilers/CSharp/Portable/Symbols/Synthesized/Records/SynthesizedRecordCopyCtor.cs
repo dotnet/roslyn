@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Write assignments to backing fields
             //
             // {
-            //     this.backingField1 = arg1
+            //     this.backingField1 = parameter.backingField1
             //     ...
-            //     this.backingFieldN = argN
+            //     this.backingFieldN = parameter.backingFieldN
             // }
             var param = F.Parameter(Parameters[0]);
             foreach (var member in ContainingType.GetMembers())

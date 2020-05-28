@@ -2171,19 +2171,18 @@ public data class C(int i)
             comp.VerifyDiagnostics();
 
             var cMembers = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers();
-            // PROTOTYPE(init-only): expecting an 'init' setter
-            AssertEx.SetEqual(cMembers.ToTestDisplayStrings(), new[] {
+            AssertEx.SetEqual(new[] {
+                "C C.Clone()",
                 "System.Int32 C.<i>k__BackingField",
                 "System.Int32 C.i.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.i.init",
                 "System.Int32 C.i { get; init; }",
                 "void C.M()",
-                "C C.Clone()",
                 "System.Boolean C.Equals(C? )",
                 "System.Boolean C.Equals(System.Object? )",
                 "System.Int32 C.GetHashCode()",
                 "C..ctor(C )",
-                "C..ctor(System.Int32 i)" });
+                "C..ctor(System.Int32 i)" }, cMembers.ToTestDisplayStrings());
 
             foreach (var member in cMembers)
             {

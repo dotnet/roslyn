@@ -121,9 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      tmp.P2 = e2;
             //      tmp
 
+            var cloneCall = _factory.Call(
+                VisitExpression(withExpr.Receiver),
+                withExpr.CloneMethod);
+
             return MakeExpressionWithInitializer(
                 withExpr.Syntax,
-                _factory.InstanceCall(VisitExpression(withExpr.Receiver), "Clone"),
+                cloneCall,
                 withExpr.InitializerExpression,
                 withExpr.Type);
         }

@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsStatic => false;
 
+        // PROTOTYPE: Inheritance is not handled
         public override bool IsVirtual => true;
 
         public override bool IsOverride => false;
@@ -81,8 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsExtern => false;
 
         internal override bool HasSpecialName => true;
-
-        internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.SynthesizedRecordEquals;
 
         internal override MethodImplAttributes ImplementationAttributes => MethodImplAttributes.Managed;
 
@@ -114,21 +113,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 
-            // If this is a class, call the copy ctor. Otherwise, just return `this
+            // If this is a class, call the copy ctor. Otherwise, just return `this`
             if (ContainingType.IsStructType())
             {
-                F.CloseMethod(F.Block(F.Return(F.This())));
+                F.CloseMethod(F.Return(F.This()));
                 return;
             }
 
-            var members = ContainingType.GetMembers(".ctor");
+            // PROTOTYPE: what about base fields?
+            var members = ContainingType.GetMembers(WellKnownMemberNames.InstanceConstructorName);
             foreach (var member in members)
             {
                 var ctor = (MethodSymbol)member;
                 if (ctor.ParameterCount == 1 &&
                     ctor.Parameters[0].Type.Equals(ContainingType, TypeCompareKind.ConsiderEverything))
                 {
-                    F.CloseMethod(F.Block(F.Return(F.New(ctor, F.This()))));
+                    F.CloseMethod(F.Return(F.New(ctor, F.This())));
                     return;
                 }
             }
