@@ -3656,6 +3656,7 @@ unsafe class C
         }
 
         [Fact]
+        [WorkItem(44489, "https://github.com/dotnet/roslyn/issues/44489")]
         public void AddressOf_CannotAssignToVoidStar()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -3663,15 +3664,174 @@ unsafe class C
 {
     static void M()
     {
-        void* ptr = &M;
+        void* ptr1 = &M;
+        void* ptr2 = (void*)&M;
     }
 }");
 
             comp.VerifyDiagnostics(
-                // (6,21): error CS0428: Cannot convert method group 'M' to non-delegate type 'void*'. Did you intend to invoke the method?
-                //         void* ptr = &M;
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "&M").WithArguments("M", "void*").WithLocation(6, 21)
+                // (6,22): error CS8801: Cannot convert & method group 'M' to non-function pointer type 'void*'.
+                //         void* ptr1 = &M;
+                Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "&M").WithArguments("M", "void*").WithLocation(6, 22),
+                // (7,22): error CS8801: Cannot convert & method group 'M' to non-function pointer type 'void*'.
+                //         void* ptr2 = (void*)&M;
+                Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "(void*)&M").WithArguments("M", "void*").WithLocation(7, 22)
             );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, decls[0].Initializer!.Value,
+                expectedSyntax: "&M",
+                expectedType: null,
+                expectedConvertedType: "System.Void*",
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "void C.M()" });
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, ((CastExpressionSyntax)decls[1].Initializer!.Value).Expression,
+                expectedSyntax: "&M",
+                expectedType: null,
+                expectedConvertedType: null,
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "void C.M()" });
+        }
+
+        [Fact]
+        [WorkItem(44489, "https://github.com/dotnet/roslyn/issues/44489")]
+        public void AddressOf_ToDelegateType()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+class C
+{
+    unsafe void M()
+    {
+        // This actually gets bound as a binary expression: (Action) & M
+        Action ptr1 = (Action)&M;
+        Action ptr2 = (Action)(&M);
+        Action ptr3 = &M;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (8,24): error CS0119: 'Action' is a type, which is not valid in the given context
+                //         Action ptr1 = (Action)&M;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Action").WithArguments("System.Action", "type").WithLocation(8, 24),
+                // (8,24): error CS0119: 'Action' is a type, which is not valid in the given context
+                //         Action ptr1 = (Action)&M;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Action").WithArguments("System.Action", "type").WithLocation(8, 24),
+                // (9,23): error CS8800: Cannot convert a & method group 'M' to delegate type 'M'.
+                //         Action ptr2 = (Action)(&M);
+                Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "(Action)(&M)").WithArguments("M", "System.Action").WithLocation(9, 23),
+                // (10,23): error CS8800: Cannot convert a & method group 'M' to delegate type 'M'.
+                //         Action ptr3 = &M;
+                Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "&M").WithArguments("M", "System.Action").WithLocation(10, 23)
+            );
+
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, ((CastExpressionSyntax)decls[1].Initializer!.Value).Expression,
+                expectedSyntax: "(&M)",
+                expectedType: null,
+                expectedConvertedType: null,
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "void C.M()" });
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, decls[2].Initializer!.Value,
+                expectedSyntax: "&M",
+                expectedType: null,
+                expectedConvertedType: "System.Action",
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "void C.M()" });
+        }
+
+        [Fact]
+        [WorkItem(44489, "https://github.com/dotnet/roslyn/issues/44489")]
+        public void AddressOf_ToNonDelegateOrPointerType()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+class C
+{
+    unsafe void M()
+    {
+        // This actually gets bound as a binary expression: (C) & M
+        C ptr1 = (C)&M;
+        C ptr2 = (C)(&M);
+        C ptr3 = &M;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (7,19): error CS0119: 'C' is a type, which is not valid in the given context
+                //         C ptr1 = (C)&M;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "C").WithArguments("C", "type").WithLocation(7, 19),
+                // (7,19): error CS0119: 'C' is a type, which is not valid in the given context
+                //         C ptr1 = (C)&M;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "C").WithArguments("C", "type").WithLocation(7, 19),
+                // (8,18): error CS8801: Cannot convert & method group 'M' to non-function pointer type 'C'.
+                //         C ptr2 = (C)(&M);
+                Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "(C)(&M)").WithArguments("M", "C").WithLocation(8, 18),
+                // (9,18): error CS8801: Cannot convert & method group 'M' to non-function pointer type 'C'.
+                //         C ptr3 = &M;
+                Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "&M").WithArguments("M", "C").WithLocation(9, 18)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, ((CastExpressionSyntax)decls[1].Initializer!.Value).Expression,
+                expectedSyntax: "(&M)",
+                expectedType: null,
+                expectedConvertedType: null,
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "void C.M()" });
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, decls[2].Initializer!.Value,
+                expectedSyntax: "&M",
+                expectedType: null,
+                expectedConvertedType: "C",
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "void C.M()" });
+        }
+
+        [Fact]
+        public void AddressOf_ExplicitCastToNonCompatibleFunctionPointerType()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+class C
+{
+    unsafe void M()
+    {
+        var ptr = (delegate*<string>)&M;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (6,19): error CS8757: No overload for 'M' matches function pointer 'delegate*<string>'
+                //         var ptr = (delegate*<string>)&M;
+                Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "(delegate*<string>)&M").WithArguments("M", "delegate*<string>").WithLocation(6, 19)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+
+            FunctionPointerUtilities.VerifyFunctionPointerSemanticInfo(model, ((CastExpressionSyntax)decls[0].Initializer!.Value).Expression,
+                expectedSyntax: "&M",
+                expectedType: null,
+                expectedConvertedType: null,
+                expectedCandidateReason: CandidateReason.OverloadResolutionFailure,
+                expectedSymbolCandidates: new[] { "void C.M()" });
         }
 
         [Fact]
@@ -3848,7 +4008,7 @@ unsafe class C
                 // (10,35): error CS8757: No overload for 'M1' matches function pointer 'delegate*<C, void>'
                 //         delegate*<C, void> ptr1 = &c.M1;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&c.M1").WithArguments("M1", "delegate*<C, void>").WithLocation(10, 35),
-                // (11,32): error CS8788: Cannot use a an extension method with a receiver as the target of a '&amp;' operator.
+                // (11,32): error CS8788: Cannot use an extension method with a receiver as the target of a '&amp;' operator.
                 //         delegate*<void> ptr2 = &c.M1;
                 Diagnostic(ErrorCode.ERR_CannotUseReducedExtensionMethodInAddressOf, "&c.M1").WithLocation(11, 32)
             );

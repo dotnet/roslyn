@@ -3598,9 +3598,9 @@ enum Color
                 // (40,15): error CS0211: Cannot take the address of the given expression
                 //         p = &(() => 1); //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "() => 1").WithLocation(40, 15),
-                // (41,13): error CS0428: Cannot convert method group 'M' to non-delegate type 'int*'. Did you intend to invoke the method?
+                // (41,13): error CS8801: Cannot convert & method group 'M' to non-function pointer type 'int*'.
                 //         p = &M; //CS0211
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "&M").WithArguments("M", "int*").WithLocation(41, 13),
+                Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "&M").WithArguments("M", "int*").WithLocation(41, 13),
                 // (42,15): error CS0211: Cannot take the address of the given expression
                 //         p = &(new System.Int32()); //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "new System.Int32()").WithLocation(42, 15),

@@ -22,6 +22,11 @@
         <target state="new">'&amp;' on method groups cannot be used in expression trees</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AddressOfToNonFunctionPointer">
+        <source>Cannot convert &amp; method group '{0}' to non-function pointer type '{1}'.</source>
+        <target state="new">Cannot convert &amp; method group '{0}' to non-function pointer type '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
         <target state="translated">Para usar "@$" en lugar de "$@" para una cadena textual interpolada, use la versión "{0}" del lenguaje o una posterior.</target>
@@ -117,14 +122,19 @@
         <target state="translated">Error de sintaxis de la línea de comandos: "{0}" no es un valor válido para la opción "{1}". El valor debe tener el formato "{2}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
+        <source>Cannot convert a &amp; method group '{0}' to delegate type '{0}'.</source>
+        <target state="new">Cannot convert a &amp; method group '{0}' to delegate type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotUseFunctionPointerAsFixedLocal">
         <source>The type of a local declared in a fixed statement cannot be a function pointer type.</source>
         <target state="new">The type of a local declared in a fixed statement cannot be a function pointer type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
-        <source>Cannot use a an extension method with a receiver as the target of a '&amp;' operator.</source>
-        <target state="new">Cannot use a an extension method with a receiver as the target of a '&amp;' operator.</target>
+        <source>Cannot use an extension method with a receiver as the target of a '&amp;' operator.</source>
+        <target state="new">Cannot use an extension method with a receiver as the target of a '&amp;' operator.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">

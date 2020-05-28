@@ -6146,7 +6146,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot convert method group to function pointer (Are you missing a '&amp;'?)</value>
   </data>
   <data name="ERR_CannotUseReducedExtensionMethodInAddressOf" xml:space="preserve">
-    <value>Cannot use a an extension method with a receiver as the target of a '&amp;' operator.</value>
+    <value>Cannot use an extension method with a receiver as the target of a '&amp;' operator.</value>
   </data>
   <data name="ERR_CannotUseFunctionPointerAsFixedLocal" xml:space="preserve">
     <value>The type of a local declared in a fixed statement cannot be a function pointer type.</value>
@@ -6159,5 +6159,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="OutIsNotValidForReturn" xml:space="preserve">
     <value>'RefKind.Out' is not a valid ref kind for a return type.</value>
+  </data>
+  <data name="ERR_CannotConvertAddressOfToDelegate" xml:space="preserve">
+    <value>Cannot convert a &amp; method group '{0}' to delegate type '{0}'.</value>
+  </data>
+  <data name="ERR_AddressOfToNonFunctionPointer" xml:space="preserve">
+    <value>Cannot convert &amp; method group '{0}' to non-function pointer type '{1}'.</value>
   </data>
 </root>
