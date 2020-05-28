@@ -1806,6 +1806,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidFuncPointerReturnTypeModifier = 8797,
         ERR_DupReturnTypeMod = 8798,
         ERR_AddressOfMethodGroupInExpressionTree = 8799,
+        ERR_CannotConvertAddressOfToDelegate = 8800,
+        ERR_AddressOfToNonFunctionPointer = 8801,
 
         #endregion
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

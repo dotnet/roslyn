@@ -2352,6 +2352,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GenerateImplicitConversionError(diagnostics, operand.Syntax, conversion, operand, targetType);
                         return;
                     }
+                case BoundKind.UnconvertedAddressOfOperator:
+                    {
+                        var errorCode = targetType.TypeKind switch
+                        {
+                            TypeKind.FunctionPointer => ErrorCode.ERR_MethFuncPtrMismatch,
+                            TypeKind.Delegate => ErrorCode.ERR_CannotConvertAddressOfToDelegate,
+                            _ => ErrorCode.ERR_AddressOfToNonFunctionPointer
+                        };
+
+                        diagnostics.Add(errorCode, syntax.Location, ((BoundUnconvertedAddressOfOperator)operand).Operand.Name, targetType);
+                        return;
+                    }
             }
 
             Debug.Assert((object)operand.Type != null);
