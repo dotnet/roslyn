@@ -4,7 +4,9 @@ trigger:
     include:
     - master
 
-pr: none
+# pr: none
+pr:
+- master # For temporary testing only
 
 jobs:
 - job: RichCodeNav_Indexing
@@ -22,8 +24,7 @@ jobs:
     - task: UseDotNet@2
       displayName: 'Use .NET Core sdk'
       inputs:
-        packageType: sdk
-        version: 2.1.503
+        useGlobalJson: true
 
     - task: RichCodeNavIndexer@0
       displayName: RichCodeNav Upload
