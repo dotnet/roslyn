@@ -12,4 +12,4 @@ HAA0401 | Performance | Warning | EnumeratorAllocationAnalyzer
 HAA0601 | Performance | Warning | TypeConversionAllocationAnalyzer
 HAA0602 | Performance | Warning | TypeConversionAllocationAnalyzer
 HAA0603 | Performance | Warning | TypeConversionAllocationAnalyzer
-HeapAnalyzerReadonlyMethodGroupAllocationRule | Performance | Info | TypeConversionAllocationAnalyzer
+HAA0604 | Performance | Info | TypeConversionAllocationAnalyzer

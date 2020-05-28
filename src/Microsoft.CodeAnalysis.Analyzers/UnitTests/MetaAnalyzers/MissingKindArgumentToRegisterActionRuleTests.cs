@@ -1,19 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
-using Test.Utilities;
 using Xunit;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
-    public class MissingKindArgumentToRegisterActionRuleTests : DiagnosticAnalyzerTestBase
+    public class MissingKindArgumentToRegisterActionRuleTests
     {
         [Fact]
-        public void CSharp_VerifyRegisterSymbolActionDiagnostic()
+        public async Task CSharp_VerifyRegisterSymbolActionDiagnostic()
         {
             var source = @"
 using System;
@@ -46,11 +51,11 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
             DiagnosticResult expected = GetCSharpExpectedDiagnostic(20, 9, MissingKindArgument.SymbolKind);
-            VerifyCSharp(source, expected);
+            await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void VisualBasic_VerifyRegisterSymbolActionDiagnostic()
+        public async Task VisualBasic_VerifyRegisterSymbolActionDiagnostic()
         {
             var source = @"
 Imports System
@@ -79,11 +84,11 @@ Class MyAnalyzer
 End Class
 ";
             DiagnosticResult expected = GetBasicExpectedDiagnostic(17, 9, MissingKindArgument.SymbolKind);
-            VerifyBasic(source, expected);
+            await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void CSharp_VerifyRegisterSyntaxActionDiagnostic()
+        public async Task CSharp_VerifyRegisterSyntaxActionDiagnostic()
         {
             var source = @"
 using System;
@@ -117,11 +122,11 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
             DiagnosticResult expected = GetCSharpExpectedDiagnostic(21, 9, MissingKindArgument.SyntaxKind);
-            VerifyCSharp(source, expected);
+            await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void VisualBasic_VerifyRegisterSyntaxActionDiagnostic()
+        public async Task VisualBasic_VerifyRegisterSyntaxActionDiagnostic()
         {
             var source = @"
 Imports System
@@ -151,11 +156,11 @@ Class MyAnalyzer
 End Class
 ";
             DiagnosticResult expected = GetBasicExpectedDiagnostic(18, 9, MissingKindArgument.SyntaxKind);
-            VerifyBasic(source, expected);
+            await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void CSharp_VerifyRegisterOperationActionDiagnostic()
+        public async Task CSharp_VerifyRegisterOperationActionDiagnostic()
         {
             var source = @"
 using System;
@@ -184,11 +189,11 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
             DiagnosticResult expected = GetCSharpExpectedDiagnostic(20, 9, MissingKindArgument.OperationKind);
-            VerifyCSharp(source, expected);
+            await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void VisualBasic_VerifyRegisterOperationActionDiagnostic()
+        public async Task VisualBasic_VerifyRegisterOperationActionDiagnostic()
         {
             var source = @"
 Imports System
@@ -214,45 +219,33 @@ Class MyAnalyzer
 End Class
 ";
             DiagnosticResult expected = GetBasicExpectedDiagnostic(17, 9, MissingKindArgument.OperationKind);
-            VerifyBasic(source, expected);
-        }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new CSharpRegisterActionAnalyzer();
-        }
-
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return new BasicRegisterActionAnalyzer();
+            await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, MissingKindArgument kind)
         {
-            return GetExpectedDiagnostic(line, column, kind);
+            var rule = kind switch
+            {
+                MissingKindArgument.SymbolKind => CSharpRegisterActionAnalyzer.MissingSymbolKindArgumentRule,
+                MissingKindArgument.SyntaxKind => CSharpRegisterActionAnalyzer.MissingSyntaxKindArgumentRule,
+                MissingKindArgument.OperationKind => CSharpRegisterActionAnalyzer.MissingOperationKindArgumentRule,
+                _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
+            };
+
+            return VerifyCS.Diagnostic(rule).WithLocation(line, column);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, MissingKindArgument kind)
         {
-            return GetExpectedDiagnostic(line, column, kind);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, MissingKindArgument kind)
-        {
-            var message = kind switch
+            var rule = kind switch
             {
-                MissingKindArgument.SymbolKind => CodeAnalysisDiagnosticsResources.MissingSymbolKindArgumentToRegisterActionMessage,
-
-                MissingKindArgument.SyntaxKind => CodeAnalysisDiagnosticsResources.MissingSyntaxKindArgumentToRegisterActionMessage,
-
-                MissingKindArgument.OperationKind => CodeAnalysisDiagnosticsResources.MissingOperationKindArgumentToRegisterActionMessage,
-
+                MissingKindArgument.SymbolKind => BasicRegisterActionAnalyzer.MissingSymbolKindArgumentRule,
+                MissingKindArgument.SyntaxKind => BasicRegisterActionAnalyzer.MissingSyntaxKindArgumentRule,
+                MissingKindArgument.OperationKind => BasicRegisterActionAnalyzer.MissingOperationKindArgumentRule,
                 _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
             };
 
-            return new DiagnosticResult(DiagnosticIds.MissingKindArgumentToRegisterActionRuleId, DiagnosticSeverity.Warning)
-                .WithLocation(line, column)
-                .WithMessageFormat(message);
+            return VerifyVB.Diagnostic(rule).WithLocation(line, column);
         }
 
         private enum MissingKindArgument

@@ -29,7 +29,7 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.ImportingConstructorShouldBeObsoleteRuleId,
             s_localizableTitle,
             s_localizableMessage,
-            DiagnosticCategory.RoslyDiagnosticsReliability,
+            DiagnosticCategory.RoslynDiagnosticsReliability,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescription,

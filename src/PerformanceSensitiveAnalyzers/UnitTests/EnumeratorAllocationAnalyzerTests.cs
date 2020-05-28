@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         int[] intData = new[] { 123, 32, 4 };
         IList<int> iListData = new[] { 123, 32, 4 };
@@ -67,9 +67,9 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
-        // These next 3 are from the YouTube video 
+        // These next 3 are from the YouTube video
         foreach (object a in new[] { 1, 2, 3}) // Allocations 'new [] { 1. 2, 3}'
         {
             Console.WriteLine(a.ToString());
@@ -103,7 +103,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         var enumeratorRaw = GetIEnumerableRaw();
         while (enumeratorRaw.MoveNext())
@@ -144,9 +144,9 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
-        foreach (char c in ""foo"") { };
+        foreach (char c in ""aaa"") { };
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram);

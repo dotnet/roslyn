@@ -67,7 +67,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override TaintedDataAbstractValue GetAbstractValue(AnalysisEntity analysisEntity)
             {
-                return this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue value) ? value : TaintedDataAbstractValue.NotTainted;
+                return this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue? value) ? value : TaintedDataAbstractValue.NotTainted;
             }
 
             protected override TaintedDataAnalysisData GetClonedAnalysisData(TaintedDataAnalysisData analysisData)
@@ -190,7 +190,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 if (AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity? analysisEntity))
                 {
-                    return this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue value) ? value : defaultValue;
+                    return this.CurrentAnalysisData.TryGetValue(analysisEntity, out TaintedDataAbstractValue? value) ? value : defaultValue;
                 }
 
                 return defaultValue;

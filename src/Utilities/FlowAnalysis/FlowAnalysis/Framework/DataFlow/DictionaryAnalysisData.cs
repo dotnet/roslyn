@@ -12,6 +12,7 @@ using Analyzer.Utilities.PooledObjects;
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     public sealed class DictionaryAnalysisData<TKey, TValue> : AbstractAnalysisData, IDictionary<TKey, TValue>
+        where TKey : notnull
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private PooledDictionary<TKey, TValue> _coreAnalysisData;
@@ -138,7 +139,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return Remove(item.Key);
         }
 
+#pragma warning disable CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes. https://github.com/dotnet/roslyn/issues/42552
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
+#pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.
         {
             Debug.Assert(!IsDisposed);
             return _coreAnalysisData.TryGetValue(key, out value);

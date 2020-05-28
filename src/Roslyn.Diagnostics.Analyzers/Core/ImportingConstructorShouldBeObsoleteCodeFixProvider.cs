@@ -92,21 +92,14 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var declaration = constructor;
-            var declarationKind = generator.GetDeclarationKind(declaration);
-            while (declarationKind != DeclarationKind.Constructor)
+            var declaration = generator.TryGetContainingDeclaration(constructor, DeclarationKind.Constructor);
+            if (declaration is null)
             {
-                declaration = generator.GetDeclaration(declaration.Parent);
-                if (declaration is null)
-                {
-                    return document;
-                }
-
-                declarationKind = generator.GetDeclarationKind(declaration);
+                return document;
             }
 
             var obsoleteAttribute = generator.Attribute(
-                generator.TypeExpression(obsoleteAttributeSymbol),
+                generator.TypeExpression(obsoleteAttributeSymbol).WithAddImportsAnnotation(),
                 new[]
                 {
                     GenerateDescriptionArgument(generator, semanticModel),
@@ -126,17 +119,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var declaration = obsoleteAttributeApplication;
-            var declarationKind = generator.GetDeclarationKind(declaration);
-            while (declarationKind != DeclarationKind.Attribute)
+            var declaration = generator.TryGetContainingDeclaration(obsoleteAttributeApplication, DeclarationKind.Attribute);
+            if (declaration is null)
             {
-                declaration = generator.GetDeclaration(declaration.Parent);
-                if (declaration is null)
-                {
-                    return document;
-                }
-
-                declarationKind = generator.GetDeclarationKind(declaration);
+                return document;
             }
 
             var descriptionArgument = GenerateDescriptionArgument(generator, semanticModel);
@@ -154,17 +140,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var declaration = obsoleteAttributeApplication;
-            var declarationKind = generator.GetDeclarationKind(declaration);
-            while (declarationKind != DeclarationKind.Attribute)
+            var declaration = generator.TryGetContainingDeclaration(obsoleteAttributeApplication, DeclarationKind.Attribute);
+            if (declaration is null)
             {
-                declaration = generator.GetDeclaration(declaration.Parent);
-                if (declaration is null)
-                {
-                    return document;
-                }
-
-                declarationKind = generator.GetDeclarationKind(declaration);
+                return document;
             }
 
             var argumentToReplace = generator.GetAttributeArguments(declaration).ElementAtOrDefault(0);
@@ -185,17 +164,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var declaration = obsoleteAttributeApplication;
-            var declarationKind = generator.GetDeclarationKind(declaration);
-            while (declarationKind != DeclarationKind.Attribute)
+            var declaration = generator.TryGetContainingDeclaration(obsoleteAttributeApplication, DeclarationKind.Attribute);
+            if (declaration is null)
             {
-                declaration = generator.GetDeclaration(declaration.Parent);
-                if (declaration is null)
-                {
-                    return document;
-                }
-
-                declarationKind = generator.GetDeclarationKind(declaration);
+                return document;
             }
 
             var errorArgument = GenerateErrorArgument(generator, allowNamedArgument: document.Project.Language == LanguageNames.CSharp);
@@ -211,17 +183,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var declaration = obsoleteAttributeApplication;
-            var declarationKind = generator.GetDeclarationKind(declaration);
-            while (declarationKind != DeclarationKind.Attribute)
+            var declaration = generator.TryGetContainingDeclaration(obsoleteAttributeApplication, DeclarationKind.Attribute);
+            if (declaration is null)
             {
-                declaration = generator.GetDeclaration(declaration.Parent);
-                if (declaration is null)
-                {
-                    return document;
-                }
-
-                declarationKind = generator.GetDeclarationKind(declaration);
+                return document;
             }
 
             var argumentToReplace = generator.GetAttributeArguments(declaration).ElementAtOrDefault(1);
@@ -241,7 +206,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 mefConstructionType.GetMembers("ImportingConstructorMessage").OfType<IFieldSymbol>().Any())
             {
                 attributeArgument = generator.MemberAccessExpression(
-                    generator.TypeExpressionForStaticMemberAccess(mefConstructionType),
+                    generator.TypeExpression(mefConstructionType).WithAddImportsAnnotation(),
                     generator.IdentifierName("ImportingConstructorMessage"));
             }
             else

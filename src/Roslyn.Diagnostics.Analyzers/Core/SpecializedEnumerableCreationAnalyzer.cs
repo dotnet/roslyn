@@ -26,7 +26,7 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.UseEmptyEnumerableRuleId,
             s_localizableTitleUseEmptyEnumerable,
             s_localizableMessageUseEmptyEnumerable,
-            DiagnosticCategory.RoslyDiagnosticsPerformance,
+            DiagnosticCategory.RoslynDiagnosticsPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -38,7 +38,7 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.UseSingletonEnumerableRuleId,
             s_localizableTitleUseSingletonEnumerable,
             s_localizableMessageUseSingletonEnumerable,
-            DiagnosticCategory.RoslyDiagnosticsPerformance,
+            DiagnosticCategory.RoslynDiagnosticsPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);

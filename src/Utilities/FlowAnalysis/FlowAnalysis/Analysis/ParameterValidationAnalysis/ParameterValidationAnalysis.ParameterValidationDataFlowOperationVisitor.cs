@@ -303,6 +303,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                                 break;
                         }
                     }
+                    // TODO: Remove the previous code block and use the following code when ready for potential breaking change
+                    // See https://github.com/dotnet/roslyn-analyzers/issues/3331
+                    //if (targetMethod.IsGetObjectData(SerializationInfoNamedType, StreamingContextNamedType) ||
+                    //    targetMethod.IsSerializationConstructor(SerializationInfoNamedType, StreamingContextNamedType))
+                    //{
+                    //    MarkValidatedLocations(arguments[0]);
+                    //}
                 }
                 else if (_hazardousParameterUsageBuilderOpt != null &&
                          !targetMethod.IsExternallyVisible() &&

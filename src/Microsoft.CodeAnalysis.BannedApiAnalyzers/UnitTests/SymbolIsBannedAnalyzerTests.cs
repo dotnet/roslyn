@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
+using Test.Utilities;
 using Xunit;
 
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
@@ -18,21 +19,17 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 
     public class SymbolIsBannedAnalyzerTests
     {
-        private static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor descriptor, string v3, string v4)
-        {
-            return new DiagnosticResult(descriptor)
+        private static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor descriptor, string bannedMemberName, string message)
+            => VerifyCS.Diagnostic(descriptor)
                 .WithLocation(line, column)
-                .WithArguments(v3, v4);
-        }
+                .WithArguments(bannedMemberName, message);
 
-        private static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor descriptor, string v3, string v4)
-        {
-            return new DiagnosticResult(descriptor)
+        private static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor descriptor, string bannedMemberName, string message)
+            => VerifyVB.Diagnostic(descriptor)
                 .WithLocation(line, column)
-                .WithArguments(v3, v4);
-        }
+                .WithArguments(bannedMemberName, message);
 
-        private static async Task VerifyBasicAsync(string source, string bannedApiText, params DiagnosticResult[] expected)
+        private static async Task VerifyBasicAnalyzerAsync(string source, string bannedApiText, params DiagnosticResult[] expected)
         {
             var test = new VerifyVB.Test
             {
@@ -48,7 +45,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
-        private static async Task VerifyCSharpAsync(string source, string bannedApiText, params DiagnosticResult[] expected)
+        private static async Task VerifyCSharpAnalyzerAsync(string source, string bannedApiText, params DiagnosticResult[] expected)
         {
             var test = new VerifyCS.Test
             {
@@ -81,7 +78,7 @@ End Class");
 
             var bannedText = @"";
 
-            await VerifyCSharpAsync(source, bannedText);
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
         }
 
         [Fact]
@@ -96,7 +93,7 @@ T:System.Console";
                 .WithLocation(SymbolIsBannedAnalyzer.BannedSymbolsFileName, 3, 1)
                 .WithLocation(SymbolIsBannedAnalyzer.BannedSymbolsFileName, 2, 1)
                 .WithArguments("System.Console");
-            await VerifyCSharpAsync(source, bannedText, expected);
+            await VerifyCSharpAnalyzerAsync(source, bannedText, expected);
         }
 
         [Fact]
@@ -114,7 +111,7 @@ TSystem.Console;Message 2";
                 .WithLocation(SymbolIsBannedAnalyzer.BannedSymbolsFileName, 3, 1)
                 .WithLocation(SymbolIsBannedAnalyzer.BannedSymbolsFileName, 2, 1)
                 .WithArguments("System.Console");
-            await VerifyCSharpAsync(source, bannedText, expected);
+            await VerifyCSharpAnalyzerAsync(source, bannedText, expected);
         }
 
         [Fact]
@@ -135,7 +132,7 @@ namespace N
 
             var bannedText = @"T:N.Banned;Use NonBanned instead";
 
-            await VerifyCSharpAsync(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ": Use NonBanned instead"));
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ": Use NonBanned instead"));
         }
 
         [Fact]
@@ -157,7 +154,7 @@ namespace N
             var bannedText = @"
   T:N.Banned  ";
 
-            await VerifyCSharpAsync(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
         }
 
         [Fact]
@@ -178,7 +175,7 @@ namespace N
 
             var bannedText = @"T:N.Banned ; Use NonBanned instead ";
 
-            await VerifyCSharpAsync(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ": Use NonBanned instead"));
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ": Use NonBanned instead"));
         }
 
         [Fact]
@@ -199,7 +196,7 @@ namespace N
 
             var bannedText = @"T:N.Banned;";
 
-            await VerifyCSharpAsync(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
         }
 
         [Fact]
@@ -221,7 +218,7 @@ namespace N
             var bannedText = @"
 T:N.Banned";
 
-            await VerifyCSharpAsync(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(9, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
         }
 
         [Fact]
@@ -239,7 +236,7 @@ class C
             var bannedText = @"
 T:System.Collections.Generic.List`1";
 
-            await VerifyCSharpAsync(source, bannedText, GetCSharpResultAt(6, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "List<T>", ""));
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(6, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "List<T>", ""));
         }
 
         [Fact]
@@ -269,7 +266,7 @@ class G<T>
             var bannedText = @"
 T:C";
 
-            await VerifyCSharpAsync(source, bannedText,
+            await VerifyCSharpAnalyzerAsync(source, bannedText,
                 GetCSharpResultAt(11, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(12, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(13, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
@@ -296,7 +293,7 @@ class C
             var bannedText = @"
 T:C.Nested";
 
-            await VerifyCSharpAsync(source, bannedText, GetCSharpResultAt(7, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested", ""));
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(7, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested", ""));
         }
 
         [Fact]
@@ -321,7 +318,7 @@ class D
             var bannedText = @"
 T:C";
 
-            await VerifyCSharpAsync(source, bannedText, GetCSharpResultAt(14, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(14, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]
@@ -343,7 +340,7 @@ class C
 }";
             var bannedText = @"T:I";
 
-            await VerifyCSharpAsync(source, bannedText, GetCSharpResultAt(12, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I", ""));
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(12, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I", ""));
         }
 
         [Fact]
@@ -369,7 +366,7 @@ class C
 }";
             var bannedText = @"T:C";
 
-            await VerifyCSharpAsync(source, bannedText,
+            await VerifyCSharpAnalyzerAsync(source, bannedText,
                 GetCSharpResultAt(4, 49, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(5, 51, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(12, 15, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
@@ -393,7 +390,7 @@ class C
 }";
             var bannedText = @"T:C";
 
-            await VerifyCSharpAsync(source, bannedText,
+            await VerifyCSharpAnalyzerAsync(source, bannedText,
                 GetCSharpResultAt(7, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(7, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
@@ -412,7 +409,7 @@ class C
 }";
             var bannedText = @"T:C";
 
-            await VerifyCSharpAsync(source, bannedText,
+            await VerifyCSharpAnalyzerAsync(source, bannedText,
                 GetCSharpResultAt(7, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(7, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
@@ -435,7 +432,7 @@ class C
 }";
             var bannedText = @"T:C";
 
-            await VerifyCSharpAsync(source, bannedText,
+            await VerifyCSharpAnalyzerAsync(source, bannedText,
                 GetCSharpResultAt(9, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(10, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(11, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
@@ -456,7 +453,7 @@ class C
 ";
             var bannedText = @"T:C";
 
-            await VerifyCSharpAsync(source, bannedText,
+            await VerifyCSharpAnalyzerAsync(source, bannedText,
                 GetCSharpResultAt(7, 15, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
@@ -471,7 +468,7 @@ class D { }
 ";
             var bannedText = @"T:C";
 
-            await VerifyCSharpAsync(source, bannedText,
+            await VerifyCSharpAnalyzerAsync(source, bannedText,
                 GetCSharpResultAt(4, 25, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
@@ -490,7 +487,7 @@ class D : C { }
 ";
             var bannedText = @"T:BannedAttribute";
 
-            await VerifyCSharpAsync(source, bannedText,
+            await VerifyCSharpAnalyzerAsync(source, bannedText,
                 GetCSharpResultAt(7, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -506,12 +503,12 @@ class BannedAttribute : Attribute { }
 class C 
 {
     [Banned]
-    public int Foo { get; }
+    public int SomeProperty { get; }
 }
 ";
             var bannedText = @"T:BannedAttribute";
 
-            await VerifyCSharpAsync(source, bannedText,
+            await VerifyCSharpAnalyzerAsync(source, bannedText,
                 GetCSharpResultAt(9, 6, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -529,7 +526,7 @@ class BannedAttribute : Attribute { }
 
             var bannedText = @"T:BannedAttribute";
 
-            await VerifyCSharpAsync(source, bannedText,
+            await VerifyCSharpAnalyzerAsync(source, bannedText,
                 GetCSharpResultAt(4, 12, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -547,7 +544,7 @@ class BannedAttribute : Attribute { }
 
             var bannedText = @"T:BannedAttribute";
 
-            await VerifyCSharpAsync(source, bannedText,
+            await VerifyCSharpAnalyzerAsync(source, bannedText,
                 GetCSharpResultAt(4, 10, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -575,12 +572,12 @@ namespace N
             var bannedText1 = @"M:N.Banned.#ctor";
             var bannedText2 = @"M:N.Banned.#ctor(System.Int32)";
 
-            await VerifyCSharpAsync(
+            await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText1,
                 GetCSharpResultAt(13, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned.Banned()", ""));
 
-            await VerifyCSharpAsync(
+            await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText2,
                 GetCSharpResultAt(14, 21, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned.Banned(int)", ""));
@@ -628,32 +625,32 @@ namespace N
             var bannedText5 = @"M:N.D`1.Banned(System.Int32)";
             var bannedText6 = @"M:N.D`1.Banned``1(``0)";
 
-            await VerifyCSharpAsync(
+            await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText1,
                 GetCSharpResultAt(12, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned()", ""));
 
-            await VerifyCSharpAsync(
+            await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText2,
                 GetCSharpResultAt(13, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned(int)", ""));
 
-            await VerifyCSharpAsync(
+            await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText3,
                 GetCSharpResultAt(14, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned<T>(T)", ""));
 
-            await VerifyCSharpAsync(
+            await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText4,
                 GetCSharpResultAt(26, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "D<T>.Banned()", ""));
 
-            await VerifyCSharpAsync(
+            await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText5,
                 GetCSharpResultAt(27, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "D<T>.Banned(int)", ""));
 
-            await VerifyCSharpAsync(
+            await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText6,
                 GetCSharpResultAt(28, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "D<T>.Banned<U>(U)", ""));
@@ -678,7 +675,7 @@ namespace N
 
             var bannedText = @"P:N.C.Banned";
 
-            await VerifyCSharpAsync(
+            await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText,
                 GetCSharpResultAt(10, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""),
@@ -704,7 +701,7 @@ namespace N
 
             var bannedText = @"F:N.C.Banned";
 
-            await VerifyCSharpAsync(
+            await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText,
                 GetCSharpResultAt(10, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""),
@@ -732,7 +729,7 @@ namespace N
 
             var bannedText = @"E:N.C.Banned";
 
-            await VerifyCSharpAsync(
+            await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText,
                 GetCSharpResultAt(10, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""),
@@ -759,10 +756,285 @@ namespace N
 
             var bannedText = @"M:N.C.Banned";
 
-            await VerifyCSharpAsync(
+            await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText,
                 GetCSharpResultAt(10, 31, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned()", ""));
+        }
+
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
+        public async Task CSharp_BannedAbstractVirtualMemberAlsoBansOverrides_RootLevelIsBanned()
+        {
+            var source = @"
+using System;
+
+namespace N
+{
+    public abstract class C1
+    {
+        public abstract void Method1();
+        public abstract int Property1 { get; set; }
+        public abstract event Action Event1;
+
+        public virtual void Method2() {}
+        public virtual int Property2 { get; set; }
+        public virtual event Action Event2;
+    }
+
+    public class C2 : C1
+    {
+        public override void Method1() {}
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            {|RS0030:base.Method2()|};
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M1()
+        {
+            {|RS0030:Method1()|};
+            if ({|RS0030:Property1|} == 42 && {|RS0030:Event1|} != null) {}
+
+            {|RS0030:Method2()|};
+            if ({|RS0030:Property2|} == 42 && {|RS0030:Event2|} != null) {}
+        }
+    }
+
+    public class C3 : C2
+    {
+        public override void Method1()
+        {
+            {|RS0030:base.Method1()|};
+        }
+
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            {|RS0030:base.Method2()|};
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M2()
+        {
+            {|RS0030:Method1()|};
+            if ({|RS0030:Property1|} == 42 && {|RS0030:Event1|} != null) {}
+
+            {|RS0030:Method2()|};
+            if ({|RS0030:Property2|} == 42 && {|RS0030:Event2|} != null) {}
+        }
+    }
+}";
+
+            var bannedText = @"M:N.C1.Method1
+P:N.C1.Property1
+E:N.C1.Event1
+M:N.C1.Method2
+P:N.C1.Property2
+E:N.C1.Event2";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
+        public async Task CSharp_BannedAbstractVirtualMemberBansCorrectOverrides_MiddleLevelIsBanned()
+        {
+            var source = @"
+using System;
+
+namespace N
+{
+    public abstract class C1
+    {
+        public abstract void Method1();
+        public abstract int Property1 { get; set; }
+        public abstract event Action Event1;
+
+        public virtual void Method2() {}
+        public virtual int Property2 { get; set; }
+        public virtual event Action Event2;
+    }
+
+    public class C2 : C1
+    {
+        public override void Method1() {}
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            base.Method2();
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M1()
+        {
+            {|RS0030:Method1()|};
+            if ({|RS0030:Property1|} == 42 && {|RS0030:Event1|} != null) {}
+
+            {|RS0030:Method2()|};
+            if ({|RS0030:Property2|} == 42 && {|RS0030:Event2|} != null) {}
+        }
+    }
+
+    public class C3 : C2
+    {
+        public override void Method1()
+        {
+            {|RS0030:base.Method1()|};
+        }
+
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            {|RS0030:base.Method2()|};
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M2()
+        {
+            {|RS0030:Method1()|};
+            if ({|RS0030:Property1|} == 42 && {|RS0030:Event1|} != null) {}
+
+            {|RS0030:Method2()|};
+            if ({|RS0030:Property2|} == 42 && {|RS0030:Event2|} != null) {}
+        }
+    }
+}";
+
+            var bannedText = @"M:N.C2.Method1
+P:N.C2.Property1
+E:N.C2.Event1
+M:N.C2.Method2
+P:N.C2.Property2
+E:N.C2.Event2";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
+        public async Task CSharp_BannedAbstractVirtualMemberBansCorrectOverrides_LeafLevelIsBanned()
+        {
+            var source = @"
+using System;
+
+namespace N
+{
+    public abstract class C1
+    {
+        public abstract void Method1();
+        public abstract int Property1 { get; set; }
+        public abstract event Action Event1;
+
+        public virtual void Method2() {}
+        public virtual int Property2 { get; set; }
+        public virtual event Action Event2;
+    }
+
+    public class C2 : C1
+    {
+        public override void Method1() {}
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            base.Method2();
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M1()
+        {
+            Method1();
+            if (Property1 == 42 && Event1 != null) {}
+
+            Method2();
+            if (Property2 == 42 && Event2 != null) {}
+        }
+    }
+
+    public class C3 : C2
+    {
+        public override void Method1()
+        {
+            base.Method1();
+        }
+
+        public override int Property1 { get; set; }
+        public override event Action Event1;
+
+        public override void Method2()
+        {
+            base.Method2();
+        }
+
+        public override int Property2 { get; set; }
+        public override event Action Event2;
+
+        void M2()
+        {
+            {|RS0030:Method1()|};
+            if ({|RS0030:Property1|} == 42 && {|RS0030:Event1|} != null) {}
+
+            {|RS0030:Method2()|};
+            if ({|RS0030:Property2|} == 42 && {|RS0030:Event2|} != null) {}
+        }
+    }
+}";
+
+            var bannedText = @"M:N.C3.Method1
+P:N.C3.Property1
+E:N.C3.Event1
+M:N.C3.Method2
+P:N.C3.Property2
+E:N.C3.Event2";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact]
+        public async Task CSharp_InvalidOverrideDefinition()
+        {
+            var source = @"
+using System;
+
+namespace N
+{
+    public class C1
+    {
+        public void Method1() {}
+    }
+
+    public class C2 : C1
+    {
+        public override void {|CS0506:Method1|}() {}
+
+        void M1()
+        {
+            Method1();
+        }
+    }
+}";
+
+            var bannedText = @"M:N.C1.Method1";
+
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
         }
 
         [Fact]
@@ -780,7 +1052,7 @@ End Namespace";
 
             var bannedText = @"T:N.Banned";
 
-            await VerifyBasicAsync(source, bannedText, GetBasicResultAt(6, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await VerifyBasicAnalyzerAsync(source, bannedText, GetBasicResultAt(6, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
         }
 
         [Fact]
@@ -796,7 +1068,7 @@ End Class";
             var bannedText = @"
 T:System.Collections.Generic.List`1";
 
-            await VerifyBasicAsync(source, bannedText, GetBasicResultAt(4, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "List(Of T)", ""));
+            await VerifyBasicAnalyzerAsync(source, bannedText, GetBasicResultAt(4, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "List(Of T)", ""));
         }
 
         [Fact]
@@ -813,7 +1085,7 @@ End Class";
             var bannedText = @"
 T:C.Nested";
 
-            await VerifyBasicAsync(source, bannedText, GetBasicResultAt(5, 18, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested", ""));
+            await VerifyBasicAnalyzerAsync(source, bannedText, GetBasicResultAt(5, 18, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested", ""));
         }
 
         [Fact]
@@ -835,7 +1107,7 @@ End Class
             var bannedText = @"
 T:C";
 
-            await VerifyBasicAsync(source, bannedText, GetBasicResultAt(10, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
+            await VerifyBasicAnalyzerAsync(source, bannedText, GetBasicResultAt(10, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]
@@ -854,7 +1126,7 @@ Class C
 End Class";
             var bannedText = @"T:I";
 
-            await VerifyBasicAsync(source, bannedText, GetBasicResultAt(9, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I", ""));
+            await VerifyBasicAnalyzerAsync(source, bannedText, GetBasicResultAt(9, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I", ""));
         }
 
         [Fact]
@@ -869,7 +1141,7 @@ Class C
 End Class";
             var bannedText = @"T:C";
 
-            await VerifyBasicAsync(source, bannedText,
+            await VerifyBasicAnalyzerAsync(source, bannedText,
                 GetBasicResultAt(5, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetBasicResultAt(5, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
@@ -886,7 +1158,7 @@ Class C
 End Class";
             var bannedText = @"T:C";
 
-            await VerifyBasicAsync(source, bannedText,
+            await VerifyBasicAnalyzerAsync(source, bannedText,
                 GetBasicResultAt(5, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetBasicResultAt(5, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
@@ -907,7 +1179,7 @@ Class C
 End Class";
             var bannedText = @"T:C";
 
-            await VerifyBasicAsync(source, bannedText,
+            await VerifyBasicAnalyzerAsync(source, bannedText,
                 GetBasicResultAt(7, 20, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetBasicResultAt(8, 23, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetBasicResultAt(9, 20, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
@@ -925,7 +1197,7 @@ Class C
 End Class";
             var bannedText = @"T:C";
 
-            await VerifyBasicAsync(source, bannedText,
+            await VerifyBasicAnalyzerAsync(source, bannedText,
                 GetBasicResultAt(5, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
@@ -949,7 +1221,7 @@ End Class
 ";
             var bannedText = @"T:BannedAttribute";
 
-            await VerifyBasicAsync(source, bannedText,
+            await VerifyBasicAnalyzerAsync(source, bannedText,
                 GetBasicResultAt(9, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -966,12 +1238,12 @@ End Class
 
 Class C
     <Banned>
-    Public ReadOnly Property Foo As Integer
+    Public ReadOnly Property SomeProperty As Integer
 End Class
 ";
             var bannedText = @"T:BannedAttribute";
 
-            await VerifyBasicAsync(source, bannedText,
+            await VerifyBasicAnalyzerAsync(source, bannedText,
                 GetBasicResultAt(10, 6, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -991,7 +1263,7 @@ End Class
 
             var bannedText = @"T:BannedAttribute";
 
-            await VerifyBasicAsync(source, bannedText,
+            await VerifyBasicAnalyzerAsync(source, bannedText,
                 GetBasicResultAt(4, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -1011,7 +1283,7 @@ End Class
 
             var bannedText = @"T:BannedAttribute";
 
-            await VerifyBasicAsync(source, bannedText,
+            await VerifyBasicAnalyzerAsync(source, bannedText,
                 GetBasicResultAt(4, 2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
         }
 
@@ -1035,12 +1307,12 @@ End Namespace";
             var bannedText1 = @"M:N.Banned.#ctor";
             var bannedText2 = @"M:N.Banned.#ctor(System.Int32)";
 
-            await VerifyBasicAsync(
+            await VerifyBasicAnalyzerAsync(
                 source,
                 bannedText1,
                 GetBasicResultAt(9, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub New()", ""));
 
-            await VerifyBasicAsync(
+            await VerifyBasicAnalyzerAsync(
                 source,
                 bannedText2,
                 GetBasicResultAt(10, 22, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub New(I As Integer)", ""));
@@ -1064,12 +1336,12 @@ End Namespace";
             var bannedText1 = @"M:N.C.Banned";
             var bannedText2 = @"M:N.C.Banned(System.Int32)";
 
-            await VerifyBasicAsync(
+            await VerifyBasicAnalyzerAsync(
                 source,
                 bannedText1,
                 GetBasicResultAt(7, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub Banned()", ""));
 
-            await VerifyBasicAsync(
+            await VerifyBasicAnalyzerAsync(
                 source,
                 bannedText2,
                 GetBasicResultAt(8, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub Banned(I As Integer)", ""));
@@ -1090,7 +1362,7 @@ End Namespace";
 
             var bannedText = @"P:N.C.Banned";
 
-            await VerifyBasicAsync(
+            await VerifyBasicAnalyzerAsync(
                 source,
                 bannedText,
                 GetBasicResultAt(6, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Property Banned As Integer", ""),
@@ -1112,7 +1384,7 @@ End Namespace";
 
             var bannedText = @"F:N.C.Banned";
 
-            await VerifyBasicAsync(
+            await VerifyBasicAnalyzerAsync(
                 source,
                 bannedText,
                 GetBasicResultAt(6, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Banned As Integer", ""),
@@ -1136,7 +1408,7 @@ End Namespace";
 
             var bannedText = @"E:N.C.Banned";
 
-            await VerifyBasicAsync(
+            await VerifyBasicAnalyzerAsync(
                 source,
                 bannedText,
                 GetBasicResultAt(6, 24, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Event Banned As Action", ""),
@@ -1159,7 +1431,7 @@ End Namespace";
 
             var bannedText = @"M:N.C.Banned";
 
-            await VerifyBasicAsync(
+            await VerifyBasicAnalyzerAsync(
                 source,
                 bannedText,
                 GetBasicResultAt(6, 38, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub Banned()", ""));
@@ -1176,8 +1448,260 @@ Class D : End Class
 ";
             var bannedText = @"T:C";
 
-            await VerifyBasicAsync(source, bannedText,
+            await VerifyBasicAnalyzerAsync(source, bannedText,
                 GetBasicResultAt(4, 25, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
+        }
+
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
+        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_RootLevelIsBanned()
+        {
+            var source = @"
+Imports System
+
+Namespace N
+    Public MustInherit Class C1
+        Public MustOverride Sub Method1()
+        Public MustOverride Property Property1 As Integer
+
+        Public Overridable Sub Method2()
+        End Sub
+
+        Public Overridable Property Property2 As Integer
+    End Class
+
+    Public Class C2
+        Inherits C1
+
+        Public Overrides Sub Method1()
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            {|RS0030:MyBase.Method2()|}
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M1()
+            {|RS0030:Method1()|}
+
+            If {|RS0030:Property1|} = 42 Then
+            End If
+
+            {|RS0030:Method2()|}
+
+            If {|RS0030:Property2|} = 42 Then
+            End If
+        End Sub
+    End Class
+
+    Public Class C3
+        Inherits C2
+
+        Public Overrides Sub Method1()
+            {|RS0030:MyBase.Method1()|}
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            {|RS0030:MyBase.Method2()|}
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M2()
+            {|RS0030:Method1()|}
+
+            If {|RS0030:Property1|} = 42 Then
+            End If
+
+            {|RS0030:Method2()|}
+
+            If {|RS0030:Property2|} = 42 Then
+            End If
+        End Sub
+    End Class
+End Namespace
+";
+
+            var bannedText = @"M:N.C1.Method1
+P:N.C1.Property1
+E:N.C1.Event1
+M:N.C1.Method2
+P:N.C1.Property2
+E:N.C1.Event2";
+
+            await VerifyBasicAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
+        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_MiddleLevelIsBanned()
+        {
+            var source = @"
+Imports System
+
+Namespace N
+    Public MustInherit Class C1
+        Public MustOverride Sub Method1()
+        Public MustOverride Property Property1 As Integer
+
+        Public Overridable Sub Method2()
+        End Sub
+
+        Public Overridable Property Property2 As Integer
+    End Class
+
+    Public Class C2
+        Inherits C1
+
+        Public Overrides Sub Method1()
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            MyBase.Method2()
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M1()
+            {|RS0030:Method1()|}
+
+            If {|RS0030:Property1|} = 42 Then
+            End If
+
+            {|RS0030:Method2()|}
+
+            If {|RS0030:Property2|} = 42 Then
+            End If
+        End Sub
+    End Class
+
+    Public Class C3
+        Inherits C2
+
+        Public Overrides Sub Method1()
+            {|RS0030:MyBase.Method1()|}
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            {|RS0030:MyBase.Method2()|}
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M2()
+            {|RS0030:Method1()|}
+
+            If {|RS0030:Property1|} = 42 Then
+            End If
+
+            {|RS0030:Method2()|}
+
+            If {|RS0030:Property2|} = 42 Then
+            End If
+        End Sub
+    End Class
+End Namespace
+";
+
+            var bannedText = @"M:N.C2.Method1
+P:N.C2.Property1
+E:N.C2.Event1
+M:N.C2.Method2
+P:N.C2.Property2
+E:N.C2.Event2";
+
+            await VerifyBasicAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
+        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_LeafLevelIsBanned()
+        {
+            var source = @"
+Imports System
+
+Namespace N
+    Public MustInherit Class C1
+        Public MustOverride Sub Method1()
+        Public MustOverride Property Property1 As Integer
+
+        Public Overridable Sub Method2()
+        End Sub
+
+        Public Overridable Property Property2 As Integer
+    End Class
+
+    Public Class C2
+        Inherits C1
+
+        Public Overrides Sub Method1()
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            MyBase.Method2()
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M1()
+            Method1()
+
+            If Property1 = 42 Then
+            End If
+
+            Method2()
+
+            If Property2 = 42 Then
+            End If
+        End Sub
+    End Class
+
+    Public Class C3
+        Inherits C2
+
+        Public Overrides Sub Method1()
+            MyBase.Method1()
+        End Sub
+
+        Public Overrides Property Property1 As Integer
+
+        Public Overrides Sub Method2()
+            MyBase.Method2()
+        End Sub
+
+        Public Overrides Property Property2 As Integer
+
+        Private Sub M2()
+            {|RS0030:Method1()|}
+
+            If {|RS0030:Property1|} = 42 Then
+            End If
+
+            {|RS0030:Method2()|}
+
+            If {|RS0030:Property2|} = 42 Then
+            End If
+        End Sub
+    End Class
+End Namespace
+";
+
+            var bannedText = @"M:N.C3.Method1
+P:N.C3.Property1
+E:N.C3.Event1
+M:N.C3.Method2
+P:N.C3.Property2
+E:N.C3.Event2";
+
+            await VerifyBasicAnalyzerAsync(source, bannedText);
         }
 
         #endregion

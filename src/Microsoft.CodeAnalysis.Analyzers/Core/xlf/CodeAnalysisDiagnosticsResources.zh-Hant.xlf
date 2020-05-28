@@ -1,7 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CodeAnalysisDiagnosticsResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../CodeAnalysisDiagnosticsResources.resx">
     <body>
+      <trans-unit id="AddEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
+        <source>Add rule entry to unshipped release file</source>
+        <target state="translated">將規則項目新增至未送出的版本檔案</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClassIsNotDiagnosticAnalyzerMessage">
+        <source>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</source>
+        <target state="translated">從 DiagnosticAnalyzer 繼承類型 '{0}' 或移除 DiagnosticAnalyzerAttribute。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClassIsNotDiagnosticAnalyzerTitle">
+        <source>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</source>
+        <target state="translated">標示了 DiagnosticAnalyzerAttribute 的類型應繼承自 DiagnosticAnalyzer。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
         <source>Compare symbols correctly</source>
         <target state="translated">正確比較符號</target>
@@ -42,6 +57,96 @@
         <target state="translated">設定產生的程式碼分析</target>
         <note />
       </trans-unit>
+      <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseDescription">
+        <source>All supported analyzer diagnostic IDs should be part of an analyzer release.</source>
+        <target state="translated">所有受支援的分析器診斷識別碼都應包含在分析器版本中。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseMessage">
+        <source>Rule '{0}' is not part of any analyzer release.</source>
+        <target state="translated">規則 '{0}' 未包含在任何分析器版本中。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseTitle">
+        <source>Add analyzer diagnostic IDs to analyzer release.</source>
+        <target state="translated">將分析器診斷識別碼新增至分析器版本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign.</source>
+        <target state="new">The diagnostic description should be one or multiple sentences ending with a punctuation sign.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
+        <source>Define diagnostic description correctly</source>
+        <target state="new">Define diagnostic description correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
+        <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</source>
+        <target state="new">The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
+        <source>Define diagnostic message correctly</source>
+        <target state="new">Define diagnostic message correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
+        <source>The diagnostic title should not contain a period or any line return character</source>
+        <target state="new">The diagnostic title should not contain a period or any line return character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
+        <source>Define diagnostic title correctly</source>
+        <target state="new">Define diagnostic title correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
+        <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
+        <target state="translated">在診斷分析器內叫用方法時，'GetSemanticModel' 是成本較高的方法，原因是其會建立全新的語意模型，而不會與編譯器或其他分析器共用編譯資料，此舉會在分析語意期間產生額外的效能成本。請改為考慮註冊不同的分析器動作，以允許使用共用的 'SemanticModel'，例如 'RegisterOperationAction'、'RegisterSyntaxNodeAction' 或 'RegisterSemanticModelAction'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelMessage">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">請不要在診斷分析器內叫用 Compilation.GetSemanticModel() 方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelTitle">
+        <source>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</source>
+        <target state="translated">請不要在診斷分析器內叫用 Compilation.GetSemanticModel() 方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
+        <source>DiagnosticId for analyzers should not use reserved IDs.</source>
+        <target state="translated">分析器的診斷識別碼不應使用保留的識別碼。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
+        <source>'{0}' is a reserved diagnostic ID.</source>
+        <target state="translated">'{0}' 是保留的診斷識別碼。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
+        <source>Do not use reserved diagnostic IDs.</source>
+        <target state="translated">請勿使用保留的診斷識別碼。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
+        <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
+        <target state="translated">啟用分析器套件的版本追蹤有助於追蹤及記錄每個分析器版本所發佈及 (或) 變更的分析器診斷。如需詳細資料，請參閱 https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">
+        <source>Enable analyzer release tracking for the analyzer project containing rule '{0}'</source>
+        <target state="translated">啟用包含規則 '{0}' 之分析器專案的分析器版本追蹤</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableAnalyzerReleaseTrackingRuleTitle">
+        <source>Enable analyzer release tracking</source>
+        <target state="translated">啟用分析器版本追蹤</target>
+        <note />
+      </trans-unit>
       <trans-unit id="EnableConcurrentExecutionDescription">
         <source>Enable concurrent execution</source>
         <target state="translated">啟用同時執行</target>
@@ -60,6 +165,36 @@
       <trans-unit id="EnableConcurrentExecutionTitle">
         <source>Enable concurrent execution</source>
         <target state="translated">啟用同時執行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleDescription">
+        <source>Invalid entry in analyzer release file.</source>
+        <target state="translated">分析器版本檔案中的項目無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleMessage">
+        <source>Analyzer release file '{0}' has an invalid entry '{1}'.</source>
+        <target state="translated">分析器版本檔案 '{0}' 具有無效的項目 '{1}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleTitle">
+        <source>Invalid entry in analyzer release file.</source>
+        <target state="translated">分析器版本檔案中的項目無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidHeaderInAnalyzerReleasesFileRuleMessage">
+        <source>Analyzer release file '{0}' has a missing or invalid release header '{1}'.</source>
+        <target state="translated">分析器版本檔案 '{0}' 缺少版本標頭 '{1}' 或其無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage">
+        <source>Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</source>
+        <target state="translated">分析器版本檔案 '{0}' 具有無效的 '{1}' 項目，該項目未包含先前所送出的規則 '{2}' 版本。請改為在未送出的版本檔案中針對規則新增個別的 '{1}' 項目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage">
+        <source>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'.</source>
+        <target state="translated">分析器版本檔案 '{0}' 具有包含一或多個「未偵測」欄位的項目，必須手動填入 '{1}' 中。</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingAttributeMessage">
@@ -125,6 +260,96 @@
       <trans-unit id="MissingKindArgumentToRegisterActionDescription">
         <source>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</source>
         <target state="translated">註冊語法、符號或作業分析器動作時，必須個別指定至少一個語法、符號或作業種類。否則，分析期間絕不會叫用註冊的動作。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorDescription">
+        <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
+        <target state="translated">'customTags' 值可用來在診斷描述項上依據標籤的特定值，啟用特定的動作及篩選。每個 Roslyn 分析器至少都應該要有一個來自 'WellKnownDiagnosticTags' 類別的標籤。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorMessage">
+        <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</source>
+        <target state="translated">請考慮提供非 null 的 'customTags' 給診斷描述項建構函式，以啟用診斷描述項的中繼資料篩選。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorTitle">
+        <source>Provide non-null 'customTags' value to diagnostic descriptor constructor.</source>
+        <target state="translated">請提供非 null 的 'customTags' 值給診斷描述項建構函式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription">
+        <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
+        <target state="translated">移除分析器版本之間診斷識別碼的重複項目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage">
+        <source>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'.</source>
+        <target state="translated">規則 '{0}' 在版本 '{1}' 與版本 '{2}' 之間具有重複項目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle">
+        <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
+        <target state="translated">移除分析器版本之間診斷識別碼的重複項目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription">
+        <source>Remove duplicate entries for diagnostic ID in the same analyzer release.</source>
+        <target state="translated">移除相同分析器版本中診斷識別碼的重複項目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage">
+        <source>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'.</source>
+        <target state="translated">規則 '{0}' 在分析器版本檔案 '{2}' 中針對版本 '{1}' 有多個項目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle">
+        <source>Remove duplicate entries for diagnostic ID in the same analyzer release.</source>
+        <target state="translated">移除相同分析器版本中診斷識別碼的重複項目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveShippedDeletedDiagnosticIdDescription">
+        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
+        <target state="translated">不再回報的已送出診斷識別碼，在未送出檔案的「已移除規則」資料表中應有一個項目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveShippedDeletedDiagnosticIdMessage">
+        <source>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</source>
+        <target state="translated">規則 '{0}' 已送到分析器版本 '{1}' 中，但已不再是任何分析器的支援診斷。請在未送出檔案的「已移除規則」資料表中針對此規則新增項目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveShippedDeletedDiagnosticIdTitle">
+        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
+        <target state="translated">不再回報的已送出診斷識別碼，在未送出檔案的「已移除規則」資料表中應有一個項目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnshippedDeletedDiagnosticIdDescription">
+        <source>Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</source>
+        <target state="translated">不再回報且從未送出的分析器診斷識別碼項目可以從未送出的分析器版本移除。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnshippedDeletedDiagnosticIdMessage">
+        <source>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer.</source>
+        <target state="translated">規則 '{0}' 包含在下一個未送出的分析器版本中，但其並非任何分析器的支援診斷。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveUnshippedDeletedDiagnosticIdTitle">
+        <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release.</source>
+        <target state="translated">請勿將已移除的分析器診斷識別碼新增至未送出的分析器版本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription">
+        <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</source>
+        <target state="translated">分析器不應回報分析器版本檔案中標示為已移除的診斷識別碼。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage">
+        <source>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported.</source>
+        <target state="translated">規則 '{0}' 在最新的分析器版本中標示為已移除，但仍予以回報。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle">
+        <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</source>
+        <target state="translated">分析器不應回報分析器版本檔案中標示為已移除的診斷識別碼。</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
@@ -200,6 +425,26 @@
 3.至少註冊一個非結束動作，其參考起始動作中的這個狀態。如果不需要這類動作，請考慮以非起始動作取代起始動作。例如，CodeBlockStartAction 沒有任何註冊動作或只有一個註冊的 CodeBlockEndAction 時，應以 CodeBlockAction 取代。
 4.如有必要，請註冊結束動作，以根據最終狀態回報診斷。
 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseDescription">
+        <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</source>
+        <target state="translated">請確認已將分析器診斷識別碼的最新項目新增至分析器版本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseMessage">
+        <source>Rule '{0}' has a changed 'Category' or 'Severity' from the last release. Either revert the update(s) in source or add a new up-to-date entry to unshipped release file.</source>
+        <target state="translated">規則 '{0}' 已變更上一個版本中的「分類」或「嚴重性」。請還原來源中的更新，或將最新項目新增至未送出的版本檔案。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseTitle">
+        <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</source>
+        <target state="translated">請確認已將分析器診斷識別碼的最新項目新增至分析器版本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
+        <source>Update rule entry in unshipped release file</source>
+        <target state="translated">更新未送出版本檔案中的規則項目</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorMessage">

@@ -2,6 +2,51 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../PublicApiAnalyzerResources.resx">
     <body>
+      <trans-unit id="AddAllItemsInDocumentToThePublicApiTitle">
+        <source>Add all items in document '{0}' to the public API</source>
+        <target state="translated">Agregar todos los elementos del documento "{0}" a la API pública</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddAllItemsInProjectToThePublicApiTitle">
+        <source>Add all items in project '{0}' to the public API</source>
+        <target state="translated">Agregar todos los elementos del proyecto "{0}" a la API pública</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddAllItemsInTheSolutionToThePublicApiTitle">
+        <source>Add all items in the solution to the public API</source>
+        <target state="translated">Agregar todos los elementos de la solución a la API pública</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateAllItemsInDocumentToThePublicApiTitle">
+        <source>Annotate all items in document '{0}' in the public API</source>
+        <target state="translated">Anotar todos los elementos del documento "{0}" en la API pública</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateAllItemsInProjectToThePublicApiTitle">
+        <source>Annotate all items in project '{0}' in the public API</source>
+        <target state="translated">Anotar todos los elementos del proyecto "{0}" en la API pública</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateAllItemsInTheSolutionToThePublicApiTitle">
+        <source>Annotate all items in the solution in the public API</source>
+        <target state="translated">Anotar todos los elementos de la solución en la API pública</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiDescription">
+        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Todos los tipos y miembros públicos deben declararse con anotaciones de nulabilidad en PublicAPI.txt. Esto atrae la atención a los cambios de nulabilidad de la API en las revisiones de código y el historial de control de código fuente; además, ayuda a evitar cambios importantes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiMessage">
+        <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
+        <target state="translated">El símbolo "{0}" no tiene anotaciones de nulabilidad en la API declarada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiTitle">
+        <source>Annotate nullability of public types and members in the declared API</source>
+        <target state="translated">Anotar la nulabilidad de los miembros y tipos públicos en la API declarada</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
         <target state="translated">El símbolo "{0}" infringe el requisito de compatibilidad con versiones anteriores: "No agregar varias sobrecargas con los parámetros opcionales". Consulte "{1}" para obtener más detalles.</target>
@@ -37,6 +82,16 @@
         <target state="translated">No duplicar símbolos en los archivos de la API pública</target>
         <note />
       </trans-unit>
+      <trans-unit id="EnableNullableInProjectToThePublicApiTitle">
+        <source>Enable nullability annotations in the public API for project '{0}'</source>
+        <target state="translated">Habilitar las anotaciones de nulabilidad en la API pública para el proyecto "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableNullableInTheSolutionToThePublicApiTitle">
+        <source>Enable nullability annotations in the public API for the solution</source>
+        <target state="translated">Habilitar las anotaciones de nulabilidad en la API pública para la solución</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
         <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</source>
         <target state="translated">El constructor convierte su clase base no heredable en heredable, por lo que expone sus miembros protegidos.</target>
@@ -45,6 +100,21 @@
       <trans-unit id="ExposedNoninstantiableTypeTitle">
         <source>Constructor make noninheritable base class inheritable</source>
         <target state="translated">El constructor convierte en heredable su clase base no heredable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">Todos los miembros públicos deben usar tipos de referencia que acepten o no valores NULL, pero no tipos de referencia inconscientes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <target state="translated">El símbolo "{0}" utiliza algunos tipos de referencia inconscientes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">Los miembros públicos no deben usar tipos inconscientes</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
@@ -105,6 +175,21 @@
       <trans-unit id="RemoveDeletedApiTitle">
         <source>Remove deleted types and members from the declared API</source>
         <target state="translated">Quitar tipos y miembros eliminados de la API declarada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateApiFilesDescription">
+        <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="translated">Los archivos PublicAPI.txt deben tener "#nullable Enable" para hacer un seguimiento de la información de nulabilidad, o bien se debe suprimir este diagnóstico. Con la nulabilidad habilitada, PublicAPI.txt registra los tipos que aceptan valores NULL (sufijo "?" en el tipo) o que no admiten valores NULL (sufijo "!"). También realiza el seguimiento de cualquier API que aún use un tipo de referencia obvio (prefijo "~" en la línea).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateApiFilesMessage">
+        <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
+        <target state="translated">Falta "#nullable enable" en PublicAPI.txt, por lo que las anotaciones de nulabilidad de la API no se registran. Se recomienda habilitar este seguimiento.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateApiFilesTitle">
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">Habilitar el seguimiento de la nulabilidad de los tipos de referencia en la API declarada</target>
         <note />
       </trans-unit>
     </body>

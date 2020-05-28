@@ -2,6 +2,51 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../PublicApiAnalyzerResources.resx">
     <body>
+      <trans-unit id="AddAllItemsInDocumentToThePublicApiTitle">
+        <source>Add all items in document '{0}' to the public API</source>
+        <target state="translated">'{0}' belgesindeki tüm öğeleri genel API'ye ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddAllItemsInProjectToThePublicApiTitle">
+        <source>Add all items in project '{0}' to the public API</source>
+        <target state="translated">'{0}' projesindeki tüm öğeleri genel API'ye ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddAllItemsInTheSolutionToThePublicApiTitle">
+        <source>Add all items in the solution to the public API</source>
+        <target state="translated">Çözümdeki tüm öğeleri genel API'ye ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateAllItemsInDocumentToThePublicApiTitle">
+        <source>Annotate all items in document '{0}' in the public API</source>
+        <target state="translated">Genel API'de yer alan '{0}' belgesindeki tüm öğelere not ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateAllItemsInProjectToThePublicApiTitle">
+        <source>Annotate all items in project '{0}' in the public API</source>
+        <target state="translated">Genel API'de yer alan '{0}' projesindeki tüm öğelere not ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateAllItemsInTheSolutionToThePublicApiTitle">
+        <source>Annotate all items in the solution in the public API</source>
+        <target state="translated">Genel API'de yer alan çözümdeki tüm öğelere not ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiDescription">
+        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Tüm genel türler ve üyeler PublicAPI.txt içinde null atanabilirlik ek açıklamalarıyla bildirilmelidir. Bu işlem, kod incelemeleri ve kaynak denetimi geçmişindeki API null atanabilirlik değişikliklerine dikkat çeker ve hataya neden olan değişikliklerin önlenmesine yardımcı olur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiMessage">
+        <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
+        <target state="translated">'{0}' sembolünde, bildirilen API'deki null atanabilirlik ek açıklamaları eksik.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiTitle">
+        <source>Annotate nullability of public types and members in the declared API</source>
+        <target state="translated">Bildirilen API'deki genel türlerin ve üyelerin null atanabilirliğine not ekle</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
         <target state="translated">'{0}' sembolü geriye dönük uyumluluk gereksinimini ihlal ediyor: 'İsteğe bağlı parametreleri olan birden fazla aşırı yükleme eklemeyin'. Ayrıntılar için bkz. '{1}'.</target>
@@ -37,6 +82,16 @@
         <target state="translated">Genel API dosyalarında sembolleri yinelemeyin</target>
         <note />
       </trans-unit>
+      <trans-unit id="EnableNullableInProjectToThePublicApiTitle">
+        <source>Enable nullability annotations in the public API for project '{0}'</source>
+        <target state="translated">'{0}' projesi için genel API'deki null atanabilirlik ek açıklamalarını etkinleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableNullableInTheSolutionToThePublicApiTitle">
+        <source>Enable nullability annotations in the public API for the solution</source>
+        <target state="translated">Çözüm için genel API'deki null atanabilirlik ek açıklamalarını etkinleştir</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
         <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</source>
         <target state="translated">Oluşturucu devralınamaz temel sınıfını devralınabilir hale getirir, böylece korumalı üyelerini açığa çıkarır.</target>
@@ -45,6 +100,21 @@
       <trans-unit id="ExposedNoninstantiableTypeTitle">
         <source>Constructor make noninheritable base class inheritable</source>
         <target state="translated">Oluşturucu, devralınamayan temel sınıfı devralınabilir hale getirir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">Tüm genel üyeler null atanabilir veya null atanamaz başvuru türleri kullanmalıdır ancak uyarısız atanabilen başvuru türü içermemelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <target state="translated">'{0}' sembolü, uyarısız atanabilen bazı başvuru türlerini kullanıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">Genel üyeler uyarısız atanabilen türler kullanmamalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
@@ -105,6 +175,21 @@
       <trans-unit id="RemoveDeletedApiTitle">
         <source>Remove deleted types and members from the declared API</source>
         <target state="translated">Silinen türleri ve üyeleri bildirilen API'den kaldırın</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateApiFilesDescription">
+        <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="translated">PublicAPI.txt dosyalarında null değer alabilme bilgilerini izlemek için `#nullable enable` bulunmalıdır veya bu tanılama gizlenmelidir. Null değer alabilme etkin olduğunda, PublicAPI.txt, null değer alabilen (türde `?` soneki) veya null değer alamayan `!` türleri kaydeder Ayrıca, hala bir kayıtsız başvuru türünü (satırda `~` ön eki) kullanan tüm API'leri de izler.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateApiFilesMessage">
+        <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
+        <target state="translated">PublicAPI.txt dosyasında '#nullable enable' eksik olduğundan API'nin null atanabilirlik ek açıklamaları kaydedilmiyor. Bu izlemenin etkinleştirilmesi önerilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateApiFilesTitle">
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">Bildirilen API'de başvuru türlerinin null olduğunu izlemeyi etkinleştir</target>
         <note />
       </trans-unit>
     </body>

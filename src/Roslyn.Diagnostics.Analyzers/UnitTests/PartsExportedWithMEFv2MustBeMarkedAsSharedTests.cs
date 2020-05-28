@@ -1,13 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Roslyn.Diagnostics.Analyzers.PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer,
     Roslyn.Diagnostics.CSharp.Analyzers.CSharpPartsExportedWithMEFv2MustBeMarkedAsSharedFixer>;
-using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
     Roslyn.Diagnostics.Analyzers.PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer,
     Roslyn.Diagnostics.VisualBasic.Analyzers.BasicPartsExportedWithMEFv2MustBeMarkedAsSharedFixer>;
 
@@ -71,7 +70,13 @@ End Class
         [Fact]
         public async Task NoDiagnosticCases_UnresolvedTypes()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
 using System;
 using System.{|CS0234:Composition|};
 
@@ -79,16 +84,30 @@ using System.{|CS0234:Composition|};
 public class C
 {
 }
-");
+",
+                    },
+                },
+                ReferenceAssemblies = ReferenceAssemblies.Default,
+            }.RunAsync();
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
 Imports System
 Imports System.Composition
 
 <{|BC30002:Export|}(GetType(C)), {|BC30002:[Shared]|}> _
 Public Class C
 End Class
-");
+"
+                    },
+                },
+                ReferenceAssemblies = ReferenceAssemblies.Default,
+            }.RunAsync();
         }
 
         #endregion
@@ -157,20 +176,14 @@ End Class
 
         #endregion
 
-        private static DiagnosticResult GetCSharpResultAt(int line, int column, string typeName)
-        {
-            return new DiagnosticResult(RoslynDiagnosticIds.MissingSharedAttributeRuleId, DiagnosticSeverity.Warning)
+        private static DiagnosticResult GetCSharpResultAt(int line, int column, string typeName) =>
+            VerifyCS.Diagnostic()
                 .WithLocation(line, column)
-                .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedMessage)
                 .WithArguments(typeName);
-        }
 
-        private static DiagnosticResult GetBasicResultAt(int line, int column, string typeName)
-        {
-            return new DiagnosticResult(RoslynDiagnosticIds.MissingSharedAttributeRuleId, DiagnosticSeverity.Warning)
+        private static DiagnosticResult GetBasicResultAt(int line, int column, string typeName) =>
+            VerifyVB.Diagnostic()
                 .WithLocation(line, column)
-                .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedMessage)
                 .WithArguments(typeName);
-        }
     }
 }

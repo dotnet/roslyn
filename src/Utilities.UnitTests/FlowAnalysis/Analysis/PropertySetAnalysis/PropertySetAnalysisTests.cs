@@ -74,9 +74,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             Debug.Assert(success);
             Debug.Assert(cfg != null);
 
-#pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/2180
             using (var cancellationSource = new CancellationTokenSource())
-#pragma warning restore CA1508 // Avoid dead conditional code
             {
                 DiagnosticDescriptor dummy = new DiagnosticDescriptor("fakeId", null, null, "fakeagory", DiagnosticSeverity.Info, true);
                 PropertySetAnalysisResult result =
@@ -92,6 +90,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         InterproceduralAnalysisConfiguration.Create(
                             new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
                             dummy,
+                            symbol,
+                            compilation,
                             InterproceduralAnalysisKind.ContextSensitive,
                             cancellationSource.Token));
                 ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> actual =
@@ -1268,7 +1268,6 @@ class TestClass
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull);
         }
 
-        #region Infrastructure
         private ITestOutputHelper TestOutput { get; }
 
         public PropertySetAnalysisTests(ITestOutputHelper output)
@@ -1430,7 +1429,5 @@ class TestClass
 
             return null;
         }
-
-        #endregion Infrastructure
     }
 }

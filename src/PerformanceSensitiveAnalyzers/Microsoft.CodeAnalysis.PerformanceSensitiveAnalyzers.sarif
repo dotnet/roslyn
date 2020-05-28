@@ -5,14 +5,14 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers",
-        "version": "2.9.9",
+        "version": "3.3.0",
         "language": "en-US"
       },
       "rules": {
         "HAA0101": {
           "id": "HAA0101",
           "shortDescription": "Array allocation for params parameter",
-          "fullDescription": "This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter",
+          "fullDescription": "This call site is calling into a function with a 'params' parameter. This results in an array allocation",
           "defaultLevel": "warning",
           "properties": {
             "category": "Performance",
@@ -165,8 +165,8 @@
             ]
           }
         },
-        "HeapAnalyzerReadonlyMethodGroupAllocationRule": {
-          "id": "HeapAnalyzerReadonlyMethodGroupAllocationRule",
+        "HAA0604": {
+          "id": "HAA0604",
           "shortDescription": "Delegate allocation from a method group",
           "fullDescription": "This will allocate a delegate instance",
           "defaultLevel": "note",
@@ -184,7 +184,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers",
-        "version": "2.9.9",
+        "version": "3.3.0",
         "language": "en-US"
       },
       "rules": {

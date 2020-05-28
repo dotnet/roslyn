@@ -30,7 +30,7 @@ public class MyObject
     }
 
     [PerformanceSensitive(""uri"")]
-    public void Foo()
+    public void SomeMethod()
     {
         ObjCall(10); // Allocation
         _ = new MyObject(10); // Allocation
@@ -54,15 +54,15 @@ public class MyClass
     public void Testing()
     {
         var @class = new MyClass();
-        @class.ProcessFunc(fooObjCall); // implicit, so Allocation
-        @class.ProcessFunc(new Func<object, string>(fooObjCall)); // Explicit, so NO Allocation
+        @class.ProcessFunc(someObjCall); // implicit, so Allocation
+        @class.ProcessFunc(new Func<object, string>(someObjCall)); // Explicit, so NO Allocation
     }
 
     public void ProcessFunc(Func<object, string> func)
     {
     }
 
-    private string fooObjCall(object obj) => null;
+    private string someObjCall(object obj) => null;
 }
 
 public struct MyStruct
@@ -71,23 +71,25 @@ public struct MyStruct
     public void Testing()
     {
         var @struct = new MyStruct();
-        @struct.ProcessFunc(fooObjCall); // implicit, so Allocation
-        @struct.ProcessFunc(new Func<object, string>(fooObjCall)); // Explicit, so NO Allocation
+        @struct.ProcessFunc(someObjCall); // implicit allocation + boxing
+        @struct.ProcessFunc(new Func<object, string>(someObjCall)); // Explicit allocation + boxing
     }
 
     public void ProcessFunc(Func<object, string> func)
     {
     }
 
-    private string fooObjCall(object obj) => null;
+    private string someObjCall(object obj) => null;
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(10,28): warning HAA0603: This will allocate a delegate instance
-                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(10, 28),
-                // Test0.cs(27,29): warning HAA0603: This will allocate a delegate instance
-                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(27, 29),
+                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithSpan(10, 28, 10, 39),
                 // Test0.cs(27,29): warning HAA0602: Struct instance method being used for delegate creation, this will result in a boxing instruction
-                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithLocation(27, 29));
+                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithSpan(27, 29, 27, 40),
+                // Test0.cs(27,29): warning HAA0603: This will allocate a delegate instance
+                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithSpan(27, 29, 27, 40),
+                // Test0.cs(28,54): warning HAA0602: Struct instance method being used for delegate creation, this will result in a boxing instruction
+                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithSpan(28, 54, 28, 65));
         }
 
         [Fact]
@@ -102,13 +104,13 @@ public class MyObject
     public Object Obj1 
     { 
         [PerformanceSensitive(""uri"")]
-        get { return 0; } 
+        get { return 0; }
     }
 
     [PerformanceSensitive(""uri"")]
-    public Object Obj2 
-    { 
-        get { return 0; } 
+    public Object Obj2
+    {
+        get { return 0; }
     }
 }";
 
@@ -131,10 +133,10 @@ public class MyObject
     [PerformanceSensitive(""uri"")]
     public Object ObjNoAllocation1 { get { return 0.ToString(); } }
 
-    public Object ObjNoAllocation2 
-    { 
+    public Object ObjNoAllocation2
+    {
         [PerformanceSensitive(""uri"")]
-        get { return 0.ToString(); } 
+        get { return 0.ToString(); }
     }
 }";
 
@@ -151,7 +153,7 @@ using Roslyn.Utilities;
 
 public class MyClass
 {
-    public void Foo()
+    public void SomeMethod()
     {
         foreach (var item in GetItems())
         {
@@ -168,7 +170,7 @@ public class MyClass
         yield return 0; // Allocation
         yield break;
     }
-    
+
     [PerformanceSensitive(""uri"")]
     public IEnumerable<int> GetItemsNoAllocation()
     {
@@ -192,7 +194,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo()
+    public void SomeMethod()
     {
         object x = ""blah"";
         object a1 = x ?? 0; // Allocation
@@ -223,11 +225,11 @@ public class MyClass
     public void Testing()
     {
         Func<object, string> temp = null;
-        var result1 = temp ?? fooObjCall; // implicit, so Allocation
-        var result2 = temp ?? new Func<object, string>(fooObjCall); // Explicit, so NO Allocation
+        var result1 = temp ?? someObjCall; // implicit, so Allocation
+        var result2 = temp ?? new Func<object, string>(someObjCall); // Explicit, so NO Allocation
     }
 
-    private string fooObjCall(object obj)
+    private string someObjCall(object obj)
     {
         return obj.ToString();
     }
@@ -239,11 +241,11 @@ public struct MyStruct
     public void Testing()
     {
         Func<object, string> temp = null;
-        var result1 = temp ?? fooObjCall; // implicit, so Allocation
-        var result2 = temp ?? new Func<object, string>(fooObjCall); // Explicit, so NO Allocation
+        var result1 = temp ?? someObjCall; // implicit allocation + boxing
+        var result2 = temp ?? new Func<object, string>(someObjCall); // Explicit allocation + boxing
     }
 
-    private string fooObjCall(object obj)
+    private string someObjCall(object obj)
     {
         return obj.ToString();
     }
@@ -252,11 +254,13 @@ public struct MyStruct
 
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(10,31): warning HAA0603: This will allocate a delegate instance
-                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(10, 31),
-                // Test0.cs(26,31): warning HAA0603: This will allocate a delegate instance
-                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(26, 31),
+                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithSpan(10, 31, 10, 42),
                 // Test0.cs(26,31): warning HAA0602: Struct instance method being used for delegate creation, this will result in a boxing instruction
-                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithLocation(26, 31));
+                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithSpan(26, 31, 26, 42),
+                // Test0.cs(26,31): warning HAA0603: This will allocate a delegate instance
+                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithSpan(26, 31, 26, 42),
+                // Test0.cs(27,56): warning HAA0602: Struct instance method being used for delegate creation, this will result in a boxing instruction
+                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithSpan(27, 56, 27, 67));
         }
 
         [Fact]
@@ -270,7 +274,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo()
+    public void SomeMethod()
     {
         for (object i = 0;;) // Allocation
         {
@@ -299,11 +303,11 @@ public class MyClass
     [PerformanceSensitive(""uri"")]
     public void Testing()
     {
-        Func<object, string> func2 = fooObjCall; // implicit, so Allocation
-        Func<object, string> func1 = new Func<object, string>(fooObjCall); // Explicit, so NO Allocation
+        Func<object, string> func2 = someObjCall; // implicit, so Allocation
+        Func<object, string> func1 = new Func<object, string>(someObjCall); // Explicit, so NO Allocation
     }
 
-    private string fooObjCall(object obj)
+    private string someObjCall(object obj)
     {
         return obj.ToString();
     }
@@ -314,11 +318,11 @@ public struct MyStruct
     [PerformanceSensitive(""uri"")]
     public void Testing()
     {
-        Func<object, string> func2 = fooObjCall; // implicit, so Allocation
-        Func<object, string> func1 = new Func<object, string>(fooObjCall); // Explicit, so NO Allocation
+        Func<object, string> func2 = someObjCall; // implicit allocation + boxing
+        Func<object, string> func1 = new Func<object, string>(someObjCall); // Explicit allocation + boxing
     }
 
-    private string fooObjCall(object obj)
+    private string someObjCall(object obj)
     {
         return obj.ToString();
     }
@@ -326,11 +330,13 @@ public struct MyStruct
 
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(9,38): warning HAA0603: This will allocate a delegate instance
-                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(9, 38),
-                // Test0.cs(24,38): warning HAA0603: This will allocate a delegate instance
-                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(24, 38),
+                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithSpan(9, 38, 9, 49),
                 // Test0.cs(24,38): warning HAA0602: Struct instance method being used for delegate creation, this will result in a boxing instruction
-                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithLocation(24, 38));
+                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithSpan(24, 38, 24, 49),
+                // Test0.cs(24,38): warning HAA0603: This will allocate a delegate instance
+                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithSpan(24, 38, 24, 49),
+                // Test0.cs(25,63): warning HAA0602: Struct instance method being used for delegate creation, this will result in a boxing instruction
+                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithSpan(25, 63, 25, 74));
         }
 
         [Fact]
@@ -521,7 +527,7 @@ using Roslyn.Utilities;
 class Program
 {
     [PerformanceSensitive(""uri"")]
-    void Foo()
+    void SomeMethod()
     {
         string s = $""{1}"";
     }
@@ -652,7 +658,7 @@ enum E { A }
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         System.Enum box = E.A;
     }
@@ -675,7 +681,7 @@ struct S { public void M() {} }
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         Action box = new S().M;
     }
@@ -685,6 +691,127 @@ public class MyClass
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.MethodGroupAllocationRule).WithLocation(12, 22),
                 // Test0.cs(12,22): warning HAA0602: Struct instance method being used for delegate creation, this will result in a boxing instruction
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithLocation(12, 22));
+        }
+
+
+        [Fact]
+        public async Task TypeConversionAllocation_NoDiagnosticWhenPassingDelegateAsArgument()
+        {
+            const string snippet = @"
+using System;
+using Roslyn.Utilities;
+
+struct Foo
+{
+    [PerformanceSensitive(""uri"")]
+    void Do(Action process)
+    {
+        DoMore(process);
+    }
+
+    void DoMore(Action process)
+    {
+        process();
+    }
+}
+            ";
+            await VerifyCS.VerifyAnalyzerAsync(snippet);
+        }
+
+        [Fact]
+        public async Task TypeConversionAllocation_ReportBoxingAllocationForPassingStructInstanceMethodForDelegateConstructor()
+        {
+            const string snippet = @"
+using System;
+using Roslyn.Utilities;
+
+public struct MyStruct
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        var @struct = new MyStruct();
+        @struct.ProcessFunc(new Func<object, string>(FooObjCall));
+    }
+
+    public void ProcessFunc(Func<object, string> func)
+    {
+    }
+
+    private string FooObjCall(object obj)
+    {
+        return obj.ToString();
+    }
+}
+            ";
+
+            await VerifyCS.VerifyAnalyzerAsync(snippet,
+                // Test0.cs(11,54): warning HAA0602: Struct instance method being used for delegate creation, this will result in a boxing instruction
+                VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule).WithSpan(11, 54, 11, 64));
+        }
+
+        [Fact]
+        public async Task TypeConversionAllocation_DoNotReportBoxingAllocationForPassingStructStaticMethodForDelegateConstructor()
+        {
+            const string snippet = @"
+using System;
+using Roslyn.Utilities;
+
+public struct MyStruct
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        var @struct = new MyStruct();
+        @struct.ProcessFunc(new Func<object, string>(FooObjCall));
+    }
+
+    public void ProcessFunc(Func<object, string> func)
+    {
+    }
+
+    private static string FooObjCall(object obj)
+    {
+        return obj.ToString();
+    }
+}
+            ";
+
+            await VerifyCS.VerifyAnalyzerAsync(snippet);
+        }
+
+        [Fact]
+        public async Task TypeConversionAllocation_DoNotReportInlineDelegateAsStructInstanceMethods()
+        {
+            const string snippet = @"
+using System;
+using Roslyn.Utilities;
+
+public struct MyStruct
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        var ints = new[] { 5, 4, 3, 2, 1 };
+        Array.Sort(ints, delegate(int x, int y) { return x - y; });
+        Array.Sort(ints, (x, y) => x - y);
+        DoSomething(() => throw new Exception());
+        DoSomething(delegate() { throw new Exception(); });
+
+        DoSomething2(x => throw new Exception());
+    }
+
+    private static void DoSomething(Action action)
+    {
+    }
+
+    private static void DoSomething2(Action<int> action)
+    {
+    }
+}
+            ";
+
+            await VerifyCS.VerifyAnalyzerAsync(snippet);
         }
     }
 }

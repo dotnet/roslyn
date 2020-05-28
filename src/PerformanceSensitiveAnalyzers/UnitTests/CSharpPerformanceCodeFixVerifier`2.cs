@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
-        private const string PerformanceSensitiveAttributeSource = @"
+        internal const string PerformanceSensitiveAttributeSource = @"
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
