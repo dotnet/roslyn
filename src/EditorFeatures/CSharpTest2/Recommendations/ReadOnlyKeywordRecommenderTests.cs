@@ -598,12 +598,20 @@ class C
     delegate*<ref $$");
         }
 
+        [Fact]
+        public async Task TestNotInFunctionPointerTypeWithoutRef()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    delegate*<$$");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [InlineData("in")]
         [InlineData("out")]
-        [InlineData("")]
         [InlineData("ref readonly")]
-        public async Task TestNotInFunctionPointerTypeNoRef(string modifier)
+        public async Task TestNotInFunctionPointerTypeAfterOtherRefModifier(string modifier)
         {
             await VerifyAbsenceAsync($@"
 class C

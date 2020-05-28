@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Function pointer type adjustments
-            if (previousParentKind == SyntaxKind.FunctionPointerType && currentParentKind == SyntaxKind.FunctionPointerType)
+            if (previousParentKind == SyntaxKindEx.FunctionPointerType && currentParentKind == SyntaxKindEx.FunctionPointerType)
             {
                 if (currentKind == SyntaxKind.LessThanToken)
                 {
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         // No spacing between the calling convention and opening angle bracket of function pointer types:
                         // delegate* cdecl<
                         case SyntaxKind.IdentifierToken:
-                            return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+                            return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                     }
                 }
 
