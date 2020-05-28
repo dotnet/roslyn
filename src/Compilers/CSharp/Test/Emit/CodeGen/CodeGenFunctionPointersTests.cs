@@ -3721,9 +3721,9 @@ class C
                 // (8,24): error CS0119: 'Action' is a type, which is not valid in the given context
                 //         Action ptr1 = (Action)&M;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Action").WithArguments("System.Action", "type").WithLocation(8, 24),
-                // (9,23): error CS8800: Cannot convert a '& method group' to delegate type 'Action'.
+                // (9,23): error CS8800: Cannot convert a & method group 'M' to delegate type 'M'.
                 //         Action ptr2 = &M;
-                Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "&M").WithArguments("System.Action").WithLocation(9, 23)
+                Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "&M").WithArguments("M", "System.Action").WithLocation(9, 23)
             );
 
 
@@ -3956,7 +3956,7 @@ unsafe class C
                 // (10,35): error CS8757: No overload for 'M1' matches function pointer 'delegate*<C, void>'
                 //         delegate*<C, void> ptr1 = &c.M1;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "&c.M1").WithArguments("M1", "delegate*<C, void>").WithLocation(10, 35),
-                // (11,32): error CS8788: Cannot use a an extension method with a receiver as the target of a '&amp;' operator.
+                // (11,32): error CS8788: Cannot use an extension method with a receiver as the target of a '&amp;' operator.
                 //         delegate*<void> ptr2 = &c.M1;
                 Diagnostic(ErrorCode.ERR_CannotUseReducedExtensionMethodInAddressOf, "&c.M1").WithLocation(11, 32)
             );
