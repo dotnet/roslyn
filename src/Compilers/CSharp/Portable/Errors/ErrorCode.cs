@@ -1803,7 +1803,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoSingleCloneMethod = 8858,
         ERR_ContainingTypeMustDeriveFromWithReturnType = 8859,
         ERR_WithMemberIsNotRecordProperty = 8860,
-        ERR_BadWithExpressionArgument = 8861,
 
         #endregion
 

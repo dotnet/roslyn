@@ -948,9 +948,9 @@ data class C(int X)
                 // (12,22): error CS0572: 'X': cannot reference a type through an expression; try 'B.X' instead
                 //         b = b with { X = 0 };
                 Diagnostic(ErrorCode.ERR_BadTypeReference, "X").WithArguments("X", "B.X").WithLocation(12, 22),
-                // (12,22): error CS0118: 'B.X' is a type but is used like a variable
+                // (12,22): error CS1913: Member 'X' cannot be initialized. It is not a field or property.
                 //         b = b with { X = 0 };
-                Diagnostic(ErrorCode.ERR_BadSKknown, "X").WithArguments("B.X", "type", "variable").WithLocation(12, 22)
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "X").WithArguments("X").WithLocation(12, 22)
             );
         }
 
@@ -994,9 +994,9 @@ data class C(int X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,22): error CS1061: 'B' does not contain a definition for 'Y' and no accessible extension method 'Y' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
+                // (12,22): error CS0117: 'B' does not contain a definition for 'Y'
                 //         b = b with { Y = 2 };
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Y").WithArguments("B", "Y").WithLocation(12, 22)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Y").WithArguments("B", "Y").WithLocation(12, 22)
             );
         }
 
@@ -1381,9 +1381,9 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (10,22): error CS1656: Cannot assign to 'X' because it is a 'method group'
+                // (10,22): error CS1913: Member 'X' cannot be initialized. It is not a field or property.
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "X").WithArguments("X", "method group").WithLocation(10, 22)
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "X").WithArguments("X").WithLocation(10, 22)
             );
         }
 
@@ -1437,9 +1437,9 @@ class C : B
                 // (13,13): error CS0266: Cannot implicitly convert type 'B' to 'C'. An explicit conversion exists (are you missing a cast?)
                 //         c = c with { };
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c with { }").WithArguments("B", "C").WithLocation(13, 13),
-                // (14,22): error CS1061: 'B' does not contain a definition for 'X' and no accessible extension method 'X' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
+                // (14,22): error CS0117: 'B' does not contain a definition for 'X'
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "X").WithArguments("B", "X").WithLocation(14, 22)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("B", "X").WithLocation(14, 22)
             );
         }
 
@@ -1530,9 +1530,9 @@ data class C(int X, int Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (8,22): error CS8811: Arguments to a `with` expression must be simple assignments
+                // (8,22): error CS0747: Invalid initializer member declarator
                 //         c = c with { 5 };
-                Diagnostic(ErrorCode.ERR_BadWithExpressionArgument, "5").WithLocation(8, 22),
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "5").WithLocation(8, 22),
                 // (9,22): error CS1513: } expected
                 //         c = c with { { X = 2 } };
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(9, 22),
@@ -1738,6 +1738,25 @@ data class C(int Y)
                 // (19,26): error CS1073: Unexpected token 'ref'
                 //         c = c with { X = ref a[0] };
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(19, 26)
+            );
+        }
+
+        [Fact]
+        public void WithExpressionSameLHS()
+        {
+            var comp = CreateCompilation(@"
+data class C(int X)
+{
+    public static void Main()
+    {
+        var c = new C(0);
+        c = c with { X = 1, X = 2};
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,29): error CS1912: Duplicate initialization of member 'X'
+                //         c = c with { X = 1, X = 2};
+                Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "X").WithArguments("X").WithLocation(7, 29)
             );
         }
     }

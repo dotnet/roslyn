@@ -4298,7 +4298,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (syntax.Kind())
             {
                 case SyntaxKind.ObjectInitializerExpression:
-                    return BindObjectInitializerExpression(syntax, type, diagnostics, implicitReceiver);
+                    // Uses a special binder to produce customized diagnostics for the object initializer
+                    return BindObjectInitializerExpression(
+                        syntax, type, diagnostics, implicitReceiver, useObjectInitDiagnostics: true);
+
+                case SyntaxKind.WithInitializerExpression:
+                    return BindObjectInitializerExpression(
+                        syntax, type, diagnostics, implicitReceiver, useObjectInitDiagnostics: false);
 
                 case SyntaxKind.CollectionInitializerExpression:
                     return BindCollectionInitializerExpression(syntax, type, diagnostics, implicitReceiver);
@@ -4331,7 +4337,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerExpressionSyntax initializerSyntax,
             TypeSymbol initializerType,
             DiagnosticBag diagnostics,
-            BoundObjectOrCollectionValuePlaceholder implicitReceiver)
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            bool useObjectInitDiagnostics)
         {
             // SPEC:    7.6.10.2 Object initializers
             //
@@ -4339,13 +4346,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    Each member initializer must name an accessible field or property of the object being initialized, followed by an equals sign and
             // SPEC:    an expression or an object initializer or collection initializer.
 
-            Debug.Assert(initializerSyntax.Kind() == SyntaxKind.ObjectInitializerExpression);
+            Debug.Assert(initializerSyntax.Kind() == SyntaxKind.ObjectInitializerExpression ||
+                         initializerSyntax.Kind() == SyntaxKind.WithInitializerExpression);
             Debug.Assert((object)initializerType != null);
-
-            var initializerBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-
-            // Member name map to report duplicate assignments to a field/property.
-            var memberNameMap = new HashSet<string>();
 
             // We use a location specific binder for binding object initializer field/property access to generate object initializer specific diagnostics:
             //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
@@ -4353,22 +4356,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
             // Note that this is only used for the LHS of the assignment - these diagnostics do not apply on the RHS.
             // For this reason, we will actually need two binders: this and this.WithAdditionalFlags.
-            var objectInitializerMemberBinder = this.WithAdditionalFlags(BinderFlags.ObjectInitializerMember);
+            var objectInitializerMemberBinder = useObjectInitDiagnostics
+                ? this.WithAdditionalFlags(BinderFlags.ObjectInitializerMember)
+                : this;
 
+            var initializers = ArrayBuilder<BoundExpression>.GetInstance(initializerSyntax.Expressions.Count);
+
+            // Member name map to report duplicate assignments to a field/property.
+            var memberNameMap = PooledHashSet<string>.GetInstance();
             foreach (var memberInitializer in initializerSyntax.Expressions)
             {
-                BoundExpression boundMemberInitializer = BindObjectInitializerMemberAssignment(
+                BoundExpression boundMemberInitializer = BindInitializerMemberAssignment(
                     memberInitializer, initializerType, objectInitializerMemberBinder, diagnostics, implicitReceiver);
 
-                initializerBuilder.Add(boundMemberInitializer);
+                initializers.Add(boundMemberInitializer);
 
                 ReportDuplicateObjectMemberInitializers(boundMemberInitializer, memberNameMap, diagnostics);
             }
 
-            return new BoundObjectInitializerExpression(initializerSyntax, implicitReceiver, initializerBuilder.ToImmutableAndFree(), initializerType);
+            return new BoundObjectInitializerExpression(
+                initializerSyntax,
+                implicitReceiver,
+                initializers.ToImmutableAndFree(),
+                initializerType);
         }
 
-        private BoundExpression BindObjectInitializerMemberAssignment(
+        private BoundExpression BindInitializerMemberAssignment(
             ExpressionSyntax memberInitializer,
             TypeSymbol initializerType,
             Binder objectInitializerMemberBinder,
@@ -4402,7 +4415,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // See comments in BindObjectInitializerExpression for more details.
 
                     Debug.Assert(objectInitializerMemberBinder != null);
-                    Debug.Assert(objectInitializerMemberBinder.Flags.Includes(BinderFlags.ObjectInitializerMember));
 
                     boundLeft = objectInitializerMemberBinder.BindObjectInitializerMember(initializer, implicitReceiver, diagnostics);
                 }
@@ -4572,8 +4584,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // CheckValueKind to generate possible diagnostics for invalid initializers non-viable member lookup result:
                 //      1) CS0154 (ERR_PropertyLacksGet)
                 //      2) CS0200 (ERR_AssgReadonlyProp)
-
-                Debug.Assert(Flags.Includes(CSharp.BinderFlags.ObjectInitializerMember));
                 if (!CheckValueKind(boundMember.Syntax, boundMember, valueKind, checkingReceiver: false, diagnostics: diagnostics))
                 {
                     hasErrors = true;

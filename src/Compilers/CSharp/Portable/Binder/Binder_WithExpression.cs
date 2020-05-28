@@ -94,60 +94,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var cloneReturnType = cloneMethod?.ReturnType;
-            // PROTOTYPE: Handle dynamic
-            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(
+            var initializer = BindInitializerExpression(
+                syntax.Initializer,
+                cloneReturnType ?? receiverType,
                 syntax.Receiver,
-                // formatting
-            #pragma warning disable IDE0055
-                cloneReturnType ?? receiverType) { WasCompilerGenerated = true };
-            #pragma warning restore IDE0055
+                diagnostics);
 
-            var args = ArrayBuilder<BoundExpression>.GetInstance();
-            // Bind with expression arguments
-            foreach (var expr in syntax.Initializer.Expressions)
-            {
-                BoundExpression boundExpr;
-                // We're expecting a simple assignment only, with an ID on the left
-                if (!(expr is AssignmentExpressionSyntax assignment) ||
-                    !(assignment.Left is IdentifierNameSyntax left))
-                {
-                    boundExpr = BindExpression(expr, diagnostics);
-                    hasErrors = true;
-                    diagnostics.Add(ErrorCode.ERR_BadWithExpressionArgument, expr.Location);
-                }
-                else
-                {
-                    var propName = left.Identifier.Text;
-                    BoundExpression? boundMember = null;
-                    boundMember = BindInstanceMemberAccess(
-                        node: left,
-                        right: left,
-                        boundLeft: implicitReceiver,
-                        rightName: propName,
-                        rightArity: 0,
-                        typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
-                        typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
-                        invoked: false,
-                        indexed: false,
-                        diagnostics: diagnostics);
-
-                    hasErrors |= boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
-
-                    boundMember = CheckValue(boundMember, BindValueKind.Assignable, diagnostics);
-
-                    var boundRight = BindValue(assignment.Right, diagnostics, BindValueKind.RValue);
-                    boundExpr = BindAssignment(expr, boundMember, boundRight, isRef: false, diagnostics);
-                }
-                args.Add(boundExpr);
-            }
-
-            lookupResult.Free();
+            // N.B. Since we only don't parse nested initializers in syntax there should be no extra
+            // errors we need to check for here.
 
             return new BoundWithExpression(
                 syntax,
                 receiver,
                 cloneMethod,
-                args.ToImmutableAndFree(),
+                initializer,
                 cloneReturnType ?? receiverType,
                 hasErrors: hasErrors);
         }
