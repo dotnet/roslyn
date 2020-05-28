@@ -7013,34 +7013,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static FlowAnalysisAnnotations GetPropertySetterAnnotations(PropertySymbol property)
-        {
-            var accessor = property.GetOwnOrInheritedSetMethod();
-            if (accessor is object)
-            {
-                return accessor.Parameters.Last().FlowAnalysisAnnotations;
-            }
-            if (property is SourcePropertySymbol sourceProperty)
-            {
-                return getPropertyAnnotations(sourceProperty);
-            }
-            return FlowAnalysisAnnotations.None;
-
-            static FlowAnalysisAnnotations getPropertyAnnotations(SourcePropertySymbol property)
-            {
-                var annotations = FlowAnalysisAnnotations.None;
-                if (property.HasAllowNull)
-                {
-                    annotations |= FlowAnalysisAnnotations.AllowNull;
-                }
-                if (property.HasDisallowNull)
-                {
-                    annotations |= FlowAnalysisAnnotations.DisallowNull;
-                }
-                return annotations;
-            }
-        }
-
         private FlowAnalysisAnnotations GetLValueAnnotations(BoundExpression expr)
         {
             // Annotations are ignored when binding an attribute to avoid cycles. (Members used
@@ -7069,6 +7041,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return field.AssociatedSymbol is PropertySymbol property ?
                     GetPropertySetterAnnotations(property) :
                     field.FlowAnalysisAnnotations;
+            }
+        }
+
+        private static FlowAnalysisAnnotations GetPropertySetterAnnotations(PropertySymbol property)
+        {
+            var accessor = property.GetOwnOrInheritedSetMethod();
+            if (accessor is object)
+            {
+                return accessor.Parameters.Last().FlowAnalysisAnnotations;
+            }
+            if (property is SourcePropertySymbol sourceProperty)
+            {
+                return getPropertyAnnotations(sourceProperty);
+            }
+            return FlowAnalysisAnnotations.None;
+
+            static FlowAnalysisAnnotations getPropertyAnnotations(SourcePropertySymbol property)
+            {
+                var annotations = FlowAnalysisAnnotations.None;
+                if (property.HasAllowNull)
+                {
+                    annotations |= FlowAnalysisAnnotations.AllowNull;
+                }
+                if (property.HasDisallowNull)
+                {
+                    annotations |= FlowAnalysisAnnotations.DisallowNull;
+                }
+                return annotations;
             }
         }
 
