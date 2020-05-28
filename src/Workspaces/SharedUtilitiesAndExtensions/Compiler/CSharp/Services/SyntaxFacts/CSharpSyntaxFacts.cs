@@ -1701,7 +1701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => nodes.FindInnermostCommonNode(node => IsExecutableBlock(node));
 
         public bool IsStatementContainer(SyntaxNode node)
-            => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner();
+            => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner() || node.IsKind(SyntaxKind.GlobalStatement);
 
         public IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node)
             => IsExecutableBlock(node)

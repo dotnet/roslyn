@@ -381,7 +381,8 @@ $$");
         public async Task TestInRefStructBeforeRef()
             => await VerifyKeywordAsync(SourceCodeKind.Regular, @"$$ ref struct { }");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task TestAfterNew()
             => await VerifyKeywordAsync(SourceCodeKind.Regular, @"new $$");
 

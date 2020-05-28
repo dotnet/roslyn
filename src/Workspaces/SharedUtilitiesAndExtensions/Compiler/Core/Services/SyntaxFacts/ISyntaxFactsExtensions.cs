@@ -372,6 +372,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsTupleExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TupleExpression;
 
+        public static bool ContainsGlobalStatement(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+            => node.ChildNodes().Any(c => c.RawKind == syntaxFacts.SyntaxKinds.GlobalStatement);
+
         #endregion
 
         #region statements

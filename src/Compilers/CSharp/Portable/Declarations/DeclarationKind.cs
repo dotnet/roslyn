@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         Delegate,
         Script,
         Submission,
-        ImplicitClass
+        ImplicitClass,
+        SimpleProgram,
     }
 
     internal static partial class EnumConversions

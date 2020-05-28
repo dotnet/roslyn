@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType;
@@ -2279,6 +2280,17 @@ class C
         c2 = c;
     }
 }");
+        }
+
+        [WorkItem(44429, "https://github.com/dotnet/roslyn/issues/44429")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TopLevelStatement()
+        {
+            await TestMissingAsync(@"
+[|int|] i;
+if (int.TryParse(v, out i))
+{
+}", new TestParameters(TestOptions.Regular));
         }
     }
 }

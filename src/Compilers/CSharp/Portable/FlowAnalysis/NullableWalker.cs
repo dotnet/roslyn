@@ -752,7 +752,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
-            var binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
+            var binder = method is SynthesizedSimpleProgramEntryPointSymbol entryPoint ?
+                             entryPoint.GetBodyBinder(ignoreAccessibility: false) :
+                             compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             var conversions = binder.Conversions;
             Analyze(compilation,
                 method,

@@ -1797,6 +1797,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodAccessibilityDifference = 8799,
         ERR_PartialMethodExtendedModDifference = 8800,
 
+        ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 9000,
+        ERR_SimpleProgramMultipleUnitsWithTopLevelStatements = 9001,
+        ERR_TopLevelStatementAfterNamespaceOrType = 9002,
+        ERR_SimpleProgramDisallowsMainType = 9003,
+        ERR_SimpleProgramNotAnExecutable = 9004,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
