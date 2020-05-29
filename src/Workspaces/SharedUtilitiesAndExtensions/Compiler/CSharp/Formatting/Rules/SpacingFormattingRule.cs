@@ -323,6 +323,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // Function pointer type adjustments
             if (previousParentKind == SyntaxKindEx.FunctionPointerType && currentParentKind == SyntaxKindEx.FunctionPointerType)
             {
+                // No spacing between delegate and *
+                if (currentKind == SyntaxKind.AsteriskToken && previousKind == SyntaxKind.DelegateKeyword)
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+
+                // Force a space between * and the calling convention
+                if (currentKind == SyntaxKind.IdentifierToken && previousKind == SyntaxKind.AsteriskToken)
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+
                 if (currentKind == SyntaxKind.LessThanToken)
                 {
                     switch (previousKind)
@@ -334,12 +346,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         case SyntaxKind.IdentifierToken:
                             return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                     }
-                }
-
-                // Force a space between * and the calling convention
-                if (currentKind == SyntaxKind.IdentifierToken && previousKind == SyntaxKind.AsteriskToken)
-                {
-                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
             }
 
