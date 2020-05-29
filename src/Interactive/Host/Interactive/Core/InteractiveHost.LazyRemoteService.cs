@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                     });
 
                     // try to execute initialization script:
-                    var initializationResult = await Host.Async<RemoteExecutionResult>("InitializeContextAsync", Options.InitializationFile, InstanceId > 1).ConfigureAwait(false);
+                    var isRestarting = InstanceId > 1;
+                    var initializationResult = await Host.Async<RemoteExecutionResult>("InitializeContextAsync", remoteService, Options.InitializationFile, isRestarting).ConfigureAwait(false);
 
                     initializing = false;
 
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private Task<RemoteService?> TryStartProcessAsync(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
             {
-                return Task.Run(() => Host.TryStartProcessAsync(hostPath, culture, cancellationToken));
+                return Host.TryStartProcessAsync(hostPath, culture, cancellationToken);
             }
         }
     }

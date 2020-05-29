@@ -60,7 +60,6 @@
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="Utilities\PathKind.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="StreamJsonRpc" Version="2.2.34" />
   </ItemGroup>
   <ItemGroup>

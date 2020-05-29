@@ -53,10 +53,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture)).Wait();
 
-            // (miziga) without try get service, what should this be replaced with?
-            //var remoteService = _host.TryGetService();
-            //Assert.NotNull(remoteService);
-
             _host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir).Wait();
 
             // assert and remove logo:
@@ -123,9 +119,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         //{
         //    return _host.TryGetService().IsShadowCopy(path);
         //}
-        public async Task<String> ReadErrorOutputToEnd()
+        public Task<string> ReadErrorOutputToEnd()
         {
-            return await ReadOutputToEnd(isError: true);
+            return ReadOutputToEnd(isError: true);
         }
 
         private void ClearOutput()
@@ -150,7 +146,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             var mark = markPrefix + Guid.NewGuid().ToString();
 
             // writes mark to the STDOUT/STDERR pipe in the remote process:
-            var remoteService = await _host.TryGetServiceAsync();
+            var remoteService = await _host.TryGetServiceAsync().ConfigureAwait(false);
             await remoteService.JsonRpc.InvokeAsync<Task>("RemoteConsoleWriteAsync", Encoding.UTF8.GetBytes(mark), isError).ConfigureAwait(false);
             while (true)
             {
@@ -160,7 +156,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
                     return data;
                 }
 
-                Thread.Sleep(10);
+                await Task.Delay(10);
             }
         }
 

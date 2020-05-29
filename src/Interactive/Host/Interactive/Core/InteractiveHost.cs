@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -149,17 +150,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 // (miziga) initializing pipe for replacement of remote channel
-                NamedPipeClientStream _clientStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-                JsonRpc jsonRpc = JsonRpc.Attach(_clientStream);
+                var clientStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                var jsonRpc = JsonRpc.Attach(clientStream);
 
                 // instantiate remote service:
                 try
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    await _clientStream.ConnectAsync().ConfigureAwait(false);
-                    await jsonRpc.InvokeAsync<Task>("Initialize", _replServiceProviderType, culture.Name).ConfigureAwait(false);
+                    await clientStream.ConnectAsync(cancellationToken).ConfigureAwait(false);
+                    await jsonRpc.InvokeWithCancellationAsync<Task>("Initialize", new List<object> { _replServiceProviderType, culture.Name }, cancellationToken).ConfigureAwait(false);
                 }
-                catch (RemotingException) when (!CheckAlive(newProcess, hostPath))
+                catch (Exception e) when (e is ObjectDisposedException || (!CheckAlive(newProcess, hostPath)))
                 {
                     return null;
                 }
@@ -201,9 +201,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         // Dispose may be called anytime.
         public void Dispose()
         {
-            //(miziga)close pipe??
-            //_clientStream.Close();
-
             // Run this in background to avoid deadlocking with UIThread operations performing with active outputs.
             _ = Task.Run(() => SetOutputs(TextWriter.Null, TextWriter.Null));
 
