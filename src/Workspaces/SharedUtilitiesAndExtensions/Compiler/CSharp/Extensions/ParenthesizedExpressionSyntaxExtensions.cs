@@ -26,12 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var expression = node.Expression;
-            if (expression is StackAllocArrayCreationExpressionSyntax)
-            {
-                // var span = (stackalloc byte[8]);
-                // https://github.com/dotnet/roslyn/issues/44629
-                return false;
-            }
 
             // The 'direct' expression that contains this parenthesized node.  Note: in the case
             // of code like: ```x is (y)``` there is an intermediary 'no-syntax' 'ConstantPattern'
@@ -61,6 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 parentExpression.IsKind(SyntaxKind.ParenthesizedExpression))
             {
                 return true;
+            }
+
+            if (expression is StackAllocArrayCreationExpressionSyntax)
+            {
+                // var span = (stackalloc byte[8]);
+                // https://github.com/dotnet/roslyn/issues/44629
+                // PR: https://github.com/dotnet/roslyn/pull/44661
+                return false;
             }
 
             // (throw ...) -> throw ...
