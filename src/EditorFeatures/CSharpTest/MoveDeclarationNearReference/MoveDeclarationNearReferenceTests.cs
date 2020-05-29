@@ -54,7 +54,9 @@ int [||]x;
 }
 ",
 @"
+
 {
+
     int x;
     Console.WriteLine(x);
 }
@@ -96,7 +98,9 @@ Console.WriteLine();
 Console.WriteLine(x);
 ",
 @"
+
 Console.WriteLine();
+
 int x;
 Console.WriteLine(x);
 ",
@@ -153,10 +157,12 @@ Console.WriteLine();
 }
 ",
 @"
+
 Console.WriteLine();
+
 int x;
 {
-    Console.WriteLine(x);
+Console.WriteLine(x);
 }
 
 {
@@ -204,8 +210,10 @@ Console.WriteLine();
 }
 ",
 @"
+
 Console.WriteLine();
 {
+
     int x;
     Console.WriteLine(x);
 }
@@ -409,7 +417,9 @@ int [||]i = 5; Console.WriteLine();
 Console.Write(i);
 ",
 @"
+
 Console.WriteLine();
+
 int i = 5; Console.Write(i);
 ",
                 Options.Regular);
@@ -552,6 +562,8 @@ Goo();
 Goo();
 #line default
 Goo();
+#line default
+
 int x = 0;
 Bar(x);
 ",
@@ -612,6 +624,7 @@ new[] { 1 }.AsParallel().ForAll((i) => {
 
 new[] { 1 }.AsParallel().ForAll((i) =>
 {
+
     {|Warning:var @lock = new object();|}
     lock (@lock)
     {
@@ -678,6 +691,7 @@ using System.Linq;
 
 foreach (var v in new[] { 1 })
 {
+
     {|Warning:var i = 0;|}
     Console.Write(i);
     i++;
@@ -1769,7 +1783,9 @@ switch (true)
 }
 ",
 @"
+
 System.Console.WriteLine();
+
 int x;
 switch (true)
 {
