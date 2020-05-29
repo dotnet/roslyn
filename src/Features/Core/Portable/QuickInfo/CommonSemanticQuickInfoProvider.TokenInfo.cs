@@ -20,10 +20,16 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             /// </summary>
             public readonly bool ShowAwaitReturn;
 
-            public TokenInformation(ImmutableArray<ISymbol> symbols, bool showAwaitReturn = false)
+            /// <summary>
+            /// The nullable flow state to show in Quick Info; will be <see cref="NullableFlowState.None"/> to show nothing.
+            /// </summary>
+            public readonly NullableFlowState NullableFlowState;
+
+            public TokenInformation(ImmutableArray<ISymbol> symbols, bool showAwaitReturn = false, NullableFlowState nullableFlowState = NullableFlowState.None)
             {
                 Symbols = symbols;
                 ShowAwaitReturn = showAwaitReturn;
+                NullableFlowState = nullableFlowState;
             }
         }
     }

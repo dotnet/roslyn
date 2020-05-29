@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return default;
         }
 
-        protected async Task<QuickInfoItem> CreateContentAsync(
+        protected static async Task<QuickInfoItem> CreateContentAsync(
             Workspace workspace,
             SyntaxToken token,
             SemanticModel semanticModel,
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             // if generating quick info for an attribute, bind to the class instead of the constructor
             if (syntaxFactsService.IsAttributeName(token.Parent) &&
-                documentedSymbol?.ContainingType?.IsAttribute() == true)
+                documentedSymbol.ContainingType?.IsAttribute() == true)
             {
                 documentedSymbol = documentedSymbol.ContainingType;
             }
@@ -284,10 +284,16 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 usageTextBuilder.AddRange(awaitableUsageText);
             }
 
-            var nullableAnalysis = TryGetNullabilityAnalysis(workspace, semanticModel, token, cancellationToken);
-            if (!nullableAnalysis.IsDefaultOrEmpty)
+            var nullableMessage = tokenInformation.NullableFlowState switch
             {
-                AddSection(QuickInfoSectionKinds.NullabilityAnalysis, nullableAnalysis);
+                NullableFlowState.MaybeNull => string.Format(FeaturesResources._0_may_be_null_here, documentedSymbol.Name),
+                NullableFlowState.NotNull => string.Format(FeaturesResources._0_is_not_null_here, documentedSymbol.Name),
+                _ => null
+            };
+
+            if (nullableMessage != null)
+            {
+                AddSection(QuickInfoSectionKinds.NullabilityAnalysis, ImmutableArray.Create(new TaggedText(TextTags.Text, nullableMessage)));
             }
 
             if (supportedPlatforms != null)
@@ -426,13 +432,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
         protected abstract bool GetBindableNodeForTokenIndicatingPossibleIndexerAccess(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
 
-        protected virtual ImmutableArray<TaggedText> TryGetNullabilityAnalysis(Workspace workspace, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken) => default;
+        protected virtual NullableFlowState GetNullabilityAnalysis(Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => NullableFlowState.None;
 
         private async Task<(SemanticModel semanticModel, TokenInformation tokenInformation)> BindTokenAsync(
             Document document, SyntaxToken token, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var isAwait = syntaxFacts.IsAwaitKeyword(token);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
@@ -451,8 +456,14 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             if (symbols.Any())
             {
-                var discardSymbols = (symbols.First() as ITypeParameterSymbol)?.TypeParameterKind == TypeParameterKind.Cref;
-                return (semanticModel, new TokenInformation(discardSymbols ? ImmutableArray<ISymbol>.Empty : symbols, isAwait));
+                var firstSymbol = symbols.First();
+                var isAwait = syntaxFacts.IsAwaitKeyword(token);
+                var nullableFlowState = NullableFlowState.None;
+                if (bindableParent != null)
+                {
+                    nullableFlowState = GetNullabilityAnalysis(document.Project.Solution.Workspace, semanticModel, firstSymbol, bindableParent, cancellationToken);
+                }
+                return (semanticModel, new TokenInformation(symbols, isAwait, nullableFlowState));
             }
 
             // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
@@ -491,7 +502,18 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         private static bool IsOk([NotNullWhen(returnValue: true)] ISymbol? symbol)
-            => symbol != null && !symbol.IsErrorType();
+        {
+            if (symbol == null)
+                return false;
+
+            if (symbol.IsErrorType())
+                return false;
+
+            if (symbol is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Cref })
+                return false;
+
+            return true;
+        }
 
         private static bool IsAccessible(ISymbol symbol, INamedTypeSymbol? within)
             => within == null
