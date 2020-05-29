@@ -811,25 +811,16 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                             continue;
                         }
 
-                        SyntaxNode expression = null;
-
-                        var callsiteInferenceFailed = false;
-
-                        if (addedParameter.CallSiteKind == CallSiteKind.Inferred && addedParameter.TypeBinds)
-                        {
-                            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                            (expression, callsiteInferenceFailed) = await GenerateInferredExpressionAsync(
-                                semanticModel,
+                        var (expression, callsiteInferenceAttemptedButFailed) = await GenerateInferredCallsiteExpressionAsync(
+                                await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false),
                                 document.Project.Solution.Workspace,
                                 position,
-                                addedParameter.Type,
+                                addedParameter,
                                 cancellationToken).ConfigureAwait(false);
-                        }
 
                         if (expression == null)
                         {
-                            expression = Generator.ParseExpression((isCallsiteActuallyTODO || callsiteInferenceFailed) ? "TODO" : addedParameter.CallSiteValue);
+                            expression = Generator.ParseExpression((isCallsiteActuallyTODO || callsiteInferenceAttemptedButFailed) ? "TODO" : addedParameter.CallSiteValue);
                         }
 
                         // TODO: Need to be able to specify which kind of attribute argument it is to the SyntaxGenerator.
@@ -924,13 +915,18 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return Generator.SeparatedList(fullList.ToImmutableAndFree(), separators.ToImmutableAndFree());
         }
 
-        private async Task<(SyntaxNode expression, bool callsiteInferenceFailed)> GenerateInferredExpressionAsync(
+        private async Task<(SyntaxNode expression, bool callsiteInferenceAttemptedButFailed)> GenerateInferredCallsiteExpressionAsync(
             SemanticModel semanticModel,
             Workspace workspace,
             int position,
-            ITypeSymbol targetType,
+            AddedParameter addedParameter,
             CancellationToken cancellationToken)
         {
+            if (addedParameter.CallSiteKind != CallSiteKind.Inferred || !addedParameter.TypeBinds)
+            {
+                return (expression: null, callsiteInferenceAttemptedButFailed: false);
+            }
+
             var recommendations = await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
                 semanticModel, position, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -953,13 +949,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     continue;
                 }
 
-                if (semanticModel.Compilation.ClassifyCommonConversion(symbolType, targetType).IsImplicit)
+                if (semanticModel.Compilation.ClassifyCommonConversion(symbolType, addedParameter.Type).IsImplicit)
                 {
-                    return (Generator.IdentifierName(symbol.Name), callsiteInferenceFailed: false);
+                    return (Generator.IdentifierName(symbol.Name), callsiteInferenceAttemptedButFailed: false);
                 }
             }
 
-            return (expression: null, callsiteInferenceFailed: true);
+            return (expression: null, callsiteInferenceAttemptedButFailed: true);
         }
 
         protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, ImmutableArray<SyntaxNode> permutedParamNodes)
