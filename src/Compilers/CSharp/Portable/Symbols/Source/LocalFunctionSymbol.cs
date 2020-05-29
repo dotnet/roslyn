@@ -136,12 +136,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             addTo.AddRange(_declarationDiagnostics, allowMismatchInDependencyAccumulation: true);
 
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: false, withDependencies: addTo.AccumulatesDependencies);
             if (IsEntryPointCandidate && !IsGenericMethod &&
                 ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol &&
-                DeclaringCompilation.HasEntryPointSignature(this, new DiagnosticBag()).IsCandidate)
+                DeclaringCompilation.HasEntryPointSignature(this, diagnostics).IsCandidate)
             {
                 addTo.Add(ErrorCode.WRN_MainIgnored, Syntax.Identifier.GetLocation(), this);
             }
+
+            addTo.AddRangeAndFree(diagnostics);
         }
 
         internal override void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)

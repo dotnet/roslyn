@@ -1732,7 +1732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return FinishBindBlockParts(node, boundStatements.ToImmutableAndFree(), diagnostics);
         }
 
-        private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, ImmutableArray<BoundStatement> boundStatements, DiagnosticBag diagnostics)
+        private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, ImmutableArray<BoundStatement> boundStatements, BindingDiagnosticBag diagnostics)
         {
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
 
@@ -3253,14 +3253,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundNode BindSimpleProgram(CompilationUnitSyntax compilationUnit, DiagnosticBag diagnostics)
+        private BoundNode BindSimpleProgram(CompilationUnitSyntax compilationUnit, BindingDiagnosticBag diagnostics)
         {
             var simpleProgram = (SynthesizedSimpleProgramEntryPointSymbol)ContainingMemberOrLambda;
 
             return GetBinder(compilationUnit).BindSimpleProgramCompilationUnit(compilationUnit, simpleProgram, diagnostics);
         }
 
-        private BoundNode BindSimpleProgramCompilationUnit(CompilationUnitSyntax compilationUnit, SynthesizedSimpleProgramEntryPointSymbol simpleProgram, DiagnosticBag diagnostics)
+        private BoundNode BindSimpleProgramCompilationUnit(CompilationUnitSyntax compilationUnit, SynthesizedSimpleProgramEntryPointSymbol simpleProgram, BindingDiagnosticBag diagnostics)
         {
             ArrayBuilder<BoundStatement> boundStatements = ArrayBuilder<BoundStatement>.GetInstance();
             foreach (var statement in compilationUnit.Members)

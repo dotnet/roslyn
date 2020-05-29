@@ -997,7 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var unusedDiagnostics = DiagnosticBag.GetInstance();
                     DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
-                    DiagnosticsPass.IssueDiagnostics(_compilation, initializerStatements, unusedDiagnostics, methodSymbol);
+                    DiagnosticsPass.IssueDiagnostics(_compilation, initializerStatements, BindingDiagnosticBag.Discarded, methodSymbol);
                     unusedDiagnostics.Free();
                 }
                 else
@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // These analyses check for diagnostics in lambdas.
                             // Control flow analysis and implicit return insertion are unnecessary.
                             DefiniteAssignmentPass.Analyze(_compilation, methodSymbol, analyzedInitializers, diagsForCurrentMethod.DiagnosticBag, requireOutParamsAssigned: false);
-                            DiagnosticsPass.IssueDiagnostics(_compilation, analyzedInitializers, diagsForCurrentMethod.DiagnosticBag, methodSymbol);
+                            DiagnosticsPass.IssueDiagnostics(_compilation, analyzedInitializers, diagsForCurrentMethod, methodSymbol);
                         }
                     }
                 }
@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (body != null)
                 {
-                    DiagnosticsPass.IssueDiagnostics(_compilation, body, diagsForCurrentMethod.DiagnosticBag, methodSymbol);
+                    DiagnosticsPass.IssueDiagnostics(_compilation, body, diagsForCurrentMethod, methodSymbol);
                 }
 
                 BoundBlock flowAnalyzedBody = null;

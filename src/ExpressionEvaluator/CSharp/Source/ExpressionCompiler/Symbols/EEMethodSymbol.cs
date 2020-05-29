@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return;
             }
 
-            DiagnosticsPass.IssueDiagnostics(compilation, body, diagnostics.DiagnosticBag, this);
+            DiagnosticsPass.IssueDiagnostics(compilation, body, diagnostics, this);
             if (diagnostics.HasAnyErrors())
             {
                 return;

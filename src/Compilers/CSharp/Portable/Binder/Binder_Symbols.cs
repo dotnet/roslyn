@@ -1393,11 +1393,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeSymbol;
         }
 
-        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, Location location, DiagnosticBag diagnostics)
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, Location location, BindingDiagnosticBag diagnostics)
         {
             NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
-            ReportUseSiteDiagnostics(typeSymbol, diagnostics, location);
+            ReportUseSite(typeSymbol, diagnostics, location);
             return typeSymbol;
         }
 

@@ -2923,7 +2923,8 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44657
+        [WorkItem(44657, "https://github.com/dotnet/roslyn/issues/44657")]
         public void Relational_SignedEnumExhaustive()
         {
             foreach (var typeName in new[] { "sbyte", "short", "int", "long" })
@@ -4020,7 +4021,8 @@ struct S
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44658
+        [WorkItem(44658, "https://github.com/dotnet/roslyn/issues/44658")]
         public void New9PatternsSemanticModel_01()
         {
             // Tests for the semantic model in new patterns as of C# 9.0.
@@ -4248,7 +4250,8 @@ class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/44658
+        [WorkItem(44658, "https://github.com/dotnet/roslyn/issues/44658")]
         public void New9PatternsSemanticModel_02()
         {
             // Tests for the semantic model in new patterns as of C# 9.0.

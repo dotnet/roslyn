@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Compilation, pattern.Syntax, expression, pattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
             if (!hasErrors && !decisionDag.ReachableLabels.Contains(whenTrueLabel))
             {
+                Debug.Assert(expression.Type is object);
                 diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
                 hasErrors = true;
             }
@@ -73,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundTypePattern _:
                     case BoundNegatedPattern _:
                     case BoundBinaryPattern _:
+                        Debug.Assert(expression.Type is object);
                         diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
                         break;
                     case BoundDiscardPattern _:
@@ -177,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax expression,
             TypeSymbol inputType,
             bool hasErrors,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             ExpressionSyntax innerExpression = expression.SkipParens();
             if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
@@ -237,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol inputType,
             ExpressionSyntax patternExpression,
             ref bool hasErrors,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out ConstantValue? constantValueOpt,
             out bool wasExpression)
         {
@@ -253,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol inputType,
             ExpressionSyntax patternExpression,
             ref bool hasErrors,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out ConstantValue? constantValueOpt)
         {
             BoundExpression convertedExpression = ConvertPatternExpression(
@@ -1224,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypePatternSyntax node,
             TypeSymbol inputType,
             bool hasErrors,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var patternType = BindTypeForPattern(node.Type, inputType, diagnostics, ref hasErrors);
             bool isExplicitNotNullTest = patternType.Type.SpecialType == SpecialType.System_Object;
@@ -1235,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RelationalPatternSyntax node,
             TypeSymbol inputType,
             bool hasErrors,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             BoundExpression value = BindExpressionForPattern(inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _);
             RoslynDebug.Assert(value.Type is { });
@@ -1318,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol inputType,
             uint inputValEscape,
             bool hasErrors,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             const bool permitDesignations = false; // prevent designators under 'not'
             var subPattern = BindPattern(node.Pattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
@@ -1331,7 +1333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             uint inputValEscape,
             bool permitDesignations,
             bool hasErrors,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             bool isDisjunction = node.Kind() == SyntaxKind.OrPattern;
             if (isDisjunction)
@@ -1362,22 +1364,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                TypeSymbol? leastSpecificType(SyntaxNode node, ArrayBuilder<TypeSymbol> candidates, DiagnosticBag diagnostics)
+                TypeSymbol? leastSpecificType(SyntaxNode node, ArrayBuilder<TypeSymbol> candidates, BindingDiagnosticBag diagnostics)
                 {
                     Debug.Assert(candidates.Count >= 2);
-                    HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     TypeSymbol? bestSoFar = candidates[0];
                     // first pass: select a candidate for which no other has been shown to be an improvement.
                     for (int i = 1, n = candidates.Count; i < n; i++)
                     {
                         TypeSymbol candidate = candidates[i];
-                        bestSoFar = lessSpecificCandidate(bestSoFar, candidate, ref useSiteDiagnostics) ?? bestSoFar;
+                        bestSoFar = lessSpecificCandidate(bestSoFar, candidate, ref useSiteInfo) ?? bestSoFar;
                     }
                     // second pass: check that it is no more specific than any candidate.
                     for (int i = 0, n = candidates.Count; i < n; i++)
                     {
                         TypeSymbol candidate = candidates[i];
-                        TypeSymbol? spoiler = lessSpecificCandidate(candidate, bestSoFar, ref useSiteDiagnostics);
+                        TypeSymbol? spoiler = lessSpecificCandidate(candidate, bestSoFar, ref useSiteInfo);
                         if (spoiler is null)
                         {
                             bestSoFar = null;
@@ -1388,24 +1390,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(spoiler.Equals(bestSoFar, TypeCompareKind.ConsiderEverything));
                     }
 
-                    diagnostics.Add(node.Location, useSiteDiagnostics);
+                    diagnostics.Add(node.Location, useSiteInfo);
                     return bestSoFar;
                 }
 
                 // Given a candidate least specific type so far, attempt to refine it with a possibly less specific candidate.
-                TypeSymbol? lessSpecificCandidate(TypeSymbol bestSoFar, TypeSymbol possiblyLessSpecificCandidate, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+                TypeSymbol? lessSpecificCandidate(TypeSymbol bestSoFar, TypeSymbol possiblyLessSpecificCandidate, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
                 {
                     if (bestSoFar.Equals(possiblyLessSpecificCandidate, TypeCompareKind.AllIgnoreOptions))
                     {
                         // When the types are equivalent, merge them.
                         return bestSoFar.MergeEquivalentTypes(possiblyLessSpecificCandidate, VarianceKind.Out);
                     }
-                    else if (Conversions.HasImplicitReferenceConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteDiagnostics))
+                    else if (Conversions.HasImplicitReferenceConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
                     {
                         // When there is an implicit reference conversion from T to U, U is less specific
                         return possiblyLessSpecificCandidate;
                     }
-                    else if (Conversions.HasBoxingConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteDiagnostics))
+                    else if (Conversions.HasBoxingConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
                     {
                         // when there is a boxing conversion from T to U, U is less specific.
                         return possiblyLessSpecificCandidate;

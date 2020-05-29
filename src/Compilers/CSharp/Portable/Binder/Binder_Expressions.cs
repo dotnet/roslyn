@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// When binding a switch case's expression, it is possible that it resolves to a type (technically, a type pattern).
         /// This implementation permits either an rvalue or a BoundTypeExpression.
         /// </summary>
-        internal BoundExpression BindTypeOrRValue(ExpressionSyntax node, DiagnosticBag diagnostics)
+        internal BoundExpression BindTypeOrRValue(ExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             var valueOrType = BindExpression(node, diagnostics: diagnostics, invoked: false, indexed: false);
             if (valueOrType.Kind == BoundKind.TypeExpression)
@@ -1807,7 +1807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool ReportSimpleProgramLocalReferencedOutsideOfTopLevelStatement(SimpleNameSyntax node, Symbol symbol, DiagnosticBag diagnostics)
+        private static bool ReportSimpleProgramLocalReferencedOutsideOfTopLevelStatement(SimpleNameSyntax node, Symbol symbol, BindingDiagnosticBag diagnostics)
         {
             if (symbol.ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol)
             {

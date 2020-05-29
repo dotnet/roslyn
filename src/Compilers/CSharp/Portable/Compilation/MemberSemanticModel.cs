@@ -1978,12 +1978,12 @@ done:
             void bind(CSharpSyntaxNode bindableRoot, out Binder binder, out BoundNode boundRoot)
             {
                 binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
-                boundRoot = Bind(binder, bindableRoot, getDiagnosticBag());
+                boundRoot = Bind(binder, bindableRoot, BindingDiagnosticBag.Discarded);
             }
 
             void rewriteAndCache()
             {
-                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, getDiagnosticBag(), takeSnapshots: true, out snapshotManager, ref remappedSymbols);
+                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, new DiagnosticBag(), takeSnapshots: true, out snapshotManager, ref remappedSymbols);
                 cache(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
             }
 
@@ -1994,11 +1994,6 @@ done:
                 if (!Compilation.NullableSemanticAnalysisEnabled) return;
 #endif
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
-            }
-
-            DiagnosticBag getDiagnosticBag()
-            {
-                return BindingDiagnosticBag.Discarded;
             }
         }
 

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal const string UnspeakableName = "$Program";
 
-        internal SimpleProgramNamedTypeSymbol(NamespaceSymbol globalNamespace, MergedTypeDeclaration declaration, DiagnosticBag diagnostics)
+        internal SimpleProgramNamedTypeSymbol(NamespaceSymbol globalNamespace, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
             : base(globalNamespace, declaration, diagnostics)
         {
             Debug.Assert(globalNamespace.IsGlobalNamespace);
@@ -89,14 +89,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
             => this.DeclaringCompilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
 
-        protected override void CheckBase(DiagnosticBag diagnostics)
+        protected override void CheckBase(BindingDiagnosticBag diagnostics)
         {
             // check that System.Object is available. 
-            var info = this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object).GetUseSiteDiagnostic();
-            if (info != null)
-            {
-                Symbol.ReportUseSiteDiagnostic(info, diagnostics, NoLocation.Singleton);
-            }
+            Binder.GetSpecialType(this.DeclaringCompilation, SpecialType.System_Object, NoLocation.Singleton, diagnostics);
         }
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
@@ -114,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        protected override void CheckInterfaces(DiagnosticBag diagnostics)
+        protected override void CheckInterfaces(BindingDiagnosticBag diagnostics)
         {
             // nop
         }
@@ -201,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-        protected override MembersAndInitializers BuildMembersAndInitializers(DiagnosticBag diagnostics)
+        protected override MembersAndInitializers BuildMembersAndInitializers(BindingDiagnosticBag diagnostics)
         {
             bool reportAnError = false;
             foreach (var singleDecl in declaration.Declarations)

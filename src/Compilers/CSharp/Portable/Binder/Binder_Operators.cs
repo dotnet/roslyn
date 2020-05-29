@@ -2900,7 +2900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // try binding as a type, but back off to binding as an expression if that does not work.
             bool wasUnderscore = IsUnderscore(node.Right);
-            if (!tryBindAsType(node.Right, out DiagnosticBag isTypeDiagnostics, out BoundTypeExpression typeExpression) &&
+            if (!tryBindAsType(node.Right, diagnostics, out BindingDiagnosticBag isTypeDiagnostics, out BoundTypeExpression typeExpression) &&
                 !wasUnderscore &&
                 ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
             {
@@ -3010,10 +3010,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool tryBindAsType(
                 ExpressionSyntax possibleType,
-                out DiagnosticBag bindAsTypeDiagnostics,
+                BindingDiagnosticBag diagnostics,
+                out BindingDiagnosticBag bindAsTypeDiagnostics,
                 out BoundTypeExpression boundType)
             {
-                bindAsTypeDiagnostics = DiagnosticBag.GetInstance();
+                bindAsTypeDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
                 TypeWithAnnotations targetTypeWithAnnotations = BindType(possibleType, bindAsTypeDiagnostics, out AliasSymbol alias);
                 TypeSymbol targetType = targetTypeWithAnnotations.Type;
                 boundType = new BoundTypeExpression(possibleType, alias, targetTypeWithAnnotations);

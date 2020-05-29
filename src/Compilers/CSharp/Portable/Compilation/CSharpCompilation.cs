@@ -1558,7 +1558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (simpleProgramEntryPointSymbol is object)
                     {
-                        var diagnostics = DiagnosticBag.GetInstance();
+                        var diagnostics = BindingDiagnosticBag.GetInstance();
                         diagnostics.Add(ErrorCode.ERR_SimpleProgramNotAnExecutable, NoLocation.Singleton);
                         entryPoint = new EntryPoint(null, diagnostics.ToReadOnlyAndFree());
                     }
@@ -1588,7 +1588,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var diagnostics = DiagnosticBag.GetInstance();
                         diagnostics.Add(ErrorCode.ERR_SimpleProgramDisallowsMainType, NoLocation.Singleton);
-                        entryPoint = new EntryPoint(entryPoint.MethodSymbol, entryPoint.Diagnostics.Concat(diagnostics.ToReadOnlyAndFree()));
+                        entryPoint = new EntryPoint(entryPoint.MethodSymbol,
+                                                    new ImmutableBindingDiagnostic<AssemblySymbol>(
+                                                        entryPoint.Diagnostics.Diagnostics.Concat(diagnostics.ToReadOnlyAndFree()), entryPoint.Diagnostics.Dependencies));
                     }
                 }
 
