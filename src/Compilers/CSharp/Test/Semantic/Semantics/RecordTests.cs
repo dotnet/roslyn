@@ -1557,6 +1557,7 @@ data class C(int X, int Y)
             );
         }
 
+        [Fact]
         public void WithExpr_DefiniteAssignment_01()
         {
             var src = @"
@@ -1570,11 +1571,7 @@ data class B(int X)
     }
 }";
             var comp = CreateCompilation(src);
-            // PROTOTYPE: records don't auto-generate Clone at the moment
-            comp.VerifyDiagnostics(
-                // (7,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
-                //         _ = b with { X = y = 42 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(7, 13));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1590,11 +1587,7 @@ data class B(int X, string Y)
     }
 }";
             var comp = CreateCompilation(src);
-            // PROTOTYPE: records don't auto-generate Clone at the moment
-            comp.VerifyDiagnostics(
-                // (7,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
-                //         _ = b with { X = y = 42 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(7, 13));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1610,11 +1603,7 @@ data class B(int X, string Y)
     }
 }";
             var comp = CreateCompilation(src);
-            // PROTOTYPE: records don't auto-generate Clone at the moment
             comp.VerifyDiagnostics(
-                // (7,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
-                //         _ = b with { Y = z.ToString(), X = z = 42 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(7, 13),
                 // (7,26): error CS0165: Use of unassigned local variable 'z'
                 //         _ = b with { Y = z.ToString(), X = z = 42 };
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(7, 26));
@@ -1633,11 +1622,7 @@ data class B(int X)
     }
 }";
             var comp = CreateCompilation(src);
-            // PROTOTYPE: records don't auto-generate Clone at the moment
-            comp.VerifyDiagnostics(
-                // (7,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
-                //         _ = (b = new B(42)) with { X = b.X };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "(b = new B(42))").WithArguments("B").WithLocation(7, 13));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1653,11 +1638,7 @@ data class B(int X)
     }
 }";
             var comp = CreateCompilation(src);
-            // PROTOTYPE: records don't auto-generate Clone at the moment
             comp.VerifyDiagnostics(
-                // (7,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
-                //         _ = new B(b.X) with { X = new B(42).X };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "new B(b.X)").WithArguments("B").WithLocation(7, 13),
                 // (7,19): error CS0165: Use of unassigned local variable 'b'
                 //         _ = new B(b.X) with { X = new B(42).X };
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(7, 19));
@@ -1679,11 +1660,7 @@ data class B(int X)
     static int M(out int y) { y = 42; return 43; }
 }";
             var comp = CreateCompilation(src);
-            // PROTOTYPE: records don't auto-generate Clone at the moment
-            comp.VerifyDiagnostics(
-                // (7,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
-                //         _ = b with { X = M(out y) };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(7, 13));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1701,11 +1678,7 @@ data class B(int X)
     static int M(out int y) { y = 42; return 43; }
 }";
             var comp = CreateCompilation(src);
-            // PROTOTYPE: records don't auto-generate Clone at the moment
-            comp.VerifyDiagnostics(
-                // (6,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
-                //         _ = b with { X = M(out int y) };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(6, 13));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1725,11 +1698,7 @@ data class B(int X)
     static int M(out string s) { s = ""a""; return 42; }
 }";
             var comp = CreateCompilation(src);
-            // PROTOTYPE: records don't auto-generate Clone at the moment
-            comp.VerifyDiagnostics(
-                // (8,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
-                //         _ = b with { X = M(out s) };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(8, 13));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1747,11 +1716,7 @@ data class B(string X)
     }
 }";
             var comp = CreateCompilation(src);
-            // PROTOTYPE: records don't auto-generate Clone at the moment
             comp.VerifyDiagnostics(
-                // (8,13): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
-                //         _ = b with { X = s }; // 1
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(8, 13),
                 // (8,26): warning CS8601: Possible null reference assignment.
                 //         _ = b with { X = s }; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "s").WithLocation(8, 26));
@@ -1813,17 +1778,10 @@ data class B(int X)
     }
 }";
             var comp = CreateCompilation(src);
-            // PROTOTYPE: records don't auto-generate Clone at the moment
             comp.VerifyDiagnostics(
-                // (7,18): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
-                //         var b1 = b with { X = 42 }; // 1
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(7, 18),
                 // (7,18): warning CS8602: Dereference of a possibly null reference.
                 //         var b1 = b with { X = 42 }; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b").WithLocation(7, 18),
-                // (14,10): error CS8858: The receiver type 'B' does not have an accessible parameterless instance method named "Clone".
-                //         (b with { X = 42 }).ToString(); // 2
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(14, 10),
                 // (14,10): warning CS8602: Dereference of a possibly null reference.
                 //         (b with { X = 42 }).ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b").WithLocation(14, 10));
@@ -1867,12 +1825,12 @@ data class B(string? X, string? Y)
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(17, 9));
         }
 
-        [Fact(Skip = "PROTOTYPE(records): with expression using init accessors")]
+        [Fact]
         public void WithExpr_NullableAnalysis_06()
         {
             var src = @"
 #nullable enable
-data class B
+class B
 {
     public string? X { get; init; }
     public string? Y { get; init; }
@@ -1896,18 +1854,12 @@ data class B
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (9,21): warning CS8602: Dereference of a possibly null reference.
-                //         if (flag) { b.X.ToString(); } // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(9, 21),
-                // (11,21): warning CS8602: Dereference of a possibly null reference.
-                //         if (flag) { b.X.ToString(); } // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(11, 21),
-                // (16,21): warning CS8602: Dereference of a possibly null reference.
-                //         if (flag) { b.X.ToString(); } // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(16, 21));
+                // (16,13): warning CS8602: Dereference of a possibly null reference.
+                //             b.Y.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(16, 13));
         }
 
-        [Fact(Skip = "PROTOTYPE(records): positional property attributes")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44691")]
         public void WithExpr_NullableAnalysis_07()
         {
             var src = @"
@@ -1922,14 +1874,13 @@ data class B([AllowNull] string X)
     {
         b.X.ToString();
         b = b with { X = null };
-        b.X.ToString(); // 1
+        b.X.ToString(); // ok
+        b = new B(null);
+        b.X.ToString(); // ok
     }
 }";
             var comp = CreateCompilation(new[] { src, AllowNullAttributeDefinition });
-            comp.VerifyDiagnostics(
-                // (13,9): warning CS8602: Dereference of a possibly null reference.
-                //         b.X.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(13, 9));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1971,6 +1922,38 @@ data class B(string? X, string? Y)
                 // (17,9): warning CS8602: Dereference of a possibly null reference.
                 //         b3.X.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b3.X").WithLocation(17, 9));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_VariantClone()
+        {
+            var src = @"
+#nullable enable
+
+class A
+{
+    public string? Y { get; init; }
+    public string? Z { get; init; }
+}
+
+data class B(string? X) : A
+{
+    public A Clone() => new B(X) { Y = Y, Z = Z };
+    public new string Z { get; init; } = ""zed"";
+
+    static void M1(B b1)
+    {
+        b1.Z.ToString();
+        (b1 with { Y = ""hello"" }).Y.ToString();
+        (b1 with { Y = ""hello"" }).Z.ToString(); // 1
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (19,9): warning CS8602: Dereference of a possibly null reference.
+                //         (b1 with { Y = "hello" }).Z.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"(b1 with { Y = ""hello"" }).Z").WithLocation(19, 9));
         }
 
         [Fact]

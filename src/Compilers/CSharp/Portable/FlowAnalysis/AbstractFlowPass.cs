@@ -2027,10 +2027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitWithExpression(BoundWithExpression node)
         {
             VisitRvalue(node.Receiver);
-            foreach (var (_, expr) in node.Arguments)
-            {
-                VisitRvalue(expr);
-            }
+            VisitObjectOrCollectionInitializerExpression(node.InitializerExpression.Initializers);
             return null;
         }
 
