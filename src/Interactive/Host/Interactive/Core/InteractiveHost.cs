@@ -90,9 +90,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         // Dispose may be called anytime.
         public void Dispose()
         {
-			// Run this in background to avoid deadlocking with UIThread operations performing with active outputs.            _ = Task.Run(() => SetOutputs(TextWriter.Null, TextWriter.Null));
-
-            DisposeRemoteService();
+			// Run this in background to avoid deadlocking with UIThread operations performing with active outputs.
+            _ = Task.Run(() => SetOutputs(TextWriter.Null, TextWriter.Null));            DisposeRemoteService();
             GC.SuppressFinalize(this);
         }
 

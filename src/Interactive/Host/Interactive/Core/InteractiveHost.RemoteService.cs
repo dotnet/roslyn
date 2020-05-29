@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             internal RemoteService(InteractiveHost host, Process process, int processId, JsonRpc jsonRpc)            {
                 Debug.Assert(host != null);
                 Debug.Assert(process != null);
-                //(miziga) can you even check if a jsonRpc is null? necessary?
-                //Debug.Assert(jsonRpc != null);
+                Debug.Assert(jsonRpc != null);
 
                 Process = process;
                 JsonRpc = jsonRpc;

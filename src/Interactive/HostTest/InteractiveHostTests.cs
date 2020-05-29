@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture));
 
-            await _host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir);
-            // assert and remove logo:
+            await _host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir);            // assert and remove logo:
             var output = SplitLines(await ReadOutputToEnd());
             var errorOutput = await ReadErrorOutputToEnd();
 
@@ -125,10 +124,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         //{
         //    return _host.TryGetService().IsShadowCopy(path);
         //}
-
-        public Task<string> ReadErrorOutputToEnd()
-        {            return await ReadOutputToEnd(isError: true);
-        }
+        
+		public Task<string> ReadErrorOutputToEnd()
+        {            return await ReadOutputToEnd(isError: true);        }
 
         private void ClearOutput()
         {
