@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote
         internal const string Prefix = "roslyn";
         internal const string IntelliCodeServiceName = "pythia";
         internal const string RazorServiceName = "razorLanguageService";
-        internal const string TestingAnalysisServiceName = "remoteTestDiscoveryHostService";
+        internal const string UnitTestingAnalysisServiceName = "remoteAnalysisService";
         internal const string LiveUnitTestingServiceName = "remoteBuildService";
         internal const string TestSourceLocationLookupServiceName = "remoteTestSourceLocationLookupService";
 
@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 (WellKnownServiceHubService.IntelliCode, true) => IntelliCodeServiceName + Suffix64,
                 (WellKnownServiceHubService.Razor, false) => RazorServiceName,
                 (WellKnownServiceHubService.Razor, true) => RazorServiceName + Suffix64,
-                (WellKnownServiceHubService.TestingAnalysisService, false) => TestingAnalysisServiceName,
-                (WellKnownServiceHubService.TestingAnalysisService, true) => TestingAnalysisServiceName + Suffix64,
+                (WellKnownServiceHubService.UnitTestingAnalysisService, false) => UnitTestingAnalysisServiceName,
+                (WellKnownServiceHubService.UnitTestingAnalysisService, true) => UnitTestingAnalysisServiceName + Suffix64,
                 (WellKnownServiceHubService.LiveUnitTestingService, false) => LiveUnitTestingServiceName,
                 (WellKnownServiceHubService.LiveUnitTestingService, true) => LiveUnitTestingServiceName + Suffix64,
                 (WellKnownServiceHubService.TestSourceLocationLookupService, false) => TestSourceLocationLookupServiceName,

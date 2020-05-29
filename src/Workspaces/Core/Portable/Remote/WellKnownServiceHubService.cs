@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote
         Razor,
 
         // owned by Unit Testing team:
-        TestingAnalysisService,
+        UnitTestingAnalysisService,
         LiveUnitTestingService,
         TestSourceLocationLookupService,
     }
