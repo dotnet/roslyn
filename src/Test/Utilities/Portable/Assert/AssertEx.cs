@@ -443,7 +443,7 @@ namespace Roslyn.Test.Utilities
 
         public static void SetEqual<T>(T[] expected, T[] actual)
             => SetEqual((IEnumerable<T>)actual, expected);
-        
+
         public static void SetEqual<T>(IEnumerable<T> actual, params T[] expected)
         {
             var expectedSet = new HashSet<T>(expected);
