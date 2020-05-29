@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -59,7 +60,14 @@ namespace Microsoft.CodeAnalysis
 
         internal AdditionalSourcesCollection AdditionalSources { get; }
 
-        public void AddSource(string hintName, SourceText sourceText) => AdditionalSources.Add(hintName, sourceText);
+        public void AddSource(string hintName, SourceText sourceText)
+        {
+            if (!Path.GetExtension(hintName).Equals(".cs", StringComparison.OrdinalIgnoreCase))
+            {
+                hintName = string.Concat(hintName, ".cs");
+            }
+            AdditionalSources.Add(hintName, sourceText);
+        }
 
         public void ReportDiagnostic(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
     }
