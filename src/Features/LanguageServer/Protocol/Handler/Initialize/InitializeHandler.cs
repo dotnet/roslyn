@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     ProjectContextProvider = true,
                     TextDocumentSync = new LSP.TextDocumentSyncOptions
                     {
-                        OpenClose = false,
                         Change = LSP.TextDocumentSyncKind.None
                     }
                 }

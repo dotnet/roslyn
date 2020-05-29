@@ -57,7 +57,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     WorkspaceSymbolProvider = true,
                     TextDocumentSync = new TextDocumentSyncOptions
                     {
-                        OpenClose = false,
                         Change = TextDocumentSyncKind.None
                     }
                 }
