@@ -621,18 +621,27 @@ partial void F(dynamic d)
                 Punctuation.CloseParen);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Classification)]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
-        public async Task DynamicAsArrayName()
+        [CombinatorialData]
+        public async Task DynamicAsArrayName(bool script, bool outOfProcess)
         {
-            await TestAsync(
+            var code =
 @"int[] dynamic = {
     1
-};",
+};";
+
+            var parseOptions = script ? Options.Script : null;
+
+            await TestAsync(
+                code,
+                code,
+                parseOptions,
+                outOfProcess,
                 Keyword("int"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Field("dynamic"),
+                script ? Field("dynamic") : Local("dynamic"),
                 Operators.Equals,
                 Punctuation.OpenCurly,
                 Number("1"),
