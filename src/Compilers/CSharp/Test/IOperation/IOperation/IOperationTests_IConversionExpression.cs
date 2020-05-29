@@ -947,9 +947,9 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
             Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1526: A new expression requires (), [], or {} after type
+                // file.cs(8,41): error CS1031: Type expected
                 //         C1 /*<bind>*/c1 = new/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(8, 41)
+                Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(8, 41)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
