@@ -1530,29 +1530,59 @@ public void M()
     delegate*<void> l1;
     delegate*<void> L2() { }
     delegate*<void> l3;
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.RegularPreview,
+                // (2,1): error CS0106: The modifier 'public' is not valid for this item
+                // public void M()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(2, 1)
+            );
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalDeclarationStatement);
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.VariableDeclaration);
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.FunctionPointerType);
+                                    {
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.AsteriskToken);
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.Parameter);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.VoidKeyword);
+                                            }
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "l1");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalFunctionStatement);
                             {
                                 N(SyntaxKind.FunctionPointerType);
                                 {
@@ -1569,69 +1599,46 @@ public void M()
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
-                                N(SyntaxKind.VariableDeclarator);
+                                N(SyntaxKind.IdentifierToken, "L2");
+                                N(SyntaxKind.ParameterList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "l1");
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
                                 }
                             }
-                            N(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.LocalFunctionStatement);
-                        {
-                            N(SyntaxKind.FunctionPointerType);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.DelegateKeyword);
-                                N(SyntaxKind.AsteriskToken);
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.Parameter);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
-                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.FunctionPointerType);
                                     {
-                                        N(SyntaxKind.VoidKeyword);
-                                    }
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                                N(SyntaxKind.GreaterThanToken);
-                            }
-                            N(SyntaxKind.IdentifierToken, "L2");
-                            N(SyntaxKind.ParameterList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
-                            }
-                        }
-                        N(SyntaxKind.LocalDeclarationStatement);
-                        {
-                            N(SyntaxKind.VariableDeclaration);
-                            {
-                                N(SyntaxKind.FunctionPointerType);
-                                {
-                                    N(SyntaxKind.DelegateKeyword);
-                                    N(SyntaxKind.AsteriskToken);
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.Parameter);
-                                    {
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.AsteriskToken);
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.Parameter);
                                         {
-                                            N(SyntaxKind.VoidKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.VoidKeyword);
+                                            }
+                                            M(SyntaxKind.IdentifierToken);
                                         }
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.GreaterThanToken);
                                     }
-                                    N(SyntaxKind.GreaterThanToken);
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "l3");
+                                    }
                                 }
-                                N(SyntaxKind.VariableDeclarator);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "l3");
-                                }
+                                N(SyntaxKind.SemicolonToken);
                             }
-                            N(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2435,60 +2442,64 @@ async void M()
 {
     delegate*<async, async> ptr;
 }", options: TestOptions.RegularPreview);
+
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.AsyncKeyword);
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalDeclarationStatement);
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.VariableDeclaration);
-                            {
-                                N(SyntaxKind.FunctionPointerType);
-                                {
-                                    N(SyntaxKind.DelegateKeyword);
-                                    N(SyntaxKind.AsteriskToken);
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.Parameter);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "async");
-                                        }
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.Parameter);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "async");
-                                        }
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.GreaterThanToken);
-                                }
-                                N(SyntaxKind.VariableDeclarator);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "ptr");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.FunctionPointerType);
+                                    {
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.AsteriskToken);
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.Parameter);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "async");
+                                            }
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Parameter);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "async");
+                                            }
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "ptr");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2504,59 +2515,63 @@ void M()
 {
     delegate*<async, async> ptr;
 }", options: TestOptions.RegularPreview);
+
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalDeclarationStatement);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.VariableDeclaration);
-                            {
-                                N(SyntaxKind.FunctionPointerType);
-                                {
-                                    N(SyntaxKind.DelegateKeyword);
-                                    N(SyntaxKind.AsteriskToken);
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.Parameter);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "async");
-                                        }
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.Parameter);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "async");
-                                        }
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.GreaterThanToken);
-                                }
-                                N(SyntaxKind.VariableDeclarator);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "ptr");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.FunctionPointerType);
+                                    {
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.AsteriskToken);
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.Parameter);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "async");
+                                            }
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Parameter);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "async");
+                                            }
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "ptr");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2578,60 +2593,64 @@ async void M()
                     // (4,22): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                     //     delegate*<await, await> ptr;
                     Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(4, 22));
+
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.AsyncKeyword);
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalDeclarationStatement);
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.VariableDeclaration);
-                            {
-                                N(SyntaxKind.FunctionPointerType);
-                                {
-                                    N(SyntaxKind.DelegateKeyword);
-                                    N(SyntaxKind.AsteriskToken);
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.Parameter);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "await");
-                                        }
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.Parameter);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "await");
-                                        }
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.GreaterThanToken);
-                                }
-                                N(SyntaxKind.VariableDeclarator);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "ptr");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.FunctionPointerType);
+                                    {
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.AsteriskToken);
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.Parameter);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "await");
+                                            }
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Parameter);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "await");
+                                            }
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "ptr");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2649,57 +2668,60 @@ void M()
 }", options: TestOptions.RegularPreview);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalDeclarationStatement);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.VariableDeclaration);
-                            {
-                                N(SyntaxKind.FunctionPointerType);
-                                {
-                                    N(SyntaxKind.DelegateKeyword);
-                                    N(SyntaxKind.AsteriskToken);
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.Parameter);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "await");
-                                        }
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.Parameter);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "await");
-                                        }
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.GreaterThanToken);
-                                }
-                                N(SyntaxKind.VariableDeclarator);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "ptr");
-                                }
-                            }
-                            N(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.FunctionPointerType);
+                                    {
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.AsteriskToken);
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.Parameter);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "await");
+                                            }
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Parameter);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "await");
+                                            }
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "ptr");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2903,51 +2925,55 @@ void C()
                     // (5,10): error CS1002: ; expected
                     //     {convention}
                     Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, convention.Length + 5));
+
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalDeclarationStatement);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.VariableDeclaration);
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.FunctionPointerType);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
-                                    N(SyntaxKind.DelegateKeyword);
-                                    N(SyntaxKind.AsteriskToken);
-                                    N(SyntaxKind.IdentifierToken, convention);
-                                    M(SyntaxKind.LessThanToken);
-                                    M(SyntaxKind.Parameter);
+                                    N(SyntaxKind.FunctionPointerType);
                                     {
-                                        M(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.AsteriskToken);
+                                        N(SyntaxKind.IdentifierToken, convention);
+                                        M(SyntaxKind.LessThanToken);
+                                        M(SyntaxKind.Parameter);
                                         {
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
                                             M(SyntaxKind.IdentifierToken);
                                         }
+                                        M(SyntaxKind.GreaterThanToken);
+                                    }
+                                    M(SyntaxKind.VariableDeclarator);
+                                    {
                                         M(SyntaxKind.IdentifierToken);
                                     }
-                                    M(SyntaxKind.GreaterThanToken);
                                 }
-                                M(SyntaxKind.VariableDeclarator);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
+                                M(SyntaxKind.SemicolonToken);
                             }
-                            M(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -2973,73 +2999,77 @@ void C()
                     // (4,14): error CS1002: ; expected
                     //     delegate*
                     Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 14));
+
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.LocalFunctionStatement);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.LocalDeclarationStatement);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.VariableDeclaration);
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.FunctionPointerType);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
-                                    N(SyntaxKind.DelegateKeyword);
-                                    N(SyntaxKind.AsteriskToken);
-                                    M(SyntaxKind.LessThanToken);
-                                    M(SyntaxKind.Parameter);
+                                    N(SyntaxKind.FunctionPointerType);
                                     {
-                                        M(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.DelegateKeyword);
+                                        N(SyntaxKind.AsteriskToken);
+                                        M(SyntaxKind.LessThanToken);
+                                        M(SyntaxKind.Parameter);
                                         {
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
                                             M(SyntaxKind.IdentifierToken);
                                         }
+                                        M(SyntaxKind.GreaterThanToken);
+                                    }
+                                    M(SyntaxKind.VariableDeclarator);
+                                    {
                                         M(SyntaxKind.IdentifierToken);
                                     }
-                                    M(SyntaxKind.GreaterThanToken);
                                 }
-                                M(SyntaxKind.VariableDeclarator);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
+                                M(SyntaxKind.SemicolonToken);
                             }
-                            M(SyntaxKind.SemicolonToken);
-                        }
-                        N(SyntaxKind.LocalDeclarationStatement);
-                        {
-                            N(SyntaxKind.VariableDeclaration);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
-                                    N(SyntaxKind.IntKeyword);
-                                }
-                                N(SyntaxKind.VariableDeclarator);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "ptr");
-                                    N(SyntaxKind.EqualsValueClause);
+                                    N(SyntaxKind.PredefinedType);
                                     {
-                                        N(SyntaxKind.EqualsToken);
-                                        N(SyntaxKind.NumericLiteralExpression);
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "ptr");
+                                        N(SyntaxKind.EqualsValueClause);
                                         {
-                                            N(SyntaxKind.NumericLiteralToken, "1");
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "1");
+                                            }
                                         }
                                     }
                                 }
+                                N(SyntaxKind.SemicolonToken);
                             }
-                            N(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
@@ -3116,10 +3146,7 @@ void C()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 11),
                 // (1,25): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // using t = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(1, 25),
-                // (1,26): error CS1022: Type or namespace definition, or end-of-file expected
-                // using t = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(1, 26)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(1, 25)
             );
 
             N(SyntaxKind.CompilationUnit);
@@ -3140,6 +3167,31 @@ void C()
                         M(SyntaxKind.IdentifierToken);
                     }
                     M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
