@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             ContainingType = containingType;
         }
+        
         public override string Name => WellKnownMemberNames.CloneMethodName;
 
         public override MethodKind MethodKind => MethodKind.Ordinary;
