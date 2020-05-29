@@ -61,7 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 // var span = (stackalloc byte[8]);
                 // https://github.com/dotnet/roslyn/issues/44629
-                // PR: https://github.com/dotnet/roslyn/pull/44661
+                // The code semantics changes if the parenthesis removed.
+                // With parenthesis:    variable span is of type `Span<byte>`.
+                // Without parenthesis: variable span is of type `byte*` which can only be used in unsafe context.
                 return false;
             }
 
