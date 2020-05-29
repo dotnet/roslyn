@@ -3670,10 +3670,10 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (6,22): error CS8801: Cannot convert & method group 'M' to non-function pointer type 'void*'.
+                // (6,22): error CS8801: Cannot convert &method group 'M' to non-function pointer type 'void*'.
                 //         void* ptr1 = &M;
                 Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "&M").WithArguments("M", "void*").WithLocation(6, 22),
-                // (7,22): error CS8801: Cannot convert & method group 'M' to non-function pointer type 'void*'.
+                // (7,22): error CS8801: Cannot convert &method group 'M' to non-function pointer type 'void*'.
                 //         void* ptr2 = (void*)&M;
                 Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "(void*)&M").WithArguments("M", "void*").WithLocation(7, 22)
             );
@@ -3722,10 +3722,10 @@ class C
                 // (8,24): error CS0119: 'Action' is a type, which is not valid in the given context
                 //         Action ptr1 = (Action)&M;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Action").WithArguments("System.Action", "type").WithLocation(8, 24),
-                // (9,23): error CS8800: Cannot convert & method group 'M' to delegate type 'M'.
+                // (9,23): error CS8800: Cannot convert &method group 'M' to delegate type 'M'.
                 //         Action ptr2 = (Action)(&M);
                 Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "(Action)(&M)").WithArguments("M", "System.Action").WithLocation(9, 23),
-                // (10,23): error CS8800: Cannot convert & method group 'M' to delegate type 'M'.
+                // (10,23): error CS8800: Cannot convert &method group 'M' to delegate type 'M'.
                 //         Action ptr3 = &M;
                 Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "&M").WithArguments("M", "System.Action").WithLocation(10, 23)
             );
@@ -3774,10 +3774,10 @@ class C
                 // (7,19): error CS0119: 'C' is a type, which is not valid in the given context
                 //         C ptr1 = (C)&M;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "C").WithArguments("C", "type").WithLocation(7, 19),
-                // (8,18): error CS8801: Cannot convert & method group 'M' to non-function pointer type 'C'.
+                // (8,18): error CS8801: Cannot convert &method group 'M' to non-function pointer type 'C'.
                 //         C ptr2 = (C)(&M);
                 Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "(C)(&M)").WithArguments("M", "C").WithLocation(8, 18),
-                // (9,18): error CS8801: Cannot convert & method group 'M' to non-function pointer type 'C'.
+                // (9,18): error CS8801: Cannot convert &method group 'M' to non-function pointer type 'C'.
                 //         C ptr3 = &M;
                 Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "&M").WithArguments("M", "C").WithLocation(9, 18)
             );
