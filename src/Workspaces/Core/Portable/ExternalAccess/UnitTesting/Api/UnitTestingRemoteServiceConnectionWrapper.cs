@@ -13,20 +13,32 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal readonly struct UnitTestingRemoteServiceConnectionWrapper
     {
-        internal RemoteServiceConnection UnderlyingObject { get; }
+        internal KeepAliveSession? UnderlyingObject { get; }
 
-        internal UnitTestingRemoteServiceConnectionWrapper(RemoteServiceConnection underlyingObject)
+        internal UnitTestingRemoteServiceConnectionWrapper(KeepAliveSession? underlyingObject)
             => UnderlyingObject = underlyingObject;
 
         public bool IsDefault => UnderlyingObject == null;
 
-        public async Task<bool> RunRemoteAsync(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        public async Task<bool> TryRunRemoteAsync(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
         {
+            if (UnderlyingObject == null)
+            {
+                return false;
+            }
+
             await UnderlyingObject.RunRemoteAsync(targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
             return true;
         }
 
-        public async Task<Optional<T>> RunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
-            => await UnderlyingObject.RunRemoteAsync<T>(targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
+        public async Task<Optional<T>> TryRunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
+        {
+            if (UnderlyingObject == null)
+            {
+                return default;
+            }
+
+            return await UnderlyingObject.RunRemoteAsync<T>(targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
