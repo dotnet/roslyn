@@ -82,17 +82,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     ChangeSignatureLogger.LogAddedParameterTypeBinds();
                 }
 
-                if (addedParameter.IsCallsiteTodo)
+                if (addedParameter.CallSiteKind == CallSiteKind.Todo)
                 {
                     ChangeSignatureLogger.LogAddedParameter_ValueTODO();
                 }
-                else if (addedParameter.IsCallsiteOmitted)
+                else if (addedParameter.CallSiteKind == CallSiteKind.Omitted)
                 {
                     ChangeSignatureLogger.LogAddedParameter_ValueOmitted();
                 }
                 else
                 {
-                    if (addedParameter.UseNamedArguments)
+                    if (addedParameter.CallSiteKind == CallSiteKind.ValueWithName)
                     {
                         ChangeSignatureLogger.LogAddedParameter_ValueExplicitNamed();
                     }
