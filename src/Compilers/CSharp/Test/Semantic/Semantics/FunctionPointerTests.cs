@@ -30,6 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void UsingTest()
+        {
+            CreateCompilationWithFunctionPointers(@"
+using s = delegate*<void>;").VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ImplicitConversionToVoid()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
