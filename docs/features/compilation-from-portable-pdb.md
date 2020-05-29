@@ -30,6 +30,8 @@ This document will provide the expanded specification to the Portable PDB format
     - Already stored in PDB as the entry point token
 * moduleassemblyname
 * modulename
+* nostdlib
+    - Will be represented in metadata reference embedded in pdb
 * nowin32manifest
 * pdb
 * platform
@@ -44,7 +46,6 @@ This document will provide the expanded specification to the Portable PDB format
 
 #### CSharp Flags Not Included
 
-* appconfig
 * bugreport
 * delaysign
 * doc
@@ -57,7 +58,6 @@ This document will provide the expanded specification to the Portable PDB format
 * keyfile
 * noconfig
 * nologo
-* nostdlib
 * nowarn
 * out
 * parallel
@@ -67,7 +67,6 @@ This document will provide the expanded specification to the Portable PDB format
 * refout
 * refonly
 * reportanalyzer
-* resource
 * ruleset
 * utf8output
 * version
@@ -272,6 +271,12 @@ Example:
 
 See [compiler options](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/listed-alphabetically) documentation
 
+* "[appconfig](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/appconfig-compiler-option)"
+    - Since appconfig is a pointer to a file not embedded in the PDB or PE, we instead extract the information that will directly impact the compilation. We store this as a flag called `portability-policy` with a numeric value from \[0-3\]. This value directly correlates to reconstructing the [AssemblyPortabilityPolicy](https://github.com/dotnet/roslyn/blob/bdb3ece74c85892709f5e42ae7d67248999ecc3b/src/Compilers/Core/Portable/Desktop/AssemblyPortabilityPolicy.cs).
+        - 0 -> SuppressSilverlightPlatformAssembliesPortability = false, SuppressSilverlightLibraryAssembliesPortability = false
+        - 1 -> SuppressSilverlightPlatformAssembliesPortability = true, SuppressSilverlightLibraryAssembliesPortability = false
+        - 2 -> SuppressSilverlightPlatformAssembliesPortability = false, SuppressSilverlightLibraryAssembliesPortability = true
+        - 3 -> SuppressSilverlightPlatformAssembliesPortability = true, SuppressSilverlightLibraryAssembliesPortability = true
 * "[checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/checked-compiler-option)"
 * "[codepage](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/codepage-compiler-option)"
 * "compilerversion"

@@ -25,6 +25,8 @@ Public Class VisualBasicDeterministicBuildCompilationTests
             compilerVersion = DeterministicBuildCompilationTestHelpers.GetCurrentCompilerVersion()
         End If
 
+        Assert.Equal(DeterministicBuildCompilationTestHelpers.GetPortabilityPolicy(originalOptions), pdbOptions("portability-policy"))
+
 
         ' See VisualBasicCompilation.SerializeForPdb for options that are added
         Assert.Equal(compilerVersion.ToString(), pdbOptions("compilerversion"))

@@ -852,6 +852,15 @@ namespace Microsoft.Cci
                 WriteValue("codepage", _codePage.ToString());
             }
 
+            int portabilityPolicy = 0;
+            if (module.CommonCompilation.Options.AssemblyIdentityComparer is DesktopAssemblyIdentityComparer identityComparer)
+            {
+                portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightLibraryAssembliesPortability ? 0b1 : 0;
+                portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
+            }
+
+            WriteValue("portability-policy", portabilityPolicy.ToString());
+
             module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
 
             _debugMetadataOpt.AddCustomDebugInformation(

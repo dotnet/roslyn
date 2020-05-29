@@ -37,6 +37,18 @@ namespace Roslyn.Test.Utilities.PDB
             return typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
         }
 
+        public static string GetPortabilityPolicy(CompilationOptions options)
+        {
+            int portabilityPolicy = 0;
+            if (options.AssemblyIdentityComparer is DesktopAssemblyIdentityComparer identityComparer)
+            {
+                portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightLibraryAssembliesPortability ? 0b1 : 0;
+                portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
+            }
+
+            return portabilityPolicy.ToString();
+        }
+
         public static void VerifyReferenceInfo(TestMetadataReferenceInfo[] references, BlobReader metadataReferenceReader)
         {
             foreach (var reference in references)

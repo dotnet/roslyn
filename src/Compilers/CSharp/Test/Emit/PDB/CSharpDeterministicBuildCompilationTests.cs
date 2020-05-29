@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var pdbOptions = DeterministicBuildCompilationTestHelpers.ParseCompilationOptions(compilationOptionsBlobReader);
             compilerVersion ??= DeterministicBuildCompilationTestHelpers.GetCurrentCompilerVersion();
 
+
+            Assert.Equal(DeterministicBuildCompilationTestHelpers.GetPortabilityPolicy(originalOptions), pdbOptions["portability-policy"]);
+
             // See CSharpCompilation.SerializeForPdb to see options that are included
             Assert.Equal(compilerVersion.ToString(), pdbOptions["compilerversion"]);
             Assert.Equal(originalOptions.NullableContextOptions.ToString(), pdbOptions["nullable"]);
@@ -279,6 +282,10 @@ public struct StructWithValue
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Disable);
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Warnings);
             yield return defaultOptions.WithOptimizationLevel(OptimizationLevel.Release);
+            yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: false, suppressSilverlightPlatformAssembliesPortability: false)));
+            yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: true, suppressSilverlightPlatformAssembliesPortability: false)));
+            yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: false, suppressSilverlightPlatformAssembliesPortability: true)));
+            yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: true, suppressSilverlightPlatformAssembliesPortability: true)));
         }
     }
 }
