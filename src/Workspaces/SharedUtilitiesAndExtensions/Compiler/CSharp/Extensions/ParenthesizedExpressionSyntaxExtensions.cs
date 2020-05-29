@@ -26,6 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var expression = node.Expression;
+            if (expression is StackAllocArrayCreationExpressionSyntax)
+            {
+                // var span = (stackalloc byte[8]);
+                // https://github.com/dotnet/roslyn/issues/44629
+                return false;
+            }
+            
 
             // The 'direct' expression that contains this parenthesized node.  Note: in the case
             // of code like: ```x is (y)``` there is an intermediary 'no-syntax' 'ConstantPattern'
