@@ -67,6 +67,33 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddOptionalParameter_CallsiteInferred_NotOnInaccessibleLocal()
+        {
+            var markup = @"
+class C
+{
+    void M$$()
+    {
+        M();
+        int x = 7;
+    }
+}";
+            var updatedSignature = new[] {
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Inferred) };
+            var updatedCode = @"
+class C
+{
+    void M(int a)
+    {
+        M(TODO);
+        int x = 7;
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddOptionalParameter_CallsiteInferred_MultipleLocals()
         {
             var markup = @"
