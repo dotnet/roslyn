@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -6,6 +6,7 @@
     <AssemblyName>Roslyn.SyntaxVisualizer.Extension</AssemblyName>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
     <IsProductComponent>false</IsProductComponent>
+    <UseWpf>true</UseWpf>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>
@@ -18,15 +19,7 @@
 
   <!-- References -->
   <ItemGroup>
-    <Reference Include="System" />
     <Reference Include="System.Design" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Xml" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="WindowsBase" />
   </ItemGroup>
 
   <!-- Package References -->
@@ -62,13 +55,6 @@
 
   <ItemGroup>
     <None Include="xlf\*" />
-    <Compile Update="SyntaxVisualizerContainer.xaml.cs">
-      <DependentUpon>SyntaxVisualizerContainer.xaml</DependentUpon>
-    </Compile>
-    <Page Include="SyntaxVisualizerContainer.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Resource Include="SyntaxTree.bmp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
