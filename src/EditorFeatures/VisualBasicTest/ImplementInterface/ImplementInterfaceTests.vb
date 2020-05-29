@@ -4263,7 +4263,7 @@ Class _
 End Class
 
 Partial Class C
-    Implements IDisposable
+    Implements System.IDisposable
 End Class",
 $"Imports System
 Imports System.Collections.Generic
@@ -4318,7 +4318,7 @@ Class _
 End Class
 
 Partial Class C
-    Implements IDisposable
+    Implements System.IDisposable
 End Class",
  index:=1)
         End Function
@@ -4332,7 +4332,7 @@ End Class
 
 Partial Class C
     Implements [|I(Of System.Exception, System.AggregateException)|]
-    Implements IDisposable
+    Implements System.IDisposable
 End Class
 
 Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
@@ -4347,7 +4347,7 @@ End Class
 
 Partial Class C
     Implements I(Of System.Exception, System.AggregateException)
-    Implements IDisposable
+    Implements System.IDisposable
 
     Private disposedValue As Boolean
 

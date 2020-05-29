@@ -289,6 +289,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
         }
 
+        internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
+        {
+            foreach (NamedTypeSymbol underlying in _underlyingAssembly.GetAllTopLevelForwardedTypes())
+            {
+                yield return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
+            }
+        }
+
         public override AssemblyMetadata GetMetadata() => _underlyingAssembly.GetMetadata();
     }
 }

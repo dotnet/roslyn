@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var solution = document.Project.Solution;
 
                 var result = await client.TryRunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
                     solution,
                     new object[] { document.Id, searchPattern, kinds.ToArray() },
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var solution = project.Solution;
 
                 var result = await client.TryRunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
                     solution,
                     new object[] { project.Id, priorityDocuments.Select(d => d.Id).ToArray(), searchPattern, kinds.ToArray() },

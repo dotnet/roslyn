@@ -163,10 +163,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
             }
 
-            private bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
+            private static bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
                 => node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
 
-            private void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
+            private static void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
             {
                 if (!(node is SwitchSectionSyntax section) || section.Statements.Count == 0)
                 {

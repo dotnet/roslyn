@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
         private static (SyntaxNode?, ExplicitInterfaceSpecifierSyntax?, SyntaxToken) GetContainer(SyntaxToken token)
         {
-            for (SyntaxNode? node = token.Parent; node != null; node = node.Parent)
+            for (var node = token.Parent; node != null; node = node.Parent)
             {
                 var result = node switch
                 {
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             return default;
         }
 
-        private int TotalCount(MemberImplementationMap dictionary)
+        private static int TotalCount(MemberImplementationMap dictionary)
         {
             var result = 0;
             foreach (var (key, values) in dictionary)

@@ -19,12 +19,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
     internal sealed class RazorLanguageServiceClient
     {
         private readonly RemoteHostClient _client;
-        private readonly string _serviceName;
+        private readonly RemoteServiceName _serviceName;
 
         internal RazorLanguageServiceClient(RemoteHostClient client, string serviceName)
         {
             _client = client;
-            _serviceName = serviceName;
+            _serviceName = new RemoteServiceName(serviceName);
         }
 
         public Task<Optional<T>> TryRunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)

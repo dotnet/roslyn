@@ -1404,6 +1404,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiver != null ? BoundMethodGroupFlags.HasImplicitReceiver : BoundMethodGroupFlags.None,
                         isError,
                         diagnostics);
+
+                    ReportSimpleProgramLocalReferencedOutsideOfTopLevelStatement(node, members[0], diagnostics);
                 }
                 else
                 {
@@ -1626,12 +1628,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Local:
                     {
                         var localSymbol = (LocalSymbol)symbol;
-                        Location localSymbolLocation = localSymbol.Locations[0];
                         TypeSymbol type;
                         bool isNullableUnknown;
 
-                        if (node.SyntaxTree == localSymbolLocation.SourceTree &&
-                            node.SpanStart < localSymbolLocation.SourceSpan.Start)
+                        if (ReportSimpleProgramLocalReferencedOutsideOfTopLevelStatement(node, localSymbol, diagnostics))
+                        {
+                            type = new ExtendedErrorTypeSymbol(
+                                this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
+                            isNullableUnknown = true;
+                        }
+                        else if (isUsedBeforeDeclaration(node, localSymbol))
                         {
                             // Here we report a local variable being used before its declaration
                             //
@@ -1787,6 +1793,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
+
+            bool isUsedBeforeDeclaration(SimpleNameSyntax node, LocalSymbol localSymbol)
+            {
+                Location localSymbolLocation = localSymbol.Locations[0];
+
+                if (node.SyntaxTree == localSymbolLocation.SourceTree)
+                {
+                    return node.SpanStart < localSymbolLocation.SourceSpan.Start;
+                }
+
+                return false;
+            }
+        }
+
+        private static bool ReportSimpleProgramLocalReferencedOutsideOfTopLevelStatement(SimpleNameSyntax node, Symbol symbol, DiagnosticBag diagnostics)
+        {
+            if (symbol.ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol)
+            {
+                if (!SyntaxFacts.IsTopLevelStatement(node.Ancestors(ascendOutOfTrivia: false).OfType<GlobalStatementSyntax>().FirstOrDefault()))
+                {
+                    Error(diagnostics, ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, node, node);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         protected virtual BoundExpression BindRangeVariable(SimpleNameSyntax node, RangeVariableSymbol qv, DiagnosticBag diagnostics)

@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return new DescriptionAndNode(CSharpFeaturesResources.Insert_await, newRoot);
         }
 
-        private Task<SyntaxNode> GetNewRootAsync(
+        private static Task<SyntaxNode> GetNewRootAsync(
             SyntaxNode root,
             SyntaxNode oldNode,
             SemanticModel semanticModel,

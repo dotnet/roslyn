@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.EditAndContinue.AbstractEditAndContinueAnalyzer;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
@@ -96,8 +96,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var diagnostics = new List<RudeEditDiagnostic>();
             var actualNewActiveStatements = new ActiveStatement[oldActiveStatements.Length];
             var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[oldActiveStatements.Length];
-            var updatedActiveMethodMatches = new List<AbstractEditAndContinueAnalyzer.UpdatedMemberInfo>();
-            var editMap = Analyzer.BuildEditMap(editScript);
+            var updatedActiveMethodMatches = new List<UpdatedMemberInfo>();
+            var editMap = BuildEditMap(editScript);
 
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
 
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var newText = SourceText.From(newSource);
 
             var diagnostics = new List<RudeEditDiagnostic>();
-            var editMap = Analyzer.BuildEditMap(editScript);
+            var editMap = BuildEditMap(editScript);
 
             var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
             var actualLineEdits = new List<LineChange>();
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             activeStatements ??= ActiveStatementsDescription.Empty;
 
-            var editMap = Analyzer.BuildEditMap(editScript);
+            var editMap = BuildEditMap(editScript);
 
             var oldRoot = editScript.Match.OldRoot;
             var newRoot = editScript.Match.NewRoot;
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var newModel = newCompilation.GetSemanticModel(newRoot.SyntaxTree);
 
             var oldActiveStatements = activeStatements.OldStatements.AsImmutable();
-            var updatedActiveMethodMatches = new List<AbstractEditAndContinueAnalyzer.UpdatedMemberInfo>();
+            var updatedActiveMethodMatches = new List<UpdatedMemberInfo>();
             var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
             var actualLineEdits = new List<LineChange>();
             var actualSemanticEdits = new List<SemanticEdit>();
@@ -365,8 +365,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(AbstractEditAndContinueAnalyzer analyzer, Match<SyntaxNode> bodyMatch)
         {
-            Dictionary<SyntaxNode, AbstractEditAndContinueAnalyzer.LambdaInfo> lazyActiveOrMatchedLambdas = null;
-            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>());
+            Dictionary<SyntaxNode, LambdaInfo> lazyActiveOrMatchedLambdas = null;
+            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, Array.Empty<ActiveNode>(), ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>());
 
             var result = new Dictionary<SyntaxNode, SyntaxNode>();
             foreach (var pair in map.Forward)

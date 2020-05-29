@@ -73,7 +73,11 @@ namespace ObjectFormatterFixtures
         private class Proxy
         {
             public Proxy() { }
-            public Proxy(Node node) { x = node.value; y = node.next; }
+            public Proxy(Node node)
+            {
+                x = node.value;
+                y = node.next;
+            }
 
             public readonly int x;
             public readonly Node y;

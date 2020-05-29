@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return node
             End Function
 
-            Private Function IsNodeVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As Boolean
+            Private Shared Function IsNodeVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As Boolean
                 Return node IsNot Nothing AndAlso node.Kind() = SyntaxKind.VariableDeclarator AndAlso
                     node.Parent IsNot Nothing AndAlso node.Parent.Kind() = SyntaxKind.FieldDeclaration
             End Function

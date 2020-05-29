@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 AddExample(examples, standard, displayText, secondaryCulture, hideCulture);
             }
 
-            private void AddExample(
+            private static void AddExample(
                 ArrayBuilder<string> examples, bool standard, string displayText, CultureInfo culture, bool hideCulture)
             {
                 // Single letter custom strings need a %, or else they're interpreted as a format

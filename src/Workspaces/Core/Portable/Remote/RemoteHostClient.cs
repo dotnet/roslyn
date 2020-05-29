@@ -21,21 +21,21 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// This represents client in client/servier model.
+    /// This represents client in client/server model.
     /// 
     /// user can create a connection to communicate with the server (remote host) through this client
     /// </summary>
     internal abstract class RemoteHostClient : IDisposable
     {
-        public readonly Workspace Workspace;
+        public readonly HostWorkspaceServices Services;
         public event EventHandler<bool>? StatusChanged;
 
         internal readonly IRemotableDataService RemotableDataService;
 
-        protected RemoteHostClient(Workspace workspace)
+        protected RemoteHostClient(HostWorkspaceServices services)
         {
-            Workspace = workspace;
-            RemotableDataService = workspace.Services.GetRequiredService<IRemotableDataService>();
+            Services = services;
+            RemotableDataService = services.GetRequiredService<IRemotableDataService>();
         }
 
         /// <summary>
@@ -53,9 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        protected abstract Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken);
-
-        public abstract bool IsRemoteHost64Bit { get; }
+        protected abstract Task<Connection?> TryCreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken);
 
         protected void Started()
         {
@@ -86,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static Task<RemoteHostClient?> TryGetClientAsync(HostWorkspaceServices services, CancellationToken cancellationToken)
         {
-            var service = services.GetService<IRemoteHostClientService>();
+            var service = services.GetService<IRemoteHostClientProvider>();
             if (service == null)
             {
                 return SpecializedTasks.Null<RemoteHostClient>();
@@ -98,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Creates <see cref="KeepAliveSession"/> for the <paramref name="serviceName"/>, otherwise returns <see langword="null"/>.
         /// </summary>
-        public async Task<KeepAliveSession?> TryCreateKeepAliveSessionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+        public async Task<KeepAliveSession?> TryCreateKeepAliveSessionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (connection == null)
@@ -109,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return new KeepAliveSession(connection, RemotableDataService);
         }
 
-        public async Task<bool> TryRunRemoteAsync(string serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
+        public async Task<bool> TryRunRemoteAsync(RemoteServiceName serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
         {
             using var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (connection == null)
@@ -121,10 +119,10 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        public Task<Optional<T>> TryRunRemoteAsync<T>(string serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
+        public Task<Optional<T>> TryRunRemoteAsync<T>(RemoteServiceName serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
             => TryRunRemoteAsync<T>(serviceName, targetName, solution, arguments, callbackTarget, dataReader: null, cancellationToken);
 
-        public async Task<Optional<T>> TryRunRemoteAsync<T>(string serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, Func<Stream, CancellationToken, Task<T>>? dataReader, CancellationToken cancellationToken)
+        public async Task<Optional<T>> TryRunRemoteAsync<T>(RemoteServiceName serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, Func<Stream, CancellationToken, Task<T>>? dataReader, CancellationToken cancellationToken)
         {
             using var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (connection == null)
@@ -188,15 +186,14 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public class NoOpClient : RemoteHostClient
         {
-            public NoOpClient(Workspace workspace)
-                : base(workspace)
+            public NoOpClient(HostWorkspaceServices services)
+                : base(services)
             {
             }
 
             public override string ClientId => nameof(NoOpClient);
-            public override bool IsRemoteHost64Bit => false;
 
-            protected override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+            protected override Task<Connection?> TryCreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
                 => SpecializedTasks.Null<Connection>();
         }
 
