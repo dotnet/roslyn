@@ -7734,17 +7734,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundWithExpression : BoundExpression
     {
-        public BoundWithExpression(SyntaxNode syntax, BoundExpression receiver, MethodSymbol? cloneMethod, ImmutableArray<(Symbol? Member, BoundExpression Expression)> arguments, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.WithExpression, syntax, type, hasErrors || receiver.HasErrors())
+        public BoundWithExpression(SyntaxNode syntax, BoundExpression receiver, MethodSymbol? cloneMethod, BoundObjectInitializerExpressionBase initializerExpression, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.WithExpression, syntax, type, hasErrors || receiver.HasErrors() || initializerExpression.HasErrors())
         {
 
             RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(initializerExpression is object, "Field 'initializerExpression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Receiver = receiver;
             this.CloneMethod = cloneMethod;
-            this.Arguments = arguments;
+            this.InitializerExpression = initializerExpression;
         }
 
 
@@ -7754,15 +7754,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public MethodSymbol? CloneMethod { get; }
 
-        public ImmutableArray<(Symbol? Member, BoundExpression Expression)> Arguments { get; }
+        public BoundObjectInitializerExpressionBase InitializerExpression { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitWithExpression(this);
 
-        public BoundWithExpression Update(BoundExpression receiver, MethodSymbol? cloneMethod, ImmutableArray<(Symbol? Member, BoundExpression Expression)> arguments, TypeSymbol type)
+        public BoundWithExpression Update(BoundExpression receiver, MethodSymbol? cloneMethod, BoundObjectInitializerExpressionBase initializerExpression, TypeSymbol type)
         {
-            if (receiver != this.Receiver || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(cloneMethod, this.CloneMethod) || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiver != this.Receiver || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(cloneMethod, this.CloneMethod) || initializerExpression != this.InitializerExpression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundWithExpression(this.Syntax, receiver, cloneMethod, arguments, type, this.HasErrors);
+                var result = new BoundWithExpression(this.Syntax, receiver, cloneMethod, initializerExpression, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9473,6 +9473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitWithExpression(BoundWithExpression node)
         {
             this.Visit(node.Receiver);
+            this.Visit(node.InitializerExpression);
             return null;
         }
     }
@@ -10638,8 +10639,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitWithExpression(BoundWithExpression node)
         {
             BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundObjectInitializerExpressionBase initializerExpression = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpression);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiver, node.CloneMethod, node.Arguments, type);
+            return node.Update(receiver, node.CloneMethod, initializerExpression, type);
         }
     }
 
@@ -12930,16 +12932,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MethodSymbol? cloneMethod = GetUpdatedSymbol(node, node.CloneMethod);
             BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundObjectInitializerExpressionBase initializerExpression = (BoundObjectInitializerExpressionBase)this.Visit(node.InitializerExpression);
             BoundWithExpression updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
-                updatedNode = node.Update(receiver, cloneMethod, node.Arguments, infoAndType.Type);
+                updatedNode = node.Update(receiver, cloneMethod, initializerExpression, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(receiver, cloneMethod, node.Arguments, node.Type);
+                updatedNode = node.Update(receiver, cloneMethod, initializerExpression, node.Type);
             }
             return updatedNode;
         }
@@ -14746,7 +14749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
             new TreeDumperNode("cloneMethod", node.CloneMethod, null),
-            new TreeDumperNode("arguments", node.Arguments, null),
+            new TreeDumperNode("initializerExpression", null, new TreeDumperNode[] { Visit(node.InitializerExpression, null) }),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

@@ -19,13 +19,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class RecordTests : CompilingTestBase
     {
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
-            => CSharpTestBase.CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
+                parseOptions: TestOptions.RegularPreview);
 
-        private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
+        private CompilationVerifier CompileAndVerify(
+            CSharpTestSource src,
+            string? expectedOutput = null,
+            IEnumerable<MetadataReference>? references = null)
             => base.CompileAndVerify(
-                src,
+                new[] { src, IsExternalInitTypeDefinition },
                 expectedOutput: expectedOutput,
                 parseOptions: TestOptions.RegularPreview,
+                references: references,
                 // init-only is unverifiable
                 verify: Verification.Skipped);
 
@@ -46,9 +51,15 @@ data class Point(int x, int y);
                 // (2,12): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("records").WithLocation(2, 12),
-                // (2,12): error CS8761: Records must have both a 'data' modifier and parameter list
+                // (2,12): error CS8800: Records must have both a 'data' modifier and non-empty parameter list
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "(int x, int y)").WithLocation(2, 12),
+                // (2,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "x").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(2, 17),
+                // (2,24): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "y").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(2, 24),
                 // (2,26): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, ";").WithArguments("records").WithLocation(2, 26)
@@ -70,6 +81,12 @@ data class Point(int x, int y);
                 // (2,17): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // data class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("records").WithLocation(2, 17),
+                // (2,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                // data class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "x").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(2, 22),
+                // (2,29): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                // data class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "y").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(2, 29),
                 // (2,31): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // data class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, ";").WithArguments("records").WithLocation(2, 31)
@@ -471,21 +488,20 @@ data class C(int X)
         public void WithExpr2()
         {
             var src = @"
+using System;
 data class C(int X)
 {
     public static void Main()
     {
-        var c = new C(0);
-        c = c with { };
+        var c1 = new C(1);
+        c1 = c1 with { };
+        var c2 = c1 with { X = 11 };
+        Console.WriteLine(c1.X);
+        Console.WriteLine(c2.X);
     }
 }";
-            var comp = CreateCompilation(src);
-            // PROTOTYPE: records don't auto-generate Clone at the moment
-            comp.VerifyDiagnostics(
-                // (7,13): error CS8803: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
-                //         c = c with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(7, 13)
-            );
+            var verifier = CompileAndVerify(src, expectedOutput: @"1
+11");
         }
 
         [Fact]
@@ -534,14 +550,14 @@ data class C(int X) : B
             var src = @"
 class B
 {
-    public int X { get; }
+    public int X { get; init; }
     public B Clone() => null;
 }
-data class C(int X) : B
+class C : B
 {
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         c = c with { };
     }
 }";
@@ -562,11 +578,12 @@ class B
     public int X { get; }
     public virtual B Clone() => null;
 }
-data class C(int X) : B
+class C : B
 {
+    public new int X { get; init; }
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         B b = c;
         b = b with { X = 0 };
         var b2 = c with { X = 0 };
@@ -575,12 +592,12 @@ data class C(int X) : B
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (13,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
+                // (14,22): error CS0200: Property or indexer 'B.X' cannot be assigned to -- it is read only
                 //         b = b with { X = 0 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(13, 22),
-                // (14,27): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "X").WithArguments("B.X").WithLocation(14, 22),
+                // (15,27): error CS0200: Property or indexer 'B.X' cannot be assigned to -- it is read only
                 //         var b2 = c with { X = 0 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(14, 27)
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "X").WithArguments("B.X").WithLocation(15, 27)
             );
         }
 
@@ -681,7 +698,7 @@ data class C(int X)
   IL_0011:  callvirt   ""C C.Clone()""
   IL_0016:  dup
   IL_0017:  ldc.i4.5
-  IL_0018:  stfld      ""int C.<X>k__BackingField""
+  IL_0018:  callvirt   ""void C.X.init""
   IL_001d:  callvirt   ""int C.X.get""
   IL_0022:  call       ""void System.Console.WriteLine(int)""
   IL_0027:  ret
@@ -719,7 +736,7 @@ data class C(int X, int Y)
   IL_000d:  callvirt   ""C C.Clone()""
   IL_0012:  dup
   IL_0013:  ldc.i4.5
-  IL_0014:  stfld      ""int C.<X>k__BackingField""
+  IL_0014:  callvirt   ""void C.X.init""
   IL_0019:  call       ""void System.Console.WriteLine(object)""
   IL_001e:  ret
 }");
@@ -759,13 +776,13 @@ data class C(int X, int Y)
   IL_000d:  callvirt   ""C C.Clone()""
   IL_0012:  dup
   IL_0013:  ldc.i4.5
-  IL_0014:  stfld      ""int C.<X>k__BackingField""
+  IL_0014:  callvirt   ""void C.X.init""
   IL_0019:  dup
   IL_001a:  call       ""void System.Console.WriteLine(object)""
   IL_001f:  callvirt   ""C C.Clone()""
   IL_0024:  dup
   IL_0025:  ldc.i4.2
-  IL_0026:  stfld      ""int C.<Y>k__BackingField""
+  IL_0026:  callvirt   ""void C.Y.init""
   IL_002b:  call       ""void System.Console.WriteLine(object)""
   IL_0030:  ret
 }");
@@ -788,10 +805,7 @@ data class C(int X, int Y)
             comp.VerifyDiagnostics(
                 // (8,22): error CS1525: Invalid expression term '='
                 //         c = c with { = 5 };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(8, 22),
-                // (8,22): error CS1061: 'C' does not contain a definition for '' and no accessible extension method '' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-                //         c = c with { = 5 };
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "").WithArguments("C", "").WithLocation(8, 22)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(8, 22)
             );
         }
 
@@ -911,10 +925,7 @@ class C
             comp.VerifyDiagnostics(
                 // (5,25): warning CS0067: The event 'C.X' is never used
                 //     public event Action X;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "X").WithArguments("C.X").WithLocation(5, 25),
-                // (10,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
-                //         c = c with { X = null };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(10, 22)
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "X").WithArguments("C.X").WithLocation(5, 25)
             );
         }
 
@@ -937,9 +948,12 @@ data class C(int X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
+                // (12,22): error CS0572: 'X': cannot reference a type through an expression; try 'B.X' instead
                 //         b = b with { X = 0 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(12, 22)
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "X").WithArguments("X", "B.X").WithLocation(12, 22),
+                // (12,22): error CS1913: Member 'X' cannot be initialized. It is not a field or property.
+                //         b = b with { X = 0 };
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "X").WithArguments("X").WithLocation(12, 22)
             );
         }
 
@@ -983,9 +997,9 @@ data class C(int X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,22): error CS1061: 'B' does not contain a definition for 'Y' and no accessible extension method 'Y' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
+                // (12,22): error CS0117: 'B' does not contain a definition for 'Y'
                 //         b = b with { Y = 2 };
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Y").WithArguments("B", "Y").WithLocation(12, 22)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Y").WithArguments("B", "Y").WithLocation(12, 22)
             );
         }
 
@@ -993,23 +1007,24 @@ data class C(int X)
         public void WithExprNestedErrors()
         {
             var src = @"
-data class C(int X)
+class C
 {
+    public int X { get; init; }
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         c = c with { X = """"-3 };
     }
 }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (7,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "Clone".
+                // (8,13): error CS8808: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
                 //         c = c with { X = ""-3 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(7, 13),
-                // (7,26): error CS0019: Operator '-' cannot be applied to operands of type 'string' and 'int'
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(8, 13),
+                // (8,26): error CS0019: Operator '-' cannot be applied to operands of type 'string' and 'int'
                 //         c = c with { X = ""-3 };
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"""""-3").WithArguments("-", "string", "int").WithLocation(7, 26)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"""""-3").WithArguments("-", "string", "int").WithLocation(8, 26)
             );
         }
 
@@ -1036,27 +1051,27 @@ data class C(int X)
         }
 
         [Fact]
-        public void WithExprPropertyInaccessibleGet()
+        public void WithExprPropertyInaccessibleSet()
         {
             var src = @"
-data class C(int X)
+class C
 {
-    public int X { private get; set; }
+    public int X { get; private set; }
     public C Clone() => null;
 }
 class D
 {
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         c = c with { X = 0 };
     }
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
+                // (12,22): error CS0272: The property or indexer 'C.X' cannot be used in this context because the set accessor is inaccessible
                 //         c = c with { X = 0 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(12, 22)
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "X").WithArguments("C.X").WithLocation(12, 22)
             );
         }
 
@@ -1096,11 +1111,11 @@ X");
   IL_000d:  dup
   IL_000e:  ldstr      ""Y""
   IL_0013:  call       ""int C.W(string)""
-  IL_0018:  stfld      ""int C.<Y>k__BackingField""
+  IL_0018:  callvirt   ""void C.Y.init""
   IL_001d:  dup
   IL_001e:  ldstr      ""X""
   IL_0023:  call       ""int C.W(string)""
-  IL_0028:  stfld      ""int C.<X>k__BackingField""
+  IL_0028:  callvirt   ""void C.X.init""
   IL_002d:  pop
   IL_002e:  ret
 }");
@@ -1132,7 +1147,7 @@ data class C(long X)
   IL_000c:  dup
   IL_000d:  ldc.i4.s   11
   IL_000f:  conv.i8
-  IL_0010:  stfld      ""long C.<X>k__BackingField""
+  IL_0010:  callvirt   ""void C.X.init""
   IL_0015:  callvirt   ""long C.X.get""
   IL_001a:  call       ""void System.Console.WriteLine(long)""
   IL_001f:  ret
@@ -1185,7 +1200,7 @@ conversion
   IL_0015:  dup
   IL_0016:  ldloc.0
   IL_0017:  call       ""long S.op_Implicit(S)""
-  IL_001c:  stfld      ""long C.<X>k__BackingField""
+  IL_001c:  callvirt   ""void C.X.init""
   IL_0021:  callvirt   ""long C.X.get""
   IL_0026:  call       ""void System.Console.WriteLine(long)""
   IL_002b:  ret
@@ -1275,25 +1290,80 @@ data class C(object X)
         }
 
         [Fact]
+        public void WithExprConversions6()
+        {
+            var src = @"
+using System;
+struct S
+{
+    private int _i;
+    public S(int i)
+    {
+        _i = i;
+    }
+    public static implicit operator int(S s)
+    {
+        Console.WriteLine(""conversion"");
+        return s._i;
+    }
+}
+class C
+{
+    private readonly long _x;
+    public long X { get => _x; init { Console.WriteLine(""set""); _x = value; } }
+    public C Clone() => new C();
+    public static void Main()
+    {
+        var c = new C();
+        var s = new S(11);
+        Console.WriteLine((c with { X = s }).X);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+conversion
+set
+11");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  3
+  .locals init (S V_0) //s
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  ldc.i4.s   11
+  IL_0009:  call       ""S..ctor(int)""
+  IL_000e:  callvirt   ""C C.Clone()""
+  IL_0013:  dup
+  IL_0014:  ldloc.0
+  IL_0015:  call       ""int S.op_Implicit(S)""
+  IL_001a:  conv.i8
+  IL_001b:  callvirt   ""void C.X.init""
+  IL_0020:  callvirt   ""long C.X.get""
+  IL_0025:  call       ""void System.Console.WriteLine(long)""
+  IL_002a:  ret
+}");
+        }
+
+        [Fact]
         public void WithExprStaticProperty()
         {
             var src = @"
-data class C(int X)
+class C
 {
     public static int X { get; }
     public C Clone() => null;
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         c = c with { };
         c = c with { X = 11 };
     }
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (10,22): error CS8808: All arguments to a `with` expression must be instance properties or fields.
+                // (10,22): error CS0176: Member 'C.X' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(10, 22)
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "X").WithArguments("C.X").WithLocation(10, 22)
             );
         }
 
@@ -1314,33 +1384,35 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (10,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
+                // (10,22): error CS1913: Member 'X' cannot be initialized. It is not a field or property.
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(10, 22));
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "X").WithArguments("X").WithLocation(10, 22)
+            );
         }
 
         [Fact]
         public void WithExprStaticWithMethod()
         {
             var src = @"
-data class C(int X)
+class C
 {
+    public int X = 0;
     public static C Clone() => null;
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         c = c with { };
         c = c with { X = 11 };
     }
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (8,13): error CS8803: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
+                // (9,13): error CS8808: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
                 //         c = c with { };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(8, 13),
-                // (9,13): error CS8803: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(9, 13),
+                // (10,13): error CS8808: The receiver type 'C' does not have an accessible parameterless instance method named "Clone".
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(10, 13)
             );
         }
 
@@ -1352,24 +1424,25 @@ class B
 {
     public B Clone() => null;
 }
-data class C(int X) : B
+class C : B
 {
-    public static new C Clone() => null;
+    public int X = 0;
+    public static new C Clone() => null; // static
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         c = c with { };
         c = c with { X = 11 };
     }
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,13): error CS0266: Cannot implicitly convert type 'B' to 'C'. An explicit conversion exists (are you missing a cast?)
+                // (13,13): error CS0266: Cannot implicitly convert type 'B' to 'C'. An explicit conversion exists (are you missing a cast?)
                 //         c = c with { };
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c with { }").WithArguments("B", "C").WithLocation(12, 13),
-                // (13,22): error CS1061: 'B' does not contain a definition for 'X' and no accessible extension method 'X' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c with { }").WithArguments("B", "C").WithLocation(13, 13),
+                // (14,22): error CS0117: 'B' does not contain a definition for 'X'
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "X").WithArguments("B", "X").WithLocation(13, 22)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("B", "X").WithLocation(14, 22)
             );
         }
 
@@ -1380,7 +1453,7 @@ data class C(int X) : B
 class C
 {
     public C Clone() => null;
-    public int X { get; }
+    public int X { get; init; }
     public static void Main()
     {
         var c = new C();
@@ -1389,9 +1462,6 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (9,22): error CS8808: All arguments to a `with` expression must be compiler-generated record properties.
-                //         c = c with { X = "a" };
-                Diagnostic(ErrorCode.ERR_WithMemberIsNotRecordProperty, "X").WithLocation(9, 22),
                 // (9,26): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         c = c with { X = "a" };
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""a""").WithArguments("string", "int").WithLocation(9, 26)
@@ -1402,30 +1472,13 @@ class C
         public void WithExprCloneReturnDifferent()
         {
             var src = @"
-data class B(int X) { }
+class B
+{ 
+    public int X { get; init; }
+}
 class C : B
 {
-    public C(int x) : base(x) { }
-    public B Clone() => new B(0);
-    public static void Main()
-    {
-        var c = new C(0);
-        var b = c with { X = 0 };
-    }
-}";
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void WithExprCloneReturnDifferent2()
-        {
-            var src = @"
-data class B(int X) { }
-class C : B
-{
-    public C() : base(0) {}
-    public B Clone() => new B(0);
+    public B Clone() => new B();
     public static void Main()
     {
         var c = new C();
@@ -1480,9 +1533,9 @@ data class C(int X, int Y)
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (8,22): error CS8811: Arguments to a `with` expression must be simple assignments
+                // (8,22): error CS0747: Invalid initializer member declarator
                 //         c = c with { 5 };
-                Diagnostic(ErrorCode.ERR_BadWithExpressionArgument, "5").WithLocation(8, 22),
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "5").WithLocation(8, 22),
                 // (9,22): error CS1513: } expected
                 //         c = c with { { X = 2 } };
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(9, 22),
@@ -1921,6 +1974,212 @@ data class B(string? X, string? Y)
         }
 
         [Fact]
+        public void WithExprNotRecord()
+        {
+            var src = @"
+using System;
+class C
+{
+    public int X { get; set; }
+    public string Y { get; init; }
+    public long Z;
+    public event Action E;
+    
+    public C Clone() => new C {
+            X = this.X,
+            Y = this.Y,
+            Z = this.Z,
+            E = this.E,
+    };
+
+    public static void Main()
+    {
+        var c = new C() { X = 1, Y = ""2"", Z = 3, E = () => { } };
+        var c2 = c with {};
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c2.X);
+        Console.WriteLine(c2.Y);
+        Console.WriteLine(c2.Z);
+        Console.WriteLine(ReferenceEquals(c.E, c2.E));
+        var c3 = c with { Y = ""3"", X = 2 };
+        Console.WriteLine(c.Y);
+        Console.WriteLine(c3.Y);
+        Console.WriteLine(c.X);
+        Console.WriteLine(c3.X);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+False
+1
+2
+3
+True
+2
+3
+1
+2");
+        }
+
+        [Fact]
+        public void WithExprNotRecord2()
+        {
+            var comp1 = CreateCompilation(@"
+public class C
+{
+    public int X { get; set; }
+    public string Y { get; init; }
+    public long Z;
+    
+    public C Clone() => new C {
+            X = this.X,
+            Y = this.Y,
+            Z = this.Z,
+    };
+}");
+            comp1.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(@"
+class D
+{
+    public C M(C c) => c with
+    {
+        X = 5,
+        Y = ""a"",
+        Z = 2,
+    };
+}", references: new[] { comp1.EmitToImageReference() });
+
+            verifier.VerifyIL("D.M", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  IL_0000:  ldarg.1
+  IL_0001:  callvirt   ""C C.Clone()""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.5
+  IL_0008:  callvirt   ""void C.X.set""
+  IL_000d:  dup
+  IL_000e:  ldstr      ""a""
+  IL_0013:  callvirt   ""void C.Y.init""
+  IL_0018:  dup
+  IL_0019:  ldc.i4.2
+  IL_001a:  conv.i8
+  IL_001b:  stfld      ""long C.Z""
+  IL_0020:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExprAssignToRef1()
+        {
+            var src = @"
+using System;
+data class C(int Y)
+{
+    private readonly int[] _a = new[] { 0 };
+    public ref int X => ref _a[0];
+
+    public C Clone() => new C(0);
+
+    public static void Main()
+    {
+        var c = new C(0) { X = 5 };
+        Console.WriteLine(c.X);
+        c = c with { X = 1 };
+        Console.WriteLine(c.X);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+5
+1");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  IL_0000:  ldc.i4.0
+  IL_0001:  newobj     ""C..ctor(int)""
+  IL_0006:  dup
+  IL_0007:  callvirt   ""ref int C.X.get""
+  IL_000c:  ldc.i4.5
+  IL_000d:  stind.i4
+  IL_000e:  dup
+  IL_000f:  callvirt   ""ref int C.X.get""
+  IL_0014:  ldind.i4
+  IL_0015:  call       ""void System.Console.WriteLine(int)""
+  IL_001a:  callvirt   ""C C.Clone()""
+  IL_001f:  dup
+  IL_0020:  callvirt   ""ref int C.X.get""
+  IL_0025:  ldc.i4.1
+  IL_0026:  stind.i4
+  IL_0027:  callvirt   ""ref int C.X.get""
+  IL_002c:  ldind.i4
+  IL_002d:  call       ""void System.Console.WriteLine(int)""
+  IL_0032:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExprAssignToRef2()
+        {
+            var src = @"
+using System;
+data class C(int Y)
+{
+    private readonly int[] _a = new[] { 0 };
+    public ref int X
+    {
+        get => ref _a[0];
+        set { }
+    }
+
+    public C Clone() => new C(0);
+
+    public static void Main()
+    {
+        var a = new[] { 0 };
+        var c = new C(0) { X = ref a[0] };
+        Console.WriteLine(c.X);
+        c = c with { X = ref a[0] };
+        Console.WriteLine(c.X);
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS8147: Properties which return by reference cannot have set accessors
+                //         set { }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("C.X.set").WithLocation(9, 9),
+                // (17,32): error CS1525: Invalid expression term 'ref'
+                //         var c = new C(0) { X = ref a[0] };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a[0]").WithArguments("ref").WithLocation(17, 32),
+                // (17,32): error CS1073: Unexpected token 'ref'
+                //         var c = new C(0) { X = ref a[0] };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(17, 32),
+                // (19,26): error CS1073: Unexpected token 'ref'
+                //         c = c with { X = ref a[0] };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(19, 26)
+            );
+        }
+
+        [Fact]
+        public void WithExpressionSameLHS()
+        {
+            var comp = CreateCompilation(@"
+data class C(int X)
+{
+    public static void Main()
+    {
+        var c = new C(0);
+        c = c with { X = 1, X = 2};
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,29): error CS1912: Duplicate initialization of member 'X'
+                //         c = c with { X = 1, X = 2};
+                Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "X").WithArguments("X").WithLocation(7, 29)
+            );
+        }
+
+        [Fact]
         public void Inheritance_01()
         {
             var source =
@@ -1937,17 +2196,17 @@ data class B(string? X, string? Y)
 data class B(object P1, object P2, object P3, object P4, object P5, object P6) : A
 {
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "System.Object B.P1 { get; }",
-                "System.Object B.P2 { get; }",
-                "System.Object B.P3 { get; }",
-                "System.Object B.P4 { get; }",
-                "System.Object B.P5 { get; }",
-                "System.Object B.P6 { get; }",
+                "System.Object B.P1 { get; init; }",
+                "System.Object B.P2 { get; init; }",
+                "System.Object B.P3 { get; init; }",
+                "System.Object B.P4 { get; init; }",
+                "System.Object B.P5 { get; init; }",
+                "System.Object B.P6 { get; init; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -1965,13 +2224,13 @@ data class B(object P1, object P2, object P3, object P4, object P5, object P6) :
     {
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "A.B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "System.Object A.B.P1 { get; }",
-                "System.Object A.B.P2 { get; }",
+                "System.Object A.B.P1 { get; init; }",
+                "System.Object A.B.P2 { get; init; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -1991,7 +2250,7 @@ data class B1(object P) : A
 {
 }";
             var comp = CreateCompilation(sourceA);
-            AssertEx.Equal(new[] { "System.Object B1.P { get; }" }, GetProperties(comp, "B1").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Object B1.P { get; init; }" }, GetProperties(comp, "B1").ToTestDisplayStrings());
             var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
 
             var sourceB =
@@ -2000,7 +2259,7 @@ data class B1(object P) : A
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            AssertEx.Equal(new[] { "System.Object B2.P { get; }" }, GetProperties(comp, "B2").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Object B2.P { get; init; }" }, GetProperties(comp, "B2").ToTestDisplayStrings());
         }
 
         [Fact]
@@ -2021,18 +2280,18 @@ data class B1(object P) : A
 data class B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
 {
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "System.Object B.P1 { get; }",
-                "System.Object B.P2 { get; }",
-                "System.Object B.P3 { get; }",
-                "System.Object B.P4 { get; }",
-                "System.Object B.P5 { get; }",
-                "System.Object B.P6 { get; }",
-                "System.Object B.P7 { get; }",
+                "System.Object B.P1 { get; init; }",
+                "System.Object B.P2 { get; init; }",
+                "System.Object B.P3 { get; init; }",
+                "System.Object B.P4 { get; init; }",
+                "System.Object B.P5 { get; init; }",
+                "System.Object B.P6 { get; init; }",
+                "System.Object B.P7 { get; init; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -2050,13 +2309,13 @@ data class B(object P1, object P2, object P3, object P4, object P5, object P6, o
 data class B(int P1, object P2) : A
 {
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "System.Int32 B.P1 { get; }",
-                "System.Object B.P2 { get; }",
+                "System.Int32 B.P1 { get; init; }",
+                "System.Object B.P2 { get; init; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -2089,15 +2348,15 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (15,9): error CS0200: Property or indexer 'B.X' cannot be assigned to -- it is read only
+                // (15,9): error CS8852: Init-only property or indexer 'B.X' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         b.X = 4;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "b.X").WithArguments("B.X").WithLocation(15, 9),
-                // (16,9): error CS0200: Property or indexer 'B.Y' cannot be assigned to -- it is read only
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "b.X").WithArguments("B.X").WithLocation(15, 9),
+                // (16,9): error CS8852: Init-only property or indexer 'B.Y' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         b.Y = 5;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "b.Y").WithArguments("B.Y").WithLocation(16, 9),
-                // (17,9): error CS0200: Property or indexer 'B.Z' cannot be assigned to -- it is read only
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "b.Y").WithArguments("B.Y").WithLocation(16, 9),
+                // (17,9): error CS8852: Init-only property or indexer 'B.Z' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         b.Z = 6;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "b.Z").WithArguments("B.Z").WithLocation(17, 9));
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "b.Z").WithArguments("B.Z").WithLocation(17, 9));
         }
 
         [Fact]
@@ -2180,15 +2439,16 @@ data struct S(object X, object Y) : IA, IB
                 // (9,36): error CS0738: 'C' does not implement interface member 'IA.X'. 'C.X' cannot implement 'IA.X' because it does not have the matching return type of 'int'.
                 // data class C(object X, object Y) : IA, IB
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "IA").WithArguments("C", "IA.X", "C.X", "int").WithLocation(9, 36),
-                // (9,40): error CS0535: 'C' does not implement interface member 'IB.Y.set'
+                // (9,40): error CS8854: 'C' does not implement interface member 'IB.Y.set'. 'C.Y.init' cannot implement 'IB.Y.set'.
                 // data class C(object X, object Y) : IA, IB
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IB").WithArguments("C", "IB.Y.set").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "IB").WithArguments("C", "IB.Y.set", "C.Y.init").WithLocation(9, 40),
                 // (12,37): error CS0738: 'S' does not implement interface member 'IA.X'. 'S.X' cannot implement 'IA.X' because it does not have the matching return type of 'int'.
                 // data struct S(object X, object Y) : IA, IB
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "IA").WithArguments("S", "IA.X", "S.X", "int").WithLocation(12, 37),
-                // (12,41): error CS0535: 'S' does not implement interface member 'IB.Y.set'
+                // (12,41): error CS8854: 'S' does not implement interface member 'IB.Y.set'. 'S.Y.init' cannot implement 'IB.Y.set'.
                 // data struct S(object X, object Y) : IA, IB
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IB").WithArguments("S", "IB.Y.set").WithLocation(12, 41));
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "IB").WithArguments("S", "IB.Y.set", "S.Y.init").WithLocation(12, 41)
+            );
         }
 
         [Fact]
@@ -2216,15 +2476,19 @@ data class B(int X, int Y) : A
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "B B.Clone()",
                 "System.Int32 B.<X>k__BackingField",
                 "System.Int32 B.X.get",
-                "System.Int32 B.X { get; }",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.X.init",
+                "System.Int32 B.X { get; init; }",
                 "System.Int32 B.<Y>k__BackingField",
                 "System.Int32 B.Y.get",
-                "System.Int32 B.Y { get; }",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
+                "System.Int32 B.Y { get; init; }",
                 "System.Boolean B.Equals(B? )",
                 "System.Boolean B.Equals(System.Object? )",
                 "System.Int32 B.GetHashCode()",
+                "B..ctor(B )",
                 "B..ctor(System.Int32 X, System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -2252,15 +2516,19 @@ data class B(int X, int Y) : A
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "B B.Clone()",
                 "System.Int32 B.<X>k__BackingField",
                 "System.Int32 B.X.get",
-                "System.Int32 B.X { get; }",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.X.init",
+                "System.Int32 B.X { get; init; }",
                 "System.Int32 B.<Y>k__BackingField",
                 "System.Int32 B.Y.get",
-                "System.Int32 B.Y { get; }",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
+                "System.Int32 B.Y { get; init; }",
                 "System.Boolean B.Equals(B? )",
                 "System.Boolean B.Equals(System.Object? )",
                 "System.Int32 B.GetHashCode()",
+                "B..ctor(B )",
                 "B..ctor(System.Int32 X, System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);

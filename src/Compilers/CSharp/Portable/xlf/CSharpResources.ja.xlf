@@ -117,11 +117,6 @@
         <target state="translated">コマンドライン構文エラー: '{0}' は、'{1}' オプションの有効な値ではありません。値は '{2}' の形式にする必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadWithExpressionArgument">
-        <source>Arguments to a `with` expression must be simple assignments</source>
-        <target state="new">Arguments to a `with` expression must be simple assignments</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_CantChangeInitOnlyOnOverride">
         <source>'{0}' must match by init-only of overridden member '{1}'</source>
         <target state="new">'{0}' must match by init-only of overridden member '{1}'</target>
