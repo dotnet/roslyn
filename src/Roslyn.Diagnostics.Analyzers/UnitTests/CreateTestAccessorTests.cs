@@ -1,25 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using CSLanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion;
-using VBLanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
-    Roslyn.Diagnostics.Analyzers.CreateTestAccessor,
-    Roslyn.Diagnostics.CSharp.Analyzers.CSharpCreateTestAccessorFixer>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
-    Roslyn.Diagnostics.Analyzers.CreateTestAccessor,
-    Roslyn.Diagnostics.VisualBasic.Analyzers.VisualBasicCreateTestAccessorFixer>;
+using VerifyCS = Test.Utilities.CSharpCodeRefactoringVerifier<
+    Roslyn.Diagnostics.CSharp.Analyzers.CSharpCreateTestAccessor>;
+using VerifyVB = Test.Utilities.VisualBasicCodeRefactoringVerifier<
+    Roslyn.Diagnostics.VisualBasic.Analyzers.VisualBasicCreateTestAccessor>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
     public class CreateTestAccessorTests
     {
-        [Fact]
-        public async Task CreateTestAccessorCSharp()
+        [Theory]
+        [InlineData("$$class TestClass ")]
+        [InlineData("class $$TestClass ")]
+        [InlineData("class TestClass$$ ")]
+        [InlineData("class [|TestClass|] ")]
+        [InlineData("[|class TestClass|] ")]
+        public async Task CreateTestAccessorCSharp(string typeHeader)
         {
-            var source = @"class [|TestClass|] {
+            var source = typeHeader + @"{
 }";
             var fixedSource = @"class TestClass {
     internal TestAccessor GetTestAccessor()
@@ -38,27 +38,18 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     }
 }";
 
-            var test = new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                },
-                FixedState =
-                {
-                    Sources = { fixedSource },
-                },
-                LanguageVersion = CSLanguageVersion.CSharp7_2,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
-            };
-
-            await test.RunAsync();
+            await VerifyCS.VerifyRefactoringAsync(source, fixedSource);
         }
 
-        [Fact]
-        public async Task CreateTestAccessorVisualBasic()
+        [Theory]
+        [InlineData("$$Class TestClass")]
+        [InlineData("Class $$TestClass")]
+        [InlineData("Class TestClass$$")]
+        [InlineData("Class [|TestClass|]")]
+        [InlineData("[|Class TestClass|]")]
+        public async Task CreateTestAccessorVisualBasic(string typeHeader)
         {
-            var source = @"Class [|TestClass|]
+            var source = $@"{typeHeader}
 End Class";
             var fixedSource = @"Class TestClass
     Friend Function GetTestAccessor() As TestAccessor
@@ -74,21 +65,7 @@ End Class";
     End Structure
 End Class";
 
-            var test = new VerifyVB.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                },
-                FixedState =
-                {
-                    Sources = { fixedSource },
-                },
-                LanguageVersion = VBLanguageVersion.Default,
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
-            };
-
-            await test.RunAsync();
+            await VerifyVB.VerifyRefactoringAsync(source, fixedSource);
         }
     }
 }

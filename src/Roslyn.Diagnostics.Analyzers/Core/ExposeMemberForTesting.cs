@@ -36,7 +36,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static void HandleNamedType(SymbolAnalysisContext context)
         {
-            if (context.Symbol.Name != CreateTestAccessor.TestAccessorTypeName)
+            if (context.Symbol.Name != TestAccessorHelper.TestAccessorTypeName)
             {
                 return;
             }
