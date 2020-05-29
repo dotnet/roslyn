@@ -3106,5 +3106,44 @@ void C()
             }
             EOF();
         }
+
+        [Fact]
+        public void UsingAlias()
+        {
+            UsingNode("using t = delegate*<void>;", options: TestOptions.RegularPreview,
+                // (1,11): error CS1041: Identifier expected; 'delegate' is a keyword
+                // using t = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 11),
+                // (1,25): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // using t = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(1, 25),
+                // (1,26): error CS1022: Type or namespace definition, or end-of-file expected
+                // using t = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(1, 26)
+            );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "t");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }
