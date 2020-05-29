@@ -2954,10 +2954,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var ctor = addCtor(paramList);
-            if (!this.IsStructType())
-            {
-                addCopyCtor();
-            }
+            addCopyCtor();
             addCloneMethod();
             addProperties(ctor.Parameters);
             var thisEquals = addThisEquals();

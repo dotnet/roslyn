@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
             : base(containingType)
         {
-            Debug.Assert(!containingType.IsStructType(), "only reference types should define copy constructors");
             Parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(
                 this,
                 TypeWithAnnotations.Create(
@@ -39,20 +38,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory F, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics)
         {
-            // Write assignments to backing fields
+            // PROTOTYPE: Handle inheritance
+            // Write assignments to fields
             //
             // {
-            //     this.backingField1 = parameter.backingField1
+            //     this.field1 = parameter.field1
             //     ...
-            //     this.backingFieldN = parameter.backingFieldN
+            //     this.fieldN = parameter.fieldN
             // }
             var param = F.Parameter(Parameters[0]);
-            foreach (var member in ContainingType.GetMembers())
+            foreach (var field in ContainingType.GetFieldsToEmit())
             {
-                if (member is FieldSymbol { IsStatic: false } field)
-                {
-                    statements.Add(F.Assignment(F.Field(F.This(), field), F.Field(param, field)));
-                }
+                statements.Add(F.Assignment(F.Field(F.This(), field), F.Field(param, field)));
             }
         }
     }

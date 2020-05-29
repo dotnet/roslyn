@@ -695,5 +695,122 @@ data class C(int x, int y)
   IL_0006:  ret
 }");
         }
+
+        [Fact]
+        public void RecordClone3()
+        {
+            var comp = CreateCompilation(@"
+using System;
+public data class C(int x, int y)
+{
+    public event Action E;
+    public int Z;
+}");
+            comp.VerifyDiagnostics();
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            var clone = c.GetMethod(WellKnownMemberNames.CloneMethodName);
+            Assert.Equal(0, clone.Arity);
+            Assert.Equal(0, clone.ParameterCount);
+            Assert.Equal(c, clone.ReturnType);
+
+            var ctor = (MethodSymbol)c.GetMembers(".ctor")[1];
+            Assert.Equal(1, ctor.ParameterCount);
+            Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
+            verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""C..ctor(C)""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  ldfld      ""int C.<x>k__BackingField""
+  IL_000d:  stfld      ""int C.<x>k__BackingField""
+  IL_0012:  ldarg.0
+  IL_0013:  ldarg.1
+  IL_0014:  ldfld      ""int C.<y>k__BackingField""
+  IL_0019:  stfld      ""int C.<y>k__BackingField""
+  IL_001e:  ldarg.0
+  IL_001f:  ldarg.1
+  IL_0020:  ldfld      ""System.Action C.E""
+  IL_0025:  stfld      ""System.Action C.E""
+  IL_002a:  ldarg.0
+  IL_002b:  ldarg.1
+  IL_002c:  ldfld      ""int C.Z""
+  IL_0031:  stfld      ""int C.Z""
+  IL_0036:  ret
+}");
+        }
+
+        [Fact]
+        public void RecordClone4()
+        {
+            var comp = CreateCompilation(@"
+using System;
+public data struct S(int x, int y)
+{
+    public event Action E;
+    public int Z;
+}");
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS0067: The event 'S.E' is never used
+                //     public event Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("S.E").WithLocation(5, 25)
+            );
+
+            var s = comp.GlobalNamespace.GetTypeMember("S");
+            var clone = s.GetMethod(WellKnownMemberNames.CloneMethodName);
+            Assert.Equal(0, clone.Arity);
+            Assert.Equal(0, clone.ParameterCount);
+            Assert.Equal(s, clone.ReturnType);
+
+            var ctor = (MethodSymbol)s.GetMembers(".ctor")[1];
+            Assert.Equal(1, ctor.ParameterCount);
+            Assert.True(ctor.Parameters[0].Type.Equals(s, TypeCompareKind.ConsiderEverything));
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
+            verifier.VerifyIL("S." + WellKnownMemberNames.CloneMethodName, @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S""
+  IL_0006:  newobj     ""S..ctor(S)""
+  IL_000b:  ret
+}");
+            verifier.VerifyIL("S..ctor(S)", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldfld      ""int S.<x>k__BackingField""
+  IL_0007:  stfld      ""int S.<x>k__BackingField""
+  IL_000c:  ldarg.0
+  IL_000d:  ldarg.1
+  IL_000e:  ldfld      ""int S.<y>k__BackingField""
+  IL_0013:  stfld      ""int S.<y>k__BackingField""
+  IL_0018:  ldarg.0
+  IL_0019:  ldarg.1
+  IL_001a:  ldfld      ""System.Action S.E""
+  IL_001f:  stfld      ""System.Action S.E""
+  IL_0024:  ldarg.0
+  IL_0025:  ldarg.1
+  IL_0026:  ldfld      ""int S.Z""
+  IL_002b:  stfld      ""int S.Z""
+  IL_0030:  ret
+}");
+        }
     }
 }

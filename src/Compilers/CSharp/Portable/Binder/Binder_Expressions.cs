@@ -4327,6 +4327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.ObjectInitializerExpression:
                 case SyntaxKind.CollectionInitializerExpression:
+                    Debug.Assert(syntax.Parent.Parent.Kind() != SyntaxKind.WithInitializerExpression);
                     return BindInitializerExpression((InitializerExpressionSyntax)syntax, type, typeSyntax, diagnostics);
                 default:
                     return BindValue(syntax, diagnostics, BindValueKind.RValue);

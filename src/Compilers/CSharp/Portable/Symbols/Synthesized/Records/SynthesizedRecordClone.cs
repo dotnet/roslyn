@@ -113,13 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 
-            // If this is a class, call the copy ctor. Otherwise, just return `this`
-            if (ContainingType.IsStructType())
-            {
-                F.CloseMethod(F.Return(F.This()));
-                return;
-            }
-
             // PROTOTYPE: what about base fields?
             var members = ContainingType.GetMembers(WellKnownMemberNames.InstanceConstructorName);
             foreach (var member in members)
