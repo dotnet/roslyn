@@ -1955,7 +1955,7 @@ class [|$$Test1|]
                 Await VerifyRenameOptionChangedSessionCommit(workspace, originalTextToRename:="Test2", renameTextPrefix:="Test2Changed", renameFile:=True, fileToRename:=docToRename.Id)
             End Using
         End Function
-        
+
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
