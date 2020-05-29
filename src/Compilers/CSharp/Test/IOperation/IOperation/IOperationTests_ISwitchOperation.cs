@@ -3326,9 +3326,9 @@ class Program
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // file.cs(6,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         var r = 1 switch { };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 19),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(6, 19),
                 // file.cs(6,19): error CS8506: No best type was found for the switch expression.
                 //         var r = 1 switch { };
                 Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(6, 19)

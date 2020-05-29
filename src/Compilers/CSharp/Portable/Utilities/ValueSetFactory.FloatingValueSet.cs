@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics;
 using System.Text;
 using Roslyn.Utilities;
 
@@ -48,6 +49,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool IValueSet.IsEmpty => !_hasNaN && _numbers.IsEmpty;
+
+            ConstantValue IValueSet.Sample
+            {
+                get
+                {
+                    if (!_numbers.IsEmpty)
+                    {
+                        var sample = _numbers.Sample;
+                        Debug.Assert(sample is { });
+                        return sample;
+                    }
+
+                    Debug.Assert(_hasNaN);
+                    var tc = default(TFloatingTC);
+                    return tc.ToConstantValue(tc.NaN);
+                }
+            }
 
             public static IValueSet<TFloating> Related(BinaryOperatorKind relation, TFloating value)
             {
