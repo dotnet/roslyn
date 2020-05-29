@@ -383,8 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         invocation.ArgumentList,
                         symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension },
                         IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken),
-                        document.Project.Solution.Workspace,
-                        semanticModel,
+                        document,
                         originalNode.SpanStart,
                         cancellationToken).ConfigureAwait(false));
             }
@@ -406,8 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         objCreation.ArgumentList,
                         isReducedExtensionMethod: false,
                         IsParamsArrayExpanded(semanticModel, objCreation, symbolInfo, cancellationToken),
-                        document.Project.Solution.Workspace,
-                        semanticModel,
+                        document,
                         originalNode.SpanStart,
                         cancellationToken).ConfigureAwait(false));
             }
@@ -425,8 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         constructorInit.ArgumentList,
                         isReducedExtensionMethod: false,
                         IsParamsArrayExpanded(semanticModel, constructorInit, symbolInfo, cancellationToken),
-                        document.Project.Solution.Workspace,
-                        semanticModel,
+                        document,
                         originalNode.SpanStart,
                         cancellationToken).ConfigureAwait(false));
             }
@@ -443,8 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         elementAccess.ArgumentList,
                         isReducedExtensionMethod: false,
                         IsParamsArrayExpanded(semanticModel, elementAccess, symbolInfo, cancellationToken),
-                        document.Project.Solution.Workspace,
-                        semanticModel,
+                        document,
                         originalNode.SpanStart,
                         cancellationToken).ConfigureAwait(false));
             }
@@ -466,8 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         attribute.ArgumentList,
                         isReducedExtensionMethod: false,
                         IsParamsArrayExpanded(semanticModel, attribute, symbolInfo, cancellationToken),
-                        document.Project.Solution.Workspace,
-                        semanticModel,
+                        document,
                         originalNode.SpanStart,
                         cancellationToken).ConfigureAwait(false));
             }
@@ -497,8 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             T argumentList,
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
-            Workspace workspace,
-            SemanticModel semanticModel,
+            Document document,
             int position,
             CancellationToken cancellationToken) where T : BaseArgumentListSyntax
         {
@@ -520,8 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 isReducedExtensionMethod,
                 isParamsArrayExpanded,
                 generateAttributeArguments: false,
-                workspace,
-                semanticModel,
+                document,
                 position,
                 cancellationToken).ConfigureAwait(false);
 
@@ -536,8 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             AttributeArgumentListSyntax argumentList,
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
-            Workspace workspace,
-            SemanticModel semanticModel,
+            Document document,
             int position,
             CancellationToken cancellationToken)
         {
@@ -554,8 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 isReducedExtensionMethod,
                 isParamsArrayExpanded,
                 generateAttributeArguments: true,
-                workspace,
-                semanticModel,
+                document,
                 position,
                 cancellationToken).ConfigureAwait(false);
 
@@ -684,8 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
             bool generateAttributeArguments,
-            Workspace workspace,
-            SemanticModel semanticModel,
+            Document document,
             int position,
             CancellationToken cancellationToken)
         {
@@ -693,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 declarationSymbol, newArguments,
                 signaturePermutation, isReducedExtensionMethod,
                 isParamsArrayExpanded, generateAttributeArguments,
-                workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+                document, position, cancellationToken).ConfigureAwait(false);
 
             return SeparatedList(
                 TransferLeadingWhitespaceTrivia(newArgumentList, originalArguments),

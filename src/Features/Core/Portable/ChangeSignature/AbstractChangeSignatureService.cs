@@ -771,8 +771,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
             bool generateAttributeArguments,
-            Workspace workspace,
-            SemanticModel semanticModel,
+            Document document,
             int position,
             CancellationToken cancellationToken)
         {
@@ -818,9 +817,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                         if (addedParameter.CallSiteKind == CallSiteKind.Inferred && addedParameter.TypeBinds)
                         {
+                            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
                             (expression, callsiteInferenceFailed) = await GenerateInferredExpressionAsync(
                                 semanticModel,
-                                workspace,
+                                document.Project.Solution.Workspace,
                                 position,
                                 addedParameter.Type,
                                 cancellationToken).ConfigureAwait(false);

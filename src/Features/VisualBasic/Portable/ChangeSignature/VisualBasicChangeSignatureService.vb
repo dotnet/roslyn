@@ -335,8 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod:=False,
                     isParamsArrayExpanded:=False,
                     generateAttributeArguments:=False,
-                    document.Project.Solution.Workspace,
-                    semanticModel,
+                    document,
                     originalNode.SpanStart,
                     cancellationToken).ConfigureAwait(False))
             End If
@@ -359,8 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod,
                     IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken),
                     generateAttributeArguments:=False,
-                    document.Project.Solution.Workspace,
-                    semanticModel,
+                    document,
                     originalNode.SpanStart,
                     cancellationToken).ConfigureAwait(False))
             End If
@@ -385,8 +383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod:=False,
                     isParamsArrayExpanded:=False,
                     generateAttributeArguments:=True,
-                    document.Project.Solution.Workspace,
-                    semanticModel,
+                    document,
                     originalNode.SpanStart,
                     cancellationToken).ConfigureAwait(False))
             End If
@@ -407,8 +404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod:=False,
                     IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken),
                     generateAttributeArguments:=False,
-                    document.Project.Solution.Workspace,
-                    semanticModel,
+                    document,
                     originalNode.SpanStart,
                     cancellationToken).ConfigureAwait(False))
             End If
@@ -476,8 +472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             isReducedExtensionMethod As Boolean,
             isParamsArrayExpanded As Boolean,
             generateAttributeArguments As Boolean,
-            workspace As Workspace,
-            semanticModel As SemanticModel,
+            document As Document,
             position As Integer,
             cancellationToken As CancellationToken) As Task(Of ArgumentListSyntax)
 
@@ -494,8 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 isReducedExtensionMethod,
                 isParamsArrayExpanded,
                 generateAttributeArguments,
-                workspace,
-                semanticModel,
+                document,
                 position,
                 cancellationToken).ConfigureAwait(False)
 
