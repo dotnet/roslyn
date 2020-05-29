@@ -812,8 +812,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         }
 
                         var expression = await GenerateInferredCallsiteExpressionAsync(
-                                await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false),
-                                document.Project.Solution.Workspace,
+                                document,
                                 position,
                                 addedParameter,
                                 cancellationToken).ConfigureAwait(false);
@@ -919,8 +918,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         private async Task<SyntaxNode> GenerateInferredCallsiteExpressionAsync(
-            SemanticModel semanticModel,
-            Workspace workspace,
+            Document document,
             int position,
             AddedParameter addedParameter,
             CancellationToken cancellationToken)
@@ -930,8 +928,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return null;
             }
 
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
             var recommendations = await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
-                semanticModel, position, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
+                semanticModel, position, document.Project.Solution.Workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
             var orderedLocalAndParameterSymbols = sourceSymbols
