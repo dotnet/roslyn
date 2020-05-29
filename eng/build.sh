@@ -134,7 +134,7 @@ while [[ $# > 0 ]]; do
       # Bootstrap requires restore
       restore=true
       ;;
-    --runAnalyzers)
+    --runanalyzers)
       run_analyzers=true
       ;;
     --preparemachine)
