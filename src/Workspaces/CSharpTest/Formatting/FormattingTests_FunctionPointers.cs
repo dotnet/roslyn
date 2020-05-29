@@ -29,5 +29,24 @@ unsafe class C
 
             await AssertFormatAsync(expected, content);
         }
+
+        [Fact]
+        public async Task FormatFunctionPointerWithCallingConvention()
+        {
+            // TODO(https://github.com/dotnet/roslyn/issues/44312): add a space after the "int"s in the baseline and make this test still pass
+            var content = @"
+unsafe class C
+{
+    delegate *cdecl < int,  int> functionPointer;
+}";
+
+            var expected = @"
+unsafe class C
+{
+    delegate* cdecl<int, int> functionPointer;
+}";
+
+            await AssertFormatAsync(expected, content);
+        }
     }
 }

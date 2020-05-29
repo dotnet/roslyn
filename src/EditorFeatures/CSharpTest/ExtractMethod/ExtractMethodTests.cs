@@ -11109,17 +11109,17 @@ class Program
             var code = @"
 interface Program
 {
-    void Foo();
+    void Goo();
 
     void Test()
     {
-        [|Foo();|]
+        [|Goo();|]
     }
 }";
             var expected = @"
 interface Program
 {
-    void Foo();
+    void Goo();
 
     void Test()
     {
@@ -11128,7 +11128,7 @@ interface Program
 
     void NewMethod()
     {
-        Foo();
+        Goo();
     }
 }";
             await TestExtractMethodAsync(code, expected);
@@ -11139,18 +11139,18 @@ interface Program
         public async Task ExtractMethodInExpressionBodiedConstructors()
         {
             var code = @"
-class Foo
+class Goo
 {
     private readonly string _bar;
 
-    private Foo(string bar) => _bar = [|bar|];
+    private Goo(string bar) => _bar = [|bar|];
 }";
             var expected = @"
-class Foo
+class Goo
 {
     private readonly string _bar;
 
-    private Foo(string bar) => _bar = GetBar(bar);
+    private Goo(string bar) => _bar = GetBar(bar);
 
     private static string GetBar(string bar)
     {
@@ -11165,24 +11165,84 @@ class Foo
         public async Task ExtractMethodInExpressionBodiedFinalizers()
         {
             var code = @"
-class Foo
+class Goo
 {
     bool finalized;
 
-    ~Foo() => finalized = [|true|];
+    ~Goo() => finalized = [|true|];
 }";
             var expected = @"
-class Foo
+class Goo
 {
     bool finalized;
 
-    ~Foo() => finalized = NewMethod();
+    ~Goo() => finalized = NewMethod();
 
     private static bool NewMethod()
     {
         return true;
     }
 }";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInvolvingFunctionPointer()
+        {
+            var code = @"
+class C
+{
+    void M(delegate*<delegate*<ref string, ref readonly int>> ptr1)
+    {
+        string s = null;
+        _ = [|ptr1()|](ref s);
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M(delegate*<delegate*<ref string, ref readonly int>> ptr1)
+    {
+        string s = null;
+        _ = NewMethod(ptr1)(ref s);
+    }
+
+    private static delegate*<ref string, ref readonly int> NewMethod(delegate*<delegate*<ref string, ref readonly int>> ptr1)
+    {
+        return ptr1();
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInvolvingFunctionPointerWithTypeParameter()
+        {
+            var code = @"
+class C
+{
+    void M<T1, T2>(delegate*<T1, T2> ptr1)
+    {
+        _ = [|ptr1|]();
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M<T1, T2>(delegate*<T1, T2> ptr1)
+    {
+        _ = GetPtr1(ptr1)();
+    }
+
+    private static delegate*<T1, T2> GetPtr1<T1, T2>(delegate*<T1, T2> ptr1)
+    {
+        return ptr1;
+    }
+}";
+
             await TestExtractMethodAsync(code, expected);
         }
     }

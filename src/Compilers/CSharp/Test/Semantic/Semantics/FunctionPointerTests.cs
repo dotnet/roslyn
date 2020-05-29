@@ -30,6 +30,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void UsingAliasTest()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using s = delegate*<void>;");
+
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = ").WithLocation(2, 1),
+                // (2,11): error CS1041: Identifier expected; 'delegate' is a keyword
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(2, 11),
+                // (2,25): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25),
+                // (2,26): error CS1022: Type or namespace definition, or end-of-file expected
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(2, 26)
+            );
+        }
+
+        [Fact]
         public void ImplicitConversionToVoid()
         {
             var comp = CreateCompilationWithFunctionPointers(@"

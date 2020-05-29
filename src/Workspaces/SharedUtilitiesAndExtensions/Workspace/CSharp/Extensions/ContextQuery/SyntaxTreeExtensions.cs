@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -719,6 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsExpressionContext(position, tokenOnLeftOfPosition, attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModelOpt) ||
                 syntaxTree.IsPrimaryFunctionExpressionContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsGenericTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken, semanticModelOpt) ||
+                syntaxTree.IsFunctionPointerTypeArgumentContext(position, tokenOnLeftOfPosition, cancellationToken) ||
                 syntaxTree.IsFixedVariableDeclarationContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsImplicitOrExplicitOperatorTypeContext(position, tokenOnLeftOfPosition) ||
                 syntaxTree.IsIsOrAsTypeContext(position, tokenOnLeftOfPosition) ||
@@ -902,6 +904,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsFunctionPointerTypeArgumentContext(
+            this SyntaxTree syntaxTree,
+            int position,
+            SyntaxToken tokenOnLeftOfPosition,
+            CancellationToken cancellationToken)
+        {
+#if !CODE_STYLE
+            var token = tokenOnLeftOfPosition;
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            // https://github.com/dotnet/roslyn/issues/39865: When the syntax rewrite is done, the parents here will need to change.
+            switch (token.Kind())
+            {
+                case SyntaxKind.LessThanToken:
+                case SyntaxKind.CommaToken:
+                    return token.Parent is FunctionPointerTypeSyntax;
+            }
+
+            return token.Parent is ParameterSyntax { Parent: FunctionPointerTypeSyntax _ };
+#else
+            return false;
+#endif
+        }
+
         public static bool IsGenericTypeArgumentContext(
             this SyntaxTree syntaxTree,
             int position,
@@ -1000,6 +1026,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            if (token.IsKind(SyntaxKind.LessThanToken) && token.Parent.IsKind(SyntaxKindEx.FunctionPointerType))
+            {
+                parameterIndex = 0;
+                return true;
+            }
+
             if (token.IsKind(SyntaxKind.CommaToken) &&
                 token.Parent.IsKind(SyntaxKind.ParameterList, out ParameterListSyntax parameterList) &&
                 parameterList.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
@@ -1009,6 +1041,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 parameterIndex = commaIndex / 2 + 1;
                 return true;
             }
+
+#if !CODE_STYLE
+            if (token.IsKind(SyntaxKind.CommaToken) &&
+                token.Parent.IsKind(SyntaxKindEx.FunctionPointerType, out FunctionPointerTypeSyntax funcPtrType))
+            {
+                var commaIndex = funcPtrType.Parameters.GetWithSeparators().IndexOf(token);
+
+                parameterIndex = commaIndex / 2 + 1;
+                return true;
+            }
+#endif
 
             if (token.IsKind(SyntaxKind.CloseBracketToken) &&
                 token.Parent.IsKind(SyntaxKind.AttributeList) &&

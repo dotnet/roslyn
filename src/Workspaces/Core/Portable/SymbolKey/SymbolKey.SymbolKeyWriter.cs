@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis
             NamedType = 'D',
             ErrorType = 'E',
             Field = 'F',
+            FunctionPointer = 'G',
             DynamicType = 'I',
             Method = 'M',
             Namespace = 'N',
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis
                 _writeLocation = WriteLocation;
                 _writeBoolean = WriteBoolean;
                 _writeParameterType = p => WriteSymbolKey(p.Type);
-                _writeRefKind = p => WriteInteger((int)p.RefKind);
+                _writeRefKind = p => WriteRefKind(p.RefKind);
             }
 
             public void Dispose()
@@ -298,6 +299,8 @@ namespace Microsoft.CodeAnalysis
                 EndKey();
             }
 
+            internal void WriteRefKind(RefKind refKind) => WriteInteger((int)refKind);
+
             public override object VisitAlias(IAliasSymbol aliasSymbol)
             {
                 WriteType(SymbolKeyType.Alias);
@@ -452,6 +455,13 @@ namespace Microsoft.CodeAnalysis
             {
                 WriteType(SymbolKeyType.PointerType);
                 PointerTypeSymbolKey.Create(pointerTypeSymbol, this);
+                return null;
+            }
+
+            public override object VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                WriteType(SymbolKeyType.FunctionPointer);
+                FunctionPointerTypeSymbolKey.Create(symbol, this);
                 return null;
             }
 

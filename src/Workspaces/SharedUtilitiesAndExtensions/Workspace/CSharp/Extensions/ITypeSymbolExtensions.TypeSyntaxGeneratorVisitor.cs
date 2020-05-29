@@ -6,6 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+#endif
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -115,9 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             public override TypeSyntax VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
             {
                 // TODO(https://github.com/dotnet/roslyn/issues/39865): generate the calling convention once exposed through the API
-                var parameters = symbol.Signature.Parameters.Select(p => p.Type)
-                    .Concat(SpecializedCollections.SingletonEnumerable(symbol.Signature.ReturnType))
-                    .SelectAsArray(t => SyntaxFactory.Parameter(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken)).WithType(t.GenerateTypeSyntax()));
+                var parameters = symbol.Signature.Parameters.Select(p => (p.Type, RefKindModifiers: CSharpSyntaxGenerator.GetParameterModifiers(p.RefKind)))
+                    .Concat(SpecializedCollections.SingletonEnumerable((
+                        Type: symbol.Signature.ReturnType,
+                        RefKindModifiers: CSharpSyntaxGenerator.GetParameterModifiers(symbol.Signature.RefKind, forFunctionPointerReturnParameter: true))))
+                    .SelectAsArray(t => SyntaxFactory.Parameter(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken)).WithModifiers(t.RefKindModifiers).WithType(t.Type.GenerateTypeSyntax()));
 
                 return AddInformationTo(
                     SyntaxFactory.FunctionPointerType(SyntaxFactory.SeparatedList(parameters)), symbol);

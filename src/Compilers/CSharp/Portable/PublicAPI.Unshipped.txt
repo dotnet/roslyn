@@ -108,6 +108,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.BinaryPattern(Microsoft.CodeA
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ImplicitObjectCreationExpression() -> Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitObjectCreationExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ImplicitObjectCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax argumentList, Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitObjectCreationExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ImplicitObjectCreationExpression(Microsoft.CodeAnalysis.SyntaxToken newKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax argumentList, Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitObjectCreationExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseTypeName(string text, int offset = 0, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, bool consumeFullText = true) -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseTypeName(string text, int offset, bool consumeFullText) -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax node) -> TResult
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax
@@ -122,6 +124,7 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.UnaryPattern(Microsoft.CodeAn
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.NewKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+*REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseTypeName(string text, int offset = 0, bool consumeFullText = true) -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitBinaryPattern(Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitImplicitObjectCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitObjectCreationExpressionSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitParenthesizedPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax node) -> void

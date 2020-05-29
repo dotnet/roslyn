@@ -516,13 +516,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // no spaces around the * in a function pointer
-            if ((currentToken.IsKind(SyntaxKind.AsteriskToken) && currentToken.Parent.IsKind(SyntaxKindEx.FunctionPointerType)) ||
-                (previousToken.IsKind(SyntaxKind.AsteriskToken) && previousToken.Parent.IsKind(SyntaxKindEx.FunctionPointerType)))
-            {
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
-
             // ~ * case
             if (previousToken.Kind() == SyntaxKind.TildeToken && (previousToken.Parent is PrefixUnaryExpressionSyntax || previousToken.Parent is DestructorDeclarationSyntax))
             {
