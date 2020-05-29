@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 properties:=Nothing))
         End Sub
 
-        Private Function MatchesDefaultAccessibility(accessibility As Accessibility, member As StatementSyntax) As Boolean
+        Private Shared Function MatchesDefaultAccessibility(accessibility As Accessibility, member As StatementSyntax) As Boolean
             ' Top level items in a namespace or file
             If member.IsParentKind(SyntaxKind.CompilationUnit) OrElse
                member.IsParentKind(SyntaxKind.NamespaceBlock) Then

@@ -1440,7 +1440,8 @@ namespace BoundTreeGenerator
 
                         foreach (var node in _tree.Types.OfType<Node>())
                         {
-                            if (SkipInNullabilityRewriter(node)) continue;
+                            if (SkipInNullabilityRewriter(node))
+                                continue;
 
                             var allSpecifiableFields = AllSpecifiableFields(node).ToList();
                             var isExpression = IsDerivedType("BoundExpression", node.Name);
@@ -1560,9 +1561,11 @@ namespace BoundTreeGenerator
 
                             static bool symbolIsPotentiallyUpdated(Field f)
                             {
-                                if (!TypeIsSymbol(f)) return false;
+                                if (!TypeIsSymbol(f))
+                                    return false;
 
-                                if (f.Name == "Type") return false;
+                                if (f.Name == "Type")
+                                    return false;
 
                                 return typeIsUpdated(f.Type);
                             }

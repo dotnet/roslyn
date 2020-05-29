@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
-        <target state="new">Convert to regular string</target>
+        <target state="translated">Convertir en chaîne classique</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
-        <target state="new">Convert to verbatim string</target>
+        <target state="translated">Convertir en chaîne verbatim</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">

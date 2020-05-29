@@ -869,28 +869,28 @@ unsafe class D
 
             var comp = CreateCompilationWithFunctionPointersAndIl(source, ilSource);
             comp.VerifyDiagnostics(
-                // (6,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
+                // (6,11): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Field(__arglist(1, 2));
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(6, 11),
-                // (7,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
+                // (7,11): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Field(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(7, 11),
-                // (8,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
+                // (8,11): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Field();
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(8, 11),
-                // (9,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
+                // (9,11): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Field = c.Field;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(9, 11),
-                // (9,21): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
+                // (9,21): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Field = c.Field;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(9, 21),
-                // (10,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
+                // (10,11): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Prop();
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate*<void>").WithLocation(10, 11),
-                // (11,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
+                // (11,11): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Prop = c.Prop;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate*<void>").WithLocation(11, 11),
-                // (11,20): error CS8795: The calling convention of 'delegate*<void>' is not supported by the language.
+                // (11,20): error CS8806: The calling convention of 'delegate*<void>' is not supported by the language.
                 //         c.Prop = c.Prop;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate*<void>").WithLocation(11, 20)
             );
@@ -3670,10 +3670,10 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (6,22): error CS8801: Cannot convert &method group 'M' to non-function pointer type 'void*'.
+                // (6,22): error CS8812: Cannot convert &method group 'M' to non-function pointer type 'void*'.
                 //         void* ptr1 = &M;
                 Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "&M").WithArguments("M", "void*").WithLocation(6, 22),
-                // (7,22): error CS8801: Cannot convert &method group 'M' to non-function pointer type 'void*'.
+                // (7,22): error CS8812: Cannot convert &method group 'M' to non-function pointer type 'void*'.
                 //         void* ptr2 = (void*)&M;
                 Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "(void*)&M").WithArguments("M", "void*").WithLocation(7, 22)
             );
@@ -3722,10 +3722,10 @@ class C
                 // (8,24): error CS0119: 'Action' is a type, which is not valid in the given context
                 //         Action ptr1 = (Action)&M;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Action").WithArguments("System.Action", "type").WithLocation(8, 24),
-                // (9,23): error CS8800: Cannot convert &method group 'M' to delegate type 'M'.
+                // (9,23): error CS8811: Cannot convert &method group 'M' to delegate type 'M'.
                 //         Action ptr2 = (Action)(&M);
                 Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "(Action)(&M)").WithArguments("M", "System.Action").WithLocation(9, 23),
-                // (10,23): error CS8800: Cannot convert &method group 'M' to delegate type 'M'.
+                // (10,23): error CS8811: Cannot convert &method group 'M' to delegate type 'M'.
                 //         Action ptr3 = &M;
                 Diagnostic(ErrorCode.ERR_CannotConvertAddressOfToDelegate, "&M").WithArguments("M", "System.Action").WithLocation(10, 23)
             );
@@ -3774,10 +3774,10 @@ class C
                 // (7,19): error CS0119: 'C' is a type, which is not valid in the given context
                 //         C ptr1 = (C)&M;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "C").WithArguments("C", "type").WithLocation(7, 19),
-                // (8,18): error CS8801: Cannot convert &method group 'M' to non-function pointer type 'C'.
+                // (8,18): error CS8812: Cannot convert &method group 'M' to non-function pointer type 'C'.
                 //         C ptr2 = (C)(&M);
                 Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "(C)(&M)").WithArguments("M", "C").WithLocation(8, 18),
-                // (9,18): error CS8801: Cannot convert &method group 'M' to non-function pointer type 'C'.
+                // (9,18): error CS8812: Cannot convert &method group 'M' to non-function pointer type 'C'.
                 //         C ptr3 = &M;
                 Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "&M").WithArguments("M", "C").WithLocation(9, 18)
             );
@@ -3856,7 +3856,7 @@ unsafe class C
                 // (11,47): error CS1944: An expression tree may not contain an unsafe pointer operation
                 //         Expression<Func<string>> a = () => M1(&M2);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "&M2").WithLocation(11, 47),
-                // (11,48): error CS8799: '&' on method groups cannot be used in expression trees
+                // (11,48): error CS8810: '&' on method groups cannot be used in expression trees
                 //         Expression<Func<string>> a = () => M1(&M2);
                 Diagnostic(ErrorCode.ERR_AddressOfMethodGroupInExpressionTree, "M2").WithLocation(11, 48),
                 // (12,44): error CS0149: Method name expected

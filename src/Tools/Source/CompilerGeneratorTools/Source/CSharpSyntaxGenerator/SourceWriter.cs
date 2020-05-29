@@ -958,7 +958,8 @@ namespace CSharpSyntaxGenerator
                             WriteLine("get");
                             OpenBlock();
                             WriteLine($"var slot = ((Syntax.InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)};");
-                            WriteLine($"return slot != null ? new SyntaxToken(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;"); CloseBlock();
+                            WriteLine($"return slot != null ? new SyntaxToken(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
+                            CloseBlock();
                             CloseBlock();
                         }
                         else

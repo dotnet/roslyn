@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                             // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
                             workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
                         }
-                    };
+                    }
                 }
             }
 

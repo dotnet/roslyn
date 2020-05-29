@@ -3424,9 +3424,7 @@ class B : A<int>
         v = [|Goo|](v);
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     void M()
     {
@@ -3436,7 +3434,7 @@ class C
 
     private int Goo(int v)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -6048,9 +6046,7 @@ class Program
         var x = nameof([|Z|]);
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     void M()
     {
@@ -6059,7 +6055,7 @@ class C
 
     private object Z()
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -6076,9 +6072,7 @@ class C
         var x = nameof([|Z.X|]);
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     void M()
     {
@@ -6087,7 +6081,7 @@ class C
 
     private object nameof(object x)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -6104,9 +6098,7 @@ class C
         var x = nameof([|Z.X.Y|]);
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     void M()
     {
@@ -6115,7 +6107,7 @@ class C
 
     private object nameof(object y)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -6206,9 +6198,7 @@ namespace Z
         var x = [|nameof(y, z)|];
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     void M()
     {
@@ -6219,7 +6209,7 @@ class C
 
     private object nameof(int y, string z)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -6266,9 +6256,7 @@ class C
         var x = [|nameof|](y, z);
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     void M()
     {
@@ -6277,7 +6265,7 @@ class C
 
     private object nameof(object y, object z)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -6836,9 +6824,7 @@ class C
     {
     }
 }",
-@"using System;
-
-class C
+@"class C
 {
     public E B { get; private set; }
 
@@ -6851,7 +6837,7 @@ class C
     {
         internal object C()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }");
@@ -7559,9 +7545,7 @@ class C
         (nint, nuint) d = [|NewMethod|](i, i2);
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     void M(nint i, nuint i2)
     {
@@ -7570,7 +7554,7 @@ class Class
 
     private (nint, nuint) NewMethod(nint i, nuint i2)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -7668,9 +7652,7 @@ class Class
         [|Undefined|](out var c);
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     void Method()
     {
@@ -7679,7 +7661,7 @@ class Class
 
     private void Undefined(out object c)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -7724,9 +7706,7 @@ class Class
         [|Undefined|](a: out var c);
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     void Method()
     {
@@ -7735,7 +7715,7 @@ class Class
 
     private void Undefined(out object a)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -7779,9 +7759,7 @@ class Class
         [|Undefined|](out var c);
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     void Method()
     {
@@ -7790,7 +7768,7 @@ class Class
 
     private void Undefined(out object c)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }",
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
@@ -7835,9 +7813,7 @@ parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.Langua
         [|Undefined|](a: out var c);
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     void Method()
     {
@@ -7846,7 +7822,7 @@ class Class
 
     private void Undefined(out object a)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }",
 parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
@@ -8016,9 +7992,7 @@ parseOptions: TestOptions.Regular);
         var v = [|IsPrime|](i);
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     void Method(int i)
     {
@@ -8027,7 +8001,7 @@ class Class
 
     private bool IsPrime(int i)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }
@@ -8044,9 +8018,7 @@ class Class
         var v = [|Issue|](i);
     }
 }",
-@"using System;
-
-class Class
+@"class Class
 {
     void Method(int i)
     {
@@ -8055,7 +8027,7 @@ class Class
 
     private object Issue(int i)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }");
         }

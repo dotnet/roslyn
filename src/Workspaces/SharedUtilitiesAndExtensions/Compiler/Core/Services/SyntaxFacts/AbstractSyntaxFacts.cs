@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return true;
         }
 
-        private bool IsOnSingleLine(string value)
+        private static bool IsOnSingleLine(string value)
             => value.GetNumberOfLineBreaks() == 0;
 
         public ImmutableArray<SyntaxTrivia> GetLeadingBlankLines(SyntaxNode node)

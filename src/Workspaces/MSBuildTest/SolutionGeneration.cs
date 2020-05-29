@@ -306,7 +306,7 @@ EndGlobal
                 return document.ToString();
             }
 
-            private void AddItemGroup<T>(
+            private static void AddItemGroup<T>(
                 XElement addBefore,
                 Func<T, string> itemTypeSelector,
                 IEnumerable<T> items,
@@ -326,12 +326,12 @@ EndGlobal
                 }
             }
 
-            private XElement CreateXElement(string name)
+            private static XElement CreateXElement(string name)
             {
                 return new XElement(XName.Get(name, NS));
             }
 
-            private void AddXElement(XElement element, string elementName, string elementValue)
+            private static void AddXElement(XElement element, string elementName, string elementValue)
             {
                 element.Add(new XElement(XName.Get(elementName, NS), elementValue));
             }

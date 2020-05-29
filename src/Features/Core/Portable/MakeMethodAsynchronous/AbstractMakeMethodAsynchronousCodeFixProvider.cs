@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
         }
 
-        private bool IsLikelyEntryPointName(string name, Document document)
+        private static bool IsLikelyEntryPointName(string name, Document document)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             return syntaxFacts.StringComparer.Equals(name, "Main");
