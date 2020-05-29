@@ -1,14 +1,17 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -1758,6 +1761,366 @@ data class C(int X)
                 //         c = c with { X = 1, X = 2};
                 Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "X").WithArguments("X").WithLocation(7, 29)
             );
+        }
+
+        [Fact]
+        public void Inheritance_01()
+        {
+            var source =
+@"class A
+{
+    internal A() { }
+    public object P1 { get; set; }
+    internal object P2 { get; set; }
+    protected internal object P3 { get; set; }
+    protected object P4 { get; set; }
+    private protected object P5 { get; set; }
+    private object P6 { get; set; }
+}
+data class B(object P1, object P2, object P3, object P4, object P5, object P6) : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object B.P1 { get; init; }",
+                "System.Object B.P2 { get; init; }",
+                "System.Object B.P3 { get; init; }",
+                "System.Object B.P4 { get; init; }",
+                "System.Object B.P5 { get; init; }",
+                "System.Object B.P6 { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_02()
+        {
+            var source =
+@"class A
+{
+    internal A() { }
+    private protected object P1 { get; set; }
+    private object P2 { get; set; }
+    private data class B(object P1, object P2) : A
+    {
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "A.B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object A.B.P1 { get; init; }",
+                "System.Object A.B.P2 { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Inheritance_03(bool useCompilationReference)
+        {
+            var sourceA =
+@"public class A
+{
+    public A() { }
+    internal object P { get; set; }
+}
+data class B1(object P) : A
+{
+}";
+            var comp = CreateCompilation(sourceA);
+            AssertEx.Equal(new[] { "System.Object B1.P { get; init; }" }, GetProperties(comp, "B1").ToTestDisplayStrings());
+            var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
+
+            var sourceB =
+@"data class B2(object P) : A
+{
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            AssertEx.Equal(new[] { "System.Object B2.P { get; init; }" }, GetProperties(comp, "B2").ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Inheritance_04()
+        {
+            var source =
+@"class A
+{
+    internal A() { }
+    public object P1 { get { return null; } set { } }
+    public object P2 { get; init; }
+    public object P3 { get; }
+    public object P4 { set { } }
+    public virtual object P5 { get; set; }
+    public static object P6 { get; set; }
+    public ref object P7 => throw null;
+}
+data class B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object B.P1 { get; init; }",
+                "System.Object B.P2 { get; init; }",
+                "System.Object B.P3 { get; init; }",
+                "System.Object B.P4 { get; init; }",
+                "System.Object B.P5 { get; init; }",
+                "System.Object B.P6 { get; init; }",
+                "System.Object B.P7 { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_05()
+        {
+            var source =
+@"class A
+{
+    internal A() { }
+    public object P1 { get; set; }
+    public int P2 { get; set; }
+}
+data class B(int P1, object P2) : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Int32 B.P1 { get; init; }",
+                "System.Object B.P2 { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_06()
+        {
+            var source =
+@"class A
+{
+    internal int X { get; set; }
+    internal int Y { set { } }
+    internal int Z;
+}
+data class B(int X, int Y, int Z) : A
+{
+}
+class Program
+{
+    static void Main()
+    {
+        var b = new B(1, 2, 3);
+        b.X = 4;
+        b.Y = 5;
+        b.Z = 6;
+        ((A)b).X = 7;
+        ((A)b).Y = 8;
+        ((A)b).Z = 9;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (15,9): error CS8852: Init-only property or indexer 'B.X' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         b.X = 4;
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "b.X").WithArguments("B.X").WithLocation(15, 9),
+                // (16,9): error CS8852: Init-only property or indexer 'B.Y' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         b.Y = 5;
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "b.Y").WithArguments("B.Y").WithLocation(16, 9),
+                // (17,9): error CS8852: Init-only property or indexer 'B.Z' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         b.Z = 6;
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "b.Z").WithArguments("B.Z").WithLocation(17, 9));
+        }
+
+        [Fact]
+        public void Inheritance_07()
+        {
+            var source =
+@"abstract class A
+{
+    public abstract int X { get; }
+    public virtual int Y { get; }
+}
+data class B(int X, int Y) : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS0534: 'B' does not implement inherited abstract member 'A.X.get'
+                // data class B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.X.get").WithLocation(6, 12));
+        }
+
+        [Fact]
+        public void Inheritance_08()
+        {
+            var source =
+@"using System;
+interface IA
+{
+    int X { get; }
+}
+interface IB
+{
+    int Y { get; }
+}
+data class C(int X, int Y) : IA, IB
+{
+}
+data struct S(int X, int Y) : IA, IB
+{
+}
+class Program
+{
+    static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(""{0}, {1}"", c.X, c.Y);
+        Console.WriteLine(""{0}, {1}"", ((IA)c).X, ((IB)c).Y);
+        var s = new S(3, 4);
+        Console.WriteLine(""{0}, {1}"", s.X, s.Y);
+        Console.WriteLine(""{0}, {1}"", ((IA)s).X, ((IB)s).Y);
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"1, 2
+1, 2
+3, 4
+3, 4");
+        }
+
+        [Fact]
+        public void Inheritance_09()
+        {
+            var source =
+@"interface IA
+{
+    int X { get; }
+}
+interface IB
+{
+    object Y { get; set; }
+}
+data class C(object X, object Y) : IA, IB
+{
+}
+data struct S(object X, object Y) : IA, IB
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,36): error CS0738: 'C' does not implement interface member 'IA.X'. 'C.X' cannot implement 'IA.X' because it does not have the matching return type of 'int'.
+                // data class C(object X, object Y) : IA, IB
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "IA").WithArguments("C", "IA.X", "C.X", "int").WithLocation(9, 36),
+                // (9,40): error CS8854: 'C' does not implement interface member 'IB.Y.set'. 'C.Y.init' cannot implement 'IB.Y.set'.
+                // data class C(object X, object Y) : IA, IB
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "IB").WithArguments("C", "IB.Y.set", "C.Y.init").WithLocation(9, 40),
+                // (12,37): error CS0738: 'S' does not implement interface member 'IA.X'. 'S.X' cannot implement 'IA.X' because it does not have the matching return type of 'int'.
+                // data struct S(object X, object Y) : IA, IB
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "IA").WithArguments("S", "IA.X", "S.X", "int").WithLocation(12, 37),
+                // (12,41): error CS8854: 'S' does not implement interface member 'IB.Y.set'. 'S.Y.init' cannot implement 'IB.Y.set'.
+                // data struct S(object X, object Y) : IA, IB
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "IB").WithArguments("S", "IB.Y.set", "S.Y.init").WithLocation(12, 41)
+            );
+        }
+
+        [Fact]
+        public void Overrides_01()
+        {
+            var source =
+@"class A
+{
+    public sealed override bool Equals(object other) => false;
+    public sealed override int GetHashCode() => 0;
+    public sealed override string ToString() => null;
+}
+data class B(int X, int Y) : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
+                // data class B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 12),
+                // (7,12): error CS0239: 'B.Equals(object?)': cannot override inherited member 'A.Equals(object)' because it is sealed
+                // data class B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.Equals(object?)", "A.Equals(object)").WithLocation(7, 12));
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "B B.Clone()",
+                "System.Int32 B.<X>k__BackingField",
+                "System.Int32 B.X.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.X.init",
+                "System.Int32 B.X { get; init; }",
+                "System.Int32 B.<Y>k__BackingField",
+                "System.Int32 B.Y.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
+                "System.Int32 B.Y { get; init; }",
+                "System.Boolean B.Equals(B? )",
+                "System.Boolean B.Equals(System.Object? )",
+                "System.Int32 B.GetHashCode()",
+                "B..ctor(B )",
+                "B..ctor(System.Int32 X, System.Int32 Y)"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Overrides_02()
+        {
+            var source =
+@"abstract class A
+{
+    public abstract override bool Equals(object other);
+    public abstract override int GetHashCode();
+    public abstract override string ToString();
+}
+data class B(int X, int Y) : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0534: 'B' does not implement inherited abstract member 'A.ToString()'
+                // data class B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.ToString()").WithLocation(7, 12));
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "B B.Clone()",
+                "System.Int32 B.<X>k__BackingField",
+                "System.Int32 B.X.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.X.init",
+                "System.Int32 B.X { get; init; }",
+                "System.Int32 B.<Y>k__BackingField",
+                "System.Int32 B.Y.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
+                "System.Int32 B.Y { get; init; }",
+                "System.Boolean B.Equals(B? )",
+                "System.Boolean B.Equals(System.Object? )",
+                "System.Int32 B.GetHashCode()",
+                "B..ctor(B )",
+                "B..ctor(System.Int32 X, System.Int32 Y)"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        private static ImmutableArray<Symbol> GetProperties(CSharpCompilation comp, string typeName)
+        {
+            return comp.GetMember<NamedTypeSymbol>(typeName).GetMembers().WhereAsArray(m => m.Kind == SymbolKind.Property);
         }
     }
 }
