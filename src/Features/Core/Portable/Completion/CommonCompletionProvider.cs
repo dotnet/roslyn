@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static readonly CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
-        protected CompletionItem CreateSuggestionModeItem(string displayText, string description)
+        protected static CompletionItem CreateSuggestionModeItem(string displayText, string description)
         {
             return CommonCompletionItem.Create(
                 displayText: displayText ?? string.Empty,

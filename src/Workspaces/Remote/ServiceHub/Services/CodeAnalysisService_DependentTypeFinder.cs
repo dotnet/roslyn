@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteDependentTypeFinder
     {
-        private Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheTypesAsync(
+        private Task<ImmutableArray<SerializableSymbolAndProjectId>> FindTypesAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId typeAndProjectId,
             ProjectId[] projectIds,
@@ -37,47 +37,47 @@ namespace Microsoft.CodeAnalysis.Remote
                     var types = await func(namedType, solution, projects).ConfigureAwait(false);
 
                     return types.SelectAsArray(
-                        (Func<INamedTypeSymbol, SerializableSymbolAndProjectId>)(t => SerializableSymbolAndProjectId.Dehydrate(solution, t, cancellationToken)));
+                        t => SerializableSymbolAndProjectId.Dehydrate(solution, t, cancellationToken));
                 }
             }, cancellationToken);
         }
 
-        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheDerivedClassesAsync(
+        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindDerivedClassesAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId typeAndProjectId,
             ProjectId[] projectIds,
             bool transitive,
             CancellationToken cancellationToken)
         {
-            return FindAndCacheTypesAsync(
+            return FindTypesAsync(
                 solutionInfo, typeAndProjectId, projectIds,
-                (nt, s, ps) => DependentTypeFinder.FindAndCacheDerivedClassesAsync(nt, s, ps, transitive, cancellationToken),
+                (nt, s, ps) => DependentTypeFinder.FindDerivedClassesAsync(nt, s, ps, transitive, cancellationToken),
                 cancellationToken);
         }
 
-        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheDerivedInterfacesAsync(
+        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindDerivedInterfacesAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId typeAndProjectId,
             ProjectId[] projectIds,
             bool transitive,
             CancellationToken cancellationToken)
         {
-            return FindAndCacheTypesAsync(
+            return FindTypesAsync(
                 solutionInfo, typeAndProjectId, projectIds,
-                (nt, s, ps) => DependentTypeFinder.FindAndCacheDerivedInterfacesAsync(nt, s, ps, transitive, cancellationToken),
+                (nt, s, ps) => DependentTypeFinder.FindDerivedInterfacesAsync(nt, s, ps, transitive, cancellationToken),
                 cancellationToken);
         }
 
-        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAndCacheImplementingTypesAsync(
+        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindImplementingTypesAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId typeAndProjectId,
             ProjectId[] projectIds,
             bool transitive,
             CancellationToken cancellationToken)
         {
-            return FindAndCacheTypesAsync(
+            return FindTypesAsync(
                 solutionInfo, typeAndProjectId, projectIds,
-                (nt, s, ps) => DependentTypeFinder.FindAndCacheImplementingTypesAsync(nt, s, ps, transitive, cancellationToken),
+                (nt, s, ps) => DependentTypeFinder.FindImplementingTypesAsync(nt, s, ps, transitive, cancellationToken),
                 cancellationToken);
         }
     }

@@ -207,10 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             var entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken);
-            if (entryPointAndDiagnostics == null)
-            {
-                return null;
-            }
 
             Debug.Assert(!entryPointAndDiagnostics.Diagnostics.IsDefault);
             diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics);
@@ -218,7 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)entryPoint == null)
             {
-                Debug.Assert(entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
                 return null;
             }
 
@@ -1667,7 +1662,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bodyBinder != null)
                 {
                     importChain = bodyBinder.ImportChain;
-                    bodyBinder.ValidateIteratorMethods(diagnostics);
 
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
                     BoundNode methodBodyForSemanticModel = methodBody;

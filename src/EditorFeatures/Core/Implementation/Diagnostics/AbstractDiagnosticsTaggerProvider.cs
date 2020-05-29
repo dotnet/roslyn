@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected internal abstract bool IsEnabled { get; }
         protected internal abstract bool IncludeDiagnostic(DiagnosticData data);
-        protected internal abstract ITagSpan<TTag> CreateTagSpan(bool isLiveUpdate, SnapshotSpan span, DiagnosticData data);
+        protected internal abstract ITagSpan<TTag>? CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data);
 
         /// <summary>
         /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
@@ -116,7 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         /// </summary>
         /// <param name="diagnosticData">the diagnostic containing the location(s).</param>
         /// <returns>an array of locations that should have the tag applied.</returns>
-        protected internal virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData) => ImmutableArray.Create(diagnosticData.DataLocation);
+        protected internal virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
+            => diagnosticData.DataLocation is object ? ImmutableArray.Create(diagnosticData.DataLocation) : ImmutableArray<DiagnosticDataLocation>.Empty;
 
         protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
@@ -146,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             // This can happen for buffers used in the preview workspace where some feature
             // is generating code that it doesn't want errors shown for.
             var buffer = editorSnapshot.TextBuffer;
-            var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection)null;
+            var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection?)null;
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
             var eventArgs = _diagnosticService.GetDiagnosticsUpdatedEventArgs(
@@ -163,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private void ProduceTags(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
             Workspace workspace, Document document,
-            NormalizedSnapshotSpanCollection suppressedDiagnosticsSpans,
+            NormalizedSnapshotSpanCollection? suppressedDiagnosticsSpans,
             UpdatedEventArgs updateArgs, CancellationToken cancellationToken)
         {
             try
@@ -216,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         {
                             if (diagnosticSpan.IntersectsWith(requestedSpan) && !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))
                             {
-                                var tagSpan = this.CreateTagSpan(isLiveUpdate, diagnosticSpan, diagnosticData);
+                                var tagSpan = this.CreateTagSpan(workspace, isLiveUpdate, diagnosticSpan, diagnosticData);
                                 if (tagSpan != null)
                                 {
                                     context.AddTag(tagSpan);
@@ -243,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             }
         }
 
-        private bool IsSuppressed(NormalizedSnapshotSpanCollection suppressedSpans, SnapshotSpan span)
+        private bool IsSuppressed(NormalizedSnapshotSpanCollection? suppressedSpans, SnapshotSpan span)
             => suppressedSpans != null && suppressedSpans.IntersectsWith(span);
     }
 }

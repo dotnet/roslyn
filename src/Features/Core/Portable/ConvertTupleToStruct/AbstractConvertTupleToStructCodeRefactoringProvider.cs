@@ -68,14 +68,14 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             // If it does, we can't convert this.  There is no way to describe this anonymous type
             // in the concrete type we create.
             var fields = tupleType.TupleElements;
-            var containsAnonymousType = fields.Any<IFieldSymbol>(p => p.Type.ContainsAnonymousType());
+            var containsAnonymousType = fields.Any(p => p.Type.ContainsAnonymousType());
             if (containsAnonymousType)
             {
                 return;
             }
 
             var capturedTypeParameters =
-                fields.Select<IFieldSymbol, ITypeSymbol>(p => p.Type)
+                fields.Select(p => p.Type)
                       .SelectMany<ITypeSymbol, ITypeParameterSymbol>(t => t.GetReferencedTypeParameters())
                       .Distinct()
                       .ToImmutableArray();
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                     //
                     // this means we can only find tuples like ```(x: 1, ...)``` but not ```(1, 2)```.  The
                     // latter has members called Item1 and Item2, but those names don't show up in source.
-                    if (fields.All<IFieldSymbol>(f => f.CorrespondingTupleField != f))
+                    if (fields.All(f => f.CorrespondingTupleField != f))
                     {
                         scopes.Add(CreateAction(context, Scope.ContainingProject));
                         scopes.Add(CreateAction(context, Scope.DependentProjects));
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 if (client != null)
                 {
                     var resultOpt = await client.TryRunRemoteAsync<SerializableConvertTupleToStructResult>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteConvertTupleToStructCodeRefactoringProvider.ConvertToStructAsync),
                         solution,
                         new object[]
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 document, span, scope, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Solution> AddRenameTokenAsync(
+        private static async Task<Solution> AddRenameTokenAsync(
             Solution solution,
             (DocumentId documentId, TextSpan span) renamedToken,
             CancellationToken cancellationToken)
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 "NewStruct", n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
 
             var capturedTypeParameters =
-                tupleType.TupleElements.Select<IFieldSymbol, ITypeSymbol>(p => p.Type)
+                tupleType.TupleElements.Select(p => p.Type)
                                        .SelectMany<ITypeSymbol, ITypeParameterSymbol>(t => t.GetReferencedTypeParameters())
                                        .Distinct()
                                        .ToImmutableArray();
@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 explicitInterfaceImplementations: default,
                 WellKnownMemberNames.DeconstructMethodName,
                 typeParameters: default,
-                constructor.Parameters.SelectAsArray<IParameterSymbol, IParameterSymbol>(p =>
+                constructor.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(RefKind.Out, p.Type, p.Name)),
                 assignments);
         }

@@ -36,6 +36,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return base.DisplayName;
             }
         }
-
     }
 }

@@ -15,9 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class DynamicKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
     {
-        private bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            var syntaxTree = context.SyntaxTree;
             if (context.IsPreProcessorDirectiveContext)
             {
                 return false;

@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.TupleType:
                     {
                         var tupleTypeSyntax = (TupleTypeSyntax)syntax;
-                        return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(tupleTypeSyntax.CloseParenToken), BindTupleType(tupleTypeSyntax, diagnostics));
+                        return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(tupleTypeSyntax.CloseParenToken), BindTupleType(tupleTypeSyntax, diagnostics, basesBeingResolved));
                     }
 
                 case SyntaxKind.RefType:
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return type;
         }
 
-        private TypeSymbol BindTupleType(TupleTypeSyntax syntax, DiagnosticBag diagnostics)
+        private TypeSymbol BindTupleType(TupleTypeSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved)
         {
             int numElements = syntax.Elements.Count;
             var types = ArrayBuilder<TypeWithAnnotations>.GetInstance(numElements);
@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var argumentSyntax = syntax.Elements[i];
 
-                var argumentType = BindType(argumentSyntax.Type, diagnostics);
+                var argumentType = BindType(argumentSyntax.Type, diagnostics, basesBeingResolved);
                 types.Add(argumentType);
 
                 string name = null;
@@ -1379,6 +1379,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeSymbol;
         }
 
+        internal static NamedTypeSymbol GetSpecialType(CSharpCompilation compilation, SpecialType typeId, Location location, DiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol typeSymbol = compilation.GetSpecialType(typeId);
+            Debug.Assert((object)typeSymbol != null, "Expect an error type if special type isn't found");
+            ReportUseSiteDiagnostics(typeSymbol, diagnostics, location);
+            return typeSymbol;
+        }
+
         /// <summary>
         /// This is a layer on top of the Compilation version that generates a diagnostic if the special
         /// member isn't found.
@@ -1447,9 +1455,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type, DiagnosticBag diagnostics, SyntaxNode node)
         {
-            NamedTypeSymbol typeSymbol = this.Compilation.GetWellKnownType(type);
+            return GetWellKnownType(this.Compilation, type, diagnostics, node);
+        }
+
+        internal static NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, DiagnosticBag diagnostics, SyntaxNode node)
+        {
+            NamedTypeSymbol typeSymbol = compilation.GetWellKnownType(type);
             Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
             ReportUseSiteDiagnostics(typeSymbol, diagnostics, node);
+            return typeSymbol;
+        }
+
+        internal static NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, DiagnosticBag diagnostics, Location location)
+        {
+            NamedTypeSymbol typeSymbol = compilation.GetWellKnownType(type);
+            Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
+            ReportUseSiteDiagnostics(typeSymbol, diagnostics, location);
             return typeSymbol;
         }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal static partial class DependentTypeFinder
     {
-        public static async Task<ImmutableArray<INamedTypeSymbol>?> TryFindAndCacheRemoteTypesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>?> TryFindRemoteTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -25,25 +27,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(functionId, cancellationToken))
             {
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
+                if (SerializableSymbolAndProjectId.TryCreate(type, solution, cancellationToken, out var serializedType))
                 {
-                    var result = await client.TryRunRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
-                        remoteFunctionName,
-                        solution,
-                        new object[]
-                        {
-                            SerializableSymbolAndProjectId.Dehydrate(solution, type, cancellationToken),
-                            projects?.Select(p => p.Id).ToArray(),
-                            transitive,
-                        },
-                        null,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (result.HasValue)
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    if (client != null)
                     {
-                        return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
+                        var result = await client.TryRunRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                            WellKnownServiceHubService.CodeAnalysis,
+                            remoteFunctionName,
+                            solution,
+                            new object?[]
+                            {
+                                serializedType,
+                                projects?.Select(p => p.Id).ToArray(),
+                                transitive,
+                            },
+                            null,
+                            cancellationToken).ConfigureAwait(false);
+
+                        if (result.HasValue)
+                        {
+                            return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
+                        }
                     }
                 }
             }

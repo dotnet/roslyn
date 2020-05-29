@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
             return Task.CompletedTask;
         }
 
-        private void AddEdits(
+        private static void AddEdits(
             SyntaxEditor editor,
             Diagnostic diagnostic,
             CancellationToken cancellationToken)

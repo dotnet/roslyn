@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
     [UseExportProvider]
     public class AddAttributesTests
     {
-        private Document GetDocument(string code)
+        private static Document GetDocument(string code)
         {
             var ws = new AdhocWorkspace();
             var emptyProject = ws.AddProject(
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
             return emptyProject.AddDocument("test.cs", code);
         }
 
-        private async Task TestAsync(string initialText, string attributeAddedText)
+        private static async Task TestAsync(string initialText, string attributeAddedText)
         {
             var doc = GetDocument(initialText);
             var options = await doc.GetOptionsAsync();

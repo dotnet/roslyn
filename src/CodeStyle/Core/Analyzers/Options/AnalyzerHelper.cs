@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class AnalyzerHelper
     {
+#pragma warning disable IDE0060 // Remove unused parameter - Needed to share this method signature between CodeStyle and Features layer.
         public static T GetOption<T>(this AnalyzerOptions analyzerOptions, IOption2 option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             if (analyzerOptions.TryGetEditorConfigOption<T>(option, syntaxTree, out var value))
             {
@@ -27,7 +29,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static T GetOption<T>(this AnalyzerOptions analyzerOptions, PerLanguageOption2<T> option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
             => GetOption<T>(analyzerOptions, (IOption2)option, language, syntaxTree, cancellationToken);
 
+#pragma warning disable IDE0060 // Remove unused parameter - Needed to share this method signature between CodeStyle and Features layer.
         public static AnalyzerConfigOptions GetAnalyzerOptionSet(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+#pragma warning restore IDE0060 // Remove unused parameter
             => analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
     }
 }

@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
-        Friend Function GetSignatureHelpItemForIntrinsicOperator(document As Document, semanticModel As SemanticModel, position As Integer, documentation As AbstractIntrinsicOperatorDocumentation, cancellationToken As CancellationToken) As SignatureHelpItem
+        Friend Shared Function GetSignatureHelpItemForIntrinsicOperator(document As Document, semanticModel As SemanticModel, position As Integer, documentation As AbstractIntrinsicOperatorDocumentation, cancellationToken As CancellationToken) As SignatureHelpItem
             Dim parameters As New List(Of SignatureHelpSymbolParameter)
 
             For i = 0 To documentation.ParameterCount - 1

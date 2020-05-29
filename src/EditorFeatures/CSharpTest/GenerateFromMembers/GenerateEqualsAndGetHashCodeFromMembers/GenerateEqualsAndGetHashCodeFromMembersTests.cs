@@ -1941,6 +1941,58 @@ parameters: CSharp6Implicit);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
+        public async Task TestOverrideEqualsOnRefStructReturnsFalse()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+ref struct Program
+{
+    public string s;
+    [||]
+}",
+@"
+ref struct Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return false;
+    }
+}",
+chosenSymbols: null);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [WorkItem(25708, "https://github.com/dotnet/roslyn/issues/25708")]
+        public async Task TestImplementIEquatableOnRefStructSkipsIEquatable()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+ref struct Program
+{
+    public string s;
+    [||]
+}",
+@"
+ref struct Program
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return false;
+    }
+}",
+chosenSymbols: null,
+// We are forcefully enabling the ImplementIEquatable option, as that is our way
+// to test that the option does nothing. The VS mode will ensure if the option
+// is not available it will not be shown.
+optionsCallback: options => EnableOption(options, ImplementIEquatableId));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestImplementIEquatableOnStructInNullableContextWithUnannotatedMetadata()
         {
             await TestWithPickMembersDialogAsync(
@@ -3137,6 +3189,52 @@ partial class Goo
         ",
 chosenSymbols: new[] { "bar" },
 index: 1);
+        }
+
+        [WorkItem(43290, "https://github.com/dotnet/roslyn/issues/43290")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestAbstractBase()
+        {
+            await TestInRegularAndScript1Async(
+@"namespace System { public struct HashCode { } }
+
+abstract class Base
+{
+    public abstract override bool Equals(object? obj);
+    public abstract override int GetHashCode();
+}
+
+class Derived : Base
+{
+    [|public int P { get; }|]
+}",
+@"using System;
+
+namespace System { public struct HashCode { } }
+
+abstract class Base
+{
+    public abstract override bool Equals(object? obj);
+    public abstract override int GetHashCode();
+}
+
+class Derived : Base
+{
+    public int P { get; }
+
+    public override bool Equals(object obj)
+    {
+        return obj is Derived derived &&
+               P == derived.P;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(P);
+    }
+}",
+index: 1,
+parameters: CSharpLatest);
         }
     }
 }

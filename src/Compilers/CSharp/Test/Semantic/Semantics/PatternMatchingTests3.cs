@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3194,7 +3195,6 @@ class C
         { if (o is <= 10U and var i) M(i); } // System.UInt32
 
         // 6. If P is an or pattern, the narrowed type is the common type of the narrowed type of the left pattern and the narrowed type of the right pattern if such a common type exists.
-// This test blocked until https://github.com/dotnet/roslyn/pull/42109 is integrated.
         o = 1;
         { if (o is (1 or 2) and var i) M(i); } // System.Int32
 
@@ -3204,7 +3204,6 @@ class C
 
         // 8. Otherwise the narrowed type of P is P's input type.
         o = new Q();
-        // PROTOTYPE(ngafter): we need a rule that explains this.
         { if (o is (3, 4) and var i) M(i); } // System.Runtime.CompilerServices.ITuple
 
         o = null;
@@ -5501,6 +5500,42 @@ class C
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 17)
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(44398, "https://github.com/dotnet/roslyn/issues/44398")]
+        public void MismatchedExpressionPattern()
+        {
+            var source =
+@"class C
+{
+    static void M(int a)
+    {
+        if (a is a is > 0 and < 500) { }
+        if (true is < 0) { }
+        if (true is 0) { }
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (5,18): error CS0150: A constant value is expected
+                //         if (a is a is > 0 and < 500) { }
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "a").WithLocation(5, 18),
+                // (5,25): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         if (a is a is > 0 and < 500) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(5, 25),
+                // (5,33): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         if (a is a is > 0 and < 500) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "500").WithArguments("int", "bool").WithLocation(5, 33),
+                // (6,21): error CS8781: Relational patterns may not be used for a value of type 'bool'.
+                //         if (true is < 0) { }
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 0").WithArguments("bool").WithLocation(6, 21),
+                // (6,23): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         if (true is < 0) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(6, 23),
+                // (7,21): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         if (true is 0) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(7, 21)
+                );
         }
     }
 }

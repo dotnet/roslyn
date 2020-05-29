@@ -20,7 +20,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
 
             var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell));
             ErrorHandler.ThrowOnFailure(shell.IsPackageInstalled(s_compilerPackage, out var installed));

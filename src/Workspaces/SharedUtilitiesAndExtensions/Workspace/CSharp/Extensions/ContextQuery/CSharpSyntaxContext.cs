@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static CSharpSyntaxContext CreateContext_Test(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var inferenceService = new CSharpTypeInferenceService();
-            var types = inferenceService.InferTypes(semanticModel, position, cancellationToken);
+            _ = inferenceService.InferTypes(semanticModel, position, cancellationToken);
             return CreateContextWorker(workspace: null, semanticModel: semanticModel, position: position, cancellationToken: cancellationToken);
         }
 
@@ -380,7 +380,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var leftToken = this.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
-            return targetToken.Kind() == SyntaxKind.AwaitKeyword && targetToken.GetPreviousToken().IsBeginningOfStatementContext();
+            if (targetToken.IsKind(SyntaxKind.AwaitKeyword))
+            {
+                var previousToken = targetToken.GetPreviousToken();
+                if (previousToken.IsBeginningOfStatementContext())
+                {
+                    return true;
+                }
+
+                return SyntaxTree.IsGlobalStatementContext(targetToken.SpanStart, cancellationToken);
+            }
+            else if (SyntaxTree.IsScript()
+                && targetToken.IsKind(SyntaxKind.IdentifierToken)
+                && targetToken.HasMatchingText(SyntaxKind.AwaitKeyword))
+            {
+                // The 'await' keyword is parsed as an identifier in C# script
+                return SyntaxTree.IsGlobalStatementContext(targetToken.SpanStart, cancellationToken);
+            }
+
+            return false;
         }
     }
 }

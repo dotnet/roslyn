@@ -944,11 +944,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal bool IsIterator
+        internal virtual bool IsIterator
         {
             get
             {
-                return !IteratorElementTypeWithAnnotations.IsDefault;
+                return false;
             }
         }
 
@@ -1067,6 +1067,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (other is SubstitutedMethodSymbol sms)
             {
                 return sms.Equals(this, compareKind);
+            }
+
+            if (other is NativeIntegerMethodSymbol nms)
+            {
+                return nms.Equals(this, compareKind);
             }
 
             return base.Equals(other, compareKind);

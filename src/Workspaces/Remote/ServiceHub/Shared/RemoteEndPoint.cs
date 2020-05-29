@@ -36,12 +36,14 @@ namespace Microsoft.CodeAnalysis.Remote
             AllowNonPublicInvocation = false
         };
 
+        private static int s_id;
+
+        private readonly int _id;
         private readonly TraceSource _logger;
         private readonly JsonRpc _rpc;
 
         private bool _startedListening;
-        private JsonRpcDisconnectedEventArgs? _debuggingLastDisconnectReason;
-        private string? _debuggingLastDisconnectCallstack;
+        private JsonRpcDisconnectedEventArgs? _disconnectedReason;
 
         public event Action<JsonRpcDisconnectedEventArgs>? Disconnected;
         public event Action<Exception>? UnexpectedExceptionThrown;
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RoslynDebug.Assert(stream != null);
             RoslynDebug.Assert(logger != null);
 
+            _id = Interlocked.Increment(ref s_id);
             _logger = logger;
 
             var jsonFormatter = new JsonMessageFormatter();
@@ -99,11 +102,14 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Contract.ThrowIfFalse(_startedListening);
 
+            // if this end-point is already disconnected do not log more errors:
+            var logError = _disconnectedReason == null;
+
             try
             {
                 await _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (!logError || ReportUnlessCanceled(ex, cancellationToken))
             {
                 // Remote call may fail with different exception even when our cancellation token is signaled
                 // (e.g. on shutdown if the connection is dropped):
@@ -117,11 +123,14 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Contract.ThrowIfFalse(_startedListening);
 
+            // if this end-point is already disconnected do not log more errors:
+            var logError = _disconnectedReason == null;
+
             try
             {
                 return await _rpc.InvokeWithCancellationAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (!logError || ReportUnlessCanceled(ex, cancellationToken))
             {
                 // Remote call may fail with different exception even when our cancellation token is signaled
                 // (e.g. on shutdown if the connection is dropped):
@@ -144,6 +153,9 @@ namespace Microsoft.CodeAnalysis.Remote
             const int BufferSize = 12 * 1024;
 
             Contract.ThrowIfFalse(_startedListening);
+
+            // if this end-point is already disconnected do not log more errors:
+            var logError = _disconnectedReason == null;
 
             using var linkedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
@@ -173,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 return result;
             }
-            catch (Exception ex) when (ReportUnlessCanceled(ex, linkedCancellationSource.Token, cancellationToken))
+            catch (Exception ex) when (!logError || ReportUnlessCanceled(ex, linkedCancellationSource.Token, cancellationToken))
             {
                 // Remote call may fail with different exception even when our cancellation token is signaled
                 // (e.g. on shutdown if the connection is dropped).
@@ -201,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var pipe = new NamedPipeClientStream(serverName: ".", pipeName, PipeDirection.Out);
 
-                bool success = false;
+                var success = false;
                 try
                 {
                     await ConnectPipeAsync(pipe, cancellationToken).ConfigureAwait(false);
@@ -290,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken, TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
-        private bool ReportUnlessCanceled(Exception ex, CancellationToken linkedCancellationToken, CancellationToken cancellationToken)
+        private static bool ReportUnlessCanceled(Exception ex, CancellationToken linkedCancellationToken, CancellationToken cancellationToken)
         {
             // check whether we are in cancellation mode
 
@@ -318,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
+        private static bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
         {
             if (!cancellationToken.IsCancellationRequested)
             {
@@ -328,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        private void ReportNonFatalWatson(Exception exception)
+        private static void ReportNonFatalWatson(Exception exception)
         {
             FatalError.ReportWithoutCrash(exception);
         }
@@ -340,34 +352,23 @@ namespace Microsoft.CodeAnalysis.Remote
             // we decided to do soft crash where we show info bar to users saying "VS got corrupted and users should save
             // their works and close VS"
 
-            LogError($"{UnexpectedExceptionLogMessage}: {ex}");
-
             UnexpectedExceptionThrown?.Invoke(ex);
-
-            // log disconnect information before throw
-            LogDisconnectInfo(_debuggingLastDisconnectReason, _debuggingLastDisconnectCallstack);
 
             // throw soft crash exception
             return new SoftCrashException(UnexpectedExceptionLogMessage, ex, cancellationToken);
         }
 
         private void LogError(string message)
-            => _logger.TraceEvent(TraceEventType.Error, 1, message);
+        {
+            var currentProcess = Process.GetCurrentProcess();
+            _logger.TraceEvent(TraceEventType.Error, _id, $" [{currentProcess.ProcessName}:{currentProcess.Id}] {message}");
+        }
 
-        private void LogDisconnectInfo(JsonRpcDisconnectedEventArgs? e, string? callstack)
+        private void LogDisconnectInfo(JsonRpcDisconnectedEventArgs? e)
         {
             if (e != null)
             {
-                LogError($@"Stream disconnected unexpectedly: 
-Description: {e.Description}
-Reason: {e.Reason}
-LastMessage: {e.LastMessage}
-Exception: {e.Exception?.ToString()}");
-            }
-
-            if (callstack != null)
-            {
-                LogError($"disconnect callstack: {callstack}");
+                LogError($@"Stream disconnected unexpectedly:  {e.Reason}, '{e.Description}', LastMessage: {e.LastMessage}, Exception: {e.Exception?.Message}");
             }
         }
 
@@ -379,14 +380,13 @@ Exception: {e.Exception?.ToString()}");
         /// </summary>
         private void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
-            _debuggingLastDisconnectReason = e;
-            _debuggingLastDisconnectCallstack = new StackTrace().ToString();
+            _disconnectedReason = e;
 
             // Don't log info in cases that are common - such as if we dispose the connection or the remote host process shuts down.
             if (e.Reason != DisconnectedReason.LocallyDisposed &&
                 e.Reason != DisconnectedReason.RemotePartyTerminated)
             {
-                LogDisconnectInfo(e, _debuggingLastDisconnectCallstack);
+                LogDisconnectInfo(e);
             }
 
             Disconnected?.Invoke(e);

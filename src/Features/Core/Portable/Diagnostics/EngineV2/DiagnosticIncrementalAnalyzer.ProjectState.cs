@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 InMemoryStorage.Remove(_owner.Analyzer, (key, stateKey));
             }
 
-            private bool IsEmpty(DiagnosticAnalysisResult result, DocumentId documentId)
+            private static bool IsEmpty(DiagnosticAnalysisResult result, DocumentId documentId)
                 => !result.DocumentIdsOrEmpty.Contains(documentId);
 
             // we have this builder to avoid allocating collections unnecessarily.

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,9 +29,6 @@ namespace Microsoft.CodeAnalysis.Rename
             if (symbol == null)
                 throw new ArgumentNullException(nameof(symbol));
 
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
             if (string.IsNullOrEmpty(newName))
                 throw new ArgumentException(nameof(newName));
 
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 RenameOptionSet.From(solution, optionSet),
                 nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
 
-            // This is a public entrypoint.  So if rename failed to resolve conflicts, we report that back to caller as
+            // This is a public entry-point.  So if rename failed to resolve conflicts, we report that back to caller as
             // an exception.
             if (resolution.ErrorMessage != null)
                 throw new ArgumentException(resolution.ErrorMessage);
@@ -69,8 +68,8 @@ namespace Microsoft.CodeAnalysis.Rename
         public static async Task<RenameDocumentActionSet> RenameDocumentAsync(
             Document document,
             string newDocumentName,
-            IReadOnlyList<string> newDocumentFolders = null,
-            OptionSet optionSet = null,
+            IReadOnlyList<string>? newDocumentFolders = null,
+            OptionSet? optionSet = null,
             CancellationToken cancellationToken = default)
         {
             if (document is null)
@@ -112,38 +111,38 @@ namespace Microsoft.CodeAnalysis.Rename
             ISymbol symbol,
             string newName,
             RenameOptionSet optionSet,
-            ImmutableHashSet<ISymbol> nonConflictSymbols,
+            ImmutableHashSet<ISymbol>? nonConflictSymbols,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
             Contract.ThrowIfNull(symbol);
-            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
             Contract.ThrowIfTrue(string.IsNullOrEmpty(newName));
 
             cancellationToken.ThrowIfCancellationRequested();
 
             using (Logger.LogBlock(FunctionId.Renamer_RenameSymbolAsync, cancellationToken))
             {
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
+                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
                 {
-                    var result = await client.TryRunRemoteAsync<SerializableConflictResolution>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
-                        nameof(IRemoteRenamer.RenameSymbolAsync),
-                        solution,
-                        new object[]
-                        {
-                            SerializableSymbolAndProjectId.Dehydrate(solution, symbol, cancellationToken),
-                            newName,
-                            SerializableRenameOptionSet.Dehydrate(optionSet),
-                            nonConflictSymbols?.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
-                        },
-                        callbackTarget: null,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (result.HasValue)
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    if (client != null)
                     {
-                        return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                        var result = await client.TryRunRemoteAsync<SerializableConflictResolution?>(
+                            WellKnownServiceHubService.CodeAnalysis,
+                            nameof(IRemoteRenamer.RenameSymbolAsync),
+                            solution,
+                            new object?[]
+                            {
+                                serializedSymbol,
+                                newName,
+                                SerializableRenameOptionSet.Dehydrate(optionSet),
+                                nonConflictSymbols?.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
+                            },
+                            callbackTarget: null,
+                            cancellationToken).ConfigureAwait(false);
+
+                        if (result.HasValue && result.Value != null)
+                            return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -158,12 +157,11 @@ namespace Microsoft.CodeAnalysis.Rename
             ISymbol symbol,
             string newName,
             RenameOptionSet optionSet,
-            ImmutableHashSet<ISymbol> nonConflictSymbols,
+            ImmutableHashSet<ISymbol>? nonConflictSymbols,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
             Contract.ThrowIfNull(symbol);
-            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
             Contract.ThrowIfTrue(string.IsNullOrEmpty(newName));
 
             cancellationToken.ThrowIfCancellationRequested();
