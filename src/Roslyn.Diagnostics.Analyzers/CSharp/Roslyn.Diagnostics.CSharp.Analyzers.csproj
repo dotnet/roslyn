@@ -6,4 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.UnitTests" />
+  </ItemGroup>
 </Project>
