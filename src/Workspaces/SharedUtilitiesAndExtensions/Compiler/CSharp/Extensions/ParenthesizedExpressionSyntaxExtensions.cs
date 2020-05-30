@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // Simplest cases:
             //   ((x)) -> (x)
-            if (expression.IsKind(SyntaxKind.ParenthesizedExpression) &&
+            if (expression.IsKind(SyntaxKind.ParenthesizedExpression) ||
                 parentExpression.IsKind(SyntaxKind.ParenthesizedExpression))
             {
                 return true;
