@@ -49,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public abstract bool IsMissingNamespace { get; }
+
         internal abstract NamespaceExtent Extent { get; }
 
         /// <summary>

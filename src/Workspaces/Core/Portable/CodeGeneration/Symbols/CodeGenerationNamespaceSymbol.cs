@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        public bool IsMissingNamespace => false;
+
         public NamespaceKind NamespaceKind => NamespaceKind.Module;
 
         public Compilation ContainingCompilation => null;

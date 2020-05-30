@@ -253,6 +253,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsMissingNamespace As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
             Get
                 If _lazyEmbeddedKind = EmbeddedSymbolKind.Unset Then

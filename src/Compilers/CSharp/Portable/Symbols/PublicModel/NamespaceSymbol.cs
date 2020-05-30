@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         internal Symbols.NamespaceSymbol UnderlyingNamespaceSymbol => _underlying;
 
         bool INamespaceSymbol.IsGlobalNamespace => _underlying.IsGlobalNamespace;
+        bool INamespaceSymbol.IsMissingNamespace => _underlying.IsMissingNamespace;
 
         NamespaceKind INamespaceSymbol.NamespaceKind => _underlying.NamespaceKind;
 

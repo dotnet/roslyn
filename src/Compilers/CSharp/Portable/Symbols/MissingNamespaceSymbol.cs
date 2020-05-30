@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsMissingNamespace => true;
+
         public override Symbol ContainingSymbol
         {
             get

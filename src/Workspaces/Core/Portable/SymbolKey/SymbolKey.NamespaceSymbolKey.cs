@@ -23,27 +23,36 @@ namespace Microsoft.CodeAnalysis
             {
                 visitor.WriteString(symbol.MetadataName);
 
-                if (symbol.ContainingNamespace != null)
+                if (symbol.IsMissingNamespace)
                 {
-                    visitor.WriteBoolean(false);
+                    visitor.WriteBoolean(/*isMissing:*/true);
+                    visitor.WriteBoolean(/*isCompilationGlobal:*/symbol.MetadataName == "");
+                    visitor.WriteSymbolKey(symbol.ContainingNamespace);
+                }
+                else if (symbol.ContainingNamespace != null)
+                {
+                    visitor.WriteBoolean(/*isMissing:*/false);
+                    visitor.WriteBoolean(/*isCompilationGlobal:*/false);
                     visitor.WriteSymbolKey(symbol.ContainingNamespace);
                 }
                 else
                 {
+                    visitor.WriteBoolean(/*isMissing:*/false);
+
                     // A global namespace can either belong to a module or to a compilation.
                     Debug.Assert(symbol.IsGlobalNamespace);
                     switch (symbol.NamespaceKind)
                     {
                         case NamespaceKind.Module:
-                            visitor.WriteBoolean(false);
+                            visitor.WriteBoolean(/*isCompilationGlobal:*/false);
                             visitor.WriteSymbolKey(symbol.ContainingModule);
                             break;
                         case NamespaceKind.Assembly:
-                            visitor.WriteBoolean(false);
+                            visitor.WriteBoolean(/*isCompilationGlobal:*/false);
                             visitor.WriteSymbolKey(symbol.ContainingAssembly);
                             break;
                         case NamespaceKind.Compilation:
-                            visitor.WriteBoolean(true);
+                            visitor.WriteBoolean(/*isCompilationGlobal:*/true);
                             visitor.WriteSymbolKey(null);
                             break;
                         default:
@@ -55,12 +64,20 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
+                var isMissingNamespace = reader.ReadBoolean();
                 var isCompilationGlobalNamespace = reader.ReadBoolean();
                 var containingSymbolResolution = reader.ReadSymbolKey();
 
+                var compilation = reader.Compilation;
                 if (isCompilationGlobalNamespace)
+                    return new SymbolKeyResolution(compilation.GlobalNamespace);
+
+                if (isMissingNamespace)
                 {
-                    return new SymbolKeyResolution(reader.Compilation.GlobalNamespace);
+                    var containingNamespace = containingSymbolResolution.GetAnySymbol() as INamespaceSymbol;
+                    return containingNamespace == null
+                        ? default
+                        : new SymbolKeyResolution(compilation.CreateErrorNamespaceSymbol(containingNamespace, metadataName));
                 }
 
                 using var result = PooledArrayBuilder<INamespaceSymbol>.GetInstance();
@@ -80,10 +97,9 @@ namespace Microsoft.CodeAnalysis
                             foreach (var member in namespaceSymbol.GetMembers(metadataName))
                             {
                                 if (member is INamespaceSymbol childNamespace)
-                                {
                                     result.AddIfNotNull(childNamespace);
-                                }
                             }
+
                             break;
                     }
                 }

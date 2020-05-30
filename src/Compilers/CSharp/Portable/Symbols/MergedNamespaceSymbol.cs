@@ -187,6 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsMissingNamespace => false;
+
         internal override NamespaceExtent Extent
         {
             get

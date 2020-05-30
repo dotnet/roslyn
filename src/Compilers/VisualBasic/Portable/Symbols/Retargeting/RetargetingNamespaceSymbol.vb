@@ -153,6 +153,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsMissingNamespace As Boolean
+            Get
+                Return _underlyingNamespace.IsMissingNamespace
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Name As String
             Get
                 Return _underlyingNamespace.Name

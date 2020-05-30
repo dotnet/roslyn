@@ -46,6 +46,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsMissingNamespace As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
                 Return _containingSymbol

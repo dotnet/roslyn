@@ -517,6 +517,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return true;
                 }
 
+                if (x.IsMissingNamespace)
+                {
+                    // If this is a missing and we've matched the entire type and namespace chain up to the root, then
+                    // this is considered an equivalent match at this point.
+                    if (x.ContainingNamespace is { IsGlobalNamespace: true } &&
+                        y.ContainingNamespace is { IsGlobalNamespace: true })
+                    {
+                        return true;
+                    }
+                }
+
                 return AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
             }
 
