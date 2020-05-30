@@ -530,7 +530,13 @@ End Module
                 referencedAssemblies:=LatestVbReferences,
                 compilationOptions:=TestOptions.DebugDll)
 
-            vbComp.VerifyDiagnostics(Diagnostic(ERRID.ERR_UnsupportedField1, "c.field").WithArguments("field").WithLocation(4, 17))
+            vbComp.AssertTheseDiagnostics(
+<expected>
+BC30656: Field 'field' is of an unsupported type.
+        Dim f = c.field
+                ~~~~~~~
+</expected>
+            )
 
             Dim c = vbComp.GetTypeByMetadataName("C")
             Dim field = c.GetField("field")
