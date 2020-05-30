@@ -97,8 +97,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var trackedRoot = root.TrackNodes(classDecl, methodDecl);
 
             // use some fancy document centric rewrites
-            var comp = await doc.Project.GetCompilationAsync();
-
             var gen = SyntaxGenerator.GetGenerator(doc);
             var cgenField = gen.FieldDeclaration("X", gen.TypeExpression(SpecialType.System_Int32), Accessibility.Private);
 

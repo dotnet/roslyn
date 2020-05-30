@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -493,7 +494,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             NotifyPropertyChanged(nameof(SignaturePreviewAutomationText));
         }
 
-        internal bool TrySubmit()
+        internal bool CanSubmit([NotNullWhen(false)] out string? message)
         {
             var canSubmit = AllParameters.Any(p => p.IsRemoved) ||
                 AllParameters.Any(p => p is AddedParameterViewModel) ||
@@ -502,7 +503,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             if (!canSubmit)
             {
-                _notificationService.SendNotification(ServicesVSResources.You_must_change_the_signature, severity: NotificationSeverity.Information);
+                message = ServicesVSResources.You_must_change_the_signature;
+                return false;
+            }
+
+            message = null;
+            return true;
+        }
+
+        internal bool TrySubmit()
+        {
+            if (!CanSubmit(out var message))
+            {
+                _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
                 return false;
             }
 

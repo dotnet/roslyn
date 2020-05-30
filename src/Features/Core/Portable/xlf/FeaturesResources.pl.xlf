@@ -40,6 +40,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Add 'DebuggerDisplay' attribute</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="new">Add explicit cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Dodaj nazwę składowej</target>
@@ -132,7 +137,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
         <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <target state="translated">Klasy podstawowe zawierają niedostępne niezaimplementowane składowe</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -207,12 +212,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Configure_severity_for_all_0_analyzers">
         <source>Configure severity for all '{0}' analyzers</source>
-        <target state="new">Configure severity for all '{0}' analyzers</target>
+        <target state="translated">Konfiguruj ważność wszystkich analizatorów „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_severity_for_all_analyzers">
         <source>Configure severity for all analyzers</source>
-        <target state="new">Configure severity for all analyzers</target>
+        <target state="translated">Konfiguruj ważność wszystkich analizatorów</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -238,6 +243,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Konwertuj na strukturę</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="new">Convert type to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -287,12 +297,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
         <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="new">Do not change this code. Put cleanup code in '{0}' method</target>
+        <target state="translated">Nie zmieniaj tego kodu. Umieść kod czyszczący w metodzie „{0}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Bieżąca zawartość pliku źródłowego „{0}” nie pasuje do skompilowanego źródła. Wszystkie zmiany wprowadzone w tym pliku podczas debugowania nie zostaną zastosowane do czasu, aż jego zawartość będzie zgodna ze skompilowanym źródłem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
+        <source>Document must be contained in the workspace that created this service</source>
+        <target state="new">Document must be contained in the workspace that created this service</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -402,12 +417,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
         <source>Implement abstract class</source>
-        <target state="new">Implement abstract class</target>
+        <target state="translated">Implementuj klasę abstrakcyjną</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_explicitly">
         <source>Implement all interfaces explicitly</source>
-        <target state="new">Implement all interfaces explicitly</target>
+        <target state="translated">Jawnie zaimplementuj wszystkie interfejsy</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
@@ -417,12 +432,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Implement_all_members_explicitly">
         <source>Implement all members explicitly</source>
-        <target state="new">Implement all members explicitly</target>
+        <target state="translated">Jawnie zaimplementuj wszystkie składowe</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
-        <target state="new">Implement explicitly</target>
+        <target state="translated">Zaimplementuj jawnie</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_implicitly">
@@ -432,12 +447,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Implement_remaining_members_explicitly">
         <source>Implement remaining members explicitly</source>
-        <target state="new">Implement remaining members explicitly</target>
+        <target state="translated">Jawnie zaimplementuj pozostałe składowe</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
         <source>Implement through '{0}'</source>
-        <target state="new">Implement through '{0}'</target>
+        <target state="translated">Implementuj za pomocą elementu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -713,6 +728,20 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Regex_any_character_group_short">
         <source>any character</source>
         <target state="new">any character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_atomic_group_long">
+        <source>Atomic groups (known in some other regular expression engines as a nonbacktracking subexpression, an atomic subexpression, or a once-only subexpression) disable backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+
+This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
+        <target state="new">Atomic groups (known in some other regular expression engines as a nonbacktracking subexpression, an atomic subexpression, or a once-only subexpression) disable backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+
+This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_atomic_group_short">
+        <source>atomic group</source>
+        <target state="new">atomic group</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_backspace_character_long">
@@ -1362,20 +1391,6 @@ If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]
         <target state="new">non-word character</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_nonbacktracking_subexpression_long">
-        <source>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
-
-This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
-        <target state="new">This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
-
-This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_nonbacktracking_subexpression_short">
-        <source>nonbacktracking subexpression</source>
-        <target state="new">nonbacktracking subexpression</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regex_noncapturing_group_long">
         <source>This construct does not capture the substring that is matched by a subexpression:
 
@@ -1757,7 +1772,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
-        <target state="new">Resolve conflict markers</target>
+        <target state="translated">Rozwiąż znaczniki konfliktów</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -1787,12 +1802,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>
+        <target state="translated">TODO: Zwolnić niezarządzane zasoby (niezarządzane obiekty) i przesłonić finalizator</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
         <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="new">TODO: override finalizer only if '{0}' has code to free unmanaged resources</target>
+        <target state="translated">TODO: Przesłonić finalizator tylko w sytuacji, gdy powyższa metoda „{0}” zawiera kod służący do zwalniania niezarządzanych zasobów</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -1817,7 +1832,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="translated">Nie można odczytać pliku źródłowego „{0}” lub pliku PDB skompilowanego dla projektu zawierającego. Wszystkie zmiany wprowadzone w tym pliku podczas debugowania nie zostaną zastosowane do czasu, aż jego zawartość będzie zgodna ze skompilowanym źródłem.</target>
+        <target state="translated">Nie można odczytać pliku źródłowego „{0}” lub pliku PDB skompilowanego dla projektu, w którym jest on zawarty. Wszystkie zmiany wprowadzone w tym pliku podczas debugowania nie zostaną zastosowane do czasu, aż jego zawartość będzie zgodna ze skompilowanym źródłem.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -1932,7 +1947,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
-        <target state="new">Value:</target>
+        <target state="translated">Wartość:</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -2311,6 +2326,11 @@ If the "d" format specifier is used without other custom format specifiers, it's
       <trans-unit id="discard">
         <source>discard</source>
         <target state="translated">odrzuć</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="from_metadata">
+        <source>from metadata</source>
+        <target state="new">from metadata</target>
         <note />
       </trans-unit>
       <trans-unit id="full_long_date_time">
@@ -3392,12 +3412,12 @@ Czy chcesz kontynuować?</target>
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
         <source>TODO: dispose managed state (managed objects)</source>
-        <target state="needs-review-translation">TODO: wyczyść stan zarządzany (obiekty zarządzane).</target>
+        <target state="translated">TODO: Wyczyścić stan zarządzany (obiekty zarządzane)</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
         <source>TODO: set large fields to null</source>
-        <target state="needs-review-translation">TODO: ustaw wartość null dla dużych pól.</target>
+        <target state="translated">TODO: Ustawić wartość null dla dużych pól</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
@@ -3563,6 +3583,11 @@ When this standard format specifier is used, the formatting or parsing operation
 The purpose of the "s" format specifier is to produce result strings that sort consistently in ascending or descending order based on date and time values. As a result, although the "s" standard format specifier represents a date and time value in a consistent format, the formatting operation does not modify the value of the date and time object that is being formatted to reflect its DateTime.Kind property or its DateTimeOffset.Offset value. For example, the result strings produced by formatting the date and time values 2014-11-15T18:32:17+00:00 and 2014-11-15T18:32:17+08:00 are identical.
 
 When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="symbol_cannot_be_a_namespace">
+        <source>'symbol' cannot be a namespace.</source>
+        <target state="new">'symbol' cannot be a namespace.</target>
         <note />
       </trans-unit>
       <trans-unit id="time_separator">

@@ -5,6 +5,7 @@
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 #nullable enable
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -113,6 +114,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             return _underlyingField.GetUseSiteInfo();
+        }
+
+        internal override bool RequiresCompletion => _underlyingField.RequiresCompletion;
+
+        internal override bool HasComplete(CompletionPart part) => _underlyingField.HasComplete(part);
+
+        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        {
+            _underlyingField.ForceComplete(locationOpt, cancellationToken);
         }
 
         public override sealed int GetHashCode()

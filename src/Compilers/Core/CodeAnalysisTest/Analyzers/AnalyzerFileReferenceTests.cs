@@ -19,20 +19,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class FromFileLoader : IAnalyzerAssemblyLoader
-    {
-        public static FromFileLoader Instance = new FromFileLoader();
-
-        public void AddDependencyLocation(string fullPath)
-        {
-        }
-
-        public Assembly LoadFromPath(string fullPath)
-        {
-            return Assembly.LoadFrom(fullPath);
-        }
-    }
-
     public class AnalyzerFileReferenceTests : TestBase
     {
         private static readonly AnalyzerAssemblyLoader s_analyzerLoader = new DefaultAnalyzerAssemblyLoader();

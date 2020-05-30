@@ -2668,6 +2668,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
+        {
+            return PEModuleBuilder.GetForwardedTypes(this, builder: null);
+        }
+
         public override AssemblyMetadata GetMetadata() => null;
 
         protected override ISymbol CreateISymbol()

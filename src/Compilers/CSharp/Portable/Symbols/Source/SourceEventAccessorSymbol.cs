@@ -29,8 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Location> locations,
             EventSymbol explicitlyImplementedEventOpt,
             string aliasQualifierOpt,
-            bool isAdder)
-            : base(@event.containingType, syntaxReference, locations)
+            bool isAdder,
+            bool isIterator)
+            : base(@event.containingType, syntaxReference, locations, isIterator)
         {
             _event = @event;
 

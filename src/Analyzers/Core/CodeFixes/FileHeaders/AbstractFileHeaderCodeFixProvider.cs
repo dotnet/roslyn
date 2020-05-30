@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CodeFixesResources.Add_file_banner, createChangedDocument, nameof(AbstractFileHeaderCodeFixProvider))
+                : base(CodeFixesResources.Add_file_header, createChangedDocument, nameof(AbstractFileHeaderCodeFixProvider))
             {
             }
         }
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             public FixAll(AbstractFileHeaderCodeFixProvider codeFixProvider)
                 => _codeFixProvider = codeFixProvider;
 
-            protected override string CodeActionTitle => CodeFixesResources.Add_file_banner;
+            protected override string CodeActionTitle => CodeFixesResources.Add_file_header;
 
             protected override Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {

@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static XmlNameAttributeElementKind GetElementKind(this XmlNameAttributeSyntax attributeSyntax)
         {
+            Debug.Assert(attributeSyntax.Parent is object);
             CSharpSyntaxNode parentSyntax = attributeSyntax.Parent;
             SyntaxKind parentKind = parentSyntax.Kind();
 
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInTypeOnlyContext(typeNode) && IsInContextWhichNeedsDynamicAttribute(typeNode);
         }
 
-        internal static SyntaxNode SkipParens(this SyntaxNode expression)
+        internal static ExpressionSyntax SkipParens(this ExpressionSyntax expression)
         {
             while (expression.Kind() == SyntaxKind.ParenthesizedExpression)
             {

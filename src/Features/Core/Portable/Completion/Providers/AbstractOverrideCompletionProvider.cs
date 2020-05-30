@@ -69,10 +69,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             out ITypeSymbol returnType,
             out SyntaxToken nextToken);
 
-        protected bool IsOnStartLine(int position, SourceText text, int startLine)
+        protected static bool IsOnStartLine(int position, SourceText text, int startLine)
             => text.Lines.IndexOf(position) == startLine;
 
-        protected ITypeSymbol GetReturnType(ISymbol symbol)
+        protected static ITypeSymbol GetReturnType(ISymbol symbol)
             => symbol.Kind switch
             {
                 SymbolKind.Event => ((IEventSymbol)symbol).Type,

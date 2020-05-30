@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // Static methods can't cascade.
             if (!symbol.IsStatic)
             {
-                if (symbol.ContainingType.TypeKind == TypeKind.Interface)
+                if (symbol.IsImplementableMember())
                 {
                     // We have an interface method.  Find all implementations of that method and
                     // cascade to them.
-                    return await SymbolFinder.FindImplementationsArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
+                    return await SymbolFinder.FindMemberImplementationsArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return ImmutableArray<ISymbol>.Empty;
         }
 
-        protected ImmutableArray<IMethodSymbol> GetReferencedAccessorSymbols(
+        protected static ImmutableArray<IMethodSymbol> GetReferencedAccessorSymbols(
             ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts,
             SemanticModel model, IPropertySymbol property, SyntaxNode node, CancellationToken cancellationToken)
         {

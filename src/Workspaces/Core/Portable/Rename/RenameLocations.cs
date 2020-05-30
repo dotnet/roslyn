@@ -125,31 +125,35 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             Contract.ThrowIfNull(solution);
             Contract.ThrowIfNull(symbol);
-            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
             {
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
+                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
                 {
-                    var result = await client.TryRunRemoteAsync<SerializableRenameLocations>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
-                        nameof(IRemoteRenamer.FindRenameLocationsAsync),
-                        solution,
-                        new object[]
-                        {
-                            SerializableSymbolAndProjectId.Dehydrate(solution, symbol, cancellationToken),
-                            SerializableRenameOptionSet.Dehydrate(optionSet),
-                        },
-                        callbackTarget: null,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (result.HasValue)
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    if (client != null)
                     {
-                        return await RenameLocations.RehydrateAsync(
-                            solution, result.Value, cancellationToken).ConfigureAwait(false);
+                        var result = await client.TryRunRemoteAsync<SerializableRenameLocations?>(
+                            WellKnownServiceHubService.CodeAnalysis,
+                            nameof(IRemoteRenamer.FindRenameLocationsAsync),
+                            solution,
+                            new object[]
+                            {
+                                serializedSymbol,
+                                SerializableRenameOptionSet.Dehydrate(optionSet),
+                            },
+                            callbackTarget: null,
+                            cancellationToken).ConfigureAwait(false);
+
+                        if (result.HasValue && result.Value != null)
+                        {
+                            var rehydrated = await RenameLocations.TryRehydrateAsync(
+                                solution, result.Value, cancellationToken).ConfigureAwait(false);
+                            if (rehydrated != null)
+                                return rehydrated;
+                        }
                     }
                 }
             }
@@ -266,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// behavior.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A conflict resolution containing the new solution.</returns>
-        public Task<ConflictResolution> ResolveConflictsAsync(string replacementText, ImmutableHashSet<ISymbol> nonConflictSymbols, CancellationToken cancellationToken)
+        public Task<ConflictResolution> ResolveConflictsAsync(string replacementText, ImmutableHashSet<ISymbol>? nonConflictSymbols = null, CancellationToken cancellationToken = default)
             => ConflictResolver.ResolveConflictsAsync(this, replacementText, nonConflictSymbols, cancellationToken);
 
         public RenameLocations Filter(Func<Location, bool> filter)

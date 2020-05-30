@@ -349,7 +349,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     // Just need the first result if we are doing fix all in span
-                    if (fixAllForInSpan && result.Any()) return;
+                    if (fixAllForInSpan && result.Any())
+                        return;
                 }
             }
             finally
@@ -637,7 +638,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // Have to see if this fix is still applicable.  Jump to the foreground thread
                     // to make that check.
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                    cancellationToken.ThrowIfCancellationRequested();
 
                     var applicable = fix.Action.IsApplicable(document.Project.Solution.Workspace);
 

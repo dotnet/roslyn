@@ -269,18 +269,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (local.RefKind != RefKind.None)
                         {
                             // The ref-escape of a ref-returning property is decided
-                            // by the value escape of its receiverm, in this case the
+                            // by the value escape of its receiver, in this case the
                             // collection
                             local.SetRefEscape(collectionEscape);
 
-                            if (IsDirectlyInIterator)
+                            if (CheckRefLocalInAsyncOrIteratorMethod(local.IdentifierToken, diagnostics))
                             {
-                                diagnostics.Add(ErrorCode.ERR_BadIteratorLocalType, local.IdentifierToken.GetLocation());
-                                hasErrors = true;
-                            }
-                            else if (IsInAsyncMethod())
-                            {
-                                diagnostics.Add(ErrorCode.ERR_BadAsyncLocalType, local.IdentifierToken.GetLocation());
                                 hasErrors = true;
                             }
                         }

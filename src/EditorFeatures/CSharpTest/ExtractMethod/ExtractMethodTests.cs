@@ -11185,5 +11185,44 @@ class Foo
 }";
             await TestExtractMethodAsync(code, expected);
         }
+
+        [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TopLevelStatement_ValueInAssignment()
+        {
+            var code = @"
+bool local;
+local = [|true|];
+";
+            var expected = @"
+bool local;
+local = NewMethod();
+
+bool NewMethod()
+{
+    return true;
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TopLevelStatement_ArgumentInInvocation()
+        {
+            // Note: the cast should be simplified 
+            // https://github.com/dotnet/roslyn/issues/44260
+
+            var code = @"
+System.Console.WriteLine([|""string""|]);
+";
+            var expected = @"
+System.Console.WriteLine((string)NewMethod());
+
+string NewMethod()
+{
+    return ""string"";
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
     }
 }

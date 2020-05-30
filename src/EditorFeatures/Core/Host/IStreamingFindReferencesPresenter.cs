@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 
 namespace Microsoft.CodeAnalysis.Editor.Host
@@ -54,8 +55,14 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// </summary>
         public static async Task<bool> TryNavigateToOrPresentItemsAsync(
             this IStreamingFindUsagesPresenter presenter,
-            Workspace workspace, string title, ImmutableArray<DefinitionItem> items)
+            IThreadingContext threadingContext,
+            Workspace workspace,
+            string title,
+            ImmutableArray<DefinitionItem> items)
         {
+            // Can only navigate or present items on UI thread.
+            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             // Ignore any definitions that we can't navigate to.
             var definitions = items.WhereAsArray(d => d.CanNavigateTo(workspace));
 
@@ -64,7 +71,10 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             var externalItems = definitions.WhereAsArray(d => d.IsExternal);
             foreach (var item in externalItems)
             {
-                if (item.TryNavigateTo(workspace, isPreview: true))
+                // If we're directly going to a location we need to activate the preview so
+                // that focus follows to the new cursor position. This behavior is expected
+                // because we are only going to navigate once successfully
+                if (item.TryNavigateTo(workspace, NavigationBehavior.PreviewWithFocus))
                 {
                     return true;
                 }
@@ -79,8 +89,10 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             if (nonExternalItems.Length == 1 &&
                 nonExternalItems[0].SourceSpans.Length <= 1)
             {
-                // There was only one location to navigate to.  Just directly go to that location.
-                return nonExternalItems[0].TryNavigateTo(workspace, isPreview: true);
+                // There was only one location to navigate to.  Just directly go to that location. If we're directly
+                // going to a location we need to activate the preview so that focus follows to the new cursor position.
+
+                return nonExternalItems[0].TryNavigateTo(workspace, NavigationBehavior.PreviewWithFocus);
             }
 
             if (presenter != null)

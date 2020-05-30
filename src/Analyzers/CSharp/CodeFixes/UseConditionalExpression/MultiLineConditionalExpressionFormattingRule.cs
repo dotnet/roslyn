@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         {
         }
 
-        private bool IsQuestionOrColonOfNewConditional(SyntaxToken token)
+        private static bool IsQuestionOrColonOfNewConditional(SyntaxToken token)
         {
             if (token.Kind() == SyntaxKind.QuestionToken ||
                 token.Kind() == SyntaxKind.ColonToken)
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         }
 
         public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
-            SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (IsQuestionOrColonOfNewConditional(currentToken))
             {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
                 return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
         public override void AddIndentBlockOperations(

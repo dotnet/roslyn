@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2580,9 +2581,9 @@ class C
                 // (8,18): error CS0150: A constant value is expected
                 //             case new():
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new()").WithLocation(8, 18),
-                // (9,18): error CS0150: A constant value is expected
+                // (9,19): error CS0150: A constant value is expected
                 //             case (new()):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(new())").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new()").WithLocation(9, 19)
                 );
         }
 

@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
                 SyntaxKind.HandlesClause)
         End Sub
 
-        Private Sub AnalyzeHandlesClause(context As SyntaxNodeAnalysisContext, onSymbolUsageFound As Action(Of ISymbol, ValueUsageInfo))
+        Private Shared Sub AnalyzeHandlesClause(context As SyntaxNodeAnalysisContext, onSymbolUsageFound As Action(Of ISymbol, ValueUsageInfo))
             ' Identify all symbol references within the HandlesClause.
             For Each node In context.Node.DescendantNodes()
                 Dim symbolInfo = context.SemanticModel.GetSymbolInfo(node, context.CancellationToken)

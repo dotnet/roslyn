@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var rewriter = new SingleLineRewriter(useElasticTrivia);
-            return (TNode)rewriter.Visit(node);
+            return (TNode?)rewriter.Visit(node);
         }
 
         /// <summary>
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         break;
                     }
 
-                case GlobalStatementSyntax global:
+                case GlobalStatementSyntax _:
                     return true;
                 case ConstructorInitializerSyntax constructorInitializer:
                     return constructorInitializer.ContainsInArgument(span);

@@ -104,21 +104,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 var options = textView.Options.GlobalOptions;
                 EditorOptionKey<bool> optionKey;
-                Option<bool> roslynOption;
+                bool defaultOption;
                 if (IsDebuggerTextView(textView))
                 {
                     optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInDebuggerCompletionOptionName);
-                    roslynOption = EditorCompletionOptions.UseSuggestionMode_Debugger;
+                    defaultOption = true;
                 }
                 else
                 {
                     optionKey = new EditorOptionKey<bool>(PredefinedCompletionNames.SuggestionModeInCompletionOptionName);
-                    roslynOption = EditorCompletionOptions.UseSuggestionMode;
+                    defaultOption = false;
                 }
 
                 if (!options.IsOptionDefined(optionKey, localScopeOnly: false))
                 {
-                    return roslynOption.DefaultValue;
+                    return defaultOption;
                 }
 
                 return options.GetOptionValue(optionKey);

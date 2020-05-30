@@ -136,7 +136,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         internal readonly struct TestAccessor
         {
+#pragma warning disable IDE0052 // Remove unread private members - hold onto the services
             private readonly MefV1HostServices _mefV1HostServices;
+#pragma warning restore IDE0052 // Remove unread private members
 
             public TestAccessor(MefV1HostServices mefV1HostServices)
             {

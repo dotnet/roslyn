@@ -15,15 +15,16 @@ using Microsoft.CodeAnalysis.Remote;
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
     // Used in https://github.com/aspnet/AspNetCore-Tooling/tree/master/src/Razor/src/Microsoft.VisualStudio.LanguageServices.Razor/OOPTagHelperResolver.cs
+    [Obsolete("Use Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient instead")]
     internal sealed class RazorLanguageServiceClient
     {
         private readonly RemoteHostClient _client;
-        private readonly string _serviceName;
+        private readonly RemoteServiceName _serviceName;
 
         internal RazorLanguageServiceClient(RemoteHostClient client, string serviceName)
         {
             _client = client;
-            _serviceName = serviceName;
+            _serviceName = new RemoteServiceName(serviceName);
         }
 
         public Task<Optional<T>> TryRunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
@@ -38,8 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 return null;
             }
 
-            var connection = await _client.TryCreateConnectionAsync(_serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (connection == null)
+            var keepAliveSession = await _client.TryCreateKeepAliveSessionAsync(_serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
+            if (keepAliveSession == null)
             {
                 return null;
             }
@@ -48,13 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             try
             {
                 // transfer ownership of the connection to the session object:
-                session = await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
+                session = await SessionWithSolution.CreateAsync(keepAliveSession, solution, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
                 if (session == null)
                 {
-                    connection.Dispose();
+                    keepAliveSession.Dispose();
                 }
             }
 
@@ -73,12 +74,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
             public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
-                return _inner.Connection.InvokeAsync(targetName, arguments, cancellationToken);
+                return _inner.KeepAliveSession.RunRemoteAsync(targetName, solution: null, arguments, cancellationToken);
             }
 
             public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             {
-                return _inner.Connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
+                return _inner.KeepAliveSession.RunRemoteAsync<T>(targetName, solution: null, arguments, cancellationToken);
             }
 
             public void Dispose()
