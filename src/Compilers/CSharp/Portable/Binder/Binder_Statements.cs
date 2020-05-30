@@ -1734,6 +1734,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatements.Add(boundStatement);
             }
 
+            return FinishBindBlockParts(node, boundStatements.ToImmutableAndFree(), diagnostics);
+        }
+
+        private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, ImmutableArray<BoundStatement> boundStatements, DiagnosticBag diagnostics)
+        {
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
 
             if (IsDirectlyInIterator)
@@ -1753,7 +1758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 locals,
                 GetDeclaredLocalFunctionsForScope(node),
-                boundStatements.ToImmutableAndFree());
+                boundStatements);
         }
 
         internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, DiagnosticBag diagnostics, bool isDefaultParameter = false, bool isRefAssignment = false)
@@ -3241,9 +3246,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ArrowExpressionClauseSyntax arrowExpression:
                     return BindExpressionBodyAsBlock(arrowExpression, diagnostics);
 
+                case CompilationUnitSyntax compilationUnit:
+                    return BindSimpleProgram(compilationUnit, diagnostics);
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
+        }
+
+        private BoundNode BindSimpleProgram(CompilationUnitSyntax compilationUnit, DiagnosticBag diagnostics)
+        {
+            var simpleProgram = (SynthesizedSimpleProgramEntryPointSymbol)ContainingMemberOrLambda;
+
+            return GetBinder(compilationUnit).BindSimpleProgramCompilationUnit(compilationUnit, simpleProgram, diagnostics);
+        }
+
+        private BoundNode BindSimpleProgramCompilationUnit(CompilationUnitSyntax compilationUnit, SynthesizedSimpleProgramEntryPointSymbol simpleProgram, DiagnosticBag diagnostics)
+        {
+            ArrayBuilder<BoundStatement> boundStatements = ArrayBuilder<BoundStatement>.GetInstance();
+            foreach (var statement in compilationUnit.Members)
+            {
+                if (statement is GlobalStatementSyntax topLevelStatement)
+                {
+                    var boundStatement = BindStatement(topLevelStatement.Statement, diagnostics);
+                    boundStatements.Add(boundStatement);
+                }
+            }
+
+            return new BoundNonConstructorMethodBody(compilationUnit,
+                                                     FinishBindBlockParts(compilationUnit, boundStatements.ToImmutableAndFree(), diagnostics).MakeCompilerGenerated(),
+                                                     expressionBody: null);
         }
 
         private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, DiagnosticBag diagnostics)

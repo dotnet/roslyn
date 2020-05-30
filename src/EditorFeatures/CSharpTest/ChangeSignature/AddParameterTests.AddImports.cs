@@ -29,7 +29,7 @@ class C
                         null,
                         "Dictionary<ConsoleColor, Task<AsyncOperation>>",
                         "test",
-                        "TODO"),
+                        CallSiteKind.Todo),
                     "System.Collections.Generic.Dictionary<System.ConsoleColor, System.Threading.Tasks.Task<System.ComponentModel.AsyncOperation>>")};
 
             var updatedCode = @"
@@ -63,7 +63,7 @@ class C
                         null,
                         "Dictionary<ConsoleColor, Task<AsyncOperation>>",
                         "test",
-                        "TODO"),
+                        CallSiteKind.Todo),
                     "System.Collections.Generic.Dictionary<System.ConsoleColor, System.Threading.Tasks.Task<System.ComponentModel.AsyncOperation>>")};
 
             var updatedCode = @"
@@ -113,7 +113,7 @@ namespace NS2
                         null,
                         "Dictionary<ConsoleColor, Task<AsyncOperation>>",
                         "test",
-                        "TODO"),
+                        CallSiteKind.Todo),
                     "System.Collections.Generic.Dictionary<System.ConsoleColor, System.Threading.Tasks.Task<System.ComponentModel.AsyncOperation>>")};
 
             var updatedCode = @"

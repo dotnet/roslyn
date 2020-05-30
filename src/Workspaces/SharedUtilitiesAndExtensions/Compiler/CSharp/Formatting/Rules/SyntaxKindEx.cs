@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public const SyntaxKind NotPattern = (SyntaxKind)9033;
         public const SyntaxKind AndKeyword = (SyntaxKind)8439;
         public const SyntaxKind OrKeyword = (SyntaxKind)8438;
+        public const SyntaxKind NotKeyword = (SyntaxKind)8440;
 
 #if !CODE_STYLE
         private const uint ImplicitObjectCreationExpressionAssertion = -(ImplicitObjectCreationExpression - SyntaxKind.ImplicitObjectCreationExpression);
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private const uint NotPatternValueAssertion = -(NotPattern - SyntaxKind.NotPattern);
         private const uint AndKeywordValueAssertion = -(AndKeyword - SyntaxKind.AndKeyword);
         private const uint OrKeywordValueAssertion = -(OrKeyword - SyntaxKind.OrKeyword);
+        private const uint NotKeywordValueAssertion = -(NotKeyword - SyntaxKind.NotKeyword);
 #endif
     }
 }

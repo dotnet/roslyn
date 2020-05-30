@@ -459,7 +459,8 @@ public class goo
         }
 
         [WorkItem(775091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775091")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ParamRefNames()
         {
             await VerifyItemExistsAsync(@"
@@ -472,7 +473,8 @@ static void Main(string[] args)
 ", "args");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task ParamNamesInEmptyAttribute()
         {
             await VerifyItemExistsAsync(@"
