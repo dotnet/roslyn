@@ -320,7 +320,6 @@
   <!-- Represents an AddressOf operator that has not yet been assigned to a
        target-type. It has no natural type, and should not survive initial binding
        except in error cases that are observable via the SemanticModel. -->
-  <!-- PROTOTYPE(func-ptr): Test these nodes in SemanticModel/IOperation as appropriate -->
   <Node Name="BoundUnconvertedAddressOfOperator" Base="BoundExpression">
     <Field Name="Operand" Type="BoundMethodGroup"/>
     <!-- Type is null. -->
