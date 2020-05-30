@@ -1069,7 +1069,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (member.Kind)
                     {
                         case SymbolKind.Method:
-                        case SymbolKind.Property:
                         case SymbolKind.NamedType:
                             map.Add(member.OriginalDefinition, member);
                             break;
@@ -1082,9 +1081,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             break;
 
+                        case SymbolKind.Property:
                         case SymbolKind.Event:
-                            var underlyingEvent = (EventSymbol)member;
-                            var underlyingAssociatedField = underlyingEvent.AssociatedField;
+                            var underlyingAssociatedField = member switch
+                            {
+                                PropertySymbol p => p.AssociatedField,
+                                EventSymbol e => e.AssociatedField,
+                                _ => throw ExceptionUtilities.Unreachable,
+                            };
+
                             // The field is not part of the members list
                             if (underlyingAssociatedField is object)
                             {
@@ -1093,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 map.Add(underlyingAssociatedField.OriginalDefinition, new TupleFieldSymbol(TupleUnderlyingType, underlyingAssociatedField, -i - 1));
                             }
 
-                            map.Add(underlyingEvent.OriginalDefinition, member);
+                            map.Add(member.OriginalDefinition, member);
                             break;
 
                         default:

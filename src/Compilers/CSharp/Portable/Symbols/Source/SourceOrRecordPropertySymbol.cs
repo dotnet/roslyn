@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract SynthesizedBackingFieldSymbol BackingField { get; }
 
+        internal sealed override FieldSymbol AssociatedField => BackingField;
+
         internal abstract bool IsAutoProperty { get; }
 
         internal abstract bool HasPointerType { get; }

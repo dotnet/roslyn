@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (var member in membersAndInitializers.NonTypeNonIndexerMembers)
                     {
                         FieldSymbol field;
-                        if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixedSizeBuffer)
+                        if (!member.IsFieldOrHasBackingField(out field) || field.IsConst || field.IsFixedSizeBuffer)
                         {
                             continue;
                         }
@@ -1233,8 +1233,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var field = (FieldSymbol)m;
                         yield return field.TupleUnderlyingField ?? field;
                         break;
+                    case SymbolKind.Property:
+                        FieldSymbol? associatedField = ((PropertySymbol)m).AssociatedField;
+                        if ((object?)associatedField != null)
+                        {
+                            yield return associatedField.TupleUnderlyingField ?? associatedField;
+                        }
+                        break;
                     case SymbolKind.Event:
-                        FieldSymbol? associatedField = ((EventSymbol)m).AssociatedField;
+                        associatedField = ((EventSymbol)m).AssociatedField;
                         if ((object?)associatedField != null)
                         {
                             yield return associatedField.TupleUnderlyingField ?? associatedField;
@@ -1348,10 +1355,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyMembersDictionary;
         }
 
-        internal override IEnumerable<Symbol> GetInstanceFieldsAndEvents()
+        internal override IEnumerable<Symbol> GetInstanceFieldsAndPropertiesAndEvents()
         {
             var membersAndInitializers = this.GetMembersAndInitializers();
-            return membersAndInitializers.NonTypeNonIndexerMembers.Where(IsInstanceFieldOrEvent);
+            return membersAndInitializers.NonTypeNonIndexerMembers.Where(IsInstanceFieldOrPropertyOrEvent);
         }
 
         protected void AfterMembersChecks(DiagnosticBag diagnostics)
@@ -1881,13 +1888,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var member in valuesByName)
                 {
-                    if (member.Kind != SymbolKind.Field)
-                    {
-                        // NOTE: don't have to check field-like events, because they can't have struct types.
-                        continue;
-                    }
-                    var field = (FieldSymbol)member;
-                    if (field.IsStatic)
+                    // NOTE: don't have to check field-like events, because they can't have struct types.
+                    var field = member as FieldSymbol ?? (member as PropertySymbol)?.AssociatedField;
+                    if (field is null || field.IsStatic)
                     {
                         continue;
                     }
@@ -2086,7 +2089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             instanceMap.Add(this, this);
             foreach (var m in this.GetMembersUnordered())
             {
-                var f = m as FieldSymbol;
+                var f = m as FieldSymbol ?? (m as PropertySymbol)?.AssociatedField;
                 if (f is null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct) continue;
                 var type = (NamedTypeSymbol)f.Type;
                 if (InfiniteFlatteningGraph(this, type, instanceMap))
@@ -2115,7 +2118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     foreach (var m in t.GetMembersUnordered())
                     {
-                        var f = m as FieldSymbol;
+                        var f = m as FieldSymbol ?? (m as PropertySymbol)?.AssociatedField;
                         if (f is null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct) continue;
                         var type = (NamedTypeSymbol)f.Type;
                         if (InfiniteFlatteningGraph(top, type, instanceMap)) return true;
@@ -3049,7 +3052,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         members.Add(property);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
-                        members.Add(property.BackingField);
 
                         builder.InstanceInitializersForRecordDeclarationWithParameters.Insert(addedCount, new FieldOrPropertyInitializer.Builder(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
@@ -3398,13 +3400,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             AddAccessorIfAvailable(builder.NonTypeNonIndexerMembers, property.SetMethod, diagnostics);
                             FieldSymbol backingField = property.BackingField;
 
-                            // TODO: can we leave this out of the member list?
-                            // From the 10/12/11 design notes:
-                            //   In addition, we will change autoproperties to behavior in 
-                            //   a similar manner and make the autoproperty fields private.
                             if ((object)backingField != null)
                             {
-                                builder.NonTypeNonIndexerMembers.Add(backingField);
+                                // NOTE: specifically don't add the associated field to the members list
+                                // (regard it as an implementation detail).
 
                                 var initializer = propertySyntax.Initializer;
                                 if (initializer != null)

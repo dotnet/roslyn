@@ -878,54 +878,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             else
             {
                 // If there are any non-event fields, they are at the very beginning.
-                IEnumerable<FieldSymbol> nonEventFields = GetMembers<FieldSymbol>(this.GetMembers(), SymbolKind.Field, offset: 0).Select(f => f.TupleUnderlyingField ?? f);
+                IEnumerable<FieldSymbol> nonBackingFields = GetMembers<FieldSymbol>(this.GetMembers(), SymbolKind.Field, offset: 0).Select(f => f.TupleUnderlyingField ?? f);
 
-                // Event backing fields are not part of the set returned by GetMembers. Let's add them manually.
-                ArrayBuilder<FieldSymbol> eventFields = null;
+                // Property and event backing fields are not part of the set returned by GetMembers. Let's add them manually.
+                ArrayBuilder<FieldSymbol> backingFields = null;
 
-                foreach (var eventSymbol in GetEventsToEmit())
+                foreach (var associatedField in GetEventsToEmit().Select(e => e.AssociatedField).Concat(GetPropertiesToEmit().Select(p => p.AssociatedField)))
                 {
-                    FieldSymbol associatedField = eventSymbol.AssociatedField;
                     if ((object)associatedField != null)
                     {
                         Debug.Assert((object)associatedField.AssociatedSymbol != null);
 
-                        associatedField = associatedField.TupleUnderlyingField ?? associatedField;
+                        var backingField = associatedField.TupleUnderlyingField ?? associatedField;
 
-                        Debug.Assert(!nonEventFields.Contains(associatedField));
+                        Debug.Assert(!nonBackingFields.Contains(backingField));
 
-                        if (eventFields == null)
+                        if (backingFields == null)
                         {
-                            eventFields = ArrayBuilder<FieldSymbol>.GetInstance();
+                            backingFields = ArrayBuilder<FieldSymbol>.GetInstance();
                         }
 
-                        eventFields.Add(associatedField);
+                        backingFields.Add(backingField);
                     }
                 }
 
-                if (eventFields == null)
+                if (backingFields == null)
                 {
                     // Simple case
-                    return nonEventFields;
+                    return nonBackingFields;
                 }
 
                 // We need to merge non-event fields with event fields while preserving their relative declaration order
                 var handleToFieldMap = new SmallDictionary<FieldDefinitionHandle, FieldSymbol>();
                 int count = 0;
 
-                foreach (PEFieldSymbol field in nonEventFields)
+                foreach (PEFieldSymbol field in nonBackingFields)
                 {
                     handleToFieldMap.Add(field.Handle, field);
                     count++;
                 }
 
-                foreach (PEFieldSymbol field in eventFields)
+                foreach (PEFieldSymbol field in backingFields)
                 {
                     handleToFieldMap.Add(field.Handle, field);
                 }
 
-                count += eventFields.Count;
-                eventFields.Free();
+                count += backingFields.Count;
+                backingFields.Free();
 
                 var result = ArrayBuilder<FieldSymbol>.GetInstance(count);
 
@@ -1264,10 +1263,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         else
                         {
                             // As for source symbols, our public API presents the fiction that all
-                            // operations are performed on the event, rather than on the backing field.  
+                            // operations are performed on the property or event rather than on the backing field.
                             // The backing field is not accessible through the API.  As an additional 
                             // bonus, lookup is easier when the names don't collide.
-                            Debug.Assert(field.AssociatedSymbol.Kind == SymbolKind.Event);
+                            Debug.Assert(field.AssociatedSymbol.Kind == SymbolKind.Property || field.AssociatedSymbol.Kind == SymbolKind.Event);
                         }
                     }
 

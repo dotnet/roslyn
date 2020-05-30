@@ -1182,7 +1182,7 @@ public class C
                     AssertEx.Equal(new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute" }, setterAttributes);
                 }
 
-                var backingField = (FieldSymbol)c.GetMembers("<Property>k__BackingField").Single();
+                var backingField = isSource ? property.AssociatedField : (FieldSymbol)c.GetMembers("<Property>k__BackingField").Single();
                 var backingFieldAttributes = backingField.GetAttributes().Select(a => a.ToString());
                 Assert.True(backingField.IsReadOnly);
                 if (isSource)
@@ -2177,7 +2177,6 @@ public record C(int i)
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Int32 i)",
-                "System.Int32 C.<i>k__BackingField",
                 "System.Int32 C.i.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.i.init",
                 "System.Int32 C.i { get; init; }",

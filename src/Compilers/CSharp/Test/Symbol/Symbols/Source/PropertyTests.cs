@@ -391,41 +391,19 @@ class C
             var type01 = global.GetTypeMembers("C").Single();
             var type02 = type01.GetTypeMembers("S").Single();
 
-            var mems = type01.GetMembers();
-            FieldSymbol backField = null;
-            // search but not use internal backfield name 
-            // there is exact ONE field symbol in this test
-            foreach (var m in mems)
-            {
-                if (m.Kind == SymbolKind.Field)
-                {
-                    backField = m as FieldSymbol;
-                    break;
-                }
-            }
+            var prop = type01.GetMembers("Prop").Single() as PropertySymbol;
+            FieldSymbol backField = prop.AssociatedField;
             // Back field location should be same as Property
             Assert.NotNull(backField);
             Assert.False(backField.Locations.IsEmpty);
-            var prop = type01.GetMembers("Prop").Single() as PropertySymbol;
             Assert.Equal(prop.Locations.Length, backField.Locations.Length);
             Assert.Equal(prop.Locations[0].ToString(), backField.Locations[0].ToString());
             // -------------------------------------
-            mems = type02.GetMembers();
-            backField = null;
-            // search but not use internal backfield name 
-            // there is exact ONE field symbol in this test
-            foreach (var m in mems)
-            {
-                if (m.Kind == SymbolKind.Field)
-                {
-                    backField = m as FieldSymbol;
-                    break;
-                }
-            }
+            prop = type02.GetMembers("Prop").Single() as PropertySymbol;
+            backField = prop.AssociatedField;
             // Back field location should be same as Property
             Assert.NotNull(backField);
             Assert.False(backField.Locations.IsEmpty);
-            prop = type02.GetMembers("Prop").Single() as PropertySymbol;
             Assert.Equal(prop.Locations.Length, backField.Locations.Length);
             Assert.Equal(prop.Locations[0].ToString(), backField.Locations[0].ToString());
         }

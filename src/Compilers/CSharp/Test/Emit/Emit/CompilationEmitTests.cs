@@ -3577,10 +3577,10 @@ using System;
 
                                  string[] expectedAMembers = {
                                                         "C", "B", "F", "A",
-                                                        "<I>k__BackingField", "I", "get_I", "set_I",
+                                                        "I", "get_I", "set_I",
                                                         "E",
-                                                        "<H>k__BackingField", "H", "get_H", "set_H",
-                                                        "<G>k__BackingField", "G", "get_G", "set_G",
+                                                        "H", "get_H", "set_H",
+                                                        "G", "get_G", "set_G",
                                                         "add_L", "remove_L", "L",
                                                         "D",
                                                         "add_K", "remove_K", "K",

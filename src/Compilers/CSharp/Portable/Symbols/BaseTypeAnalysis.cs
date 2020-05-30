@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var member in type.GetMembersUnordered())
                 {
-                    var field = member as FieldSymbol;
+                    var field = member as FieldSymbol ?? (member as PropertySymbol)?.AssociatedField;
                     var fieldType = field?.NonPointerType();
                     if (fieldType is null || fieldType.TypeKind != TypeKind.Struct || field.IsStatic)
                     {
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var hasGenerics = false;
             if (partialClosure.Add(type))
             {
-                foreach (var member in type.GetInstanceFieldsAndEvents())
+                foreach (var member in type.GetInstanceFieldsAndPropertiesAndEvents())
                 {
                     // Only instance fields (including field-like events) affect the outcome.
                     FieldSymbol field;
@@ -168,8 +168,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case SymbolKind.Field:
                             field = (FieldSymbol)member;
+                            Debug.Assert((object)(field.AssociatedSymbol as PropertySymbol) == null,
+                                "Didn't expect to find a property backing field in the member list.");
                             Debug.Assert((object)(field.AssociatedSymbol as EventSymbol) == null,
                                 "Didn't expect to find a field-like event backing field in the member list.");
+                            break;
+                        case SymbolKind.Property:
+                            field = ((PropertySymbol)member).AssociatedField;
                             break;
                         case SymbolKind.Event:
                             field = ((EventSymbol)member).AssociatedField;

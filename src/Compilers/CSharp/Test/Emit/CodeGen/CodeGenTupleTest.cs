@@ -15337,7 +15337,6 @@ namespace System
                 "System.Int32 (System.Int32, System.Int32).Item2",
                 "(System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2)",
                 "System.String (System.Int32, System.Int32).ToString()",
-                "System.Int32 (System.Int32, System.Int32).<P1>k__BackingField",
                 "System.Int32 (System.Int32, System.Int32).P1 { readonly get; set; }",
                 "readonly System.Int32 (System.Int32, System.Int32).P1.get",
                 "void (System.Int32, System.Int32).P1.set",
@@ -15347,7 +15346,7 @@ namespace System
 
             AssertTupleTypeEquality(m1Tuple);
             Assert.Equal(new string[] { "Item1", "Item2", ".ctor", "ToString",
-                                        "<P1>k__BackingField", "P1", "get_P1", "set_P1",
+                                        "P1", "get_P1", "set_P1",
                                         "this[]", "get_Item"},
                          m1Tuple.MemberNames.ToArray());
             Assert.Equal("System.Int32 (System.Int32, System.Int32).P1 { readonly get; set; }", m1Tuple.GetEarlyAttributeDecodingMembers("P1").Single().ToTestDisplayString());
@@ -15385,7 +15384,7 @@ namespace System
             Assert.True(m1P1.Equals(m1P1Set.AssociatedSymbol, TypeCompareKind.ConsiderEverything));
             Assert.False(m1P1Set.IsImplicitlyDeclared);
 
-            var m1P1BackingField = m1Tuple.GetMember<FieldSymbol>("<P1>k__BackingField");
+            var m1P1BackingField = m1P1.AssociatedField;
             Assert.True(m1P1.Equals(m1P1BackingField.AssociatedSymbol, TypeCompareKind.ConsiderEverything));
             Assert.True(m1P1BackingField.IsImplicitlyDeclared);
             Assert.True(m1P1BackingField.TupleUnderlyingField.IsImplicitlyDeclared);

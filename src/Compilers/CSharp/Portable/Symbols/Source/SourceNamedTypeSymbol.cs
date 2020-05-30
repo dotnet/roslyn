@@ -1139,6 +1139,13 @@ next:;
                         case SymbolKind.Field:
                             return true;
 
+                        case SymbolKind.Property:
+                            if (((PropertySymbol)m).AssociatedField != null)
+                            {
+                                return true;
+                            }
+                            break;
+
                         case SymbolKind.Event:
                             if (((EventSymbol)m).AssociatedField != null)
                             {

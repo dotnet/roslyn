@@ -248,6 +248,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         fieldType = f.TypeWithAnnotations;
                         field = f;
                         break;
+                    case PropertySymbol p:
+                        fieldType = p.TypeWithAnnotations;
+                        field = p.AssociatedField;
+                        if (field is null)
+                        {
+                            continue;
+                        }
+                        break;
                     case EventSymbol e:
                         fieldType = e.TypeWithAnnotations;
                         field = e.AssociatedField;
@@ -275,17 +283,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                var symbol = member switch
-                {
-                    FieldSymbol { AssociatedSymbol: PropertySymbol p } => p,
-                    _ => member
-                };
-                if ((symbol.GetFlowAnalysisAnnotations() & FlowAnalysisAnnotations.MaybeNull) != 0)
+                if ((member.GetFlowAnalysisAnnotations() & FlowAnalysisAnnotations.MaybeNull) != 0)
                 {
                     continue;
                 }
-                var location = getSymbolForLocation(walkerOpt, symbol).Locations.FirstOrNone();
-                diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, location, symbol.Kind.Localize(), symbol.Name);
+                var location = getSymbolForLocation(walkerOpt, member).Locations.FirstOrNone();
+                diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, location, member.Kind.Localize(), member.Name);
             }
         }
 

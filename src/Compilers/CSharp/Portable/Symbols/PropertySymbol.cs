@@ -207,6 +207,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        internal bool HasAssociatedField
+        {
+            get
+            {
+                return (object)this.AssociatedField != null;
+            }
+        }
+
+        internal virtual FieldSymbol AssociatedField
+        {
+            get
+            {
+                return null;
+            }
+        }
+
         internal abstract Cci.CallingConvention CallingConvention { get; }
 
         internal abstract bool MustCallMethodsDirectly { get; }

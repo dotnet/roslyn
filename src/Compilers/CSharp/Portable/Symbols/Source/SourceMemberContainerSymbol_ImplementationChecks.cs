@@ -622,10 +622,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var sourceField = member as SourceFieldSymbol;
                         var isNewField = (object)sourceField != null && sourceField.IsNew;
 
-                        // We don't want to report diagnostics for field-like event backing fields (redundant),
+                        // We don't want to report diagnostics for property or event backing fields (redundant),
                         // but that shouldn't be an issue since they shouldn't be in the member list.
                         Debug.Assert((object)sourceField == null || (object)sourceField.AssociatedSymbol == null ||
-                            sourceField.AssociatedSymbol.Kind != SymbolKind.Event);
+                            (sourceField.AssociatedSymbol.Kind != SymbolKind.Property && sourceField.AssociatedSymbol.Kind != SymbolKind.Event));
 
                         CheckNewModifier(member, isNewField, diagnostics);
                         break;

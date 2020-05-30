@@ -208,6 +208,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return (field.IsFixedSizeBuffer || ShouldIgnoreStructField(field, field.Type)) ? null : field.AsMember(type);
 
+                case SymbolKind.Property:
+                    var propertySymbol = (PropertySymbol)member;
+                    return (!propertySymbol.HasAssociatedField || ShouldIgnoreStructField(propertySymbol, propertySymbol.Type)) ? null : propertySymbol.AssociatedField.AsMember(type);
+
                 case SymbolKind.Event:
                     var eventSymbol = (EventSymbol)member;
                     return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type)) ? null : eventSymbol.AssociatedField.AsMember(type);

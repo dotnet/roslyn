@@ -542,18 +542,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// For source symbols may be called while calculating
         /// <see cref="NamespaceOrTypeSymbol.GetMembersUnordered"/>.
         /// </remarks>
-        internal virtual IEnumerable<Symbol> GetInstanceFieldsAndEvents()
+        internal virtual IEnumerable<Symbol> GetInstanceFieldsAndPropertiesAndEvents()
         {
-            return GetMembersUnordered().Where(IsInstanceFieldOrEvent);
+            return GetMembersUnordered().Where(IsInstanceFieldOrPropertyOrEvent);
         }
 
-        protected static Func<Symbol, bool> IsInstanceFieldOrEvent = symbol =>
+        protected static Func<Symbol, bool> IsInstanceFieldOrPropertyOrEvent = symbol =>
         {
             if (!symbol.IsStatic)
             {
                 switch (symbol.Kind)
                 {
                     case SymbolKind.Field:
+                    case SymbolKind.Property:
                     case SymbolKind.Event:
                         return true;
                 }

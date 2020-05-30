@@ -138,6 +138,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        internal override FieldSymbol AssociatedField
+        {
+            get
+            {
+                return (object)_underlyingProperty.AssociatedField == null
+                    ? null
+                    : this.RetargetingTranslator.Retarget(_underlyingProperty.AssociatedField);
+            }
+        }
+
         internal override bool IsExplicitInterfaceImplementation
         {
             get

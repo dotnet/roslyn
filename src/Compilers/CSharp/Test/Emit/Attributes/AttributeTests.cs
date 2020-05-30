@@ -1247,7 +1247,7 @@ public class Test
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.GetMethod.GetAttributes()));
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.SetMethod.GetAttributes()));
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                var field1 = isFromSource ? prop1.AssociatedField : @class.GetMember<FieldSymbol>("<P>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(1)" }), GetAttributeStrings(field1.GetAttributes()));
 
                 var prop2 = @class.GetMember<PropertySymbol>("P2");
@@ -1255,7 +1255,7 @@ public class Test
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop2.GetMethod.GetAttributes()));
                 Assert.Null(prop2.SetMethod);
 
-                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                var field2 = isFromSource ? prop2.AssociatedField : @class.GetMember<FieldSymbol>("<P2>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(2)" }), GetAttributeStrings(field2.GetAttributes()));
 
                 var prop3 = @class.GetMember<PropertySymbol>("P3");
@@ -1263,7 +1263,7 @@ public class Test
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop3.GetMethod.GetAttributes()));
                 Assert.Null(prop3.SetMethod);
 
-                var field3 = @class.GetMember<FieldSymbol>("<P3>k__BackingField");
+                var field3 = isFromSource ? prop3.AssociatedField : @class.GetMember<FieldSymbol>("<P3>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(33)" }), GetAttributeStrings(field3.GetAttributes()));
 
                 var prop4 = @class.GetMember<PropertySymbol>("P4");
@@ -1271,7 +1271,7 @@ public class Test
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop3.GetMethod.GetAttributes()));
                 Assert.Null(prop4.SetMethod);
 
-                var field4 = @class.GetMember<FieldSymbol>("<P4>k__BackingField");
+                var field4 = isFromSource ? prop4.AssociatedField : @class.GetMember<FieldSymbol>("<P4>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(44)", "A(444)" }), GetAttributeStrings(field4.GetAttributes()));
             };
 
@@ -1294,7 +1294,7 @@ public class Test
                 var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 bool isFromSource = @class is SourceNamedTypeSymbol;
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                var field1 = isFromSource ? @class.GetMember<PropertySymbol>("P").AssociatedField : @class.GetMember<FieldSymbol>("<P>k__BackingField");
                 if (isFromSource)
                 {
                     Assert.Empty(field1.GetAttributes());
@@ -1339,7 +1339,7 @@ public struct Test
                 var prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                var field1 = isFromSource ? prop1.AssociatedField : @class.GetMember<FieldSymbol>("<P>k__BackingField");
                 var attributes1 = field1.GetAttributes();
                 if (isFromSource)
                 {
@@ -1354,7 +1354,7 @@ public struct Test
                 var prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
 
-                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                var field2 = isFromSource ? prop2.AssociatedField : @class.GetMember<FieldSymbol>("<P2>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field2.GetAttributes()));
                 Assert.False(field2.HasSpecialName);
 
@@ -1401,7 +1401,7 @@ public class Test
                 var prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                var field1 = isFromSource ? prop1.AssociatedField : @class.GetMember<FieldSymbol>("<P>k__BackingField");
                 var attributes1 = field1.GetAttributes();
                 if (isFromSource)
                 {
@@ -1416,7 +1416,7 @@ public class Test
                 var prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
 
-                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                var field2 = isFromSource ? prop2.AssociatedField : @class.GetMember<FieldSymbol>("<P2>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field2.GetAttributes()));
                 Assert.False(field2.IsNotSerialized);
 
@@ -1640,14 +1640,14 @@ public class Test
                 var prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                var field1 = isFromSource ? prop1.AssociatedField : @class.GetMember<FieldSymbol>("<P>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DateTimeConstantAttribute(123456)" }),
                     GetAttributeStrings(field1.GetAttributes()));
 
                 var prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
 
-                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                var field2 = isFromSource ? prop2.AssociatedField : @class.GetMember<FieldSymbol>("<P2>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DateTimeConstantAttribute(123456)" }),
                     GetAttributeStrings(field2.GetAttributes()));
             };
@@ -1689,7 +1689,7 @@ public class Test
                 var prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                var field1 = isFromSource ? prop1.AssociatedField : @class.GetMember<FieldSymbol>("<P>k__BackingField");
                 if (isFromSource)
                 {
                     AssertEx.SetEqual(fieldAttributesExpected.Concat(decimalAttributeExpected), GetAttributeStrings(field1.GetAttributes()));
@@ -1703,7 +1703,7 @@ public class Test
                 var prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
 
-                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                var field2 = isFromSource ? prop2.AssociatedField : @class.GetMember<FieldSymbol>("<P2>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(decimalAttributeExpected), GetAttributeStrings(field2.GetAttributes()));
 
                 var field3 = @class.GetMember<FieldSymbol>("field");
@@ -1771,7 +1771,7 @@ public class Test
                 var prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                var field1 = isFromSource ? prop1.AssociatedField : @class.GetMember<FieldSymbol>("<P>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.ObsoleteAttribute" }),
                     GetAttributeStrings(field1.GetAttributes()));
                 Assert.Equal(ObsoleteAttributeKind.Obsolete, field1.ObsoleteAttributeData.Kind);
@@ -1781,7 +1781,7 @@ public class Test
                 var prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
 
-                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                var field2 = isFromSource ? prop2.AssociatedField : @class.GetMember<FieldSymbol>("<P2>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { @"System.ObsoleteAttribute(""obsolete"", true)" }),
                     GetAttributeStrings(field2.GetAttributes()));
                 Assert.Equal(ObsoleteAttributeKind.Obsolete, field2.ObsoleteAttributeData.Kind);
@@ -1907,7 +1907,7 @@ public class Derived : Base
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.GetMethod.GetAttributes()));
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.SetMethod.GetAttributes()));
 
-                var field1 = parent.GetMember<FieldSymbol>("<P>k__BackingField");
+                var field1 = isFromSource ? prop1.AssociatedField : parent.GetMember<FieldSymbol>("<P>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(1)" }), GetAttributeStrings(field1.GetAttributes()));
 
                 var child = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
@@ -1917,7 +1917,7 @@ public class Derived : Base
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop2.GetMethod.GetAttributes()));
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop2.SetMethod.GetAttributes()));
 
-                var field2 = child.GetMember<FieldSymbol>("<P>k__BackingField");
+                var field2 = isFromSource ? prop2.AssociatedField : child.GetMember<FieldSymbol>("<P>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field2.GetAttributes()));
             };
 

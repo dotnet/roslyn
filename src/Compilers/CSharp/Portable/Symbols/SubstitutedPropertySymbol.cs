@@ -99,6 +99,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override FieldSymbol AssociatedField
+        {
+            get
+            {
+                FieldSymbol originalAssociatedField = OriginalDefinition.AssociatedField;
+                return (object)originalAssociatedField == null ? null : originalAssociatedField.AsMember(_containingType);
+            }
+        }
+
         internal override bool IsExplicitInterfaceImplementation
         {
             get { return OriginalDefinition.IsExplicitInterfaceImplementation; }

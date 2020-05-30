@@ -271,6 +271,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                                     case SymbolKind.Property:
                                         AddSymbolLocation(result, member);
+                                        // Property backing fields do not show up in GetMembers
+                                        {
+                                            FieldSymbol field = ((PropertySymbol)member).AssociatedField;
+                                            if ((object)field != null)
+                                            {
+                                                AddSymbolLocation(result, field.TupleUnderlyingField ?? field);
+                                            }
+                                        }
                                         break;
                                     case SymbolKind.Field:
                                         // NOTE: Dev11 does not add synthesized backing fields for properties,
@@ -283,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                                     case SymbolKind.Event:
                                         AddSymbolLocation(result, member);
-                                        //  event backing fields do not show up in GetMembers
+                                        // Event backing fields do not show up in GetMembers
                                         {
                                             FieldSymbol field = ((EventSymbol)member).AssociatedField;
                                             if ((object)field != null)
