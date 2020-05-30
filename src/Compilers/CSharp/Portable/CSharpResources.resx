@@ -6130,9 +6130,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_AssignmentInitOnly" xml:space="preserve">
     <value>Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</value>
   </data>
-  <data name="ERR_BadWithExpressionArgument" xml:space="preserve">
-    <value>Arguments to a `with` expression must be simple assignments</value>
-  </data>
   <data name="ERR_DesignatorBeneathPatternCombinator" xml:space="preserve">
     <value>A variable may not be declared within a 'not' or 'or' pattern.</value>
   </data>

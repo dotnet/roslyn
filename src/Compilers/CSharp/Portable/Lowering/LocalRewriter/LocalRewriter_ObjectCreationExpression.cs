@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constructorInvocation;
             }
 
-            return MakeObjectCreationWithInitializer(node.Syntax, constructorInvocation, node.InitializerExpressionOpt, node.Type);
+            return MakeExpressionWithInitializer(node.Syntax, constructorInvocation, node.InitializerExpressionOpt, node.Type);
         }
 
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
@@ -101,7 +101,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rewrittenObjectCreation;
             }
 
-            return MakeObjectCreationWithInitializer(node.Syntax, rewrittenObjectCreation, node.InitializerExpressionOpt, node.Type);
+            return MakeExpressionWithInitializer(node.Syntax, rewrittenObjectCreation, node.InitializerExpressionOpt, node.Type);
+        }
+
+        public override BoundNode VisitWithExpression(BoundWithExpression withExpr)
+        {
+            RoslynDebug.AssertNotNull(withExpr.CloneMethod);
+            Debug.Assert(withExpr.CloneMethod.ParameterCount == 0);
+
+            // for a with expression of the form
+            //
+            //      receiver with { P1 = e1, P2 = e2 }
+            //
+            // we want to lower it to a call to the receiver's `Clone` method, then
+            // set the given record properties. i.e.
+            //
+            //      var tmp = receiver.Clone();
+            //      tmp.P1 = e1;
+            //      tmp.P2 = e2;
+            //      tmp
+
+            var cloneCall = _factory.Call(
+                VisitExpression(withExpr.Receiver),
+                withExpr.CloneMethod);
+
+            return MakeExpressionWithInitializer(
+                withExpr.Syntax,
+                cloneCall,
+                withExpr.InitializerExpression,
+                withExpr.Type);
         }
 
         [return: NotNullIfNotNull("initializerExpressionOpt")]
@@ -117,10 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        // Shared helper for MakeObjectCreationWithInitializer and MakeNewT
-        private BoundExpression MakeObjectCreationWithInitializer(
+        // Shared helper for VisitWithExpression, MakeObjectCreationWithInitializer and MakeNewT
+        private BoundExpression MakeExpressionWithInitializer(
             SyntaxNode syntax,
-            BoundExpression rewrittenObjectCreation,
+            BoundExpression rewrittenExpression,
             BoundExpression initializerExpression,
             TypeSymbol type)
         {
@@ -129,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Create a temp and assign it with the object creation expression.
             BoundAssignmentOperator boundAssignmentToTemp;
-            BoundLocal value = _factory.StoreToTemp(rewrittenObjectCreation, out boundAssignmentToTemp);
+            BoundLocal value = _factory.StoreToTemp(rewrittenExpression, out boundAssignmentToTemp);
 
             // Rewrite object/collection initializer expressions
             ArrayBuilder<BoundExpression>? dynamicSiteInitializers = null;
@@ -183,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rewrittenNewT;
             }
 
-            return MakeObjectCreationWithInitializer(node.Syntax, rewrittenNewT, node.InitializerExpressionOpt, rewrittenNewT.Type!);
+            return MakeExpressionWithInitializer(node.Syntax, rewrittenNewT, node.InitializerExpressionOpt, rewrittenNewT.Type!);
         }
 
         private BoundExpression MakeNewT(SyntaxNode syntax, TypeParameterSymbol typeParameter)
@@ -289,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rewrittenObjectCreation;
             }
 
-            return MakeObjectCreationWithInitializer(node.Syntax, rewrittenObjectCreation, node.InitializerExpressionOpt, node.Type);
+            return MakeExpressionWithInitializer(node.Syntax, rewrittenObjectCreation, node.InitializerExpressionOpt, node.Type);
         }
     }
 }

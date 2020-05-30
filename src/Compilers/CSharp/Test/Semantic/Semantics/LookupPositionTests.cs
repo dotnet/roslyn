@@ -51,8 +51,9 @@ class C(int x, int y);";
                 Add( // C Type parameters
                     "T"),
                 Add( // Members
-                    "System.Int32 C<T>.x { get; }",
-                    "T C<T>.t { get; }",
+                    "C<T> C<T>.Clone()",
+                    "System.Int32 C<T>.x { get; init; }",
+                    "T C<T>.t { get; init; }",
                     "System.Boolean C<T>.Equals(C<T>? )",
                     "System.Boolean C<T>.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
