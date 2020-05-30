@@ -71,8 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string Name
             => _mergedDeclaration.Name;
 
-        public override bool IsMissingNamespace => false;
-
         internal override LexicalSortKey GetLexicalSortKey()
         {
             if (!_lazyLexicalSortKey.IsInitialized)

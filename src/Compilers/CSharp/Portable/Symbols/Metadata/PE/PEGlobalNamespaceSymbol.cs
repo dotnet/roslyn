@@ -61,8 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool IsMissingNamespace => false;
-
         public override AssemblySymbol ContainingAssembly
         {
             get

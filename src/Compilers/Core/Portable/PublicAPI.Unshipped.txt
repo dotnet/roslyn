@@ -3,7 +3,6 @@ Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AssemblyLoader.get -> M
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference other) -> bool
 Microsoft.CodeAnalysis.IAssemblySymbol.GetForwardedTypes() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol>
 Microsoft.CodeAnalysis.INamedTypeSymbol.NativeIntegerUnderlyingType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
-Microsoft.CodeAnalysis.INamespaceSymbol.IsMissingNamespace.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsNativeIntegerType.get -> bool
 Microsoft.CodeAnalysis.OperationKind.BinaryPattern = 110 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.NegatedPattern = 109 -> Microsoft.CodeAnalysis.OperationKind

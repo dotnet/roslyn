@@ -47,12 +47,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsMissingNamespace As Boolean
-            Get
-                Return False
-            End Get
-        End Property
-
         Friend MustOverride Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
 
         ''' <summary>

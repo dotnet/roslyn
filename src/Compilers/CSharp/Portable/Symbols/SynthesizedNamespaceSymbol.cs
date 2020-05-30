@@ -50,9 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string Name
             => _name;
 
-        public override bool IsMissingNamespace
-            => false;
-
         public override Symbol ContainingSymbol
             => _containingSymbol;
 

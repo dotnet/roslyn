@@ -63,8 +63,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public MustOverride ReadOnly Property IsMissingNamespace As Boolean Implements INamespaceSymbol.IsMissingNamespace, INamespaceSymbolInternal.IsMissingNamespace
-
         Friend MustOverride ReadOnly Property Extent As NamespaceExtent
 
         ''' <summary>
