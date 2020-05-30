@@ -166,8 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Friend Overrides Function MakeFunctionPointerTypeSymbol(callingConvention As Cci.CallingConvention, retAndParamTypes As ImmutableArray(Of ParamInfo(Of TypeSymbol))) As TypeSymbol
-            ' PROTOTYPE(func-ptr): Support loading from metadata in VB
-            Throw ExceptionUtilities.Unreachable
+            Return New UnsupportedMetadataTypeSymbol()
         End Function
     End Class
 
