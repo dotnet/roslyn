@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 {
     void M()
     {
-        var span = (stackalloc byte[8]);
+        var span = $$(stackalloc byte[8]);
     }
 }");
         }
