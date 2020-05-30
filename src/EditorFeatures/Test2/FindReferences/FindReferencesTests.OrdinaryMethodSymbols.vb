@@ -3257,6 +3257,7 @@ End Class
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodWithMissingReferences(kind As TestKind, host As TestHost) As Task
             Dim input =
