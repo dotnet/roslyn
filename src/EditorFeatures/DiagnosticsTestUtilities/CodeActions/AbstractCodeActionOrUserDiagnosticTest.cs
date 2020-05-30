@@ -19,6 +19,8 @@ using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 
 #if CODE_STYLE
 using System.Diagnostics;
@@ -680,6 +682,46 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected virtual ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => actions;
+
+        internal static void VerifyCodeActionsRegisteredByProvider(List<CodeFix> fixes)
+        {
+            var diagnosticsAndEquivalenceKeyToTitleMap = new Dictionary<(Diagnostic diagnostic, string equivalenceKey), string>();
+            foreach (var fix in fixes)
+            {
+                var codeAction = fix.Action;
+                foreach (var diagnostic in fix.Diagnostics)
+                {
+                    var key = (diagnostic, codeAction.EquivalenceKey);
+                    var existingTitle = diagnosticsAndEquivalenceKeyToTitleMap.GetOrAdd(key, _ => codeAction.Title);
+                    if (existingTitle != codeAction.Title)
+                    {
+                        Assert.False(true, @$"Expected different 'CodeAction.EquivalenceKey' for code actions registered for same diagnostic:
+- Title 1: '{codeAction.Title}'
+- Title 2: '{existingTitle}'
+- Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'");
+
+                    }
+                }
+            }
+        }
+
+        internal static void VerifyCodeActionsRegisteredByProvider(CodeRefactoring refactorings)
+        {
+            var applicableSpanAndEquivalenceKeyToTitleMap = new Dictionary<(TextSpan applicableToSpan, string equivalenceKey), string>();
+            foreach (var (codeAction, applicableToSpan) in refactorings.CodeActions)
+            {
+                var key = (applicableToSpan ?? default, codeAction.EquivalenceKey);
+                var existingTitle = applicableSpanAndEquivalenceKeyToTitleMap.GetOrAdd(key, _ => codeAction.Title);
+                if (existingTitle != codeAction.Title)
+                {
+                    Assert.False(true, @$"Expected different 'CodeAction.EquivalenceKey' for code actions registered for same applicable span:
+- Title 1: '{codeAction.Title}'
+- Title 2: '{existingTitle}'
+- Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'");
+
+                }
+            }
+        }
 
         protected static ImmutableArray<CodeAction> FlattenActions(ImmutableArray<CodeAction> codeActions)
         {
