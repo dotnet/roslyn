@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -24,9 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static bool IsCSharpWhitespace(char c)
-        {
-            return SyntaxFacts.IsWhitespace(c) || SyntaxFacts.IsNewLine(c);
-        }
+            => SyntaxFacts.IsWhitespace(c) || SyntaxFacts.IsNewLine(c);
 
         public override TriviaData CreateLeadingTrivia(SyntaxToken token)
         {
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new ComplexTrivia(this.Options, this.TreeInfo, token1, token2);
         }
 
-        private bool ContainsOnlyWhitespace(Analyzer.AnalysisResult result)
+        private static bool ContainsOnlyWhitespace(Analyzer.AnalysisResult result)
         {
             return
                 !result.HasComments &&
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 !result.HasConflictMarker;
         }
 
-        private TriviaData GetWhitespaceOnlyTriviaInfo(SyntaxToken token1, SyntaxToken token2, Analyzer.AnalysisResult result)
+        private TriviaData? GetWhitespaceOnlyTriviaInfo(SyntaxToken token1, SyntaxToken token2, Analyzer.AnalysisResult result)
         {
             if (!ContainsOnlyWhitespace(result))
             {
@@ -131,10 +131,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private int CalculateSpaces(SyntaxToken token1, SyntaxToken token2)
         {
-            var initialColumn = (token1.RawKind == 0) ? 0 : this.TreeInfo.GetOriginalColumn(this.Options.GetOption(FormattingOptions.TabSize), token1) + token1.Span.Length;
+            var initialColumn = (token1.RawKind == 0) ? 0 : this.TreeInfo.GetOriginalColumn(TabSize, token1) + token1.Span.Length;
             var textSnippet = this.TreeInfo.GetTextBetween(token1, token2);
 
-            return textSnippet.ConvertTabToSpace(this.Options.GetOption(FormattingOptions.TabSize), initialColumn, textSnippet.Length);
+            return textSnippet.ConvertTabToSpace(TabSize, initialColumn, textSnippet.Length);
         }
 
         private (bool canUseTriviaAsItIs, int lineBreaks, int indentation) GetLineBreaksAndIndentation(Analyzer.AnalysisResult result)
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             Debug.Assert(result.Tab >= 0);
             Debug.Assert(result.LineBreaks >= 0);
 
-            var indentation = result.Tab * this.Options.GetOption(FormattingOptions.TabSize) + result.Space;
+            var indentation = result.Tab * TabSize + result.Space;
             if (result.HasTrailingSpace || result.HasUnknownWhitespace)
             {
                 if (result.HasUnknownWhitespace && result.LineBreaks == 0 && indentation == 0)
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return (canUseTriviaAsItIs: false, result.LineBreaks, indentation);
             }
 
-            if (!this.Options.GetOption(FormattingOptions.UseTabs))
+            if (!UseTabs)
             {
                 if (result.Tab > 0)
                 {
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return (canUseTriviaAsItIs: true, result.LineBreaks, indentation);
             }
 
-            Debug.Assert(this.Options.GetOption(FormattingOptions.UseTabs));
+            Debug.Assert(UseTabs);
 
             // tab can only appear before space to be a valid tab for indentation
             if (result.HasTabAfterSpace)
@@ -172,18 +172,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return (canUseTriviaAsItIs: false, result.LineBreaks, indentation);
             }
 
-            if (result.Space >= this.Options.GetOption(FormattingOptions.TabSize))
+            if (result.Space >= TabSize)
             {
                 return (canUseTriviaAsItIs: false, result.LineBreaks, indentation);
             }
 
-            Debug.Assert((indentation / this.Options.GetOption(FormattingOptions.TabSize)) == result.Tab);
-            Debug.Assert((indentation % this.Options.GetOption(FormattingOptions.TabSize)) == result.Space);
+            Debug.Assert((indentation / TabSize) == result.Tab);
+            Debug.Assert((indentation % TabSize) == result.Space);
 
             return (canUseTriviaAsItIs: true, result.LineBreaks, indentation);
         }
 
-        private int GetSpaceOnSingleLine(Analyzer.AnalysisResult result)
+        private static int GetSpaceOnSingleLine(Analyzer.AnalysisResult result)
         {
             if (result.HasTrailingSpace || result.HasUnknownWhitespace || result.LineBreaks > 0 || result.Tab > 0)
             {

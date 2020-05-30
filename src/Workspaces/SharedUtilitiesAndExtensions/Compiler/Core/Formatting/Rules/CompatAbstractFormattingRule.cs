@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
@@ -14,50 +15,54 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextSuppressOperationAction nextOperation)
+        public sealed override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
-            AddSuppressOperationsSlow(list, node, options, ref nextOperationCopy);
+            AddSuppressOperationsSlow(list, node, ref nextOperationCopy);
         }
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextAnchorIndentationOperationAction nextOperation)
+        public sealed override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
-            AddAnchorIndentationOperationsSlow(list, node, options, ref nextOperationCopy);
+            AddAnchorIndentationOperationsSlow(list, node, ref nextOperationCopy);
         }
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
+        public sealed override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
-            AddIndentBlockOperationsSlow(list, node, options, ref nextOperationCopy);
+            AddIndentBlockOperationsSlow(list, node, ref nextOperationCopy);
         }
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextAlignTokensOperationAction nextOperation)
+        public sealed override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
-            AddAlignTokensOperationsSlow(list, node, options, ref nextOperationCopy);
+            AddAlignTokensOperationsSlow(list, node, ref nextOperationCopy);
         }
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+        public sealed override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
+            var previousTokenCopy = previousToken;
+            var currentTokenCopy = currentToken;
             var nextOperationCopy = nextOperation;
-            return GetAdjustNewLinesOperationSlow(previousToken, currentToken, options, ref nextOperationCopy);
+            return GetAdjustNewLinesOperationSlow(ref previousTokenCopy, ref currentTokenCopy, ref nextOperationCopy);
         }
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+        public sealed override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
+            var previousTokenCopy = previousToken;
+            var currentTokenCopy = currentToken;
             var nextOperationCopy = nextOperation;
-            return GetAdjustSpacesOperationSlow(previousToken, currentToken, options, ref nextOperationCopy);
+            return GetAdjustSpacesOperationSlow(ref previousTokenCopy, ref currentTokenCopy, ref nextOperationCopy);
         }
 #pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
 
@@ -65,49 +70,37 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// Returns SuppressWrappingIfOnSingleLineOperations under a node either by itself or by
         /// filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddSuppressOperationsSlow(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, ref NextSuppressOperationAction nextOperation)
-        {
-            base.AddSuppressOperations(list, node, options, in nextOperation);
-        }
+        public virtual void AddSuppressOperationsSlow(List<SuppressOperation> list, SyntaxNode node, ref NextSuppressOperationAction nextOperation)
+            => base.AddSuppressOperations(list, node, in nextOperation);
 
         /// <summary>
         /// returns AnchorIndentationOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddAnchorIndentationOperationsSlow(List<AnchorIndentationOperation> list, SyntaxNode node, AnalyzerConfigOptions options, ref NextAnchorIndentationOperationAction nextOperation)
-        {
-            base.AddAnchorIndentationOperations(list, node, options, in nextOperation);
-        }
+        public virtual void AddAnchorIndentationOperationsSlow(List<AnchorIndentationOperation> list, SyntaxNode node, ref NextAnchorIndentationOperationAction nextOperation)
+            => base.AddAnchorIndentationOperations(list, node, in nextOperation);
 
         /// <summary>
         /// returns IndentBlockOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddIndentBlockOperationsSlow(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, ref NextIndentBlockOperationAction nextOperation)
-        {
-            base.AddIndentBlockOperations(list, node, options, in nextOperation);
-        }
+        public virtual void AddIndentBlockOperationsSlow(List<IndentBlockOperation> list, SyntaxNode node, ref NextIndentBlockOperationAction nextOperation)
+            => base.AddIndentBlockOperations(list, node, in nextOperation);
 
         /// <summary>
         /// returns AlignTokensOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddAlignTokensOperationsSlow(List<AlignTokensOperation> list, SyntaxNode node, AnalyzerConfigOptions options, ref NextAlignTokensOperationAction nextOperation)
-        {
-            base.AddAlignTokensOperations(list, node, options, in nextOperation);
-        }
+        public virtual void AddAlignTokensOperationsSlow(List<AlignTokensOperation> list, SyntaxNode node, ref NextAlignTokensOperationAction nextOperation)
+            => base.AddAlignTokensOperations(list, node, in nextOperation);
 
         /// <summary>
         /// returns AdjustNewLinesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
         /// </summary>
-        public virtual AdjustNewLinesOperation GetAdjustNewLinesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, ref NextGetAdjustNewLinesOperation nextOperation)
-        {
-            return base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
-        }
+        public virtual AdjustNewLinesOperation? GetAdjustNewLinesOperationSlow(ref SyntaxToken previousToken, ref SyntaxToken currentToken, ref NextGetAdjustNewLinesOperation nextOperation)
+            => base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
 
         /// <summary>
         /// returns AdjustSpacesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
         /// </summary>
-        public virtual AdjustSpacesOperation GetAdjustSpacesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, ref NextGetAdjustSpacesOperation nextOperation)
-        {
-            return base.GetAdjustSpacesOperation(previousToken, currentToken, options, in nextOperation);
-        }
+        public virtual AdjustSpacesOperation? GetAdjustSpacesOperationSlow(ref SyntaxToken previousToken, ref SyntaxToken currentToken, ref NextGetAdjustSpacesOperation nextOperation)
+            => base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
     }
 }

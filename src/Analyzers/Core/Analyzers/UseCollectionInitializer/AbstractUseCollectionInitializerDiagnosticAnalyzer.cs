@@ -12,10 +12,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#endif
-
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
     internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyzer<
@@ -42,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
-                   CodeStyleOptions.PreferCollectionInitializer,
+                   CodeStyleOptions2.PreferCollectionInitializer,
                    new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -53,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
-            var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
+            var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
             if (ienumerableType != null)
             {
                 var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
@@ -77,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var language = objectCreationExpression.Language;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(CodeStyleOptions.PreferCollectionInitializer, language);
+            var option = context.GetOption(CodeStyleOptions2.PreferCollectionInitializer, language);
             if (!option.Value)
             {
                 // not point in analyzing if the option is off.
@@ -134,7 +130,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var syntaxTree = context.Node.SyntaxTree;
 
             var fadeOutCode = context.GetOption(
-                CodeStyleOptions.PreferCollectionInitializer_FadeOutCode, context.Node.Language);
+                CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode, context.Node.Language);
             if (!fadeOutCode)
             {
                 return;

@@ -9,9 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -24,18 +22,21 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class SolutionService
     {
+        /// <summary>
+        /// This object gates the construction of the singleton <see cref="RemoteWorkspace"/> instance.
+        /// </summary>
+        private static readonly object s_remoteWorkspaceGate = new object();
+
         private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
 
         // this simple cache hold onto the last and primary solution created
-        private volatile static Tuple<Checksum, Solution>? s_primarySolution;
-        private volatile static Tuple<Checksum, Solution>? s_lastSolution;
+        private static volatile Tuple<Checksum, Solution>? s_primarySolution;
+        private static volatile Tuple<Checksum, Solution>? s_lastSolution;
 
         public AssetProvider AssetProvider { get; }
 
         public SolutionService(AssetProvider assetProvider)
-        {
-            AssetProvider = assetProvider;
-        }
+            => AssetProvider = assetProvider;
 
         public static RemoteWorkspace PrimaryWorkspace
         {
@@ -45,10 +46,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 var primaryWorkspace = exportProvider.GetExports<PrimaryWorkspace>().Single().Value;
                 if (primaryWorkspace.Workspace == null)
                 {
-                    // The Roslyn OOP service assumes a singleton workspace exists, but doesn't initialize it anywhere.
-                    // If we get here, code is asking for a workspace before it exists, so we create one on the fly.
-                    // The RemoteWorkspace constructor assigns itself as the new singleton instance.
-                    _ = new RemoteWorkspace();
+                    lock (s_remoteWorkspaceGate)
+                    {
+                        if (primaryWorkspace.Workspace is null)
+                        {
+                            // The Roslyn OOP service assumes a singleton workspace exists, but doesn't initialize it anywhere.
+                            // If we get here, code is asking for a workspace before it exists, so we create one on the fly.
+                            // The RemoteWorkspace constructor assigns itself as the new singleton instance.
+                            _ = new RemoteWorkspace();
+                        }
+                    }
 
                     // the above call initialized the workspace:
                     Contract.ThrowIfNull(primaryWorkspace.Workspace);

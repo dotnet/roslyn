@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 this.LineBreaks = Math.Max(0, lineBreaks);
                 this.Spaces = Math.Max(0, indentation);
 
-                _newString = CreateString(this.Options.GetOption(FormattingOptions.NewLine));
+                _newString = CreateString(this.Options.GetOption(FormattingOptions2.NewLine));
             }
 
             private string CreateString(string newLine)
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         builder.Append(newLine);
                     }
 
-                    builder.AppendIndentationString(this.Spaces, this.Options.GetOption(FormattingOptions.UseTabs), this.Options.GetOption(FormattingOptions.TabSize));
+                    builder.AppendIndentationString(this.Spaces, this.Options.GetOption(FormattingOptions2.UseTabs), this.Options.GetOption(FormattingOptions2.TabSize));
                     return StringBuilderPool.ReturnAndFree(builder);
                 }
 
@@ -51,24 +53,16 @@ namespace Microsoft.CodeAnalysis.Formatting
             public override bool ContainsChanges => true;
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan textSpan)
-            {
-                return SpecializedCollections.SingletonEnumerable<TextChange>(new TextChange(textSpan, _newString));
-            }
+                => SpecializedCollections.SingletonEnumerable<TextChange>(new TextChange(textSpan, _newString));
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override TriviaData WithLine(int line, int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override TriviaData WithIndentation(int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override void Format(
                 FormattingContext context, ChainedFormattingRules formattingRules, Action<int, TokenStream, TriviaData> formattingResultApplier, CancellationToken cancellationToken, int tokenPairIndex = TokenPairIndexNotNeeded)

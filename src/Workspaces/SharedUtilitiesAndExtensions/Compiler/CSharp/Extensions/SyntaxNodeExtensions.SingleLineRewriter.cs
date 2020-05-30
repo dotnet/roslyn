@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private bool _lastTokenEndedInWhitespace;
 
             public SingleLineRewriter(bool useElasticTrivia)
-            {
-                this._useElasticTrivia = useElasticTrivia;
-            }
+                => this._useElasticTrivia = useElasticTrivia;
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {

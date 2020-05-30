@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         public IConfigurationFixProvider SuppressionFixProvider => _suppressionFixProvider;
         public override ImmutableArray<string> FixableDiagnosticIds => _originalDiagnosticIds;
 
-        public async override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostics = context.Diagnostics.Where(_suppressionFixProvider.IsFixableDiagnostic);
 
@@ -54,8 +54,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         public override FixAllProvider GetFixAllProvider()
-        {
-            return _suppressionFixProvider.GetFixAllProvider();
-        }
+            => _suppressionFixProvider.GetFixAllProvider();
     }
 }

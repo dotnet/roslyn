@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
     internal abstract partial class AbstractAsyncCodeFix : CodeFixProvider
     {
-        public override abstract FixAllProvider GetFixAllProvider();
+        public abstract override FixAllProvider GetFixAllProvider();
 
         protected abstract Task<CodeAction> GetCodeActionAsync(
             SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostic, CancellationToken cancellationToken);
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
             }
         }
 
-        private bool TryGetNode(SyntaxNode root, TextSpan span, out SyntaxNode node)
+        private static bool TryGetNode(SyntaxNode root, TextSpan span, out SyntaxNode node)
         {
             node = null;
             var ancestors = root.FindToken(span.Start).GetAncestors<SyntaxNode>();

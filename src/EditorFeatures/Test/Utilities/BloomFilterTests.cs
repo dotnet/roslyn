@@ -80,15 +80,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [Fact]
         public void Test1()
-        {
-            Test(isCaseSensitive: true);
-        }
+            => Test(isCaseSensitive: true);
 
         [Fact]
         public void TestInsensitive()
-        {
-            Test(isCaseSensitive: false);
-        }
+            => Test(isCaseSensitive: false);
 
         [Fact]
         public void TestEmpty()

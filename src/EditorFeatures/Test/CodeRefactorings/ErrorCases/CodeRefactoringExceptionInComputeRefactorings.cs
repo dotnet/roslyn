@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService.ErrorCa
         }
 
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
-        {
-            throw new Exception($"Exception thrown from ComputeRefactoringsAsync in {nameof(ExceptionInCodeActions)}");
-        }
+            => throw new Exception($"Exception thrown from ComputeRefactoringsAsync in {nameof(ExceptionInCodeActions)}");
     }
 }

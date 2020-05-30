@@ -460,6 +460,57 @@ class C
         }
 
         [Fact]
+        public void ExplicitAttribute_ReferencedInSource()
+        {
+            var sourceAttribute =
+@"namespace System.Runtime.CompilerServices
+{
+    internal class NullableAttribute : System.Attribute
+    {
+        internal NullableAttribute(byte b) { }
+    }
+}";
+            var source =
+@"#pragma warning disable 169
+using System.Runtime.CompilerServices;
+[assembly: Nullable(0)]
+[module: Nullable(0)]
+[Nullable(0)]
+class Program
+{
+    [Nullable(0)]object F;
+    [Nullable(0)]static object M1() => throw null;
+    [return: Nullable(0)]static object M2() => throw null;
+    static void M3([Nullable(0)]object arg) { }
+}";
+
+            // C#7
+            var comp = CreateCompilation(new[] { sourceAttribute, source }, parseOptions: TestOptions.Regular7);
+            verifyDiagnostics(comp);
+
+            // C#8
+            comp = CreateCompilation(new[] { sourceAttribute, source });
+            verifyDiagnostics(comp);
+
+            static void verifyDiagnostics(CSharpCompilation comp)
+            {
+                comp.VerifyDiagnostics(
+                    // (5,2): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+                    // [Nullable(0)]
+                    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(0)").WithLocation(5, 2),
+                    // (8,6): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+                    //     [Nullable(0)]object F;
+                    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(0)").WithLocation(8, 6),
+                    // (10,14): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+                    //     [return: Nullable(0)]static object M2() => throw null;
+                    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(0)").WithLocation(10, 14),
+                    // (11,21): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
+                    //     static void M3([Nullable(0)]object arg) { }
+                    Diagnostic(ErrorCode.ERR_ExplicitNullableAttribute, "Nullable(0)").WithLocation(11, 21));
+            }
+        }
+
+        [Fact]
         public void AttributeFromInternalsVisibleTo_01()
         {
             var sourceA =

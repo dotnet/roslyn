@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImports
@@ -19,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
         Inherits AbstractSuppressionCodeFixProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -36,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return CreatePragmaDirectiveTrivia(pragmaDirective, includeTitle, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine)
         End Function
 
-        Private Function GetErrorCodes(diagnostic As Diagnostic, ByRef includeTitle As Boolean) As SeparatedSyntaxList(Of IdentifierNameSyntax)
+        Private Shared Function GetErrorCodes(diagnostic As Diagnostic, ByRef includeTitle As Boolean) As SeparatedSyntaxList(Of IdentifierNameSyntax)
             Dim text = GetOrMapDiagnosticId(diagnostic, includeTitle)
             If SyntaxFacts.GetKeywordKind(text) <> SyntaxKind.None Then
                 text = "[" & text & "]"
@@ -44,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return New SeparatedSyntaxList(Of IdentifierNameSyntax)().Add(SyntaxFactory.IdentifierName(text))
         End Function
 
-        Private Function CreatePragmaDirectiveTrivia(enableOrDisablePragmaDirective As StructuredTriviaSyntax, includeTitle As Boolean, diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean) As SyntaxTriviaList
+        Private Shared Function CreatePragmaDirectiveTrivia(enableOrDisablePragmaDirective As StructuredTriviaSyntax, includeTitle As Boolean, diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean) As SyntaxTriviaList
             enableOrDisablePragmaDirective = CType(formatNode(enableOrDisablePragmaDirective), StructuredTriviaSyntax)
             Dim pragmaDirectiveTrivia = SyntaxFactory.Trivia(enableOrDisablePragmaDirective)
             Dim endOfLineTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
@@ -178,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return memberNode.AddAttributeLists(attributeList).WithLeadingTrivia(leadingTrivia)
         End Function
 
-        Private Function CreateAttributeList(
+        Private Shared Function CreateAttributeList(
                 targetSymbol As ISymbol,
                 attributeName As NameSyntax,
                 diagnostic As Diagnostic,
@@ -190,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return SyntaxFactory.AttributeList().AddAttributes(attribute)
         End Function
 
-        Private Function CreateAttributeArguments(targetSymbol As ISymbol, diagnostic As Diagnostic, isAssemblyAttribute As Boolean) As ArgumentListSyntax
+        Private Shared Function CreateAttributeArguments(targetSymbol As ISymbol, diagnostic As Diagnostic, isAssemblyAttribute As Boolean) As ArgumentListSyntax
             ' SuppressMessage("Rule Category", "Rule Id", Justification := "Justification", Scope := "Scope", Target := "Target")
             Dim category = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(diagnostic.Descriptor.Category))
             Dim categoryArgument = SyntaxFactory.SimpleArgument(category)

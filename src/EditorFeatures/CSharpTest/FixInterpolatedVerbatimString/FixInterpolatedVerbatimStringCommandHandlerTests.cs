@@ -153,23 +153,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 }");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestMissingInEmptyFileAfterAtSignDollarSign()
-        {
-            TestNotHandled(@"@$[||]");
-        }
+            => TestNotHandled(@"@$[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFileAfterDollarSign()
-        {
-            TestNotHandled(@"$[||]");
-        }
+            => TestNotHandled(@"$[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFile()
-        {
-            TestNotHandled(@"[||]");
-        }
+            => TestNotHandled(@"[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestAfterAtSignDollarSignEndOfFile()

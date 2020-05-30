@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -20,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Inherits AbstractObjectInitializerCompletionProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -116,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return symbol.Name.EscapeIdentifier()
         End Function
 
-        Private Function IsValidProperty(member As ISymbol) As Boolean
+        Private Shared Function IsValidProperty(member As ISymbol) As Boolean
             Dim [property] = TryCast(member, IPropertySymbol)
             If [property] IsNot Nothing Then
                 Return [property].Parameters.IsDefaultOrEmpty OrElse [property].Parameters.All(Function(p) p.IsOptional OrElse p.IsParams)

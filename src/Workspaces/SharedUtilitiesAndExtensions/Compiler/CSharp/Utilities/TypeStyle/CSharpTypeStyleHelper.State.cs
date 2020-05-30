@@ -3,18 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle.TypeStyle;
 #else
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             /// Returns true if type information could be gleaned by simply looking at the given statement.
             /// This typically means that the type name occurs in right hand side of an assignment.
             /// </summary>
-            private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, UseVarPreference stylePreferences, CancellationToken cancellationToken)
+            private static bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, UseVarPreference stylePreferences, CancellationToken cancellationToken)
             {
                 if (variableDeclaration.Variables.Count != 1)
                 {
@@ -105,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             /// to var. <see cref="SyntaxFacts.IsPredefinedType(SyntaxKind)"/> considers string
             /// and object but the compiler's implementation of IsIntrinsicType does not.
             /// </remarks>
-            private bool IsPredefinedTypeInDeclaration(SyntaxNode declarationStatement, SemanticModel semanticModel)
+            private static bool IsPredefinedTypeInDeclaration(SyntaxNode declarationStatement, SemanticModel semanticModel)
             {
                 var typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
 
@@ -117,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             /// <summary>
             /// Returns true for type that are arrays/nullable/pointer types of special types
             /// </summary>
-            private bool IsMadeOfSpecialTypes(ITypeSymbol type)
+            private static bool IsMadeOfSpecialTypes(ITypeSymbol type)
             {
                 if (type == null)
                 {
@@ -144,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 }
             }
 
-            private bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel)
+            private static bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel)
             {
                 var typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
 
@@ -153,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     semanticModel.GetTypeInfo(typeSyntax).Type?.IsSpecialType() == true;
             }
 
-            private TypeSyntax GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)
+            private static TypeSyntax GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)
                 => declarationStatement switch
                 {
                     VariableDeclarationSyntax varDecl => varDecl.Type,

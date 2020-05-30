@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -88,9 +86,7 @@ namespace Microsoft.CodeAnalysis
         public string Name => Attributes.Name;
 
         protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
-        {
-            return new ConstantValueSource<TextAndVersion>(text);
-        }
+            => new ConstantValueSource<TextAndVersion>(text);
 
         protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, SolutionServices services)
         {
@@ -101,9 +97,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
-        {
-            return new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
-        }
+            => new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services)
         {
@@ -294,8 +288,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         public bool HasInfoChanged(TextDocumentState oldState)
-        {
-            return oldState.Attributes != Attributes;
-        }
+            => oldState.Attributes != Attributes;
     }
 }

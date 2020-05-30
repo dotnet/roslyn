@@ -67,29 +67,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public void SetOptionAndUpdatePreview<T>(T value, IOption option, string preview)
         {
-            if (option is Option<CodeStyleOption<T>>)
+            var key = new OptionKey(option, option.IsPerLanguage ? Language : null);
+            if (option.DefaultValue is ICodeStyleOption codeStyleOption)
             {
-                var opt = OptionStore.GetOption((Option<CodeStyleOption<T>>)option);
-                opt.Value = value;
-                OptionStore.SetOption((Option<CodeStyleOption<T>>)option, opt);
-            }
-            else if (option is PerLanguageOption<CodeStyleOption<T>>)
-            {
-                var opt = OptionStore.GetOption((PerLanguageOption<CodeStyleOption<T>>)option, Language);
-                opt.Value = value;
-                OptionStore.SetOption((PerLanguageOption<CodeStyleOption<T>>)option, Language, opt);
-            }
-            else if (option is Option<T>)
-            {
-                OptionStore.SetOption((Option<T>)option, value);
-            }
-            else if (option is PerLanguageOption<T>)
-            {
-                OptionStore.SetOption((PerLanguageOption<T>)option, Language, value);
+                // The value provided is either an ICodeStyleOption OR the underlying ICodeStyleOption.Value
+                if (value is ICodeStyleOption newCodeStyleOption)
+                {
+                    OptionStore.SetOption(key, codeStyleOption.WithValue(newCodeStyleOption.Value).WithNotification(newCodeStyleOption.Notification));
+                }
+                else
+                {
+                    OptionStore.SetOption(key, codeStyleOption.WithValue(value));
+                }
             }
             else
             {
-                throw new InvalidOperationException("Unexpected option type");
+                OptionStore.SetOption(key, value);
             }
 
             UpdateDocument(preview);
@@ -208,13 +201,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         private void UpdateDocument(string text)
-        {
-            UpdatePreview(text);
-        }
+            => UpdatePreview(text);
 
         protected void AddParenthesesOption(
             string language, OptionStore optionStore,
-            PerLanguageOption<CodeStyleOption<ParenthesesPreference>> languageOption,
+            PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> languageOption,
             string title, string[] examples, bool defaultAddForClarity)
         {
             var preferences = new List<ParenthesesPreference>();
@@ -249,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             };
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<UnusedParametersPreference>(
-                CodeStyleOptions.UnusedParameters, language,
+                CodeStyleOptions2.UnusedParameters, language,
                 ServicesVSResources.Avoid_unused_parameters, enumValues,
                 examples, this, optionStore, title,
                 unusedParameterPreferences));

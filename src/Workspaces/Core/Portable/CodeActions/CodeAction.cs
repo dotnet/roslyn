@@ -71,9 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// The sequence of operations that define the code action.
         /// </summary>
         public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
-        {
-            return GetOperationsAsync(new ProgressTracker(), cancellationToken);
-        }
+            => GetOperationsAsync(new ProgressTracker(), cancellationToken);
 
         internal Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -138,15 +136,13 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// than the operations produced by <see cref="ComputeOperationsAsync(CancellationToken)"/>.
         /// </summary>
         protected virtual Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-        {
-            return ComputeOperationsAsync(cancellationToken);
-        }
+            => ComputeOperationsAsync(cancellationToken);
 
         /// <summary>
         /// Computes all changes for an entire solution.
         /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that changes more than one document.
         /// </summary>
-        protected async virtual Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+        protected virtual async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
         {
             var changedDocument = await GetChangedDocumentAsync(cancellationToken).ConfigureAwait(false);
             if (changedDocument == null)
@@ -174,9 +170,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </remarks>
         /// <exception cref="NotSupportedException">If this code action does not support changing a single document.</exception>
         protected virtual Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         /// <summary>
         /// used by batch fixer engine to get new solution
@@ -193,9 +187,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         internal Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
-        {
-            return GetChangedDocumentAsync(cancellation);
-        }
+            => GetChangedDocumentAsync(cancellation);
 
         /// <summary>
         /// Apply post processing steps to any <see cref="ApplyChangesOperation"/>'s.
@@ -280,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             if (document.SupportsSyntaxTree)
             {
                 document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    document, Simplifier.AddImportsAnnotation, safe: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    document, Simplifier.AddImportsAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -305,9 +297,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// accessing and querying the Visual Studio DTE).
         /// </summary>
         internal virtual bool IsApplicable(Workspace workspace)
-        {
-            return true;
-        }
+            => true;
 
         #region Factories for standard code actions
 
@@ -440,9 +430,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
 
             protected sealed override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                return _createChangedDocument(cancellationToken);
-            }
+                => _createChangedDocument(cancellationToken);
         }
 
         internal class SolutionChangeAction : SimpleCodeAction
@@ -456,9 +444,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
 
             protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
-            {
-                return _createChangedSolution(cancellationToken).AsNullable();
-            }
+                => _createChangedSolution(cancellationToken).AsNullable();
         }
 
         internal class NoChangeAction : SimpleCodeAction
@@ -469,9 +455,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
 
             protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
-            {
-                return SpecializedTasks.Null<Solution>();
-            }
+                => SpecializedTasks.Null<Solution>();
         }
 
         #endregion

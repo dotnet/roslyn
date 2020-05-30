@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.Structure
         public ImmutableArray<BlockSpan> Spans { get; }
 
         public BlockStructure(ImmutableArray<BlockSpan> spans)
-        {
-            Spans = spans;
-        }
+            => Spans = spans;
     }
 }

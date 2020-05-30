@@ -15,10 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -33,13 +30,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private readonly Workspace _workspace;
         private readonly IActiveStatementTrackingService _trackingService;
-        private readonly IActiveStatementProvider _activeStatementProvider;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly IDebuggeeModuleMetadataProvider _debugeeModuleMetadataProvider;
         private readonly EditAndContinueDiagnosticUpdateSource _emitDiagnosticsUpdateSource;
         private readonly EditSessionTelemetry _editSessionTelemetry;
         private readonly DebuggingSessionTelemetry _debuggingSessionTelemetry;
-        private readonly ICompilationOutputsProviderService _compilationOutputsProvider;
+        private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
         private readonly Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
 
         /// <summary>
@@ -56,24 +52,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal EditAndContinueWorkspaceService(
             Workspace workspace,
             IActiveStatementTrackingService activeStatementTrackingService,
-            ICompilationOutputsProviderService compilationOutputsProvider,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
-            IActiveStatementProvider activeStatementProvider,
             IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider,
-            Action<DebuggingSessionTelemetry.Data>? reportTelemetry = null)
+            Func<Project, CompilationOutputs>? testCompilationOutputsProvider = null,
+            Action<DebuggingSessionTelemetry.Data>? testReportTelemetry = null)
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
             _emitDiagnosticsUpdateSource = diagnosticUpdateSource;
-            _activeStatementProvider = activeStatementProvider;
             _debugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
             _trackingService = activeStatementTrackingService;
             _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
             _editSessionTelemetry = new EditSessionTelemetry();
             _documentsWithReportedDiagnosticsDuringRunMode = new HashSet<DocumentId>();
-            _compilationOutputsProvider = compilationOutputsProvider;
-            _reportTelemetry = reportTelemetry ?? ReportTelemetry;
+            _compilationOutputsProvider = testCompilationOutputsProvider ?? GetCompilationOutputs;
+            _reportTelemetry = testReportTelemetry ?? ReportTelemetry;
         }
 
         // test only:
@@ -83,6 +77,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public bool IsDebuggingSessionInProgress
             => _debuggingSession != null;
+
+        private static CompilationOutputs GetCompilationOutputs(Project project)
+        {
+            // The Project System doesn't always indicate whether we emit PDB, what kind of PDB we emit nor the path of the PDB.
+            // To work around we look for the PDB on the path specified in the PDB debug directory.
+            // https://github.com/dotnet/roslyn/issues/35065
+            return new CompilationOutputFilesWithImplicitPdbPath(project.CompilationOutputFilePaths.AssemblyPath);
+        }
 
         public void OnSourceFileUpdated(DocumentId documentId)
         {
@@ -96,16 +98,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public void StartDebuggingSession()
         {
-            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(_workspace, _debugeeModuleMetadataProvider, _activeStatementProvider, _compilationOutputsProvider), null);
+            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(_workspace, _debugeeModuleMetadataProvider, _compilationOutputsProvider), null);
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
         }
 
-        public void StartEditSession()
+        public void StartEditSession(ActiveStatementProvider activeStatementsProvider)
         {
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession, "Edit session can only be started during debugging session");
 
-            var newSession = new EditSession(debuggingSession, _editSessionTelemetry);
+            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, activeStatementsProvider);
 
             var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
@@ -187,7 +189,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Allow user to make any changes in these documents, they won't be applied within the current debugging session.
                 // Do not report the file read error - it might be an intermittent issue. The error will be reported when the 
                 // change is attempted to be applied.
-                var (mvid, _) = await debuggingSession.GetProjectModuleIdAsync(project.Id, cancellationToken).ConfigureAwait(false);
+                var (mvid, _) = await debuggingSession.GetProjectModuleIdAsync(project, cancellationToken).ConfigureAwait(false);
                 if (mvid == Guid.Empty)
                 {
                     return ImmutableArray<Diagnostic>.Empty;
@@ -226,7 +228,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Once we detected a change in a document let the debugger know that the corresponding loaded module
                     // is about to be updated, so that it can start initializing it for EnC update, reducing the amount of time applying
                     // the change blocks the UI when the user "continues".
-                    debuggingSession.PrepareModuleForUpdate(mvid);
+                    debuggingSession.PrepareModuleForUpdate(mvid, cancellationToken);
                 }
 
                 if (analysis.RudeEditErrors.IsEmpty)
@@ -307,8 +309,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // internal for testing
         internal static IEnumerable<TextSpan> GetSpansInNewDocument(IEnumerable<TextChange> changes)
         {
-            int oldPosition = 0;
-            int newPosition = 0;
+            var oldPosition = 0;
+            var newPosition = 0;
             foreach (var change in changes)
             {
                 if (change.Span.Start < oldPosition)

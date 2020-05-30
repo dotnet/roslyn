@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Next
         End Sub
 
-        Private Function IsXmlNode(node As SyntaxNode) As Boolean
+        Private Shared Function IsXmlNode(node As SyntaxNode) As Boolean
             Return TypeOf node Is XmlNodeSyntax OrElse
                    TypeOf node Is XmlNamespaceImportsClauseSyntax OrElse
                    TypeOf node Is XmlMemberAccessExpressionSyntax OrElse
@@ -165,32 +165,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Else
                 AddClassification(trivia, ClassificationTypeNames.ExcludedCode)
             End If
-        End Sub
-
-
-        Private Sub ClassifyDisabledMergeCode(trivia As SyntaxTrivia, triviaText As String)
-            Dim equalsLineLength = 0
-            Dim length = triviaText.Length
-
-            While equalsLineLength < length
-                If SyntaxFacts.IsNewLine(triviaText(equalsLineLength)) Then
-                    Exit While
-                End If
-
-                equalsLineLength += 1
-            End While
-
-            AddClassification(New TextSpan(trivia.SpanStart, equalsLineLength), ClassificationTypeNames.Comment)
-
-            ' Now lex out all the tokens in the rest of the trivia text.
-            Dim tokens = SyntaxFactory.ParseTokens(
-                text:=triviaText,
-                offset:=equalsLineLength,
-                initialTokenPosition:=trivia.SpanStart + equalsLineLength)
-
-            For Each token In tokens
-                ClassifyToken(token)
-            Next
         End Sub
 
         Private Sub ClassifySkippedTokens(skippedTokens As SkippedTokensTriviaSyntax)

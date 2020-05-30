@@ -27,11 +27,6 @@
         <target state="translated">Přidat Shadows</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="If_statement_can_be_simplified">
-        <source>'If' statement can be simplified</source>
-        <target state="translated">Příkaz if lze zjednodušit.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">Vložit {0}</target>
@@ -1472,11 +1467,6 @@ Sub(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
         <target state="translated">Převeď {0} na asynchronní funkci Async.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">Vložit chybějící přetypování</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">Převést {0} na iterátor</target>
@@ -1785,16 +1775,6 @@ Sub(&lt;seznam_parametrů&gt;) &lt;výraz&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Převést na asynchronní proceduru Sub</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Použít kontrolu „Is Nothing“</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">Použít kontrolu „IsNot Nothing“</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">

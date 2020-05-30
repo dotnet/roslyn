@@ -6,12 +6,10 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -30,8 +28,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool generateAbstractly,
                 bool useExplicitInterfaceSymbol,
                 string memberName,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 var factory = Document.GetLanguageService<SyntaxGenerator>();
                 var attributesToRemove = AttributesToRemove(compilation);
@@ -70,10 +67,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             /// We never want to place it in source code.
             /// Same thing for the Dynamic attribute.
             /// </summary>
-            private INamedTypeSymbol[] AttributesToRemove(Compilation compilation)
+            private static INamedTypeSymbol[] AttributesToRemove(Compilation compilation)
             {
                 return new[] { compilation.ComAliasNameAttributeType(), compilation.TupleElementNamesAttributeType(),
-                    compilation.DynamicAttributeType() }.WhereNotNull().ToArray()!;
+                    compilation.DynamicAttributeType(), compilation.NativeIntegerAttributeType() }.WhereNotNull().ToArray()!;
             }
 
             private IMethodSymbol? GenerateSetAccessor(
@@ -146,7 +143,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return default;
 
                 var generator = Document.GetRequiredLanguageService<SyntaxGenerator>();
-                return generator.GetSetAccessorStatements(compilation, property, this.ThroughMember,
+                return generator.GetSetAccessorStatements(compilation, property, ThroughMember,
                     propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties);
             }
 

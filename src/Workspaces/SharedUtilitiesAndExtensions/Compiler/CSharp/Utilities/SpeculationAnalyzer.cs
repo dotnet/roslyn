@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -94,9 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         protected override SemanticModel CreateSpeculativeSemanticModel(SyntaxNode originalNode, SyntaxNode nodeToSpeculate, SemanticModel semanticModel)
-        {
-            return CreateSpeculativeSemanticModelForNode(originalNode, nodeToSpeculate, semanticModel);
-        }
+            => CreateSpeculativeSemanticModelForNode(originalNode, nodeToSpeculate, semanticModel);
 
         public static SemanticModel CreateSpeculativeSemanticModelForNode(SyntaxNode originalNode, SyntaxNode nodeToSpeculate, SemanticModel semanticModel)
         {
@@ -240,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             var replacedIdentifierNodes = replacedLambdaBody.DescendantNodes().OfType<IdentifierNameSyntax>().Where(node => paramNames.Contains(node.Identifier.ValueText));
-            return ReplacementChangesSemanticsForNodes(originalIdentifierNodes, replacedIdentifierNodes, originalLambdaBody, replacedLambdaBody);
+            return ReplacementChangesSemanticsForNodes(originalIdentifierNodes, replacedIdentifierNodes, originalLambdaBody);
         }
 
         private bool HaveSameParameterType(ParameterSyntax originalParam, ParameterSyntax replacedParam)
@@ -253,8 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private bool ReplacementChangesSemanticsForNodes(
             IEnumerable<IdentifierNameSyntax> originalIdentifierNodes,
             IEnumerable<IdentifierNameSyntax> replacedIdentifierNodes,
-            SyntaxNode originalRoot,
-            SyntaxNode replacedRoot)
+            SyntaxNode originalRoot)
         {
             Debug.Assert(originalIdentifierNodes.Any());
             Debug.Assert(originalIdentifierNodes.Count() == replacedIdentifierNodes.Count());
@@ -423,30 +418,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // (since originalCaseType != newCaseType)
                 return originalConversion == newConversion;
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchStatement, out SwitchStatementSyntax originalSwitchStatement))
+            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchStatement, out SwitchStatementSyntax originalSwitchStatement) &&
+                     originalSwitchStatement.Expression == previousOriginalNode)
             {
+                // Switch statement's expression changed, verify that the conversions from switch case labels to new switch
+                // expression type are not broken.
+
                 var newSwitchStatement = (SwitchStatementSyntax)currentReplacedNode;
+                var previousReplacedExpression = (ExpressionSyntax)previousReplacedNode;
 
-                if (originalSwitchStatement.Expression == previousOriginalNode)
+                // it is never legal to use `default/null` in a switch statement's expression.
+                if (previousReplacedExpression.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression))
+                    return true;
+
+                var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
+                var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
+
+                for (var i = 0; i < originalSwitchLabels.Length; i++)
                 {
-                    // Switch expression changed, verify that the conversions from switch case labels to new switch expression type are not broken.
-
-                    var originalExpressionType = this.OriginalSemanticModel.GetTypeInfo(originalSwitchStatement.Expression, this.CancellationToken).Type;
-                    var newExpressionType = this.SpeculativeSemanticModel.GetTypeInfo(newSwitchStatement.Expression, this.CancellationToken).Type;
-
-                    var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
-                    var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
-                    for (var i = 0; i < originalSwitchLabels.Length; i++)
+                    if (originalSwitchLabels[i] is CaseSwitchLabelSyntax originalSwitchLabel &&
+                        newSwitchLabels[i] is CaseSwitchLabelSyntax newSwitchLabel &&
+                        !ImplicitConversionsAreCompatible(originalSwitchLabel.Value, newSwitchLabel.Value))
                     {
-                        if (originalSwitchLabels[i] is CaseSwitchLabelSyntax originalSwitchLabel)
-                        {
-                            if (newSwitchLabels[i] is CaseSwitchLabelSyntax newSwitchLabel && !ImplicitConversionsAreCompatible(originalSwitchLabel.Value, newSwitchLabel.Value))
-                            {
-                                return true;
-                            }
-                        }
+                        return true;
                     }
                 }
+            }
+            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchExpression, out SwitchExpressionSyntax originalSwitchExpression) &&
+                     originalSwitchExpression.GoverningExpression == previousOriginalNode)
+            {
+                var replacedSwitchExpression = (SwitchExpressionSyntax)currentReplacedNode;
+
+                // Switch expression's expression changed.  Ensure it's the same type as before. If not, inference of
+                // the meaning of the patterns within can change.
+
+                var originalExprType = this.OriginalSemanticModel.GetTypeInfo(originalSwitchExpression.GoverningExpression, CancellationToken);
+                var replacedExprType = this.SpeculativeSemanticModel.GetTypeInfo(replacedSwitchExpression.GoverningExpression, CancellationToken);
+
+                if (!Equals(originalExprType.Type, replacedExprType.Type))
+                    return true;
             }
             else if (currentOriginalNode.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax originalIfStatement))
             {
@@ -470,10 +480,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 return previousOriginalNode != null &&
                     ReplacementBreaksCollectionInitializerAddMethod((ExpressionSyntax)previousOriginalNode, (ExpressionSyntax)previousReplacedNode);
-            }
-            else if (currentOriginalNode.Kind() == SyntaxKind.Interpolation)
-            {
-                return ReplacementBreaksInterpolation((InterpolationSyntax)currentOriginalNode, (InterpolationSyntax)currentReplacedNode);
             }
             else if (currentOriginalNode.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
             {
@@ -603,39 +609,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         protected override bool IsInNamespaceOrTypeContext(ExpressionSyntax node)
-        {
-            return SyntaxFacts.IsInNamespaceOrTypeContext(node);
-        }
+            => SyntaxFacts.IsInNamespaceOrTypeContext(node);
 
         protected override ExpressionSyntax GetForEachStatementExpression(CommonForEachStatementSyntax forEachStatement)
-        {
-            return forEachStatement.Expression;
-        }
+            => forEachStatement.Expression;
 
         protected override ExpressionSyntax GetThrowStatementExpression(ThrowStatementSyntax throwStatement)
-        {
-            return throwStatement.Expression;
-        }
+            => throwStatement.Expression;
 
         protected override bool IsForEachTypeInferred(CommonForEachStatementSyntax forEachStatement, SemanticModel semanticModel)
-        {
-            return forEachStatement.IsTypeInferred(semanticModel);
-        }
+            => forEachStatement.IsTypeInferred(semanticModel);
 
         protected override bool IsParenthesizedExpression(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.ParenthesizedExpression);
-        }
+            => node.IsKind(SyntaxKind.ParenthesizedExpression);
 
         protected override bool IsNamedArgument(ArgumentSyntax argument)
-        {
-            return argument.NameColon != null && !argument.NameColon.IsMissing;
-        }
+            => argument.NameColon != null && !argument.NameColon.IsMissing;
 
         protected override string GetNamedArgumentIdentifierValueText(ArgumentSyntax argument)
-        {
-            return argument.NameColon.Name.Identifier.ValueText;
-        }
+            => argument.NameColon.Name.Identifier.ValueText;
 
         private bool ReplacementBreaksBinaryExpression(BinaryExpressionSyntax binaryExpression, BinaryExpressionSyntax newBinaryExpression)
         {
@@ -657,11 +649,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !TypesAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) ||
                 !SymbolsAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull) ||
                 !TypesAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull);
-        }
-
-        private bool ReplacementBreaksInterpolation(InterpolationSyntax interpolation, InterpolationSyntax newInterpolation)
-        {
-            return !TypesAreCompatible(interpolation.Expression, newInterpolation.Expression);
         }
 
         private bool ReplacementBreaksIsOrAsExpression(BinaryExpressionSyntax originalIsOrAsExpression, BinaryExpressionSyntax newIsOrAsExpression)
@@ -715,9 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)
-        {
-            return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
-        }
+            => ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
 
         protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {
@@ -771,9 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         protected override bool IsReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
-        {
-            return compilation.ClassifyConversion(sourceType, targetType).IsReference;
-        }
+            => compilation.ClassifyConversion(sourceType, targetType).IsReference;
 
         protected override Conversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType) =>
             model.ClassifyConversion(expression, targetType);

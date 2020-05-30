@@ -17,13 +17,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     internal sealed class CSharpProjectExistsUIContextProviderLanguageService : IProjectExistsUIContextProviderLanguageService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpProjectExistsUIContextProviderLanguageService()
         {
         }
 
         public UIContext GetUIContext()
-        {
-            return UIContext.FromUIContextGuid(Guids.CSharpProjectExistsInWorkspaceUIContext);
-        }
+            => UIContext.FromUIContextGuid(Guids.CSharpProjectExistsInWorkspaceUIContext);
     }
 }

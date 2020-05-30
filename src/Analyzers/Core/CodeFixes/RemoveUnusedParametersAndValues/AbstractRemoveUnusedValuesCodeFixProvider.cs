@@ -9,8 +9,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -23,12 +25,6 @@ using Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-#endif
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
@@ -106,6 +102,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             SyntaxNode newAssignmentTarget,
             SyntaxEditor editor,
             ISyntaxFactsService syntaxFacts);
+
+        /// <summary>
+        /// Rewrite the parent of a node which was rewritted by <see cref="TryUpdateNameForFlaggedNode"/>.
+        /// </summary>
+        /// <param name="parent">The original parent of the node rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
+        /// <param name="newNameNode">The rewritten node produced by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
+        /// <param name="editor">The syntax editor for the code fix.</param>
+        /// <param name="syntaxFacts">The syntax facts for the current language.</param>
+        /// <returns>The replacement node to use in the rewritten syntax tree; otherwise, <see langword="null"/> to only
+        /// rewrite the node originally rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</returns>
+        protected virtual SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts)
+        {
+            return null;
+        }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -210,7 +220,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 !IsForEachIterationVariableDiagnostic(diagnostic, document, cancellationToken);
         }
 
-        private IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
+        private static IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
             ImmutableArray<Diagnostic> diagnostics,
             ISyntaxFactsService syntaxFacts,
             SyntaxNode root,
@@ -235,13 +245,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             return GetDiagnosticsGroupedByMember(diagnostics, syntaxFacts, root);
         }
 
-        private IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
+        private static IEnumerable<IGrouping<SyntaxNode, Diagnostic>> GetDiagnosticsGroupedByMember(
             ImmutableArray<Diagnostic> diagnostics,
             ISyntaxFactsService syntaxFacts,
             SyntaxNode root)
             => diagnostics.GroupBy(d => syntaxFacts.GetContainingMemberDeclaration(root, d.Location.SourceSpan.Start));
 
-        private async Task<Document> PreprocessDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        private static async Task<Document> PreprocessDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             // Track all the member declaration nodes that have diagnostics.
             // We will post process all these tracked nodes after applying the fix (see "PostProcessDocumentAsync" below in this source file).
@@ -339,7 +349,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
         }
 
-        private void FixAllExpressionValueIsUnusedDiagnostics(
+        private static void FixAllExpressionValueIsUnusedDiagnostics(
             IOrderedEnumerable<Diagnostic> diagnostics,
             SemanticModel semanticModel,
             SyntaxNode root,
@@ -508,7 +518,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
                     else
                     {
-                        nodeReplacementMap.Add(node, newNameNode);
+                        var newParentNode = TryUpdateParentOfUpdatedNode(node.Parent, newNameNode, editor, syntaxFacts);
+                        if (newParentNode is object)
+                        {
+                            nodeReplacementMap.Add(node.Parent, newParentNode);
+                        }
+                        else
+                        {
+                            nodeReplacementMap.Add(node, newNameNode);
+                        }
                     }
                 }
 
@@ -626,10 +644,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             void InsertLocalDeclarationStatement(TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode node)
             {
                 // Find the correct place to insert the given declaration statement based on the node's ancestors.
-                var insertionNode = node.FirstAncestorOrSelf<SyntaxNode>(n => n.Parent is TSwitchCaseBlockSyntax ||
+                var insertionNode = node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((n, syntaxFacts) => n.Parent is TSwitchCaseBlockSyntax ||
                                                                               syntaxFacts.IsExecutableBlock(n.Parent) &&
                                                                               !(n is TCatchStatementSyntax) &&
-                                                                              !(n is TCatchBlockSyntax));
+                                                                              !(n is TCatchBlockSyntax),
+                                                                              syntaxFacts);
                 if (insertionNode is TSwitchCaseLabelOrClauseSyntax)
                 {
                     InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(insertionNode.GetAncestor<TSwitchCaseBlockSyntax>(), editor, declarationStatement);

@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
@@ -17,9 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         internal IComparer<NameSyntax> NameComparer;
 
         internal TypeSyntaxComparer(IComparer<SyntaxToken> tokenComparer)
-        {
-            _tokenComparer = tokenComparer;
-        }
+            => _tokenComparer = tokenComparer;
 
         public int Compare(TypeSyntax x, TypeSyntax y)
         {
@@ -41,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
         }
 
-        private TypeSyntax UnwrapType(TypeSyntax type)
+        private static TypeSyntax UnwrapType(TypeSyntax type)
         {
             while (true)
             {

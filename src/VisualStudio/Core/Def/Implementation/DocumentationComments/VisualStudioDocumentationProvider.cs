@@ -66,8 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DocumentationCo
                string.Equals(_filePath, other._filePath, StringComparison.OrdinalIgnoreCase);
 
         public override int GetHashCode()
-        {
-            return StringComparer.OrdinalIgnoreCase.GetHashCode(_filePath);
-        }
+            => StringComparer.OrdinalIgnoreCase.GetHashCode(_filePath);
     }
 }

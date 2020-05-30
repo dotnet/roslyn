@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly AssetProvider _assetProvider;
 
         public ChecksumSynchronizer(AssetProvider assetProvider)
-        {
-            _assetProvider = assetProvider;
-        }
+            => _assetProvider = assetProvider;
 
         public async Task SynchronizeAssetsAsync(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {

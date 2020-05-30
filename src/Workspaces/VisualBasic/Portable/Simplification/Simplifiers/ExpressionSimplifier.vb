@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return TrySimplify(expression, semanticModel, replacementNode, issueSpan)
         End Function
 
-        Private Function TryReduceExplicitName(
+        Private Shared Function TryReduceExplicitName(
             expression As ExpressionSyntax,
             semanticModel As SemanticModel,
             <Out> ByRef replacementNode As ExpressionSyntax,
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Function TryReduce(
+        Private Shared Function TryReduce(
             memberAccess As MemberAccessExpressionSyntax,
             semanticModel As SemanticModel,
             <Out()> ByRef replacementNode As ExpressionSyntax,
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                                     memberAccess.GetTrailingTrivia()))
 
                             replacementNode = replacementNode.WithAdditionalAnnotations(
-                                    New SyntaxAnnotation(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
+                                    New SyntaxAnnotation(NameOf(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
 
                             issueSpan = memberAccess.Span
                             Return True
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Overloads Function TrySimplify(
+        Private Overloads Shared Function TrySimplify(
             expression As ExpressionSyntax,
             semanticModel As SemanticModel,
             <Out> ByRef replacementNode As ExpressionSyntax,
@@ -212,13 +212,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Function ReplacementChangesSemantics(originalExpression As ExpressionSyntax, replacedExpression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
+        Private Shared Function ReplacementChangesSemantics(originalExpression As ExpressionSyntax, replacedExpression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
             Dim speculationAnalyzer = New SpeculationAnalyzer(originalExpression, replacedExpression, semanticModel, CancellationToken.None)
             Return speculationAnalyzer.ReplacementChangesSemantics()
         End Function
 
         ' Note: The caller needs to verify that replacement doesn't change semantics of the original expression.
-        Private Function TrySimplifyMemberAccessOrQualifiedName(
+        Private Shared Function TrySimplifyMemberAccessOrQualifiedName(
             left As ExpressionSyntax,
             right As ExpressionSyntax,
             semanticModel As SemanticModel,
@@ -264,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Function TryOmitModuleName(memberAccess As MemberAccessExpressionSyntax,
+        Private Shared Function TryOmitModuleName(memberAccess As MemberAccessExpressionSyntax,
                                            semanticModel As SemanticModel,
                                            symbol As ISymbol,
                                            <Out> ByRef replacementNode As ExpressionSyntax,

@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -21,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Inherits AbstractDocCommentCompletionProvider(Of DocumentationCommentTriviaSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
             MyBase.New(s_defaultRules)
         End Sub
@@ -36,13 +38,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("<"c, "/"c, """"c, " "c)
 
-        Public Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
+        Public Shared Function GetPreviousTokenIfTouchingText(token As SyntaxToken, position As Integer) As SyntaxToken
             Return If(token.IntersectsWith(position) AndAlso IsText(token),
                       token.GetPreviousToken(includeSkipped:=True),
                       token)
         End Function
 
-        Private Function IsText(token As SyntaxToken) As Boolean
+        Private Shared Function IsText(token As SyntaxToken) As Boolean
             Return token.IsKind(SyntaxKind.XmlNameToken, SyntaxKind.XmlTextLiteralToken, SyntaxKind.IdentifierToken)
         End Function
 
@@ -296,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return attributeValues
         End Function
 
-        Private Function GetElementNameAndAttributes(node As XmlNodeSyntax) As (Name As String, Attributes As SyntaxList(Of XmlNodeSyntax))
+        Private Shared Function GetElementNameAndAttributes(node As XmlNodeSyntax) As (Name As String, Attributes As SyntaxList(Of XmlNodeSyntax))
             Dim nameSyntax As XmlNameSyntax = Nothing
             Dim attributes As SyntaxList(Of XmlNodeSyntax) = Nothing
 
@@ -336,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return nameSyntax?.LocalName.ValueText
         End Function
 
-        Private Shared s_defaultRules As CompletionItemRules =
+        Private Shared ReadOnly s_defaultRules As CompletionItemRules =
             CompletionItemRules.Create(
                 filterCharacterRules:=FilterRules,
                 enterKeyRule:=EnterKeyRule.Never)

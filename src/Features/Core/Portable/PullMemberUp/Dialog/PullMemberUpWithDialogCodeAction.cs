@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return pullMemberUpOptionService.GetPullMemberUpOptions(_document, _selectedMember);
             }
 
-            protected async override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
                 if (options is PullMembersUpOptions pullMemberUpOptions)
                 {

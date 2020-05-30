@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         protected abstract Compilation GetCompilation();
 
-        private ImmutableDictionary<string, string> GetAdditionalProperties(
+        private static ImmutableDictionary<string, string> GetAdditionalProperties(
             Diagnostic diagnostic,
             Compilation compilation)
         {

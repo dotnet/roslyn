@@ -9,16 +9,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
@@ -87,7 +82,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        public static (SourceText? analyzerConfig, IEnumerable<KeyValuePair<OptionKey, object?>> options) ConvertOptionsToAnalyzerConfig(string defaultFileExtension, string? explicitEditorConfig, OptionsCollection options)
+        public static string? GetEditorConfigText(this OptionsCollection options)
+        {
+            var (text, _) = ConvertOptionsToAnalyzerConfig(options.DefaultExtension, explicitEditorConfig: string.Empty, options);
+            return text?.ToString();
+        }
+
+        public static (SourceText? analyzerConfig, IEnumerable<KeyValuePair<OptionKey2, object?>> options) ConvertOptionsToAnalyzerConfig(string defaultFileExtension, string? explicitEditorConfig, OptionsCollection options)
         {
             if (options.Count == 0)
             {
@@ -95,8 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return (result, options);
             }
 
-            var optionSet = new OptionSetWrapper(options.ToDictionary<KeyValuePair<OptionKey, object?>, OptionKey, object?>(option => option.Key, option => option.Value));
-            var remainingOptions = new List<KeyValuePair<OptionKey, object?>>();
+            var remainingOptions = new List<KeyValuePair<OptionKey2, object?>>();
 
             var analyzerConfig = new StringBuilder();
             if (explicitEditorConfig is object)
@@ -112,51 +112,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             analyzerConfig.AppendLine($"[*.{defaultFileExtension}]");
             foreach (var (key, value) in options)
             {
-                var editorConfigStorageLocation = key.Option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
-                if (editorConfigStorageLocation is null)
+                if (value is NamingStylePreferences namingStylePreferences)
                 {
-                    remainingOptions.Add(KeyValuePairUtil.Create<OptionKey, object?>(key, value));
+                    EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, key.Language!, analyzerConfig);
                     continue;
                 }
 
-                analyzerConfig.AppendLine(editorConfigStorageLocation.GetEditorConfigString(value, optionSet));
+                var editorConfigStorageLocation = key.Option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
+                if (editorConfigStorageLocation is null)
+                {
+                    remainingOptions.Add(KeyValuePairUtil.Create<OptionKey2, object?>(key, value));
+                    continue;
+                }
+
+                analyzerConfig.AppendLine(editorConfigStorageLocation.GetEditorConfigString(value, null!));
             }
 
             return (SourceText.From(analyzerConfig.ToString(), Encoding.UTF8), remainingOptions);
-        }
-
-        private sealed class OptionSetWrapper : OptionSet
-        {
-            private readonly Dictionary<OptionKey, object?> _options;
-
-            public OptionSetWrapper(Dictionary<OptionKey, object?> options)
-            {
-                _options = options;
-            }
-
-#if CODE_STYLE
-            public override bool TryGetValue(string key, out string value)
-            {
-                throw new NotImplementedException();
-            }
-#else
-            public override object? GetOption(OptionKey optionKey)
-            {
-                if (!_options.TryGetValue(optionKey, out var value))
-                {
-                    value = optionKey.Option.DefaultValue;
-                }
-
-                return value;
-            }
-
-            public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
-                => throw new NotSupportedException();
-
-            internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
-                => SpecializedCollections.EmptyEnumerable<OptionKey>();
-
-#endif
         }
     }
 }

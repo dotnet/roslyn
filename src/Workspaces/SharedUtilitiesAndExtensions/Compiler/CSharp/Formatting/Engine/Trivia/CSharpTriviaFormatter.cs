@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable enable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -32,40 +34,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected override bool Succeeded()
-        {
-            return _succeeded;
-        }
+            => _succeeded;
 
         protected override bool IsWhitespace(SyntaxTrivia trivia)
-        {
-            return trivia.RawKind == (int)SyntaxKind.WhitespaceTrivia;
-        }
+            => trivia.RawKind == (int)SyntaxKind.WhitespaceTrivia;
 
         protected override bool IsEndOfLine(SyntaxTrivia trivia)
-        {
-            return trivia.RawKind == (int)SyntaxKind.EndOfLineTrivia;
-        }
+            => trivia.RawKind == (int)SyntaxKind.EndOfLineTrivia;
 
         protected override bool IsWhitespace(char ch)
-        {
-            return SyntaxFacts.IsWhitespace(ch);
-        }
+            => SyntaxFacts.IsWhitespace(ch);
 
         protected override bool IsNewLine(char ch)
-        {
-            return SyntaxFacts.IsNewLine(ch);
-        }
+            => SyntaxFacts.IsNewLine(ch);
 
         protected override SyntaxTrivia CreateWhitespace(string text)
-        {
-            return SyntaxFactory.Whitespace(text);
-        }
+            => SyntaxFactory.Whitespace(text);
 
         protected override SyntaxTrivia CreateEndOfLine()
         {
             if (_newLine == default)
             {
-                var text = this.Context.Options.GetOption(FormattingOptions.NewLine);
+                var text = this.Context.Options.GetOption(FormattingOptions2.NewLine);
                 _newLine = SyntaxFactory.EndOfLine(text);
             }
 
@@ -99,18 +89,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return LineColumnRule.PreserveWithGivenSpaces(spaces: this.Spaces);
                 }
 
-                return LineColumnRule.Preserve();
+                return LineColumnRule.Preserve;
             }
 
             // preprocessor case
             if (SyntaxFacts.IsPreprocessorDirective(trivia2.Kind()))
             {
-                // Check for immovable preprocessor directives, which are bad directive trivia 
+                // Check for immovable preprocessor directives, which are bad directive trivia
                 // without a preceding line break
                 if (trivia2.IsKind(SyntaxKind.BadDirectiveTrivia) && existingWhitespaceBetween.Lines == 0 && !implicitLineBreak)
                 {
                     _succeeded = false;
-                    return LineColumnRule.Preserve();
+                    return LineColumnRule.Preserve;
                 }
 
                 // if current line is the first line of the file, don't put extra line 1
@@ -147,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return LineColumnRule.PreserveLinesWithGivenIndentation(lines: 0);
                 }
 
-                return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation();
+                return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation;
             }
 
             if (trivia2.IsKind(SyntaxKind.SkippedTokensTrivia))
@@ -156,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _succeeded = false;
             }
 
-            return LineColumnRule.Preserve();
+            return LineColumnRule.Preserve;
         }
 
         protected override bool ContainsImplicitLineBreak(SyntaxTrivia trivia)
@@ -175,13 +165,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private bool IsStartOrEndOfFile(SyntaxTrivia trivia1, SyntaxTrivia trivia2)
         {
-            return (this.Token1.RawKind == 0 || this.Token2.RawKind == 0) && (trivia1.Kind() == 0 || trivia2.Kind() == 0);
+            // Below represents the tokens for a file:
+            // (None) - It is the start of the file. This means there are no previous tokens.
+            // (...) - All the tokens in the compilation unit.
+            // (EndOfFileToken) - This is the synthetic end of file token. Should be treated as the end of the file.
+            // (None) - It is the end of the file. This means there are no more tokens.
+
+            var isStartOrEndOfFile = (this.Token1.RawKind == 0 || this.Token2.RawKind == 0) && (trivia1.Kind() == 0 || trivia2.Kind() == 0);
+            var isAtEndOfFileToken = (Token2.IsKind(SyntaxKind.EndOfFileToken) && trivia2.Kind() == 0);
+
+            return isStartOrEndOfFile || isAtEndOfFileToken;
         }
 
         private static bool IsMultilineComment(SyntaxTrivia trivia1)
-        {
-            return trivia1.IsMultiLineComment() || trivia1.IsMultiLineDocComment();
-        }
+            => trivia1.IsMultiLineComment() || trivia1.IsMultiLineDocComment();
 
         private bool TryFormatMultiLineCommentTrivia(LineColumn lineColumn, SyntaxTrivia trivia, out SyntaxTrivia result)
         {
@@ -200,9 +197,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     false /* forceIndentation */,
                     indentation,
                     indentationDelta,
-                    this.Options.GetOption(FormattingOptions.UseTabs),
-                    this.Options.GetOption(FormattingOptions.TabSize),
-                    this.Options.GetOption(FormattingOptions.NewLine));
+                    this.Options.GetOption(FormattingOptions2.UseTabs),
+                    this.Options.GetOption(FormattingOptions2.TabSize),
+                    this.Options.GetOption(FormattingOptions2.NewLine));
 
                 var multilineCommentTrivia = SyntaxFactory.ParseLeadingTrivia(multiLineComment);
                 Contract.ThrowIfFalse(multilineCommentTrivia.Count == 1);
@@ -215,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected override LineColumnDelta Format(
-            LineColumn lineColumn, SyntaxTrivia trivia, List<SyntaxTrivia> changes,
+            LineColumn lineColumn, SyntaxTrivia trivia, ArrayBuilder<SyntaxTrivia> changes,
             CancellationToken cancellationToken)
         {
             if (trivia.HasStructure)
@@ -234,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected override LineColumnDelta Format(
-            LineColumn lineColumn, SyntaxTrivia trivia, List<TextChange> changes, CancellationToken cancellationToken)
+            LineColumn lineColumn, SyntaxTrivia trivia, ArrayBuilder<TextChange> changes, CancellationToken cancellationToken)
         {
             if (trivia.HasStructure)
             {
@@ -296,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private LineColumnDelta FormatStructuredTrivia(
-            LineColumn lineColumn, SyntaxTrivia trivia, List<SyntaxTrivia> changes, CancellationToken cancellationToken)
+            LineColumn lineColumn, SyntaxTrivia trivia, ArrayBuilder<SyntaxTrivia> changes, CancellationToken cancellationToken)
         {
             if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
             {
@@ -325,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private LineColumnDelta FormatStructuredTrivia(
-            LineColumn lineColumn, SyntaxTrivia trivia, List<TextChange> changes, CancellationToken cancellationToken)
+            LineColumn lineColumn, SyntaxTrivia trivia, ArrayBuilder<TextChange> changes, CancellationToken cancellationToken)
         {
             if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
             {

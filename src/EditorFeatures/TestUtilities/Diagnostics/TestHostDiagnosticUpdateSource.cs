@@ -11,9 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private readonly Workspace _workspace;
 
         public TestHostDiagnosticUpdateSource(Workspace workspace)
-        {
-            _workspace = workspace;
-        }
+            => _workspace = workspace;
 
         public override Workspace Workspace
         {
@@ -24,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         public override int GetHashCode()
-        {
-            return _workspace.GetHashCode();
-        }
+            => _workspace.GetHashCode();
     }
 }

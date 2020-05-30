@@ -142,9 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (property.IsStatic || node.ReceiverOpt is BoundThisReference)
             {
                 var accessor = property.GetMethod;
-
-                ApplyMemberPostConditions(property.ContainingType,
-                    accessor.NotNullMembers, accessor.NotNullWhenTrueMembers, accessor.NotNullWhenFalseMembers);
+                if (!(accessor is null))
+                {
+                    ApplyMemberPostConditions(property.ContainingType,
+                        accessor.NotNullMembers, accessor.NotNullWhenTrueMembers, accessor.NotNullWhenFalseMembers);
+                }
             }
 
             return result;
@@ -278,6 +280,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FieldSymbol { AssociatedSymbol: PropertySymbol p } => p,
                     _ => member
                 };
+                if ((symbol.GetFlowAnalysisAnnotations() & FlowAnalysisAnnotations.MaybeNull) != 0)
+                {
+                    continue;
+                }
                 var location = getSymbolForLocation(walkerOpt, symbol).Locations.FirstOrNone();
                 diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, location, symbol.Kind.Localize(), symbol.Name);
             }

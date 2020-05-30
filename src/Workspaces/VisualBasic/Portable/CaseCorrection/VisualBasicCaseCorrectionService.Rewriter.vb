@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -11,7 +10,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
-    Friend Partial Class VisualBasicCaseCorrectionService
+    Partial Friend Class VisualBasicCaseCorrectionService
         Private Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
@@ -256,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                 Return token
             End Function
 
-            Private Function VisitNumericLiteral(token As SyntaxToken) As SyntaxToken
+            Private Shared Function VisitNumericLiteral(token As SyntaxToken) As SyntaxToken
                 If Not token.IsMissing Then
 
                     ' For any numeric literal, we simply case correct any letters to uppercase.
@@ -277,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                 Return token
             End Function
 
-            Private Function VisitCharacterLiteral(token As SyntaxToken) As SyntaxToken
+            Private Shared Function VisitCharacterLiteral(token As SyntaxToken) As SyntaxToken
                 If Not token.IsMissing Then
 
                     ' For character literals, we case correct the type character to "c".

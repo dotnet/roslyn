@@ -127,9 +127,7 @@ namespace Roslyn.Utilities
             private readonly AsyncLazy<T> _asyncLazy;
 
             public WaitThatValidatesInvariants(AsyncLazy<T> asyncLazy)
-            {
-                _asyncLazy = asyncLazy;
-            }
+                => _asyncLazy = asyncLazy;
 
             public void Dispose()
             {
@@ -576,7 +574,13 @@ namespace Roslyn.Utilities
                 }
                 else if (task.IsFaulted)
                 {
-                    this.TrySetException(task.Exception!);
+                    // TrySetException wraps its argument in an AggregateException, so we pass the inner exceptions from
+                    // the antecedent to avoid wrapping in two layers of AggregateException.
+                    RoslynDebug.AssertNotNull(task.Exception);
+                    if (task.Exception.InnerExceptions.Count > 0)
+                        this.TrySetException(task.Exception.InnerExceptions);
+                    else
+                        this.TrySetException(task.Exception);
                 }
                 else
                 {
@@ -587,9 +591,7 @@ namespace Roslyn.Utilities
             }
 
             public void Cancel()
-            {
-                this.TrySetCanceled(_cancellationToken);
-            }
+                => this.TrySetCanceled(_cancellationToken);
         }
     }
 }

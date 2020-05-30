@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.Wrapping
@@ -59,27 +58,40 @@ namespace Microsoft.CodeAnalysis.Wrapping
             var operations = await base.ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
             var operationsList = operations.ToList();
 
-            operationsList.Add(new RecordCodeActionOperation(this.SortTitle, this.ParentTitle));
+            operationsList.Add(new RecordCodeActionOperation(SortTitle, ParentTitle));
             return operationsList;
         }
 
         public static ImmutableArray<CodeAction> SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction> codeActions)
-        {
-            // make a local so this array can't change out from under us.
-            var mruTitles = s_mruTitles;
-            return codeActions.Sort((d1, d2) => ComparerWithState.CompareTo(d1, d2, (mruTitles, codeActions), s_comparers));
-        }
+            => SortByMostRecentlyUsed(codeActions, s_mruTitles, a => GetSortTitle(a));
 
-        private static readonly ImmutableArray<Func<CodeAction, (ImmutableArray<string>, ImmutableArray<CodeAction>), IComparable>> s_comparers =
-            ImmutableArray.Create<Func<CodeAction, (ImmutableArray<string>, ImmutableArray<CodeAction>), IComparable>>(
-                // one of these has never been invoked.  It's always after an item that has been
-                // invoked.
-                // we've invoked both of these before.  Order by how recently it was invoked.
-                (ca, tuple) => tuple.Item1.IndexOf(GetSortTitle(ca)),
-                // Neither of these has been invoked.   Keep it in the same order we found it in the
-                // array.  Note: we cannot return 0 here as ImmutableArray/Array are not guaranteed
-                // to sort stably.
-                (ca, tuple) => tuple.Item2.IndexOf(ca));
+        public static ImmutableArray<T> SortByMostRecentlyUsed<T>(
+            ImmutableArray<T> items, ImmutableArray<string> mostRecentlyUsedKeys, Func<T, string> getKey)
+        {
+            return items.Sort((d1, d2) =>
+            {
+                var mruIndex1 = mostRecentlyUsedKeys.IndexOf(getKey(d1));
+                var mruIndex2 = mostRecentlyUsedKeys.IndexOf(getKey(d2));
+
+                // If both are in the mru, prefer the one earlier on.
+                if (mruIndex1 >= 0 && mruIndex2 >= 0)
+                    return mruIndex1 - mruIndex2;
+
+                // if either is in the mru, and the other is not, then the mru item is preferred.
+                if (mruIndex1 >= 0)
+                    return -1;
+
+                if (mruIndex2 >= 0)
+                    return 1;
+
+                // Neither are in the mru.  Sort them based on their original locations.
+                var index1 = items.IndexOf(d1);
+                var index2 = items.IndexOf(d2);
+
+                // Note: we don't return 0 here as ImmutableArray.Sort is not stable.
+                return index1 - index2;
+            });
+        }
 
         private static string GetSortTitle(CodeAction codeAction)
             => (codeAction as WrapItemsAction)?.SortTitle ?? codeAction.Title;

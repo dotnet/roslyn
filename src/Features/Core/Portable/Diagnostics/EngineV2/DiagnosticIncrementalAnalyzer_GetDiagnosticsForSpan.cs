@@ -199,7 +199,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                 }
 
+#if DEBUG
                 VerifyDiagnostics(model);
+#endif
 
                 var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 if (root == null)
@@ -214,16 +216,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
-            {
-                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Syntax, _compilation, _owner.GetOrCreateSkippedAnalyzersInfo, _range, cancellationToken);
-            }
+                => AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Syntax, _owner.DiagnosticAnalyzerInfoCache, _compilation, _range, cancellationToken);
 
             private Task<IEnumerable<DiagnosticData>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
             {
                 var supportsSemanticInSpan = analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
 
                 var analysisSpan = supportsSemanticInSpan ? (TextSpan?)_range : null;
-                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Semantic, _compilation, _owner.GetOrCreateSkippedAnalyzersInfo, analysisSpan, cancellationToken);
+                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Semantic, _owner.DiagnosticAnalyzerInfoCache, _compilation, analysisSpan, cancellationToken);
             }
 
             private async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
@@ -243,10 +243,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return ImmutableArray<DiagnosticData>.Empty;
             }
 
-            [Conditional("DEBUG")]
+#if DEBUG
             private void VerifyDiagnostics(SemanticModel model)
             {
-#if DEBUG
                 // Exclude unused import diagnostics since they are never reported when a span is passed.
                 // (See CSharp/VisualBasicCompilation.GetDiagnosticsForMethodBodiesInTree.)
                 bool shouldInclude(Diagnostic d) => _range.IntersectsWith(d.Location.SourceSpan) && !IsUnusedImportDiagnostic(d);
@@ -273,21 +272,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     GC.KeepAlive(wholeMethodBodyDiagnostics);
                     GC.KeepAlive(wholeDiagnostics);
                 }
-#endif
-            }
 
-            private static bool IsUnusedImportDiagnostic(Diagnostic d)
-            {
-                switch (d.Id)
+                static bool IsUnusedImportDiagnostic(Diagnostic d)
                 {
-                    case "CS8019":
-                    case "BC50000":
-                    case "BC50001":
-                        return true;
-                    default:
-                        return false;
+                    switch (d.Id)
+                    {
+                        case "CS8019":
+                        case "BC50000":
+                        case "BC50001":
+                            return true;
+                        default:
+                            return false;
+                    }
                 }
             }
+#endif
 
             private static TextSpan AdjustSpan(Document document, SyntaxNode root, TextSpan span)
             {
@@ -442,17 +441,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return set.SetEquals(diagnosticsB);
         }
 
-        private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic>
+        private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic?>
         {
             internal static readonly DiagnosticComparer Instance = new DiagnosticComparer();
 
-            public bool Equals(Diagnostic x, Diagnostic y)
+            public bool Equals(Diagnostic? x, Diagnostic? y)
             {
+                if (x is null)
+                    return y is null;
+                else if (y is null)
+                    return false;
+
                 return x.Id == y.Id && x.Location == y.Location;
             }
 
-            public int GetHashCode(Diagnostic obj)
+            public int GetHashCode(Diagnostic? obj)
             {
+                if (obj is null)
+                    return 0;
+
                 return Hash.Combine(obj.Id.GetHashCode(), obj.Location.GetHashCode());
             }
         }

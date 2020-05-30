@@ -5,10 +5,17 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStruct
+    Public Enum TestHost
+        InProcess
+        OutOfProcess
+    End Enum
+
     Public Class ConvertTupleToStructTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -20,10 +27,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStru
             Return FlattenActions(actions)
         End Function
 
+        Private Function GetTestOptions(host As TestHost) As OptionsCollection
+            Return [Option](RemoteHostOptions.RemoteHostTest, host <> TestHost.InProcess)
+        End Function
+
 #Region "update containing member tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertSingleTupleType() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleType(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -75,11 +86,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertSingleTupleTypeNoNames() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleTypeNoNames(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -131,11 +142,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertSingleTupleTypePartialNames() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleTypePartialNames(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -187,11 +198,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertFromType() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertFromType(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -245,11 +256,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertFromType2() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertFromType2(host As TestHost) As Task
             Dim text = "
 class Test
     function Method() as (a as integer, b as integer)
@@ -303,11 +314,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertFromType3() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertFromType3(host As TestHost) As Task
             Dim text = "
 class Test
     function Method() as (a as integer, b as integer)
@@ -360,11 +371,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertFromType4() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertFromType4(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -417,11 +428,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertSingleTupleTypeInNamespace() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleTypeInNamespace(host As TestHost) As Task
             Dim text = "
 namespace N
     class Test
@@ -477,11 +488,11 @@ namespace N
     End Structure
 end namespace
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestNonLiteralNames() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestNonLiteralNames(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -532,11 +543,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertSingleTupleTypeWithInferredName() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertSingleTupleTypeWithInferredName(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method(b as integer)
@@ -587,11 +598,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertMultipleInstancesInSameMethod() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertMultipleInstancesInSameMethod(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -644,11 +655,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertMultipleInstancesInSameMethod_DifferingCase() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertMultipleInstancesInSameMethod_DifferingCase(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -701,11 +712,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertMultipleInstancesAcrossMethods() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertMultipleInstancesAcrossMethods(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -768,11 +779,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function OnlyConvertMatchingTypesInSameMethod() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function OnlyConvertMatchingTypesInSameMethod(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method(b as integer)
@@ -829,15 +840,15 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
         Sub foo(a As Integer, b As Integer)
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestFixAllMatchesInSingleMethod() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestFixAllMatchesInSingleMethod(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method(b as integer)
@@ -894,11 +905,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestFixNotAcrossMethods() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestFixNotAcrossMethods(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -961,11 +972,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function NotIfReferencesAnonymousTypeInternally() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function NotIfReferencesAnonymousTypeInternally(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -976,8 +987,8 @@ end class"
             Await TestMissingInRegularAndScriptAsync(text)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertMultipleNestedInstancesInSameMethod1() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertMultipleNestedInstancesInSameMethod1(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -1030,11 +1041,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertMultipleNestedInstancesInSameMethod2() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertMultipleNestedInstancesInSameMethod2(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -1087,11 +1098,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function RenameAnnotationOnStartingPoint() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function RenameAnnotationOnStartingPoint(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -1144,11 +1155,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function CapturedMethodTypeParameters() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function CapturedMethodTypeParameters(host As TestHost) As Task
             Dim text = "
 imports System.Collections.Generic
 
@@ -1207,11 +1218,11 @@ End Structure
             Await TestExactActionSetOfferedAsync(text, {
                 FeaturesResources.updating_usages_in_containing_member
             })
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function NewTypeNameCollision() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function NewTypeNameCollision(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -1268,11 +1279,11 @@ Friend Structure NewStruct1
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function NewTypeNameCollision_CaseInsensitive() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function NewTypeNameCollision_CaseInsensitive(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -1329,11 +1340,11 @@ Friend Structure NewStruct1
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestDuplicatedName() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestDuplicatedName(host As TestHost) As Task
             Dim text = "
 class Test
     sub Method()
@@ -1384,11 +1395,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestInLambda1() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestInLambda1(host As TestHost) As Task
             Dim text = "
 imports System
 
@@ -1449,11 +1460,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestInLambda2() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestInLambda2(host As TestHost) As Task
             Dim text = "
 imports System
 
@@ -1514,11 +1525,11 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertWithDefaultNames1() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertWithDefaultNames1(host As TestHost) As Task
             Dim text As String = "
 class Test
     sub Method()
@@ -1583,11 +1594,11 @@ End Structure
                 FeaturesResources.updating_usages_in_containing_type
             })
 
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function ConvertWithDefaultNames2() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function ConvertWithDefaultNames2(host As TestHost) As Task
             Dim text As String = "
 class Test
     sub Method()
@@ -1652,7 +1663,7 @@ End Structure
                 FeaturesResources.updating_usages_in_containing_type
             })
 
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, options:=GetTestOptions(host))
         End Function
 
         Protected Overrides Function GetScriptOptions() As ParseOptions
@@ -1663,8 +1674,8 @@ End Structure
 
 #Region "update containing type tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function TestCapturedTypeParameter_UpdateType() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function TestCapturedTypeParameter_UpdateType(host As TestHost) As Task
             Dim text = "
 imports System
 
@@ -1746,8 +1757,8 @@ End Structure
             Await TestInRegularAndScriptAsync(text, expected, index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function UpdateAllInType_SinglePart_SingleFile() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function UpdateAllInType_SinglePart_SingleFile(host As TestHost) As Task
             Dim text = "
 imports System
 
@@ -1823,8 +1834,8 @@ End Structure
             Await TestInRegularAndScriptAsync(text, expected, index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function UpdateAllInType_MultiplePart_SingleFile() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function UpdateAllInType_MultiplePart_SingleFile(host As TestHost) As Task
             Dim text = "
 imports System
 
@@ -1902,8 +1913,8 @@ End Structure
             Await TestInRegularAndScriptAsync(text, expected, index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function UpdateAllInType_MultiplePart_MultipleFile() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function UpdateAllInType_MultiplePart_MultipleFile(host As TestHost) As Task
             Dim text = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -2022,8 +2033,8 @@ end class
 
 #Region "update containing project tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function UpdateAllInProject_MultiplePart_MultipleFile_WithNamespace() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function UpdateAllInProject_MultiplePart_MultipleFile_WithNamespace(host As TestHost) As Task
             Dim text = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -2146,8 +2157,8 @@ end class
 
 #Region "update dependent projects"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function UpdateDependentProjects_DirectDependency() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function UpdateDependentProjects_DirectDependency(host As TestHost) As Task
             Dim text = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -2255,8 +2266,8 @@ end class
             Await TestInRegularAndScriptAsync(text, expected, index:=3)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
-        Public Async Function UpdateDependentProjects_NoDependency() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
+        Public Async Function UpdateDependentProjects_NoDependency(host As TestHost) As Task
             Dim text = "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">

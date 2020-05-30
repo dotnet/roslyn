@@ -30,13 +30,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Fakes
         }
 
         public virtual FindUsagesContext StartSearch(string title, bool supportsReferences)
-        {
-            return new SimpleFindUsagesContext(CancellationToken.None);
-        }
+            => new SimpleFindUsagesContext(CancellationToken.None);
 
         public virtual FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
-        {
-            return new SimpleFindUsagesContext(CancellationToken.None);
-        }
+            => new SimpleFindUsagesContext(CancellationToken.None);
     }
 }

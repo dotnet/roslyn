@@ -4,16 +4,13 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -86,7 +83,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             foreach (var linkedDocumentId in linkedDocumentIds)
             {
                 var linkedDocument = document.Project.Solution.GetRequiredDocument(linkedDocumentId);
-                var linkedToken = await FindTokenInLinkedDocumentAsync(token, document, linkedDocument, cancellationToken).ConfigureAwait(false);
+                var linkedToken = await FindTokenInLinkedDocumentAsync(token, linkedDocument, cancellationToken).ConfigureAwait(false);
 
                 if (linkedToken != default)
                 {
@@ -127,9 +124,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             => symbols.Length > 0
                 && !ErrorVisitor.ContainsError(symbols.FirstOrDefault());
 
-        private async Task<SyntaxToken> FindTokenInLinkedDocumentAsync(
+        private static async Task<SyntaxToken> FindTokenInLinkedDocumentAsync(
             SyntaxToken token,
-            Document originalDocument,
             Document linkedDocument,
             CancellationToken cancellationToken)
         {
@@ -181,7 +177,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.Description, mainDescriptionTaggedParts);
             }
 
-            var documentedSymbol = symbols.FirstOrDefault()?.OriginalDefinition;
+            var documentedSymbol = symbols.FirstOrDefault();
 
             // if generating quick info for an attribute, bind to the class instead of the constructor
             if (syntaxFactsService.IsAttributeName(token.Parent) &&
@@ -203,7 +199,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.DocumentationComments, documentationContent);
             }
 
-            var remarksDocumentationContent = GetRemarksDocumentationContent(documentedSymbol, groups, semanticModel, token, formatter, cancellationToken);
+            var remarksDocumentationContent = GetRemarksDocumentationContent(workspace, documentedSymbol, groups, semanticModel, token, formatter, cancellationToken);
             if (!remarksDocumentationContent.IsDefaultOrEmpty)
             {
                 var builder = ImmutableArray.CreateBuilder<TaggedText>();
@@ -304,7 +300,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return QuickInfoItem.Create(token.Span, tags, sections.ToImmutable());
         }
 
-        private ImmutableArray<TaggedText> GetDocumentationContent(
+        private static ImmutableArray<TaggedText> GetDocumentationContent(
             ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,
@@ -328,7 +324,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return default;
         }
 
-        private ImmutableArray<TaggedText> GetRemarksDocumentationContent(
+        private static ImmutableArray<TaggedText> GetRemarksDocumentationContent(
+            Workspace workspace,
             ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,
@@ -336,6 +333,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             IDocumentationCommentFormattingService formatter,
             CancellationToken cancellationToken)
         {
+            if (!workspace.Options.GetOption(QuickInfoOptions.ShowRemarksInQuickInfo, semanticModel.Language))
+            {
+                // <remarks> is disabled in Quick Info
+                return default;
+            }
+
             if (sections.TryGetValue(SymbolDescriptionGroups.RemarksDocumentation, out var parts))
             {
                 return parts;
@@ -352,7 +355,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return default;
         }
 
-        private ImmutableArray<TaggedText> GetReturnsDocumentationContent(
+        private static ImmutableArray<TaggedText> GetReturnsDocumentationContent(
             ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,
@@ -376,7 +379,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return default;
         }
 
-        private ImmutableArray<TaggedText> GetValueDocumentationContent(
+        private static ImmutableArray<TaggedText> GetValueDocumentationContent(
             ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,
@@ -414,8 +417,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             var symbols = GetSymbolsFromToken(token, document.Project.Solution.Workspace, semanticModel, cancellationToken);
 
-            var bindableParent = syntaxFacts.GetBindableParent(token);
-            var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
+            var bindableParent = syntaxFacts.TryGetBindableParent(token);
+            var overloads = bindableParent != null
+                ? semanticModel.GetMemberGroup(bindableParent, cancellationToken)
+                : ImmutableArray<ISymbol>.Empty;
 
             symbols = symbols.Where(IsOk)
                              .Where(s => IsAccessible(s, enclosingType))

@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public AddReferenceDatabase Database { get; }
 
         public AddReferenceDatabaseWrapper(AddReferenceDatabase database)
-        {
-            Database = database;
-        }
+            => Database = database;
     }
 }

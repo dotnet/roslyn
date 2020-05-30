@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override ValueTask<TResult> DefaultVisit(ISymbol symbol)
-        {
-            return new ValueTask<TResult>(DefaultResult);
-        }
+            => new ValueTask<TResult>(DefaultResult);
     }
 }

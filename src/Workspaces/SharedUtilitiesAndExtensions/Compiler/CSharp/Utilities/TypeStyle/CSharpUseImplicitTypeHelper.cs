@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,10 +18,8 @@ using Microsoft.CodeAnalysis.Operations;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle.TypeStyle;
 #else
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
@@ -171,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return false;
         }
 
-        private bool TryAnalyzeDeclarationExpression(
+        private static bool TryAnalyzeDeclarationExpression(
             DeclarationExpressionSyntax declarationExpression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -212,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 declarationType, newDeclarationType);
         }
 
-        private bool IsSafeToSwitchToVarWithoutNeedingSpeculation(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static bool IsSafeToSwitchToVarWithoutNeedingSpeculation(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // It's not always safe to convert a decl expression like "Method(out int i)" to
             // "Method(out var i)".  Changing to 'var' may cause overload resolution errors.
@@ -340,9 +339,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         internal static ExpressionSyntax GetInitializerExpression(ExpressionSyntax initializer)
-            => initializer is CheckedExpressionSyntax
-                ? ((CheckedExpressionSyntax)initializer).Expression.WalkDownParentheses()
-                : initializer.WalkDownParentheses();
+        {
+            var current = (initializer as RefExpressionSyntax)?.Expression ?? initializer;
+            current = (current as CheckedExpressionSyntax)?.Expression ?? current;
+            return current.WalkDownParentheses();
+        }
 
         protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
@@ -356,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
         }
 
-        private bool IsSwitchExpressionAndCannotUseVar(TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel)
+        private static bool IsSwitchExpressionAndCannotUseVar(TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel)
         {
             if (initializer.IsKind(SyntaxKind.SwitchExpression))
             {

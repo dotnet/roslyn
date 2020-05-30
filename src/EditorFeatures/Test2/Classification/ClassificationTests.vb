@@ -42,7 +42,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Dim provider = New SemanticClassificationViewTaggerProvider(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     workspace.GetService(Of IForegroundNotificationService),
-                    workspace.GetService(Of ISemanticChangeNotificationService),
                     workspace.GetService(Of ClassificationTypeMap),
                     listenerProvider)
 
@@ -121,6 +120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Implements IClassificationService
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider<DocumentationCommentTriviaSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XmlDocCommentCompletionProvider() : base(s_defaultRules)
         {
         }
@@ -253,10 +255,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return (name: nameSyntax?.LocalName.ValueText, attributes);
         }
 
-        private bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
+        private static bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
         {
-            XmlAttributeSyntax attributeSyntax = null;
-
+            XmlAttributeSyntax attributeSyntax;
             if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
                 token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute, out XmlNameAttributeSyntax xmlName))
             {

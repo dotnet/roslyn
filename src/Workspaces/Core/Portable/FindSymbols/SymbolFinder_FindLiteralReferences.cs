@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // Create a callback that we can pass to the server process to hear about the 
                     // results as it finds them.  When we hear about results we'll forward them to
                     // the 'progress' parameter which will then update the UI.
-                    var serverCallback = new FindLiteralsServerCallback(solution, progress, cancellationToken);
+                    var serverCallback = new FindLiteralsServerCallback(solution, progress);
 
                     var success = await client.TryRunRemoteAsync(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
                         solution,
                         new object[] { value, typeCode },

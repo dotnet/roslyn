@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
@@ -20,13 +23,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     {
         public static readonly IntervalTree<T> Empty = new IntervalTree<T>();
 
-        protected Node root;
+        protected Node? root;
 
         private delegate bool TestInterval<TIntrospector>(T value, int start, int length, in TIntrospector introspector)
             where TIntrospector : struct, IIntervalIntrospector<T>;
 
-        private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool
-            = SharedPools.Default<Stack<(Node node, bool firstTime)>>();
+        private static readonly ObjectPool<Stack<(Node? node, bool firstTime)>> s_stackPool
+            = SharedPools.Default<Stack<(Node? node, bool firstTime)>>();
 
         public IntervalTree()
         {
@@ -137,9 +140,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         private bool Any<TIntrospector>(int start, int length, TestInterval<TIntrospector> testInterval, in TIntrospector introspector)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
-            using var _ = ArrayBuilder<T>.GetInstance(out var builder);
-            FillWithIntervalsThatMatch(start, length, testInterval, builder, in introspector, stopAfterFirst: true);
-            return builder.Count > 0;
+            var matches = FillWithIntervalsThatMatch(start, length, testInterval, builder: null, in introspector, stopAfterFirst: true);
+            return matches > 0;
         }
 
         private ImmutableArray<T> GetIntervalsThatMatch<TIntrospector>(
@@ -151,33 +153,38 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return result.ToImmutableAndFree();
         }
 
-        private void FillWithIntervalsThatMatch<TIntrospector>(
+        /// <returns>The number of matching intervals found by the method.</returns>
+        private int FillWithIntervalsThatMatch<TIntrospector>(
             int start, int length, TestInterval<TIntrospector> testInterval,
-            ArrayBuilder<T> builder, in TIntrospector introspector,
+            ArrayBuilder<T>? builder, in TIntrospector introspector,
             bool stopAfterFirst)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
             if (root == null)
             {
-                return;
+                return 0;
             }
 
             var candidates = s_stackPool.Allocate();
 
-            FillWithIntervalsThatMatch(
+            var matches = FillWithIntervalsThatMatch(
                 start, length, testInterval,
                 builder, in introspector,
                 stopAfterFirst, candidates);
 
             s_stackPool.ClearAndFree(candidates);
+
+            return matches;
         }
 
-        private void FillWithIntervalsThatMatch<TIntrospector>(
+        /// <returns>The number of matching intervals found by the method.</returns>
+        private int FillWithIntervalsThatMatch<TIntrospector>(
             int start, int length, TestInterval<TIntrospector> testInterval,
-            ArrayBuilder<T> builder, in TIntrospector introspector,
-            bool stopAfterFirst, Stack<(Node node, bool firstTime)> candidates)
+            ArrayBuilder<T>? builder, in TIntrospector introspector,
+            bool stopAfterFirst, Stack<(Node? node, bool firstTime)> candidates)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
+            var matches = 0;
             var end = start + length;
 
             candidates.Push((root, firstTime: true));
@@ -186,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             {
                 var currentTuple = candidates.Pop();
                 var currentNode = currentTuple.node;
-                Debug.Assert(currentNode != null);
+                RoslynDebug.Assert(currentNode != null);
 
                 var firstTime = currentTuple.firstTime;
 
@@ -196,11 +203,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     // side of it).  Now see if it matches our test, and if so return it out.
                     if (testInterval(currentNode.Value, start, length, in introspector))
                     {
-                        builder.Add(currentNode.Value);
+                        matches++;
+                        builder?.Add(currentNode.Value);
 
                         if (stopAfterFirst)
                         {
-                            return;
+                            return 1;
                         }
                     }
                 }
@@ -234,18 +242,20 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     }
                 }
             }
+
+            return matches;
         }
 
         public bool IsEmpty() => this.root == null;
 
-        protected static Node Insert<TIntrospector>(Node root, Node newNode, in TIntrospector introspector)
+        protected static Node Insert<TIntrospector>(Node? root, Node newNode, in TIntrospector introspector)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
             var newNodeStart = introspector.GetStart(newNode.Value);
             return Insert(root, newNode, newNodeStart, in introspector);
         }
 
-        private static Node Insert<TIntrospector>(Node root, Node newNode, int newNodeStart, in TIntrospector introspector)
+        private static Node Insert<TIntrospector>(Node? root, Node newNode, int newNodeStart, in TIntrospector introspector)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
             if (root == null)
@@ -253,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 return newNode;
             }
 
-            Node newLeft, newRight;
+            Node? newLeft, newRight;
 
             if (newNodeStart < introspector.GetStart(root.Value))
             {
@@ -313,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 yield break;
             }
 
-            var candidates = new Stack<(Node node, bool firstTime)>();
+            var candidates = new Stack<(Node? node, bool firstTime)>();
             candidates.Push((root, firstTime: true));
             while (candidates.Count != 0)
             {
@@ -344,14 +354,14 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             where TIntrospector : struct, IIntervalIntrospector<T>
             => introspector.GetStart(value) + introspector.GetLength(value);
 
-        protected static int MaxEndValue<TIntrospector>(Node node, in TIntrospector introspector)
+        protected static int MaxEndValue<TIntrospector>(Node? node, in TIntrospector introspector)
             where TIntrospector : struct, IIntervalIntrospector<T>
             => node == null ? 0 : GetEnd(node.MaxEndNode.Value, in introspector);
 
-        private static int Height(Node node)
+        private static int Height(Node? node)
             => node == null ? 0 : node.Height;
 
-        private static int BalanceFactor(Node node)
+        private static int BalanceFactor(Node? node)
             => node == null ? 0 : Height(node.Left) - Height(node.Right);
 
         private static class Tests<TIntrospector>

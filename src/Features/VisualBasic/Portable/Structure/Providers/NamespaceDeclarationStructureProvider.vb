@@ -14,9 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(namespaceDeclaration As NamespaceStatementSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
+                                                  isMetadataAsSource As Boolean,
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(namespaceDeclaration, spans)
+            CollectCommentsRegions(namespaceDeclaration, spans, isMetadataAsSource)
 
             Dim block = TryCast(namespaceDeclaration.Parent, NamespaceBlockSyntax)
             If Not block?.EndNamespaceStatement.IsMissing Then
@@ -24,12 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                     block, bannerNode:=namespaceDeclaration, autoCollapse:=False,
                     type:=BlockTypes.Namespace, isCollapsible:=True))
 
-                CollectCommentsRegions(block.EndNamespaceStatement, spans)
+                CollectCommentsRegions(block.EndNamespaceStatement, spans, isMetadataAsSource)
             End If
         End Sub
-
-        Protected Overrides Function SupportedInWorkspaceKind(kind As String) As Boolean
-            Return True
-        End Function
     End Class
 End Namespace

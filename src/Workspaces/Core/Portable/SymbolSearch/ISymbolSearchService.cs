@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return ComparerWithState.CompareTo(this, other, s_comparers);
         }
 
-        private readonly static ImmutableArray<Func<PackageWithAssemblyResult, IComparable>> s_comparers =
+        private static readonly ImmutableArray<Func<PackageWithAssemblyResult, IComparable>> s_comparers =
             ImmutableArray.Create<Func<PackageWithAssemblyResult, IComparable>>(p => p.Rank, p => p.PackageName);
     }
 
@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     internal class DefaultSymbolSearchService : ISymbolSearchService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultSymbolSearchService()
         {
         }

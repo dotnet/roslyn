@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
         internal readonly ITypeInferenceService UnderlyingObject;
 
         internal PythiaTypeInferenceServiceWrapper(ITypeInferenceService underlyingObject)
-        {
-            UnderlyingObject = underlyingObject;
-        }
+            => UnderlyingObject = underlyingObject;
 
         public static PythiaTypeInferenceServiceWrapper Create(Document document)
             => new PythiaTypeInferenceServiceWrapper(document.GetRequiredLanguageService<ITypeInferenceService>());

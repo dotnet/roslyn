@@ -155,8 +155,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
         }
 
         public void Dispose()
-        {
-            _aggregateCancellationTokenSource.Dispose();
-        }
+            => _aggregateCancellationTokenSource.Dispose();
     }
 }

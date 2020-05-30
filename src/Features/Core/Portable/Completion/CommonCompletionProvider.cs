@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         internal virtual bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
-        {
-            return false;
-        }
+            => false;
 
         public sealed override async Task<CompletionDescription> GetDescriptionAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
@@ -92,18 +90,14 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public virtual Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            return GetTextChangeAsync(selectedItem, ch, cancellationToken);
-        }
+            => GetTextChangeAsync(selectedItem, ch, cancellationToken);
 
         protected virtual Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<TextChange?>(null);
-        }
+            => Task.FromResult<TextChange?>(null);
 
         private static readonly CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
-        protected CompletionItem CreateSuggestionModeItem(string displayText, string description)
+        protected static CompletionItem CreateSuggestionModeItem(string displayText, string description)
         {
             return CommonCompletionItem.Create(
                 displayText: displayText ?? string.Empty,

@@ -112,6 +112,11 @@
         <target state="translated">Regulär</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="translated">Hinweise in QuickInfo anzeigen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Small">
         <source>Small</source>
         <target state="translated">Klein</target>

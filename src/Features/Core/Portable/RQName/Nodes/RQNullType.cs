@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         private RQNullType() { }
 
         public override SimpleTreeNode ToSimpleTree()
-        {
-            return new SimpleLeafNode(RQNameStrings.Null);
-        }
+            => new SimpleLeafNode(RQNameStrings.Null);
     }
 }

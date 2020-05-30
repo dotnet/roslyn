@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                             replacementNode = replacementNode
                                 .WithAdditionalAnnotations<TypeSyntax>(new SyntaxAnnotation(
-                                    nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)));
+                                    nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)));
 
                             issueSpan = memberAccess.Span; // we want to show the whole expression as unnecessary
 
@@ -258,9 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             public int GetHashCode(ISymbol obj)
-            {
-                return obj?.OriginalDefinition.GetHashCode() ?? 0;
-            }
+                => obj?.OriginalDefinition.GetHashCode() ?? 0;
         }
 
         private static bool TrySimplify(
@@ -458,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                         if (containingType != null && !containingType.Equals(leftSymbol))
                         {
-                            if (leftSymbol is INamedTypeSymbol namedType &&
+                            if (leftSymbol is INamedTypeSymbol &&
                                 containingType.TypeArguments.Length != 0)
                             {
                                 return false;

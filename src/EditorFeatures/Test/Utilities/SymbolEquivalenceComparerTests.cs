@@ -1342,14 +1342,10 @@ End Class
             public static readonly IEqualityComparer<IAssemblySymbol> Instance = new AssemblySymbolIdentityComparer();
 
             public bool Equals(IAssemblySymbol x, IAssemblySymbol y)
-            {
-                return x.Identity.Equals(y.Identity);
-            }
+                => x.Identity.Equals(y.Identity);
 
             public int GetHashCode(IAssemblySymbol obj)
-            {
-                return obj.Identity.GetHashCode();
-            }
+                => obj.Identity.GetHashCode();
         }
 
         [Fact]

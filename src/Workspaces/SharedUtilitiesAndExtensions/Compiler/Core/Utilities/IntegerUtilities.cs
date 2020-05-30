@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         public static bool HasOneBitSet(long v)
-        {
-            return CountOfBitsSet(v) == 1;
-        }
+            => CountOfBitsSet(v) == 1;
 
         public static int LogBase2(long v)
         {
@@ -71,18 +69,26 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             };
 
         public static ulong ToUnsigned(long v)
-        {
-            return unchecked((ulong)v);
-        }
+            => unchecked((ulong)v);
 
         public static ulong ToUInt64(object o)
-        {
-            return o is ulong ? (ulong)o : unchecked((ulong)System.Convert.ToInt64(o));
-        }
+            => o is ulong ? (ulong)o : unchecked((ulong)System.Convert.ToInt64(o));
 
         public static long ToInt64(object o)
-        {
-            return o is ulong ? unchecked((long)(ulong)o) : System.Convert.ToInt64(o);
-        }
+            => o is ulong ? unchecked((long)(ulong)o) : System.Convert.ToInt64(o);
+
+        public static bool IsIntegral(object value)
+            => value switch
+            {
+                sbyte _ => true,
+                byte _ => true,
+                short _ => true,
+                ushort _ => true,
+                int _ => true,
+                uint _ => true,
+                long _ => true,
+                ulong _ => true,
+                _ => false,
+            };
     }
 }

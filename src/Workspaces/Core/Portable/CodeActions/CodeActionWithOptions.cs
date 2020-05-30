@@ -63,8 +63,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         protected abstract Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken);
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
-        }
+            => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
     }
 }

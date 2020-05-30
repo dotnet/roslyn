@@ -255,9 +255,7 @@ class c { }";
         }
 
         internal override IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory)
-        {
-            return new XmlTagCompletionCommandHandler(undoHistory);
-        }
+            => new XmlTagCompletionCommandHandler(undoHistory);
 
         protected override TestWorkspace CreateTestWorkspace(string initialMarkup)
             => TestWorkspace.CreateCSharp(initialMarkup);

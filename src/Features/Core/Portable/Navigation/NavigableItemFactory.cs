@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         }
 
         public static INavigableItem GetItemFromDeclaredSymbolInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document)
-        {
-            return new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
-        }
+            => new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
 
         public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(
             Solution solution,
@@ -66,18 +64,6 @@ namespace Microsoft.CodeAnalysis.Navigation
             return visibleSourceLocations.Any()
                 ? visibleSourceLocations
                 : locations.Where(loc => loc.IsInSource);
-        }
-
-        public static IEnumerable<INavigableItem> GetPreferredNavigableItems(
-            Solution solution,
-            IEnumerable<INavigableItem> navigableItems,
-            CancellationToken cancellationToken)
-        {
-            navigableItems = navigableItems.Where(n => n.Document != null);
-            var hasNonGeneratedCodeItem = navigableItems.Any(n => !n.Document.IsGeneratedCode(cancellationToken));
-            return hasNonGeneratedCodeItem
-                ? navigableItems.Where(n => !n.Document.IsGeneratedCode(cancellationToken))
-                : navigableItems.Where(n => n.Document.IsGeneratedCode(cancellationToken));
         }
     }
 }

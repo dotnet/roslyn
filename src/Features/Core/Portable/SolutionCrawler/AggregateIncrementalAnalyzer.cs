@@ -2,13 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+
+#if NETSTANDARD2_0
 using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -87,7 +93,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        private bool TryGetAnalyzer(Project project, out IIncrementalAnalyzer analyzer)
+        private bool TryGetAnalyzer(Project project, [NotNullWhen(true)] out IIncrementalAnalyzer? analyzer)
         {
             if (!Analyzers.TryGetValue(project.Language, out var lazyAnalyzer))
             {

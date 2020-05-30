@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public const string Kind = "CodeAction_Rename";
 
         public static SyntaxAnnotation Create()
-        {
-            return new SyntaxAnnotation(Kind);
-        }
+            => new SyntaxAnnotation(Kind);
     }
 }

@@ -24,14 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         protected internal sealed override bool TreesEqual(SyntaxNode oldNode, SyntaxNode newNode)
-        {
-            return oldNode.SyntaxTree == newNode.SyntaxTree;
-        }
+            => oldNode.SyntaxTree == newNode.SyntaxTree;
 
         protected internal sealed override TextSpan GetSpan(SyntaxNode node)
-        {
-            return node.Span;
-        }
+            => node.Span;
 
         #region Comparison
 
@@ -140,9 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the tokens are. 
         /// </remarks>
         public static double ComputeDistance(SyntaxToken oldToken, SyntaxToken newToken)
-        {
-            return LongestCommonSubstring.ComputeDistance(oldToken.Text, newToken.Text);
-        }
+            => LongestCommonSubstring.ComputeDistance(oldToken.Text, newToken.Text);
 
         /// <summary>
         /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
@@ -151,9 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
         public static double ComputeDistance(IEnumerable<SyntaxToken>? oldTokens, IEnumerable<SyntaxToken>? newTokens)
-        {
-            return LcsTokens.Instance.ComputeDistance(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
-        }
+            => LcsTokens.Instance.ComputeDistance(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
 
         /// <summary>
         /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
@@ -162,9 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
         public static double ComputeDistance(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens)
-        {
-            return LcsTokens.Instance.ComputeDistance(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
-        }
+            => LcsTokens.Instance.ComputeDistance(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
 
         /// <summary>
         /// Calculates the distance between two sequences of syntax nodes, disregarding trivia. 
@@ -173,9 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
         public static double ComputeDistance(IEnumerable<SyntaxNode>? oldNodes, IEnumerable<SyntaxNode>? newNodes)
-        {
-            return LcsNodes.Instance.ComputeDistance(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
-        }
+            => LcsNodes.Instance.ComputeDistance(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
 
         /// <summary>
         /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 
@@ -184,50 +172,38 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
         public static double ComputeDistance(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
-        {
-            return LcsNodes.Instance.ComputeDistance(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
-        }
+            => LcsNodes.Instance.ComputeDistance(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
 
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.
         /// </summary>
         public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxNode>? oldNodes, IEnumerable<SyntaxNode>? newNodes)
-        {
-            return LcsNodes.Instance.GetEdits(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
-        }
+            => LcsNodes.Instance.GetEdits(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
 
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.
         /// </summary>
         public static IEnumerable<SequenceEdit> GetSequenceEdits(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
-        {
-            return LcsNodes.Instance.GetEdits(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
-        }
+            => LcsNodes.Instance.GetEdits(oldNodes.NullToEmpty(), newNodes.NullToEmpty());
 
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax tokens to another, disregarding trivia.
         /// </summary>
         public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxToken>? oldTokens, IEnumerable<SyntaxToken>? newTokens)
-        {
-            return LcsTokens.Instance.GetEdits(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
-        }
+            => LcsTokens.Instance.GetEdits(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
 
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax tokens to another, disregarding trivia.
         /// </summary>
         public static IEnumerable<SequenceEdit> GetSequenceEdits(ImmutableArray<SyntaxToken> oldTokens, ImmutableArray<SyntaxToken> newTokens)
-        {
-            return LcsTokens.Instance.GetEdits(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
-        }
+            => LcsTokens.Instance.GetEdits(oldTokens.NullToEmpty(), newTokens.NullToEmpty());
 
         private sealed class LcsTokens : LongestCommonImmutableArraySubsequence<SyntaxToken>
         {
             internal static readonly LcsTokens Instance = new LcsTokens();
 
             protected override bool Equals(SyntaxToken oldElement, SyntaxToken newElement)
-            {
-                return SyntaxFactory.AreEquivalent(oldElement, newElement);
-            }
+                => SyntaxFactory.AreEquivalent(oldElement, newElement);
         }
 
         private sealed class LcsNodes : LongestCommonImmutableArraySubsequence<SyntaxNode>
@@ -235,9 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             internal static readonly LcsNodes Instance = new LcsNodes();
 
             protected override bool Equals(SyntaxNode oldElement, SyntaxNode newElement)
-            {
-                return SyntaxFactory.AreEquivalent(oldElement, newElement);
-            }
+                => SyntaxFactory.AreEquivalent(oldElement, newElement);
         }
 
         #endregion

@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -13,7 +14,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens
@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
     internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesService
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public RemoteCodeLensReferencesService()
         {
         }
@@ -40,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 if (client != null)
                 {
                     var result = await client.TryRunRemoteAsync<ReferenceCount>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteCodeLensReferencesService.GetReferenceCountAsync),
                         solution,
                         new object[] { documentId, syntaxNode.Span, maxSearchResults },
@@ -87,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 if (client != null)
                 {
                     var result = await client.TryRunRemoteAsync<IEnumerable<ReferenceMethodDescriptor>>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteCodeLensReferencesService.FindReferenceMethodsAsync),
                         solution,
                         new object[] { documentId, syntaxNode.Span },
@@ -118,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 if (client != null)
                 {
                     var result = await client.TryRunRemoteAsync<string>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteCodeLensReferencesService.GetFullyQualifiedNameAsync),
                         solution,
                         new object[] { documentId, syntaxNode.Span },
@@ -252,7 +253,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             if (client != null)
             {
                 var result = await client.TryRunRemoteAsync<IEnumerable<ReferenceLocationDescriptor>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteCodeLensReferencesService.FindReferenceLocationsAsync),
                     solution,
                     new object[] { documentId, syntaxNode.Span },

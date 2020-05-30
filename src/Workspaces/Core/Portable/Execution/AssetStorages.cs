@@ -8,10 +8,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+#if NETSTANDARD2_0
 using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.Execution
 {
@@ -21,50 +23,17 @@ namespace Microsoft.CodeAnalysis.Execution
     internal partial class AssetStorages
     {
         /// <summary>
-        /// global asset is an asset which life time is same as host
-        /// </summary>
-        private readonly ConcurrentDictionary<object, CustomAsset> _globalAssets;
-
-        /// <summary>
         /// map from solution checksum scope to its associated asset storage
         /// </summary>
         private readonly ConcurrentDictionary<int, Storage> _storages;
 
         public AssetStorages()
         {
-            _globalAssets = new ConcurrentDictionary<object, CustomAsset>(concurrencyLevel: 2, capacity: 10);
             _storages = new ConcurrentDictionary<int, Storage>(concurrencyLevel: 2, capacity: 10);
         }
 
-        public void AddGlobalAsset(object value, CustomAsset asset, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (!_globalAssets.TryAdd(value, asset))
-            {
-                // there is existing one, make sure asset is same
-                Contract.ThrowIfFalse(_globalAssets[value].Checksum == asset.Checksum);
-            }
-        }
-
-        public CustomAsset? GetGlobalAsset(object value, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            _globalAssets.TryGetValue(value, out var asset);
-
-            return asset;
-        }
-
-        public void RemoveGlobalAsset(object value, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            _globalAssets.TryRemove(value, out _);
-        }
-
-        public Storage CreateStorage(SolutionState solutionState)
-        {
-            return new Storage(solutionState);
-        }
+        public static Storage CreateStorage(SolutionState solutionState)
+            => new Storage(solutionState);
 
         public async ValueTask<RemotableData?> GetRemotableDataAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
@@ -80,17 +49,6 @@ namespace Microsoft.CodeAnalysis.Execution
             if (remotableData != null)
             {
                 return remotableData;
-            }
-
-            // search global assets
-            foreach (var (_, asset) in _globalAssets)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (asset.Checksum == checksum)
-                {
-                    return asset;
-                }
             }
 
             // if it reached here, it means things get cancelled. due to involving 2 processes,
@@ -125,24 +83,6 @@ namespace Microsoft.CodeAnalysis.Execution
                 // no checksum left to find
                 Debug.Assert(searchingChecksumsLeft.Object.Count == 0);
                 return result;
-            }
-
-            // search global assets
-            foreach (var (_, asset) in _globalAssets)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (searchingChecksumsLeft.Object.Remove(asset.Checksum))
-                {
-                    result[asset.Checksum] = asset;
-
-                    if (result.Count == numberOfChecksumsToSearch)
-                    {
-                        // no checksum left to find
-                        Debug.Assert(searchingChecksumsLeft.Object.Count == 0);
-                        return result;
-                    }
-                }
             }
 
             // if it reached here, it means things get cancelled. due to involving 2 processes,

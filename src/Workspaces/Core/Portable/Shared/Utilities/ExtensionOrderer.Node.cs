@@ -15,14 +15,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             public readonly HashSet<Node<TExtension, TMetadata>> ExtensionsBeforeMeSet = new HashSet<Node<TExtension, TMetadata>>();
 
             public Node(Lazy<TExtension, TMetadata> extension)
-            {
-                this.Extension = extension;
-            }
+                => this.Extension = extension;
 
             public void CheckForCycles()
-            {
-                this.CheckForCycles(new HashSet<Node<TExtension, TMetadata>>());
-            }
+                => this.CheckForCycles(new HashSet<Node<TExtension, TMetadata>>());
 
             private void CheckForCycles(
                 HashSet<Node<TExtension, TMetadata>> seenNodes)

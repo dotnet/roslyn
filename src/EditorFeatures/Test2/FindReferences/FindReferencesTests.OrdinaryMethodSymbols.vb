@@ -2856,7 +2856,7 @@ namespace PortableClassLibrary
 }]]>
         </Document>
     </Project>
-    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true">
         <ProjectReference>PortableClassLibrary</ProjectReference>
         <Document><![CDATA[
 class Class2
@@ -2893,7 +2893,7 @@ namespace PortableClassLibrary
 }]]>
         </Document>
     </Project>
-    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true">
         <ProjectReference>PortableClassLibrary</ProjectReference>
         <Document><![CDATA[
 using System;
@@ -2932,7 +2932,7 @@ namespace PortableClassLibrary
 }]]>
         </Document>
     </Project>
-    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true">
         <ProjectReference>PortableClassLibrary</ProjectReference>
         <Document><![CDATA[
 using System;
@@ -2971,7 +2971,7 @@ namespace PortableClassLibrary
 }]]>
         </Document>
     </Project>
-    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true">
         <ProjectReference>PortableClassLibrary</ProjectReference>
         <Document><![CDATA[
 using System;
@@ -3009,7 +3009,7 @@ namespace PortableClassLibrary
 }]]>
         </Document>
     </Project>
-    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true">
         <ProjectReference>PortableClassLibrary</ProjectReference>
         <Document><![CDATA[
 using System;
@@ -3213,6 +3213,45 @@ End Class
             throw new System.NotImplementedException();
         }
     }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMethodReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:C.[|M|]")]
+
+        class C
+        {
+            private void {|Definition:$$M|}() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMethodReferenceInGlobalSuppression_MethodWithParameters(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:C.[|M|](System.String)")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:C.M(System.Int32)")]
+
+        class C
+        {
+            private void {|Definition:$$M|}(string s) { }
+        }
         </Document>
     </Project>
 </Workspace>

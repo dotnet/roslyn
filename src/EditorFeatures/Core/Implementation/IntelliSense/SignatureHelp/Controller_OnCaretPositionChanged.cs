@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         }
 
         private void OnCaretPositionChanged()
-        {
-            Retrigger();
-        }
+            => Retrigger();
     }
 }

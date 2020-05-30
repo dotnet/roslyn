@@ -85,14 +85,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         }
 
         public SyntaxToken GetFirstTokenInSelection()
-        {
-            return SemanticDocument.GetTokenWithAnnotation(FirstTokenAnnotation);
-        }
+            => SemanticDocument.GetTokenWithAnnotation(FirstTokenAnnotation);
 
         public SyntaxToken GetLastTokenInSelection()
-        {
-            return SemanticDocument.GetTokenWithAnnotation(LastTokenAnnotation);
-        }
+            => SemanticDocument.GetTokenWithAnnotation(LastTokenAnnotation);
 
         public TNode GetContainingScopeOf<TNode>() where TNode : SyntaxNode
         {

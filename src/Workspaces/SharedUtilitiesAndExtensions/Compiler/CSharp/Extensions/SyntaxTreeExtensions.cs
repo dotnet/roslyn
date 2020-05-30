@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
+#pragma warning disable IDE0060 // Remove unused parameter - Unused this parameter for consistency with other extension methods.
             this SyntaxTree syntaxTree,
+#pragma warning restore IDE0060 // Remove unused parameter
             int position,
             SyntaxToken tokenOnLeftOfPosition,
             out int positionBeforeModifiers)
@@ -128,9 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsRightOfDotOrArrow(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            return syntaxTree.IsRightOf(position, s_isDotOrArrow, cancellationToken);
-        }
+            => syntaxTree.IsRightOf(position, s_isDotOrArrow, cancellationToken);
 
         private static bool IsRightOf(
             this SyntaxTree syntaxTree, int position, Func<SyntaxKind, bool> predicate, CancellationToken cancellationToken)
@@ -226,7 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (trivia.IsSingleLineDocComment())
             {
-                var span = trivia.Span;
                 var fullSpan = trivia.FullSpan;
                 var endsWithNewLine = trivia.GetStructure().GetLastToken(includeSkipped: true).Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
 

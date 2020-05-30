@@ -63,9 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             public List<TSimpleNameSyntax> PropertiesToGenerate { get; private set; }
 
             private State(Compilation compilation)
-            {
-                Compilation = compilation;
-            }
+                => Compilation = compilation;
 
             public static async Task<State> GenerateAsync(
                 TService service,
@@ -95,7 +93,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 SimpleName = (TSimpleNameSyntax)node;
                 var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-                syntaxFacts.GetNameAndArityOfSimpleName(SimpleName, out var name, out var arity);
+                syntaxFacts.GetNameAndArityOfSimpleName(SimpleName, out var name, out _);
 
                 Name = name;
                 NameIsVerbatim = syntaxFacts.IsVerbatimIdentifier(SimpleName.GetFirstToken());
@@ -247,9 +245,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private bool GenerateStruct(TService service, SemanticModel semanticModel, CancellationToken cancellationToken)
-            {
-                return service.IsInValueTypeConstraintContext(semanticModel, NameOrMemberAccessExpression, cancellationToken);
-            }
+                => service.IsInValueTypeConstraintContext(semanticModel, NameOrMemberAccessExpression, cancellationToken);
 
             private bool GenerateInterface(TService service)
             {
@@ -304,7 +300,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         // If we are generating in a website project, we also want to type to be public so the 
                         // designer files can access the type.
                         if (documentToBeGeneratedIn.Project != document.Project ||
-                            service.GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
+                            GeneratedTypesMustBePublic(documentToBeGeneratedIn.Project))
                         {
                             IsPublicAccessibilityForTypeGeneration = true;
                         }

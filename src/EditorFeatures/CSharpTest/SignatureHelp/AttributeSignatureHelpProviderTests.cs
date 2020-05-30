@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         }
 
         internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-        {
-            return new AttributeSignatureHelpProvider();
-        }
+            => new AttributeSignatureHelpProvider();
 
         #region "Regular tests"
 

@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
         abstract internal TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider);
 
         protected void ToggleComment(string markup, string expected)
-        {
-            ToggleCommentMultiple(markup, new string[] { expected });
-        }
+            => ToggleCommentMultiple(markup, new string[] { expected });
 
         protected void ToggleCommentMultiple(string markup, string[] expectedText)
         {
@@ -69,9 +67,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
         }
 
         private static ExportProvider GetExportProvider()
-            => ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic)
-                .CreateExportProvider();
+            => TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
 
         private static ITextBuffer GetBufferForContentType(string contentTypeName, ITextView textView)
             => textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(contentTypeName)).Single();

@@ -52,6 +52,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
+        Public Function IsKind(node As SyntaxNode, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind, kind4 As SyntaxKind) As Boolean
+            If node Is Nothing Then
+                Return False
+            End If
+
+            Return node.Kind = kind1 OrElse
+                   node.Kind = kind2 OrElse
+                   node.Kind = kind3 OrElse
+                   node.Kind = kind4
+        End Function
+
+        <Extension()>
         Public Function IsKind(node As SyntaxNode, ParamArray kinds As SyntaxKind()) As Boolean
             If node Is Nothing Then
                 Return False
@@ -753,8 +765,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         statements,
                         SyntaxFactory.EndSubStatement()).WithAdditionalAnnotations(annotations)
 
-                    current = singleLineLambda.Parent
-
                     oldBlock = singleLineLambda
                     newBlock = multiLineLambda
 
@@ -1052,10 +1062,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 While current IsNot Nothing
                     If SyntaxFacts.IsSingleLineLambdaExpression(current.Kind) OrElse
                        SyntaxFacts.IsMultiLineLambdaExpression(current.Kind) Then
-                        Dim TypeInfo = semanticModel.GetTypeInfo(current, cancellationToken)
-                        If expressionTypeOpt.Equals(TypeInfo.ConvertedType?.OriginalDefinition) Then
+                        Dim typeInfo = semanticModel.GetTypeInfo(current, cancellationToken)
+                        If expressionTypeOpt.Equals(typeInfo.ConvertedType?.OriginalDefinition) Then
                             Return True
                         End If
+                    ElseIf TypeOf current Is OrderingSyntax OrElse
+                           TypeOf current Is QueryClauseSyntax OrElse
+                           TypeOf current Is FunctionAggregationSyntax OrElse
+                           TypeOf current Is ExpressionRangeVariableSyntax Then
+
+                        Dim info = semanticModel.GetSymbolInfo(current, cancellationToken)
+                        For Each symbol In info.GetAllSymbols()
+                            Dim method = TryCast(symbol, IMethodSymbol)
+
+                            If method IsNot Nothing AndAlso
+                               method.Parameters.Length > 0 AndAlso
+                               expressionTypeOpt.Equals(method.Parameters(0).Type.OriginalDefinition) Then
+
+                                Return True
+                            End If
+                        Next
                     End If
 
                     current = current.Parent

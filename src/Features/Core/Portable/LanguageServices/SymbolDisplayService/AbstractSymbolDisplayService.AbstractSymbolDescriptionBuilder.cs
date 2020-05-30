@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 new SymbolDisplayFormat(
                     globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included);
 
-            private readonly ISymbolDisplayService _displayService;
             private readonly SemanticModel _semanticModel;
             private readonly int _position;
             private readonly IAnonymousTypeDisplayService _anonymousTypeDisplayService;
@@ -87,14 +86,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected readonly CancellationToken CancellationToken;
 
             protected AbstractSymbolDescriptionBuilder(
-                ISymbolDisplayService displayService,
                 SemanticModel semanticModel,
                 int position,
                 Workspace workspace,
                 IAnonymousTypeDisplayService anonymousTypeDisplayService,
                 CancellationToken cancellationToken)
             {
-                _displayService = displayService;
                 _anonymousTypeDisplayService = anonymousTypeDisplayService;
                 Workspace = workspace;
                 CancellationToken = cancellationToken;
@@ -282,7 +279,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     if (namedType.IsTupleType)
                     {
                         AddToGroup(SymbolDescriptionGroups.MainDescription,
-                            ToDisplayParts(symbol, s_descriptionStyle));
+                            symbol.ToDisplayParts(s_descriptionStyle));
                     }
                     else
                     {
@@ -373,9 +370,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             private IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
-            {
-                return _groupMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToTaggedText());
-            }
+                => _groupMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToTaggedText());
 
             private void AddDescriptionForDynamicType()
             {
@@ -444,16 +439,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 {
                     var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToDisplayParts(symbol.OriginalDefinition, style));
+                        symbol.OriginalDefinition.ToDisplayParts(style));
                 }
                 else
                 {
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToDisplayParts(symbol.OriginalDefinition, s_descriptionStyle));
+                        symbol.OriginalDefinition.ToDisplayParts(s_descriptionStyle));
                 }
             }
 
-            private bool TypeArgumentsAndParametersAreSame(INamedTypeSymbol symbol)
+            private static bool TypeArgumentsAndParametersAreSame(INamedTypeSymbol symbol)
             {
                 var typeArguments = symbol.GetAllTypeArguments().ToList();
                 var typeParameters = symbol.GetAllTypeParameters().ToList();
@@ -478,12 +473,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 if (symbol.IsGlobalNamespace)
                 {
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToDisplayParts(symbol, s_globalNamespaceStyle));
+                        symbol.ToDisplayParts(s_globalNamespaceStyle));
                 }
                 else
                 {
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
-                        ToDisplayParts(symbol, s_descriptionStyle));
+                        symbol.ToDisplayParts(s_descriptionStyle));
                 }
             }
 
@@ -704,9 +699,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             protected void AddToGroup(SymbolDescriptionGroups group, params SymbolDisplayPart[] partsArray)
-            {
-                AddToGroup(group, (IEnumerable<SymbolDisplayPart>)partsArray);
-            }
+                => AddToGroup(group, (IEnumerable<SymbolDisplayPart>)partsArray);
 
             protected void AddToGroup(SymbolDescriptionGroups group, params IEnumerable<SymbolDisplayPart>[] partsArray)
             {
@@ -723,7 +716,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
             }
 
-            private IEnumerable<SymbolDisplayPart> Description(string description)
+            private static IEnumerable<SymbolDisplayPart> Description(string description)
             {
                 return Punctuation("(")
                     .Concat(PlainText(description))
@@ -731,12 +724,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     .Concat(Space());
             }
 
-            protected IEnumerable<SymbolDisplayPart> Keyword(string text)
-            {
-                return Part(SymbolDisplayPartKind.Keyword, text);
-            }
+            protected static IEnumerable<SymbolDisplayPart> Keyword(string text)
+                => Part(SymbolDisplayPartKind.Keyword, text);
 
-            protected IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)
+            protected static IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)
             {
                 for (var i = 0; i < count; i++)
                 {
@@ -744,17 +735,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
             }
 
-            protected IEnumerable<SymbolDisplayPart> PlainText(string text)
-            {
-                return Part(SymbolDisplayPartKind.Text, text);
-            }
+            protected static IEnumerable<SymbolDisplayPart> PlainText(string text)
+                => Part(SymbolDisplayPartKind.Text, text);
 
-            protected IEnumerable<SymbolDisplayPart> Punctuation(string text)
-            {
-                return Part(SymbolDisplayPartKind.Punctuation, text);
-            }
+            protected static IEnumerable<SymbolDisplayPart> Punctuation(string text)
+                => Part(SymbolDisplayPartKind.Punctuation, text);
 
-            protected IEnumerable<SymbolDisplayPart> Space(int count = 1)
+            protected static IEnumerable<SymbolDisplayPart> Space(int count = 1)
             {
                 yield return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, new string(' ', count));
             }
@@ -762,28 +749,19 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
             {
                 format ??= MinimallyQualifiedFormat;
-                return _displayService.ToMinimalDisplayParts(_semanticModel, _position, symbol, format);
+                return symbol.ToMinimalDisplayParts(_semanticModel, _position, format);
             }
 
-            protected IEnumerable<SymbolDisplayPart> ToDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
-            {
-                return _displayService.ToDisplayParts(symbol, format);
-            }
-
-            private IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
+            private static IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
             {
                 yield return new SymbolDisplayPart(kind, symbol, text);
             }
 
-            private IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, string text)
-            {
-                return Part(kind, null, text);
-            }
+            private static IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, string text)
+                => Part(kind, null, text);
 
-            private IEnumerable<SymbolDisplayPart> TypeParameterName(string text)
-            {
-                return Part(SymbolDisplayPartKind.TypeParameterName, text);
-            }
+            private static IEnumerable<SymbolDisplayPart> TypeParameterName(string text)
+                => Part(SymbolDisplayPartKind.TypeParameterName, text);
         }
     }
 }

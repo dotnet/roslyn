@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     continue;
                 }
 
-                var position = nn.Location.SourceSpan.End;
+                var position = nn.EndPosition;
                 var setting = (nn.SettingToken.Kind()) switch
                 {
                     SyntaxKind.EnableKeyword => NullableContextState.State.Enabled,

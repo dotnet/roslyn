@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
     internal class CSharpTodoCommentServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpTodoCommentServiceFactory()
         {
         }

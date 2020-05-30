@@ -11,7 +11,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
-        public override object? GetOption(OptionKey optionKey)
+        private protected override object? GetOptionCore(OptionKey optionKey)
         {
             if (_serializableOptionValues.TryGetValue(optionKey, out var value))
             {
@@ -206,12 +205,12 @@ namespace Microsoft.CodeAnalysis.Options
                             }
 
                             kind = OptionValueKind.CodeStyleOption;
-                            valueToWrite = codeStyleOption.ToXElement().ToString();
+                            valueToWrite = codeStyleOption;
                             break;
 
                         case NamingStylePreferences stylePreferences:
                             kind = OptionValueKind.NamingStylePreferences;
-                            valueToWrite = stylePreferences.CreateXElement().ToString();
+                            valueToWrite = stylePreferences;
                             break;
 
                         case string str:
@@ -252,6 +251,11 @@ namespace Microsoft.CodeAnalysis.Options
                 {
                     RoslynDebug.Assert(value != null);
                     writer.WriteInt32((int)value);
+                }
+                else if (kind == OptionValueKind.CodeStyleOption || kind == OptionValueKind.NamingStylePreferences)
+                {
+                    RoslynDebug.Assert(value != null);
+                    ((IObjectWritable)value).WriteTo(writer);
                 }
                 else
                 {
@@ -308,7 +312,13 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 var optionKey = DeserializeOptionKey(reader, lookup);
                 var kind = (OptionValueKind)reader.ReadInt32();
-                var readValue = kind == OptionValueKind.Enum ? reader.ReadInt32() : reader.ReadValue();
+                var readValue = kind switch
+                {
+                    OptionValueKind.Enum => reader.ReadInt32(),
+                    OptionValueKind.CodeStyleOption => CodeStyleOption2<object>.ReadFrom(reader),
+                    OptionValueKind.NamingStylePreferences => NamingStylePreferences.ReadFrom(reader),
+                    _ => reader.ReadValue(),
+                };
 
                 if (optionKey == default ||
                     !serializableOptions.Contains(optionKey.Option))
@@ -327,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Options
                             continue;
                         }
 
-                        var parsedCodeStyleOption = CodeStyleOption<object>.FromXElement(XElement.Parse((string)readValue));
+                        var parsedCodeStyleOption = (CodeStyleOption2<object>)readValue;
                         var value = parsedCodeStyleOption.Value;
                         var type = optionKey.Option.Type.GenericTypeArguments[0];
                         var convertedValue = type.IsEnum ? Enum.ToObject(type, value) : Convert.ChangeType(value, type);
@@ -335,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Options
                         break;
 
                     case OptionValueKind.NamingStylePreferences:
-                        optionValue = NamingStylePreferences.FromXElement(XElement.Parse((string)readValue));
+                        optionValue = (NamingStylePreferences)readValue;
                         break;
 
                     case OptionValueKind.Enum:

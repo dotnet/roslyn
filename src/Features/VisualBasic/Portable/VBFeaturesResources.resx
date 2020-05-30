@@ -973,9 +973,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_0_an_Async_Function" xml:space="preserve">
     <value>Make {0} an Async Function.</value>
   </data>
-  <data name="Insert_Missing_Cast" xml:space="preserve">
-    <value>Insert Missing Cast</value>
-  </data>
   <data name="Convert_0_to_Iterator" xml:space="preserve">
     <value>Convert {0} to Iterator</value>
   </data>
@@ -1218,20 +1215,11 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Convert_to_Select_Case" xml:space="preserve">
     <value>Convert to 'Select Case'</value>
   </data>
-  <data name="Use_Is_Nothing_check" xml:space="preserve">
-    <value>Use 'Is Nothing' check</value>
-  </data>
-  <data name="Use_IsNot_Nothing_check" xml:space="preserve">
-    <value>Use 'IsNot Nothing' check</value>
-  </data>
   <data name="Convert_to_For_Each" xml:space="preserve">
     <value>Convert to 'For Each'</value>
   </data>
   <data name="Convert_to_For" xml:space="preserve">
     <value>Convert  to 'For'</value>
-  </data>
-  <data name="If_statement_can_be_simplified" xml:space="preserve">
-    <value>'If' statement can be simplified</value>
   </data>
   <data name="Add_Obsolete" xml:space="preserve">
     <value>Add &lt;Obsolete&gt;</value>

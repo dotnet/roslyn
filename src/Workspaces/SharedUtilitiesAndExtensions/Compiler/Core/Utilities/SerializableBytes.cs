@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             return stream;
         }
 
-        internal async static Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
+        internal static async Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
         {
             var length = stream.Length;
 
@@ -90,9 +89,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static PooledStream CreateWritableStream()
-        {
-            return new ReadWriteStream();
-        }
+            => new ReadWriteStream();
 
         public class PooledStream : Stream
         {
@@ -247,14 +244,10 @@ namespace Microsoft.CodeAnalysis
             protected int CurrentChunkOffset { get { return GetChunkOffset(this.position); } }
 
             protected static int GetChunkIndex(long value)
-            {
-                return (int)(value / ChunkSize);
-            }
+                => (int)(value / ChunkSize);
 
             protected static int GetChunkOffset(long value)
-            {
-                return (int)(value % ChunkSize);
-            }
+                => (int)(value % ChunkSize);
 
             protected override void Dispose(bool disposing)
             {
@@ -272,14 +265,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override void SetLength(long value)
-            {
-                throw new NotSupportedException();
-            }
+                => throw new NotSupportedException();
 
             public override void Write(byte[] buffer, int offset, int count)
-            {
-                throw new NotSupportedException();
-            }
+                => throw new NotSupportedException();
         }
 
         private class ReadStream : PooledStream
@@ -346,7 +335,7 @@ namespace Microsoft.CodeAnalysis
                     Array.Clear(chunks[chunkIndex], chunkOffset, chunks[chunkIndex].Length - chunkOffset);
 
                     var trimIndex = chunkIndex + 1;
-                    for (int i = trimIndex; i < chunks.Count; i++)
+                    for (var i = trimIndex; i < chunks.Count; i++)
                     {
                         SharedPools.ByteArray.Free(chunks[i]);
                     }

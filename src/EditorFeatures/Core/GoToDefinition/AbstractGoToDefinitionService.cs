@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     // GoToDefinition
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {
+        private readonly IThreadingContext _threadingContext;
+
         /// <summary>
         /// Used to present go to definition results in <see cref="TryGoToDefinition(Document, int, CancellationToken)"/>
         /// This is lazily created as the LSP server only calls <see cref="FindDefinitionsAsync(Document, int, CancellationToken)"/>
@@ -27,8 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         /// </summary>
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
-        protected AbstractGoToDefinitionService(Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+        protected AbstractGoToDefinitionService(
+            IThreadingContext threadingContext,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
+            _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
         }
 
@@ -64,8 +70,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var isThirdPartyNavigationAllowed = IsThirdPartyNavigationAllowed(symbol, position, document, cancellationToken);
 
-            return GoToDefinitionHelpers.TryGoToDefinition(symbol,
-                document.Project,
+            return GoToDefinitionHelpers.TryGoToDefinition(
+                symbol,
+                document.Project.Solution,
+                _threadingContext,
                 _streamingPresenter.Value,
                 thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
                 cancellationToken: cancellationToken);
@@ -102,13 +110,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var definitions = interfaceImpls.SelectMany(
                 i => GoToDefinitionHelpers.GetDefinitions(
-                    i, project, thirdPartyNavigationAllowed: false, cancellationToken)).ToImmutableArray();
+                    i, solution, thirdPartyNavigationAllowed: false, cancellationToken)).ToImmutableArray();
 
             var title = string.Format(EditorFeaturesResources._0_implemented_members,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return _streamingPresenter.Value.TryNavigateToOrPresentItemsAsync(
-                solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
+            return _threadingContext.JoinableTaskFactory.Run(() =>
+                _streamingPresenter.Value.TryNavigateToOrPresentItemsAsync(
+                    _threadingContext, solution.Workspace, title, definitions));
         }
 
         private static bool IsThirdPartyNavigationAllowed(ISymbol symbolToNavigateTo, int caretPosition, Document document, CancellationToken cancellationToken)

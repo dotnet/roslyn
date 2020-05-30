@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public UseExpressionBodyCodeRefactoringProvider()
         {
         }
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
         }
 
-        private SyntaxNode? TryGetDeclaration(
+        private static SyntaxNode? TryGetDeclaration(
             UseExpressionBodyHelper helper, SourceText text, SyntaxNode node, int position)
         {
             var declaration = GetDeclaration(node, helper);
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return declaration;
         }
 
-        private bool TryComputeRefactoring(
+        private static bool TryComputeRefactoring(
             CodeRefactoringContext context, SyntaxNode root, SyntaxNode declaration,
             OptionSet optionSet, UseExpressionBodyHelper helper)
         {
@@ -122,9 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return succeeded;
         }
 
-        private SyntaxNode? GetDeclaration(SyntaxNode node, UseExpressionBodyHelper helper)
+        private static SyntaxNode? GetDeclaration(SyntaxNode node, UseExpressionBodyHelper helper)
         {
-            for (SyntaxNode? current = node; current != null; current = current.Parent)
+            for (var current = node; current != null; current = current.Parent)
             {
                 if (helper.SyntaxKinds.Contains(current.Kind()))
                     return current;
@@ -133,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return null;
         }
 
-        private async Task<Document> UpdateDocumentAsync(
+        private static async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, SyntaxNode declaration,
             UseExpressionBodyHelper helper, bool useExpressionBody,
             CancellationToken cancellationToken)

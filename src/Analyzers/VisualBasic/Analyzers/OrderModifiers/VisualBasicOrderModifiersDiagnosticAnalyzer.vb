@@ -4,14 +4,9 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.OrderModifiers
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.VisualBasic.Internal.CodeStyle
-#Else
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -45,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
             Next
         End Sub
 
-        Private Function ShouldCheck(statement As DeclarationStatementSyntax) As Boolean
+        Private Shared Function ShouldCheck(statement As DeclarationStatementSyntax) As Boolean
             Dim modifiers = statement.GetModifiers()
             If modifiers.Count >= 2 Then
                 ' We'll see modifiers twice in some circumstances.  First, on a VB block

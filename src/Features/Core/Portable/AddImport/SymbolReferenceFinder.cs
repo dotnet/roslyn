@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     .ToImmutableArray();
             }
 
-            private void CalculateContext(
+            private static void CalculateContext(
                 TSimpleNameSyntax nameNode, ISyntaxFactsService syntaxFacts, out string name, out int arity,
                 out bool inAttributeContext, out bool hasIncompleteParentMember, out bool looksGeneric)
             {
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ImmutableArray<SymbolResult<IMethodSymbol>> methodSymbols, ITypeSymbol typeSymbol)
             {
                 return GetViableExtensionMethodsWorker(methodSymbols).WhereAsArray(
-                    s => _owner.IsViableExtensionMethod(s.Symbol, typeSymbol));
+                    s => IsViableExtensionMethod(s.Symbol, typeSymbol));
             }
 
             private ImmutableArray<SymbolResult<IMethodSymbol>> GetViableExtensionMethodsWorker(
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 if (_owner.CanAddImportForGetAwaiter(_diagnosticId, _syntaxFacts, _node))
                 {
-                    var type = _owner.GetAwaitInfo(_semanticModel, _syntaxFacts, _node);
+                    var type = GetAwaitInfo(_semanticModel, _syntaxFacts, _node);
                     if (type != null)
                     {
                         return await GetReferencesForExtensionMethodAsync(searchScope, WellKnownMemberNames.GetAwaiter, type,
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return references.ToImmutableAndFree();
             }
 
-            private ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol
+            private static ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol
             {
                 return symbols.WhereAsArray(s => s.Symbol is T)
                               .SelectAsArray(s => s.WithSymbol((T)s.Symbol));

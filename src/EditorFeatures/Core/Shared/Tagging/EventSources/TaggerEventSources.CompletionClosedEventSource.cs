@@ -97,14 +97,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             private void OnIntellisenseSessionCommitted(object sender, EventArgs e)
-            {
-                UnhookCompletionSessionEvents((ICompletionSession)sender);
-            }
+                => UnhookCompletionSessionEvents((ICompletionSession)sender);
 
             private void OnIntellisenseSessionDismissed(object sender, EventArgs e)
-            {
-                UnhookCompletionSessionEvents((ICompletionSession)sender);
-            }
+                => UnhookCompletionSessionEvents((ICompletionSession)sender);
         }
     }
 }

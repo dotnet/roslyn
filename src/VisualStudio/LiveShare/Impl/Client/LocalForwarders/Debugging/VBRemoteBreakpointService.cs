@@ -20,14 +20,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     internal class VBLspBreakpointServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VBLspBreakpointServiceFactory()
         {
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new VBRemoteBreakpointService(languageServices);
-        }
+            => new VBRemoteBreakpointService(languageServices);
     }
 
     internal class VBRemoteBreakpointService : IBreakpointResolutionService
@@ -35,14 +34,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
         private readonly IBreakpointResolutionService originalService;
 
         public VBRemoteBreakpointService(HostLanguageServices languageServices)
-        {
-            this.originalService = languageServices.GetOriginalLanguageService<IBreakpointResolutionService>();
-        }
+            => this.originalService = languageServices.GetOriginalLanguageService<IBreakpointResolutionService>();
 
         public Task<BreakpointResolutionResult> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
-        {
-            return this.originalService.ResolveBreakpointAsync(document, textSpan, cancellationToken);
-        }
+            => this.originalService.ResolveBreakpointAsync(document, textSpan, cancellationToken);
 
         public Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken = default)
         {
@@ -51,5 +46,4 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
             return Task.FromResult<IEnumerable<BreakpointResolutionResult>>(ImmutableArray<BreakpointResolutionResult>.Empty);
         }
     }
-
 }

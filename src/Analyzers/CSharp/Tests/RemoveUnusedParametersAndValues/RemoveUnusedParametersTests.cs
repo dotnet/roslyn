@@ -2,27 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestHelpers;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
@@ -31,22 +24,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new CSharpRemoveUnusedValuesCodeFixProvider());
 
-        private IDictionary<OptionKey, object> NonPublicMethodsOnly =>
-            Option(CodeStyleOptions.UnusedParameters,
-                new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption.Suggestion));
+        private OptionsCollection NonPublicMethodsOnly =>
+            Option(CodeStyleOptions2.UnusedParameters,
+                new CodeStyleOption2<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption2.Suggestion));
 
         // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
         private Task TestDiagnosticMissingAsync(string initialMarkup, ParseOptions parseOptions = null)
             => TestDiagnosticMissingAsync(initialMarkup, options: null, parseOptions);
-        private Task TestDiagnosticsWithAsync(string initialMarkup, ParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
-            => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions, expectedDiagnostics);
         private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
             => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions: null, expectedDiagnostics);
-        private Task TestDiagnosticMissingAsync(string initialMarkup, IDictionary<OptionKey, object> options, ParseOptions parseOptions = null)
+        private Task TestDiagnosticMissingAsync(string initialMarkup, OptionsCollection options, ParseOptions parseOptions = null)
             => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true));
-        private Task TestDiagnosticsAsync(string initialMarkup, IDictionary<OptionKey, object> options, params DiagnosticDescription[] expectedDiagnostics)
+        private Task TestDiagnosticsAsync(string initialMarkup, OptionsCollection options, params DiagnosticDescription[] expectedDiagnostics)
             => TestDiagnosticsAsync(initialMarkup, options, parseOptions: null, expectedDiagnostics);
-        private Task TestDiagnosticsAsync(string initialMarkup, IDictionary<OptionKey, object> options, ParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
+        private Task TestDiagnosticsAsync(string initialMarkup, OptionsCollection options, ParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
             => TestDiagnosticsAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true), expectedDiagnostics);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
@@ -112,7 +103,7 @@ $@"{typeAccessibility} class C
         public async Task Parameter_Unused_UnusedExpressionAssignment_PreferNone()
         {
             var unusedValueAssignmentOptionSuppressed = Option(CSharpCodeStyleOptions.UnusedValueAssignment,
-                new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.None));
+                new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
 
             await TestDiagnosticMissingAsync(
 @"class C
@@ -1351,8 +1342,8 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task RegressionTest_ShouldReportUnusedParameter()
         {
-            var options = Option(CodeStyleOptions.UnusedParameters,
-                new CodeStyleOption<UnusedParametersPreference>(default, NotificationOption.Suggestion));
+            var options = Option(CodeStyleOptions2.UnusedParameters,
+                new CodeStyleOption2<UnusedParametersPreference>(default, NotificationOption2.Suggestion));
 
             await TestDiagnosticMissingAsync(
 @"using System;
@@ -1382,8 +1373,8 @@ public sealed class C : IDisposable
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task RegressionTest_ShouldReportUnusedParameter_02()
         {
-            var options = Option(CodeStyleOptions.UnusedParameters,
-                new CodeStyleOption<UnusedParametersPreference>((UnusedParametersPreference)2, NotificationOption.Suggestion));
+            var options = Option(CodeStyleOptions2.UnusedParameters,
+                new CodeStyleOption2<UnusedParametersPreference>((UnusedParametersPreference)2, NotificationOption2.Suggestion));
 
             await TestDiagnosticMissingAsync(
 @"using System;

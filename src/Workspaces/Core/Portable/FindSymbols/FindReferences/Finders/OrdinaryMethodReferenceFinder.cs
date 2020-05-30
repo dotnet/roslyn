@@ -5,8 +5,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -22,8 +20,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol.MethodKind == MethodKind.LocalFunction;
         }
 
-        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            IMethodSymbol symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
@@ -31,44 +29,38 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             // If it's a delegate method, then cascade to the type as well.  These guys are
             // practically equivalent for users.
-            var symbol = symbolAndProjectId.Symbol;
             if (symbol.ContainingType.TypeKind == TypeKind.Delegate)
             {
-                return ImmutableArray.Create(
-                    symbolAndProjectId.WithSymbol((ISymbol)symbol.ContainingType));
+                return ImmutableArray.Create<ISymbol>(symbol.ContainingType);
             }
             else
             {
-                var otherPartsOfPartial = GetOtherPartsOfPartial(symbolAndProjectId);
+                var otherPartsOfPartial = GetOtherPartsOfPartial(symbol);
                 var baseCascadedSymbols = await base.DetermineCascadedSymbolsAsync(
-                    symbolAndProjectId, solution, projects, options, cancellationToken).ConfigureAwait(false);
+                    symbol, solution, projects, options, cancellationToken).ConfigureAwait(false);
 
                 if (otherPartsOfPartial == null && baseCascadedSymbols == null)
                 {
-                    return ImmutableArray<SymbolAndProjectId>.Empty;
+                    return ImmutableArray<ISymbol>.Empty;
                 }
 
                 return otherPartsOfPartial.Concat(baseCascadedSymbols);
             }
         }
 
-        private ImmutableArray<SymbolAndProjectId> GetOtherPartsOfPartial(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId)
+        private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
         {
-            var symbol = symbolAndProjectId.Symbol;
             if (symbol.PartialDefinitionPart != null)
             {
-                return ImmutableArray.Create(
-                    symbolAndProjectId.WithSymbol((ISymbol)symbol.PartialDefinitionPart));
+                return ImmutableArray.Create<ISymbol>(symbol.PartialDefinitionPart);
             }
 
             if (symbol.PartialImplementationPart != null)
             {
-                return ImmutableArray.Create(
-                    symbolAndProjectId.WithSymbol((ISymbol)symbol.PartialImplementationPart));
+                return ImmutableArray.Create<ISymbol>(symbol.PartialImplementationPart);
             }
 
-            return ImmutableArray<SymbolAndProjectId>.Empty;
+            return ImmutableArray<ISymbol>.Empty;
         }
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
@@ -93,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // searches for these, then we should find usages of 'lock(goo)' or 'synclock(goo)'
             // since they implicitly call those methods.
 
-            var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
+            var ordinaryDocuments = await FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
             var forEachDocuments = IsForEachMethod(methodSymbol)
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
@@ -109,17 +101,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return ordinaryDocuments.Concat(forEachDocuments).Concat(deconstructDocuments).Concat(awaitExpressionDocuments);
         }
 
-        private bool IsForEachMethod(IMethodSymbol methodSymbol)
+        private static bool IsForEachMethod(IMethodSymbol methodSymbol)
         {
             return
                 methodSymbol.Name == WellKnownMemberNames.GetEnumeratorMethodName ||
                 methodSymbol.Name == WellKnownMemberNames.MoveNextMethodName;
         }
 
-        private bool IsDeconstructMethod(IMethodSymbol methodSymbol)
+        private static bool IsDeconstructMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == WellKnownMemberNames.DeconstructMethodName;
 
-        private bool IsGetAwaiterMethod(IMethodSymbol methodSymbol)
+        private static bool IsGetAwaiterMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == WellKnownMemberNames.GetAwaiter;
 
         protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

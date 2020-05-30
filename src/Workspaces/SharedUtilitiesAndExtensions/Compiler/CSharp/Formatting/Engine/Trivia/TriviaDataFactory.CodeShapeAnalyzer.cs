@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 get { return _lastLineBreakIndex >= 0; }
             }
 
-            private bool OnElastic(SyntaxTrivia trivia)
+            private static bool OnElastic(SyntaxTrivia trivia)
             {
                 // if it contains elastic trivia, always format
                 return trivia.IsElastic();
@@ -134,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return true;
                 }
 
-                _indentation += text.ConvertTabToSpace(_options.GetOption(FormattingOptions.TabSize), _indentation, text.Length);
+                _indentation += text.ConvertTabToSpace(_options.GetOption(FormattingOptions2.TabSize), _indentation, text.Length);
 
                 return false;
             }
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 // go deep down for single line documentation comment
                 if (trivia.IsSingleLineDocComment() &&
-                    ShouldFormatSingleLineDocumentationComment(_indentation, _options.GetOption(FormattingOptions.TabSize), trivia))
+                    ShouldFormatSingleLineDocumentationComment(_indentation, _options.GetOption(FormattingOptions2.TabSize), trivia))
                 {
                     return true;
                 }
@@ -198,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            private bool OnSkippedTokensOrText(SyntaxTrivia trivia)
+            private static bool OnSkippedTokensOrText(SyntaxTrivia trivia)
             {
                 if (trivia.Kind() != SyntaxKind.SkippedTokensTrivia &&
                     trivia.Kind() != SyntaxKind.PreprocessingMessageTrivia)
@@ -310,7 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             private static bool ShouldFormatSingleLineDocumentationComment(int indentation, int tabSize, SyntaxTrivia trivia)
             {
-                var xmlComment = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
+                Debug.Assert(trivia.HasStructure);
+
+                var xmlComment = (DocumentationCommentTriviaSyntax)trivia.GetStructure()!;
 
                 var sawFirstOne = false;
                 foreach (var token in xmlComment.DescendantTokens())

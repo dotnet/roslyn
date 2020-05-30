@@ -13,16 +13,14 @@ namespace Microsoft.CodeAnalysis
     {
         private static int s_nextId;
 
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly int _id;
+#pragma warning restore IDE0052 // Remove unread private members
 
         private BranchId(int id)
-        {
-            _id = id;
-        }
+            => _id = id;
 
         internal static BranchId GetNextId()
-        {
-            return new BranchId(Interlocked.Increment(ref s_nextId));
-        }
+            => new BranchId(Interlocked.Increment(ref s_nextId));
     }
 }

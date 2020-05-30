@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,9 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class OperatorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind == MethodKind.UserDefinedOperator;
-        }
+            => symbol.MethodKind == MethodKind.UserDefinedOperator;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
@@ -44,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken);
         }
 
-        private bool IsPotentialReference(
+        private static bool IsPotentialReference(
             ISyntaxFactsService syntaxFacts,
             PredefinedOperator op,
             SyntaxToken token)

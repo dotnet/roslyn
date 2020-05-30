@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.Diagnostics;
@@ -19,18 +21,25 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Host), Shared]
+    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Default), Shared]
     internal partial class TemporaryStorageServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TemporaryStorageServiceFactory()
         {
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var textFactory = workspaceServices.GetService<ITextFactoryService>();
-            return new TemporaryStorageService(textFactory);
+            var textFactory = workspaceServices.GetRequiredService<ITextFactoryService>();
+
+            // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
+            // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
+            // until https://github.com/dotnet/roslyn/issues/42178 is fixed.
+            return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
+                ? (ITemporaryStorageService)new TemporaryStorageService(textFactory)
+                : TrivialTemporaryStorageService.Instance;
         }
 
         /// <summary>
@@ -86,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
             /// </remarks>
             /// <seealso cref="_weakFileReference"/>
-            private string _name;
+            private string? _name;
 
             /// <summary>The total size of the current memory mapped file for multiple storage units.</summary>
             /// <remarks>
@@ -105,29 +114,19 @@ namespace Microsoft.CodeAnalysis.Host
             private long _offset;
 
             public TemporaryStorageService(ITextFactoryService textFactory)
-            {
-                _textFactory = textFactory;
-            }
+                => _textFactory = textFactory;
 
             public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken)
-            {
-                return new TemporaryTextStorage(this);
-            }
+                => new TemporaryTextStorage(this);
 
-            public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, Encoding encoding, CancellationToken cancellationToken)
-            {
-                return new TemporaryTextStorage(this, storageName, offset, size, encoding);
-            }
+            public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, Encoding? encoding, CancellationToken cancellationToken)
+                => new TemporaryTextStorage(this, storageName, offset, size, encoding);
 
             public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken)
-            {
-                return new TemporaryStreamStorage(this);
-            }
+                => new TemporaryStreamStorage(this);
 
             public ITemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long offset, long size, CancellationToken cancellationToken)
-            {
-                return new TemporaryStreamStorage(this, storageName, offset, size);
-            }
+                => new TemporaryStreamStorage(this, storageName, offset, size);
 
             /// <summary>
             /// Allocate shared storage of a specified size.
@@ -169,6 +168,7 @@ namespace Microsoft.CodeAnalysis.Host
                     else
                     {
                         // Reserve additional space in the existing storage location
+                        Contract.ThrowIfNull(_name);
                         _offset += size;
                         return new MemoryMappedInfo(reference, _name, _offset - size, size);
                     }
@@ -176,47 +176,39 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             public static string CreateUniqueName(long size)
-            {
-                return "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
-            }
+                => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
 
-            private class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryStorageWithName
+            private sealed class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryStorageWithName
             {
                 private readonly TemporaryStorageService _service;
-                private Encoding _encoding;
-                private MemoryMappedInfo _memoryMappedInfo;
+                private Encoding? _encoding;
+                private MemoryMappedInfo? _memoryMappedInfo;
 
                 public TemporaryTextStorage(TemporaryStorageService service)
-                {
-                    _service = service;
-                }
+                    => _service = service;
 
-                public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, Encoding encoding)
+                public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, Encoding? encoding)
                 {
                     _service = service;
                     _encoding = encoding;
                     _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
                 }
 
-                public string Name => _memoryMappedInfo?.Name;
-                public long Offset => _memoryMappedInfo.Offset;
-                public long Size => _memoryMappedInfo.Size;
+                // TODO: cleanup https://github.com/dotnet/roslyn/issues/43037
+                // Offet, Size not accessed if Name is null
+                public string? Name => _memoryMappedInfo?.Name;
+                public long Offset => _memoryMappedInfo!.Offset;
+                public long Size => _memoryMappedInfo!.Size;
 
                 public void Dispose()
                 {
-                    if (_memoryMappedInfo != null)
-                    {
-                        // Destructors of SafeHandle and FileStream in MemoryMappedFile
-                        // will eventually release resources if this Dispose is not called
-                        // explicitly
-                        _memoryMappedInfo.Dispose();
-                        _memoryMappedInfo = null;
-                    }
+                    // Destructors of SafeHandle and FileStream in MemoryMappedFile
+                    // will eventually release resources if this Dispose is not called
+                    // explicitly
+                    _memoryMappedInfo?.Dispose();
 
-                    if (_encoding != null)
-                    {
-                        _encoding = null;
-                    }
+                    _memoryMappedInfo = null;
+                    _encoding = null;
                 }
 
                 public SourceText ReadText(CancellationToken cancellationToken)
@@ -280,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Host
                     return Task.Factory.StartNew(() => WriteText(text, cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
                 }
 
-                private unsafe TextReader CreateTextReaderFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength)
+                private static unsafe TextReader CreateTextReaderFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength)
                 {
                     var src = (char*)accessor.GetPointer();
 
@@ -295,12 +287,10 @@ namespace Microsoft.CodeAnalysis.Host
             private class TemporaryStreamStorage : ITemporaryStreamStorage, ITemporaryStorageWithName
             {
                 private readonly TemporaryStorageService _service;
-                private MemoryMappedInfo _memoryMappedInfo;
+                private MemoryMappedInfo? _memoryMappedInfo;
 
                 public TemporaryStreamStorage(TemporaryStorageService service)
-                {
-                    _service = service;
-                }
+                    => _service = service;
 
                 public TemporaryStreamStorage(TemporaryStorageService service, string storageName, long offset, long size)
                 {
@@ -308,20 +298,19 @@ namespace Microsoft.CodeAnalysis.Host
                     _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
                 }
 
-                public string Name => _memoryMappedInfo?.Name;
-                public long Offset => _memoryMappedInfo.Offset;
-                public long Size => _memoryMappedInfo.Size;
+                // TODO: clean up https://github.com/dotnet/roslyn/issues/43037
+                // Offset, Size is only used when Name is not null.
+                public string? Name => _memoryMappedInfo?.Name;
+                public long Offset => _memoryMappedInfo!.Offset;
+                public long Size => _memoryMappedInfo!.Size;
 
                 public void Dispose()
                 {
-                    if (_memoryMappedInfo != null)
-                    {
-                        // Destructors of SafeHandle and FileStream in MemoryMappedFile
-                        // will eventually release resources if this Dispose is not called
-                        // explicitly
-                        _memoryMappedInfo.Dispose();
-                        _memoryMappedInfo = null;
-                    }
+                    // Destructors of SafeHandle and FileStream in MemoryMappedFile
+                    // will eventually release resources if this Dispose is not called
+                    // explicitly
+                    _memoryMappedInfo?.Dispose();
+                    _memoryMappedInfo = null;
                 }
 
                 public Stream ReadStream(CancellationToken cancellationToken)
@@ -353,9 +342,7 @@ namespace Microsoft.CodeAnalysis.Host
                 }
 
                 public Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
-                {
-                    return WriteStreamMaybeAsync(stream, useAsync: true, cancellationToken: cancellationToken);
-                }
+                    => WriteStreamMaybeAsync(stream, useAsync: true, cancellationToken: cancellationToken);
 
                 private async Task WriteStreamMaybeAsync(Stream stream, bool useAsync, CancellationToken cancellationToken)
                 {
@@ -410,8 +397,8 @@ namespace Microsoft.CodeAnalysis.Host
             public DirectMemoryAccessStreamReader(char* src, int length)
                 : base(length)
             {
-                Debug.Assert(src != null);
-                Debug.Assert(length >= 0);
+                RoslynDebug.Assert(src != null);
+                RoslynDebug.Assert(length >= 0);
 
                 _position = src;
                 _end = _position + length;

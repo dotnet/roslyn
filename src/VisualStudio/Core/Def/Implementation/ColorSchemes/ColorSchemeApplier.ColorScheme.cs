@@ -24,9 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             public ImmutableArray<ColorTheme> Themes { get; }
 
             public ColorScheme(ImmutableArray<ColorTheme> themes)
-            {
-                Themes = themes;
-            }
+                => Themes = themes;
         }
 
         /// <summary>

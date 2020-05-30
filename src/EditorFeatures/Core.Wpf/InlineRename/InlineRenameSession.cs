@@ -309,7 +309,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // follow the originally-intended design.
                 // https://github.com/dotnet/roslyn/issues/40890
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
-                _cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                 RaiseSessionSpansUpdated(inlineRenameLocations.Locations.ToImmutableArray());
 
@@ -334,14 +333,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public event EventHandler ReplacementTextChanged;
 
         internal OpenTextBufferManager GetBufferManager(ITextBuffer buffer)
-        {
-            return _openTextBuffers[buffer];
-        }
+            => _openTextBuffers[buffer];
 
         internal bool TryGetBufferManager(ITextBuffer buffer, out OpenTextBufferManager bufferManager)
-        {
-            return _openTextBuffers.TryGetValue(buffer, out bufferManager);
-        }
+            => _openTextBuffers.TryGetValue(buffer, out bufferManager);
 
         public void RefreshRenameSessionWithOptionsChanged(Option<bool> renameOption, bool newValue)
         {
@@ -587,7 +582,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     async t =>
                     {
                         await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _conflictResolutionTaskCancellationSource.Token);
-                        _conflictResolutionTaskCancellationSource.Token.ThrowIfCancellationRequested();
 
                         ApplyReplacements(t.Result.replacementInfo, t.Result.mergeResult, _conflictResolutionTaskCancellationSource.Token);
                     },
@@ -665,9 +659,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public void Cancel()
-        {
-            Cancel(rollbackTemporaryEdits: true);
-        }
+            => Cancel(rollbackTemporaryEdits: true);
 
         private void Cancel(bool rollbackTemporaryEdits)
         {

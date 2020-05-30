@@ -4,8 +4,8 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         AbstractChangeImplementionCodeRefactoringProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpImplementImplicitlyCodeRefactoringProvider()
         {
         }
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol _)
             => generator.WithAccessibility(WithoutExplicitImpl(decl), Accessibility.Public);
 
-        private SyntaxNode? WithoutExplicitImpl(SyntaxNode decl)
+        private static SyntaxNode? WithoutExplicitImpl(SyntaxNode decl)
             => decl switch
             {
                 MethodDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(null),

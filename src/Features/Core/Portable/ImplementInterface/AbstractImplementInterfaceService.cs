@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         {
         }
 
+        protected abstract string ToDisplayString(IMethodSymbol disposeImplMethod, SymbolDisplayFormat format);
+
         protected abstract bool CanImplementImplicitly { get; }
         protected abstract bool HasHiddenExplicitImplementation { get; }
         protected abstract bool TryInitializeState(Document document, SemanticModel model, SyntaxNode interfaceNode, CancellationToken cancellationToken, out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out IEnumerable<INamedTypeSymbol> interfaceTypes);
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             return false;
         }
 
-        private IList<ISymbol> GetDelegatableMembers(State state)
+        private static IList<ISymbol> GetDelegatableMembers(State state)
         {
             var fields =
                 state.ClassOrStructType.GetMembers()

@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public const string Kind = "CodeAction_SuppressDiagnostics";
 
         public static SyntaxAnnotation Create()
-        {
-            return new SyntaxAnnotation(Kind);
-        }
+            => new SyntaxAnnotation(Kind);
     }
 }

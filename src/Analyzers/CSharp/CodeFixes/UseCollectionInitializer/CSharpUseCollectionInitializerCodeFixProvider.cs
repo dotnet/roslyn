@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             VariableDeclaratorSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpUseCollectionInitializerCodeFixProvider()
         {
         }
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 GetNewObjectCreation(objectCreation, matches));
         }
 
-        private ObjectCreationExpressionSyntax GetNewObjectCreation(
+        private static ObjectCreationExpressionSyntax GetNewObjectCreation(
             ObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 objectCreation, CreateExpressions(matches));
         }
 
-        private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
+        private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
             var nodesAndTokens = new List<SyntaxNodeOrToken>();

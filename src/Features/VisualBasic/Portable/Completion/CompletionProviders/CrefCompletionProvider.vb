@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.ErrorReporting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -39,6 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -64,7 +66,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
 
                 Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
-                Dim workspace = document.Project.Solution.Workspace
 
                 Dim symbols = GetSymbols(token, semanticModel, cancellationToken)
                 If Not symbols.Any() Then
@@ -73,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
                 Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
-                Dim items = CreateCompletionItems(workspace, semanticModel, symbols, position)
+                Dim items = CreateCompletionItems(semanticModel, symbols, position)
                 context.AddItems(items)
 
                 If IsFirstCrefParameterContext(token) Then
@@ -183,23 +184,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Function
 
-        Private Iterator Function CreateCompletionItems(
-                workspace As Workspace, semanticModel As SemanticModel,
+        Private Shared Iterator Function CreateCompletionItems(
+                semanticModel As SemanticModel,
                 symbols As IEnumerable(Of ISymbol), position As Integer) As IEnumerable(Of CompletionItem)
 
             Dim builder = SharedPools.Default(Of StringBuilder).Allocate()
             Try
                 For Each symbol In symbols
                     builder.Clear()
-                    Yield CreateCompletionItem(workspace, semanticModel, symbol, position, builder)
+                    Yield CreateCompletionItem(semanticModel, symbol, position, builder)
                 Next
             Finally
                 SharedPools.Default(Of StringBuilder).ClearAndFree(builder)
             End Try
         End Function
 
-        Private Function CreateCompletionItem(
-                workspace As Workspace, semanticModel As SemanticModel,
+        Private Shared Function CreateCompletionItem(
+                semanticModel As SemanticModel,
                 symbol As ISymbol, position As Integer, builder As StringBuilder) As CompletionItem
 
             If symbol.IsUserDefinedOperator() Then
@@ -243,24 +244,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 rules:=GetRules(displayString))
         End Function
 
-        Private Function CreateOfCompletionItem() As CompletionItem
+        Private Shared Function CreateOfCompletionItem() As CompletionItem
             Return CommonCompletionItem.Create(
                 "Of", displayTextSuffix:="", CompletionItemRules.Default, Glyph.Keyword,
                 description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.Identifies_a_type_parameter_on_a_generic_class_structure_interface_delegate_or_procedure))
         End Function
 
-        Private Shared s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)
-        Private Shared s_WithoutSpace As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, " "c)
+        Private Shared ReadOnly s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)
+        Private Shared ReadOnly s_WithoutSpace As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, " "c)
 
 #If False Then
         Private Shared s_defaultRules As CompletionItemRules =
             CompletionItemRules.Create(commitRules:=ImmutableArray.Create(
                 CommitRule.Create(CommitRuleKind.ExcludeKeysIfMatchEndOfTypedText, " ", "OF", isCaseSensitive:=False)))
 #Else
-        Private Shared s_defaultRules As CompletionItemRules = CompletionItemRules.Default
+        Private Shared ReadOnly s_defaultRules As CompletionItemRules = CompletionItemRules.Default
 #End If
 
-        Private Function GetRules(displayText As String) As CompletionItemRules
+        Private Shared Function GetRules(displayText As String) As CompletionItemRules
             Dim commitRules = s_defaultRules.CommitCharacterRules
 
             If displayText.Contains("(") Then

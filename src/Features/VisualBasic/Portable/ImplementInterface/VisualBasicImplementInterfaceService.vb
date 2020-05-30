@@ -16,8 +16,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
         Inherits AbstractImplementInterfaceService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
+
+        Protected Overrides Function ToDisplayString(disposeImplMethod As IMethodSymbol, format As SymbolDisplayFormat) As String
+            Return SymbolDisplay.ToDisplayString(disposeImplMethod, format)
+        End Function
 
         Protected Overrides ReadOnly Property CanImplementImplicitly As Boolean
             Get
@@ -78,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
             Return False
         End Function
 
-        Private Function GetInterfaceType(semanticModel As SemanticModel,
+        Private Shared Function GetInterfaceType(semanticModel As SemanticModel,
                                           node As SyntaxNode,
                                           cancellationToken As CancellationToken) As INamedTypeSymbol
             Dim symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken)

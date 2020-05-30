@@ -100,14 +100,10 @@ namespace Roslyn.Utilities
             private TEventHandler _handler;
 
             public Registry(TEventHandler handler)
-            {
-                _handler = handler;
-            }
+                => _handler = handler;
 
             public void Unregister()
-            {
-                _handler = null;
-            }
+                => _handler = null;
 
             public void Invoke(Action<TEventHandler> invoker)
             {
@@ -119,9 +115,7 @@ namespace Roslyn.Utilities
             }
 
             public bool HasHandler(TEventHandler handler)
-            {
-                return handler.Equals(_handler);
-            }
+                => handler.Equals(_handler);
 
             public bool Equals(Registry<TEventHandler> other)
             {
@@ -144,14 +138,10 @@ namespace Roslyn.Utilities
             }
 
             public override bool Equals(object obj)
-            {
-                return Equals(obj as Registry<TEventHandler>);
-            }
+                => Equals(obj as Registry<TEventHandler>);
 
             public override int GetHashCode()
-            {
-                return _handler == null ? 0 : _handler.GetHashCode();
-            }
+                => _handler == null ? 0 : _handler.GetHashCode();
         }
 
         internal struct EventHandlerSet<TEventHandler>
@@ -160,9 +150,7 @@ namespace Roslyn.Utilities
             private ImmutableArray<Registry<TEventHandler>> _registries;
 
             internal EventHandlerSet(ImmutableArray<Registry<TEventHandler>> registries)
-            {
-                _registries = registries;
-            }
+                => _registries = registries;
 
             public bool HasHandlers
             {

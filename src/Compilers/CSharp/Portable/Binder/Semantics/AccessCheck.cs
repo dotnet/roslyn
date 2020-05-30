@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Checks if 'symbol' is accessible from within type 'within', with
-        /// an qualifier of type "throughTypeOpt". Sets "failedThroughTypeCheck" to true
+        /// a qualifier of type "throughTypeOpt". Sets "failedThroughTypeCheck" to true
         /// if it failed the "through type" check.
         /// </summary>
         public static bool IsSymbolAccessible(
@@ -174,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Assembly:
                 case SymbolKind.NetModule:
                 case SymbolKind.RangeVariable:
+                case SymbolKind.Method when ((MethodSymbol)symbol).MethodKind == MethodKind.LocalFunction:
                     // These types of symbols are always accessible (if visible).
                     return true;
 

@@ -80,34 +80,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         }
 
         private void Select_Access_Kind(object sender, RoutedEventArgs e)
-        {
-            accessListComboBox.Focus();
-        }
+            => accessListComboBox.Focus();
 
         private void Select_Type_Kind(object sender, RoutedEventArgs e)
-        {
-            kindListComboBox.Focus();
-        }
+            => kindListComboBox.Focus();
 
         private void Select_Project(object sender, RoutedEventArgs e)
-        {
-            projectListComboBox.Focus();
-        }
+            => projectListComboBox.Focus();
 
         private void Create_New_File(object sender, RoutedEventArgs e)
-        {
-            createNewFileRadioButton.Focus();
-        }
+            => createNewFileRadioButton.Focus();
 
         private void Add_To_Existing_File(object sender, RoutedEventArgs e)
-        {
-            addToExistingFileRadioButton.Focus();
-        }
+            => addToExistingFileRadioButton.Focus();
 
         private void FileNameTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            _viewModel.UpdateFileNameExtension();
-        }
+            => _viewModel.UpdateFileNameExtension();
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
@@ -119,9 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+            => DialogResult = false;
 
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
@@ -131,9 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             private readonly GenerateTypeDialog _dialog;
 
             public TestAccessor(GenerateTypeDialog dialog)
-            {
-                _dialog = dialog;
-            }
+                => _dialog = dialog;
 
             public Button OKButton => _dialog.OKButton;
 

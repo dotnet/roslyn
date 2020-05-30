@@ -2,12 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.CodeStyle;
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
 namespace Microsoft.CodeAnalysis.CodeStyle
-#endif
 {
     internal enum OperatorPlacementWhenWrappingPreference
     {
@@ -27,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static Optional<OperatorPlacementWhenWrappingPreference> Parse(string optionString)
         {
             if (CodeStyleHelpers.TryGetCodeStyleValueAndOptionalNotification(
-                    optionString, out var value, out var notificationOpt))
+                    optionString, out var value, out _))
             {
                 switch (value)
                 {

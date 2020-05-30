@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -12,6 +15,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     internal class MiscSolutionCrawlerWorkspaceEventListener : IEventListener<object>, IEventListenerStoppable
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MiscSolutionCrawlerWorkspaceEventListener()
         {
         }
@@ -24,8 +28,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public void StopListening(Workspace workspace)
-        {
-            DiagnosticProvider.Disable(workspace);
-        }
+            => DiagnosticProvider.Disable(workspace);
     }
 }

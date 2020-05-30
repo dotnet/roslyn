@@ -19,9 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
     internal partial class ContainedLanguage : IVsContainedCode
     {
         public int HostSpansUpdated()
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         /// <summary>
         /// Returns the list of code blocks in the generated .cs file that comes from the ASP.NET

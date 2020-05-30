@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private const string GetPrefix = "Get";
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ReplaceMethodWithPropertyCodeRefactoringProvider()
         {
         }
@@ -58,7 +61,9 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
             var hasGetPrefix = HasGetPrefix(methodName);
             var propertyName = hasGetPrefix
-                ? methodName.Substring(GetPrefix.Length)
+                ? NameGenerator.GenerateUniqueName(
+                    methodName.Substring(GetPrefix.Length),
+                    n => !methodSymbol.ContainingType.GetMembers(n).Any())
                 : methodName;
             var nameChanged = hasGetPrefix;
 
@@ -86,20 +91,14 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         }
 
         private static bool HasGetPrefix(SyntaxToken identifier)
-        {
-            return HasGetPrefix(identifier.ValueText);
-        }
+            => HasGetPrefix(identifier.ValueText);
 
         private static bool HasGetPrefix(string text)
-        {
-            return HasPrefix(text, GetPrefix);
-        }
+            => HasPrefix(text, GetPrefix);
         private static bool HasPrefix(string text, string prefix)
-        {
-            return text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
-        }
+            => text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
 
-        private IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
+        private static IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
         {
             var containingType = getMethod.ContainingType;
             var setMethodName = "Set" + getMethod.Name.Substring(GetPrefix.Length);
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 setMethod.DeclaringSyntaxReferences.Length == 1;
         }
 
-        private async Task<Solution> ReplaceMethodsWithPropertyAsync(
+        private static async Task<Solution> ReplaceMethodsWithPropertyAsync(
             Document document,
             string propertyName,
             bool nameChanged,
@@ -168,11 +167,11 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var project = document.Project;
             var originalSolution = project.Solution;
             var getMethodReferences = await SymbolFinder.FindReferencesAsync(
-                new SymbolAndProjectId(getMethod, project.Id), originalSolution, cancellationToken).ConfigureAwait(false);
+                getMethod, originalSolution, cancellationToken).ConfigureAwait(false);
             var setMethodReferences = setMethod == null
                 ? SpecializedCollections.EmptyEnumerable<ReferencedSymbol>()
                 : await SymbolFinder.FindReferencesAsync(
-                    new SymbolAndProjectId(setMethod, project.Id), originalSolution, cancellationToken).ConfigureAwait(false);
+                    setMethod, originalSolution, cancellationToken).ConfigureAwait(false);
 
             // Get the warnings we'd like to put at the definition site.
             var definitionWarning = GetDefinitionIssues(getMethodReferences);
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution;
         }
 
-        private async Task<Solution> UpdateReferencesAsync(Solution updatedSolution, string propertyName, bool nameChanged, ILookup<Document, ReferenceLocation> getReferencesByDocument, ILookup<Document, ReferenceLocation> setReferencesByDocument, CancellationToken cancellationToken)
+        private static async Task<Solution> UpdateReferencesAsync(Solution updatedSolution, string propertyName, bool nameChanged, ILookup<Document, ReferenceLocation> getReferencesByDocument, ILookup<Document, ReferenceLocation> setReferencesByDocument, CancellationToken cancellationToken)
         {
             var allReferenceDocuments = getReferencesByDocument.Concat(setReferencesByDocument).Select(g => g.Key).Distinct();
             foreach (var referenceDocument in allReferenceDocuments)
@@ -209,7 +208,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution;
         }
 
-        private async Task<Solution> UpdateReferencesInDocumentAsync(
+        private static async Task<Solution> UpdateReferencesInDocumentAsync(
             string propertyName,
             bool nameChanged,
             Solution updatedSolution,
@@ -291,7 +290,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             }
         }
 
-        private async Task<Solution> ReplaceGetMethodsAndRemoveSetMethodsAsync(
+        private static async Task<Solution> ReplaceGetMethodsAndRemoveSetMethodsAsync(
             Solution originalSolution,
             Solution updatedSolution,
             string propertyName,
@@ -319,7 +318,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution;
         }
 
-        private async Task<Solution> ReplaceGetMethodsAndRemoveSetMethodsAsync(
+        private static async Task<Solution> ReplaceGetMethodsAndRemoveSetMethodsAsync(
             string propertyName,
             bool nameChanged,
             Solution updatedSolution,
@@ -376,7 +375,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution.WithDocumentSyntaxRoot(documentId, editor.GetChangedRoot());
         }
 
-        private async Task<List<GetAndSetMethods>> GetGetSetPairsAsync(
+        private static async Task<List<GetAndSetMethods>> GetGetSetPairsAsync(
             Solution updatedSolution,
             Compilation compilation,
             DocumentId documentId,
@@ -412,7 +411,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return originalDefinition.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol() as TSymbol;
         }
 
-        private async Task<SyntaxNode> GetMethodDeclarationAsync(IMethodSymbol method, CancellationToken cancellationToken)
+        private static async Task<SyntaxNode> GetMethodDeclarationAsync(IMethodSymbol method, CancellationToken cancellationToken)
         {
             if (method == null)
             {
@@ -424,7 +423,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<MultiDictionary<DocumentId, IMethodSymbol>> GetDefinitionsByDocumentIdAsync(
+        private static async Task<MultiDictionary<DocumentId, IMethodSymbol>> GetDefinitionsByDocumentIdAsync(
             Solution originalSolution,
             IEnumerable<ReferencedSymbol> referencedSymbols,
             CancellationToken cancellationToken)
@@ -452,7 +451,9 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return result;
         }
 
-        private string GetDefinitionIssues(IEnumerable<ReferencedSymbol> getMethodReferences)
+#pragma warning disable IDE0060 // Remove unused parameter - Method not completely implemented.
+        private static string GetDefinitionIssues(IEnumerable<ReferencedSymbol> getMethodReferences)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             // TODO: add things to be concerned about here.  For example:
             // 1. If any of the referenced symbols are from metadata.

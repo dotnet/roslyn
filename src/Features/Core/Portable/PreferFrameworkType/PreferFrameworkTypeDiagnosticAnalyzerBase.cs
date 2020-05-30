@@ -4,9 +4,7 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -21,27 +19,27 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
     {
         protected PreferFrameworkTypeDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
-                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess),
+                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
-        private static PerLanguageOption<CodeStyleOption<bool>> GetOptionForDeclarationContext
-            => CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration;
+        private static PerLanguageOption2<CodeStyleOption2<bool>> GetOptionForDeclarationContext
+            => CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration;
 
-        private static PerLanguageOption<CodeStyleOption<bool>> GetOptionForMemberAccessContext
-            => CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
+        private static PerLanguageOption2<CodeStyleOption2<bool>> GetOptionForMemberAccessContext
+            => CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
 
         public override bool OpenFileOnly(OptionSet options)
         {
             var preferTypeKeywordInDeclarationOption = options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
+                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
             var preferTypeKeywordInMemberAccessOption = options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
+                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
 
-            return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
-                     preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
+            return !(preferTypeKeywordInDeclarationOption == NotificationOption2.Warning || preferTypeKeywordInDeclarationOption == NotificationOption2.Error ||
+                     preferTypeKeywordInMemberAccessOption == NotificationOption2.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption2.Error);
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -113,15 +111,15 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
             return OptionSettingPrefersFrameworkType(optionValue, severity);
         }
 
-        private bool IsStylePreferred(
+        private static bool IsStylePreferred(
             SyntaxNodeAnalysisContext context,
             string language)
             => IsFrameworkTypePreferred(context, GetOptionForDeclarationContext, language) ||
                IsFrameworkTypePreferred(context, GetOptionForMemberAccessContext, language);
 
-        private bool IsFrameworkTypePreferred(
+        private static bool IsFrameworkTypePreferred(
             SyntaxNodeAnalysisContext context,
-            PerLanguageOption<CodeStyleOption<bool>> option,
+            PerLanguageOption2<CodeStyleOption2<bool>> option,
             string language)
         {
             var optionValue = context.GetOption(option, language);
@@ -132,7 +130,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         /// checks if style is preferred and the enforcement is not None.
         /// </summary>
         /// <remarks>if predefined type is not preferred, it implies the preference is framework type.</remarks>
-        private static bool OptionSettingPrefersFrameworkType(CodeStyleOption<bool> optionValue, ReportDiagnostic severity)
+        private static bool OptionSettingPrefersFrameworkType(CodeStyleOption2<bool> optionValue, ReportDiagnostic severity)
             => !optionValue.Value && severity != ReportDiagnostic.Suppress;
     }
 }

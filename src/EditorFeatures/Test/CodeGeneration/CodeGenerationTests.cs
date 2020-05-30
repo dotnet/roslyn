@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default,
             bool isIndexer = false,
             CodeGenerationOptions codeGenerationOptions = null,
-            IDictionary<OptionKey, object> options = null)
+            IDictionary<OptionKey2, object> options = null)
         {
             // This assumes that tests will not use place holders for get/set statements at the same time
             if (getStatements != null)
@@ -575,9 +575,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         }
 
         private static ITypeSymbol GetTypeSymbol(Compilation compilation, Type type)
-        {
-            return !type.IsArray ? GetTypeSymbol(compilation, type.FullName) : GetTypeSymbol(compilation, type.GetElementType().FullName, type.GetArrayRank());
-        }
+            => !type.IsArray ? GetTypeSymbol(compilation, type.FullName) : GetTypeSymbol(compilation, type.GetElementType().FullName, type.GetArrayRank());
 
         private static ITypeSymbol GetTypeSymbol(Compilation compilation, string typeFullName, int arrayRank = 0)
         {
@@ -592,9 +590,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             => m.ToImmutableArray();
 
         internal static Func<SemanticModel, ITypeSymbol> CreateArrayType(Type type, int rank = 1)
-        {
-            return s => CodeGenerationSymbolFactory.CreateArrayTypeSymbol(GetTypeSymbol(type)(s), rank);
-        }
+            => s => CodeGenerationSymbolFactory.CreateArrayTypeSymbol(GetTypeSymbol(type)(s), rank);
 
         private static ImmutableArray<IParameterSymbol> GetParameterSymbols(ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters, TestContext context)
             => parameters.IsDefault
@@ -629,14 +625,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         }
 
         private static Func<SemanticModel, INamedTypeSymbol> GetTypeSymbol(Type type)
-        {
-            return GetTypeSymbol(type.FullName);
-        }
+            => GetTypeSymbol(type.FullName);
 
         private static Func<SemanticModel, INamedTypeSymbol> GetTypeSymbol(string typeMetadataName)
-        {
-            return s => s?.Compilation.GetTypeByMetadataName(typeMetadataName);
-        }
+            => s => s?.Compilation.GetTypeByMetadataName(typeMetadataName);
 
         internal static IEnumerable<SyntaxToken> CreateModifierTokens(Editing.DeclarationModifiers modifiers, string language)
         {

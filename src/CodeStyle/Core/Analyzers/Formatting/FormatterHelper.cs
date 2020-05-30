@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+using static Microsoft.CodeAnalysis.Formatting.FormattingExtensions;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -53,9 +54,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted document.</returns>
         public static Task<SyntaxTree> FormatAsync(SyntaxTree syntaxTree, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, CancellationToken cancellationToken)
-        {
-            return FormatAsync(syntaxTree, syntaxFormattingService, spans, options, rules: null, cancellationToken);
-        }
+            => FormatAsync(syntaxTree, syntaxFormattingService, spans, options, rules: null, cancellationToken);
 
         internal static async Task<SyntaxTree> FormatAsync(SyntaxTree syntaxTree, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken)
         {
@@ -78,6 +77,23 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <returns>The formatted tree's root node.</returns>
         public static SyntaxNode Format(SyntaxNode node, ISyntaxFormattingService syntaxFormattingService, OptionSet options, CancellationToken cancellationToken)
             => Format(node, syntaxFormattingService, SpecializedCollections.SingletonEnumerable(node.FullSpan), options, rules: null, cancellationToken: cancellationToken);
+
+        /// <summary>
+        /// Formats the whitespace of a syntax tree.
+        /// </summary>
+        /// <param name="node">The root node of a syntax tree.</param>
+        /// <param name="annotation">The descendant nodes of the root to format.</param>
+        /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the workspace will be used.</param>
+        /// <param name="cancellationToken">An optional cancellation token.</param>
+        /// <returns>The formatted tree's root node.</returns>
+        public static SyntaxNode Format(SyntaxNode node, ISyntaxFormattingService syntaxFormattingService, SyntaxAnnotation annotation, OptionSet options, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken)
+        {
+            var spans = (annotation == SyntaxAnnotation.ElasticAnnotation)
+                ? GetElasticSpans(node)
+                : GetAnnotatedSpans(node, annotation);
+
+            return Format(node, syntaxFormattingService, spans, options, rules, cancellationToken: cancellationToken);
+        }
 
         internal static SyntaxNode Format(SyntaxNode node, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken)
         {

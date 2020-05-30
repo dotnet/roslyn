@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -84,14 +85,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => CreateSpan(node.GetFirstToken(), node.GetLastToken());
 
         private static TextSpan CreateSpan(SyntaxNode node, SyntaxToken token)
-        {
-            return TextSpan.FromBounds(node.SpanStart, token.Span.End);
-        }
+            => TextSpan.FromBounds(node.SpanStart, token.Span.End);
 
         private static TextSpan CreateSpan(SyntaxToken token)
-        {
-            return TextSpan.FromBounds(token.SpanStart, token.Span.End);
-        }
+            => TextSpan.FromBounds(token.SpanStart, token.Span.End);
 
         private static TextSpan CreateSpan(SyntaxTokenList startOpt, SyntaxNodeOrToken startFallbackOpt, SyntaxNodeOrToken endOpt)
         {
@@ -173,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CreateSpan(node);
 
                 case SyntaxKind.CatchClause:
-                    return CreateSpanForCatchClause((CatchClauseSyntax)node, position);
+                    return CreateSpanForCatchClause((CatchClauseSyntax)node);
 
                 case SyntaxKind.FinallyClause:
                     return TryCreateSpanForNode(((FinallyClauseSyntax)node).Block, position);
@@ -187,6 +184,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return caseClause.WhenClause == null
                         ? TryCreateSpanForSwitchLabel((SwitchLabelSyntax)node, position)
                         : CreateSpan(caseClause.WhenClause);
+
+                case SyntaxKind.SwitchExpressionArm:
+                    var switchArm = (SwitchExpressionArmSyntax)node;
+                    return createSpanForSwitchArm(switchArm);
+
+                    TextSpan createSpanForSwitchArm(SwitchExpressionArmSyntax switchArm) =>
+                        CreateSpan((position <= switchArm.WhenClause?.FullSpan.End == true) ? switchArm.WhenClause : (SyntaxNode)switchArm.Expression);
+
+                case SyntaxKind.SwitchExpression when
+                            node is SwitchExpressionSyntax switchExpression &&
+                            switchExpression.Arms.Count > 0 &&
+                            position >= switchExpression.OpenBraceToken.Span.End &&
+                            position <= switchExpression.CloseBraceToken.Span.Start:
+                    // This can occur if the cursor is on a separator. Find the nearest switch arm.
+                    switchArm = switchExpression.Arms.LastOrDefault(arm => position >= arm.FullSpan.Start) ?? switchExpression.Arms.First();
+                    return createSpanForSwitchArm(switchArm);
 
                 case SyntaxKind.WhenClause:
                     return CreateSpan(node);
@@ -332,14 +345,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private static TextSpan CreateSpanForConstructorInitializer(ConstructorInitializerSyntax constructorInitializer)
-        {
-            return CreateSpan(constructorInitializer.ThisOrBaseKeyword, constructorInitializer.ArgumentList.CloseParenToken);
-        }
+            => CreateSpan(constructorInitializer.ThisOrBaseKeyword, constructorInitializer.ArgumentList.CloseParenToken);
 
         private static TextSpan? TryCreateSpanForFieldDeclaration(BaseFieldDeclarationSyntax fieldDeclaration, int position)
-        {
-            return TryCreateSpanForVariableDeclaration(fieldDeclaration.Declaration, fieldDeclaration.Modifiers, fieldDeclaration.SemicolonToken, position);
-        }
+            => TryCreateSpanForVariableDeclaration(fieldDeclaration.Declaration, fieldDeclaration.Modifiers, fieldDeclaration.SemicolonToken, position);
 
         private static TextSpan? TryCreateSpanForSwitchLabel(SwitchLabelSyntax switchLabel, int position)
         {
@@ -558,9 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private static SyntaxToken LastNotMissing(SyntaxToken token1, SyntaxToken token2)
-        {
-            return token2.IsMissing ? token1 : token2;
-        }
+            => token2.IsMissing ? token1 : token2;
 
         private static TextSpan? TryCreateSpanForVariableDeclaration(VariableDeclarationSyntax declaration, int position)
         {
@@ -663,22 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return 0;
         }
 
-        private static SyntaxTokenList GetModifiers(VariableDeclarationSyntax declaration)
-        {
-            if (declaration.Parent is BaseFieldDeclarationSyntax fieldDeclaration)
-            {
-                return fieldDeclaration.Modifiers;
-            }
-
-            if (declaration.Parent is LocalDeclarationStatementSyntax localDeclaration)
-            {
-                return localDeclaration.Modifiers;
-            }
-
-            return default;
-        }
-
-        private static TextSpan CreateSpanForCatchClause(CatchClauseSyntax catchClause, int position)
+        private static TextSpan CreateSpanForCatchClause(CatchClauseSyntax catchClause)
         {
             if (catchClause.Filter != null)
             {
@@ -701,6 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// 2) The expression is a breakable expression inside a query expression.
         /// 3) The expression is in a for statement initializer, condition or incrementor.
         /// 4) The expression is a foreach initializer.
+        /// 5) The expression is the value of an arm of a switch expression
         /// </summary>
         private static bool IsBreakableExpression(ExpressionSyntax expression)
         {
@@ -714,6 +707,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 case SyntaxKind.ArrowExpressionClause:
                     Debug.Assert(((ArrowExpressionClauseSyntax)parent).Expression == expression);
+                    return true;
+
+                case SyntaxKind.SwitchExpressionArm:
+                    Debug.Assert(((SwitchExpressionArmSyntax)parent).Expression == expression);
                     return true;
 
                 case SyntaxKind.ForStatement:

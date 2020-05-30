@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.ChangeSignature;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
@@ -34,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         public static ChangeSignatureTestState Create(string markup, string languageName, ParseOptions parseOptions = null)
         {
             var exportProvider = s_exportProviderFactory.CreateExportProvider();
+
             var workspace = languageName == LanguageNames.CSharp
                   ? TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
                   : TestWorkspace.CreateVisualBasic(markup, exportProvider: exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
@@ -89,7 +89,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             WpfTestRunner.RequireWpfFact($"{nameof(AbstractChangeSignatureService.ChangeSignature)} currently needs to run on a WPF Fact because it's factored in a way that tries popping up UI in some cases.");
 
             var context = await ChangeSignatureService.GetContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None);
-            return context.ParameterConfiguration;
+            if (context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext)
+            {
+                return changeSignatureAnalyzedSucceedContext.ParameterConfiguration;
+            }
+
+            throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(((CannotChangeSignatureAnalyzedContext)context).CannotChangeSignatureReason.ToString());
         }
 
         private static readonly IExportProviderFactory s_exportProviderFactory =
@@ -97,7 +102,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
                     .WithPart(typeof(TestChangeSignatureOptionsService))
                     .WithPart(typeof(CSharpChangeSignatureService))
-                    .WithPart(typeof(VisualBasicChangeSignatureService)));
+                    .WithPart(typeof(VisualBasicChangeSignatureService))
+                    .WithPart(typeof(CodeAnalysis.CSharp.Editing.CSharpImportAdder))
+                    .WithPart(typeof(CodeAnalysis.VisualBasic.Editing.VisualBasicImportAdder))
+                    .WithPart(typeof(CodeAnalysis.CSharp.AddImports.CSharpAddImportsService))
+                    .WithPart(typeof(CodeAnalysis.VisualBasic.AddImports.VisualBasicAddImportsService))
+                    .WithPart(typeof(CodeAnalysis.CSharp.Recommendations.CSharpRecommendationService))
+                    .WithPart(typeof(CodeAnalysis.VisualBasic.Recommendations.VisualBasicRecommendationService)));
 
         public void Dispose()
         {

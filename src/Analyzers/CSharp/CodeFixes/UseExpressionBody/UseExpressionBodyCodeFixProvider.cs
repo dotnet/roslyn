@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -30,10 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public UseExpressionBodyCodeFixProvider()
-        {
-            FixableDiagnosticIds = _helpers.SelectAsArray(h => h.DiagnosticId);
-        }
+            => FixableDiagnosticIds = _helpers.SelectAsArray(h => h.DiagnosticId);
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.IsSuppressed ||
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
         }
 
-        private void AddEdits(
+        private static void AddEdits(
             SemanticModel semanticModel, SyntaxEditor editor, Diagnostic diagnostic,
             HashSet<AccessorListSyntax> accessorLists,
             CancellationToken cancellationToken)
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             public MyCodeAction(string title, CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
-                this.Priority = priority;
+                Priority = priority;
             }
 #endif
         }

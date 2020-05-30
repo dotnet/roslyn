@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -41,11 +40,11 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         //        | <expr0> is <pattern>                             // C#
         //        | <expr0> is <type>                                // C#
         //        | <expr0> == <const-expr>                          // C#, VB
-        //        | <expr0> <comparison-op> <const>                  //     VB
+        //        | <expr0> <comparison-op> <const>                  // C#, VB
         //        | ( <expr0> >= <const> | <const> <= <expr0> )
-        //           && ( <expr0> <= <const> | <const> >= <expr0> )  //     VB
+        //           && ( <expr0> <= <const> | <const> >= <expr0> )  // C#, VB
         //        | ( <expr0> <= <const> | <const> >= <expr0> )
-        //           && ( <expr0> >= <const> | <const> <= <expr0> )  //     VB
+        //           && ( <expr0> >= <const> | <const> <= <expr0> )  // C#, VB
         //
         internal abstract class Analyzer
         {
@@ -60,16 +59,17 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             /// </remarks>
             private SyntaxNode _switchTargetExpression = null!;
             private readonly ISyntaxFacts _syntaxFacts;
-            private readonly Feature _features;
 
             protected Analyzer(ISyntaxFacts syntaxFacts, Feature features)
             {
                 _syntaxFacts = syntaxFacts;
-                _features = features;
+                Features = features;
             }
 
+            public Feature Features { get; }
+
             public bool Supports(Feature feature)
-                => (_features & feature) != 0;
+                => (Features & feature) != 0;
 
             public (ImmutableArray<AnalyzedSwitchSection>, SyntaxNode TargetExpression) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
             {
@@ -216,9 +216,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var guards);
                 var pattern = ParsePattern(operation, guards);
                 if (pattern is null)
-                {
                     return null;
-                }
 
                 return new AnalyzedSwitchLabel(pattern, guards.ToImmutable());
             }
@@ -267,11 +265,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 switch (operation)
                 {
                     case IBinaryOperation { OperatorKind: ConditionalAnd } op
-                        when Supports(Feature.CaseGuard) && op.RightOperand.Syntax is TExpressionSyntax node:
-                        guards.Add(node);
-                        return ParsePattern(op.LeftOperand, guards);
-
-                    case IBinaryOperation { OperatorKind: ConditionalAnd } op
                         when Supports(Feature.RangePattern) && GetRangeBounds(op) is (TExpressionSyntax lower, TExpressionSyntax higher):
                         return new AnalyzedPattern.Range(lower, higher);
 
@@ -285,19 +278,45 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                             _ => null
                         };
 
+                    case IBinaryOperation { OperatorKind: NotEquals } op
+                        when Supports(Feature.InequalityPattern):
+                        return ParseRelationalPattern(op);
+
                     case IBinaryOperation op
-                        when Supports(Feature.RelationalPattern) && IsComparisonOperator(op.OperatorKind):
-                        return DetermineConstant(op) switch
+                        when Supports(Feature.RelationalPattern) && IsRelationalOperator(op.OperatorKind):
+                        return ParseRelationalPattern(op);
+
+                    // Check this below the cases that produce Relational/Ranges.  We would prefer to use those if
+                    // available before utilizing a CaseGuard.
+                    case IBinaryOperation { OperatorKind: ConditionalAnd } op
+                        when Supports(Feature.AndPattern | Feature.CaseGuard):
                         {
-                            ConstantResult.Left when op.LeftOperand.Syntax is TExpressionSyntax left
-                                => new AnalyzedPattern.Relational(Flip(op.OperatorKind), left),
-                            ConstantResult.Right when op.RightOperand.Syntax is TExpressionSyntax right
-                                => new AnalyzedPattern.Relational(op.OperatorKind, right),
-                            _ => null
-                        };
+                            var leftPattern = ParsePattern(op.LeftOperand, guards);
+                            if (leftPattern == null)
+                                return null;
+
+                            if (Supports(Feature.AndPattern))
+                            {
+                                var guardCount = guards.Count;
+                                var rightPattern = ParsePattern(op.RightOperand, guards);
+                                if (rightPattern != null)
+                                    return new AnalyzedPattern.And(leftPattern, rightPattern);
+
+                                // Making a pattern out of the RHS didn't work.  Reset the guards back to where we started.
+                                guards.Count = guardCount;
+                            }
+
+                            if (Supports(Feature.CaseGuard) && op.RightOperand.Syntax is TExpressionSyntax node)
+                            {
+                                guards.Add(node);
+                                return leftPattern;
+                            }
+
+                            return null;
+                        }
 
                     case IIsTypeOperation op
-                        when Supports(Feature.TypePattern) && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
+                        when Supports(Feature.IsTypePattern) && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
                         return new AnalyzedPattern.Type(node);
 
                     case IIsPatternOperation op
@@ -309,6 +328,18 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
 
                 return null;
+            }
+
+            private AnalyzedPattern? ParseRelationalPattern(IBinaryOperation op)
+            {
+                return DetermineConstant(op) switch
+                {
+                    ConstantResult.Left when op.LeftOperand.Syntax is TExpressionSyntax left
+                        => new AnalyzedPattern.Relational(Flip(op.OperatorKind), left),
+                    ConstantResult.Right when op.RightOperand.Syntax is TExpressionSyntax right
+                        => new AnalyzedPattern.Relational(op.OperatorKind, right),
+                    _ => null
+                };
             }
 
             private enum BoundKind
@@ -379,7 +410,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 };
             }
 
-            private static bool IsComparisonOperator(BinaryOperatorKind operatorKind)
+            private static bool IsRelationalOperator(BinaryOperatorKind operatorKind)
             {
                 switch (operatorKind)
                 {
@@ -387,7 +418,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     case LessThanOrEqual:
                     case GreaterThanOrEqual:
                     case GreaterThan:
-                    case NotEquals:
                         return true;
                     default:
                         return false;
@@ -427,15 +457,21 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         internal enum Feature
         {
             None = 0,
-            // VB features
+            // VB/C# 9.0 features
             RelationalPattern = 1,
-            RangePattern = 1 << 1,
+            // VB features
+            InequalityPattern = 1 << 1,
+            RangePattern = 1 << 2,
             // C# 7.0 features
-            SourcePattern = 1 << 2,
-            TypePattern = 1 << 3,
-            CaseGuard = 1 << 4,
+            SourcePattern = 1 << 3,
+            IsTypePattern = 1 << 4,
+            CaseGuard = 1 << 5,
             // C# 8.0 features
-            SwitchExpression = 1 << 5,
+            SwitchExpression = 1 << 6,
+            // C# 9.0 features
+            OrPattern = 1 << 7,
+            AndPattern = 1 << 8,
+            TypePattern = 1 << 9,
         }
     }
 }

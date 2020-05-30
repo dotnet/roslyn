@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -41,14 +40,6 @@ namespace Microsoft.CodeAnalysis
         public static PooledObject<StringBuilder> Create(ObjectPool<StringBuilder> pool)
         {
             return new PooledObject<StringBuilder>(
-                pool,
-                p => Allocator(p),
-                (p, sb) => Releaser(p, sb));
-        }
-
-        public static PooledObject<Stopwatch> Create(ObjectPool<Stopwatch> pool)
-        {
-            return new PooledObject<Stopwatch>(
                 pool,
                 p => Allocator(p),
                 (p, sb) => Releaser(p, sb));
@@ -97,74 +88,40 @@ namespace Microsoft.CodeAnalysis
 
         #region allocators and releasers
         private static StringBuilder Allocator(ObjectPool<StringBuilder> pool)
-        {
-            return pool.AllocateAndClear();
-        }
+            => pool.AllocateAndClear();
 
         private static void Releaser(ObjectPool<StringBuilder> pool, StringBuilder sb)
-        {
-            pool.ClearAndFree(sb);
-        }
-
-        private static Stopwatch Allocator(ObjectPool<Stopwatch> pool)
-        {
-            return pool.AllocateAndClear();
-        }
-
-        private static void Releaser(ObjectPool<Stopwatch> pool, Stopwatch sb)
-        {
-            pool.ClearAndFree(sb);
-        }
+            => pool.ClearAndFree(sb);
 
         private static Stack<TItem> Allocator<TItem>(ObjectPool<Stack<TItem>> pool)
-        {
-            return pool.AllocateAndClear();
-        }
+            => pool.AllocateAndClear();
 
         private static void Releaser<TItem>(ObjectPool<Stack<TItem>> pool, Stack<TItem> obj)
-        {
-            pool.ClearAndFree(obj);
-        }
+            => pool.ClearAndFree(obj);
 
         private static Queue<TItem> Allocator<TItem>(ObjectPool<Queue<TItem>> pool)
-        {
-            return pool.AllocateAndClear();
-        }
+            => pool.AllocateAndClear();
 
         private static void Releaser<TItem>(ObjectPool<Queue<TItem>> pool, Queue<TItem> obj)
-        {
-            pool.ClearAndFree(obj);
-        }
+            => pool.ClearAndFree(obj);
 
         private static HashSet<TItem> Allocator<TItem>(ObjectPool<HashSet<TItem>> pool)
-        {
-            return pool.AllocateAndClear();
-        }
+            => pool.AllocateAndClear();
 
         private static void Releaser<TItem>(ObjectPool<HashSet<TItem>> pool, HashSet<TItem> obj)
-        {
-            pool.ClearAndFree(obj);
-        }
+            => pool.ClearAndFree(obj);
 
         private static Dictionary<TKey, TValue> Allocator<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool)
-        {
-            return pool.AllocateAndClear();
-        }
+            => pool.AllocateAndClear();
 
         private static void Releaser<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool, Dictionary<TKey, TValue> obj)
-        {
-            pool.ClearAndFree(obj);
-        }
+            => pool.ClearAndFree(obj);
 
         private static List<TItem> Allocator<TItem>(ObjectPool<List<TItem>> pool)
-        {
-            return pool.AllocateAndClear();
-        }
+            => pool.AllocateAndClear();
 
         private static void Releaser<TItem>(ObjectPool<List<TItem>> pool, List<TItem> obj)
-        {
-            pool.ClearAndFree(obj);
-        }
+            => pool.ClearAndFree(obj);
         #endregion
     }
 }

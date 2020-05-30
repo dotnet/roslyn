@@ -6,15 +6,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
 using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseThrowExpression
 {
@@ -40,9 +34,9 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private readonly Option<CodeStyleOption<bool>> _preferThrowExpressionOption;
+        private readonly Option2<CodeStyleOption2<bool>> _preferThrowExpressionOption;
 
-        protected AbstractUseThrowExpressionDiagnosticAnalyzer(Option<CodeStyleOption<bool>> preferThrowExpressionOption, string language)
+        protected AbstractUseThrowExpressionDiagnosticAnalyzer(Option2<CodeStyleOption2<bool>> preferThrowExpressionOption, string language)
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
                    preferThrowExpressionOption,
                    language,
@@ -108,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            if (!(semanticModel.GetOperation(ifOperation.Syntax.Parent, cancellationToken) is IBlockOperation containingBlock))
+            if (!(ifOperation.Parent is IBlockOperation containingBlock))
             {
                 return;
             }
@@ -272,13 +266,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             return false;
         }
 
-        private bool IsNull(IOperation operation)
+        private static bool IsNull(IOperation operation)
         {
             return operation.ConstantValue.HasValue &&
                    operation.ConstantValue.Value == null;
         }
 
-        private IConditionalOperation GetContainingIfOperation(
+        private static IConditionalOperation GetContainingIfOperation(
             SemanticModel semanticModel, IThrowOperation throwOperation,
             CancellationToken cancellationToken)
         {

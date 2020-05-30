@@ -6,7 +6,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     ''' <summary>
@@ -17,8 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
         Inherits AbstractTriviaDataFactory
 
-        Private Const s_lineBreakCacheSize = 5
-        Private Const s_indentationLevelCacheSize = 20
         Private Const s_lineContinuationCacheSize = 80
 
         Private ReadOnly _lineContinuations(s_lineContinuationCacheSize) As LineContinuationTrivia
@@ -127,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Private Function ContainsOnlyLineContinuation(result As Analyzer.AnalysisResult) As Boolean
+        Private Shared Function ContainsOnlyLineContinuation(result As Analyzer.AnalysisResult) As Boolean
             Return result.HasLineContinuation AndAlso
                    Not result.HasComments AndAlso
                    Not result.HasColonTrivia AndAlso
@@ -137,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                    Not result.HasConflictMarker
         End Function
 
-        Private Function ContainsOnlyWhitespace(result As Analyzer.AnalysisResult) As Boolean
+        Private Shared Function ContainsOnlyWhitespace(result As Analyzer.AnalysisResult) As Boolean
             Return Not result.HasComments AndAlso
                    Not result.HasColonTrivia AndAlso
                    Not result.HasPreprocessor AndAlso
@@ -174,22 +171,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Private Function CalculateSpaces(token1 As SyntaxToken, token2 As SyntaxToken) As Integer
-            Dim initialColumn = If(token1.Kind = 0, 0, Me.TreeInfo.GetOriginalColumn(Me.Options.GetOption(FormattingOptions.TabSize), token1) + token1.Width)
+            Dim initialColumn = If(token1.Kind = 0, 0, Me.TreeInfo.GetOriginalColumn(Me.Options.GetOption(FormattingOptions2.TabSize), token1) + token1.Width)
             Dim textSnippet = Me.TreeInfo.GetTextBetween(token1, token2)
 
-            Return textSnippet.ConvertTabToSpace(Me.Options.GetOption(FormattingOptions.TabSize), initialColumn, textSnippet.Length)
+            Return textSnippet.ConvertTabToSpace(Me.Options.GetOption(FormattingOptions2.TabSize), initialColumn, textSnippet.Length)
         End Function
 
         Private Function GetLineBreaksAndIndentation(result As Analyzer.AnalysisResult) As ValueTuple(Of Boolean, Integer, Integer)
             Debug.Assert(result.Tab >= 0)
             Debug.Assert(result.LineBreaks >= 0)
 
-            Dim indentation = result.Tab * Me.Options.GetOption(FormattingOptions.TabSize) + result.Space
+            Dim indentation = result.Tab * Me.Options.GetOption(FormattingOptions2.TabSize) + result.Space
             If result.HasTrailingSpace OrElse result.HasUnknownWhitespace Then
                 Return ValueTuple.Create(False, result.LineBreaks, indentation)
             End If
 
-            If Not Me.Options.GetOption(FormattingOptions.UseTabs) Then
+            If Not Me.Options.GetOption(FormattingOptions2.UseTabs) Then
                 If result.Tab > 0 Then
                     Return ValueTuple.Create(False, result.LineBreaks, indentation)
                 End If
@@ -197,24 +194,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return ValueTuple.Create(True, result.LineBreaks, indentation)
             End If
 
-            Debug.Assert(Me.Options.GetOption(FormattingOptions.UseTabs))
+            Debug.Assert(Me.Options.GetOption(FormattingOptions2.UseTabs))
 
             ' tab can only appear before space to be a valid tab for indentation
             If result.HasTabAfterSpace Then
                 Return ValueTuple.Create(False, result.LineBreaks, indentation)
             End If
 
-            If result.Space >= Me.Options.GetOption(FormattingOptions.TabSize) Then
+            If result.Space >= Me.Options.GetOption(FormattingOptions2.TabSize) Then
                 Return ValueTuple.Create(False, result.LineBreaks, indentation)
             End If
 
-            Debug.Assert((indentation \ Me.Options.GetOption(FormattingOptions.TabSize)) = result.Tab)
-            Debug.Assert((indentation Mod Me.Options.GetOption(FormattingOptions.TabSize)) = result.Space)
+            Debug.Assert((indentation \ Me.Options.GetOption(FormattingOptions2.TabSize)) = result.Tab)
+            Debug.Assert((indentation Mod Me.Options.GetOption(FormattingOptions2.TabSize)) = result.Space)
 
             Return ValueTuple.Create(True, result.LineBreaks, indentation)
         End Function
 
-        Private Function GetSpaceOnSingleLine(result As Analyzer.AnalysisResult) As Integer
+        Private Shared Function GetSpaceOnSingleLine(result As Analyzer.AnalysisResult) As Integer
             If result.HasTrailingSpace OrElse result.HasUnknownWhitespace OrElse result.LineBreaks > 0 OrElse result.Tab > 0 Then
                 Return -1
             End If

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -9,8 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
-    // Review: this doesn't have any state. should this be a static class and remove
-    // FormattingOperationsFactory property from Formatter?
     internal static class FormattingOperations
     {
         private static readonly AdjustNewLinesOperation s_preserveZeroLine = new AdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
@@ -30,33 +30,25 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// start token will act as anchor token and right after anchor token to end of end token will become anchor region
         /// </summary>
         public static AnchorIndentationOperation CreateAnchorIndentationOperation(SyntaxToken startToken, SyntaxToken endToken)
-        {
-            return CreateAnchorIndentationOperation(startToken, startToken, endToken, TextSpan.FromBounds(startToken.Span.End, endToken.Span.End));
-        }
+            => CreateAnchorIndentationOperation(startToken, startToken, endToken, TextSpan.FromBounds(startToken.Span.End, endToken.Span.End));
 
         /// <summary>
         /// create anchor indentation region more explicitly by providing all necessary information.
         /// </summary>
         public static AnchorIndentationOperation CreateAnchorIndentationOperation(SyntaxToken anchorToken, SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan)
-        {
-            return new AnchorIndentationOperation(anchorToken, startToken, endToken, textSpan);
-        }
+            => new AnchorIndentationOperation(anchorToken, startToken, endToken, textSpan);
 
         /// <summary>
         /// create suppress region around start and end token
         /// </summary>
         public static SuppressOperation CreateSuppressOperation(SyntaxToken startToken, SyntaxToken endToken, SuppressOption option)
-        {
-            return CreateSuppressOperation(startToken, endToken, TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End), option);
-        }
+            => CreateSuppressOperation(startToken, endToken, TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End), option);
 
         /// <summary>
         /// create suppress region around the given text span
         /// </summary>
         private static SuppressOperation CreateSuppressOperation(SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, SuppressOption option)
-        {
-            return new SuppressOperation(startToken, endToken, textSpan, option);
-        }
+            => new SuppressOperation(startToken, endToken, textSpan, option);
 
         /// <summary>
         /// create indent block region around the start and end token with the given indentation delta added to the existing indentation at the position of the start token
@@ -71,9 +63,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// create indent block region around the given text span with the given indentation delta added to the existing indentation at the position of the start token
         /// </summary>
         public static IndentBlockOperation CreateIndentBlockOperation(SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, int indentationDelta, IndentBlockOption option)
-        {
-            return new IndentBlockOperation(startToken, endToken, textSpan, indentationDelta, option);
-        }
+            => new IndentBlockOperation(startToken, endToken, textSpan, indentationDelta, option);
 
         /// <summary>
         /// create indent block region around the start and end token with the given indentation delta added to the column of the base token
@@ -89,17 +79,13 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// create indent block region around the given text span with the given indentation delta added to the column of the base token
         /// </summary>
         public static IndentBlockOperation CreateRelativeIndentBlockOperation(SyntaxToken baseToken, SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, int indentationDelta, IndentBlockOption option)
-        {
-            return new IndentBlockOperation(baseToken, startToken, endToken, textSpan, indentationDelta, option);
-        }
+            => new IndentBlockOperation(baseToken, startToken, endToken, textSpan, indentationDelta, option);
 
         /// <summary>
         /// instruct the engine to try to align first tokens on the lines among the given tokens to be aligned to the base token
         /// </summary>
         public static AlignTokensOperation CreateAlignTokensOperation(SyntaxToken baseToken, IEnumerable<SyntaxToken> tokens, AlignTokensOption option)
-        {
-            return new AlignTokensOperation(baseToken, tokens, option);
-        }
+            => new AlignTokensOperation(baseToken, tokens, option);
 
         /// <summary>
         /// instruct the engine to try to put the give lines between two tokens
@@ -208,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return AdjustNewLinesOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static AdjustNewLinesOperation GetAdjustNewLinesOperation(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options)
+        internal static AdjustNewLinesOperation? GetAdjustNewLinesOperation(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
             return chainedFormattingRules.GetAdjustNewLinesOperation(previousToken, currentToken);
@@ -217,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return AdjustSpacesOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static AdjustSpacesOperation GetAdjustSpacesOperation(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options)
+        internal static AdjustSpacesOperation? GetAdjustSpacesOperation(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
             return chainedFormattingRules.GetAdjustSpacesOperation(previousToken, currentToken);

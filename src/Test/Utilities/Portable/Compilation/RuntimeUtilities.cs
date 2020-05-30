@@ -60,19 +60,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #endif
         }
 
-        internal static AnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader()
-        {
-#if NET472
-            return new DesktopAnalyzerAssemblyLoader();
-#elif NETCOREAPP
-            return new CoreClrAnalyzerAssemblyLoader();
-#elif NETSTANDARD2_0
-            return new ThrowingAnalyzerAssemblyLoader();
-#else
-#error Unsupported configuration
-#endif
-        }
-
         /// <summary>
         /// Get the location of the assembly that contains this type
         /// </summary>

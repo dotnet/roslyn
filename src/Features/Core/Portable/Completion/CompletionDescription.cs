@@ -24,26 +24,20 @@ namespace Microsoft.CodeAnalysis.Completion
         public ImmutableArray<TaggedText> TaggedParts { get; }
 
         private CompletionDescription(ImmutableArray<TaggedText> taggedParts)
-        {
-            TaggedParts = taggedParts.NullToEmpty();
-        }
+            => TaggedParts = taggedParts.NullToEmpty();
 
         /// <summary>
         /// Creates a new instance of <see cref="CompletionDescription"/> with the specified <see cref="TaggedText"/> parts.
         /// </summary>
         /// <param name="taggedParts">The individual tagged parts of the description.</param>
         public static CompletionDescription Create(ImmutableArray<TaggedText> taggedParts)
-        {
-            return new CompletionDescription(taggedParts);
-        }
+            => new CompletionDescription(taggedParts);
 
         /// <summary>
         /// Creates a new instance of <see cref="CompletionDescription"/> from untagged text.
         /// </summary>
         public static CompletionDescription FromText(string text)
-        {
-            return new CompletionDescription(ImmutableArray.Create(new TaggedText(TextTags.Text, text)));
-        }
+            => new CompletionDescription(ImmutableArray.Create(new TaggedText(TextTags.Text, text)));
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionDescription"/> with the <see cref="TaggedParts"/> property changed.

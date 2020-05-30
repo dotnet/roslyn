@@ -21,13 +21,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectInfoServ
             new Lazy<IProjectInfoService>(() => new DefaultProjectInfoService());
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultProjectInfoServiceFactory()
         {
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton.Value;
-        }
+            => _singleton.Value;
     }
 }

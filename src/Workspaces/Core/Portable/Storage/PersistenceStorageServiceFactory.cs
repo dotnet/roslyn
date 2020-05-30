@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
 // When building for source-build, there is no sqlite dependency
 #if !DOTNET_BUILD_FROM_SOURCE
-using Microsoft.CodeAnalysis.SQLite;
 #endif
 
 namespace Microsoft.CodeAnalysis.Storage
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Storage
     internal class PersistenceStorageServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PersistenceStorageServiceFactory()
         {
         }
@@ -32,7 +34,16 @@ namespace Microsoft.CodeAnalysis.Storage
                 case StorageDatabase.SQLite:
                     var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
                     if (locationService != null)
-                        return new SQLitePersistentStorageService(locationService);
+                    {
+                        if (UseInMemoryWriteCache(workspaceServices))
+                        {
+                            return new SQLite.v2.SQLitePersistentStorageService(locationService);
+                        }
+                        else
+                        {
+                            return new SQLite.v1.SQLitePersistentStorageService(locationService);
+                        }
+                    }
 
                     break;
             }
@@ -40,5 +51,9 @@ namespace Microsoft.CodeAnalysis.Storage
 
             return NoOpPersistentStorageService.Instance;
         }
+
+        private static bool UseInMemoryWriteCache(HostWorkspaceServices workspaceServices)
+            => workspaceServices.Workspace.Options.GetOption(StorageOptions.SQLiteInMemoryWriteCache) ||
+               workspaceServices.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.SQLiteInMemoryWriteCache) == true;
     }
 }

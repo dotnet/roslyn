@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes.ErrorCases
         }
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            throw new Exception($"Exception thrown in register method of {nameof(ExceptionInRegisterMethod)}");
-        }
+            => throw new Exception($"Exception thrown in register method of {nameof(ExceptionInRegisterMethod)}");
     }
 }

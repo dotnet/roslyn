@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new PooledObjects.ObjectPool<List<TextSpan>>(() => new List<TextSpan>());
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public HighlightingService(
             [ImportMany] IEnumerable<Lazy<IHighlighter, LanguageMetadata>> highlighters)
         {

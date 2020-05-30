@@ -105,57 +105,43 @@ namespace Microsoft.CodeAnalysis
 
         [Obsolete("The isSolutionClosing parameter is now obsolete. Please call the overload without that parameter.")]
         protected void ClearOpenDocument(DocumentId documentId, bool isSolutionClosing)
-        {
-            ClearOpenDocument(documentId);
-        }
+            => ClearOpenDocument(documentId);
 
         /// <summary>
         /// Open the specified document in the host environment.
         /// </summary>
         public virtual void OpenDocument(DocumentId documentId, bool activate = true)
-        {
-            this.CheckCanOpenDocuments();
-        }
+            => this.CheckCanOpenDocuments();
 
         /// <summary>
         /// Close the specified document in the host environment.
         /// </summary>
         public virtual void CloseDocument(DocumentId documentId)
-        {
-            this.CheckCanOpenDocuments();
-        }
+            => this.CheckCanOpenDocuments();
 
         /// <summary>
         /// Open the specified additional document in the host environment.
         /// </summary>
         public virtual void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
-        {
-            this.CheckCanOpenDocuments();
-        }
+            => this.CheckCanOpenDocuments();
 
         /// <summary>
         /// Close the specified additional document in the host environment.
         /// </summary>
         public virtual void CloseAdditionalDocument(DocumentId documentId)
-        {
-            this.CheckCanOpenDocuments();
-        }
+            => this.CheckCanOpenDocuments();
 
         /// <summary>
         /// Open the specified analyzer config document in the host environment.
         /// </summary>
         public virtual void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
-        {
-            this.CheckCanOpenDocuments();
-        }
+            => this.CheckCanOpenDocuments();
 
         /// <summary>
         /// Close the specified analyzer config document in the host environment.
         /// </summary>
         public virtual void CloseAnalyzerConfigDocument(DocumentId documentId)
-        {
-            this.CheckCanOpenDocuments();
-        }
+            => this.CheckCanOpenDocuments();
 
         protected void CheckCanOpenDocuments()
         {
@@ -218,9 +204,10 @@ namespace Microsoft.CodeAnalysis
                 return _projectToOpenDocumentsMap.SelectMany(kvp => kvp.Value).ToImmutableArray();
             }
         }
+#nullable enable
 
         /// <summary>
-        /// Gets the ids for documents associated with a text container.
+        /// Gets the ids for documents in the <see cref="CurrentSolution"/> snapshot associated with the given <paramref name="container"/>.
         /// Documents are normally associated with a text container when the documents are opened.
         /// </summary>
         public virtual IEnumerable<DocumentId> GetRelatedDocumentIds(SourceTextContainer container)
@@ -230,28 +217,20 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(container));
             }
 
-            using (_stateLock.DisposableWait())
+            var documentId = GetDocumentIdInCurrentContext(container);
+            if (documentId == null)
             {
-                return GetRelatedDocumentIds_NoLock(container);
-            }
-        }
-
-        private ImmutableArray<DocumentId> GetRelatedDocumentIds_NoLock(SourceTextContainer container)
-        {
-            if (!_bufferToDocumentInCurrentContextMap.TryGetValue(container, out var documentId))
-            {
-                // it is not an opened file
                 return ImmutableArray<DocumentId>.Empty;
             }
 
-            return this.CurrentSolution.GetRelatedDocumentIds(documentId);
+            return CurrentSolution.GetRelatedDocumentIds(documentId);
         }
 
         /// <summary>
         /// Gets the id for the document associated with the given text container in its current context.
         /// Documents are normally associated with a text container when the documents are opened.
         /// </summary>
-        public virtual DocumentId GetDocumentIdInCurrentContext(SourceTextContainer container)
+        public virtual DocumentId? GetDocumentIdInCurrentContext(SourceTextContainer container)
         {
             if (container == null)
             {
@@ -263,6 +242,11 @@ namespace Microsoft.CodeAnalysis
                 return GetDocumentIdInCurrentContext_NoLock(container);
             }
         }
+
+        private DocumentId? GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
+            => _bufferToDocumentInCurrentContextMap.TryGetValue(container, out var documentId) ? documentId : null;
+
+#nullable restore
 
         /// <summary>
         /// Finds the <see cref="DocumentId"/> related to the given <see cref="DocumentId"/> that
@@ -291,28 +275,12 @@ namespace Microsoft.CodeAnalysis
             return _bufferToAssociatedDocumentsMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
         }
 
-        private DocumentId GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
-        {
-            var foundValue = _bufferToDocumentInCurrentContextMap.TryGetValue(container, out var docId);
-
-            if (foundValue)
-            {
-                return docId;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         /// <summary>
         /// Call this method to tell the host environment to change the current active context to this document. Only supported if
         /// <see cref="CanChangeActiveContextDocument"/> returns true.
         /// </summary>
         internal virtual void SetDocumentContext(DocumentId documentId)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         /// <summary>
         /// Call this method when a document has been made the active context in the host environment.
@@ -555,7 +523,9 @@ namespace Microsoft.CodeAnalysis
             this.RegisterText(textContainer);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter 'updateActiveContext' - shipped public API.
         protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext = false)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/,
             // where we have one theory that OnDocumentClosed is running but failing somewhere in the middle and thus failing to get to the RaiseDocumentClosedEventAsync() line. 

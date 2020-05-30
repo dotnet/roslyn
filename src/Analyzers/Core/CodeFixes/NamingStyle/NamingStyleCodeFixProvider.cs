@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
     internal class NamingStyleCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public NamingStyleCodeFixProvider()
         {
         }
@@ -82,12 +84,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             var fixedNames = style.MakeCompliant(symbol.Name);
             foreach (var fixedName in fixedNames)
             {
-                var solution = context.Document.Project.Solution;
                 context.RegisterCodeFix(
                     new FixNameCodeAction(
-                        solution,
+#if !CODE_STYLE
+                        document.Project.Solution,
                         symbol,
                         fixedName,
+#endif
                         string.Format(CodeFixesResources.Fix_Name_Violation_colon_0, fixedName),
                         c => FixAsync(document, symbol, fixedName, c),
                         equivalenceKey: nameof(NamingStyleCodeFixProvider)),
@@ -106,24 +109,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 
         private class FixNameCodeAction : CodeAction
         {
+#if !CODE_STYLE
             private readonly Solution _startingSolution;
             private readonly ISymbol _symbol;
             private readonly string _newName;
+#endif
+
             private readonly string _title;
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolutionAsync;
             private readonly string _equivalenceKey;
 
             public FixNameCodeAction(
+#if !CODE_STYLE
                 Solution startingSolution,
                 ISymbol symbol,
                 string newName,
+#endif
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolutionAsync,
                 string equivalenceKey)
             {
+#if !CODE_STYLE
                 _startingSolution = startingSolution;
                 _symbol = symbol;
                 _newName = newName;
+#endif
                 _title = title;
                 _createChangedSolutionAsync = createChangedSolutionAsync;
                 _equivalenceKey = equivalenceKey;

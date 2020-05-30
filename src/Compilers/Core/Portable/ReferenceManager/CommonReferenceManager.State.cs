@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -42,9 +44,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract IEnumerable<(IAssemblySymbolInternal, ImmutableArray<string>)> GetReferencedAssemblyAliases();
 
-        internal abstract MetadataReference GetMetadataReference(IAssemblySymbolInternal assemblySymbol);
+        internal abstract MetadataReference? GetMetadataReference(IAssemblySymbolInternal? assemblySymbol);
         internal abstract ImmutableArray<MetadataReference> ExplicitReferences { get; }
-        internal abstract ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> ImplicitReferenceResolutions { get; }
+        internal abstract ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?> ImplicitReferenceResolutions { get; }
     }
 
     internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol> : CommonReferenceManager
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         /// A map from a metadata reference to an index to <see cref="_lazyReferencedAssemblies"/> array. Do not access
         /// directly, use <see cref="_lazyReferencedAssembliesMap"/> property instead.
         /// </summary>
-        private Dictionary<MetadataReference, int> _lazyReferencedAssembliesMap;
+        private Dictionary<MetadataReference, int>? _lazyReferencedAssembliesMap;
 
         /// <summary>
         /// A map from a net-module metadata reference to the index of the corresponding module
@@ -97,13 +99,13 @@ namespace Microsoft.CodeAnalysis
         /// Subtract one from the index (for the manifest module) to find the corresponding elements
         /// of <see cref="_lazyReferencedModules"/> and <see cref="_lazyReferencedModulesReferences"/>.
         /// </remarks>
-        private Dictionary<MetadataReference, int> _lazyReferencedModuleIndexMap;
+        private Dictionary<MetadataReference, int>? _lazyReferencedModuleIndexMap;
 
         /// <summary>
         /// Maps (containing syntax tree file name, reference string) of #r directive to a resolved metadata reference.
         /// If multiple #r's in the same tree use the same value as a reference the resolved metadata reference is the same as well.
         /// </summary>
-        private IDictionary<(string, string), MetadataReference> _lazyReferenceDirectiveMap;
+        private IDictionary<(string, string), MetadataReference>? _lazyReferenceDirectiveMap;
 
         /// <summary>
         /// Array of unique bound #r references.
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis
         /// This is important to maintain consistency, especially across multiple submissions (e.g. the reference is not found during compilation of the first submission
         /// but then it is available when the second submission is compiled).
         /// </summary>
-        private ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> _lazyImplicitReferenceResolutions;
+        private ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?>? _lazyImplicitReferenceResolutions;
 
         /// <summary>
         /// Diagnostics produced during reference resolution and binding.
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis
         /// here since we wouldn't be able to share the state among subsequent compilations that are derived from it
         /// (each of them has its own source assembly symbol).
         /// </remarks>
-        private TAssemblySymbol _lazyCorLibraryOpt;
+        private TAssemblySymbol? _lazyCorLibraryOpt;
 
         /// <summary>
         /// Standalone modules referenced by the compilation (doesn't include the manifest module of the compilation).
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private ImmutableArray<UnifiedAssembly<TAssemblySymbol>> _lazyUnifiedAssemblies;
 
-        public CommonReferenceManager(string simpleAssemblyName, AssemblyIdentityComparer identityComparer, Dictionary<MetadataReference, MetadataOrDiagnostic> observedMetadata)
+        public CommonReferenceManager(string simpleAssemblyName, AssemblyIdentityComparer identityComparer, Dictionary<MetadataReference, MetadataOrDiagnostic>? observedMetadata)
         {
             Debug.Assert(simpleAssemblyName != null);
             Debug.Assert(identityComparer != null);
@@ -216,8 +218,9 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
+                // MemberNotNull remove ! https://github.com/dotnet/roslyn/issues/41964
                 AssertBound();
-                return _lazyReferencedAssembliesMap;
+                return _lazyReferencedAssembliesMap!;
             }
         }
 
@@ -225,8 +228,9 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
+                // MemberNotNull remove ! https://github.com/dotnet/roslyn/issues/41964
                 AssertBound();
-                return _lazyReferencedModuleIndexMap;
+                return _lazyReferencedModuleIndexMap!;
             }
         }
 
@@ -234,8 +238,9 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
+                // MemberNotNull remove ! https://github.com/dotnet/roslyn/issues/41964
                 AssertBound();
-                return _lazyReferenceDirectiveMap;
+                return _lazyReferenceDirectiveMap!;
             }
         }
 
@@ -248,12 +253,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal override ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> ImplicitReferenceResolutions
+        internal override ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?> ImplicitReferenceResolutions
         {
             get
             {
+                // MemberNotNull remove ! https://github.com/dotnet/roslyn/issues/41964
                 AssertBound();
-                return _lazyImplicitReferenceResolutions;
+                return _lazyImplicitReferenceResolutions!;
             }
         }
 
@@ -268,7 +274,7 @@ namespace Microsoft.CodeAnalysis
 
         #region Symbols necessary to set up source assembly and module
 
-        internal TAssemblySymbol CorLibraryOpt
+        internal TAssemblySymbol? CorLibraryOpt
         {
             get
             {
@@ -346,6 +352,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(_lazyCorLibraryOpt == null);
         }
 
+        // MemberNotNull all the lazy maps below https://github.com/dotnet/roslyn/issues/41964
         [Conditional("DEBUG")]
         internal void AssertBound()
         {
@@ -390,10 +397,10 @@ namespace Microsoft.CodeAnalysis
             IDictionary<(string, string), MetadataReference> boundReferenceDirectiveMap,
             ImmutableArray<MetadataReference> directiveReferences,
             ImmutableArray<MetadataReference> explicitReferences,
-            ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> implicitReferenceResolutions,
+            ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?> implicitReferenceResolutions,
             bool containsCircularReferences,
             ImmutableArray<Diagnostic> diagnostics,
-            TAssemblySymbol corLibraryOpt,
+            TAssemblySymbol? corLibraryOpt,
             ImmutableArray<PEModule> referencedModules,
             ImmutableArray<ModuleReferences<TAssemblySymbol>> referencedModulesReferences,
             ImmutableArray<TAssemblySymbol> referencedAssemblies,
@@ -511,14 +518,14 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(originalIdentities.Length == symbols.Length);
 
-            ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Builder lazyBuilder = null;
+            ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Builder? lazyBuilder = null;
             for (int i = 0; i < originalIdentities.Length; i++)
             {
                 var symbolIdentity = symbols[i].Identity;
                 var versionPattern = symbols[i].AssemblyVersionPattern;
                 var originalIdentity = originalIdentities[i];
 
-                if ((object)versionPattern != null)
+                if (versionPattern is object)
                 {
                     Debug.Assert(versionPattern.Build == ushort.MaxValue || versionPattern.Revision == ushort.MaxValue);
 
@@ -555,14 +562,14 @@ namespace Microsoft.CodeAnalysis
 
             // build and revision parts can differ only if the corresponding source versions were auto-generated:
             var versionPattern = candidateSymbol.AssemblyVersionPattern;
-            Debug.Assert((object)versionPattern == null || versionPattern.Build == ushort.MaxValue || versionPattern.Revision == ushort.MaxValue);
+            Debug.Assert(versionPattern is null || versionPattern.Build == ushort.MaxValue || versionPattern.Revision == ushort.MaxValue);
 
-            if (((object)versionPattern == null || versionPattern.Build < ushort.MaxValue) && version.Build != candidateVersion.Build)
+            if ((versionPattern is null || versionPattern.Build < ushort.MaxValue) && version.Build != candidateVersion.Build)
             {
                 return false;
             }
 
-            if ((object)versionPattern == null && version.Revision != candidateVersion.Revision)
+            if (versionPattern is null && version.Revision != candidateVersion.Revision)
             {
                 return false;
             }
@@ -611,7 +618,9 @@ namespace Microsoft.CodeAnalysis
 
                         // push dependencies onto the stack:
                         // +1 for the assembly being built:
-                        foreach (var binding in bindingResult[assemblyIndex + 1].ReferenceBinding)
+                        var referenceBinding = bindingResult[assemblyIndex + 1].ReferenceBinding;
+                        Debug.Assert(referenceBinding is object);
+                        foreach (var binding in referenceBinding)
                         {
                             if (binding.IsBound)
                             {
@@ -648,7 +657,7 @@ namespace Microsoft.CodeAnalysis
             return ReferencedAssembliesMap.Select(ra => KeyValuePairUtil.Create(ra.Key, (IAssemblySymbolInternal)ReferencedAssemblies[ra.Value]));
         }
 
-        internal TAssemblySymbol GetReferencedAssemblySymbol(MetadataReference reference)
+        internal TAssemblySymbol? GetReferencedAssemblySymbol(MetadataReference reference)
         {
             int index;
             return ReferencedAssembliesMap.TryGetValue(reference, out index) ? ReferencedAssemblies[index] : null;
@@ -663,7 +672,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol. 
         /// </summary>
-        internal override MetadataReference GetMetadataReference(IAssemblySymbolInternal assemblySymbol)
+        internal override MetadataReference? GetMetadataReference(IAssemblySymbolInternal? assemblySymbol)
         {
             foreach (var entry in ReferencedAssembliesMap)
             {

@@ -41,9 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         private SyntaxNode LookupNode()
-        {
-            return this.ParentElement.LookupNode();
-        }
+            => this.ParentElement.LookupNode();
 
         private EnvDTE.CodeElement CreateCodeAttribute(SyntaxNode node, SyntaxNode parentNode)
         {

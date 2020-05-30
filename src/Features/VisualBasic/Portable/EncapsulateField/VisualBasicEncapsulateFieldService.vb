@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.EncapsulateField
@@ -16,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
         Inherits AbstractEncapsulateFieldService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -64,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
             Return root
         End Function
 
-        Protected Overrides Async Function GetFieldsAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of IFieldSymbol))
+        Protected Overrides Async Function GetFieldsAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of IFieldSymbol))
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
@@ -81,17 +83,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
                 names = fields.SelectMany(Function(f) f.Declarators.SelectMany(Function(d) d.Names.Where(Function(n) n.Span.IntersectsWith(span))))
             End If
 
-            Return names.Select(Function(n) semanticModel.GetDeclaredSymbol(n)) _
-                                                        .OfType(Of IFieldSymbol)() _
-                                                        .WhereNotNull() _
-                                                        .Where(Function(f) f.Name.Length > 0)
+            Return names.Select(Function(n) semanticModel.GetDeclaredSymbol(n)).
+                         OfType(Of IFieldSymbol)().
+                         WhereNotNull().
+                         Where(Function(f) f.Name.Length > 0).
+                         ToImmutableArray()
         End Function
 
-        Private Function CanEncapsulate(field As FieldDeclarationSyntax) As Boolean
+        Private Shared Function CanEncapsulate(field As FieldDeclarationSyntax) As Boolean
             Return TypeOf field.Parent Is TypeBlockSyntax
         End Function
 
-        Protected Function MakeUnique(baseName As String, originalFieldName As String, containingType As INamedTypeSymbol, Optional willChangeFieldName As Boolean = True) As String
+        Protected Shared Function MakeUnique(baseName As String, originalFieldName As String, containingType As INamedTypeSymbol, Optional willChangeFieldName As Boolean = True) As String
             If willChangeFieldName Then
                 Return NameGenerator.GenerateUniqueName(baseName, containingType.MemberNames.Where(Function(x) x <> originalFieldName).ToSet(), StringComparer.OrdinalIgnoreCase)
             Else
@@ -99,27 +102,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
             End If
         End Function
 
-        Protected Overrides Function GeneratePropertyAndFieldNames(field As IFieldSymbol) As Tuple(Of String, String)
+        Protected Overrides Function GenerateFieldAndPropertyNames(field As IFieldSymbol) As (fieldName As String, propertyName As String)
             ' If the field is marked shadows, it will keep its name.
             If field.DeclaredAccessibility = Accessibility.Private OrElse IsShadows(field) Then
                 Dim propertyName = GeneratePropertyName(field.Name)
                 propertyName = MakeUnique(propertyName, field)
-                Return Tuple.Create(field.Name, propertyName)
+                Return (field.Name, propertyName)
             Else
                 Dim propertyName = GeneratePropertyName(field.Name)
                 Dim containingTypeMemberNames = field.ContainingType.GetAccessibleMembersInThisAndBaseTypes(Of ISymbol)(field.ContainingType).Select(Function(s) s.Name)
                 propertyName = NameGenerator.GenerateUniqueName(propertyName, containingTypeMemberNames.Where(Function(m) m <> field.Name).ToSet(), StringComparer.OrdinalIgnoreCase)
 
                 Dim newFieldName = MakeUnique("_" + Char.ToLower(propertyName(0)) + propertyName.Substring(1), field)
-                Return Tuple.Create(newFieldName, propertyName)
+                Return (newFieldName, propertyName)
             End If
         End Function
 
-        Private Function IsShadows(field As IFieldSymbol) As Boolean
+        Private Shared Function IsShadows(field As IFieldSymbol) As Boolean
             Return field.DeclaringSyntaxReferences.Any(Function(d) d.GetSyntax().GetAncestor(Of FieldDeclarationSyntax)().Modifiers.Any(SyntaxKind.ShadowsKeyword))
         End Function
 
-        Private Function MakeUnique(propertyName As String, field As IFieldSymbol) As String
+        Private Shared Function MakeUnique(propertyName As String, field As IFieldSymbol) As String
             Dim containingTypeMemberNames = field.ContainingType.GetAccessibleMembersInThisAndBaseTypes(Of ISymbol)(field.ContainingType).Select(Function(s) s.Name)
             Return NameGenerator.GenerateUniqueName(propertyName, containingTypeMemberNames.ToSet(), StringComparer.OrdinalIgnoreCase)
         End Function

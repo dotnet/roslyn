@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -15,16 +13,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             private readonly Solution _solution;
             private readonly IStreamingFindLiteralReferencesProgress _progress;
-            private readonly CancellationToken _cancellationToken;
 
             public FindLiteralsServerCallback(
                 Solution solution,
-                IStreamingFindLiteralReferencesProgress progress,
-                CancellationToken cancellationToken)
+                IStreamingFindLiteralReferencesProgress progress)
             {
                 _solution = solution;
                 _progress = progress;
-                _cancellationToken = cancellationToken;
             }
 
             public Task AddItemsAsync(int count)

@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -25,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private _isProperty As Boolean
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -177,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return members.WhereAsArray(Function(m) Not m.IsKind(SymbolKind.Event))
         End Function
 
-        Private Function OverridesObjectMethod(method As IMethodSymbol) As Boolean
+        Private Shared Function OverridesObjectMethod(method As IMethodSymbol) As Boolean
             Dim overriddenMember = method
             Do While overriddenMember.OverriddenMethod IsNot Nothing
                 overriddenMember = overriddenMember.OverriddenMethod

@@ -31,7 +31,7 @@ usage()
   echo "  --ci                       Building in CI"
   echo "  --docker                   Run in a docker container if applicable"
   echo "  --bootstrap                Build using a bootstrap compilers"
-  echo "  --skipAnalyzers            Do not run analyzers during build operations"
+  echo "  --runAnalyzers             Run analyzers during build operations"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
@@ -64,7 +64,7 @@ verbosity='minimal'
 binary_log=false
 ci=false
 bootstrap=false
-skip_analyzers=false
+run_analyzers=false
 prepare_machine=false
 warn_as_error=false
 properties=""
@@ -129,8 +129,8 @@ while [[ $# > 0 ]]; do
       # Bootstrap requires restore
       restore=true
       ;;
-    --skipanalyzers)
-      skip_analyzers=true
+    --runAnalyzers)
+      run_analyzers=true
       ;;
     --preparemachine)
       prepare_machine=true
@@ -224,10 +224,9 @@ function BuildSolution {
   local projects="$repo_root/$solution" 
   
   # https://github.com/dotnet/roslyn/issues/23736
-  local enable_analyzers=!$skip_analyzers
   UNAME="$(uname)"
   if [[ "$UNAME" == "Darwin" ]]; then
-    enable_analyzers=false
+    run_analyzers=false
   fi
 
   # NuGet often exceeds the limit of open files on Mac and Linux
@@ -273,7 +272,7 @@ function BuildSolution {
     /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
-    /p:UseRoslynAnalyzers=$enable_analyzers \
+    /p:UseRoslynAnalyzers=$run_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
@@ -286,6 +285,9 @@ function BuildSolution {
 }
 
 InitializeDotNetCli $restore
+if [[ "$restore" == true ]]; then
+  dotnet tool restore
+fi
 
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then

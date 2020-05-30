@@ -40,14 +40,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         }
 
         private void VerifyInFrontOfComment(string text, int position, bool validLocation, CSharpParseOptions options)
-        {
-            VerifyInFrontOfComment(text, position, validLocation, string.Empty, options: options);
-        }
+            => VerifyInFrontOfComment(text, position, validLocation, string.Empty, options: options);
 
         private void VerifyInFrontOfComment_TypePartiallyWritten(string text, int position, bool validLocation, CSharpParseOptions options)
-        {
-            VerifyInFrontOfComment(text, position, validLocation, "Str", options: options);
-        }
+            => VerifyInFrontOfComment(text, position, validLocation, "Str", options: options);
 
         private void VerifyAtPosition(
             string text,
@@ -65,14 +61,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         }
 
         private void VerifyAtPosition(string text, int position, bool validLocation, CSharpParseOptions options)
-        {
-            VerifyAtPosition(text, position, validLocation, string.Empty, options: options);
-        }
+            => VerifyAtPosition(text, position, validLocation, string.Empty, options: options);
 
         private void VerifyAtPosition_TypePartiallyWritten(string text, int position, bool validLocation, CSharpParseOptions options)
-        {
-            VerifyAtPosition(text, position, validLocation, "Str", options: options);
-        }
+            => VerifyAtPosition(text, position, validLocation, "Str", options: options);
 
         private void VerifyAtEndOfFile(
             string text,
@@ -96,14 +88,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         }
 
         private void VerifyAtEndOfFile(string text, int position, bool validLocation, CSharpParseOptions options)
-        {
-            VerifyAtEndOfFile(text, position, validLocation, string.Empty, options: options);
-        }
+            => VerifyAtEndOfFile(text, position, validLocation, string.Empty, options: options);
 
         private void VerifyAtEndOfFile_TypePartiallyWritten(string text, int position, bool validLocation, CSharpParseOptions options)
-        {
-            VerifyAtEndOfFile(text, position, validLocation, "Str", options: options);
-        }
+            => VerifyAtEndOfFile(text, position, validLocation, "Str", options: options);
 
         protected void VerifyTrue(string text)
         {

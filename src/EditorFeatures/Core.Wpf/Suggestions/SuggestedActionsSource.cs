@@ -427,9 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private ImmutableArray<CodeRefactoring> FilterOnUIThread(ImmutableArray<CodeRefactoring> refactorings, Workspace workspace)
-            {
-                return refactorings.Select(r => FilterOnUIThread(r, workspace)).WhereNotNull().ToImmutableArray();
-            }
+                => refactorings.Select(r => FilterOnUIThread(r, workspace)).WhereNotNull().ToImmutableArray();
 
             private CodeRefactoring? FilterOnUIThread(CodeRefactoring refactoring, Workspace workspace)
             {
@@ -754,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         return PredefinedSuggestedActionCategoryNames.ErrorFix;
                     default:
                         throw ExceptionUtilities.Unreachable;
-                };
+                }
             }
 
             private static SuggestedActionSetPriority GetSuggestedActionSetPriority(CodeActionPriority key)
@@ -1021,9 +1019,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private void OnTextViewClosed(object sender, EventArgs e)
-            {
-                Dispose();
-            }
+                => Dispose();
 
             private void OnWorkspaceChanged(object sender, EventArgs e)
             {

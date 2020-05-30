@@ -11,39 +11,32 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal class JsonRpcConnection : RemoteHostClient.Connection
     {
-        private readonly Workspace _workspace;
+        private readonly HostWorkspaceServices _services;
 
         // communication channel related to service information
         private readonly RemoteEndPoint _serviceEndPoint;
 
-        // communication channel related to snapshot information
-        private readonly ReferenceCountedDisposable<RemotableDataProvider> _remotableDataProvider;
-
         public JsonRpcConnection(
-            Workspace workspace,
+            HostWorkspaceServices services,
             TraceSource logger,
             object? callbackTarget,
-            Stream serviceStream,
-            ReferenceCountedDisposable<RemotableDataProvider> remotableDataProvider)
+            Stream serviceStream)
         {
-            Contract.ThrowIfNull(remotableDataProvider);
-
-            _workspace = workspace;
-            _remotableDataProvider = remotableDataProvider;
+            _services = services;
             _serviceEndPoint = new RemoteEndPoint(serviceStream, logger, callbackTarget);
             _serviceEndPoint.UnexpectedExceptionThrown += UnexpectedExceptionThrown;
             _serviceEndPoint.StartListening();
         }
 
         private void UnexpectedExceptionThrown(Exception exception)
-            => RemoteHostCrashInfoBar.ShowInfoBar(_workspace, exception);
+            => RemoteHostCrashInfoBar.ShowInfoBar(_services, exception);
 
         public override Task InvokeAsync(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
             => _serviceEndPoint.InvokeAsync(targetName, arguments, cancellationToken);
@@ -59,7 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // dispose service and snapshot channels
             _serviceEndPoint.UnexpectedExceptionThrown -= UnexpectedExceptionThrown;
             _serviceEndPoint.Dispose();
-            _remotableDataProvider.Dispose();
 
             base.DisposeImpl();
         }

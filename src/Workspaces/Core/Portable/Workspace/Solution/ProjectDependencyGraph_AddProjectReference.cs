@@ -12,11 +12,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    partial class ProjectDependencyGraph
+    public partial class ProjectDependencyGraph
     {
-        internal ProjectDependencyGraph WithAdditionalProjectReferences(ProjectId projectId, IReadOnlyList<ProjectId> referencedProjectIds)
+        internal ProjectDependencyGraph WithAdditionalProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
         {
             Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+
+            if (projectReferences.Count == 0)
+            {
+                return this;
+            }
+
+            // only add references to projects that are contained in the solution/graph
+            var referencedProjectIds = projectReferences
+                .Where(r => _projectIds.Contains(r.ProjectId))
+                .Select(r => r.ProjectId)
+                .ToList();
 
             if (referencedProjectIds.Count == 0)
             {
@@ -96,7 +107,7 @@ namespace Microsoft.CodeAnalysis
             // of projects. First, let's just compute the new set of transitive references. It's possible while doing so we'll discover that we don't
             // know the transitive project references for one of our new references. In that case, we'll use null as a sentinel to mean "we don't know" and
             // we propagate the not-knowingness. But let's not worry about that yet. First, let's just get the new transitive reference set.
-            HashSet<ProjectId>? newTransitiveReferences = new HashSet<ProjectId>(referencedProjectIds);
+            var newTransitiveReferences = new HashSet<ProjectId>(referencedProjectIds);
 
             foreach (var referencedProjectId in referencedProjectIds)
             {

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        public async sealed override Task ProvideCompletionsAsync(CompletionContext completionContext)
+        public sealed override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             try
             {
@@ -107,9 +107,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static bool InSameProject(INamedTypeSymbol symbol, Compilation compilation)
-        {
-            return symbol.DeclaringSyntaxReferences.Any(r => compilation.SyntaxTrees.Contains(r.SyntaxTree));
-        }
+            => symbol.DeclaringSyntaxReferences.Any(r => compilation.SyntaxTrees.Contains(r.SyntaxTree));
 
         private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, SyntaxContext context)
         {

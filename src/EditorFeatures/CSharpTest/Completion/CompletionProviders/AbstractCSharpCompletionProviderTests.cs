@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             => TestWorkspace.CreateCSharp(fileContents, exportProvider: ExportProvider);
 
         internal override CompletionServiceWithProviders GetCompletionService(Project project)
-        {
-            return Assert.IsType<CSharpCompletionService>(base.GetCompletionService(project));
-        }
+            => Assert.IsType<CSharpCompletionService>(base.GetCompletionService(project));
 
         private protected override Task BaseVerifyWorkerAsync(
             string code, int position,
@@ -67,9 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         protected override string ItemPartiallyWritten(string expectedItemOrNull)
-        {
-            return expectedItemOrNull[0] == '@' ? expectedItemOrNull.Substring(1, 1) : expectedItemOrNull.Substring(0, 1);
-        }
+            => expectedItemOrNull[0] == '@' ? expectedItemOrNull.Substring(1, 1) : expectedItemOrNull.Substring(0, 1);
 
         private Task VerifyInFrontOfCommentAsync(
             string code, int position, string insertText, bool usePreviousCharAsTrigger,

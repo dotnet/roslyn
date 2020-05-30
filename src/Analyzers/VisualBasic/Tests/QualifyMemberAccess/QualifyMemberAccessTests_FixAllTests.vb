@@ -2,13 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Internal.Options
-#Else
 Imports Microsoft.CodeAnalysis.CodeStyle
-#End If
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QualifyMemberAccess
     Partial Public Class QualifyMemberAccessTests
@@ -85,7 +80,7 @@ End Class]]>
             Await TestInRegularAndScriptAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,
-                options:=[Option](CodeStyleOptions.QualifyPropertyAccess, True, NotificationOption.Suggestion))
+                options:=[Option](CodeStyleOptions2.QualifyPropertyAccess, True, NotificationOption2.Suggestion))
         End Function
     End Class
 End Namespace

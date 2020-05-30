@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,9 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal static class PropertyGenerator
     {
         public static bool CanBeGenerated(IPropertySymbol property)
-        {
-            return property.IsIndexer || property.Parameters.Length == 0;
-        }
+            => property.IsIndexer || property.Parameters.Length == 0;
 
         private static MemberDeclarationSyntax LastPropertyOrField(
             SyntaxList<MemberDeclarationSyntax> members)

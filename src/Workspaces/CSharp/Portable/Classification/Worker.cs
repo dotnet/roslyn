@@ -59,19 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private bool ShouldAddSpan(TextSpan span)
-        {
-            return span.Length > 0 && _textSpan.OverlapsWith(span);
-        }
+            => span.Length > 0 && _textSpan.OverlapsWith(span);
 
         private void AddClassification(SyntaxTrivia trivia, string type)
-        {
-            AddClassification(trivia.Span, type);
-        }
+            => AddClassification(trivia.Span, type);
 
         private void AddClassification(SyntaxToken token, string type)
-        {
-            AddClassification(token.Span, type);
-        }
+            => AddClassification(token.Span, type);
 
         private void ClassifyNodeOrToken(SyntaxNodeOrToken nodeOrToken)
         {
@@ -130,7 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             // comments out a file).  Try to skip as many as possible if they're not actually in the span
             // we care about classifying.
             var classificationSpanStart = _textSpan.Start;
-            var classificationSpanEnd = _textSpan.End;
 
             // First, skip all the trivia before the span we care about.
             var enumerator = list.GetEnumerator();
@@ -237,9 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private void ClassifyConflictMarker(SyntaxTrivia trivia)
-        {
-            AddClassification(trivia, ClassificationTypeNames.Comment);
-        }
+            => AddClassification(trivia, ClassificationTypeNames.Comment);
 
         private void ClassifyDisabledText(SyntaxTrivia trivia, SyntaxTriviaList triviaList)
         {

@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public static class BlindAggregatorFactory
     {
         public static unsafe IntPtr CreateWrapper()
-        {
-            return (IntPtr)BlindAggregator.CreateInstance();
-        }
+            => (IntPtr)BlindAggregator.CreateInstance();
 
         public static unsafe void SetInnerObject(IntPtr wrapperUnknown, IntPtr innerUnknown, IntPtr managedObjectGCHandlePtr)
         {
@@ -114,9 +112,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
 
                     ~CoTaskMemPtr()
-                    {
-                        Marshal.FreeCoTaskMem(this.VTablePtr);
-                    }
+                        => Marshal.FreeCoTaskMem(this.VTablePtr);
                 }
 
                 // Singleton instance of the VTable allocated in native memory. Since it's static, the
@@ -159,9 +155,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             private static unsafe uint AddRef(BlindAggregator* pThis)
-            {
-                return unchecked((uint)Interlocked.Increment(ref pThis->_refCount));
-            }
+                => unchecked((uint)Interlocked.Increment(ref pThis->_refCount));
 
             private static unsafe uint Release(BlindAggregator* pThis)
             {

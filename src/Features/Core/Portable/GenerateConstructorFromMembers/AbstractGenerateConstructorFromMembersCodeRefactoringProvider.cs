@@ -46,10 +46,9 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         /// For testing purposes only.
         /// </summary>
         protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
-        {
-            _pickMembersService_forTesting = pickMembersService_forTesting;
-        }
+            => _pickMembersService_forTesting = pickMembersService_forTesting;
 
+        protected abstract string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format);
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -140,7 +139,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var info = await GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
                 if (info != null)
                 {
-                    var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken).ConfigureAwait(false);
+                    var state = await State.TryGenerateAsync(document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken).ConfigureAwait(false);
                     if (state != null && state.MatchingConstructor == null)
                     {
                         return GetCodeActions(document, state, addNullChecks);

@@ -4,18 +4,15 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
@@ -42,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             var whereApparentOption = options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent).Notification;
             var wherePossibleOption = options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Notification;
 
-            return !(forIntrinsicTypesOption == NotificationOption.Warning || forIntrinsicTypesOption == NotificationOption.Error ||
-                     whereApparentOption == NotificationOption.Warning || whereApparentOption == NotificationOption.Error ||
-                     wherePossibleOption == NotificationOption.Warning || wherePossibleOption == NotificationOption.Error);
+            return !(forIntrinsicTypesOption == NotificationOption2.Warning || forIntrinsicTypesOption == NotificationOption2.Error ||
+                     whereApparentOption == NotificationOption2.Warning || whereApparentOption == NotificationOption2.Error ||
+                     wherePossibleOption == NotificationOption2.Warning || wherePossibleOption == NotificationOption2.Error);
         }
 
         protected override void InitializeWorker(AnalysisContext context)
@@ -78,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Severity));
         }
 
-        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity)
+        private static Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity)
             => DiagnosticHelper.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), severity, additionalLocations: null, properties: null);
     }
 }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             {
             }
 
-            private XmlNameSyntax ConvertToReturns(XmlNameSyntax name)
+            private static XmlNameSyntax ConvertToReturns(XmlNameSyntax name)
                 => name.ReplaceToken(name.LocalName, SyntaxFactory.Identifier("returns"));
 
             public override SyntaxNode VisitXmlElementStartTag(XmlElementStartTagSyntax node)

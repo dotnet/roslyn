@@ -73,9 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
         }
 
         public void EnqueueBackgroundWork(Action action, string name, CancellationToken cancellationToken)
-        {
-            EnqueueBackgroundWork(action, name, afterDelay: 0, cancellationToken: cancellationToken);
-        }
+            => EnqueueBackgroundWork(action, name, afterDelay: 0, cancellationToken: cancellationToken);
 
         public void EnqueueBackgroundWork(Action action, string name, int afterDelay, CancellationToken cancellationToken)
         {

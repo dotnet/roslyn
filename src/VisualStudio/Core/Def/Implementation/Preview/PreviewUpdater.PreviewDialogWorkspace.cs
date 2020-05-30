@@ -69,38 +69,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             }
 
             protected override void ApplyDocumentTextChanged(DocumentId id, SourceText text)
-            {
-                OnDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
-            }
+                => OnDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
 
             protected override void ApplyAdditionalDocumentTextChanged(DocumentId id, SourceText text)
-            {
-                OnAdditionalDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
-            }
+                => OnAdditionalDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
 
             protected override void ApplyAnalyzerConfigDocumentTextChanged(DocumentId id, SourceText text)
-            {
-                OnAnalyzerConfigDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
-            }
+                => OnAnalyzerConfigDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
 
             private class PreviewTextLoader : TextLoader
             {
                 private readonly SourceText _text;
 
                 internal PreviewTextLoader(SourceText documentText)
-                {
-                    _text = documentText;
-                }
+                    => _text = documentText;
 
                 public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-                {
-                    return Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
-                }
+                    => Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
 
                 internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-                {
-                    return TextAndVersion.Create(_text, VersionStamp.Create());
-                }
+                    => TextAndVersion.Create(_text, VersionStamp.Create());
             }
         }
     }

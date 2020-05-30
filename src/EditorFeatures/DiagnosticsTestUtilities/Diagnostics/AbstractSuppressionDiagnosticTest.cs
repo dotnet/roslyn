@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -25,9 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         protected virtual bool IncludeNoLocationDiagnostics => true;
 
         protected Task TestAsync(string initial, string expected)
-        {
-            return TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex);
-        }
+            => TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex);
 
         internal abstract Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
@@ -61,28 +61,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
+            var (analyzer, _) = CreateDiagnosticProviderAndFixer(workspace);
+            AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
-            var provider = providerAndFixer.Item1;
             var document = GetDocumentAndSelectSpan(workspace, out var span);
-            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, span);
+            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span);
             return FilterDiagnostics(diagnostics);
         }
 
         internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
+            var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
+            AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
-            var provider = providerAndFixer.Item1;
             string annotation = null;
             if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))
             {
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }
 
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
-            var fixer = providerAndFixer.Item2;
+            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
             var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, span))
                 .Where(d => fixer.IsFixableDiagnostic(d));
 

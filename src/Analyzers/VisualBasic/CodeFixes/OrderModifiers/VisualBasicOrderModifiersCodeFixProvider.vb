@@ -4,15 +4,11 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.OrderModifiers
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
-
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.VisualBasic.Internal.CodeStyle
-#Else
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-#End If
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
@@ -20,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         Inherits AbstractOrderModifiersCodeFixProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
             MyBase.New(VisualBasicSyntaxFacts.Instance,
                        VisualBasicCodeStyleOptions.PreferredModifierOrder,

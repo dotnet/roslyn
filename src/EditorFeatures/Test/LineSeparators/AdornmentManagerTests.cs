@@ -32,14 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
             }
 
             protected override Color? GetColor(IWpfTextView view, IEditorFormatMap editorFormatMap)
-            {
-                return Colors.Black;
-            }
+                => Colors.Black;
 
             public override GraphicsResult GetGraphics(IWpfTextView textView, Geometry bounds)
-            {
-                return new GraphicsResult(null, null);
-            }
+                => new GraphicsResult(null, null);
         }
 
         private class AdornmentManagerTester

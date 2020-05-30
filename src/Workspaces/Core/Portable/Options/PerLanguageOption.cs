@@ -7,50 +7,29 @@
 using System;
 using System.Collections.Immutable;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Options
-#else
 namespace Microsoft.CodeAnalysis.Options
-#endif
 {
-    /// <summary>
-    /// Marker interface for <see cref="PerLanguageOption{T}"/>
-    /// </summary>
-    internal interface IPerLanguageOption : IOptionWithGroup
+    /// <inheritdoc cref="PerLanguageOption2{T}"/>
+    public class PerLanguageOption<T> : IPerLanguageOption<T>
     {
-    }
+        private readonly OptionDefinition _optionDefinition;
 
-    /// <summary>
-    /// An option that can be specified once per language.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class PerLanguageOption<T> : IPerLanguageOption
-    {
-        /// <summary>
-        /// Feature this option is associated with.
-        /// </summary>
-        public string Feature { get; }
+        /// <inheritdoc cref="OptionDefinition.Feature"/>
+        public string Feature => _optionDefinition.Feature;
 
-        /// <summary>
-        /// Optional group/sub-feature for this option.
-        /// </summary>
-        internal OptionGroup Group { get; }
+        /// <inheritdoc cref="OptionDefinition.Group"/>
+        internal OptionGroup Group => _optionDefinition.Group;
 
-        /// <summary>
-        /// The name of the option.
-        /// </summary>
-        public string Name { get; }
+        /// <inheritdoc cref="OptionDefinition.Name"/>
+        public string Name => _optionDefinition.Name;
 
-        /// <summary>
-        /// The type of the option value.
-        /// </summary>
-        public Type Type => typeof(T);
+        /// <inheritdoc cref="OptionDefinition.Type"/>
+        public Type Type => _optionDefinition.Type;
 
-        /// <summary>
-        /// The default option value.
-        /// </summary>
-        public T DefaultValue { get; }
+        /// <inheritdoc cref="OptionDefinition.DefaultValue"/>
+        public T DefaultValue => (T)_optionDefinition.DefaultValue!;
 
+        /// <inheritdoc cref="PerLanguageOption2{T}.StorageLocations"/>
         public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
         public PerLanguageOption(string feature, string name, T defaultValue)
@@ -64,33 +43,45 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         internal PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
+            : this(feature, group, name, defaultValue, storageLocations.ToImmutableArray())
         {
-            if (string.IsNullOrWhiteSpace(feature))
-            {
-                throw new ArgumentNullException(nameof(feature));
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException(nameof(name));
-            }
-
-            this.Feature = feature;
-            this.Group = group ?? throw new ArgumentNullException(nameof(group));
-            this.Name = name;
-            this.DefaultValue = defaultValue;
-            this.StorageLocations = storageLocations.ToImmutableArray();
         }
+
+        internal PerLanguageOption(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
+            : this(new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: true), storageLocations)
+        {
+        }
+
+        internal PerLanguageOption(OptionDefinition optionDefinition, ImmutableArray<OptionStorageLocation> storageLocations)
+        {
+            _optionDefinition = optionDefinition;
+            StorageLocations = storageLocations;
+        }
+
+        OptionDefinition IOption2.OptionDefinition => _optionDefinition;
+
+        OptionGroup IOptionWithGroup.Group => this.Group;
 
         object? IOption.DefaultValue => this.DefaultValue;
 
         bool IOption.IsPerLanguage => true;
 
-        OptionGroup IOptionWithGroup.Group => this.Group;
+        bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 
-        public override string ToString()
+        public override string ToString() => _optionDefinition.ToString();
+
+        public override int GetHashCode() => _optionDefinition.GetHashCode();
+
+        public override bool Equals(object? obj) => Equals(obj as IOption2);
+
+        private bool Equals(IOption2? other)
         {
-            return string.Format("{0} - {1}", this.Feature, this.Name);
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return _optionDefinition == other?.OptionDefinition;
         }
     }
 }

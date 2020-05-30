@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -34,13 +33,12 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         }
 
         public async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> GetDiagnosticsAsync(
-            IEnumerable<AnalyzerReference> hostAnalyzers,
             IEnumerable<string> analyzerIds,
             bool reportSuppressedDiagnostics,
             bool logAnalyzerExecutionTime,
             CancellationToken cancellationToken)
         {
-            var analyzerMap = CreateAnalyzerMap(hostAnalyzers, _project);
+            var analyzerMap = CreateAnalyzerMap(_project);
             var analyzers = GetAnalyzers(analyzerMap, analyzerIds);
 
             if (analyzers.Length == 0)
@@ -50,14 +48,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             var cacheService = _project.Solution.Workspace.Services.GetRequiredService<IProjectCacheService>();
             using var cache = cacheService.EnableCaching(_project.Id);
-            var skippedAnalyzersInfo = _analyzerInfoCache.GetOrCreateSkippedAnalyzersInfo(_project, hostAnalyzers);
+            var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
             return await AnalyzeAsync(analyzerMap, analyzers, skippedAnalyzersInfo, reportSuppressedDiagnostics, logAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> AnalyzeAsync(
             BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
-            ISkippedAnalyzersInfo skippedAnalyzersInfo,
+            SkippedHostAnalyzersInfo skippedAnalyzersInfo,
             bool reportSuppressedDiagnostics,
             bool logAnalyzerExecutionTime,
             CancellationToken cancellationToken)
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value));
         }
 
-        private string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)
+        private static string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)
         {
             var analyzerId = analyzerMap.GetKeyOrDefault(analyzer);
             Contract.ThrowIfNull(analyzerId);
@@ -110,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             return analyzerId;
         }
 
-        private ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, IEnumerable<string> analyzerIds)
+        private static ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, IEnumerable<string> analyzerIds)
         {
             // TODO: this probably need to be cached as well in analyzer service?
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
@@ -126,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             return builder.ToImmutable();
         }
 
-        private BidirectionalMap<string, DiagnosticAnalyzer> CreateAnalyzerMap(IEnumerable<AnalyzerReference> hostAnalyzers, Project project)
+        private static BidirectionalMap<string, DiagnosticAnalyzer> CreateAnalyzerMap(Project project)
         {
             // we could consider creating a service so that we don't do this repeatedly if this shows up as perf cost
             using var pooledObject = SharedPools.Default<HashSet<object>>().GetPooledObject();
@@ -135,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             var analyzerMap = pooledMap.Object;
 
             // this follow what we do in DiagnosticAnalyzerInfoCache.CheckAnalyzerReferenceIdentity
-            foreach (var reference in hostAnalyzers.Concat(project.AnalyzerReferences))
+            foreach (var reference in project.Solution.AnalyzerReferences.Concat(project.AnalyzerReferences))
             {
                 if (!referenceSet.Add(reference.Id))
                 {

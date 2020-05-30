@@ -8,7 +8,6 @@
   <ItemGroup>
     <ServiceHubService Include="roslynCodeAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.CodeAnalysisService" />
     <ServiceHubService Include="roslynRemoteHost" ClassName="Microsoft.CodeAnalysis.Remote.RemoteHostService" />
-    <ServiceHubService Include="roslynSnapshot" ClassName="Microsoft.CodeAnalysis.Remote.SnapshotService" />
     <ServiceHubService Include="roslynRemoteDesignerAttributeService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeService" />
     <ServiceHubService Include="roslynRemoteProjectTelemetryService" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProjectTelemetryService" />
     <ServiceHubService Include="roslynRemoteSymbolSearchUpdateEngine" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateEngine" />

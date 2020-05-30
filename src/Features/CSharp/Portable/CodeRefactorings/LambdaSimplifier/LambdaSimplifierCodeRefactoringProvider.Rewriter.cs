@@ -8,7 +8,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -19,18 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
     {
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly LambdaSimplifierCodeRefactoringProvider _codeIssueProvider;
             private readonly SemanticDocument _document;
             private readonly Func<SyntaxNode, bool> _predicate;
             private readonly CancellationToken _cancellationToken;
 
             public Rewriter(
-                LambdaSimplifierCodeRefactoringProvider codeIssueProvider,
                 SemanticDocument document,
                 Func<SyntaxNode, bool> predicate,
                 CancellationToken cancellationToken)
             {
-                _codeIssueProvider = codeIssueProvider;
                 _document = document;
                 _predicate = predicate;
                 _cancellationToken = cancellationToken;

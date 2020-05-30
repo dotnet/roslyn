@@ -27,11 +27,6 @@
         <target state="translated">Agregar "Shadows"</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="If_statement_can_be_simplified">
-        <source>'If' statement can be simplified</source>
-        <target state="translated">La instrucción "if" se puede simplificar</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">Inserte "{0}".</target>
@@ -1472,11 +1467,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
         <target state="translated">Convertir {0} en una función Async.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">Insertar conversión que falta</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">Convertir {0} en Iterador</target>
@@ -1785,16 +1775,6 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Convertir Sub en asincrónico</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Usar comprobación "Is Nothing"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">Usar comprobación "IsNot Nothing"</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">

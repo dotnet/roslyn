@@ -3,6 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -10,7 +12,6 @@ Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateEvent), [Shared]>
@@ -24,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
         Friend Const BC30451 As String = "BC30451" ' error BC30451: 'x' is not declared, it may be inaccessible due to its protection level.
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -71,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Next
         End Function
 
-        Private Async Function GenerateEventFromAddRemoveHandlerAsync(document As Document, handlerStatement As AddRemoveHandlerStatementSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
+        Private Shared Async Function GenerateEventFromAddRemoveHandlerAsync(document As Document, handlerStatement As AddRemoveHandlerStatementSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             Dim handlerExpression = GetHandlerExpression(handlerStatement)
@@ -119,10 +121,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Dim syntaxFactService = document.Project.Solution.Workspace.Services.GetLanguageServices(targetType.Language).GetService(Of ISyntaxFactsService)
 
             Dim eventHandlerName As String = actualEventName + "Handler"
-            Dim existingSymbolAndProjectIds = Await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
+            Dim existingSymbols = Await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
                 document.Project.Solution, eventHandlerName, Not syntaxFactService.IsCaseSensitive, SymbolFilter.Type, cancellationToken).ConfigureAwait(False)
 
-            Dim existingSymbols = existingSymbolAndProjectIds.SelectAsArray(Function(t) t.Symbol)
             If existingSymbols.Any(Function(existingSymbol) existingSymbol IsNot Nothing _
                                                    AndAlso Equals(existingSymbol.ContainingNamespace, targetType.ContainingNamespace)) Then
                 ' There already exists a delegate that matches the event handler name
@@ -151,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                 codeGenService, CodeGenerationOptions.Default)
         End Function
 
-        Private Function GetHandlerExpression(handlerStatement As AddRemoveHandlerStatementSyntax) As ExpressionSyntax
+        Private Shared Function GetHandlerExpression(handlerStatement As AddRemoveHandlerStatementSyntax) As ExpressionSyntax
             Dim unaryExpression = TryCast(handlerStatement.DelegateExpression.DescendantNodesAndSelf().Where(Function(n) n.IsKind(SyntaxKind.AddressOfExpression)).FirstOrDefault, UnaryExpressionSyntax)
             If unaryExpression Is Nothing Then
                 Return handlerStatement.DelegateExpression
@@ -160,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             End If
         End Function
 
-        Private Function TryGetDelegateSymbol(handlerExpression As ExpressionSyntax, semanticModel As SemanticModel, ByRef delegateSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function TryGetDelegateSymbol(handlerExpression As ExpressionSyntax, semanticModel As SemanticModel, ByRef delegateSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Boolean
             delegateSymbol = TryCast(semanticModel.GetSymbolInfo(handlerExpression, cancellationToken).GetAnySymbol(), IMethodSymbol)
             If delegateSymbol Is Nothing Then
                 Dim typeSymbol = TryCast(semanticModel.GetTypeInfo(handlerExpression, cancellationToken).Type, INamedTypeSymbol)
@@ -178,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Return True
         End Function
 
-        Private Function ResolveTargetType(ByRef targetType As INamedTypeSymbol, semanticModel As SemanticModel) As Boolean
+        Private Shared Function ResolveTargetType(ByRef targetType As INamedTypeSymbol, semanticModel As SemanticModel) As Boolean
             If targetType Is Nothing OrElse
                 Not (targetType.TypeKind = TypeKind.Class OrElse targetType.TypeKind = TypeKind.Interface) OrElse
                 targetType.IsAnonymousType Then
@@ -194,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Return True
         End Function
 
-        Private Function TryGetNameAndTargetType(eventExpression As ExpressionSyntax, containingSymbol As INamedTypeSymbol, semanticModel As SemanticModel, ByRef targetType As INamedTypeSymbol, ByRef actualEventName As String, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function TryGetNameAndTargetType(eventExpression As ExpressionSyntax, containingSymbol As INamedTypeSymbol, semanticModel As SemanticModel, ByRef targetType As INamedTypeSymbol, ByRef actualEventName As String, cancellationToken As CancellationToken) As Boolean
 
             Dim eventType As INamedTypeSymbol = Nothing
             If TypeOf eventExpression Is IdentifierNameSyntax Then
@@ -232,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Return TypeOf node Is HandlesClauseItemSyntax OrElse TypeOf node Is QualifiedNameSyntax OrElse TypeOf node Is AddRemoveHandlerStatementSyntax
         End Function
 
-        Private Async Function GenerateEventFromImplementsAsync(document As Document, node As QualifiedNameSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
+        Private Shared Async Function GenerateEventFromImplementsAsync(document As Document, node As QualifiedNameSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
             If node.Right.IsMissing Then
                 Return Nothing
             End If
@@ -308,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             End If
         End Function
 
-        Private Async Function GenerateEventFromHandlesAsync(document As Document, handlesClauseItem As HandlesClauseItemSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
+        Private Shared Async Function GenerateEventFromHandlesAsync(document As Document, handlesClauseItem As HandlesClauseItemSyntax, cancellationToken As CancellationToken) As Task(Of CodeAction)
             If handlesClauseItem.IsMissing OrElse handlesClauseItem.EventContainer.IsMissing OrElse handlesClauseItem.EventMember.IsMissing Then
                 Return Nothing
             End If

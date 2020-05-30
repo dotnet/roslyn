@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    interface IPersistentStorageLocationService : IWorkspaceService
+    internal interface IPersistentStorageLocationService : IWorkspaceService
     {
         bool IsSupported(Workspace workspace);
         string? TryGetStorageLocation(Solution solution);
@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal class DefaultPersistentStorageLocationService : IPersistentStorageLocationService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultPersistentStorageLocationService()
         {
         }

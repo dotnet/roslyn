@@ -318,9 +318,7 @@ namespace Microsoft.CodeAnalysis
 
         [Obsolete("Use TextDocumentState.HasTextChanged")]
         public bool HasTextChanged(DocumentState oldState)
-        {
-            return HasTextChanged(oldState, ignoreUnchangeableDocument: false);
-        }
+            => HasTextChanged(oldState, ignoreUnchangeableDocument: false);
 
         public DocumentState UpdateParseOptions(ParseOptions options)
         {
@@ -455,14 +453,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public new DocumentState UpdateText(SourceText newText, PreservationMode mode)
-        {
-            return (DocumentState)base.UpdateText(newText, mode);
-        }
+            => (DocumentState)base.UpdateText(newText, mode);
 
         public new DocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
-        {
-            return (DocumentState)base.UpdateText(newTextAndVersion, mode);
-        }
+            => (DocumentState)base.UpdateText(newTextAndVersion, mode);
 
         protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
         {

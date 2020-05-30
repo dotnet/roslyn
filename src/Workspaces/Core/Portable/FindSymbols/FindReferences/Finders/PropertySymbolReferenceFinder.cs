@@ -22,37 +22,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IPropertySymbol>
     {
         protected override bool CanFind(IPropertySymbol symbol)
-        {
-            return true;
-        }
+            => true;
 
-        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IPropertySymbol> symbolAndProjectId,
+        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            IPropertySymbol symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var baseSymbols = await base.DetermineCascadedSymbolsAsync(
-                symbolAndProjectId, solution, projects, options, cancellationToken).ConfigureAwait(false);
+                symbol, solution, projects, options, cancellationToken).ConfigureAwait(false);
 
-            var symbol = symbolAndProjectId.Symbol;
             var backingFields = symbol.ContainingType.GetMembers()
                                       .OfType<IFieldSymbol>()
                                       .Where(f => symbol.Equals(f.AssociatedSymbol))
-                                      .Select(f => (SymbolAndProjectId)symbolAndProjectId.WithSymbol(f))
-                                      .ToImmutableArray();
+                                      .ToImmutableArray<ISymbol>();
 
             var result = baseSymbols.Concat(backingFields);
 
             if (symbol.GetMethod != null)
             {
-                result = result.Add(symbolAndProjectId.WithSymbol(symbol.GetMethod));
+                result = result.Add(symbol.GetMethod);
             }
 
             if (symbol.SetMethod != null)
             {
-                result = result.Add(symbolAndProjectId.WithSymbol(symbol.SetMethod));
+                result = result.Add(symbol.SetMethod);
             }
 
             return result;
@@ -65,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
+            var ordinaryDocuments = await FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, symbol.Name).ConfigureAwait(false);
 
             var forEachDocuments = IsForEachProperty(symbol)
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
@@ -85,9 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static bool IsForEachProperty(IPropertySymbol symbol)
-        {
-            return symbol.Name == WellKnownMemberNames.CurrentPropertyName;
-        }
+            => symbol.Name == WellKnownMemberNames.CurrentPropertyName;
 
         protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
@@ -124,19 +118,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                                  .Concat(indexerReferences);
         }
 
-        private Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(
+        private static Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(
             Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsElementAccessExpression, cancellationToken);
         }
 
-        private Task<ImmutableArray<Document>> FindDocumentWithIndexerMemberCrefAsync(
+        private static Task<ImmutableArray<Document>> FindDocumentWithIndexerMemberCrefAsync(
             Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsIndexerMemberCref, cancellationToken);
         }
 
-        private async Task<ImmutableArray<FinderLocation>> FindIndexerReferencesAsync(
+        private static async Task<ImmutableArray<FinderLocation>> FindIndexerReferencesAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {

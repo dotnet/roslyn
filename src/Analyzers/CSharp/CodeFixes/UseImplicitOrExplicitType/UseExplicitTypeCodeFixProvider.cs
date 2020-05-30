@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
     internal class UseExplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public UseExplicitTypeCodeFixProvider()
         {
         }
@@ -92,16 +94,18 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             if (parensDesignation is null)
             {
-                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax.StripRefIfNeeded()).ConvertedType;
+                typeSyntax = typeSyntax.StripRefIfNeeded();
 
-                // We're going to be passed through the simplifier.  Tell it to not just convert
-                // this back to var (as that would defeat the purpose of this refactoring entirely).
-                var typeName = typeSymbol.GenerateTypeSyntax(allowVar: false)
-                    .WithLeadingTrivia(node.GetLeadingTrivia())
-                    .WithTrailingTrivia(node.GetTrailingTrivia());
-                Debug.Assert(!typeName.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
+                // We're going to be passed through the simplifier.  Tell it to not just convert this back to var (as
+                // that would defeat the purpose of this refactoring entirely).
+                var newTypeSyntax =
+                    semanticModel.GetTypeInfo(typeSyntax).ConvertedType
+                                 .GenerateTypeSyntax(allowVar: false)
+                                 .WithTriviaFrom(typeSyntax);
 
-                editor.ReplaceNode(node, typeName);
+                Debug.Assert(!newTypeSyntax.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
+
+                editor.ReplaceNode(typeSyntax, newTypeSyntax);
             }
             else
             {

@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(AttributeNamedParameterCompletionProvider);
-        }
+            => typeof(AttributeNamedParameterCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SendEnterThroughToEditorTest()

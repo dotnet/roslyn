@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -15,9 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private class FailureInlineRenameInfo : IInlineRenameInfo
         {
             public FailureInlineRenameInfo(string localizedErrorMessage)
-            {
-                this.LocalizedErrorMessage = localizedErrorMessage;
-            }
+                => this.LocalizedErrorMessage = localizedErrorMessage;
 
             public bool CanRename => false;
 
@@ -35,17 +34,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public Glyph Glyph => Glyph.None;
 
-            public string GetFinalSymbolName(string replacementText) { return null; }
+            public ImmutableArray<DocumentSpan> DefinitionLocations => default;
 
-            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken) { return default; }
+            public string GetFinalSymbolName(string replacementText) => null;
 
-            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken) { return null; }
+            public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken) => default;
 
-            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken) { return null; }
+            public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken) => null;
 
-            public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) { return false; }
+            public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken) => null;
 
-            public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) { return false; }
+            public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
+
+            public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText) => false;
         }
     }
 }

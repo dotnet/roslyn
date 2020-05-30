@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
@@ -21,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Inherits AbstractRecommendationServiceBasedCompletionProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -47,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return True
         End Function
 
-        Private Async Function IsTriggerOnDotAsync(document As Document, characterPosition As Integer, cancellationToken As CancellationToken) As Task(Of Boolean?)
+        Private Shared Async Function IsTriggerOnDotAsync(document As Document, characterPosition As Integer, cancellationToken As CancellationToken) As Task(Of Boolean?)
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
             If text(characterPosition) <> "."c Then
                 Return Nothing
@@ -59,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return IsValidTriggerToken(token)
         End Function
 
-        Private Function IsValidTriggerToken(token As SyntaxToken) As Boolean
+        Private Shared Function IsValidTriggerToken(token As SyntaxToken) As Boolean
             If token.Kind <> SyntaxKind.DotToken Then
                 Return False
             End If
@@ -90,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return MyBase.GetFilterText(symbol, displayText, context)
         End Function
 
-        Private Shared cachedRules As Dictionary(Of ValueTuple(Of Boolean, Boolean, Boolean), CompletionItemRules) =
+        Private Shared ReadOnly cachedRules As Dictionary(Of ValueTuple(Of Boolean, Boolean, Boolean), CompletionItemRules) =
             InitCachedRules()
 
         Private Shared Function InitCachedRules() As Dictionary(Of ValueTuple(Of Boolean, Boolean, Boolean), CompletionItemRules)

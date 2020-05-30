@@ -4,14 +4,13 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    partial class ProjectDependencyGraph
+    public partial class ProjectDependencyGraph
     {
         internal ProjectDependencyGraph WithProjectReferenceRemoved(ProjectId projectId, ProjectId referencedProjectId)
         {
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis
                 dependencySets: default);
         }
 
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReferencesMapForRemovedProjectReference(
+        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReferencesMapForRemovedProjectReference(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingForwardReferencesMap,
             ProjectId projectId,
             ProjectId referencedProjectId)
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="referencedProjectId">The target of the project reference which is being removed.</param>
         /// <returns>The updated (complete) reverse references map, or <see langword="null"/> if the reverse references
         /// map could not be incrementally updated.</returns>
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForRemovedProjectReference(
+        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForRemovedProjectReference(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
             ProjectId projectId,
             ProjectId referencedProjectId)
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutable();
         }
 
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseTransitiveReferencesMapForRemovedProjectReference(
+        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseTransitiveReferencesMapForRemovedProjectReference(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseTransitiveReferencesMap,
             ProjectId projectId,
             ProjectId referencedProjectId)

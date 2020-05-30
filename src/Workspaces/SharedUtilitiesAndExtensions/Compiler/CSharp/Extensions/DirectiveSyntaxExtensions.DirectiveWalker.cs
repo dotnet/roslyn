@@ -79,24 +79,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             private void HandleIfDirective(DirectiveTriviaSyntax directive)
-            {
-                _ifStack.Push(directive);
-            }
+                => _ifStack.Push(directive);
 
             private void HandleRegionDirective(DirectiveTriviaSyntax directive)
-            {
-                _regionStack.Push(directive);
-            }
+                => _regionStack.Push(directive);
 
             private void HandleElifDirective(DirectiveTriviaSyntax directive)
-            {
-                _ifStack.Push(directive);
-            }
+                => _ifStack.Push(directive);
 
             private void HandleElseDirective(DirectiveTriviaSyntax directive)
-            {
-                _ifStack.Push(directive);
-            }
+                => _ifStack.Push(directive);
 
             private void HandleEndIfDirective(DirectiveTriviaSyntax directive)
             {

@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.UseObjectInitializer
@@ -22,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             VariableDeclaratorSyntax)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -48,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             Return newStatement.WithLeadingTrivia(totalTrivia)
         End Function
 
-        Private Function GetNewObjectCreation(
+        Private Shared Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As ObjectCreationExpressionSyntax
 
@@ -58,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                     CreateFieldInitializers(matches)))
         End Function
 
-        Private Function CreateFieldInitializers(
+        Private Shared Function CreateFieldInitializers(
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As SeparatedSyntaxList(Of FieldInitializerSyntax)
             Dim nodesAndTokens = New List(Of SyntaxNodeOrToken)
 

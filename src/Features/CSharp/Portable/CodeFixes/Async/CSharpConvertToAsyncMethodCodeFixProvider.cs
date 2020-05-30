@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Async;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
 {
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         private const string CS4008 = nameof(CS4008);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpConvertToAsyncMethodCodeFixProvider()
         {
         }
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return Tuple.Create(oldRoot.SyntaxTree, newRoot);
         }
 
-        private async Task<MethodDeclarationSyntax?> GetMethodDeclarationAsync(
+        private static async Task<MethodDeclarationSyntax?> GetMethodDeclarationAsync(
             SyntaxNode node,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             return methodDeclaration;
         }
 
-        private MethodDeclarationSyntax ConvertToAsyncFunction(MethodDeclarationSyntax methodDeclaration)
+        private static MethodDeclarationSyntax ConvertToAsyncFunction(MethodDeclarationSyntax methodDeclaration)
         {
             return methodDeclaration.WithReturnType(
                 SyntaxFactory.ParseTypeName("Task")

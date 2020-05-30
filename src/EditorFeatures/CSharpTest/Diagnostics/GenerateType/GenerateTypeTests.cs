@@ -2732,7 +2732,7 @@ class Base
     protected int I;
 }",
 index: 1,
-options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2981,7 +2981,7 @@ class Base
     public int I { get; protected set; }
 }",
 index: 1,
-options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
+options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3060,7 +3060,7 @@ class Base
     protected int I { get; set; }
 }",
 index: 1,
-options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
+options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3091,7 +3091,7 @@ internal class T
     }
 }",
 index: 1,
-options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
+options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error));
         }
 
         #endregion
@@ -3365,8 +3365,7 @@ expectedDocumentName: "Bar.cs");
     {
         [|Bar|] b;
     }
-}",
-index: 1);
+}");
         }
 
         [WorkItem(539674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539674")]
@@ -3997,10 +3996,14 @@ class A
 
         [WorkItem(540766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540766")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestMissingOnInvalidGlobalCode()
+        public async Task TestOnInvalidGlobalCode()
         {
-            await TestMissingAsync(
-@"[|a|] test ");
+            await TestInRegularAndScriptAsync(
+@"[|a|] test ",
+@"[|a|] test internal class a
+{
+}",
+index: 1);
         }
 
         [WorkItem(539985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539985")]

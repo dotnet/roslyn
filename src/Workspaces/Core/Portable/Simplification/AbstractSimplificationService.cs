@@ -14,9 +14,12 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if DEBUG
+using Microsoft.CodeAnalysis.Shared.Extensions;
+#endif
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
@@ -28,18 +31,14 @@ namespace Microsoft.CodeAnalysis.Simplification
         private ImmutableArray<AbstractReducer> _reducers;
 
         protected AbstractSimplificationService(ImmutableArray<AbstractReducer> reducers)
-        {
-            _reducers = reducers;
-        }
+            => _reducers = reducers;
 
         protected abstract ImmutableArray<NodeOrTokenToReduce> GetNodesAndTokensToReduce(SyntaxNode root, Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans);
         protected abstract SemanticModel GetSpeculativeSemanticModel(ref SyntaxNode nodeToSpeculate, SemanticModel originalSemanticModel, SyntaxNode originalNode);
         protected abstract bool CanNodeBeSimplifiedWithoutSpeculation(SyntaxNode node);
 
         protected virtual SyntaxNode TransformReducedNode(SyntaxNode reducedNode, SyntaxNode originalNode)
-        {
-            return reducedNode;
-        }
+            => reducedNode;
 
         public abstract SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool> expandInsideNode, bool expandParameter, CancellationToken cancellationToken);
         public abstract SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Func<SyntaxNode, bool> expandInsideNode, CancellationToken cancellationToken);
@@ -110,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             // prep namespace imports marked for simplification 
             var removeIfUnusedAnnotation = new SyntaxAnnotation();
             var originalRoot = root;
-            root = this.PrepareNamespaceImportsForRemovalIfUnused(document, root, removeIfUnusedAnnotation, isNodeOrTokenOutsideSimplifySpans);
+            root = PrepareNamespaceImportsForRemovalIfUnused(document, root, removeIfUnusedAnnotation, isNodeOrTokenOutsideSimplifySpans);
             var hasImportsToSimplify = root != originalRoot;
 
             if (hasImportsToSimplify)
@@ -277,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         // find any namespace imports / using directives marked for simplification in the specified spans
         // and add removeIfUnused annotation
-        private SyntaxNode PrepareNamespaceImportsForRemovalIfUnused(
+        private static SyntaxNode PrepareNamespaceImportsForRemovalIfUnused(
             Document document,
             SyntaxNode root,
             SyntaxAnnotation removeIfUnusedAnnotation,

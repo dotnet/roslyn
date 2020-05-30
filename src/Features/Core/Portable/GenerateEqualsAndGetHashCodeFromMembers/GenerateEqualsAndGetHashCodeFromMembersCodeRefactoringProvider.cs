@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PickMembers;
@@ -34,19 +37,18 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         private const string EqualsName = nameof(object.Equals);
         private const string GetHashCodeName = nameof(object.GetHashCode);
 
-        private readonly IPickMembersService _pickMembersService_forTestingPurposes;
+        private readonly IPickMembersService? _pickMembersService_forTestingPurposes;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider()
             : this(pickMembersService: null)
         {
         }
 
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService)
-        {
-            _pickMembersService_forTestingPurposes = pickMembersService;
-        }
+        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService? pickMembersService)
+            => _pickMembersService_forTestingPurposes = pickMembersService;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -69,9 +71,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         {
             var (document, textSpan, cancellationToken) = context;
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Only supported on classes/structs.
             var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration) as INamedTypeSymbol;
@@ -113,52 +115,18 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             GetExistingMemberInfo(
                 containingType, out var hasEquals, out var hasGetHashCode);
 
-            var pickMembersOptions = ArrayBuilder<PickMembersOption>.GetInstance();
-
-            var equatableTypeOpt = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
-            if (equatableTypeOpt != null)
-            {
-                var constructedType = equatableTypeOpt.Construct(containingType);
-                if (!containingType.AllInterfaces.Contains(constructedType))
-                {
-                    var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                    var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable);
-
-                    var displayName = constructedType.ToDisplayString(new SymbolDisplayFormat(
-                        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-                        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters));
-
-                    pickMembersOptions.Add(new PickMembersOption(
-                        ImplementIEquatableId,
-                        string.Format(FeaturesResources.Implement_0, displayName),
-                        value));
-                }
-            }
-
-            if (!HasOperators(containingType))
-            {
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators);
-                pickMembersOptions.Add(new PickMembersOption(
-                    GenerateOperatorsId,
-                    FeaturesResources.Generate_operators,
-                    value));
-            }
-
-            var actions = CreateActions(
-                document, textSpan, typeDeclaration, containingType,
-                viableMembers, pickMembersOptions.ToImmutableAndFree(),
-                hasEquals, hasGetHashCode,
-                withDialog: true);
+            var actions = await CreateActionsAsync(
+                document, typeDeclaration, containingType, viableMembers,
+                hasEquals, hasGetHashCode, withDialog: true, cancellationToken).ConfigureAwait(false);
 
             context.RegisterRefactorings(actions);
         }
 
-        private bool HasOperators(INamedTypeSymbol containingType)
+        private static bool HasOperators(INamedTypeSymbol containingType)
             => HasOperator(containingType, WellKnownMemberNames.EqualityOperatorName) ||
                HasOperator(containingType, WellKnownMemberNames.InequalityOperatorName);
 
-        private bool HasOperator(INamedTypeSymbol containingType, string operatorName)
+        private static bool HasOperator(INamedTypeSymbol containingType, string operatorName)
             => containingType.GetMembers(operatorName)
                              .OfType<IMethodSymbol>()
                              .Any(m => m.MethodKind == MethodKind.UserDefinedOperator &&
@@ -166,7 +134,30 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                                        containingType.Equals(m.Parameters[0].Type) &&
                                        containingType.Equals(m.Parameters[1].Type));
 
-        private void GetExistingMemberInfo(INamedTypeSymbol containingType, out bool hasEquals, out bool hasGetHashCode)
+        private static bool CanImplementIEquatable(
+            SemanticModel semanticModel, INamedTypeSymbol containingType,
+            [NotNullWhen(true)] out INamedTypeSymbol? constructedType)
+        {
+            // A ref struct can never implement an interface, therefore never add IEquatable to the selection
+            // options if the type is a ref struct.
+            if (!containingType.IsRefLikeType)
+            {
+                var equatableTypeOpt = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName!);
+                if (equatableTypeOpt != null)
+                {
+                    constructedType = equatableTypeOpt.Construct(containingType);
+
+                    // A ref struct can never implement an interface, therefore never add IEquatable to the selection
+                    // options if the type is a ref struct.
+                    return !containingType.AllInterfaces.Contains(constructedType);
+                }
+            }
+
+            constructedType = null;
+            return false;
+        }
+
+        private static void GetExistingMemberInfo(INamedTypeSymbol containingType, out bool hasEquals, out bool hasGetHashCode)
         {
             hasEquals = containingType.GetMembers(EqualsName)
                                       .OfType<IMethodSymbol>()
@@ -193,13 +184,13 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                         GetExistingMemberInfo(
                             info.ContainingType, out var hasEquals, out var hasGetHashCode);
 
-                        var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                         var typeDeclaration = syntaxFacts.GetContainingTypeDeclaration(root, textSpan.Start);
 
-                        return CreateActions(
-                            document, textSpan, typeDeclaration, info.ContainingType, info.SelectedMembers, ImmutableArray<PickMembersOption>.Empty,
-                            hasEquals, hasGetHashCode, withDialog: false);
+                        return await CreateActionsAsync(
+                            document, typeDeclaration, info.ContainingType, info.SelectedMembers,
+                            hasEquals, hasGetHashCode, withDialog: false, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
@@ -207,12 +198,11 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
         }
 
-        private ImmutableArray<CodeAction> CreateActions(
-            Document document, TextSpan textSpan, SyntaxNode typeDeclaration, INamedTypeSymbol containingType,
-            ImmutableArray<ISymbol> selectedMembers, ImmutableArray<PickMembersOption> pickMembersOptions,
-            bool hasEquals, bool hasGetHashCode, bool withDialog)
+        private async Task<ImmutableArray<CodeAction>> CreateActionsAsync(
+            Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> selectedMembers,
+            bool hasEquals, bool hasGetHashCode, bool withDialog, CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<Task<CodeAction>>.GetInstance(out var tasks);
 
             if (!hasEquals && !hasGetHashCode)
             {
@@ -223,48 +213,95 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 // Don't bother offering to just "Generate GetHashCode" as it's very unlikely
                 // the user would need to bother just generating that member without also
                 // generating 'Equals' as well.
-                result.Add(CreateCodeAction(document, textSpan, typeDeclaration, containingType,
-                    selectedMembers, pickMembersOptions,
-                    generateEquals: true, generateGetHashCode: false, withDialog: withDialog));
-                result.Add(CreateCodeAction(document, textSpan, typeDeclaration, containingType,
-                    selectedMembers, pickMembersOptions,
-                    generateEquals: true, generateGetHashCode: true, withDialog: withDialog));
+                tasks.Add(CreateCodeActionAsync(
+                    document, typeDeclaration, containingType, selectedMembers,
+                    generateEquals: true, generateGetHashCode: false, withDialog, cancellationToken));
+                tasks.Add(CreateCodeActionAsync(
+                    document, typeDeclaration, containingType, selectedMembers,
+                    generateEquals: true, generateGetHashCode: true, withDialog, cancellationToken));
             }
             else if (!hasEquals)
             {
-                result.Add(CreateCodeAction(document, textSpan, typeDeclaration, containingType,
-                    selectedMembers, pickMembersOptions,
-                    generateEquals: true, generateGetHashCode: false, withDialog: withDialog));
+                tasks.Add(CreateCodeActionAsync(
+                    document, typeDeclaration, containingType, selectedMembers,
+                    generateEquals: true, generateGetHashCode: false, withDialog, cancellationToken));
             }
             else if (!hasGetHashCode)
             {
-                result.Add(CreateCodeAction(document, textSpan, typeDeclaration, containingType,
-                    selectedMembers, pickMembersOptions,
-                    generateEquals: false, generateGetHashCode: true, withDialog: withDialog));
+                tasks.Add(CreateCodeActionAsync(
+                    document, typeDeclaration, containingType, selectedMembers,
+                    generateEquals: false, generateGetHashCode: true, withDialog, cancellationToken));
             }
 
-            return result.ToImmutableAndFree();
+            var codeActions = await Task.WhenAll(tasks).ConfigureAwait(false);
+            return codeActions.ToImmutableArray();
         }
 
-        private CodeAction CreateCodeAction(
-            Document document, TextSpan textSpan, SyntaxNode typeDeclaration, INamedTypeSymbol containingType,
-            ImmutableArray<ISymbol> members, ImmutableArray<PickMembersOption> pickMembersOptions,
-            bool generateEquals, bool generateGetHashCode, bool withDialog)
+        private Task<CodeAction> CreateCodeActionAsync(
+            Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
+            bool generateEquals, bool generateGetHashCode, bool withDialog, CancellationToken cancellationToken)
         {
-            if (withDialog)
+            return withDialog
+                ? CreateCodeActionWithDialogAsync(document, typeDeclaration, containingType, members, generateEquals, generateGetHashCode, cancellationToken)
+                : CreateCodeActionWithoutDialogAsync(document, typeDeclaration, containingType, members, generateEquals, generateGetHashCode, cancellationToken);
+        }
+
+        private async Task<CodeAction> CreateCodeActionWithDialogAsync(
+            Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
+            bool generateEquals, bool generateGetHashCode, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            using var _ = ArrayBuilder<PickMembersOption>.GetInstance(out var pickMembersOptions);
+
+            if (CanImplementIEquatable(semanticModel, containingType, out var equatableTypeOpt))
             {
-                return new GenerateEqualsAndGetHashCodeWithDialogCodeAction(
-                    this, document, textSpan, typeDeclaration, containingType,
-                    members, pickMembersOptions,
-                    generateEquals, generateGetHashCode);
+                var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable);
+
+                var displayName = equatableTypeOpt.ToDisplayString(new SymbolDisplayFormat(
+                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters));
+
+                pickMembersOptions.Add(new PickMembersOption(
+                    ImplementIEquatableId,
+                    string.Format(FeaturesResources.Implement_0, displayName),
+                    value));
             }
-            else
+
+            if (!HasOperators(containingType))
             {
-                return new GenerateEqualsAndGetHashCodeAction(
-                    document, textSpan, typeDeclaration, containingType, members,
-                    generateEquals, generateGetHashCode,
-                    implementIEquatable: false, generateOperators: false);
+                var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators);
+                pickMembersOptions.Add(new PickMembersOption(
+                    GenerateOperatorsId,
+                    FeaturesResources.Generate_operators,
+                    value));
             }
+
+            return new GenerateEqualsAndGetHashCodeWithDialogCodeAction(
+                this, document, typeDeclaration, containingType, members,
+                pickMembersOptions.ToImmutable(), generateEquals, generateGetHashCode);
+        }
+
+        private static async Task<CodeAction> CreateCodeActionWithoutDialogAsync(
+            Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
+            bool generateEquals, bool generateGetHashCode, CancellationToken cancellationToken)
+        {
+            var implementIEquatable = false;
+            var generateOperators = false;
+
+            if (generateEquals && containingType.TypeKind == TypeKind.Struct)
+            {
+                // if we're generating equals for a struct, then also add IEquatable<S> support as
+                // well as operators (as long as the struct does not already have them).
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                implementIEquatable = CanImplementIEquatable(semanticModel, containingType, out _);
+                generateOperators = !HasOperators(containingType);
+            }
+
+            return new GenerateEqualsAndGetHashCodeAction(
+                document, typeDeclaration, containingType, members,
+                generateEquals, generateGetHashCode, implementIEquatable, generateOperators);
         }
     }
 }

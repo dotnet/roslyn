@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -21,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -329,7 +329,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFactsService.GetBestOrAllSymbols
-            Return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols()
+            Return If(node Is Nothing,
+                      ImmutableArray(Of ISymbol).Empty,
+                      semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols())
         End Function
 
         Private Function ISemanticFactsService_GenerateUniqueName(

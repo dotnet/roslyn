@@ -4,8 +4,10 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -21,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
         CompilationUnitSyntax, NamespaceDeclarationSyntax, UsingDirectiveSyntax, ExternAliasDirectiveSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpAddImportsService()
         {
         }
@@ -74,9 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             };
 
         protected override bool IsEquivalentImport(SyntaxNode a, SyntaxNode b)
-        {
-            return SyntaxFactory.AreEquivalent(a, b, kind => kind == SyntaxKind.NullableDirectiveTrivia);
-        }
+            => SyntaxFactory.AreEquivalent(a, b, kind => kind == SyntaxKind.NullableDirectiveTrivia);
 
         private class Rewriter : CSharpSyntaxRewriter
         {
@@ -115,6 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
                 _cancellationToken = cancellationToken;
             }
+
+            [return: NotNullIfNotNull("node")]
+            public override SyntaxNode? Visit(SyntaxNode? node)
+                => base.Visit(node);
 
             public override SyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             {

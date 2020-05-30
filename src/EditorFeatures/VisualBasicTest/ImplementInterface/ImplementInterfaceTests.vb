@@ -466,7 +466,7 @@ NotInheritable Class X : Implements IComparer
     Private x As X
 
     Public Function Compare(x As Object, y As Object) As Integer Implements IComparer.Compare
-        Return Me.x.Compare(x, y)
+        Return DirectCast(Me.x, IComparer).Compare(x, y)
     End Function
 End Class",
 index:=1)
@@ -487,7 +487,7 @@ NotInheritable Class X : Implements IComparer
     Private a As X
 
     Public Function Compare(x As Object, y As Object) As Integer Implements IComparer.Compare
-        Return a.Compare(x, y)
+        Return DirectCast(a, IComparer).Compare(x, y)
     End Function
 End Class",
 index:=1)
@@ -4263,7 +4263,7 @@ Class _
 End Class
 
 Partial Class C
-    Implements IDisposable
+    Implements System.IDisposable
 End Class",
 $"Imports System
 Imports System.Collections.Generic
@@ -4318,7 +4318,7 @@ Class _
 End Class
 
 Partial Class C
-    Implements IDisposable
+    Implements System.IDisposable
 End Class",
  index:=1)
         End Function
@@ -4332,7 +4332,7 @@ End Class
 
 Partial Class C
     Implements [|I(Of System.Exception, System.AggregateException)|]
-    Implements IDisposable
+    Implements System.IDisposable
 End Class
 
 Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
@@ -4347,7 +4347,7 @@ End Class
 
 Partial Class C
     Implements I(Of System.Exception, System.AggregateException)
-    Implements IDisposable
+    Implements System.IDisposable
 
     Private disposedValue As Boolean
 

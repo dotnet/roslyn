@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -72,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
             Return index
         End Function
 
-        Private Function GetFirstCharacterIndex(message As String, Optional start As Integer = 0) As Integer
+        Private Shared Function GetFirstCharacterIndex(message As String, Optional start As Integer = 0) As Integer
             Dim index = GetFirstNonWhitespace(message, start)
 
             Dim singleQuote = 0
@@ -91,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
             Return message.Length
         End Function
 
-        Private Function GetFirstNonWhitespace(message As String, start As Integer) As Integer
+        Private Shared Function GetFirstNonWhitespace(message As String, start As Integer) As Integer
             For i = start To message.Length - 1 Step 1
                 If Not SyntaxFacts.IsWhitespace(message(i)) Then
                     Return i

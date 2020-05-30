@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DllImport("clr", PreserveSig = true)]
-        private static unsafe extern int GetCachePath(ASM_CACHE id, byte* path, ref int length);
+        private static extern unsafe int GetCachePath(ASM_CACHE id, byte* path, ref int length);
 
         public static ImmutableArray<string> s_rootLocations;
 

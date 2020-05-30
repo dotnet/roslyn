@@ -77,9 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 _constructedFrom.ReducedFrom;
 
         public override ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
-        {
-            throw new System.InvalidOperationException();
-        }
+            => throw new System.InvalidOperationException();
 
         public override IMethodSymbol ReduceExtensionMethod(ITypeSymbol receiverType)
         {
@@ -100,8 +98,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 _constructedFrom.PartialImplementationPart;
 
         protected override CodeGenerationSymbol Clone()
-        {
-            return new CodeGenerationConstructedMethodSymbol(_constructedFrom, _typeArguments);
-        }
+            => new CodeGenerationConstructedMethodSymbol(_constructedFrom, _typeArguments);
     }
 }

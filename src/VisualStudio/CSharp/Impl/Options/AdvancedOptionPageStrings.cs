@@ -91,6 +91,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return CSharpVSResources.Generate_XML_documentation_comments_for; }
         }
 
+        public static string Option_ShowRemarksInQuickInfo
+        {
+            get { return CSharpVSResources.Show_remarks_in_Quick_Info; }
+        }
+
         public static string Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments
         {
             get { return CSharpVSResources.Insert_at_the_start_of_new_lines_when_writing_comments; }

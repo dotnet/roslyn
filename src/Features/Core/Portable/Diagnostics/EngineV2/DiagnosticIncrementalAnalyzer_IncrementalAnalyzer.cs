@@ -27,14 +27,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     internal partial class DiagnosticIncrementalAnalyzer
     {
         public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
-        {
-            return AnalyzeDocumentForKindAsync(document, AnalysisKind.Syntax, cancellationToken);
-        }
+            => AnalyzeDocumentForKindAsync(document, AnalysisKind.Syntax, cancellationToken);
 
         public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
-        {
-            return AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken);
-        }
+            => AnalyzeDocumentForKindAsync(document, AnalysisKind.Semantic, cancellationToken);
 
         private async Task AnalyzeDocumentForKindAsync(Document document, AnalysisKind kind, CancellationToken cancellationToken)
         {
@@ -170,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var documentHadDiagnostics = _stateManager.OnDocumentReset(stateSets, document);
+                var documentHadDiagnostics = StateManager.OnDocumentReset(stateSets, document);
                 RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
 
@@ -205,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var changed = _stateManager.OnDocumentRemoved(stateSets, documentId);
+                var changed = StateManager.OnDocumentRemoved(stateSets, documentId);
 
                 // if there was no diagnostic reported for this document, nothing to clean up
                 // this is Perf to reduce raising events unnecessarily.
@@ -272,6 +268,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private static bool AnalysisEnabled(Document document)
         {
+            if (document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null)
+            {
+                // This is a generated Razor document, and they want diagnostics, so let's report it
+                return true;
+            }
+
             // change it to check active file (or visible files), not open files if active file tracking is enabled.
             // otherwise, use open file.
             return document.IsOpen() && document.SupportsDiagnostics();
@@ -406,9 +408,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private void RaiseDocumentDiagnosticsIfNeeded(Document document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> items)
-        {
-            RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, ImmutableArray<DiagnosticData>.Empty, items);
-        }
+            => RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, ImmutableArray<DiagnosticData>.Empty, items);
 
         private void RaiseDocumentDiagnosticsIfNeeded(
             Document document, StateSet stateSet, AnalysisKind kind, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 _ = await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                     solution: null,
                     new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(DiagnosticAnalyzerInfoCache), /* unit count */ 1 },

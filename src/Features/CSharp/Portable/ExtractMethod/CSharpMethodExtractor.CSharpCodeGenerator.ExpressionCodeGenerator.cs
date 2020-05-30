@@ -8,14 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
@@ -36,24 +32,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 public static bool IsExtractMethodOnExpression(SelectionResult code)
-                {
-                    return code.SelectionInExpression;
-                }
+                    => code.SelectionInExpression;
 
                 protected override SyntaxToken CreateMethodName()
                 {
                     var methodName = GenerateMethodNameFromUserPreference();
 
-                    var containingScope = this.CSharpSelectionResult.GetContainingScope();
+                    var containingScope = CSharpSelectionResult.GetContainingScope();
 
                     methodName = GetMethodNameBasedOnExpression(methodName, containingScope);
 
-                    var semanticModel = this.SemanticDocument.SemanticModel;
+                    var semanticModel = SemanticDocument.SemanticModel;
                     var nameGenerator = new UniqueNameGenerator(semanticModel);
                     return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, methodName));
                 }
 
-                private string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
+                private static string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
                 {
                     if (expression.Parent != null &&
                         expression.Parent.Kind() == SyntaxKind.EqualsValueClause &&
@@ -99,14 +93,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 protected override IEnumerable<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
-                    Contract.ThrowIfFalse(IsExtractMethodOnExpression(this.CSharpSelectionResult));
-
-                    ExpressionSyntax expression = null;
+                    Contract.ThrowIfFalse(IsExtractMethodOnExpression(CSharpSelectionResult));
 
                     // special case for array initializer
-                    var returnType = this.AnalyzerResult.ReturnType;
-                    var containingScope = this.CSharpSelectionResult.GetContainingScope();
+                    var returnType = AnalyzerResult.ReturnType;
+                    var containingScope = CSharpSelectionResult.GetContainingScope();
 
+                    ExpressionSyntax expression;
                     if (returnType.TypeKind == TypeKind.Array && containingScope is InitializerExpressionSyntax)
                     {
                         var typeSyntax = returnType.GenerateTypeSyntax();
@@ -118,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         expression = containingScope as ExpressionSyntax;
                     }
 
-                    if (this.AnalyzerResult.HasReturnType)
+                    if (AnalyzerResult.HasReturnType)
                     {
                         return SpecializedCollections.SingletonEnumerable<StatementSyntax>(
                             SyntaxFactory.ReturnStatement(
@@ -134,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 private ExpressionSyntax WrapInCheckedExpressionIfNeeded(ExpressionSyntax expression)
                 {
-                    var kind = this.CSharpSelectionResult.UnderCheckedExpressionContext();
+                    var kind = CSharpSelectionResult.UnderCheckedExpressionContext();
                     if (kind == SyntaxKind.None)
                     {
                         return expression;
@@ -158,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 private SyntaxNode GetCallSiteContainerFromExpression()
                 {
-                    var container = this.CSharpSelectionResult.GetInnermostStatementContainer();
+                    var container = CSharpSelectionResult.GetInnermostStatementContainer();
 
                     Contract.ThrowIfNull(container);
                     Contract.ThrowIfFalse(container.IsStatementContainerNode() ||
@@ -171,22 +164,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
                 {
-                    var scope = (SyntaxNode)this.CSharpSelectionResult.GetContainingScopeOf<StatementSyntax>();
+                    var scope = (SyntaxNode)CSharpSelectionResult.GetContainingScopeOf<StatementSyntax>();
                     if (scope == null)
                     {
-                        scope = this.CSharpSelectionResult.GetContainingScopeOf<FieldDeclarationSyntax>();
+                        scope = CSharpSelectionResult.GetContainingScopeOf<FieldDeclarationSyntax>();
                     }
 
                     if (scope == null)
                     {
-                        scope = this.CSharpSelectionResult.GetContainingScopeOf<ConstructorInitializerSyntax>();
+                        scope = CSharpSelectionResult.GetContainingScopeOf<ConstructorInitializerSyntax>();
                     }
 
                     if (scope == null)
                     {
                         // This is similar to FieldDeclaration case but we only want to do this 
                         // if the member has an expression body.
-                        scope = this.CSharpSelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>().Parent;
+                        scope = CSharpSelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>().Parent;
                     }
 
                     return scope;
@@ -202,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var callSignature = CreateCallSignature().WithAdditionalAnnotations(callSiteAnnotation);
                     var invocation = callSignature.IsKind(SyntaxKind.AwaitExpression, out AwaitExpressionSyntax awaitExpr) ? awaitExpr.Expression : callSignature;
 
-                    var sourceNode = this.CSharpSelectionResult.GetContainingScope();
+                    var sourceNode = CSharpSelectionResult.GetContainingScope();
                     Contract.ThrowIfTrue(
                         sourceNode.Parent is MemberAccessExpressionSyntax && ((MemberAccessExpressionSyntax)sourceNode.Parent).Name == sourceNode,
                         "invalid scope. given scope is not an expression");
@@ -211,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // code, we make the enclosing statement semantically explicit. This ends up being a little
                     // bit more work because we need to annotate the sourceNode so that we can get back to it
                     // after rewriting the enclosing statement.
-                    var updatedDocument = this.SemanticDocument.Document;
+                    var updatedDocument = SemanticDocument.Document;
                     var sourceNodeAnnotation = new SyntaxAnnotation();
                     var enclosingStatementAnnotation = new SyntaxAnnotation();
                     var newEnclosingStatement = enclosingStatement

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -165,9 +164,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public override string EquivalenceKey => _equivalenceKey;
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                return GetUpdatedDocumentAsync(cancellationToken);
-            }
+                => GetUpdatedDocumentAsync(cancellationToken);
 
             public Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
             {
@@ -207,7 +204,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var propertyGenerationBehavior = options.GetOption(ImplementTypeOptions.PropertyGenerationBehavior);
 
                 var memberDefinitions = GenerateMembers(
-                    compilation, unimplementedMembers, propertyGenerationBehavior, cancellationToken);
+                    compilation, unimplementedMembers, propertyGenerationBehavior);
 
                 // Only group the members in the destination if the user wants that *and* 
                 // it's not a ComImport interface.  Member ordering in ComImport interfaces 
@@ -229,8 +226,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private ImmutableArray<ISymbol> GenerateMembers(
                 Compilation compilation,
                 ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 // As we go along generating members we may end up with conflicts.  For example, say
                 // you have "interface IGoo { string Bar { get; } }" and "interface IQuux { int Bar
@@ -255,7 +251,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     {
                         var member = GenerateMember(
                             compilation, unimplementedInterfaceMember, implementedVisibleMembers,
-                            propertyGenerationBehavior, cancellationToken);
+                            propertyGenerationBehavior);
                         if (member != null)
                         {
                             implementedMembers.Add(member);
@@ -298,8 +294,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 Compilation compilation,
                 ISymbol member,
                 List<ISymbol> implementedVisibleMembers,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 // First check if we already generate a member that matches the member we want to
                 // generate.  This can happen in C# when you have interfaces that have the same
@@ -337,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 return GenerateMember(
                     compilation, member, memberName, generateInvisibleMember, generateAbstractly,
-                    addNew, addUnsafe, propertyGenerationBehavior, cancellationToken);
+                    addNew, addUnsafe, propertyGenerationBehavior);
             }
 
             private bool GenerateInvisibleMember(ISymbol member, string memberName)
@@ -369,7 +364,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return false;
             }
 
-            private bool HasUnexpressibleConstraint(ISymbol member)
+            private static bool HasUnexpressibleConstraint(ISymbol member)
             {
                 // interface IGoo<T> { void Bar<U>() where U : T; }
                 //
@@ -405,8 +400,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool generateAbstractly,
                 bool addNew,
                 bool addUnsafe,
-                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
-                CancellationToken cancellationToken)
+                ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 var factory = Document.GetLanguageService<SyntaxGenerator>();
                 var modifiers = new DeclarationModifiers(isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
@@ -419,7 +413,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return member switch
                 {
                     IMethodSymbol method => GenerateMethod(compilation, method, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName),
-                    IPropertySymbol property => GenerateProperty(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior, cancellationToken),
+                    IPropertySymbol property => GenerateProperty(compilation, property, accessibility, modifiers, generateAbstractly, useExplicitInterfaceSymbol, memberName, propertyGenerationBehavior),
                     IEventSymbol @event => GenerateEvent(compilation, memberName, generateInvisibly, factory, modifiers, useExplicitInterfaceSymbol, accessibility, @event),
                     _ => null,
                 };

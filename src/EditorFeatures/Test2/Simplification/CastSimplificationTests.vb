@@ -2219,7 +2219,7 @@ sealed class C : I
  
     static void Main()
     {
-        (new C()).Goo();
+        ((I)new C()).Goo();
     }
 }]]>
 </code>
@@ -2454,7 +2454,7 @@ sealed class D : C
     static void Main()
     {
         D s = new D();
-        (s).Dispose();
+        ((IDisposable)s).Dispose();
     }
 }
 ]]>
@@ -2520,7 +2520,7 @@ struct S : IIncrementable
     {
         // Note: readonly modifier guarantees that a copy of a value type is always made before modification, so a boxing is not observable.
 
-        (s).Increment();
+        ((IIncrementable)s).Increment();
         Console.WriteLine(s.Value);
     }
 }
@@ -2573,7 +2573,7 @@ class X : IDisposable
 {
     static void Main()
     {
-        (new X()).Dispose();
+        ((IDisposable)new X()).Dispose();
         (new Y()).Dispose();
     }
  
@@ -2625,7 +2625,7 @@ class C : IDisposable
     static void Main()
     {
         var x = new C();
-        (x).Dispose();
+        ((IDisposable)x).Dispose();
     }
 }
 ]]>
@@ -2684,7 +2684,7 @@ class C : IDisposable
     static void Main()
     {
         var x = new C();
-        (x).Dispose();
+        ((IDisposable)x).Dispose();
     }
 }
 
@@ -2755,7 +2755,7 @@ class C : IDisposable
     static void Main()
     {
         var x = new C();
-        (x).Dispose();
+        ((IDisposable)x).Dispose();
     }
 
     interface I { }
@@ -2817,7 +2817,7 @@ class A
         static void Main()
         {
             var x = new C();
-            (x).Dispose();
+            ((IDisposable)x).Dispose();
         }
     }
 }
@@ -2878,7 +2878,7 @@ class A
         static void Main()
         {
             var x = new C();
-            (x).Dispose();
+            ((IDisposable)x).Dispose();
         }
     }
 }
@@ -3224,7 +3224,7 @@ static class Program
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529988")>
         Public Async Function TestCsharp_Remove_UnnecessaryCastInDelegateCreationExpression4() As Task
-            ' Note: Removing the cast changes the lambda parameter type, but doesn't change the semantics of the lambda body.
+            ' Note: this cast is not legal (it causes a semantic binding error in the lambda).  So do not remove it.
 
             Dim input =
 <Workspace>
@@ -3255,7 +3255,7 @@ static class Program
 {
     static void Main()
     {
-        new Action<string>((y) => { string x = y; x.Goo(); })(null);
+        new Action<string>((Action<object>)((y) => { string x = y; x.Goo(); }))(null);
     }
  
     static void Goo(this object x) { Console.WriteLine(1); }
@@ -6234,7 +6234,7 @@ NotInheritable Class C
     End Sub
 
     Private Shared Sub Main()
-        Call New C().Goo()
+        Call DirectCast(New C(), I).Goo()
     End Sub
 End Class
 ]]>
@@ -6555,7 +6555,7 @@ NotInheritable Class D
     Inherits C
     Private Shared Sub Main()
         Dim s As New D()
-        Call s.Dispose()
+        Call DirectCast(s, IDisposable).Dispose()
     End Sub
 End Class
 ]]>
@@ -6637,7 +6637,7 @@ Structure S
     Private Shared Sub Main()
         ' Note: readonly modifier guarantees that a copy of a value type is always made before modification, so a boxing is not observable.
 
-        Call s.Increment()
+        Call DirectCast(s, IIncrementable).Increment()
         Console.WriteLine(s.Value)
     End Sub
 End Structure
@@ -6690,7 +6690,7 @@ End Structure
 Class X
     Implements IDisposable
     Private Shared Sub Main()
-        Call New X().Dispose()
+        Call DirectCast(New X(), IDisposable).Dispose()
         Call New Y().Dispose()
     End Sub
 
@@ -6745,7 +6745,7 @@ Class C
 
     Private Shared Sub Main()
         Dim x = New C()
-        Call x.Dispose()
+        Call DirectCast(x, IDisposable).Dispose()
     End Sub
 End Class
 ]]>
@@ -6809,7 +6809,7 @@ Class C
 
     Private Shared Sub Main()
         Dim x = New C()
-        Call x.Dispose()
+        Call DirectCast(x, IDisposable).Dispose()
     End Sub
 End Class
 
@@ -6889,7 +6889,7 @@ Class C
 
     Private Shared Sub Main()
         Dim x = New C()
-        Call x.Dispose()
+        Call DirectCast(x, IDisposable).Dispose()
     End Sub
 
     Private Interface I
@@ -6953,7 +6953,7 @@ Class A
 
         Private Shared Sub Main()
             Dim x = New C()
-            Call x.Dispose()
+            Call DirectCast(x, IDisposable).Dispose()
         End Sub
     End Class
 End Class
@@ -7015,7 +7015,7 @@ Class A
 
 		Private Shared Sub Main()
 			Dim x = New C()
-			Call x.Dispose()
+			Call DirectCast(x, IDisposable).Dispose()
 		End Sub
 	End Class
 End Class
@@ -7257,7 +7257,7 @@ End Interface
 Class M
     Implements I1
     Shared Sub Main()
-        Call New M().Goo()
+        Call CType(New M(), I1).Goo()
     End Sub
     Public Sub Goo() Implements I1.Goo
     End Sub

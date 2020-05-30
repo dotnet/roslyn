@@ -37,14 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
         }
 
         private SyntaxTree GetTree()
-        {
-            return SyntaxFactory.ParseSyntaxTree(GetTestFileContent());
-        }
+            => SyntaxFactory.ParseSyntaxTree(GetTestFileContent());
 
         private SyntaxTree GetTreeFromCode(string code)
-        {
-            return SyntaxFactory.ParseSyntaxTree(code);
-        }
+            => SyntaxFactory.ParseSyntaxTree(code);
 
         private async Task GenerateBaseline()
         {
@@ -172,21 +168,15 @@ namespace ConsoleApplication1
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestTryDo1()
-        {
-            await TestTryDoAsync("class Class { void Method() { string local;$$ } }", "local", "this");
-        }
+            => await TestTryDoAsync("class Class { void Method() { string local;$$ } }", "local", "this");
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestNoParentToken()
-        {
-            await TestTryDoAsync("$$");
-        }
+            => await TestTryDoAsync("$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestIsValid1()
-        {
-            await TestIsValidAsync("class Class { void Method() { string local;$$ } }", "local", true);
-        }
+            => await TestIsValidAsync("class Class { void Method() { string local;$$ } }", "local", true);
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestIsValidWithDiagnostics()
@@ -197,27 +187,19 @@ namespace ConsoleApplication1
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestIsValidReferencingLocalBeforeDeclaration()
-        {
-            await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "j", false);
-        }
+            => await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "j", false);
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestIsValidReferencingUndefinedVariable()
-        {
-            await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "k", false);
-        }
+            => await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "k", false);
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestIsValidNoTypeSymbol()
-        {
-            await TestIsValidAsync("namespace Namespace$$ { }", "goo", false);
-        }
+            => await TestIsValidAsync("namespace Namespace$$ { }", "goo", false);
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestIsValidLocalAfterPosition()
-        {
-            await TestIsValidAsync("class Class { void Method() { $$ int i; string local; } }", "local", false);
-        }
+            => await TestIsValidAsync("class Class { void Method() { $$ int i; string local; } }", "local", false);
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public async Task TestThis()

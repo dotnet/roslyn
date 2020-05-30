@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
         Inherits AbstractRefactoringHelpersService(Of ExpressionSyntax, ArgumentSyntax, ExpressionStatementSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -53,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
 
         End Function
 
-        Function IsIdentifierOfParameter(node As SyntaxNode) As Boolean
+        Public Shared Function IsIdentifierOfParameter(node As SyntaxNode) As Boolean
             Return (TypeOf node Is ModifiedIdentifierSyntax) AndAlso (TypeOf node.Parent Is ParameterSyntax) AndAlso (CType(node.Parent, ParameterSyntax).Identifier Is node)
         End Function
     End Class

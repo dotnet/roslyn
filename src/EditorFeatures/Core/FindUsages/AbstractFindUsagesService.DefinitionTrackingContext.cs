@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             private readonly List<DefinitionItem> _definitions = new List<DefinitionItem>();
 
             public DefinitionTrackingContext(IFindUsagesContext underlyingContext)
-            {
-                _underlyingContext = underlyingContext;
-            }
+                => _underlyingContext = underlyingContext;
 
             public CancellationToken CancellationToken
                 => _underlyingContext.CancellationToken;
@@ -47,6 +45,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             public Task OnReferenceFoundAsync(SourceReferenceItem reference)
                 => _underlyingContext.OnReferenceFoundAsync(reference);
+
+            public Task OnExternalReferenceFoundAsync(ExternalReferenceItem reference)
+                => _underlyingContext.OnExternalReferenceFoundAsync(reference);
 
             [Obsolete("Use ProgressTracker instead", error: false)]
             public Task ReportProgressAsync(int current, int maximum)

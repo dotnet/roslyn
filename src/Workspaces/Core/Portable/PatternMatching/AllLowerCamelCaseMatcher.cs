@@ -4,12 +4,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Globalization;
-using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PatternMatching

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// Option to turn configure background analysis scope.
         /// </summary>
-        public static readonly PerLanguageOption<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new PerLanguageOption<BackgroundAnalysisScope>(
+        public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new PerLanguageOption2<BackgroundAnalysisScope>(
             nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: BackgroundAnalysisScope.Default,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
 

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -11,8 +10,8 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.IntroduceVariable;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -27,21 +26,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => GetNestedActions(actions);
 
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
-            OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
-                SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-                SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
-
-        internal IDictionary<OptionKey, object> OptionSet(OptionKey option, object value)
-        {
-            var options = new Dictionary<OptionKey, object>();
-            options.Add(option, value);
-            return options;
-        }
+        private OptionsCollection ImplicitTypingEverywhere()
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestEmptySpan1()
@@ -7464,6 +7458,322 @@ class Program
     }
 }",
                 index: 3);
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestKeepExistingNonTrivialCodeInLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.IO;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Task.Run(() => File.Copy(""src"", [|Path.Combine(""dir"", ""file"")|]));
+    }
+}",
+@"using System.IO;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Task.Run(() =>
+        {
+            string {|Rename:destFileName|} = Path.Combine(""dir"", ""file"");
+            File.Copy(""src"", destFileName);
+        });
+    }
+}");
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroVarInActionSelectingInsideParens()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> goo = x => ([|x.ToString()|]);
+    }
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> goo = x =>
+        {
+            string {|Rename:v|} = x.ToString();
+        };
+    }
+}");
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroVarInActionSelectingParens()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> goo = x => [|(x.ToString())|];
+    }
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> goo = x =>
+        {
+            string {|Rename:v|} = (x.ToString());
+        };
+    }
+}");
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestMissingReturnStatementInAsyncTaskMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, Task> f = async x => await [|M2()|];
+    }
+
+    async Task M2()
+    {
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, Task> f = async x =>
+        {
+            Task {|Rename:task|} = M2();
+            await task;
+        };
+    }
+
+    async Task M2()
+    {
+    }
+}");
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestMissingReturnStatementInAsyncValueTaskMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask
+    {
+    }
+}
+
+class Program
+{
+    void M()
+    {
+        Func<int, ValueTask> f = async x => await [|M2()|];
+    }
+
+    async ValueTask M2()
+    {
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask
+    {
+    }
+}
+
+class Program
+{
+    void M()
+    {
+        Func<int, ValueTask> f = async x =>
+        {
+            ValueTask {|Rename:valueTask|} = M2();
+            await valueTask;
+        };
+    }
+
+    async ValueTask M2()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestReturnStatementInAsyncTaskTypeMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, Task<int>> f = async x => await [|M2()|];
+    }
+
+    async Task<int> M2()
+    {
+        return 0;
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, Task<int>> f = async x =>
+        {
+            Task<int> {|Rename:task|} = M2();
+            return await task;
+        };
+    }
+
+    async Task<int> M2()
+    {
+        return 0;
+    }
+}");
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestReturnStatementInAsyncValueTaskTypeMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask<T>
+    {
+    }
+}
+
+class Program
+{
+    void M()
+    {
+        Func<int, ValueTask<int>> f = async x => await [|M2()|];
+    }
+
+    async ValueTask<int> M2()
+    {
+        return 0;
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask<T>
+    {
+    }
+}
+
+class Program
+{
+    void M()
+    {
+        Func<int, ValueTask<int>> f = async x =>
+        {
+            ValueTask<int> {|Rename:valueTask|} = M2();
+            return await valueTask;
+        };
+    }
+
+    async ValueTask<int> M2()
+    {
+        return 0;
+    }
+}");
+        }
+
+        [WorkItem(44291, "https://github.com/dotnet/roslyn/issues/44291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceWithAmbiguousExtensionClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" Name=""P1"" CommonReferences=""true"">
+        <Document>
+public static class Extensions
+{
+    public static void Goo(this string s) { }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" Name=""P2"" CommonReferences=""true"">
+        <Document>
+public static class Extensions
+{
+    public static void Bar(this string s) { }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly3"" Name=""P3"" CommonReferences=""true"">
+        <ProjectReference>P1</ProjectReference>
+        <ProjectReference>P2</ProjectReference>
+        <Document>
+public class P
+{
+    public void M(string s)
+    {
+        s.Bar([|$""""|]);
+    }
+}</Document>
+    </Project>
+</Workspace>",
+@"
+public class P
+{
+    public void M(string s)
+    {
+        string {|Rename:v|} = $"""";
+        s.Bar(v);
+    }
+}");
         }
     }
 }

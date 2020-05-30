@@ -26,14 +26,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(ReferenceDirectiveCompletionProvider);
-        }
+            => typeof(ReferenceDirectiveCompletionProvider);
 
         protected override IEqualityComparer<string> GetStringComparer()
-        {
-            return StringComparer.OrdinalIgnoreCase;
-        }
+            => StringComparer.OrdinalIgnoreCase;
 
         private protected override Task VerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
@@ -63,24 +59,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [InlineData("#r \"$$!")]
         [InlineData("#r \"$$(")]
         public void IsTextualTriggerCharacterTest(string markup)
-        {
-            VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true, SourceCodeKind.Script);
-        }
+            => VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true, SourceCodeKind.Script);
 
         [ConditionalTheory(typeof(WindowsOnly))]
         [InlineData(EnterKeyRule.Never)]
         [InlineData(EnterKeyRule.AfterFullyTypedWord)]
         [InlineData(EnterKeyRule.Always)] // note: GAC completion helper uses its own EnterKeyRule
         public async Task SendEnterThroughToEditorTest(EnterKeyRule enterKeyRule)
-        {
-            await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", enterKeyRule, expected: false, SourceCodeKind.Script);
-        }
+            => await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", enterKeyRule, expected: false, SourceCodeKind.Script);
 
         [ConditionalFact(typeof(WindowsOnly))]
         public async Task GacReference()
-        {
-            await VerifyItemExistsAsync("#r \"$$", "System.Windows.Forms", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-        }
+            => await VerifyItemExistsAsync("#r \"$$", "System.Windows.Forms", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
         [ConditionalFact(typeof(WindowsOnly))]
         public async Task GacReferenceFullyQualified()

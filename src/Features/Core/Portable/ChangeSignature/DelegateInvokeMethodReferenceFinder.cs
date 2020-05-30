@@ -28,24 +28,21 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public static readonly IReferenceFinder DelegateInvokeMethod = new DelegateInvokeMethodReferenceFinder();
 
         protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind == MethodKind.DelegateInvoke;
-        }
+            => symbol.MethodKind == MethodKind.DelegateInvoke;
 
-        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            IMethodSymbol symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var result = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
+            var result = ImmutableArray.CreateBuilder<ISymbol>();
 
-            var symbol = symbolAndProjectId.Symbol;
             var beginInvoke = symbol.ContainingType.GetMembers(WellKnownMemberNames.DelegateBeginInvokeName).FirstOrDefault();
             if (beginInvoke != null)
             {
-                result.Add(symbolAndProjectId.WithSymbol(beginInvoke));
+                result.Add(beginInvoke);
             }
 
             // All method group references
@@ -55,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
                     result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvokeAsync(
-                        symbolAndProjectId, document, cancellationToken).ConfigureAwait(false));
+                        symbol, document, cancellationToken).ConfigureAwait(false));
                 }
             }
 

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -24,6 +25,7 @@ using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Services;
+using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
@@ -69,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private AsyncBatchingWorkQueue<DesignerAttributeData>? _workQueue;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDesignerAttributeService(
             VisualStudioWorkspaceImpl workspace,
             IThreadingContext threadingContext,
@@ -116,13 +119,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
             _keepAliveSession = await client.TryCreateKeepAliveSessionAsync(
-                WellKnownServiceHubServices.RemoteDesignerAttributeService,
+                WellKnownServiceHubService.RemoteDesignerAttributeService,
                 callbackTarget: this, cancellationToken).ConfigureAwait(false);
             if (_keepAliveSession == null)
                 return;
 
             // Now kick off scanning in the OOP process.
-            var success = await _keepAliveSession.TryInvokeAsync(
+            await _keepAliveSession.RunRemoteAsync(
                 nameof(IRemoteDesignerAttributeService.StartScanningForDesignerAttributesAsync),
                 solution: null,
                 arguments: Array.Empty<object>(),
@@ -173,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var cpsUpdateService = await GetUpdateServiceIfCpsProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
             var task = cpsUpdateService == null
                 ? NotifyLegacyProjectSystemAsync(projectId, data, cancellationToken)
-                : NotifyCpsProjectSystemAsync(cpsUpdateService, data, cancellationToken);
+                : NotifyCpsProjectSystemAsync(projectId, cpsUpdateService, data, cancellationToken);
 
             await task.ConfigureAwait(false);
         }
@@ -185,7 +188,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
             // legacy project system can only be talked to on the UI thread.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
 
             AssertIsForeground();
 
@@ -240,11 +242,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         }
 
         private async Task NotifyCpsProjectSystemAsync(
+            ProjectId projectId,
             IProjectItemDesignerTypeUpdateService updateService,
             IEnumerable<DesignerAttributeData> data,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            // We may have updates for many different configurations of the same logical project system project.
+            // However, the project system only associates designer attributes with one of those projects.  So just drop
+            // the notifications for any sibling configurations.
+            if (!_workspace.IsPrimaryProject(projectId))
+                return;
 
             // Broadcast all the information about all the documents in parallel to CPS.
 
@@ -284,7 +293,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             if (!_cpsProjects.TryGetValue(projectId, out var updateService))
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
                 this.AssertIsForeground();
 
                 updateService = ComputeUpdateService();

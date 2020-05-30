@@ -8,13 +8,13 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class EnumAndCompletionListTagCompletionProvider : LSPCompletionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EnumAndCompletionListTagCompletionProvider()
         {
         }
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ch == '[' ||
                 ch == '(' ||
                 ch == '~' ||
-                (options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
+                (options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
         }
 
         internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(' ', '[', '(', '~');
@@ -131,10 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     // Does type have any aliases?
                     var alias = await type.FindApplicableAliasAsync(position, semanticModel, cancellationToken).ConfigureAwait(false);
 
-                    var displayService = document.GetLanguageService<ISymbolDisplayService>();
                     var displayText = alias != null
                         ? alias.Name
-                        : displayService.ToMinimalDisplayString(semanticModel, position, type);
+                        : type.ToMinimalDisplayString(semanticModel, position);
 
                     var workspace = document.Project.Solution.Workspace;
                     var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private ITypeSymbol TryGetEnumTypeInEnumInitializer(
+        private static ITypeSymbol TryGetEnumTypeInEnumInitializer(
             SemanticModel semanticModel, SyntaxToken token,
             ITypeSymbol type, CancellationToken cancellationToken)
         {
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                        .WithMatchPriority(MatchPriority.Preselect)
                                        .WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
-        private INamedTypeSymbol TryGetCompletionListType(ITypeSymbol type, INamedTypeSymbol within, Compilation compilation)
+        private static INamedTypeSymbol TryGetCompletionListType(ITypeSymbol type, INamedTypeSymbol within, Compilation compilation)
         {
             // PERF: None of the SpecialTypes include <completionlist> tags,
             // so we don't even need to load the documentation.
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return null;
             }
 
-            var documentation = Shared.Utilities.DocumentationComment.FromXmlFragment(xmlText);
+            var documentation = CodeAnalysis.Shared.Utilities.DocumentationComment.FromXmlFragment(xmlText);
 
             var completionListType = documentation.CompletionListCref != null
                 ? DocumentationCommentId.GetSymbolsForDeclarationId(documentation.CompletionListCref, compilation).OfType<INamedTypeSymbol>().FirstOrDefault()

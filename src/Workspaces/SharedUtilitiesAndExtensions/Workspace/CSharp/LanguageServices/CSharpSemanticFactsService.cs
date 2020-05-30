@@ -79,19 +79,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsTypeContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsTypeContext(position, cancellationToken, semanticModel);
-        }
+            => semanticModel.SyntaxTree.IsTypeContext(position, cancellationToken, semanticModel);
 
         public bool IsNamespaceContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsNamespaceContext(position, cancellationToken, semanticModel);
-        }
+            => semanticModel.SyntaxTree.IsNamespaceContext(position, cancellationToken, semanticModel);
 
         public bool IsNamespaceDeclarationNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken);
-        }
+            => semanticModel.SyntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken);
 
         public bool IsTypeDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
@@ -112,19 +106,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsGlobalStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsGlobalStatementContext(position, cancellationToken);
-        }
+            => semanticModel.SyntaxTree.IsGlobalStatementContext(position, cancellationToken);
 
         public bool IsLabelContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsLabelContext(position, cancellationToken);
-        }
+            => semanticModel.SyntaxTree.IsLabelContext(position, cancellationToken);
 
         public bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsAttributeNameContext(position, cancellationToken);
-        }
+            => semanticModel.SyntaxTree.IsAttributeNameContext(position, cancellationToken);
 
         public bool IsWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsWrittenTo();
@@ -142,9 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => (node as ExpressionSyntax).IsInInContext();
 
         public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
-        {
-            return (expression as ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken);
-        }
+            => (expression as ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken);
 
         public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
             => semanticModel.GenerateNameForExpression((ExpressionSyntax)expression, capitalize, cancellationToken);
@@ -343,19 +329,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
-            switch (node)
+            if (node == null)
+                return ImmutableArray<ISymbol>.Empty;
+
+            return node switch
             {
-                case AssignmentExpressionSyntax assignment when token.Kind() == SyntaxKind.EqualsToken:
-                    return GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>();
-
-                case ForEachVariableStatementSyntax deconstructionForeach when token.Kind() == SyntaxKind.InKeyword:
-                    return GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>();
-            }
-
-            return GetSymbolInfo(semanticModel, node, token, cancellationToken).GetBestOrAllSymbols();
+                AssignmentExpressionSyntax _ when token.Kind() == SyntaxKind.EqualsToken => GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>(),
+                ForEachVariableStatementSyntax _ when token.Kind() == SyntaxKind.InKeyword => GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>(),
+                _ => GetSymbolInfo(semanticModel, node, token, cancellationToken).GetBestOrAllSymbols(),
+            };
         }
 
-        private SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        private static SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
             switch (node)
             {

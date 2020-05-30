@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +11,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             }
         }
 
-        private void MergeDeclarationAndAssignment(
+        private static void MergeDeclarationAndAssignment(
             Document document, State state, SyntaxEditor editor, SyntaxAnnotation warningAnnotation)
         {
             // Replace the first reference with a new declaration.
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 declarationStatement.WithAdditionalAnnotations(Formatter.Annotation));
         }
 
-        private ImmutableArray<SyntaxTrivia> GetMergedTrivia(
+        private static ImmutableArray<SyntaxTrivia> GetMergedTrivia(
             ISyntaxFactsService syntaxFacts, TStatementSyntax statement1, TStatementSyntax statement2)
         {
             return syntaxFacts.GetLeadingBlankLines(statement2).Concat(
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             return false;
         }
 
-        private TLocalDeclarationStatementSyntax CreateMergedDeclarationStatement(
+        private static TLocalDeclarationStatementSyntax CreateMergedDeclarationStatement(
             Document document, State state)
         {
             var generator = document.GetLanguageService<SyntaxGeneratorInternal>();

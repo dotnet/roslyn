@@ -85,13 +85,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         }
 
         protected virtual bool AllowedForToken(SyntaxToken token)
-        {
-            return true;
-        }
+            => true;
 
         private bool IsBrace(char c)
-        {
-            return _openBrace.Character == c || _closeBrace.Character == c;
-        }
+            => _openBrace.Character == c || _closeBrace.Character == c;
     }
 }

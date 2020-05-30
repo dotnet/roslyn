@@ -41,9 +41,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         }
 
         public SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
-        {
-            return CaseCorrect(semanticModel: null, root, spans, workspace, cancellationToken);
-        }
+            => CaseCorrect(semanticModel: null, root, spans, workspace, cancellationToken);
 
         private SyntaxNode CaseCorrect(SemanticModel? semanticModel, SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
         {

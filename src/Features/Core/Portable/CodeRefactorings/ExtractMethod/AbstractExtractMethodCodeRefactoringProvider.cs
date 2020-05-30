@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
     internal class ExtractMethodCodeRefactoringProvider : CodeRefactoringProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ExtractMethodCodeRefactoringProvider()
         {
         }
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             context.RegisterRefactorings(actions);
         }
 
-        private async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+        private static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             Document document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             return actions.ToImmutableAndFree();
         }
 
-        private async Task<CodeAction> ExtractMethodAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private static async Task<CodeAction> ExtractMethodAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 c => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));
         }
 
-        private async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private static async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             return null;
         }
 
-        private async Task<Document> AddRenameAnnotationAsync(Document document, SyntaxToken invocationNameToken, CancellationToken cancellationToken)
+        private static async Task<Document> AddRenameAnnotationAsync(Document document, SyntaxToken invocationNameToken, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

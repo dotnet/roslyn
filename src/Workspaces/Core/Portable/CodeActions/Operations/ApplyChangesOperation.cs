@@ -31,16 +31,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public Solution ChangedSolution { get; }
 
         public ApplyChangesOperation(Solution changedSolution)
-        {
-            ChangedSolution = changedSolution ?? throw new ArgumentNullException(nameof(changedSolution));
-        }
+            => ChangedSolution = changedSolution ?? throw new ArgumentNullException(nameof(changedSolution));
 
         internal override bool ApplyDuringTests => true;
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-        {
-            this.TryApply(workspace, new ProgressTracker(), cancellationToken);
-        }
+            => this.TryApply(workspace, new ProgressTracker(), cancellationToken);
 
         internal override bool TryApply(
             Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)

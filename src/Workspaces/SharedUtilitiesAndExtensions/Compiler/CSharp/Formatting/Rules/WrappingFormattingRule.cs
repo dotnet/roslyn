@@ -2,19 +2,47 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    internal class WrappingFormattingRule : BaseFormattingRule
+    internal sealed class WrappingFormattingRule : BaseFormattingRule
     {
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextSuppressOperationAction nextOperation)
+        private readonly CachedOptions _options;
+
+        public WrappingFormattingRule()
+            : this(new CachedOptions(null))
+        {
+        }
+
+        private WrappingFormattingRule(CachedOptions options)
+        {
+            _options = options;
+        }
+
+        public override AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+        {
+            var cachedOptions = new CachedOptions(options);
+
+            if (cachedOptions == _options)
+            {
+                return this;
+            }
+
+            return new WrappingFormattingRule(cachedOptions);
+        }
+
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -24,55 +52,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             AddSpecificNodesSuppressOperations(list, node);
 
-            if (!options.GetOption(CSharpFormattingOptions.WrappingPreserveSingleLine))
+            if (!_options.WrappingPreserveSingleLine)
             {
                 RemoveSuppressOperationForBlock(list, node);
             }
 
-            if (!options.GetOption(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine))
+            if (!_options.WrappingKeepStatementsOnSingleLine)
             {
                 RemoveSuppressOperationForStatementMethodDeclaration(list, node);
             }
         }
 
-        private ValueTuple<SyntaxToken, SyntaxToken> GetSpecificNodeSuppressionTokenRange(SyntaxNode node)
+        private static (SyntaxToken firstToken, SyntaxToken lastToken) GetSpecificNodeSuppressionTokenRange(SyntaxNode node)
         {
             var embeddedStatement = node.GetEmbeddedStatement();
             if (embeddedStatement != null)
             {
                 var firstTokenOfEmbeddedStatement = embeddedStatement.GetFirstToken(includeZeroWidth: true);
+                var firstToken = firstTokenOfEmbeddedStatement.GetPreviousToken(includeZeroWidth: true);
                 if (embeddedStatement.IsKind(SyntaxKind.Block))
                 {
-                    return ValueTuple.Create(
-                        firstTokenOfEmbeddedStatement.GetPreviousToken(includeZeroWidth: true),
-                        embeddedStatement.GetLastToken(includeZeroWidth: true));
+                    return (firstToken, embeddedStatement.GetLastToken(includeZeroWidth: true));
                 }
                 else
                 {
-                    return ValueTuple.Create(
-                        firstTokenOfEmbeddedStatement.GetPreviousToken(includeZeroWidth: true),
-                        firstTokenOfEmbeddedStatement);
+                    return (firstToken, firstTokenOfEmbeddedStatement);
                 }
             }
 
             return node switch
             {
-                SwitchSectionSyntax switchSection => ValueTuple.Create(switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true)),
-                AnonymousMethodExpressionSyntax anonymousMethod => ValueTuple.Create(anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true)),
+                SwitchSectionSyntax switchSection => (switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true)),
+                AnonymousMethodExpressionSyntax anonymousMethod => (anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true)),
                 _ => default,
             };
         }
 
-        private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
-            var tokens = GetSpecificNodeSuppressionTokenRange(node);
-            if (!tokens.Equals(default))
+            var (firstToken, lastToken) = GetSpecificNodeSuppressionTokenRange(node);
+            if (!firstToken.IsKind(SyntaxKind.None) || !lastToken.IsKind(SyntaxKind.None))
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
+                AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
             }
         }
 
-        private void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             if (!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block)
             {
@@ -85,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
         }
 
-        private void RemoveSuppressOperationForStatementMethodDeclaration(List<SuppressOperation> list, SyntaxNode node)
+        private static void RemoveSuppressOperationForStatementMethodDeclaration(List<SuppressOperation> list, SyntaxNode node)
         {
             if (!(!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block))
             {
@@ -96,9 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             var tokens = GetSpecificNodeSuppressionTokenRange(node);
-            if (!tokens.Equals(default))
+            if (!tokens.firstToken.IsKind(SyntaxKind.None) || !tokens.lastToken.IsKind(SyntaxKind.None))
             {
-                RemoveSuppressOperation(list, tokens.Item1, tokens.Item2);
+                RemoveSuppressOperation(list, tokens.firstToken, tokens.lastToken);
             }
 
             var ifStatementNode = node as IfStatementSyntax;
@@ -108,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void RemoveSuppressOperationForBlock(List<SuppressOperation> list, SyntaxNode node)
+        private static void RemoveSuppressOperationForBlock(List<SuppressOperation> list, SyntaxNode node)
         {
             var bracePair = GetBracePair(node);
             if (!bracePair.IsValidBracePair())
@@ -121,35 +146,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (node.IsLambdaBodyBlock())
             {
                 // include lambda itself.
-                firstTokenOfNode = node.Parent.GetFirstToken(includeZeroWidth: true);
+                firstTokenOfNode = node.Parent!.GetFirstToken(includeZeroWidth: true);
             }
 
             // suppress wrapping on whole construct that owns braces and also brace pair itself if it is on same line
-            RemoveSuppressOperation(list, firstTokenOfNode, bracePair.Item2);
-            RemoveSuppressOperation(list, bracePair.Item1, bracePair.Item2);
+            RemoveSuppressOperation(list, firstTokenOfNode, bracePair.closeBrace);
+            RemoveSuppressOperation(list, bracePair.openBrace, bracePair.closeBrace);
         }
 
-        private ValueTuple<SyntaxToken, SyntaxToken> GetBracePair(SyntaxNode node)
+        private static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracePair(SyntaxNode node)
         {
             if (node is BaseMethodDeclarationSyntax methodDeclaration && methodDeclaration.Body != null)
             {
-                return ValueTuple.Create(methodDeclaration.Body.OpenBraceToken, methodDeclaration.Body.CloseBraceToken);
+                return (methodDeclaration.Body.OpenBraceToken, methodDeclaration.Body.CloseBraceToken);
             }
 
             if (node is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.AccessorList != null)
             {
-                return ValueTuple.Create(propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken);
+                return (propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken);
             }
 
             if (node is AccessorDeclarationSyntax accessorDeclaration && accessorDeclaration.Body != null)
             {
-                return ValueTuple.Create(accessorDeclaration.Body.OpenBraceToken, accessorDeclaration.Body.CloseBraceToken);
+                return (accessorDeclaration.Body.OpenBraceToken, accessorDeclaration.Body.CloseBraceToken);
             }
 
             return node.GetBracePair();
         }
 
-        protected void RemoveSuppressOperation(
+        private static void RemoveSuppressOperation(
             List<SuppressOperation> list,
             SyntaxToken startToken,
             SyntaxToken endToken)
@@ -160,13 +185,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             var span = TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
-
-            for (var i = 0; i < list.Count; i++)
-            {
-                if (list[i] != null && list[i].TextSpan.Start >= span.Start && list[i].TextSpan.End <= span.End && list[i].Option.HasFlag(SuppressOption.NoWrappingIfOnSingleLine))
+            list.RemoveOrTransformAll(
+                (operation, span) =>
                 {
-                    list[i] = null;
-                }
+                    if (operation.TextSpan.Start >= span.Start && operation.TextSpan.End <= span.End && operation.Option.HasFlag(SuppressOption.NoWrappingIfOnSingleLine))
+                        return null;
+
+                    return operation;
+                },
+                span);
+        }
+
+        private readonly struct CachedOptions : IEquatable<CachedOptions>
+        {
+            public readonly bool WrappingPreserveSingleLine;
+            public readonly bool WrappingKeepStatementsOnSingleLine;
+
+            public CachedOptions(AnalyzerConfigOptions? options)
+            {
+                WrappingPreserveSingleLine = GetOptionOrDefault(options, CSharpFormattingOptions2.WrappingPreserveSingleLine);
+                WrappingKeepStatementsOnSingleLine = GetOptionOrDefault(options, CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine);
+            }
+
+            public static bool operator ==(CachedOptions left, CachedOptions right)
+                => left.Equals(right);
+
+            public static bool operator !=(CachedOptions left, CachedOptions right)
+                => !(left == right);
+
+            private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
+            {
+                if (options is null)
+                    return option.DefaultValue;
+
+                return options.GetOption(option);
+            }
+
+            public override bool Equals(object? obj)
+                => obj is CachedOptions options && Equals(options);
+
+            public bool Equals(CachedOptions other)
+            {
+                return WrappingPreserveSingleLine == other.WrappingPreserveSingleLine
+                    && WrappingKeepStatementsOnSingleLine == other.WrappingKeepStatementsOnSingleLine;
+            }
+
+            public override int GetHashCode()
+            {
+                var hashCode = 0;
+                hashCode = (hashCode << 1) + (WrappingPreserveSingleLine ? 1 : 0);
+                hashCode = (hashCode << 1) + (WrappingKeepStatementsOnSingleLine ? 1 : 0);
+                return hashCode;
             }
         }
     }

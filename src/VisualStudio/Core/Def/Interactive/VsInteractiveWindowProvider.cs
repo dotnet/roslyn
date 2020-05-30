@@ -132,9 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         }
 
         protected void LogSession(string key, string value)
-        {
-            Logger.Log(InteractiveWindowFunctionId, KeyValueLogMessage.Create(m => m.Add(key, value)));
-        }
+            => Logger.Log(InteractiveWindowFunctionId, KeyValueLogMessage.Create(m => m.Add(key, value)));
 
         private void LogCloseSession(int languageBufferCount)
         {

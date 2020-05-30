@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -56,8 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal static IEnumerable<(string feature, ImmutableArray<IOption> options)> GetLanguageAgnosticEditorConfigOptions()
         {
-            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions.AllOptions);
-            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.Concat(CodeStyleOptions.AllOptions));
+            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.AllOptions.As<IOption>());
+            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions).As<IOption>());
         }
 
         private void LearnMoreHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
@@ -112,6 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal void Generate_Save_EditorConfig(object sender, System.Windows.RoutedEventArgs e)
         {
+            Logger.Log(FunctionId.ToolsOptions_GenerateEditorconfig);
+
             var optionSet = this.OptionStore.GetOptions();
             var editorconfig = EditorConfigFileGenerator.Generate(_groupedEditorConfigOptions, optionSet, _language);
             using (var sfd = new System.Windows.Forms.SaveFileDialog
@@ -130,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         File.WriteAllText(filePath, editorconfig.ToString());
                     });
                 }
-            };
+            }
         }
 
         private static string GetInitialDirectory()

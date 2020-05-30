@@ -97,11 +97,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             static InlineRenameSessionInfo? IsReadOnlyOrCannotNavigateToSpan(IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
             {
-                if (renameInfo is IInlineRenameInfoWithFileRename renameInfoWithFileRename)
+                if (renameInfo is IInlineRenameInfo inlineRenameInfo && inlineRenameInfo.DefinitionLocations != default)
                 {
                     var workspace = document.Project.Solution.Workspace;
                     var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-                    foreach (var documentSpan in renameInfoWithFileRename.DefinitionLocations)
+
+                    foreach (var documentSpan in inlineRenameInfo.DefinitionLocations)
                     {
                         var sourceText = documentSpan.Document.GetTextSynchronously(cancellationToken);
                         var textSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
@@ -153,9 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         internal class ActiveSessionChangedEventArgs : EventArgs
         {
             public ActiveSessionChangedEventArgs(InlineRenameSession previousSession)
-            {
-                this.PreviousSession = previousSession;
-            }
+                => this.PreviousSession = previousSession;
 
             public InlineRenameSession PreviousSession { get; }
         }

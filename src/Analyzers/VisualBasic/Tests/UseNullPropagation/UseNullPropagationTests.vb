@@ -715,5 +715,57 @@ Class C
 End Class")
         End Function
 
+        <WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestExpressionTree1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System
+Imports System.Linq
+
+Public Class Class1
+
+    Public Sub Foo()
+        Dim q = From item In Enumerable.Empty(Of (x As Integer?, y As Integer?)?)().AsQueryable()
+                Select [||]If(item Is Nothing, Nothing, item.Value.x)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestExpressionTree2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System
+Imports System.Linq
+
+Public Class Class1
+
+    Public Sub Foo()
+        Dim q = From item In Enumerable.Empty(Of (x As Integer?, y As Integer?)?)().AsQueryable()
+                Where [||]If(item Is Nothing, Nothing, item.Value.x) > 0
+                Select item
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(33992, "https://github.com/dotnet/roslyn/issues/33992")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
+        Public Async Function TestExpressionTree3() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System
+Imports System.Linq
+
+Public Class Class1
+
+    Public Sub Foo()
+        Dim q = From item In Enumerable.Empty(Of (x As Integer?, y As Integer?)?)().AsQueryable()
+                Let x = [||]If(item Is Nothing, Nothing, item.Value.x)
+                Select x
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

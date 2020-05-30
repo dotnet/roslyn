@@ -17,11 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
     [UseExportProvider]
     public class OrganizeUsingsTests
     {
-        protected async Task CheckAsync(
+        protected static async Task CheckAsync(
             string initial, string final,
             bool placeSystemNamespaceFirst = false,
-            bool separateImportGroups = false,
-            CSharpParseOptions options = null)
+            bool separateImportGroups = false)
         {
             using var workspace = new AdhocWorkspace();
             var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
@@ -37,9 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.OrganizeImports
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task EmptyFile()
-        {
-            await CheckAsync(string.Empty, string.Empty);
-        }
+            => await CheckAsync(string.Empty, string.Empty);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public async Task SingleUsingStatement()

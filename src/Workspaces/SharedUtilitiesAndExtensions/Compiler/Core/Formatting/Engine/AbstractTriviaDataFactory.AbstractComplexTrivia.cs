@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -150,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return CreateComplexTrivia(lineBreaks, spaces, indentation);
             }
 
-            private string CreateString(TriviaDataWithList triviaData, CancellationToken cancellationToken)
+            private static string CreateString(TriviaDataWithList triviaData, CancellationToken cancellationToken)
             {
                 // create string from given trivia data
                 var sb = StringBuilderPool.Allocate();

@@ -5,8 +5,11 @@
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Lightup;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -22,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             ForEachStatementSyntax, SwitchSectionSyntax, SwitchLabelSyntax, CatchClauseSyntax, CatchClauseSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpRemoveUnusedValuesCodeFixProvider()
         {
         }
@@ -63,6 +67,22 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
                     Debug.Fail($"Unexpected node kind for local/parameter declaration or reference: '{node.Kind()}'");
                     return null;
             }
+        }
+
+        protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts)
+        {
+            if (newNameNode.IsKind(SyntaxKind.DiscardDesignation)
+                && parent.IsKind(SyntaxKind.DeclarationPattern, out DeclarationPatternSyntax declarationPattern)
+                && ((CSharpParseOptions)parent.SyntaxTree.Options).LanguageVersion.IsCSharp9OrAbove())
+            {
+                var trailingTrivia = declarationPattern.Type.GetTrailingTrivia()
+                    .AddRange(newNameNode.GetLeadingTrivia())
+                    .AddRange(newNameNode.GetTrailingTrivia());
+
+                return SyntaxFactoryEx.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
+            }
+
+            return null;
         }
 
         protected override void InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(SwitchSectionSyntax switchCaseBlock, SyntaxEditor editor, LocalDeclarationStatementSyntax declarationStatement)

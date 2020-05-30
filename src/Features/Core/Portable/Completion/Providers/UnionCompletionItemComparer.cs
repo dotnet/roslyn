@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public int GetHashCode(CompletionItem obj)
-        {
-            return Hash.Combine(obj.DisplayText.GetHashCode(), obj.Tags.Length);
-        }
+            => Hash.Combine(obj.DisplayText.GetHashCode(), obj.Tags.Length);
     }
 }

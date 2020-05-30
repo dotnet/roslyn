@@ -143,9 +143,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private CommentBuilder(string xml)
-            {
-                _comment = new DocumentationComment(xml);
-            }
+                => _comment = new DocumentationComment(xml);
 
             private DocumentationComment ParseInternal(string xml)
             {
@@ -167,14 +165,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private static void ParseCallback(XmlReader reader, CommentBuilder builder)
-            {
-                builder.ParseCallback(reader);
-            }
+                => builder.ParseCallback(reader);
 
-            private string TrimEachLine(string text)
-            {
-                return string.Join(Environment.NewLine, text.Split(s_NewLineAsStringArray, StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim()));
-            }
+            private static string TrimEachLine(string text)
+                => string.Join(Environment.NewLine, text.Split(s_NewLineAsStringArray, StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim()));
 
             private void ParseCallback(XmlReader reader)
             {

@@ -439,24 +439,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 void IDisposable.Dispose()
-                {
-                    _hierarchy.UnadviseHierarchyEvents(_cookie);
-                }
+                    => _hierarchy.UnadviseHierarchyEvents(_cookie);
 
                 int IVsHierarchyEvents.OnItemAdded(uint itemidParent, uint itemidSiblingPrev, uint itemidAdded)
-                {
-                    return VSConstants.E_NOTIMPL;
-                }
+                    => VSConstants.E_NOTIMPL;
 
                 int IVsHierarchyEvents.OnItemsAppended(uint itemidParent)
-                {
-                    return VSConstants.E_NOTIMPL;
-                }
+                    => VSConstants.E_NOTIMPL;
 
                 int IVsHierarchyEvents.OnItemDeleted(uint itemid)
-                {
-                    return VSConstants.E_NOTIMPL;
-                }
+                    => VSConstants.E_NOTIMPL;
 
                 int IVsHierarchyEvents.OnPropertyChanged(uint itemid, int propid, uint flags)
                 {
@@ -470,14 +462,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 int IVsHierarchyEvents.OnInvalidateItems(uint itemidParent)
-                {
-                    return VSConstants.E_NOTIMPL;
-                }
+                    => VSConstants.E_NOTIMPL;
 
                 int IVsHierarchyEvents.OnInvalidateIcon(IntPtr hicon)
-                {
-                    return VSConstants.E_NOTIMPL;
-                }
+                    => VSConstants.E_NOTIMPL;
             }
         }
     }

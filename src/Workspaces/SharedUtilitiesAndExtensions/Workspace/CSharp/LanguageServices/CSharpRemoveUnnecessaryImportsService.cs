@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         public static readonly CSharpRemoveUnnecessaryImportsService Instance = new CSharpRemoveUnnecessaryImportsService();
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
         public CSharpRemoveUnnecessaryImportsService()
         {
         }
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var oldRoot = (CompilationUnitSyntax)root;
-                var newRoot = (CompilationUnitSyntax)new Rewriter(this, document, unnecessaryImports, cancellationToken).Visit(oldRoot);
+                var newRoot = (CompilationUnitSyntax)new Rewriter(document, unnecessaryImports, cancellationToken).Visit(oldRoot);
 
                 cancellationToken.ThrowIfCancellationRequested();
                 return document.WithSyntaxRoot(await FormatResultAsync(document, newRoot, cancellationToken).ConfigureAwait(false));
@@ -94,9 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             }
         }
 
-        private int GetEndPosition(SyntaxNode container, SyntaxList<MemberDeclarationSyntax> list)
-        {
-            return list.Count > 0 ? list[0].SpanStart : container.Span.End;
-        }
+        private static int GetEndPosition(SyntaxNode container, SyntaxList<MemberDeclarationSyntax> list)
+            => list.Count > 0 ? list[0].SpanStart : container.Span.End;
     }
 }

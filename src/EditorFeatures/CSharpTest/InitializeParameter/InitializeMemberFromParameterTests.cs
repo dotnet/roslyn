@@ -1019,7 +1019,7 @@ class C
     {
         _s = p_s_End;
     }
-}", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+}", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1042,7 +1042,7 @@ class C
     {
         _s = t_p_s_End;
     }
-}", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+}", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1065,7 +1065,7 @@ class C
     {
         _s = p_t_s;
     }
-}", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix, LanguageNames.CSharp)));
+}", index: 1, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1134,7 +1134,7 @@ class C
     }
 
     public string S { get; }
-}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1157,7 +1157,7 @@ class C
     }
 
     public string S { get; }
-}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1180,7 +1180,7 @@ class C
     }
 
     public string S { get; }
-}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1255,7 +1255,7 @@ class C
     {
         _s = p_s_End;
     }
-}", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+}", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1280,7 +1280,7 @@ class C
     {
         _s = t_p_s_End;
     }
-}", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+}", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1305,7 +1305,7 @@ class C
     {
         _s = p_t_s_End;
     }
-}", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+}", index: 0, parameters: new TestParameters(options: options.MergeStyles(options.FieldNamesAreCamelCaseWithUnderscorePrefix, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1380,7 +1380,7 @@ class C
     }
 
     public string S { get; }
-}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1405,7 +1405,7 @@ class C
     }
 
     public string S { get; }
-}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1430,7 +1430,7 @@ class C
     }
 
     public string S { get; }
-}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1445,7 +1445,7 @@ class C
     }
 
     public string S { get; }
-}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1461,12 +1461,12 @@ class C
     public C([|string p__End, string p_test_t|])
     {
     }
-}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
+}", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix)));
         }
 
-        private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning));
-        private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning));
-        private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning));
+        private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning));
+        private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption2.Warning));
+        private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption2.Warning));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestCreateFieldWithTopLevelNullability()
@@ -1558,7 +1558,329 @@ class C
     }
 
     public string S { get; }
-}", options: this.Option(CSharpFormattingOptions.NewLinesForBracesInMethods, false));
+}", options: this.Option(CSharpFormattingOptions2.NewLinesForBracesInMethods, false));
+        }
+
+        [WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+
+    public C(string s, [||]int i)
+    {
+        this.s = s;
+    }
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly int i;
+
+    public C(string s, int i)
+    {
+        this.s = s;
+        this.i = i;
+    }
+}");
+        }
+
+        [WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+
+    public C([||]int i, string s)
+    {
+        this.s = s;
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly string s;
+
+    public C(int i, string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}");
+        }
+
+        [WorkItem(41824, "https://github.com/dotnet/roslyn/issues/41824")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingInArgList()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    private static void M()
+    {
+        M2(__arglist(1, 2, 3, 5, 6));
+    }
+
+    public static void M2([||]__arglist)
+    {
+    }
+}");
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingFields1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public C([||]int i, int j, int k)
+    {
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly int j;
+    private readonly int k;
+
+    public C(int i, int j, int k)
+    {
+        this.i = i;
+        this.j = j;
+        this.k = k;
+    }
+}", index: 3);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingFields2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int i;
+
+    public C(int i, [||]int j, int k)
+    {
+        this.i = i;
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly int j;
+    private readonly int k;
+
+    public C(int i, int j, int k)
+    {
+        this.i = i;
+        this.j = j;
+        this.k = k;
+    }
+}", index: 2);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingFields3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int j;
+
+    public C([||]int i, int j, int k)
+    {
+        this.j = j;
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly int j;
+    private readonly int k;
+
+    public C(int i, int j, int k)
+    {
+        this.i = i;
+        this.j = j;
+        this.k = k;
+    }
+}", index: 2);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingFields4()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int k;
+
+    public C([||]int i, int j, int k)
+    {
+        this.k = k;
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly int j;
+    private readonly int k;
+
+    public C(int i, int j, int k)
+    {
+        this.i = i;
+        this.j = j;
+        this.k = k;
+    }
+}", index: 2);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingProperties1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public C([||]int i, int j, int k)
+    {
+    }
+}",
+@"
+class C
+{
+    public C(int i, int j, int k)
+    {
+        I = i;
+        J = j;
+        K = k;
+    }
+
+    public int I { get; }
+    public int J { get; }
+    public int K { get; }
+}", index: 2);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingProperties2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int i;
+
+    public C(int i, [||]int j, int k)
+    {
+        this.i = i;
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+
+    public C(int i, int j, int k)
+    {
+        this.i = i;
+        J = j;
+        K = k;
+    }
+
+    public int J { get; }
+    public int K { get; }
+}", index: 3);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingProperties3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int j;
+
+    public C([||]int i, int j, int k)
+    {
+        this.j = j;
+    }
+}",
+@"
+class C
+{
+    private readonly int j;
+
+    public C(int i, int j, int k)
+    {
+        I = i;
+        this.j = j;
+        K = k;
+    }
+
+    public int I { get; }
+    public int K { get; }
+}", index: 3);
+        }
+
+        [WorkItem(35665, "https://github.com/dotnet/roslyn/issues/35665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateRemainingProperties4()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly int k;
+
+    public C([||]int i, int j, int k)
+    {
+        this.k = k;
+    }
+}",
+@"
+class C
+{
+    private readonly int k;
+
+    public C(int i, int j, int k)
+    {
+        I = i;
+        J = j;
+        this.k = k;
+    }
+
+    public int I { get; }
+    public int J { get; }
+}", index: 3);
         }
     }
 }

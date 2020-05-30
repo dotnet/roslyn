@@ -7,14 +7,10 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
-using System.Threading;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.UseNullPropagation
 {
@@ -43,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
     {
         protected AbstractUseNullPropagationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseNullPropagationDiagnosticId,
-                   CodeStyleOptions.PreferNullPropagation,
+                   CodeStyleOptions2.PreferNullPropagation,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_null_propagation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -92,7 +88,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            var option = context.GetOption(CodeStyleOptions.PreferNullPropagation, conditionalExpression.Language);
+            var option = context.GetOption(CodeStyleOptions2.PreferNullPropagation, conditionalExpression.Language);
             if (!option.Value)
             {
                 return;
@@ -212,7 +208,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             }
         }
 
-        private bool TryAnalyzeBinaryExpressionCondition(
+        private static bool TryAnalyzeBinaryExpressionCondition(
             ISyntaxFacts syntaxFacts, TBinaryExpressionSyntax condition,
             [NotNullWhen(true)] out SyntaxNode? conditionPartToCheck, out bool isEquals)
         {

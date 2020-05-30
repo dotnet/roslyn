@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -29,19 +31,21 @@ namespace Microsoft.CodeAnalysis.TodoComments
         }
 
         internal TodoCommentData CreateSerializableData(
-            Document document, SourceText text, SyntaxTree tree)
+            Document document, SourceText text, SyntaxTree? tree)
         {
             // make sure given position is within valid text range.
-            var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, this.Position)), 0);
+            var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, Position)), 0);
 
-            var location = tree.GetLocation(textSpan);
+            var location = tree == null
+                ? Location.Create(document.FilePath!, textSpan, text.Lines.GetLinePositionSpan(textSpan))
+                : tree.GetLocation(textSpan);
             var originalLineInfo = location.GetLineSpan();
             var mappedLineInfo = location.GetMappedLineSpan();
 
             return new TodoCommentData
             {
-                Priority = this.Descriptor.Priority,
-                Message = this.Message,
+                Priority = Descriptor.Priority,
+                Message = Message,
                 DocumentId = document.Id,
                 OriginalLine = originalLineInfo.StartLinePosition.Line,
                 OriginalColumn = originalLineInfo.StartLinePosition.Character,

@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.ComponentModel.Design;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -38,26 +42,62 @@ using Microsoft.VisualStudio.TaskStatusCenter;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
     [Guid(Guids.RoslynPackageIdString)]
-    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [ProvideMenuResource("Menus.ctmenu", version: 17)]
-    [ProvideUIContextRule(
-        Guids.EncCapableProjectExistsInWorkspaceUIContextString,
-        name: "Managed Edit and Continue capability",
-        expression: "CS | VB",
-        termNames: new[] { "CS", "VB" },
-        termValues: new[] { Guids.CSharpProjectExistsInWorkspaceUIContextString, Guids.VisualBasicProjectExistsInWorkspaceUIContextString })]
-    internal class RoslynPackage : AbstractPackage
+    internal sealed class RoslynPackage : AbstractPackage
     {
-        private VisualStudioWorkspace _workspace;
-        private IComponentModel _componentModel;
-        private RuleSetEventHandler _ruleSetEventHandler;
-        private ColorSchemeApplier _colorSchemeApplier;
-        private IDisposable _solutionEventMonitor;
+        // The randomly-generated key name is used for serializing the ILSpy decompiler EULA preference to the .SUO
+        // file. It doesn't have any semantic meaning, but is intended to not conflict with any other extension that
+        // might be saving an "ILSpy" named stream to the same file.
+        // note: must be <= 31 characters long
+        private const string DecompilerEulaOptionKey = "ILSpy-234190A6EE66";
+        private const byte DecompilerEulaOptionVersion = 1;
+
+        private VisualStudioWorkspace? _workspace;
+        private IComponentModel? _componentModel;
+        private RuleSetEventHandler? _ruleSetEventHandler;
+        private ColorSchemeApplier? _colorSchemeApplier;
+        private IDisposable? _solutionEventMonitor;
+
+        public RoslynPackage()
+        {
+            // We need to register an option in order for OnLoadOptions/OnSaveOptions to be called
+            AddOptionKey(DecompilerEulaOptionKey);
+        }
+
+        public bool IsDecompilerEulaAccepted { get; set; }
+
+        protected override void OnLoadOptions(string key, Stream stream)
+        {
+            if (key == DecompilerEulaOptionKey)
+            {
+                if (stream.ReadByte() == DecompilerEulaOptionVersion)
+                {
+                    IsDecompilerEulaAccepted = stream.ReadByte() == 1;
+                }
+                else
+                {
+                    IsDecompilerEulaAccepted = false;
+                }
+            }
+
+            base.OnLoadOptions(key, stream);
+        }
+
+        protected override void OnSaveOptions(string key, Stream stream)
+        {
+            if (key == DecompilerEulaOptionKey)
+            {
+                stream.WriteByte(DecompilerEulaOptionVersion);
+                stream.WriteByte(IsDecompilerEulaAccepted ? (byte)1 : (byte)0);
+            }
+
+            base.OnSaveOptions(key, stream);
+        }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -106,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
 
             // Initialize ColorScheme support
-            _colorSchemeApplier = _componentModel.GetService<ColorSchemeApplier>();
+            _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
             _colorSchemeApplier.Initialize();
         }
 
@@ -224,6 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             SolutionLogger.ReportTelemetry();
             AsyncCompletionLogger.ReportTelemetry();
             CompletionProvidersLogger.ReportTelemetry();
+            ChangeSignatureLogger.ReportTelemetry();
             SyntacticLspLogger.ReportTelemetry();
         }
 
@@ -231,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             if (_workspace != null)
             {
-                _workspace.Services.GetService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
+                _workspace.Services.GetRequiredService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
             }
         }
 
@@ -247,9 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         }
 
         private void UnregisterAnalyzerTracker()
-        {
-            this.ComponentModel.GetService<IAnalyzerNodeSetup>().Unregister();
-        }
+            => this.ComponentModel.GetService<IAnalyzerNodeSetup>().Unregister();
 
         private void UnregisterRuleSetEventHandler()
         {
@@ -262,18 +301,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void TrackBulkFileOperations()
         {
+            RoslynDebug.AssertNotNull(_workspace);
+
             // we will pause whatever ambient work loads we have that are tied to IGlobalOperationNotificationService
             // such as solution crawler, pre-emptive remote host synchronization and etc. any background work users didn't
             // explicitly asked for.
             //
             // this should give all resources to BulkFileOperation. we do same for things like build, 
             // debugging, wait dialog and etc. BulkFileOperation is used for things like git branch switching and etc.
-            var globalNotificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
+            IGlobalOperationNotificationService globalNotificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
 
             // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
             // so we only need simple tracking.
-            var gate = new object();
-            GlobalOperationRegistration localRegistration = null;
+            object gate = new object();
+            GlobalOperationRegistration? localRegistration = null;
 
             BulkFileOperation.End += (s, a) =>
             {

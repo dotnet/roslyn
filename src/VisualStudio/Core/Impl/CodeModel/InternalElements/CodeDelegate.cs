@@ -56,9 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         EnvDTE.CodeElements ICodeElementContainer<CodeParameter>.GetCollection()
-        {
-            return this.Parameters;
-        }
+            => this.Parameters;
 
         private IMethodSymbol LookupInvokeMethod()
         {
@@ -67,9 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         internal override ImmutableArray<SyntaxNode> GetParameters()
-        {
-            return ImmutableArray.CreateRange(CodeModelService.GetParameterNodes(LookupNode()));
-        }
+            => ImmutableArray.CreateRange(CodeModelService.GetParameterNodes(LookupNode()));
 
         public override EnvDTE.vsCMElement Kind
         {

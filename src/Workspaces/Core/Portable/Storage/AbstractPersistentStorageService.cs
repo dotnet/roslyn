@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Storage
             }
         }
 
-        private bool DatabaseSupported(Solution solution, bool checkBranchId)
+        private static bool DatabaseSupported(Solution solution, bool checkBranchId)
         {
             if (solution.FilePath == null)
             {
@@ -205,9 +205,7 @@ namespace Microsoft.CodeAnalysis.Storage
             private readonly ReferenceCountedDisposable<IChecksummedPersistentStorage> _storage;
 
             private PersistentStorageReferenceCountedDisposableWrapper(ReferenceCountedDisposable<IChecksummedPersistentStorage> storage)
-            {
-                _storage = storage;
-            }
+                => _storage = storage;
 
             public static IChecksummedPersistentStorage AddReferenceCountToAndCreateWrapper(ReferenceCountedDisposable<IChecksummedPersistentStorage> storage)
             {
@@ -217,9 +215,7 @@ namespace Microsoft.CodeAnalysis.Storage
             }
 
             public void Dispose()
-            {
-                _storage.Dispose();
-            }
+                => _storage.Dispose();
 
             public Task<Checksum> ReadChecksumAsync(string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadChecksumAsync(name, cancellationToken);

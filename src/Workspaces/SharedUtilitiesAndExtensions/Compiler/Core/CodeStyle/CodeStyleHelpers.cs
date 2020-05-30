@@ -4,24 +4,19 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
 using Microsoft.CodeAnalysis.Options;
-#endif
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class CodeStyleHelpers
     {
-        public static bool TryParseStringEditorConfigCodeStyleOption(string arg, out CodeStyleOption<string> option)
+        public static bool TryParseStringEditorConfigCodeStyleOption(string arg, out CodeStyleOption2<string> option)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(
                     arg, out var value, out var notificationOpt))
             {
-                option = new CodeStyleOption<string>(value, notificationOpt ?? NotificationOption.Silent);
+                option = new CodeStyleOption2<string>(value, notificationOpt ?? NotificationOption2.Silent);
                 return true;
             }
 
@@ -29,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return false;
         }
 
-        public static bool TryParseBoolEditorConfigCodeStyleOption(string arg, out CodeStyleOption<bool> option)
+        public static bool TryParseBoolEditorConfigCodeStyleOption(string arg, out CodeStyleOption2<bool> option)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(
                     arg, out var value, out var notificationOpt))
@@ -41,32 +36,32 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     // 'true' must always be provided with a notification option.
                     if (isEnabled == false)
                     {
-                        notificationOpt ??= NotificationOption.Silent;
-                        option = new CodeStyleOption<bool>(false, notificationOpt);
+                        notificationOpt ??= NotificationOption2.Silent;
+                        option = new CodeStyleOption2<bool>(false, notificationOpt);
                         return true;
                     }
                     else if (notificationOpt != null)
                     {
-                        option = new CodeStyleOption<bool>(true, notificationOpt);
+                        option = new CodeStyleOption2<bool>(true, notificationOpt);
                         return true;
                     }
                 }
             }
 
-            option = CodeStyleOption<bool>.Default;
+            option = CodeStyleOption2<bool>.Default;
             return false;
         }
 
         /// <summary>
         /// Given an editor-config code-style-option, gives back the constituent parts of the 
         /// option.  For example, if the option is "true:error" then "true" will be returned
-        /// in <paramref name="value"/> and <see cref="NotificationOption.Error"/> will be returned
+        /// in <paramref name="value"/> and <see cref="NotificationOption2.Error"/> will be returned
         /// in <paramref name="notificationOpt"/>.  Note that users are allowed to not provide
         /// a NotificationOption, so <paramref name="notificationOpt"/> may be null.  The caller
         /// of this method must decide what to do in that case.
         /// </summary>
         public static bool TryGetCodeStyleValueAndOptionalNotification(
-            string arg, out string value, out NotificationOption notificationOpt)
+            string arg, out string value, out NotificationOption2 notificationOpt)
         {
             var args = arg.Split(':');
             Debug.Assert(args.Length > 0);
@@ -99,43 +94,43 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return false;
         }
 
-        public static bool TryParseNotification(string value, out NotificationOption notification)
+        public static bool TryParseNotification(string value, out NotificationOption2 notification)
         {
             switch (value.Trim())
             {
                 case EditorConfigSeverityStrings.None:
-                    notification = NotificationOption.None;
+                    notification = NotificationOption2.None;
                     return true;
 
                 case EditorConfigSeverityStrings.Refactoring:
                 case EditorConfigSeverityStrings.Silent:
-                    notification = NotificationOption.Silent;
+                    notification = NotificationOption2.Silent;
                     return true;
 
-                case EditorConfigSeverityStrings.Suggestion: notification = NotificationOption.Suggestion; return true;
-                case EditorConfigSeverityStrings.Warning: notification = NotificationOption.Warning; return true;
-                case EditorConfigSeverityStrings.Error: notification = NotificationOption.Error; return true;
+                case EditorConfigSeverityStrings.Suggestion: notification = NotificationOption2.Suggestion; return true;
+                case EditorConfigSeverityStrings.Warning: notification = NotificationOption2.Warning; return true;
+                case EditorConfigSeverityStrings.Error: notification = NotificationOption2.Error; return true;
             }
 
-            notification = NotificationOption.Silent;
+            notification = NotificationOption2.Silent;
             return false;
         }
 
-        public static Option<T> CreateOption<T>(
+        public static Option2<T> CreateOption<T>(
             OptionGroup group,
             string feature,
             string name,
             T defaultValue,
-            ImmutableArray<IOption>.Builder optionsBuilder,
-            params OptionStorageLocation[] storageLocations)
+            ImmutableArray<IOption2>.Builder optionsBuilder,
+            params OptionStorageLocation2[] storageLocations)
         {
-            var option = new Option<T>(feature, group, name, defaultValue, storageLocations);
+            var option = new Option2<T>(feature, group, name, defaultValue, storageLocations);
             optionsBuilder.Add(option);
             return option;
         }
 
-        private static readonly CodeStyleOption<UnusedValuePreference> s_preferNoneUnusedValuePreference =
-            new CodeStyleOption<UnusedValuePreference>(default, NotificationOption.None);
+        private static readonly CodeStyleOption2<UnusedValuePreference> s_preferNoneUnusedValuePreference =
+            new CodeStyleOption2<UnusedValuePreference>(default, NotificationOption2.None);
 
         private static readonly BidirectionalMap<string, UnusedValuePreference> s_unusedExpressionAssignmentPreferenceMap =
             new BidirectionalMap<string, UnusedValuePreference>(new[]
@@ -144,41 +139,41 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 KeyValuePairUtil.Create("unused_local_variable", UnusedValuePreference.UnusedLocalVariable),
             });
 
-        public static Option<CodeStyleOption<UnusedValuePreference>> CreateUnusedExpressionAssignmentOption(
+        public static Option2<CodeStyleOption2<UnusedValuePreference>> CreateUnusedExpressionAssignmentOption(
             OptionGroup group,
             string feature,
             string name,
             string editorConfigName,
-            CodeStyleOption<UnusedValuePreference> defaultValue,
-            ImmutableArray<IOption>.Builder optionsBuilder)
+            CodeStyleOption2<UnusedValuePreference> defaultValue,
+            ImmutableArray<IOption2>.Builder optionsBuilder)
             => CreateOption(
                 group,
                 feature,
                 name,
                 defaultValue,
                 optionsBuilder,
-                storageLocations: new OptionStorageLocation[]{
-                    new EditorConfigStorageLocation<CodeStyleOption<UnusedValuePreference>>(
+                storageLocations: new OptionStorageLocation2[]{
+                    new EditorConfigStorageLocation<CodeStyleOption2<UnusedValuePreference>>(
                         editorConfigName,
                         s => ParseUnusedExpressionAssignmentPreference(s, defaultValue),
                         o => GetUnusedExpressionAssignmentPreferenceEditorConfigString(o, defaultValue.Value)),
                     new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{name}Preference")});
 
-        private static Optional<CodeStyleOption<UnusedValuePreference>> ParseUnusedExpressionAssignmentPreference(
+        private static Optional<CodeStyleOption2<UnusedValuePreference>> ParseUnusedExpressionAssignmentPreference(
             string optionString,
-            CodeStyleOption<UnusedValuePreference> defaultCodeStyleOption)
+            CodeStyleOption2<UnusedValuePreference> defaultCodeStyleOption)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(optionString,
                 out var value, out var notificationOpt))
             {
-                return new CodeStyleOption<UnusedValuePreference>(
+                return new CodeStyleOption2<UnusedValuePreference>(
                     s_unusedExpressionAssignmentPreferenceMap.GetValueOrDefault(value), notificationOpt ?? defaultCodeStyleOption.Notification);
             }
 
             return s_preferNoneUnusedValuePreference;
         }
 
-        private static string GetUnusedExpressionAssignmentPreferenceEditorConfigString(CodeStyleOption<UnusedValuePreference> option, UnusedValuePreference defaultPreference)
+        private static string GetUnusedExpressionAssignmentPreferenceEditorConfigString(CodeStyleOption2<UnusedValuePreference> option, UnusedValuePreference defaultPreference)
         {
             Debug.Assert(s_unusedExpressionAssignmentPreferenceMap.ContainsValue(option.Value));
             var value = s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(defaultPreference);

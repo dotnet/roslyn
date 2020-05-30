@@ -21,13 +21,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static class SyntaxNodeExtensions
     {
         public static IEnumerable<SyntaxNodeOrToken> DepthFirstTraversal(this SyntaxNode node)
-        {
-            return SyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
-        }
+            => SyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
 
         public static IEnumerable<SyntaxNode> GetAncestors(this SyntaxNode node)
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
 
             while (current != null)
             {
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEnumerable<TNode> GetAncestors<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
             while (current != null)
             {
                 if (current is TNode tNode)
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TNode? GetAncestor<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
             while (current != null)
             {
                 if (current is TNode tNode)
@@ -183,14 +181,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static int Width(this SyntaxNode node)
-        {
-            return node.Span.Length;
-        }
+            => node.Span.Length;
 
         public static int FullWidth(this SyntaxNode node)
-        {
-            return node.FullSpan.Length;
-        }
+            => node.FullSpan.Length;
 
         public static SyntaxNode? FindInnermostCommonNode(this IEnumerable<SyntaxNode> nodes, Func<SyntaxNode, bool> predicate)
             => nodes.FindInnermostCommonNode()?.FirstAncestorOrSelf(predicate);
@@ -370,14 +364,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool OverlapsHiddenPosition(this SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return node.OverlapsHiddenPosition(node.Span, cancellationToken);
-        }
+            => node.OverlapsHiddenPosition(node.Span, cancellationToken);
 
         public static bool OverlapsHiddenPosition(this SyntaxNode node, TextSpan span, CancellationToken cancellationToken)
-        {
-            return node.SyntaxTree.OverlapsHiddenPosition(span, cancellationToken);
-        }
+            => node.SyntaxTree.OverlapsHiddenPosition(span, cancellationToken);
 
         public static bool OverlapsHiddenPosition(this SyntaxNode declaration, SyntaxNode startNode, SyntaxNode endNode, CancellationToken cancellationToken)
         {
@@ -389,9 +379,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IEnumerable<T> GetAnnotatedNodes<T>(this SyntaxNode node, SyntaxAnnotation syntaxAnnotation) where T : SyntaxNode
-        {
-            return node.GetAnnotatedNodesAndTokens(syntaxAnnotation).Select(n => n.AsNode()).OfType<T>();
-        }
+            => node.GetAnnotatedNodesAndTokens(syntaxAnnotation).Select(n => n.AsNode()).OfType<T>();
 
         /// <summary>
         /// Creates a new tree of nodes from the existing tree with the specified old nodes replaced with a newly computed nodes.

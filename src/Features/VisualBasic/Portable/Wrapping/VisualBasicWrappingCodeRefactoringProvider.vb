@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping.BinaryExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping.ChainedExpression
@@ -23,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping
                 New VisualBasicChainedExpressionWrapper())
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
             MyBase.New(s_wrappers)
         End Sub
