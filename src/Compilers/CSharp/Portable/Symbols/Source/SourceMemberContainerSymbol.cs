@@ -3038,6 +3038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var member in type.GetMembers())
                 {
                     if (member is PropertySymbol property &&
+                        property.ParameterCount == 0 &&
                         AccessCheck.IsSymbolAccessible(property, within, ref useSiteDiagnostics))
                     {
                         properties[property.Name] = property;
