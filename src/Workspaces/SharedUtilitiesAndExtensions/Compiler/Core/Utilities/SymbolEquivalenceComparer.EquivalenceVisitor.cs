@@ -359,6 +359,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         if (xNamespace.Name != yNamespace.Name)
                             return false;
 
+                        // Error namespaces don't set the IsGlobalNamespace bit unfortunately.  So we just do the
+                        // nominal check to see if we've actually hit the root.
                         if (xNamespace.Name == "")
                             break;
 
