@@ -1224,6 +1224,51 @@ C<T>.Nested.Nested() -> void
                 );
         }
 
+        [Fact]
+        public async Task ShippedTextWithMissingImplicitStructConstructorAsync()
+        {
+            var source = @"
+public struct C
+{
+}
+";
+
+            var shippedText = @"
+C";
+            var unshippedText = string.Empty;
+
+            // Test0.cs(2,15): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
+            string arg = string.Format(PublicApiAnalyzerResources.PublicImplicitConstructorErrorMessageName, "C");
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                GetCSharpResultAt(2, 15, DeclarePublicApiAnalyzer.DeclareNewApiRule, arg)).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task ShippedTextWithMissingImplicitStructConstructorWithOtherOverloadsAsync()
+        {
+            var source = @"
+public struct C
+{
+    public C(int value)
+    {
+    }
+}
+";
+
+            var shippedText = @"
+C
+C.C(int value) -> void";
+            var unshippedText = string.Empty;
+
+            // Test0.cs(2,15): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
+            string arg = string.Format(PublicApiAnalyzerResources.PublicImplicitConstructorErrorMessageName, "C");
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                GetCSharpResultAt(2, 15, DeclarePublicApiAnalyzer.DeclareNewApiRule, arg)).ConfigureAwait(false);
+        }
+
+
         #endregion
 
         #region Fix tests
