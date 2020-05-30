@@ -57,7 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (expression is StackAllocArrayCreationExpressionSyntax)
+            if (expression is StackAllocArrayCreationExpressionSyntax ||
+                expression is ImplicitStackAllocArrayCreationExpressionSyntax)
             {
                 // var span = (stackalloc byte[8]);
                 // https://github.com/dotnet/roslyn/issues/44629
