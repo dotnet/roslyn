@@ -1631,7 +1631,6 @@ data class C(int X, int Y)
             );
         }
 
-        [WorkItem(44616, "https://github.com/dotnet/roslyn/issues/44616")]
         [Fact]
         public void WithExprNotRecord()
         {
