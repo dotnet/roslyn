@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,9 +15,23 @@ namespace Microsoft.CodeAnalysis
             public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.Name);
-                visitor.WriteSymbolKey(symbol.ContainingSymbol as INamespaceOrTypeSymbol);
-                visitor.WriteInteger(symbol.Arity);
+                switch (symbol.ContainingSymbol)
+                {
+                    case INamedTypeSymbol parentType:
+                        visitor.WriteInteger(0);
+                        visitor.WriteSymbolKey(parentType);
+                        break;
+                    case INamespaceSymbol parentNamespace:
+                        visitor.WriteInteger(1);
+                        visitor.WriteStringArray(GetContainingNamespaceNames(parentNamespace));
+                        break;
+                    default:
+                        visitor.WriteInteger(2);
+                        visitor.WriteSymbolKey(null);
+                        break;
+                }
 
+                visitor.WriteInteger(symbol.Arity);
                 if (!symbol.Equals(symbol.ConstructedFrom))
                 {
                     visitor.WriteSymbolKeyArray(symbol.TypeArguments);
@@ -26,10 +42,22 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            private static ImmutableArray<string> GetContainingNamespaceNames(INamespaceSymbol namespaceSymbol)
+            {
+                using var _ = ArrayBuilder<string>.GetInstance(out var builder);
+                while (namespaceSymbol != null && namespaceSymbol.Name != "")
+                {
+                    builder.Add(namespaceSymbol.Name);
+                    namespaceSymbol = namespaceSymbol.ContainingNamespace;
+                }
+
+                return builder.ToImmutable();
+            }
+
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var name = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var containingSymbolResolution = ResolveContainer(reader);
                 var arity = reader.ReadInteger();
 
                 using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>();
@@ -55,6 +83,28 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return CreateResolution(result);
+            }
+
+            private static SymbolKeyResolution ResolveContainer(SymbolKeyReader reader)
+            {
+                var type = reader.ReadInteger();
+                switch (type)
+                {
+                    case 0:
+                        return reader.ReadSymbolKey();
+                    case 1:
+                        var namespaceNames = reader.ReadStringArray();
+                        var currentNamespace = reader.Compilation.GlobalNamespace;
+
+                        foreach (var name in namespaceNames)
+                            currentNamespace = reader.Compilation.CreateErrorNamespaceSymbol(currentNamespace, name);
+
+                        return new SymbolKeyResolution(currentNamespace);
+                    case 2:
+                        return default;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(type);
+                }
             }
 
             private static INamedTypeSymbol Construct(SymbolKeyReader reader, INamespaceOrTypeSymbol container, string name, int arity, ITypeSymbol[] typeArguments)
