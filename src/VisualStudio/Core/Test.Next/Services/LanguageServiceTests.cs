@@ -105,6 +105,8 @@ End Class";
                     Methods.WorkspaceSymbolName,
                     new object[] { workspaceSymbolParams },
                     CancellationToken.None);
+
+                await awaitableProgress.WaitAsync(CancellationToken.None);
             }
 
             return symbolResultsBuilder.ToImmutableAndFree();
