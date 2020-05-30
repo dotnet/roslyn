@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             resultForRelation(BinaryOperatorKind relation, ConstantValue value)
             {
                 var input = test.Input;
-                IValueSetFactory? valueFac = ValueSetFactory.ForType(input.Type.EnumUnderlyingTypeOrSelf());
+                IValueSetFactory? valueFac = ValueSetFactory.ForType(input.Type);
                 if (valueFac == null || value.IsBad)
                 {
                     // If it is a type we don't track yet, assume all values are possible

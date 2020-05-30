@@ -2923,14 +2923,18 @@ class C
             }
         }
 
-        [Fact]
-        public void Relational_SignedEnumExhaustive()
+        [Theory]
+        [InlineData("sbyte", true)]
+        [InlineData("short", true)]
+        [InlineData("int", true)]
+        [InlineData("long", true)]
+        [InlineData("sbyte", false)]
+        [InlineData("short", false)]
+        [InlineData("int", false)]
+        [InlineData("long", false)]
+        public void Relational_SignedEnumExhaustive(string typeName, bool withExhaustive)
         {
-            foreach (var typeName in new[] { "sbyte", "short", "int", "long" })
-            {
-                foreach (var withExhaustive in new[] { false, true })
-                {
-                    var source = @"
+            var source = @"
 enum E : " + typeName + @"
 {
     Zero,
@@ -2957,21 +2961,19 @@ class C
 " : "")
 + @"    };
 }";
-                    var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
-                    if (withExhaustive)
-                    {
-                        compilation.VerifyDiagnostics(
-                            );
-                    }
-                    else
-                    {
-                        compilation.VerifyDiagnostics(
-                            // (15,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
-                            //     static int M(E c) => c switch
-                            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 28)
-                            );
-                    }
-                }
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            if (withExhaustive)
+            {
+                compilation.VerifyEmitDiagnostics(
+                    );
+            }
+            else
+            {
+                compilation.VerifyEmitDiagnostics(
+                    // (15,28): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                    //     static int M(E c) => c switch
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 28)
+                    );
             }
         }
 
@@ -5503,7 +5505,7 @@ class C
         }
 
         [Fact, WorkItem(44518, "https://github.com/dotnet/roslyn/issues/44518")]
-        public void Crash_01()
+        public void ErrorRecovery_01()
         {
             var source =
 @"class C
@@ -5523,7 +5525,7 @@ class C
         }
 
         [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
-        public void Crash_02()
+        public void ErrorRecovery_02()
         {
             var source =
 @"using System;
@@ -5561,7 +5563,7 @@ public class C {
         }
 
         [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
-        public void Crash_03()
+        public void ErrorRecovery_03()
         {
             var source =
 @"public class C {
@@ -5584,7 +5586,7 @@ public class C {
         }
 
         [Fact, WorkItem(44540, "https://github.com/dotnet/roslyn/issues/44540")]
-        public void Crash_04()
+        public void ErrorRecovery_04()
         {
             var source =
 @"public class C {
