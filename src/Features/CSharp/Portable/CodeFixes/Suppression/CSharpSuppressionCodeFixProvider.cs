@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             return CreatePragmaDirectiveTrivia(disableKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine);
         }
 
-        private SyntaxTriviaList CreatePragmaDirectiveTrivia(
+        private static SyntaxTriviaList CreatePragmaDirectiveTrivia(
             SyntaxToken disableOrRestoreKeyword, Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine)
         {
             var diagnosticId = GetOrMapDiagnosticId(diagnostic, out var includeTitle);
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             return memberNode.AddAttributeLists(attributeList);
         }
 
-        private AttributeListSyntax CreateAttributeList(
+        private static AttributeListSyntax CreateAttributeList(
             ISymbol targetSymbol,
             NameSyntax attributeName,
             Diagnostic diagnostic,
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             return attributeList.WithLeadingTrivia(leadingTrivia.AddRange(triviaList));
         }
 
-        private AttributeArgumentListSyntax CreateAttributeArguments(ISymbol targetSymbol, Diagnostic diagnostic, bool isAssemblyAttribute)
+        private static AttributeArgumentListSyntax CreateAttributeArguments(ISymbol targetSymbol, Diagnostic diagnostic, bool isAssemblyAttribute)
         {
             // SuppressMessage("Rule Category", "Rule Id", Justification = nameof(Justification), Scope = nameof(Scope), Target = nameof(Target))
             var category = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(diagnostic.Descriptor.Category));

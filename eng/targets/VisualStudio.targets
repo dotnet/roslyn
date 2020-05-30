@@ -142,5 +142,5 @@
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" ExcludeAssets="all"/>
   </ItemGroup>
 
-  <Import Project="GeneratePkgDef.targets" Condition="'$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
+  <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
 </Project>

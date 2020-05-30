@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken));
         }
 
-        private IFieldSymbol CheckFieldAccessExpression(SemanticModel semanticModel, TExpression expression)
+        private static IFieldSymbol CheckFieldAccessExpression(SemanticModel semanticModel, TExpression expression)
         {
             if (expression == null)
             {

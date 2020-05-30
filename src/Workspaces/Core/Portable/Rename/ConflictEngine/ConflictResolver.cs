@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 if (client != null)
                 {
                     var result = await client.TryRunRemoteAsync<SerializableConflictResolution?>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteRenamer.ResolveConflictsAsync),
                         solution,
                         new object?[]
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 : ImmutableArray.Create(symbolInfo.Symbol);
         }
 
-        private static SyntaxNode GetExpansionTargetForLocationPerLanguage(SyntaxToken tokenOrNode, Document document)
+        private static SyntaxNode? GetExpansionTargetForLocationPerLanguage(SyntaxToken tokenOrNode, Document document)
         {
             var renameRewriterService = document.GetRequiredLanguageService<IRenameRewriterLanguageService>();
             var complexifiedTarget = renameRewriterService.GetExpansionTargetForLocation(tokenOrNode);

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                         return new Id<T>(existingId.Value.NumericId);
                     }
 
-                    T vertex = vertexCreator();
+                    var vertex = vertexCreator();
                     _edgeKindToVertexId.Add(edgeKind, vertex.GetId().As<T, Vertex>());
 
                     lsifJsonWriter.Write(vertex);

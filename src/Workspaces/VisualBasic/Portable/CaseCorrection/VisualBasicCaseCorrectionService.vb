@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
             End If
         End Sub
 
-        Private Sub Rewrite(token As SyntaxToken, rewriter As Rewriter, replacements As ConcurrentDictionary(Of SyntaxToken, SyntaxToken))
+        Private Shared Sub Rewrite(token As SyntaxToken, rewriter As Rewriter, replacements As ConcurrentDictionary(Of SyntaxToken, SyntaxToken))
             Dim newToken = rewriter.VisitToken(token)
             If newToken <> token Then
                 replacements(token) = newToken

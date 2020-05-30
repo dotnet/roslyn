@@ -752,7 +752,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
-            var binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
+            var binder = method is SynthesizedSimpleProgramEntryPointSymbol entryPoint ?
+                             entryPoint.GetBodyBinder(ignoreAccessibility: false) :
+                             compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             var conversions = binder.Conversions;
             Analyze(compilation,
                 method,
@@ -4251,15 +4253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return FlowAnalysisAnnotations.None;
             }
 
-            var annotations = symbol switch
-            {
-                MethodSymbol method => method.ReturnTypeFlowAnalysisAnnotations,
-                PropertySymbol property => property.GetOwnOrInheritedGetMethod()?.ReturnTypeFlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None,
-                ParameterSymbol parameter => parameter.FlowAnalysisAnnotations,
-                FieldSymbol field => field.FlowAnalysisAnnotations,
-                _ => FlowAnalysisAnnotations.None
-            };
-
+            var annotations = symbol.GetFlowAnalysisAnnotations();
             return annotations & (FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.NotNull);
         }
 

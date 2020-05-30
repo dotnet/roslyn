@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
             dependencyGraph ??= _dependencyGraph;
 
-            bool analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
+            var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
 
             if (branchId == _branchId &&
                 solutionAttributes == _solutionAttributes &&

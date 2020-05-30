@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return SignatureHelpUtilities.GetSignatureHelpSpan(((GenericNameSyntax)lessThanToken.Parent.Parent).TypeArgumentList);
         }
 
-        private SignatureHelpItem Convert(
+        private static SignatureHelpItem Convert(
             ISymbol symbol,
             SyntaxToken lessThanToken,
             SemanticModel semanticModel,
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(
                 SymbolDisplayFormat.MinimallyQualifiedFormat.GenericsOptions | SymbolDisplayGenericsOptions.IncludeVariance);
 
-        private SignatureHelpSymbolParameter Convert(
+        private static SignatureHelpSymbolParameter Convert(
             ITypeParameterSymbol parameter,
             SemanticModel semanticModel,
             int position,
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 selectedDisplayParts: GetSelectedDisplayParts(parameter, semanticModel, position));
         }
 
-        private IList<SymbolDisplayPart> GetSelectedDisplayParts(
+        private static IList<SymbolDisplayPart> GetSelectedDisplayParts(
             ITypeParameterSymbol typeParam,
             SemanticModel semanticModel,
             int position)

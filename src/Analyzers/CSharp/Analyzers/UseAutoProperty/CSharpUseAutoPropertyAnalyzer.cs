@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             }
         }
 
-        private bool CheckExpressionSyntactically(ExpressionSyntax expression)
+        private static bool CheckExpressionSyntactically(ExpressionSyntax expression)
         {
             if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccessExpression))
             {
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             return CheckExpressionSyntactically(expr) ? expr : null;
         }
 
-        private ExpressionSyntax GetGetterExpressionFromSymbol(IMethodSymbol getMethod, CancellationToken cancellationToken)
+        private static ExpressionSyntax GetGetterExpressionFromSymbol(IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
             var declaration = getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
             switch (declaration)
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             }
         }
 
-        private T GetSingleStatementFromAccessor<T>(AccessorDeclarationSyntax accessorDeclaration) where T : StatementSyntax
+        private static T GetSingleStatementFromAccessor<T>(AccessorDeclarationSyntax accessorDeclaration) where T : StatementSyntax
         {
             var statements = accessorDeclaration?.Body?.Statements;
             if (statements?.Count == 1)
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             return null;
         }
 
-        private ExpressionSyntax GetExpressionFromSetter(AccessorDeclarationSyntax setAccessor)
+        private static ExpressionSyntax GetExpressionFromSetter(AccessorDeclarationSyntax setAccessor)
             => setAccessor?.ExpressionBody?.Expression ??
                GetSingleStatementFromAccessor<ExpressionStatementSyntax>(setAccessor)?.Expression;
 

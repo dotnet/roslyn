@@ -170,14 +170,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool LabelsAreEquivalent(ILabelSymbol x, ILabelSymbol y)
+            private static bool LabelsAreEquivalent(ILabelSymbol x, ILabelSymbol y)
             {
                 return
                     x.Name == y.Name &&
                     HaveSameLocation(x, y);
             }
 
-            private bool LocalsAreEquivalent(ILocalSymbol x, ILocalSymbol y)
+            private static bool LocalsAreEquivalent(ILocalSymbol x, ILocalSymbol y)
                 => HaveSameLocation(x, y);
 
             private bool MethodsAreEquivalent(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies, bool considerReturnRefKinds = false)
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return TypeArgumentsAreEquivalent(x.TypeArguments, y.TypeArguments, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool AreCompatibleMethodKinds(MethodKind kind1, MethodKind kind2)
+            private static bool AreCompatibleMethodKinds(MethodKind kind1, MethodKind kind2)
             {
                 if (kind1 == kind2)
                 {
@@ -622,10 +622,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool RangeVariablesAreEquivalent(IRangeVariableSymbol x, IRangeVariableSymbol y)
+            private static bool RangeVariablesAreEquivalent(IRangeVariableSymbol x, IRangeVariableSymbol y)
                 => HaveSameLocation(x, y);
 
-            private bool PreprocessingSymbolsAreEquivalent(IPreprocessingSymbol x, IPreprocessingSymbol y)
+            private static bool PreprocessingSymbolsAreEquivalent(IPreprocessingSymbol x, IPreprocessingSymbol y)
                 => x.Name == y.Name;
         }
     }

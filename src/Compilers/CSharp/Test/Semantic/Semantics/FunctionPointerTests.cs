@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 using s = delegate*<void>;");
 
             comp.VerifyDiagnostics(
+                // error CS8805: Program using top-level statements must be an executable.
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = ").WithLocation(2, 1),
@@ -44,10 +46,7 @@ using s = delegate*<void>;");
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(2, 11),
                 // (2,25): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25),
-                // (2,26): error CS1022: Type or namespace definition, or end-of-file expected
-                // using s = delegate*<void>;
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(2, 26)
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25)
             );
         }
 

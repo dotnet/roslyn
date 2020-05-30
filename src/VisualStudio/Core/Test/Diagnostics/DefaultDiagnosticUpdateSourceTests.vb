@@ -133,8 +133,10 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Assert.Single(
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None))
+                Dim diagnostics = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None)
+
+                ' error CS0246: The type or namespace name 'M' could not be found
+                AssertEx.Equal({"CS0246"}, diagnostics.Select(Function(d) d.Id))
             End Using
         End Function
 
@@ -169,8 +171,11 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Assert.Equal(2,
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count())
+                Dim diagnostics = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None)
+
+                ' error CS1002: ; expected
+                ' error CS0246: The type or namespace name 'M' could not be found
+                AssertEx.SetEqual({"CS1002", "CS0246"}, diagnostics.Select(Function(d) d.Id))
             End Using
         End Function
 
@@ -207,7 +212,7 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Assert.Empty(
+                AssertEx.Empty(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None))
             End Using
         End Function

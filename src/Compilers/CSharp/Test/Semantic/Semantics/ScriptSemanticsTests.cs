@@ -1170,8 +1170,9 @@ goto Label;");
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44418")]
         [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
+        [WorkItem(44418, "https://github.com/dotnet/roslyn/issues/44418")]
         public void Errors_01()
         {
             var code = "System.Console.WriteLine(1);";
@@ -1258,8 +1259,9 @@ goto Label;");
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44418")]
         [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
+        [WorkItem(44418, "https://github.com/dotnet/roslyn/issues/44418")]
         public void Errors_02()
         {
             var compilationUnit = CSharp.SyntaxFactory.ParseCompilationUnit("\nSystem.Console.WriteLine(1);", options: new CSharp.CSharpParseOptions(kind: SourceCodeKind.Script));
@@ -1295,8 +1297,9 @@ goto Label;");
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44418")]
         [WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")]
+        [WorkItem(44418, "https://github.com/dotnet/roslyn/issues/44418")]
         public void Errors_03()
         {
             var code = "System.Console.WriteLine(out var x, x);";

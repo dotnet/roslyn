@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // Semicolons in an empty for statement.  i.e.   for(;;)
             if (previousParentKind == SyntaxKind.ForStatement
-                && this.IsEmptyForStatement((ForStatementSyntax)previousToken.Parent!))
+                && IsEmptyForStatement((ForStatementSyntax)previousToken.Parent!))
             {
                 if (currentKind == SyntaxKind.SemicolonToken
                     && (previousKind != SyntaxKind.SemicolonToken
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SuppressVariableDeclaration(list, node);
         }
 
-        private bool IsEmptyForStatement(ForStatementSyntax forStatement) =>
+        private static bool IsEmptyForStatement(ForStatementSyntax forStatement) =>
             forStatement.Initializers.Count == 0
             && forStatement.Declaration == null
             && forStatement.Condition == null
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private AdjustSpacesOperation AdjustSpacesOperationZeroOrOne(bool option, AdjustSpacesOption explicitOption = AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+        private static AdjustSpacesOperation AdjustSpacesOperationZeroOrOne(bool option, AdjustSpacesOption explicitOption = AdjustSpacesOption.ForceSpacesIfOnSingleLine)
         {
             if (option)
             {
@@ -474,13 +474,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private bool HasFormattableBracketParent(SyntaxToken token)
+        private static bool HasFormattableBracketParent(SyntaxToken token)
             => token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression);
 
-        private bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
+        private static bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
             => (syntaxKind == SyntaxKind.TypeOfExpression || syntaxKind == SyntaxKind.DefaultExpression || syntaxKind == SyntaxKind.SizeOfExpression);
 
-        private bool IsControlFlowLikeKeywordStatementKind(SyntaxKind syntaxKind)
+        private static bool IsControlFlowLikeKeywordStatementKind(SyntaxKind syntaxKind)
         {
             return (syntaxKind == SyntaxKind.IfStatement || syntaxKind == SyntaxKind.WhileStatement || syntaxKind == SyntaxKind.SwitchStatement ||
                 syntaxKind == SyntaxKind.ForStatement || syntaxKind == SyntaxKind.ForEachStatement || syntaxKind == SyntaxKind.ForEachVariableStatement ||

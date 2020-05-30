@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             return false;
         }
 
-        private IList<ISymbol> GetDelegatableMembers(State state)
+        private static IList<ISymbol> GetDelegatableMembers(State state)
         {
             var fields =
                 state.ClassOrStructType.GetMembers()
