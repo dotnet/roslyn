@@ -3257,5 +3257,27 @@ End Class
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestOrdinaryMethodWithMissingReferences(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="false">
+        <Document>
+        class C
+        {
+            // string will be an error type because we have no actual references.
+            private void {|Definition:Goo|}(string s) { }
+
+            void Bar()
+            {
+                [|Go$$o|]("");
+                [|Goo|](s);
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

@@ -37,6 +37,12 @@ Friend Class MockNamespaceSymbol
         End Get
     End Property
 
+    Public Overrides ReadOnly Property IsMissingNamespace As Boolean
+        Get
+            Return False
+        End Get
+    End Property
+
     Friend Overrides ReadOnly Property Extent As NamespaceExtent
         Get
             Return _extent
