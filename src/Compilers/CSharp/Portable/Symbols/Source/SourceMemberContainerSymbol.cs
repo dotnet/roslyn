@@ -2946,11 +2946,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(paramList.SyntaxTree);
             var binder = binderFactory.GetBinder(paramList);
 
-            // PROTOTYPE: need to check base members as well
             var memberSignatures = s_duplicateMemberSignatureDictionary.Allocate();
             foreach (var member in members)
             {
-                memberSignatures.Add(member, member);
+                if (!memberSignatures.ContainsKey(member))
+                {
+                    memberSignatures.Add(member, member);
+                }
             }
 
             var ctor = addCtor(paramList);

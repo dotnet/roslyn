@@ -2855,6 +2855,95 @@ data class B(int X, int Y) : A
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
+        [WorkItem(44692, "https://github.com/dotnet/roslyn/issues/44692")]
+        [Fact]
+        public void DuplicateProperty_01()
+        {
+            var src =
+@"data class C(object Q)
+{
+    public object P { get; }
+    public object P { get; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0102: The type 'C' already contains a definition for 'P'
+                //     public object P { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 19));
+
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object C.Q { get; init; }",
+                "System.Object C.P { get; }",
+                "System.Object C.P { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [WorkItem(44692, "https://github.com/dotnet/roslyn/issues/44692")]
+        [Fact]
+        public void DuplicateProperty_02()
+        {
+            var src =
+@"data class C(object P, object Q)
+{
+    public object P { get; }
+    public int P { get; }
+    public int Q { get; }
+    public object Q { get; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,16): error CS0102: The type 'C' already contains a definition for 'P'
+                //     public int P { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 16),
+                // (6,19): error CS0102: The type 'C' already contains a definition for 'Q'
+                //     public object Q { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Q").WithArguments("C", "Q").WithLocation(6, 19));
+
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object C.P { get; }",
+                "System.Int32 C.P { get; }",
+                "System.Int32 C.Q { get; }",
+                "System.Object C.Q { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void DuplicateProperty_03()
+        {
+            var src =
+@"class A
+{
+    public object P { get; }
+    public object P { get; }
+    public object Q { get; }
+    public int Q { get; }
+}
+data class B(object Q) : A
+{
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0102: The type 'A' already contains a definition for 'P'
+                //     public object P { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("A", "P").WithLocation(4, 19),
+                // (6,16): error CS0102: The type 'A' already contains a definition for 'Q'
+                //     public int Q { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Q").WithArguments("A", "Q").WithLocation(6, 16));
+
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object B.Q { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
         private static ImmutableArray<Symbol> GetProperties(CSharpCompilation comp, string typeName)
         {
             return comp.GetMember<NamedTypeSymbol>(typeName).GetMembers().WhereAsArray(m => m.Kind == SymbolKind.Property);
