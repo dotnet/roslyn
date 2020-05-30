@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             return client == null ? null : new RazorRemoteHostClient(client);
         }
 
-        public Task<Optional<T>> TryRunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
-            => _client.TryRunRemoteAsync<T>(WellKnownServiceHubService.Razor, targetName, solution, arguments, callbackTarget: null, cancellationToken);
+        public async Task<Optional<T>> TryRunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
+            => await _client.RunRemoteAsync<T>(WellKnownServiceHubService.Razor, targetName, solution, arguments, callbackTarget: null, cancellationToken).ConfigureAwait(false);
     }
 }

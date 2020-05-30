@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                _ = await client.TryRunRemoteAsync(
+                await client.RunRemoteAsync(
                     WellKnownServiceHubService.RemoteHost,
                     nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                     solution,
@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 var state = await oldDocument.State.GetStateChecksumsAsync(CancellationToken).ConfigureAwait(false);
 
-                _ = await client.TryRunRemoteAsync(
+                await client.RunRemoteAsync(
                     WellKnownServiceHubService.RemoteHost,
                     nameof(IRemoteHostService.SynchronizeTextAsync),
                     solution: null,
