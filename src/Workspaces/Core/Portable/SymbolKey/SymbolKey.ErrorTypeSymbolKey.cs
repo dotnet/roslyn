@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis
                         visitor.WriteStringArray(GetContainingNamespaceNames(parentNamespace));
                         break;
                     default:
+                        // writing out `null` here is technically unnecessary.  However, it makes it easier to
+                        // understand the encoded form when the number of values for an encoded symbol is always the
+                        // same.  So we have all three cases write out two values to facilitate that.
                         visitor.WriteInteger(2);
                         visitor.WriteSymbolKey(null);
                         break;
@@ -101,7 +104,7 @@ namespace Microsoft.CodeAnalysis
 
                         return new SymbolKeyResolution(currentNamespace);
                     case 2:
-                        return default;
+                        return reader.ReadSymbolKey();
                     default:
                         throw ExceptionUtilities.UnexpectedValue(type);
                 }
