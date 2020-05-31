@@ -7359,7 +7359,7 @@ class A : B : C
                 // {
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"{
 }").WithArguments("top-level statements").WithLocation(3, 1),
-                // (3,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // {
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
 }").WithLocation(3, 1)

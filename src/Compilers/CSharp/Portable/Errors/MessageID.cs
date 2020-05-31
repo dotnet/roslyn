@@ -199,8 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNotPattern = MessageBase + 12775,
         IDS_FeatureRelationalPattern = MessageBase + 12776,
         IDS_FeatureExtendedPartialMethods = MessageBase + 12777,
-
-        IDS_TopLevelStatements = MessageBase + 12780,
+        IDS_TopLevelStatements = MessageBase + 12778,
     }
 
     // Message IDs may refer to strings that need to be localized.

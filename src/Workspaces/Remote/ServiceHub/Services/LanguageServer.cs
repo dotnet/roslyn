@@ -55,6 +55,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     DisableGoToWorkspaceSymbols = true,
                     WorkspaceSymbolProvider = true,
+                    TextDocumentSync = new TextDocumentSyncOptions
+                    {
+                        Change = TextDocumentSyncKind.None
+                    }
                 }
             });
         }

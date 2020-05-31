@@ -372,9 +372,10 @@ aeu";
                 Identifier("aeu"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Classification)]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
-        public async Task PP_If8()
+        [CombinatorialData]
+        public async Task PP_If8(bool script, bool outOfProcess)
         {
             var code =
 @"#if
@@ -384,22 +385,30 @@ aoeu
 aou
 #endif
 aeu";
-            await TestAsync(code,
+
+            var parseOptions = script ? Options.Script : null;
+
+            await TestAsync(
+                code,
+                code,
+                parseOptions,
+                outOfProcess,
                 PPKeyword("#"),
                 PPKeyword("if"),
                 PPKeyword("#"),
                 PPKeyword("else"),
                 Identifier("aoeu"),
-                Field("aoeu"),
+                script ? Field("aoeu") : Local("aoeu"),
                 Identifier("aou"),
                 PPKeyword("#"),
                 PPKeyword("endif"),
-                Field("aeu"));
+                script ? Field("aeu") : Identifier("aeu"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Classification)]
         [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
-        public async Task PP_If9()
+        [CombinatorialData]
+        public async Task PP_If9(bool script, bool outOfProcess)
         {
             var code =
 @"#if //Goo1
@@ -409,7 +418,14 @@ aoeu
 aou
 #endif //Goo3
 aeu";
-            await TestAsync(code,
+
+            var parseOptions = script ? Options.Script : null;
+
+            await TestAsync(
+                code,
+                code,
+                parseOptions,
+                outOfProcess,
                 PPKeyword("#"),
                 PPKeyword("if"),
                 Comment("//Goo1"),
@@ -417,12 +433,12 @@ aeu";
                 PPKeyword("else"),
                 Comment("//Goo2"),
                 Identifier("aoeu"),
-                Field("aoeu"),
+                script ? Field("aoeu") : Local("aoeu"),
                 Identifier("aou"),
                 PPKeyword("#"),
                 PPKeyword("endif"),
                 Comment("//Goo3"),
-                Field("aeu"));
+                script ? Field("aeu") : Identifier("aeu"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
