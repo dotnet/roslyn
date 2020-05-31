@@ -53,7 +53,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     DocumentOnTypeFormattingProvider = new LSP.DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } },
                     DocumentHighlightProvider = true,
                     ReferencesProvider = true,
-                    ProjectContextProvider = true
+                    ProjectContextProvider = true,
+                    TextDocumentSync = new LSP.TextDocumentSyncOptions
+                    {
+                        Change = LSP.TextDocumentSyncKind.None
+                    }
                 }
             });
         }
