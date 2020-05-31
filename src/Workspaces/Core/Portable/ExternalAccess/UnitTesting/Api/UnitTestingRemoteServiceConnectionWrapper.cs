@@ -13,32 +13,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal readonly struct UnitTestingRemoteServiceConnectionWrapper
     {
-        internal KeepAliveSession? UnderlyingObject { get; }
+        internal RemoteServiceConnection UnderlyingObject { get; }
 
-        internal UnitTestingRemoteServiceConnectionWrapper(KeepAliveSession? underlyingObject)
+        internal UnitTestingRemoteServiceConnectionWrapper(RemoteServiceConnection underlyingObject)
             => UnderlyingObject = underlyingObject;
 
         public bool IsDefault => UnderlyingObject == null;
 
         public async Task<bool> TryRunRemoteAsync(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
         {
-            if (UnderlyingObject == null)
-            {
-                return false;
-            }
-
             await UnderlyingObject.RunRemoteAsync(targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
             return true;
         }
 
         public async Task<Optional<T>> TryRunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
-        {
-            if (UnderlyingObject == null)
-            {
-                return default;
-            }
-
-            return await UnderlyingObject.RunRemoteAsync<T>(targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
-        }
+            => await UnderlyingObject.RunRemoteAsync<T>(targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
     }
 }
