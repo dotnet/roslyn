@@ -1410,7 +1410,7 @@ tryAgain:
                 ? CheckFeatureAvailability(ParseParenthesizedParameterList(), MessageID.IDS_FeatureRecords)
                 : null;
 
-            var baseList = this.ParseBaseList();
+            var baseList = this.ParseBaseList(classOrStructOrInterface, paramList is object);
             _termState = saveTerm;
 
             // Parse class body
@@ -1660,7 +1660,7 @@ tryAgain:
                 || this.IsCurrentTokenWhereOfConstraintClause();
         }
 
-        private BaseListSyntax ParseBaseList()
+        private BaseListSyntax ParseBaseList(SyntaxToken classOrStructOrInterfaceKeyword, bool haveParameters)
         {
             if (this.CurrentToken.Kind != SyntaxKind.ColonToken)
             {
@@ -1673,12 +1673,25 @@ tryAgain:
             {
                 // first type
                 TypeSyntax firstType = this.ParseType();
-                list.Add(_syntaxFactory.SimpleBaseType(firstType));
+
+                ArgumentListSyntax argumentList = null;
+                if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+                {
+                    argumentList = this.ParseParenthesizedArgumentList();
+
+                    if (classOrStructOrInterfaceKeyword.Kind == SyntaxKind.InterfaceKeyword || !haveParameters)
+                    {
+                        argumentList = this.AddErrorToFirstToken(argumentList, ErrorCode.ERR_UnexpectedArgumentList);
+                    }
+                }
+
+                list.Add(_syntaxFactory.SimpleBaseType(firstType, argumentList));
 
                 // any additional types
                 while (true)
                 {
                     if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken ||
+                        this.CurrentToken.Kind == SyntaxKind.SemicolonToken ||
                         this.IsCurrentTokenWhereOfConstraintClause())
                     {
                         break;
@@ -1686,7 +1699,7 @@ tryAgain:
                     else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
                     {
                         list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                        list.Add(_syntaxFactory.SimpleBaseType(this.ParseType()));
+                        list.Add(_syntaxFactory.SimpleBaseType(this.ParseType(), argumentList: null));
                         continue;
                     }
                     else if (this.SkipBadBaseListTokens(ref colon, list, SyntaxKind.CommaToken) == PostSkipAction.Abort)
@@ -1707,7 +1720,7 @@ tryAgain:
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref colon, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleAttribute(),
-                p => p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
+                p => p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.CurrentToken.Kind == SyntaxKind.OpenBraceToken || p.IsCurrentTokenWhereOfConstraintClause() || p.IsTerminator(),
                 expected);
         }
 
@@ -4547,7 +4560,7 @@ tryAgain:
                 var colon = this.EatToken(SyntaxKind.ColonToken);
                 var type = this.ParseType();
                 var tmpList = _pool.AllocateSeparated<BaseTypeSyntax>();
-                tmpList.Add(_syntaxFactory.SimpleBaseType(type));
+                tmpList.Add(_syntaxFactory.SimpleBaseType(type, argumentList: null));
                 baseList = _syntaxFactory.BaseList(colon, tmpList);
                 _pool.Free(tmpList);
             }

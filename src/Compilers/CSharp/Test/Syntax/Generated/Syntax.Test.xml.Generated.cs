@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.BaseList(InternalSyntaxFactory.Token(SyntaxKind.ColonToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.BaseTypeSyntax>());
 
         private static Syntax.InternalSyntax.SimpleBaseTypeSyntax GenerateSimpleBaseType()
-            => InternalSyntaxFactory.SimpleBaseType(GenerateIdentifierName());
+            => InternalSyntaxFactory.SimpleBaseType(GenerateIdentifierName(), null);
 
         private static Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax GenerateTypeParameterConstraintClause()
             => InternalSyntaxFactory.TypeParameterConstraintClause(InternalSyntaxFactory.Token(SyntaxKind.WhereKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.ColonToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.TypeParameterConstraintSyntax>());
@@ -2650,6 +2650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateSimpleBaseType();
 
             Assert.NotNull(node.Type);
+            Assert.Null(node.ArgumentList);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -9771,7 +9772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.BaseList(SyntaxFactory.Token(SyntaxKind.ColonToken), new SeparatedSyntaxList<BaseTypeSyntax>());
 
         private static SimpleBaseTypeSyntax GenerateSimpleBaseType()
-            => SyntaxFactory.SimpleBaseType(GenerateIdentifierName());
+            => SyntaxFactory.SimpleBaseType(GenerateIdentifierName(), default(ArgumentListSyntax));
 
         private static TypeParameterConstraintClauseSyntax GenerateTypeParameterConstraintClause()
             => SyntaxFactory.TypeParameterConstraintClause(SyntaxFactory.Token(SyntaxKind.WhereKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.ColonToken), new SeparatedSyntaxList<TypeParameterConstraintSyntax>());
@@ -11942,7 +11943,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateSimpleBaseType();
 
             Assert.NotNull(node.Type);
-            var newNode = node.WithType(node.Type);
+            Assert.Null(node.ArgumentList);
+            var newNode = node.WithType(node.Type).WithArgumentList(node.ArgumentList);
             Assert.Equal(node, newNode);
         }
 
