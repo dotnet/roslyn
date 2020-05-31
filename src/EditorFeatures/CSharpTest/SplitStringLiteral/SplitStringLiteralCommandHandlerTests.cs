@@ -940,7 +940,9 @@ $""[||]"";
     }
 }".Replace("\r\n", "\n"), lineEnding: "\n");
         }
-        
+
+        [WorkItem(41322, "https://github.com/dotnet/roslyn/issues/41322")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestHonourEndOfLineOptionVerbatim()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -963,6 +965,8 @@ $""[||]"";
 }".Replace("\r\n", "\n"), lineEnding: "\n");
         }
 
+        [WorkItem(41322, "https://github.com/dotnet/roslyn/issues/41322")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestHonourEndOfLineOptionInterpolated()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
@@ -987,6 +991,8 @@ $""[||]"";
 }".Replace("\r\n", "\n"), lineEnding: "\n");
         }
 
+        [WorkItem(41322, "https://github.com/dotnet/roslyn/issues/41322")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
         public void TestHonourEndOfLineOptionVerbatimInterpolated()
         {
             // Do not verifyUndo because of https://github.com/dotnet/roslyn/issues/28033
