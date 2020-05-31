@@ -694,8 +694,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var diagnosticsAndEquivalenceKeyToTitleMap = new Dictionary<(Diagnostic diagnostic, string equivalenceKey), string>();
             foreach (var fix in fixes)
             {
-                var codeAction = fix.Action;
-                foreach (var diagnostic in fix.Diagnostics)
+                VerifyCodeAction(fix.Action, fix.Diagnostics, provider, diagnosticsAndEquivalenceKeyToTitleMap);
+            }
+
+            return;
+
+            static void VerifyCodeAction(
+                CodeAction codeAction,
+                ImmutableArray<Diagnostic> diagnostics,
+                CodeFixProvider provider,
+                Dictionary<(Diagnostic diagnostic, string equivalenceKey), string> diagnosticsAndEquivalenceKeyToTitleMap)
+            {
+                if (!codeAction.NestedCodeActions.IsEmpty)
+                {
+                    // Only validate leaf code actions.
+                    foreach (var nestedAction in codeAction.NestedCodeActions)
+                    {
+                        VerifyCodeAction(nestedAction, diagnostics, provider, diagnosticsAndEquivalenceKeyToTitleMap);
+                    }
+
+                    return;
+                }
+
+                foreach (var diagnostic in diagnostics)
                 {
                     var key = (diagnostic, codeAction.EquivalenceKey);
                     var existingTitle = diagnosticsAndEquivalenceKeyToTitleMap.GetOrAdd(key, _ => codeAction.Title);
@@ -724,6 +745,28 @@ Consider using the title as the equivalence key instead of 'null'");
             var applicableSpanAndEquivalenceKeyToTitleMap = new Dictionary<(TextSpan applicableToSpan, string equivalenceKey), string>();
             foreach (var (codeAction, applicableToSpan) in refactorings.CodeActions)
             {
+                VerifyCodeAction(codeAction, applicableToSpan, provider, applicableSpanAndEquivalenceKeyToTitleMap);
+            }
+
+            return;
+
+            static void VerifyCodeAction(
+                CodeAction codeAction,
+                TextSpan? applicableToSpan,
+                CodeRefactoringProvider provider,
+                Dictionary<(TextSpan applicableToSpan, string equivalenceKey), string> applicableSpanAndEquivalenceKeyToTitleMap)
+            {
+                if (!codeAction.NestedCodeActions.IsEmpty)
+                {
+                    // Only validate leaf code actions.
+                    foreach (var nestedAction in codeAction.NestedCodeActions)
+                    {
+                        VerifyCodeAction(nestedAction, applicableToSpan, provider, applicableSpanAndEquivalenceKeyToTitleMap);
+                    }
+
+                    return;
+                }
+
                 var key = (applicableToSpan ?? default, codeAction.EquivalenceKey);
                 var existingTitle = applicableSpanAndEquivalenceKeyToTitleMap.GetOrAdd(key, _ => codeAction.Title);
                 if (existingTitle != codeAction.Title)
