@@ -31,15 +31,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var baseSymbols = await base.DetermineCascadedSymbolsAsync(
+            var result = await base.DetermineCascadedSymbolsAsync(
                 symbol, solution, projects, options, cancellationToken).ConfigureAwait(false);
 
-            var backingFields = symbol.ContainingType.GetMembers()
-                                      .OfType<IFieldSymbol>()
-                                      .Where(f => symbol.Equals(f.AssociatedSymbol))
-                                      .ToImmutableArray<ISymbol>();
-
-            var result = baseSymbols.Concat(backingFields);
+            if (symbol.AssociatedField != null)
+            {
+                result = result.Add(symbol.AssociatedField);
+            }
 
             if (symbol.GetMethod != null)
             {

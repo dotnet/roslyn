@@ -687,7 +687,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var hasPrivateField = false;
             foreach (var member in type.GetMembers())
             {
-                if (!(member is IFieldSymbol fieldSymbol))
+                // TODO: Events?
+                var fieldSymbol = member as IFieldSymbol ?? (member as IPropertySymbol)?.AssociatedField;
+                if (fieldSymbol is null)
                 {
                     continue;
                 }

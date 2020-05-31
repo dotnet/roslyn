@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         private static IFieldSymbol GetBackingField(IPropertySymbol property)
         {
-            var field = property.GetBackingFieldIfAny();
+            var field = property.AssociatedField;
             if (field == null)
             {
                 return null;

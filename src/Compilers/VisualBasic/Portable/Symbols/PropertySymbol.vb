@@ -503,6 +503,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IPropertySymbol_AssociatedField As IFieldSymbol Implements IPropertySymbol.AssociatedField
+            Get
+                Return Me.AssociatedField
+            End Get
+        End Property
+
         Private ReadOnly Property IPropertySymbol_ReturnsByRef As Boolean Implements IPropertySymbol.ReturnsByRef
             Get
                 Return Me.ReturnsByRef

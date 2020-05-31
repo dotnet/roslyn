@@ -62,9 +62,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
         internal static bool IsValidAutoProperty(IPropertySymbol propertySymbol)
         {
-            var fields = propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>();
-            var field = fields.FirstOrDefault(f => propertySymbol.Equals(f.AssociatedSymbol));
-            return field != null;
+            return propertySymbol.AssociatedField is object;
         }
 
         private static async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)

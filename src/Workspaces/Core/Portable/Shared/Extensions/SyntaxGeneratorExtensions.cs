@@ -84,14 +84,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // call the default constructor.
 
                 return containingTypeOpt.GetMembers()
-                    .OfType<IFieldSymbol>()
-                    .Where(field => !field.IsStatic)
-                    .Select(field => field.AssociatedSymbol ?? field)
+                    .Where(member => GetField(member) is { IsStatic: false })
                     .Except(parameterToExistingFieldMap.Values)
                     .Any();
             }
 
             return false;
+        }
+
+        private static IFieldSymbol GetField(ISymbol member)
+        {
+            // TODO: event backing fields
+            return member as IFieldSymbol ?? (member as IPropertySymbol)?.AssociatedField;
         }
 
         public static ImmutableArray<ISymbol> CreateFieldsForParameters(

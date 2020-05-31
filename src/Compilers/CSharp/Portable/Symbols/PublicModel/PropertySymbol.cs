@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             get { return _underlying.SetMethod.GetPublicSymbol(); }
         }
 
+        IFieldSymbol IPropertySymbol.AssociatedField
+        {
+            get { return _underlying.AssociatedField.GetPublicSymbol(); }
+        }
+
         IPropertySymbol IPropertySymbol.OriginalDefinition
         {
             get

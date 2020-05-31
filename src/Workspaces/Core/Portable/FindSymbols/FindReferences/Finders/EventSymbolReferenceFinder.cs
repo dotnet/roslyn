@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var baseSymbols = await base.DetermineCascadedSymbolsAsync(
                 symbol, solution, projects, options, cancellationToken).ConfigureAwait(false);
 
+            // TODO: This probably indicates a problem because event backing fields have not been in GetMembers() for a
+            // long time. Compare to the changes that were necessary in PropertySymbolReferenceFinder.
             var backingFields = symbol.ContainingType.GetMembers()
                                                      .OfType<IFieldSymbol>()
                                                      .Where(f => symbol.Equals(f.AssociatedSymbol))

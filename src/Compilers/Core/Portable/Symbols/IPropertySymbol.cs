@@ -79,6 +79,11 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol? SetMethod { get; }
 
         /// <summary>
+        /// The backing field of the property, or null if the property does not use a backing field.
+        /// </summary>
+        IFieldSymbol? AssociatedField { get; }
+
+        /// <summary>
         /// The original definition of the property. If the property is constructed from another
         /// symbol by type substitution, OriginalDefinition gets the original symbol, as it was 
         /// defined in source or metadata.
