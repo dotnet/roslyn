@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected virtual ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => actions;
 
-        internal static void VerifyCodeActionsRegisteredByProvider(List<CodeFix> fixes)
+        internal static void VerifyCodeActionsRegisteredByProvider(CodeFixProvider provider, List<CodeFix> fixes)
         {
             var diagnosticsAndEquivalenceKeyToTitleMap = new Dictionary<(Diagnostic diagnostic, string equivalenceKey), string>();
             foreach (var fix in fixes)
@@ -696,17 +696,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     if (existingTitle != codeAction.Title)
                     {
                         Assert.False(true, @$"Expected different 'CodeAction.EquivalenceKey' for code actions registered for same diagnostic:
+- Name: '{provider.GetType().Name}'
 - Title 1: '{codeAction.Title}'
 - Title 2: '{existingTitle}'
-- Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'");
+- Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'
+
+Consider using the title as the equivalence key instead of 'null'");
 
                     }
                 }
             }
         }
 
-        internal static void VerifyCodeActionsRegisteredByProvider(CodeRefactoring refactorings)
+        internal static void VerifyCodeActionsRegisteredByProvider(CodeRefactoringProvider provider, CodeRefactoring refactorings)
         {
+            if (refactorings == null)
+            {
+                return;
+            }
+
             var applicableSpanAndEquivalenceKeyToTitleMap = new Dictionary<(TextSpan applicableToSpan, string equivalenceKey), string>();
             foreach (var (codeAction, applicableToSpan) in refactorings.CodeActions)
             {
@@ -715,9 +723,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 if (existingTitle != codeAction.Title)
                 {
                     Assert.False(true, @$"Expected different 'CodeAction.EquivalenceKey' for code actions registered for same applicable span:
+- Name: '{provider.GetType().Name}'
 - Title 1: '{codeAction.Title}'
 - Title 2: '{existingTitle}'
-- Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'");
+- Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'
+
+Consider using the title as the equivalence key instead of 'null'");
 
                 }
             }

@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 await fixer.RegisterCodeFixesAsync(context);
             }
 
-            VerifyCodeActionsRegisteredByProvider(fixes);
+            VerifyCodeActionsRegisteredByProvider(fixer, fixes);
 
             var actions = fixes.SelectAsArray(f => f.Action);
 
