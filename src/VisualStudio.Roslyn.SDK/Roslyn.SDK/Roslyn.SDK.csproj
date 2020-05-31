@@ -5,17 +5,21 @@
     <RootNamespace>Roslyn.SDK</RootNamespace>
     <AssemblyName>Roslyn.SDK</AssemblyName>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
-    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <EnableDefaultItems>false</EnableDefaultItems>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <!-- VS Insertion -->
     <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.SDK</VisualStudioInsertionComponent>
     <Ngen>false</Ngen>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
   <!-- Setting Template Content to None -->
   <ItemGroup>
     <None Include="ItemTemplates\**\*" />
     <None Include="ProjectTemplates\**\*" />
+    <None Include="Properties\launchSettings.json" />
     <None Include="*.vstemplate" />
   </ItemGroup>
   <!-- C# Item Templates -->
@@ -116,27 +120,5 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <Ngen>false</Ngen>
     </ProjectReference>
-    <PackageReference Include="UpdateTemplateVersion" Version="$(UpdateTemplateVersionVersion)" />
   </ItemGroup>
-
-  <!-- rewriting of .vstemplate files to reference the correct assembly version number -->
-  <PropertyGroup>
-    <_UpdateTemplateVersionAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)\UpdateTemplateVersion\$(UpdateTemplateVersionVersion)\tools\net461\UpdateTemplateVersion.dll</_UpdateTemplateVersionAssembly>
-    <_UpdateTemplateVersionAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)\UpdateTemplateVersion\$(UpdateTemplateVersionVersion)\tools\netcoreapp2.0\UpdateTemplateVersion.dll</_UpdateTemplateVersionAssembly>
-  </PropertyGroup>
-
-  <UsingTask AssemblyFile="$(_UpdateTemplateVersionAssembly)" TaskName="UpdateTemplateVersion" />
-  <Target Name="UpdateAssemblyVersionInTemplates" BeforeTargets="GetZipFilesFromVSTemplates">
-    <ItemGroup>
-      <_OriginalVSTemplate Include="@(VSTemplate)" />
-    </ItemGroup>
-    <UpdateTemplateVersion VSTemplatesToRewrite="@(VSTemplate)"
-                           AssemblyVersion="$(AssemblyVersion)"
-                           IntermediatePath="ModifiedTemplates">
-      <Output TaskParameter="NewVSTemplates" ItemName="VSTemplate" />
-    </UpdateTemplateVersion>
-    <ItemGroup>
-      <VSTemplate Remove="@(_OriginalVSTemplate)" />
-    </ItemGroup>
-  </Target>
 </Project>
