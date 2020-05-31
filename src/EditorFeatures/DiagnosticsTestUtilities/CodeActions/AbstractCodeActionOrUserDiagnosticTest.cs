@@ -722,14 +722,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     var existingTitle = diagnosticsAndEquivalenceKeyToTitleMap.GetOrAdd(key, _ => codeAction.Title);
                     if (existingTitle != codeAction.Title)
                     {
+                        var messageSuffix = codeAction.EquivalenceKey != null
+                            ? string.Empty
+                            : @"
+Consider using the title as the equivalence key instead of 'null'";
+
                         Assert.False(true, @$"Expected different 'CodeAction.EquivalenceKey' for code actions registered for same diagnostic:
 - Name: '{provider.GetType().Name}'
 - Title 1: '{codeAction.Title}'
 - Title 2: '{existingTitle}'
-- Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'
-
-Consider using the title as the equivalence key instead of 'null'");
-
+- Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'{messageSuffix}");
                     }
                 }
             }
@@ -771,14 +773,16 @@ Consider using the title as the equivalence key instead of 'null'");
                 var existingTitle = applicableSpanAndEquivalenceKeyToTitleMap.GetOrAdd(key, _ => codeAction.Title);
                 if (existingTitle != codeAction.Title)
                 {
+                    var messageSuffix = codeAction.EquivalenceKey != null
+                        ? string.Empty
+                        : @"
+Consider using the title as the equivalence key instead of 'null'";
+
                     Assert.False(true, @$"Expected different 'CodeAction.EquivalenceKey' for code actions registered for same applicable span:
 - Name: '{provider.GetType().Name}'
 - Title 1: '{codeAction.Title}'
 - Title 2: '{existingTitle}'
-- Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'
-
-Consider using the title as the equivalence key instead of 'null'");
-
+- Shared equivalence key: '{codeAction.EquivalenceKey ?? "<null>"}'{messageSuffix}");
                 }
             }
         }
