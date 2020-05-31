@@ -685,6 +685,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         internal static void VerifyCodeActionsRegisteredByProvider(CodeFixProvider provider, List<CodeFix> fixes)
         {
+            if (provider.GetFixAllProvider() == null)
+            {
+                // Only require unique equivalence keys when the fixer supports FixAll
+                return;
+            }
+
             var diagnosticsAndEquivalenceKeyToTitleMap = new Dictionary<(Diagnostic diagnostic, string equivalenceKey), string>();
             foreach (var fix in fixes)
             {
