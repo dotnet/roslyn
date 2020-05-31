@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,6 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Testing
         where TCodeFix : CodeFixProvider, new()
         where TVerifier : IVerifier, new()
     {
+        private static readonly LanguageVersion DefaultLanguageVersion =
+            Enum.TryParse("Default", out LanguageVersion version) ? version : LanguageVersion.CSharp6;
+
         protected override IEnumerable<CodeFixProvider> GetCodeFixProviders()
             => new[] { new TCodeFix() };
 
@@ -27,5 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Testing
 
         protected override CompilationOptions CreateCompilationOptions()
             => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true);
+
+        protected override ParseOptions CreateParseOptions()
+            => new CSharpParseOptions(DefaultLanguageVersion, DocumentationMode.Diagnose);
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +17,6 @@ using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Resolver;
-using NuGet.Versioning;
 
 #if NET46 || NET472 || NETSTANDARD
 using NuGet.Packaging.Signing;
@@ -25,9 +26,15 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public sealed partial class ReferenceAssemblies
     {
-        private const string ReferenceAssembliesPackageVersion = "1.0.0-preview.2";
+        private const string ReferenceAssembliesPackageVersion = "1.0.0";
 
         private static readonly FileSystemSemaphore Semaphore = new FileSystemSemaphore(Path.Combine(Path.GetTempPath(), "test-packages", ".lock"));
+
+        private static ImmutableDictionary<NuGet.Packaging.Core.PackageIdentity, string> s_packageToInstalledLocation
+            = ImmutableDictionary.Create<NuGet.Packaging.Core.PackageIdentity, string>(PackageIdentityComparer.Default);
+
+        private static ImmutableHashSet<NuGet.Packaging.Core.PackageIdentity> s_emptyPackages
+            = ImmutableHashSet.Create<NuGet.Packaging.Core.PackageIdentity>(PackageIdentityComparer.Default);
 
         private readonly Dictionary<string, ImmutableArray<MetadataReference>> _references
             = new Dictionary<string, ImmutableArray<MetadataReference>>();
@@ -38,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Testing
             AssemblyIdentityComparer = AssemblyIdentityComparer.Default;
             ReferenceAssemblyPath = null;
             Assemblies = ImmutableArray<string>.Empty;
+            FacadeAssemblies = ImmutableArray<string>.Empty;
             LanguageSpecificAssemblies = ImmutableDictionary<string, ImmutableArray<string>>.Empty;
             Packages = ImmutableArray<PackageIdentity>.Empty;
         }
@@ -49,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Testing
             ReferenceAssemblyPackage = referenceAssemblyPackage ?? throw new ArgumentNullException(nameof(referenceAssemblyPackage));
             ReferenceAssemblyPath = referenceAssemblyPath;
             Assemblies = ImmutableArray<string>.Empty;
+            FacadeAssemblies = ImmutableArray<string>.Empty;
             LanguageSpecificAssemblies = ImmutableDictionary<string, ImmutableArray<string>>.Empty;
             Packages = ImmutableArray<PackageIdentity>.Empty;
         }
@@ -59,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Testing
             PackageIdentity? referenceAssemblyPackage,
             string? referenceAssemblyPath,
             ImmutableArray<string> assemblies,
+            ImmutableArray<string> facadeAssemblies,
             ImmutableDictionary<string, ImmutableArray<string>> languageSpecificAssemblies,
             ImmutableArray<PackageIdentity> packages)
         {
@@ -67,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Testing
             ReferenceAssemblyPackage = referenceAssemblyPackage;
             ReferenceAssemblyPath = referenceAssemblyPath;
             Assemblies = assemblies.IsDefault ? ImmutableArray<string>.Empty : assemblies;
+            FacadeAssemblies = facadeAssemblies.IsDefault ? ImmutableArray<string>.Empty : facadeAssemblies;
             LanguageSpecificAssemblies = languageSpecificAssemblies;
             Packages = packages.IsDefault ? ImmutableArray<PackageIdentity>.Empty : packages;
         }
@@ -99,21 +110,29 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public ImmutableArray<string> Assemblies { get; }
 
+        public ImmutableArray<string> FacadeAssemblies { get; }
+
         public ImmutableDictionary<string, ImmutableArray<string>> LanguageSpecificAssemblies { get; }
 
         public ImmutableArray<PackageIdentity> Packages { get; }
 
         public ReferenceAssemblies WithAssemblyIdentityComparer(AssemblyIdentityComparer assemblyIdentityComparer)
-            => new ReferenceAssemblies(TargetFramework, assemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, LanguageSpecificAssemblies, Packages);
+            => new ReferenceAssemblies(TargetFramework, assemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages);
 
         public ReferenceAssemblies WithAssemblies(ImmutableArray<string> assemblies)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, assemblies, LanguageSpecificAssemblies, Packages);
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages);
+
+        public ReferenceAssemblies WithFacadeAssemblies(ImmutableArray<string> facadeAssemblies)
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, facadeAssemblies, LanguageSpecificAssemblies, Packages);
 
         public ReferenceAssemblies AddAssemblies(ImmutableArray<string> assemblies)
             => WithAssemblies(Assemblies.AddRange(assemblies));
 
+        public ReferenceAssemblies AddFacadeAssemblies(ImmutableArray<string> facadeAssemblies)
+            => WithFacadeAssemblies(FacadeAssemblies.AddRange(facadeAssemblies));
+
         public ReferenceAssemblies WithLanguageSpecificAssemblies(ImmutableDictionary<string, ImmutableArray<string>> languageSpecificAssemblies)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, languageSpecificAssemblies, Packages);
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, languageSpecificAssemblies, Packages);
 
         public ReferenceAssemblies WithLanguageSpecificAssemblies(string language, ImmutableArray<string> assemblies)
             => WithLanguageSpecificAssemblies(LanguageSpecificAssemblies.SetItem(language, assemblies));
@@ -129,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         public ReferenceAssemblies WithPackages(ImmutableArray<PackageIdentity> packages)
-            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, LanguageSpecificAssemblies, packages);
+            => new ReferenceAssemblies(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, packages);
 
         public ReferenceAssemblies AddPackages(ImmutableArray<PackageIdentity> packages)
             => WithPackages(Packages.AddRange(packages));
@@ -185,7 +204,12 @@ namespace Microsoft.CodeAnalysis.Testing
 
             using (var cacheContext = new SourceCacheContext())
             {
+                var temporaryPackagesFolder = Path.Combine(Path.GetTempPath(), "test-packages");
+                Directory.CreateDirectory(temporaryPackagesFolder);
+
                 var repositories = sourceRepositoryProvider.GetRepositories().ToImmutableArray();
+                repositories = repositories.Insert(0, new SourceRepository(new PackageSource(temporaryPackagesFolder, "test-packages"), Repository.Provider.GetCoreV3(), FeedType.FileSystemPackagesConfig));
+                repositories = repositories.Insert(0, sourceRepositoryProvider.CreateRepository(new PackageSource(new Uri(SettingsUtility.GetGlobalPackagesFolder(settings)).AbsoluteUri, "global"), FeedType.FileSystemV3));
                 var dependencies = ImmutableDictionary.CreateBuilder<NuGet.Packaging.Core.PackageIdentity, SourcePackageDependencyInfo>(PackageIdentityComparer.Default);
 
                 if (ReferenceAssemblyPackage is object)
@@ -231,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         Enumerable.Empty<PackageReference>(),
                         preferredVersions,
                         availablePackages.Values,
-                        sourceRepositoryProvider.GetRepositories().Select(repository => repository.PackageSource),
+                        repositories.Select(repository => repository.PackageSource),
                         logger);
                     var resolver = new PackageResolver();
 
@@ -239,8 +263,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 var globalPathResolver = new PackagePathResolver(SettingsUtility.GetGlobalPackagesFolder(settings));
-                var temporaryPackagesFolder = Path.Combine(Path.GetTempPath(), "test-packages");
-                Directory.CreateDirectory(temporaryPackagesFolder);
                 var localPathResolver = new PackagePathResolver(temporaryPackagesFolder);
 #if NET452
                 var packageExtractionContext = new PackageExtractionContext(logger)
@@ -268,12 +290,23 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 var frameworkReducer = new FrameworkReducer();
 
+                var frameworkAssemblies = new HashSet<string>();
+                frameworkAssemblies.UnionWith(Assemblies);
+                if (LanguageSpecificAssemblies.TryGetValue(language, out var languageSpecificAssemblies))
+                {
+                    frameworkAssemblies.UnionWith(languageSpecificAssemblies);
+                }
+
                 var resolvedAssemblies = new HashSet<string>();
                 foreach (var packageToInstall in packagesToInstall)
                 {
+                    if (s_emptyPackages.Contains(packageToInstall))
+                    {
+                        continue;
+                    }
+
                     PackageReaderBase packageReader;
-                    var installedPath = GetInstalledPath(localPathResolver, packageToInstall)
-                        ?? GetInstalledPath(globalPathResolver, packageToInstall);
+                    var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, packageToInstall);
                     if (installedPath is null)
                     {
                         var downloadResource = await availablePackages[packageToInstall].Source.GetResourceAsync<DownloadResource>(cancellationToken);
@@ -289,6 +322,7 @@ namespace Microsoft.CodeAnalysis.Testing
                             && !downloadResult.PackageReader.GetItems(PackagingConstants.Folders.Ref).Any())
                         {
                             // This package has no compile time impact
+                            ImmutableInterlocked.Update(ref s_emptyPackages, (emptyPackages, package) => emptyPackages.Add(package), packageToInstall);
                             continue;
                         }
 
@@ -303,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Testing
                             packageExtractionContext,
                             cancellationToken);
 
-                        installedPath = localPathResolver.GetInstalledPath(packageToInstall);
+                        installedPath = GetInstalledPath(localPathResolver, globalPathResolver, packageToInstall);
                         packageReader = downloadResult.PackageReader;
                     }
                     else
@@ -344,85 +378,95 @@ namespace Microsoft.CodeAnalysis.Testing
                         }
                     }
 
-                    if (nearestFramework is object)
+                    // Include framework references except for package based frameworks
+                    if (!targetFramework.IsPackageBased && nearestFramework is object)
                     {
                         var nearestFrameworkItems = frameworkItems.Single(x => x.TargetFramework == nearestFramework);
-                        foreach (var item in nearestFrameworkItems.Items)
-                        {
-                            if (ReferenceAssemblyPackage is null)
-                            {
-                                throw new InvalidOperationException($"Cannot resolve framework item '{item}' without a reference assembly package");
-                            }
-
-                            var installedFrameworkPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
-                                ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
-                            if (File.Exists(Path.Combine(installedFrameworkPath, ReferenceAssemblyPath, item + ".dll")))
-                            {
-                                resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedFrameworkPath, ReferenceAssemblyPath, item + ".dll")));
-                            }
-                        }
+                        frameworkAssemblies.UnionWith(nearestFrameworkItems.Items);
                     }
                 }
 
-                foreach (var assembly in Assemblies)
+                foreach (var assembly in frameworkAssemblies)
                 {
                     if (ReferenceAssemblyPackage is null)
                     {
                         throw new InvalidOperationException($"Cannot resolve assembly '{assembly}' without a reference assembly package");
                     }
 
-                    var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
-                        ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
+                    var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
                     if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
                     {
                         resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
                     }
                 }
 
-                if (LanguageSpecificAssemblies.TryGetValue(language, out var languageSpecificAssemblies))
+                // Prefer assemblies from the reference assembly package to ones otherwise provided
+                if (ReferenceAssemblyPackage is object)
                 {
-                    foreach (var assembly in languageSpecificAssemblies)
-                    {
-                        if (ReferenceAssemblyPackage is null)
-                        {
-                            throw new InvalidOperationException($"Cannot resolve language-specific assembly '{assembly}' without a reference assembly package");
-                        }
-
-                        var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
-                            ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
-                        if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
-                        {
-                            resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
-                        }
-                    }
+                    var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
+                    var referenceAssemblies = new HashSet<string>(resolvedAssemblies.Where(resolved => resolved.StartsWith(installedPath)));
+                    var referenceAssemblyNames = new HashSet<string>(referenceAssemblies.Select(Path.GetFileNameWithoutExtension));
+                    resolvedAssemblies.RemoveWhere(resolved => referenceAssemblyNames.Contains(Path.GetFileNameWithoutExtension(resolved)) && !referenceAssemblies.Contains(resolved));
                 }
 
                 // Add the facade assemblies
                 if (ReferenceAssemblyPackage is object)
                 {
-                    var installedPath = localPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity())
-                        ?? globalPathResolver.GetInstalledPath(ReferenceAssemblyPackage.ToNuGetIdentity());
+                    var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, ReferenceAssemblyPackage.ToNuGetIdentity());
                     var facadesPath = Path.Combine(installedPath, ReferenceAssemblyPath, "Facades");
                     if (Directory.Exists(facadesPath))
                     {
                         foreach (var path in Directory.GetFiles(facadesPath, "*.dll"))
                         {
+                            resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == Path.GetFileNameWithoutExtension(path));
                             resolvedAssemblies.Add(Path.GetFullPath(path));
                         }
+                    }
+
+                    foreach (var assembly in FacadeAssemblies)
+                    {
+                        if (File.Exists(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")))
+                        {
+                            resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == assembly);
+                            resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(installedPath, ReferenceAssemblyPath, assembly + ".dll")));
+                        }
+                    }
+                }
+                else
+                {
+                    if (!FacadeAssemblies.IsEmpty)
+                    {
+                        throw new InvalidOperationException($"Cannot resolve facade assemblies without a reference assembly package");
                     }
                 }
 
                 return resolvedAssemblies.Select(MetadataReferences.CreateReferenceFromFile).ToImmutableArray();
 
-                static string? GetInstalledPath(PackagePathResolver resolver, NuGet.Packaging.Core.PackageIdentity id)
+                static string? GetInstalledPath(PackagePathResolver localPathResolver, PackagePathResolver globalPathResolver, NuGet.Packaging.Core.PackageIdentity packageIdentity)
                 {
-                    try
+                    string? installedPath = s_packageToInstalledLocation.GetValueOrDefault(packageIdentity);
+                    if (installedPath is null)
                     {
-                        return resolver.GetInstalledPath(id);
+                        installedPath = GetInstalledPath(localPathResolver, packageIdentity)
+                            ?? GetInstalledPath(globalPathResolver, packageIdentity);
+                        if (installedPath is object)
+                        {
+                            installedPath = ImmutableInterlocked.GetOrAdd(ref s_packageToInstalledLocation, packageIdentity, installedPath);
+                        }
                     }
-                    catch (PathTooLongException)
+
+                    return installedPath;
+
+                    static string? GetInstalledPath(PackagePathResolver resolver, NuGet.Packaging.Core.PackageIdentity id)
                     {
-                        return null;
+                        try
+                        {
+                            return resolver.GetInstalledPath(id);
+                        }
+                        catch (PathTooLongException)
+                        {
+                            return null;
+                        }
                     }
                 }
             }
@@ -458,6 +502,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     continue;
                 }
 
+                dependencyInfo = new SourcePackageDependencyInfo(new NuGet.Packaging.Core.PackageIdentity(dependencyInfo.Id, dependencyInfo.Version), FilterDependencies(dependencyInfo.Dependencies), dependencyInfo.Listed, dependencyInfo.Source, dependencyInfo.DownloadUri, dependencyInfo.PackageHash);
                 dependencies.Add(packageIdentity, dependencyInfo);
                 foreach (var dependency in dependencyInfo.Dependencies)
                 {
@@ -465,6 +510,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 break;
+            }
+
+            static IEnumerable<PackageDependency> FilterDependencies(IEnumerable<PackageDependency> dependencies)
+            {
+                return dependencies.Where(dependency => !dependency.Exclude.Contains("Compile"));
             }
         }
 
@@ -736,6 +786,30 @@ namespace Microsoft.CodeAnalysis.Testing
             public static ReferenceAssemblies NetCoreApp21 { get; }
                 = new ReferenceAssemblies("netcoreapp2.1")
                 .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.NETCore.App", "2.1.13")));
+
+            public static ReferenceAssemblies NetCoreApp30 { get; }
+                = new ReferenceAssemblies(
+                    "netcoreapp3.0",
+                    new PackageIdentity(
+                        "Microsoft.NETCore.App.Ref",
+                        "3.0.0"),
+                    Path.Combine("ref", "netcoreapp3.0"));
+
+            public static ReferenceAssemblies NetCoreApp31 { get; }
+                = new ReferenceAssemblies(
+                    "netcoreapp3.1",
+                    new PackageIdentity(
+                        "Microsoft.NETCore.App.Ref",
+                        "3.1.0"),
+                    Path.Combine("ref", "netcoreapp3.1"));
+
+            public static ReferenceAssemblies NetCoreApp50 { get; }
+                = new ReferenceAssemblies(
+                    "netcoreapp5.0",
+                    new PackageIdentity(
+                        "Microsoft.NETCore.App.Ref",
+                        "5.0.0-preview.1.20120.5"),
+                    Path.Combine("ref", "netcoreapp5.0"));
         }
 
         public static class NetStandard
@@ -776,7 +850,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "2.0.3"),
                     Path.Combine("build", "netstandard2.0", "ref"))
                 .AddAssemblies(ImmutableArray.Create("netstandard"))
-                .AddAssemblies(ImmutableArray.Create(
+                .AddFacadeAssemblies(ImmutableArray.Create(
                     "Microsoft.Win32.Primitives",
                     "System.AppContext",
                     "System.Collections.Concurrent",
@@ -889,6 +963,14 @@ namespace Microsoft.CodeAnalysis.Testing
                     "System.Xml",
                     "System.Xml.Linq",
                     "System.Xml.Serialization"));
+
+            public static ReferenceAssemblies NetStandard21 { get; }
+                = new ReferenceAssemblies(
+                    "netstandard2.1",
+                    new PackageIdentity(
+                        "NETStandard.Library.Ref",
+                        "2.1.0"),
+                    Path.Combine("ref", "netstandard2.1"));
         }
     }
 }

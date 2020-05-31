@@ -37,6 +37,12 @@
   </Choose>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.MSTest" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.NUnit" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.XUnit" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.6.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="1.0.1" />
     <PackageReference Include="Microsoft.VisualBasic" Version="10.0.1" />

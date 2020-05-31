@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.5;netstandard2.0;net452</TargetFrameworks>
+    <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Testing.MSTest</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>Roslyn Code Refactoring Test Framwork For MSTest.</Description>
+    <PackageReleaseNotes>Roslyn Code Refactoring Test Framwork For MSTest.</PackageReleaseNotes>
+    <PackageTags>Roslyn Code Refactoring Test Framwork MSTest</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.6.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Analyzer.Testing\Microsoft.CodeAnalysis.Analyzer.Testing.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.CodeRefactoring.Testing\Microsoft.CodeAnalysis.CodeRefactoring.Testing.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing\Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.vbproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Testing.Verifiers.MSTest\Microsoft.CodeAnalysis.Testing.Verifiers.MSTest.csproj" />
+  </ItemGroup>
+
+</Project>

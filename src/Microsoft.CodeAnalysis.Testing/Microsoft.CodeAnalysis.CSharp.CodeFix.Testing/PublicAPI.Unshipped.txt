@@ -3,6 +3,7 @@ Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<TAnalyzer, TCodeFix, TVe
 Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<TAnalyzer, TCodeFix, TVerifier>
 Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<TAnalyzer, TCodeFix, TVerifier>.CSharpCodeFixVerifier() -> void
 override Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<TAnalyzer, TCodeFix, TVerifier>.CreateCompilationOptions() -> Microsoft.CodeAnalysis.CompilationOptions
+override Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<TAnalyzer, TCodeFix, TVerifier>.CreateParseOptions() -> Microsoft.CodeAnalysis.ParseOptions
 override Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<TAnalyzer, TCodeFix, TVerifier>.DefaultFileExt.get -> string
 override Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<TAnalyzer, TCodeFix, TVerifier>.GetCodeFixProviders() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider>
 override Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<TAnalyzer, TCodeFix, TVerifier>.GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>

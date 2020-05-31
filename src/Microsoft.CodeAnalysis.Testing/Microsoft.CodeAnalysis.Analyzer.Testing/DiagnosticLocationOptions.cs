@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
     /// <summary>
     /// Defines options for interpreting <see cref="DiagnosticLocation"/>.
     /// </summary>
+    [Flags]
     public enum DiagnosticLocationOptions
     {
         /// <summary>
@@ -19,9 +25,17 @@ namespace Microsoft.CodeAnalysis.Testing
         IgnoreLength = 1,
 
         /// <summary>
-        /// The primary diagnostic location is defined, but additional locations have not been provided. Disables
-        /// validation of additional locations reported for the corresponding diagnostics.
+        /// The diagnostic location is defined in markup. The associated <see cref="DiagnosticLocation"/> has the
+        /// following characteristics:
+        ///
+        /// <list type="bullet">
+        /// <item><description>The <see cref="FileLinePositionSpan.Path"/> is an empty string.</description></item>
+        /// <item><description>The <see cref="LinePosition.Line"/> is 0.</description></item>
+        /// <item><description>The <see cref="LinePosition.Character"/> is the index of the markup span which defines
+        /// the location. For example, an index of <c>5</c> would appear using the markup syntax <c>{|#5:...|}</c> or
+        /// <c>{|#5:...|#5}</c>.</description></item>
+        /// </list>
         /// </summary>
-        IgnoreAdditionalLocations = 2,
+        InterpretAsMarkupKey = 2,
     }
 }

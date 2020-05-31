@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,8 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     internal static class IEnumerableExtensions
     {
+        private static readonly Func<object?, bool> s_notNullTest = x => x is object;
+
         public static DiagnosticResult[] ToOrderedArray(this IEnumerable<DiagnosticResult> diagnosticResults)
         {
             return diagnosticResults
@@ -18,6 +22,18 @@ namespace Microsoft.CodeAnalysis.Testing
                 .ThenBy(diagnosticResult => diagnosticResult.Spans.FirstOrDefault().Span.Span.End.Character)
                 .ThenBy(diagnosticResult => diagnosticResult.Id, StringComparer.Ordinal)
                 .ToArray();
+        }
+
+        internal static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> source)
+            where T : class
+        {
+            return source.Where<T?>(s_notNullTest)!;
+        }
+
+        public static T? SingleOrNull<T>(this IEnumerable<T> source)
+            where T : struct
+        {
+            return source.Select(value => (T?)value).SingleOrDefault();
         }
     }
 }

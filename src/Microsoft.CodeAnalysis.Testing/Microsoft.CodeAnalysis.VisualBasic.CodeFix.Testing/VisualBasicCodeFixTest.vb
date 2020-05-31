@@ -7,6 +7,9 @@ Imports Microsoft.CodeAnalysis.Testing
 Public Class VisualBasicCodeFixTest(Of TAnalyzer As {DiagnosticAnalyzer, New}, TCodeFix As {CodeFixProvider, New}, TVerifier As {IVerifier, New})
     Inherits CodeFixTest(Of TVerifier)
 
+    Private Shared ReadOnly DefaultLanguageVersion As LanguageVersion =
+        If([Enum].TryParse("Default", DefaultLanguageVersion), DefaultLanguageVersion, LanguageVersion.VisualBasic14)
+
     Public Overrides ReadOnly Property Language As String
         Get
             Return LanguageNames.VisualBasic
@@ -27,6 +30,10 @@ Public Class VisualBasicCodeFixTest(Of TAnalyzer As {DiagnosticAnalyzer, New}, T
 
     Protected Overrides Function CreateCompilationOptions() As CompilationOptions
         Return New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+    End Function
+
+    Protected Overrides Function CreateParseOptions() As ParseOptions
+        Return New VisualBasicParseOptions(DefaultLanguageVersion, DocumentationMode.Diagnose)
     End Function
 
     Protected Overrides Function GetCodeFixProviders() As IEnumerable(Of CodeFixProvider)

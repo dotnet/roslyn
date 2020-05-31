@@ -5,9 +5,12 @@ Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CompilerDiagnostics.set -
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProjectAsync((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, (string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] additionalFiles, Microsoft.CodeAnalysis.Testing.ProjectState[] additionalProjects, Microsoft.CodeAnalysis.MetadataReference[] additionalMetadataReferences, string language, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Project>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DisabledDiagnostics.get -> System.Collections.Generic.List<string>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.ExpectedDiagnostics.get -> System.Collections.Generic.List<Microsoft.CodeAnalysis.Testing.DiagnosticResult>
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.FormatVerifierMessage(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, Microsoft.CodeAnalysis.Diagnostic actual, Microsoft.CodeAnalysis.Testing.DiagnosticResult expected, string message) -> string
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.GetSortedDiagnosticsAsync(Microsoft.CodeAnalysis.Solution solution, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, Microsoft.CodeAnalysis.Testing.CompilerDiagnostics compilerDiagnostics, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.MarkupOptions.get -> Microsoft.CodeAnalysis.Testing.MarkupOptions
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.MarkupOptions.set -> void
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.MatchDiagnosticsTimeout.get -> System.TimeSpan
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.MatchDiagnosticsTimeout.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.OptionsTransforms.get -> System.Collections.Generic.List<System.Func<Microsoft.CodeAnalysis.Options.OptionSet, Microsoft.CodeAnalysis.Options.OptionSet>>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.ReferenceAssemblies.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.ReferenceAssemblies.set -> void
@@ -20,6 +23,19 @@ Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.VerifyDiagnosticsAsync((s
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.XmlReferences.get -> System.Collections.Generic.Dictionary<string, string>
 Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>
 Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>.AnalyzerVerifier() -> void
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.ApplyCodeActionAsync(Microsoft.CodeAnalysis.Project project, Microsoft.CodeAnalysis.CodeActions.CodeAction codeAction, Microsoft.CodeAnalysis.Testing.IVerifier verifier, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Project>
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionEquivalenceKey.get -> string
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionEquivalenceKey.set -> void
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionIndex.get -> int?
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionIndex.set -> void
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionTest() -> void
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionValidationMode.get -> Microsoft.CodeAnalysis.Testing.CodeActionValidationMode
+Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionValidationMode.set -> void
+Microsoft.CodeAnalysis.Testing.CodeActionValidationMode
+Microsoft.CodeAnalysis.Testing.CodeActionValidationMode.Full = 2 -> Microsoft.CodeAnalysis.Testing.CodeActionValidationMode
+Microsoft.CodeAnalysis.Testing.CodeActionValidationMode.None = 0 -> Microsoft.CodeAnalysis.Testing.CodeActionValidationMode
+Microsoft.CodeAnalysis.Testing.CodeActionValidationMode.SemanticStructure = 1 -> Microsoft.CodeAnalysis.Testing.CodeActionValidationMode
 Microsoft.CodeAnalysis.Testing.CompilerDiagnostics
 Microsoft.CodeAnalysis.Testing.CompilerDiagnostics.All = 4 -> Microsoft.CodeAnalysis.Testing.CompilerDiagnostics
 Microsoft.CodeAnalysis.Testing.CompilerDiagnostics.Errors = 1 -> Microsoft.CodeAnalysis.Testing.CompilerDiagnostics
@@ -35,9 +51,13 @@ Microsoft.CodeAnalysis.Testing.DiagnosticLocation.DiagnosticLocation(Microsoft.C
 Microsoft.CodeAnalysis.Testing.DiagnosticLocation.Options.get -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticLocation.Span.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
 Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
-Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.IgnoreAdditionalLocations = 2 -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.IgnoreLength = 1 -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
+Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.InterpretAsMarkupKey = 2 -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.None = 0 -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
+Microsoft.CodeAnalysis.Testing.DiagnosticOptions
+Microsoft.CodeAnalysis.Testing.DiagnosticOptions.IgnoreAdditionalLocations = 1 -> Microsoft.CodeAnalysis.Testing.DiagnosticOptions
+Microsoft.CodeAnalysis.Testing.DiagnosticOptions.IgnoreSeverity = 2 -> Microsoft.CodeAnalysis.Testing.DiagnosticOptions
+Microsoft.CodeAnalysis.Testing.DiagnosticOptions.None = 0 -> Microsoft.CodeAnalysis.Testing.DiagnosticOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.DiagnosticResult(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor) -> void
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.DiagnosticResult(string id, Microsoft.CodeAnalysis.DiagnosticSeverity severity) -> void
@@ -46,6 +66,7 @@ Microsoft.CodeAnalysis.Testing.DiagnosticResult.Id.get -> string
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.Message.get -> string
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.MessageArguments.get -> object[]
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.MessageFormat.get -> Microsoft.CodeAnalysis.LocalizableString
+Microsoft.CodeAnalysis.Testing.DiagnosticResult.Options.get -> Microsoft.CodeAnalysis.Testing.DiagnosticOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.Severity.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.Spans.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.DiagnosticLocation>
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithArguments(params object[] arguments) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
@@ -53,12 +74,15 @@ Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithDefaultPath(string path) -> 
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLineOffset(int offset) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(Microsoft.CodeAnalysis.Text.LinePosition location) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(int line, int column) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
+Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(int markupKey) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
+Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(int markupKey, Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions options) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(string path, Microsoft.CodeAnalysis.Text.LinePosition location) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(string path, Microsoft.CodeAnalysis.Text.LinePosition location, Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions options) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(string path, int line, int column) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithMessage(string message) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithMessageFormat(Microsoft.CodeAnalysis.LocalizableString messageFormat) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithNoLocation() -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
+Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithOptions(Microsoft.CodeAnalysis.Testing.DiagnosticOptions options) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity severity) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSpan(Microsoft.CodeAnalysis.FileLinePositionSpan span) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSpan(Microsoft.CodeAnalysis.FileLinePositionSpan span, Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions options) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
@@ -102,10 +126,12 @@ Microsoft.CodeAnalysis.Testing.ProjectState.ProjectState(string name, string def
 Microsoft.CodeAnalysis.Testing.ProjectState.Sources.get -> Microsoft.CodeAnalysis.Testing.SourceFileList
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AddAssemblies(System.Collections.Immutable.ImmutableArray<string> assemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AddFacadeAssemblies(System.Collections.Immutable.ImmutableArray<string> facadeAssemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AddLanguageSpecificAssemblies(string language, System.Collections.Immutable.ImmutableArray<string> assemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AddPackages(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.PackageIdentity> packages) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Assemblies.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AssemblyIdentityComparer.get -> Microsoft.CodeAnalysis.AssemblyIdentityComparer
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.FacadeAssemblies.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.LanguageSpecificAssemblies.get -> System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<string>>
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework
@@ -131,6 +157,7 @@ Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.ResolveAsync(string language,
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.TargetFramework.get -> string
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithAssemblies(System.Collections.Immutable.ImmutableArray<string> assemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithAssemblyIdentityComparer(Microsoft.CodeAnalysis.AssemblyIdentityComparer assemblyIdentityComparer) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithFacadeAssemblies(System.Collections.Immutable.ImmutableArray<string> facadeAssemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithLanguageSpecificAssemblies(System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<string>> languageSpecificAssemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithLanguageSpecificAssemblies(string language, System.Collections.Immutable.ImmutableArray<string> assemblies) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithPackages(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.PackageIdentity> packages) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
@@ -165,9 +192,11 @@ Microsoft.CodeAnalysis.Testing.TestBehaviors.SkipGeneratedCodeCheck = 1 -> Micro
 Microsoft.CodeAnalysis.Testing.TestBehaviors.SkipSuppressionCheck = 2 -> Microsoft.CodeAnalysis.Testing.TestBehaviors
 Microsoft.CodeAnalysis.Testing.TestFileMarkupParser
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateCompilationOptions() -> Microsoft.CodeAnalysis.CompilationOptions
+abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateParseOptions() -> Microsoft.CodeAnalysis.ParseOptions
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFileExt.get -> string
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.Language.get -> string
+abstract Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.SyntaxKindType.get -> System.Type
 abstract Microsoft.CodeAnalysis.Testing.ProjectState.Language.get -> string
 override Microsoft.CodeAnalysis.Testing.DiagnosticResult.ToString() -> string
 override Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext context) -> void
@@ -177,6 +206,9 @@ static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifi
 static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>.Diagnostic(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>.Diagnostic(string diagnosticId) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>.VerifyAnalyzerAsync(string source, params Microsoft.CodeAnalysis.Testing.DiagnosticResult[] expected) -> System.Threading.Tasks.Task
+static Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionExpected(Microsoft.CodeAnalysis.Testing.SolutionState state) -> bool
+static Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.HasAnyChange(Microsoft.CodeAnalysis.Testing.SolutionState oldState, Microsoft.CodeAnalysis.Testing.SolutionState newState) -> bool
+static Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.TryGetCodeActionToApply(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeAction> actions, int? codeActionIndex, string codeActionEquivalenceKey, Microsoft.CodeAnalysis.Testing.IVerifier verifier) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 static Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerError(string identifier) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerWarning(string identifier) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.IVerifierExtensions.EqualOrDiff(this Microsoft.CodeAnalysis.Testing.IVerifier verifier, string expected, string actual, string message = null) -> void
@@ -185,6 +217,9 @@ static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp10.g
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp11.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp20.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp21.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp30.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp31.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp50.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net20.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net20.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net40.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
@@ -228,21 +263,23 @@ static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandar
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard15.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard16.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard20.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, System.Collections.Generic.IDictionary<string, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan>> spans, int? cursor) -> string
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan> spans, int? cursor) -> string
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, int cursor) -> string
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard21.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, System.Collections.Immutable.ImmutableArray<int> positions, System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> string
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, int position) -> string
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, int? position, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan> spans) -> string
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, int? position, System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> string
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPosition(string input, out string output, out int cursorPosition) -> void
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpan(string input, out string output, out int cursorPosition, out Microsoft.CodeAnalysis.Text.TextSpan span) -> void
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpans(string input, out int? cursorPositionOpt, out System.Collections.Generic.IDictionary<string, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> void
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpans(string input, out int? cursorPositionOpt, out System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan> spans) -> void
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpans(string input, out string output, out int cursorPosition, out System.Collections.Generic.IDictionary<string, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> void
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpans(string input, out string output, out int cursorPosition, out System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan> spans) -> void
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpans(string input, out string output, out int? cursorPositionOpt, out System.Collections.Generic.IDictionary<string, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> void
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpans(string input, out string output, out int? cursorPositionOpt, out System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan> spans) -> void
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionsAndSpans(string input, out string output, out System.Collections.Generic.IList<int> positions, out System.Collections.Generic.IDictionary<string, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> void
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpans(string input, out int? cursorPosition, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan> spans) -> void
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpans(string input, out int? cursorPosition, out System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> void
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpans(string input, out string output, out int cursorPosition, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan> spans) -> void
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpans(string input, out string output, out int cursorPosition, out System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> void
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpans(string input, out string output, out int? cursorPosition, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan> spans) -> void
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpans(string input, out string output, out int? cursorPosition, out System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> void
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionsAndSpans(string input, out string output, out System.Collections.Immutable.ImmutableArray<int> positions, out System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> void
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetSpan(string input, out string output, out Microsoft.CodeAnalysis.Text.TextSpan span) -> void
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetSpans(string input, out string output, out System.Collections.Generic.IDictionary<string, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> void
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetSpans(string input, out string output, out System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan> spans) -> void
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetSpans(string input, out string output, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan> spans) -> void
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetSpans(string input, out string output, out System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> void
 static readonly Microsoft.CodeAnalysis.Testing.DiagnosticResult.EmptyDiagnosticResults -> Microsoft.CodeAnalysis.Testing.DiagnosticResult[]
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.ApplyCompilationOptions(Microsoft.CodeAnalysis.Project project) -> Microsoft.CodeAnalysis.Project
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProjectImplAsync((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, (string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] additionalFiles, Microsoft.CodeAnalysis.Testing.ProjectState[] additionalProjects, Microsoft.CodeAnalysis.MetadataReference[] additionalMetadataReferences, string language, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Project>
@@ -251,9 +288,11 @@ virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateWorkspace()
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFilePath.get -> string
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFilePathPrefix.get -> string
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultTestProjectName.get -> string
+virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.IsCompilerDiagnosticIncluded(Microsoft.CodeAnalysis.Diagnostic diagnostic, Microsoft.CodeAnalysis.Testing.CompilerDiagnostics compilerDiagnostics) -> bool
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.GetAnalyzerOptions(Microsoft.CodeAnalysis.Project project) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.GetDefaultDiagnostic(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer[] analyzers) -> Microsoft.CodeAnalysis.DiagnosticDescriptor
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+virtual Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.FilterCodeActions(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeAction> actions) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeAction>
 virtual Microsoft.CodeAnalysis.Testing.DefaultVerifier.CreateMessage(string message) -> string
 virtual Microsoft.CodeAnalysis.Testing.DefaultVerifier.Empty<T>(string collectionName, System.Collections.Generic.IEnumerable<T> collection) -> void
 virtual Microsoft.CodeAnalysis.Testing.DefaultVerifier.Equal<T>(T expected, T actual, string message = null) -> void

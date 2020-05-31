@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -295,16 +297,17 @@ namespace Microsoft.CodeAnalysis.Testing
 
             if (MarkupHandling == MarkupMode.None)
             {
-                return (explicitDiagnostics.Select(diagnostic => diagnostic.WithDefaultPath(defaultPath)).ToOrderedArray(), sources.ToArray());
+                return (explicitDiagnostics.Select(diagnostic => diagnostic.WithDefaultPath(defaultPath)).ToArray(), sources.ToArray());
             }
 
             var sourceFiles = new List<(string filename, SourceText content)>();
             var diagnostics = new List<DiagnosticResult>(explicitDiagnostics.Select(diagnostic => diagnostic.WithDefaultPath(defaultPath)));
+            var markupLocations = ImmutableDictionary<string, FileLinePositionSpan>.Empty;
             foreach ((var filename, var content) in sources)
             {
                 TestFileMarkupParser.GetPositionsAndSpans(content.ToString(), out var output, out var positions, out var namedSpans);
                 sourceFiles.Add((filename, content.Replace(new TextSpan(0, content.Length), output)));
-                if (positions.Count == 0 && namedSpans.Count == 0)
+                if (positions.IsEmpty && namedSpans.IsEmpty)
                 {
                     // No markup notation in this input
                     continue;
@@ -328,8 +331,22 @@ namespace Microsoft.CodeAnalysis.Testing
                     diagnostics.Add(diagnostic.Value);
                 }
 
-                foreach ((var name, var spans) in namedSpans)
+                foreach ((var name, var spans) in namedSpans.OrderBy(pair => pair.Key, StringComparer.Ordinal))
                 {
+                    if (name.StartsWith("#"))
+                    {
+                        // This is an indexed location. Keep track of it for later processing.
+                        if (markupLocations.ContainsKey(name)
+                            || spans.Length != 1)
+                        {
+                            throw new InvalidOperationException($"Input contains multiple markup locations with key '{name}'");
+                        }
+
+                        var linePositionSpan = sourceText.Lines.GetLinePositionSpan(spans[0]);
+                        markupLocations = markupLocations.Add(name, new FileLinePositionSpan(filename, linePositionSpan));
+                        continue;
+                    }
+
                     foreach (var span in spans)
                     {
                         var diagnostic = CreateDiagnosticForSpan(markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, name, filename, sourceText, span);
@@ -343,7 +360,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
             }
 
-            return (diagnostics.ToOrderedArray(), sourceFiles.ToArray());
+            for (var i = 0; i < diagnostics.Count; i++)
+            {
+                diagnostics[i] = diagnostics[i].WithAppliedMarkupLocations(markupLocations);
+            }
+
+            return (diagnostics.ToArray(), sourceFiles.ToArray());
         }
 
         private DiagnosticResult? CreateDiagnosticForPosition(
@@ -363,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
 
             var linePosition = content.Lines.GetLinePosition(position);
-            return diagnosticResult.Value.WithLocation(filename, linePosition, DiagnosticLocationOptions.IgnoreAdditionalLocations);
+            return diagnosticResult.Value.WithLocation(filename, linePosition);
         }
 
         private DiagnosticResult? CreateDiagnosticForSpan(
@@ -383,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
 
             var linePositionSpan = content.Lines.GetLinePositionSpan(span);
-            return diagnosticResult.Value.WithSpan(new FileLinePositionSpan(filename, linePositionSpan), DiagnosticLocationOptions.IgnoreAdditionalLocations);
+            return diagnosticResult.Value.WithSpan(new FileLinePositionSpan(filename, linePositionSpan));
         }
 
         private DiagnosticResult? CreateDiagnostic(
@@ -439,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
             }
 
-            return diagnosticResult.WithMessage(null);
+            return diagnosticResult.WithMessage(null).WithOptions(DiagnosticOptions.IgnoreAdditionalLocations | DiagnosticOptions.IgnoreSeverity);
         }
     }
 }
