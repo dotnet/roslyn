@@ -4,13 +4,17 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Options.OptionServiceFactory;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
@@ -354,6 +358,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             //  5. IOptionService.GetOption(OptionKey)
             optionService.SetOptions(newOptionSet);
             Assert.Equal(newPublicValue, optionService.GetOption(optionKey));
+        }
+
+        [Fact]
+        public void OptionServiceDoesNotRealizeOptionsIfNoPersister()
+        {
+            // We want to avoid creating any IOptionProviders if there aren't any persisters, because that creates a bunch of
+            // MEF overhead when you're a standalone tool and hurts startup time.
+            var throwingOptionProvider = new Lazy<IOptionProvider, LanguageMetadata>(
+                () => throw new Exception($"The {nameof(IOptionProvider)} should not have been realized if there were no {nameof(IOptionPersister)}"),
+                new LanguageMetadata(language: ""));
+
+            var globalOptionService = new GlobalOptionService(
+                SpecializedCollections.SingletonEnumerable(throwingOptionProvider),
+                SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersister>>());
+
+            var optionService = new OptionService(globalOptionService, new AdhocWorkspace().Services);
+
+            _ = globalOptionService.GetSerializableOptionsSnapshot(ImmutableHashSet.Create(LanguageNames.CSharp), optionService);
         }
     }
 }

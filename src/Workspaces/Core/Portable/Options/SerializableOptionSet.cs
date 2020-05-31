@@ -183,13 +183,17 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             var valuesBuilder = new SortedDictionary<OptionKey, (OptionValueKind, object?)>(OptionKeyComparer.Instance);
-            foreach (var (optionKey, value) in _serializableOptionValues)
+            foreach (var optionKey in _serializableOptionValues.Keys.Union(_changedOptionKeys))
             {
-                Debug.Assert(ShouldSerialize(optionKey));
+                object? value;
 
-                if (!_serializableOptions.Contains(optionKey.Option))
+                if (_serializableOptionValues.TryGetValue(optionKey, out value))
                 {
-                    continue;
+                    Debug.Assert(ShouldSerialize(optionKey));
+                }
+                else
+                {
+                    value = _workspaceOptionSet.GetOption(optionKey);
                 }
 
                 var kind = OptionValueKind.Null;
@@ -320,8 +324,7 @@ namespace Microsoft.CodeAnalysis.Options
                     _ => reader.ReadValue(),
                 };
 
-                if (optionKey == default ||
-                    !serializableOptions.Contains(optionKey.Option))
+                if (optionKey == default)
                 {
                     continue;
                 }
