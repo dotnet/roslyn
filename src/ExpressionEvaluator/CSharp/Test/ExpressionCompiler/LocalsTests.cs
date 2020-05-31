@@ -4377,7 +4377,7 @@ class Base
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (C.<>c__DisplayClass3_0 V_0) //CS$<>8__locals0
+  .locals init (C.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
@@ -4385,9 +4385,9 @@ class Base
 @"{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (C.<>c__DisplayClass3_0 V_0) //CS$<>8__locals0
+  .locals init (C.<>c__DisplayClass2_0 V_0) //CS$<>8__locals0
   IL_0000:  ldloc.0
-  IL_0001:  ldfld      ""int C.<>c__DisplayClass3_0.x1""
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass2_0.x1""
   IL_0006:  ret
 }");
 
@@ -4396,7 +4396,7 @@ class Base
 
             WithRuntimeInstance(compilation0, runtime =>
             {
-                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass3_0.<.ctor>b__0", atLineNumber: 1000);
+                var context = CreateMethodContext(runtime, "C.<>c__DisplayClass2_0.<.ctor>b__0", atLineNumber: 1000);
 
                 var testData = new CompilationTestData();
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
@@ -4411,7 +4411,7 @@ class Base
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<>c__DisplayClass3_0.x1""
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass2_0.x1""
   IL_0006:  ret
 }");
 

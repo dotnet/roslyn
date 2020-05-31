@@ -2543,12 +2543,12 @@ class C
             var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
 
             AssertNotInstrumented(verifier, "C..ctor");
-            AssertNotInstrumented(verifier, "C.<>c.<.ctor>b__8_0");
-            AssertNotInstrumented(verifier, "C.<>c.<.ctor>b__8_1");
+            AssertNotInstrumented(verifier, "C.<>c.<.ctor>b__6_0");
+            AssertNotInstrumented(verifier, "C.<>c.<.ctor>b__6_1");
 
             AssertInstrumented(verifier, "C..cctor");
-            AssertInstrumented(verifier, "C.<>c__DisplayClass9_0.<.cctor>b__0");
-            AssertInstrumented(verifier, "C.<>c__DisplayClass9_0.<.cctor>b__1");
+            AssertInstrumented(verifier, "C.<>c__DisplayClass7_0.<.cctor>b__0");
+            AssertInstrumented(verifier, "C.<>c__DisplayClass7_0.<.cctor>b__1");
         }
 
         [Fact]

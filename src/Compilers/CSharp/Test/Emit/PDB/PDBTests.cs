@@ -11058,7 +11058,7 @@ class C
           <slot kind=""30"" offset=""-25"" />
         </encLocalSlotMap>
         <encLambdaMap>
-          <methodOrdinal>5</methodOrdinal>
+          <methodOrdinal>4</methodOrdinal>
           <closure offset=""-25"" />
           <lambda offset=""-2"" closure=""0"" />
         </encLambdaMap>
@@ -11077,13 +11077,13 @@ class C
 </symbols>
 ");
 
-            c.VerifyPdb("C+<>c__DisplayClass5_0.<.ctor>b__0", @"
+            c.VerifyPdb("C+<>c__DisplayClass4_0.<.ctor>b__0", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
-    <method containingType=""C+&lt;&gt;c__DisplayClass5_0"" name=""&lt;.ctor&gt;b__0"">
+    <method containingType=""C+&lt;&gt;c__DisplayClass4_0"" name=""&lt;.ctor&gt;b__0"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""G"" parameterNames=""x"" />
       </customDebugInfo>

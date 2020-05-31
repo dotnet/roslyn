@@ -436,7 +436,7 @@ class C : B
       <customDebugInfo>
         <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
         <encLambdaMap>
-          <methodOrdinal>5</methodOrdinal>
+          <methodOrdinal>4</methodOrdinal>
           <lambda offset=""-2"" />
           <lambda offset=""-28"" />
           <lambda offset=""-19"" />
@@ -454,7 +454,7 @@ class C : B
       <customDebugInfo>
         <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
         <encLambdaMap>
-          <methodOrdinal>6</methodOrdinal>
+          <methodOrdinal>5</methodOrdinal>
           <lambda offset=""-1"" />
         </encLambdaMap>
       </customDebugInfo>
@@ -462,7 +462,7 @@ class C : B
         <entry offset=""0x0"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""35"" document=""1"" />
       </sequencePoints>
     </method>
-    <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__5_0"">
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__4_0"">
       <customDebugInfo>
         <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
       </customDebugInfo>
@@ -470,7 +470,7 @@ class C : B
         <entry offset=""0x0"" startLine=""14"" startColumn=""29"" endLine=""14"" endColumn=""30"" document=""1"" />
       </sequencePoints>
     </method>
-    <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__5_1"">
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__4_1"">
       <customDebugInfo>
         <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
       </customDebugInfo>
@@ -478,7 +478,7 @@ class C : B
         <entry offset=""0x0"" startLine=""11"" startColumn=""26"" endLine=""11"" endColumn=""27"" document=""1"" />
       </sequencePoints>
     </method>
-    <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__5_2"">
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__4_2"">
       <customDebugInfo>
         <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
       </customDebugInfo>
@@ -486,7 +486,7 @@ class C : B
         <entry offset=""0x0"" startLine=""13"" startColumn=""34"" endLine=""13"" endColumn=""38"" document=""1"" />
       </sequencePoints>
     </method>
-    <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__6_0"">
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__5_0"">
       <customDebugInfo>
         <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
       </customDebugInfo>
