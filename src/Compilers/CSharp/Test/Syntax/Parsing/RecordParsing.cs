@@ -1151,7 +1151,7 @@ class C
 : B" + (withBaseArguments ? "(X, Y)" : "") + @"
 " + (withBody ? "{ }" : ";");
 
-            if (withBaseArguments && !withParameters)
+            if (withBaseArguments && (!withParameters || typeKeyword != "class"))
             {
                 UsingTree(text,
                     // (2,4): error CS8861: Unexpected argument list.

@@ -1679,7 +1679,7 @@ tryAgain:
                 {
                     argumentList = this.ParseParenthesizedArgumentList();
 
-                    if (classOrStructOrInterfaceKeyword.Kind == SyntaxKind.InterfaceKeyword || !haveParameters)
+                    if (classOrStructOrInterfaceKeyword.Kind != SyntaxKind.ClassKeyword || !haveParameters)
                     {
                         argumentList = this.AddErrorToFirstToken(argumentList, ErrorCode.ERR_UnexpectedArgumentList);
                     }
