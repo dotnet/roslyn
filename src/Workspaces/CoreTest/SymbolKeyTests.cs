@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -784,6 +785,42 @@ class C
             Assert.True(method.Parameters[0].Type.IsTupleType);
         }
 
+        [Fact, WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
+        public void TestErrorType()
+        {
+            var source = @"
+class C
+{
+    int i { get; }
+}";
+            // Tuples store locations along with them.  But we can only recover those locations
+            // if we're re-resolving into a compilation with the same files.
+            var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs", Array.Empty<MetadataReference>());
+            var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs", Array.Empty<MetadataReference>());
+
+            var symbol = (IPropertySymbol)GetAllSymbols(
+                compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+                n => n is CSharp.Syntax.PropertyDeclarationSyntax).Single();
+
+            var propType = symbol.Type;
+            Assert.True(propType.Kind == SymbolKind.ErrorType);
+
+            // Ensure we don't crash getting these symbol keys.
+            var id = SymbolKey.CreateString(propType);
+            Assert.NotNull(id);
+
+            // Validate that if the client does ask to resolve locations that we
+            // do not crash if those locations cannot be found.
+            var found = SymbolKey.ResolveString(id, compilation2).GetAnySymbol();
+            Assert.NotNull(found);
+
+            Assert.Equal(propType.Name, found.Name);
+            Assert.Equal(propType.Kind, found.Kind);
+
+            var method = found as IErrorTypeSymbol;
+            Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
+        }
+
         [Fact]
         public void TestFunctionPointerTypeSymbols()
         {
@@ -826,9 +863,9 @@ class C
             }
         }
 
-        private static Compilation GetCompilation(string source, string language, string path = "")
+        private static Compilation GetCompilation(string source, string language, string path = "", MetadataReference[] references = null)
         {
-            var references = new[]
+            references ??= new[]
             {
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location)
