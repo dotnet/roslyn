@@ -70,9 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable()) : null;
             actions.Free();
-
-            VerifyCodeActionsRegisteredByProvider(provider, result);
-
             return result;
         }
 
