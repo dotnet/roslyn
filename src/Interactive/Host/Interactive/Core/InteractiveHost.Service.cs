@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <summary>
         /// A remote singleton server-activated object that lives in the interactive host process and controls it.
         /// </summary>
-        internal sealed class Service : MarshalByRefObject, IDisposable
+        internal sealed class Service : IDisposable
         {
             private static readonly ManualResetEventSlim s_clientExited = new ManualResetEventSlim(false);
 
@@ -155,14 +155,18 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _serviceState = null;
             }
 
-            public override object? InitializeLifetimeService()
-            {
+            public override object? InitializeLifetimeService()            {
                 return null;
             }
-
-            public void Initialize(Type replServiceProviderType, string cultureName)
+            
+            public Task InitializeAsync(string replServiceProviderTypeName, string cultureName)
             {
-                Contract.ThrowIfFalse(_serviceState == null, "Service already initialized");
+                Debug.Assert(replServiceProviderType != null);
+                Debug.Assert(cultureName != null);
+
+                Debug.Assert(_metadataFileProvider == null);
+                Debug.Assert(_assemblyLoader == null);
+                Debug.Assert(_replServiceProvider == null);
 
                 // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(
@@ -174,13 +178,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType);
                 var globals = new InteractiveScriptGlobals(Console.Out, replServiceProvider.ObjectFormatter);
 
+                //var replServiceProviderType = Type.GetType(replServiceProviderTypeName);
+                //_replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType);
                 _serviceState = new ServiceState(assemblyLoader, metadataFileProvider, replServiceProvider, globals);
-            }
 
+                return Task.CompletedTask;
             private ServiceState GetServiceState()
             {
                 Contract.ThrowIfNull(_serviceState, "Service not initialized");
                 return _serviceState;
+
             }
 
             private MetadataReferenceResolver CreateMetadataReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
