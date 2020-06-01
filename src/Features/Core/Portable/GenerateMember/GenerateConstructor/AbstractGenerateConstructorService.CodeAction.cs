@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
@@ -29,19 +33,130 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 _withProperties = withProperties;
             }
 
-            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
-                var editor = new Editor(semanticDocument, _state, _withFields, _withProperties, cancellationToken);
-                return await editor.GetEditAsync().ConfigureAwait(false);
-            }
-
             public override string Title
                 => _withFields ? string.Format(FeaturesResources.Generate_constructor_in_0_with_fields, _state.TypeToGenerateIn.Name) :
                    _withProperties ? string.Format(FeaturesResources.Generate_constructor_in_0_with_properties, _state.TypeToGenerateIn.Name) :
                    _state.AddingMembers ? string.Format(FeaturesResources.Generate_constructor_in_0_without_members, _state.TypeToGenerateIn.Name) :
                                           string.Format(FeaturesResources.Generate_constructor_in_0, _state.TypeToGenerateIn.Name);
+
             public override string EquivalenceKey => Title;
+
+            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            {
+                // See if there's an accessible base constructor that would accept these
+                // types, then just call into that instead of generating fields.
+                //
+                // then, see if there are any constructors that would take the first 'n' arguments
+                // we've provided.  If so, delegate to those, and then create a field for any
+                // remaining arguments.  Try to match from largest to smallest.
+                //
+                // Otherwise, just generate a normal constructor that assigns any provided
+                // parameters into fields.
+                return await GenerateThisOrBaseDelegatingConstructorAsync(cancellationToken).ConfigureAwait(false) ??
+                       await GenerateFieldDelegatingConstructorAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            private async Task<Document> GenerateThisOrBaseDelegatingConstructorAsync(CancellationToken cancellationToken)
+            {
+                var delegatedConstructor = _state.DelegatedConstructor;
+                if (delegatedConstructor == null)
+                    return null;
+
+                // There was a best match.  Call it directly.  
+                var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
+                var syntaxFactory = provider.GetService<SyntaxGenerator>();
+                var codeGenerationService = provider.GetService<ICodeGenerationService>();
+
+                var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var (members, assignments) = GenerateMembersAndAssignments(semanticModel);
+
+                var allParameters = delegatedConstructor.Parameters.Concat(_state.RemainingParameters);
+
+                var isThis = delegatedConstructor.ContainingType.OriginalDefinition.Equals(_state.TypeToGenerateIn.OriginalDefinition);
+                var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
+                var baseConstructorArguments = isThis ? default : delegatingArguments;
+                var thisConstructorArguments = isThis ? delegatingArguments : default;
+
+                var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
+                    attributes: default,
+                    accessibility: Accessibility.Public,
+                    modifiers: default,
+                    typeName: _state.TypeToGenerateIn.Name,
+                    parameters: allParameters,
+                    statements: assignments,
+                    baseConstructorArguments: baseConstructorArguments,
+                    thisConstructorArguments: thisConstructorArguments);
+
+                members = members.Concat(constructor);
+                var result = await codeGenerationService.AddMembersAsync(
+                    _document.Project.Solution,
+                    _state.TypeToGenerateIn,
+                    members,
+                    new CodeGenerationOptions(_state.Token.GetLocation()),
+                    cancellationToken).ConfigureAwait(false);
+
+                return result;
+            }
+
+            private (ImmutableArray<ISymbol>, ImmutableArray<SyntaxNode>) GenerateMembersAndAssignments(SemanticModel semanticModel)
+            {
+                var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
+                var syntaxFactory = provider.GetService<SyntaxGenerator>();
+
+                if (_withFields)
+                {
+                    var members = SyntaxGeneratorExtensions.CreateFieldsForParameters(_state.RemainingParameters, _state.ParameterToNewFieldMap);
+                    var assignments = syntaxFactory.CreateAssignmentStatements(
+                        semanticModel, _state.RemainingParameters,
+                        _state.ParameterToExistingMemberMap, _state.ParameterToNewFieldMap,
+                        addNullChecks: false, preferThrowExpression: false);
+
+                    return (members, assignments);
+                }
+                else if (_withProperties)
+                {
+                    var members = SyntaxGeneratorExtensions.CreatePropertiesForParameters(_state.RemainingParameters, _state.ParameterToNewPropertyMap);
+                    var assignments = syntaxFactory.CreateAssignmentStatements(
+                        semanticModel, _state.RemainingParameters,
+                        _state.ParameterToExistingMemberMap, _state.ParameterToNewPropertyMap,
+                        addNullChecks: false, preferThrowExpression: false);
+
+                    return (members, assignments);
+                }
+                else
+                {
+                    return (ImmutableArray<ISymbol>.Empty, ImmutableArray<SyntaxNode>.Empty);
+                }
+            }
+
+            private async Task<Document> GenerateFieldDelegatingConstructorAsync(CancellationToken cancellationToken)
+            {
+                var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
+                var codeGenerationService = provider.GetService<ICodeGenerationService>();
+                var syntaxFactory = provider.GetService<SyntaxGenerator>();
+
+                var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                var members = syntaxFactory.CreateMemberDelegatingConstructor(
+                    semanticModel,
+                    _state.TypeToGenerateIn.Name,
+                    _state.TypeToGenerateIn,
+                    _state.RemainingParameters,
+                    _state.ParameterToExistingMemberMap,
+                    _state.ParameterToNewFieldMap,
+                    addNullChecks: false,
+                    preferThrowExpression: false,
+                    generateProperties: _withProperties);
+
+                var result = await codeGenerationService.AddMembersAsync(
+                    _document.Project.Solution,
+                    _state.TypeToGenerateIn,
+                    members,
+                    new CodeGenerationOptions(_state.Token.GetLocation()),
+                    cancellationToken).ConfigureAwait(false);
+
+                return result;
+            }
         }
     }
 }
