@@ -1908,8 +1908,8 @@ namespace Microsoft.CodeAnalysis
         {
             var projectState = _state.GetRequiredProjectState(projectId);
 
-            bool isSubmission = projectState.IsSubmission;
-            bool hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => _state.GetRequiredProjectState(p.ProjectId).IsSubmission);
+            var isSubmission = projectState.IsSubmission;
+            var hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => _state.GetRequiredProjectState(p.ProjectId).IsSubmission);
 
             foreach (var projectReference in projectReferences)
             {

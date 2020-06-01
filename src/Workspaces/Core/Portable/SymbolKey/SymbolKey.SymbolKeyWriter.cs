@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis
             NamedType = 'D',
             ErrorType = 'E',
             Field = 'F',
+            FunctionPointer = 'G',
             DynamicType = 'I',
             Method = 'M',
             Namespace = 'N',
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis
                 _writeLocation = WriteLocation;
                 _writeBoolean = WriteBoolean;
                 _writeParameterType = p => WriteSymbolKey(p.Type);
-                _writeRefKind = p => WriteInteger((int)p.RefKind);
+                _writeRefKind = p => WriteRefKind(p.RefKind);
             }
 
             public void Dispose()
@@ -151,7 +152,15 @@ namespace Microsoft.CodeAnalysis
                 _nextId++;
 
                 StartKey();
-                symbol.Accept(this);
+                if (BodyLevelSymbolKey.IsBodyLevelSymbol(symbol))
+                {
+                    WriteType(SymbolKeyType.BodyLevel);
+                    BodyLevelSymbolKey.Create(symbol, this);
+                }
+                else
+                {
+                    symbol.Accept(this);
+                }
 
                 if (!shouldWriteOrdinal)
                 {
@@ -298,6 +307,8 @@ namespace Microsoft.CodeAnalysis
                 EndKey();
             }
 
+            internal void WriteRefKind(RefKind refKind) => WriteInteger((int)refKind);
+
             public override object VisitAlias(IAliasSymbol aliasSymbol)
             {
                 WriteType(SymbolKeyType.Alias);
@@ -334,25 +345,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override object VisitLabel(ILabelSymbol labelSymbol)
-            {
-                WriteType(SymbolKeyType.BodyLevel);
-                BodyLevelSymbolKey.Create(labelSymbol, this);
-                return null;
-            }
+                => throw ExceptionUtilities.Unreachable;
 
             public override object VisitLocal(ILocalSymbol localSymbol)
-            {
-                WriteType(SymbolKeyType.BodyLevel);
-                BodyLevelSymbolKey.Create(localSymbol, this);
-                return null;
-            }
+                => throw ExceptionUtilities.Unreachable;
 
             public override object VisitRangeVariable(IRangeVariableSymbol rangeVariableSymbol)
-            {
-                WriteType(SymbolKeyType.BodyLevel);
-                BodyLevelSymbolKey.Create(rangeVariableSymbol, this);
-                return null;
-            }
+                => throw ExceptionUtilities.Unreachable;
 
             public override object VisitMethod(IMethodSymbol methodSymbol)
             {
@@ -376,9 +375,7 @@ namespace Microsoft.CodeAnalysis
                             break;
 
                         case MethodKind.LocalFunction:
-                            WriteType(SymbolKeyType.BodyLevel);
-                            BodyLevelSymbolKey.Create(methodSymbol, this);
-                            break;
+                            throw ExceptionUtilities.Unreachable;
 
                         default:
                             WriteType(SymbolKeyType.Method);
@@ -452,6 +449,13 @@ namespace Microsoft.CodeAnalysis
             {
                 WriteType(SymbolKeyType.PointerType);
                 PointerTypeSymbolKey.Create(pointerTypeSymbol, this);
+                return null;
+            }
+
+            public override object VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                WriteType(SymbolKeyType.FunctionPointer);
+                FunctionPointerTypeSymbolKey.Create(symbol, this);
                 return null;
             }
 

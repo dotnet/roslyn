@@ -1228,6 +1228,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return String.Empty
         End Function
 
+        Public Function GetNameForAttributeArgument(argument As SyntaxNode) As String Implements ISyntaxFacts.GetNameForAttributeArgument
+            ' All argument types are ArgumentSyntax in VB. 
+            Return GetNameForArgument(argument)
+        End Function
+
         Public Function IsLeftSideOfDot(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLeftSideOfDot
             Return TryCast(node, ExpressionSyntax).IsLeftSideOfDot()
         End Function
@@ -1314,11 +1319,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.IsKind(SyntaxKind.ImportsStatement)
         End Function
 
-        Public Function IsGlobalAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsGlobalAttribute
+        Public Function IsGlobalAssemblyAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsGlobalAssemblyAttribute
+            Return IsGlobalAttribute(node, SyntaxKind.AssemblyKeyword)
+        End Function
+
+        Public Function IsModuleAssemblyAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsGlobalModuleAttribute
+            Return IsGlobalAttribute(node, SyntaxKind.ModuleKeyword)
+        End Function
+
+        Private Shared Function IsGlobalAttribute(node As SyntaxNode, attributeTarget As SyntaxKind) As Boolean
             If node.IsKind(SyntaxKind.Attribute) Then
                 Dim attributeNode = CType(node, AttributeSyntax)
                 If attributeNode.Target IsNot Nothing Then
-                    Return attributeNode.Target.AttributeModifier.IsKind(SyntaxKind.AssemblyKeyword)
+                    Return attributeNode.Target.AttributeModifier.IsKind(attributeTarget)
                 End If
             End If
 
@@ -1814,7 +1827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.IsExecutableBlock()
         End Function
 
-        Public Function GetExecutableBlockStatements(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetExecutableBlockStatements
+        Public Function GetExecutableBlockStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode) Implements ISyntaxFacts.GetExecutableBlockStatements
             Return node.GetExecutableBlockStatements()
         End Function
 

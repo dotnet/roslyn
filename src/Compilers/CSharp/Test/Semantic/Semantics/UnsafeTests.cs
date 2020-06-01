@@ -3598,9 +3598,9 @@ enum Color
                 // (40,15): error CS0211: Cannot take the address of the given expression
                 //         p = &(() => 1); //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "() => 1").WithLocation(40, 15),
-                // (41,14): error CS0211: Cannot take the address of the given expression
+                // (41,13): error CS8812: Cannot convert &method group 'M' to non-function pointer type 'int*'.
                 //         p = &M; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "M").WithArguments("M", "method group").WithLocation(41, 14),
+                Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "&M").WithArguments("M", "int*").WithLocation(41, 13),
                 // (42,15): error CS0211: Cannot take the address of the given expression
                 //         p = &(new System.Int32()); //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "new System.Int32()").WithLocation(42, 15),
@@ -4293,6 +4293,11 @@ unsafe class C
 }
 ";
             var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (6,13): error CS0815: Cannot assign &method group to an implicitly-typed variable
+                //         var i1 = &M;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "i1 = &M").WithArguments("&method group").WithLocation(6, 13)
+            );
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4301,19 +4306,15 @@ unsafe class C
 
             var symbolInfo = model.GetSymbolInfo(syntax);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
-            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal("void C.M()", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
 
             var typeInfo = model.GetTypeInfo(syntax);
             var type = typeInfo.Type;
             var conv = model.GetConversion(syntax);
-            Assert.NotNull(type);
+            Assert.Null(type);
             Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
-
-            Assert.Equal("?*", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Pointer, typeInfo.Type.TypeKind);
-            Assert.Equal(TypeKind.Error, ((IPointerTypeSymbol)typeInfo.Type).PointedAtType.TypeKind);
         }
 
 
@@ -5249,7 +5250,7 @@ unsafe struct S
                 var conv = model.GetConversion(node);
                 Assert.Null(typeInfo.Type);
                 Assert.Equal(TypeKind.Pointer, typeInfo.ConvertedType.TypeKind);
-                Assert.Equal(ConversionKind.NullToPointer, conv.Kind);
+                Assert.Equal(ConversionKind.ImplicitNullToPointer, conv.Kind);
             }
         }
 
@@ -5292,7 +5293,7 @@ unsafe struct S
                 Assert.Equal(SpecialType.System_Void, ((IPointerTypeSymbol)convertedType).PointedAtType.SpecialType);
 
                 var conv = model.GetConversion(value);
-                Assert.Equal(ConversionKind.PointerToVoid, conv.Kind);
+                Assert.Equal(ConversionKind.ImplicitPointerToVoid, conv.Kind);
             }
         }
 

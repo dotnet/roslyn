@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false,
             considerRefKindDifferences: false,
-            typeComparison: TypeCompareKind.AllIgnoreOptions); //shouldn't actually matter for source members
+            typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
         /// This instance is used to determine if a partial method implementation matches the definition.
@@ -312,6 +312,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _considerCallingConvention = considerCallingConvention;
             _considerRefKindDifferences = considerRefKindDifferences;
             _typeComparison = typeComparison;
+            Debug.Assert((_typeComparison & TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly) == 0,
+                         $"Rely on the {nameof(considerRefKindDifferences)} flag to set this to ensure all cases are handled.");
+            if (!considerRefKindDifferences)
+            {
+                _typeComparison |= TypeCompareKind.FunctionPointerRefMatchesOutInRefReadonly;
+            }
         }
 
         #region IEqualityComparer<Symbol> Members
@@ -454,11 +460,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         #endregion
-
-        public static bool HaveSameReturnTypes(MethodSymbol member1, MethodSymbol member2, TypeCompareKind typeComparison)
-        {
-            return HaveSameReturnTypes(member1, GetTypeMap(member1), member2, GetTypeMap(member2), typeComparison);
-        }
 
         private static bool HaveSameReturnTypes(Symbol member1, TypeMap typeMap1, Symbol member2, TypeMap typeMap2, TypeCompareKind typeComparison)
         {

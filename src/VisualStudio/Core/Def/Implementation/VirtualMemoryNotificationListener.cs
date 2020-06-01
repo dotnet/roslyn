@@ -20,7 +20,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using RemoteHostClientService = Microsoft.VisualStudio.LanguageServices.Remote.RemoteHostClientServiceFactory.RemoteHostClientService;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
