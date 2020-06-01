@@ -800,6 +800,19 @@ namespace Microsoft.CodeAnalysis
                 sourceFileAnalyzerConfigOptions = sourceFileAnalyzerConfigOptions.AddRange(generatedOptions);
             }
 
+            if (generators.Length > 0)
+            {
+                var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length);
+                if (!sourceFileAnalyzerConfigOptions.IsDefault)
+                {
+                    sourceFileAnalyzerConfigOptions = sourceFileAnalyzerConfigOptions.AddRange(generatedSyntaxTrees.Select(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath)));
+                }
+                if (!embeddedTexts.IsDefault)
+                {
+                    embeddedTexts = embeddedTexts.AddRange(generatedSyntaxTrees.Select(t => EmbeddedText.FromSource(t.FilePath, t.GetText())));
+                }
+            }
+
             CompileAndEmit(
                 touchedFilesLogger,
                 ref compilation,

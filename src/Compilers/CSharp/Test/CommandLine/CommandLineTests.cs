@@ -2399,7 +2399,6 @@ print Goodbye, World";
                             continue;
                         }
 
-                        Assert.True(embeddedSource.Encoding is UTF8Encoding && embeddedSource.Encoding.GetPreamble().Length == 0);
                         Assert.Equal(expectedEmbeddedMap[docPath], embeddedSource.ToString());
                         Assert.True(expectedEmbeddedMap.Remove(docPath));
                     }
@@ -12194,6 +12193,28 @@ generated_code = auto");
             }
         }
 
+
+        [Fact]
+        public void SourceGenerators_EmbeddedSources()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+
+            var generatedSource = "public class D { }";
+            var generator = new SimpleGenerator(generatedSource);
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, SimpleGenerator.FileName), generatedSource } }, dir, true);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+
+        }
+
         [Fact]
         [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44087")]
         public void SourceGeneratorsAndAnalyzerConfig()
@@ -12209,7 +12230,7 @@ key = value");
 
             var generator = new SimpleGenerator("public class D {}");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: new HiddenDiagnosticAnalyzer());
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: null);
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -12456,6 +12477,8 @@ option1 = def");
     {
         private readonly string _sourceToAdd;
 
+        public const string FileName = "addedSource.cs";
+
         /// <remarks>
         /// Required for reflection based tests
         /// </remarks>
@@ -12473,7 +12496,7 @@ option1 = def");
         {
             if (!string.IsNullOrWhiteSpace(_sourceToAdd))
             {
-                context.AddSource("addedSource.cs", SourceText.From(_sourceToAdd, Encoding.UTF8));
+                context.AddSource(FileName, SourceText.From(_sourceToAdd, Encoding.UTF8));
             }
         }
 

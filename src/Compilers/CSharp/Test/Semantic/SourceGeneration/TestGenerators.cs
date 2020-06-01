@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
         public void Execute(SourceGeneratorContext context)
         {
-            context.AdditionalSources.Add(this._hintName, SourceText.From(_content/*, Encoding.UTF8*/));
+            context.AdditionalSources.Add(this._hintName, SourceText.From(_content, Encoding.UTF8));
         }
 
         public void Initialize(InitializationContext context)
