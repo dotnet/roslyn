@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             private readonly NamingRule _parameterNamingRule;
 
             private ImmutableArray<TArgumentSyntax> _arguments;
-
             private ImmutableArray<TAttributeArgumentSyntax> _attributeArguments;
 
             // The type we're creating a constructor for.  Will be a class or struct type.
@@ -83,8 +82,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             }
 
             private async Task<bool> TryInitializeAsync(
-                SyntaxNode node,
-                CancellationToken cancellationToken)
+                SyntaxNode node, CancellationToken cancellationToken)
             {
                 if (_service.IsConstructorInitializerGeneration(_document, node, cancellationToken))
                 {
@@ -257,29 +255,22 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             }
 
             private async Task<bool> TryInitializeConstructorInitializerGenerationAsync(
-                SyntaxNode constructorInitializer,
-                CancellationToken cancellationToken)
+                SyntaxNode constructorInitializer, CancellationToken cancellationToken)
             {
-                if (!_service.TryInitializeConstructorInitializerGeneration(_document, constructorInitializer, cancellationToken,
-                    out var token, out var arguments, out var typeToGenerateIn))
+                if (_service.TryInitializeConstructorInitializerGeneration(
+                        _document, constructorInitializer, cancellationToken,
+                        out var token, out var arguments, out var typeToGenerateIn))
                 {
-                    return false;
+                    Token = token;
+                    _arguments = arguments;
+                    IsConstructorInitializerGeneration = true;
+
+                    var semanticInfo = _document.SemanticModel.GetSymbolInfo(constructorInitializer, cancellationToken);
+                    if (semanticInfo.Symbol == null)
+                        return await TryDetermineTypeToGenerateInAsync(typeToGenerateIn, cancellationToken).ConfigureAwait(false);
                 }
 
-                Token = token;
-                _arguments = arguments;
-                IsConstructorInitializerGeneration = true;
-
-                var semanticModel = _document.SemanticModel;
-                var semanticInfo = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken);
-
-                cancellationToken.ThrowIfCancellationRequested();
-                if (semanticInfo.Symbol != null)
-                {
-                    return false;
-                }
-
-                return await TryDetermineTypeToGenerateInAsync(typeToGenerateIn, cancellationToken).ConfigureAwait(false);
+                return false;
             }
 
             private async Task<bool> TryInitializeSimpleNameGenerationAsync(
