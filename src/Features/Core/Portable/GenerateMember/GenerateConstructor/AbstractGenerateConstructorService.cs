@@ -52,9 +52,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         {
             var currentConstructor = GetCurrentConstructor(document.SemanticModel, state.Token, cancellationToken);
             if (currentConstructor.Equals(delegatedConstructor))
-            {
                 return false;
-            }
 
             // We need ensure that delegating constructor won't cause circular dependency.
             // The chain of dependency can not exceed the number for constructors
@@ -63,14 +61,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 delegatedConstructor = GetDelegatedConstructor(document.SemanticModel, delegatedConstructor, cancellationToken);
                 if (delegatedConstructor == null)
-                {
                     return true;
-                }
 
                 if (delegatedConstructor.Equals(currentConstructor))
-                {
                     return false;
-                }
             }
 
             return false;
