@@ -102,9 +102,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 if (!CodeGenerator.CanAdd(Document.Project.Solution, TypeToGenerateIn, cancellationToken))
                     return false;
 
-                ParameterTypes = ParameterTypes.IsDefault
-                    ? GetParameterTypes(cancellationToken)
-                    : ParameterTypes;
+                ParameterTypes = ParameterTypes.IsDefault ? GetParameterTypes(cancellationToken) : ParameterTypes;
                 ParameterRefKinds ??= Arguments.Select(Service.GetRefKind).ToList();
 
                 if (ClashesWithExistingConstructor())
@@ -118,16 +116,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             private void InitializeNonDelegatedConstructor(CancellationToken cancellationToken)
             {
-                var arguments = this.Arguments;
-                var parameterTypes = this.ParameterTypes;
-
                 var typeParametersNames = this.TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToImmutableArray();
-                var parameterNames = GetParameterNames(arguments, typeParametersNames, cancellationToken);
+                var parameterNames = GetParameterNames(Arguments, typeParametersNames, cancellationToken);
 
-                GetParameters(
-                    arguments, this.AttributeArguments,
-                    parameterTypes, parameterNames,
-                    cancellationToken);
+                GetParameters(Arguments, AttributeArguments, ParameterTypes, parameterNames, cancellationToken);
             }
 
             private ImmutableArray<ParameterName> GetParameterNames(
@@ -190,18 +182,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 // Can't generate the constructor if the parameter names we're copying over forcibly
                 // conflict with any names we generated.
-                if (delegatedConstructor.Parameters.Select(p => p.Name)
-                        .Intersect(remainingParameterNames.Select(n => n.BestNameForParameter)).Any())
+                if (delegatedConstructor.Parameters.Select(p => p.Name).Intersect(remainingParameterNames.Select(n => n.BestNameForParameter)).Any())
                 {
                     return false;
                 }
 
                 this.DelegatedConstructor = delegatedConstructor;
-                // Try to map those parameters to fields.
-                GetParameters(
-                    remainingArguments, remainingAttributeArguments,
-                    remainingParameterTypes, remainingParameterNames,
-                    cancellationToken);
+                GetParameters(remainingArguments, remainingAttributeArguments, remainingParameterTypes, remainingParameterNames, cancellationToken);
                 return true;
             }
 
