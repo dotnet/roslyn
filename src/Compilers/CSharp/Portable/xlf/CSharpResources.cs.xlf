@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
-        <target state="new">Local function '{0}' must be 'static' in order to use the Conditional attribute</target>
+        <target state="translated">Aby bylo možné používat atribut Conditional, musí být místní funkce {0} static.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
@@ -194,17 +194,17 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
-        <target state="new">An expression tree may not contain a from-end index ('^') expression.</target>
+        <target state="translated">Strom výrazů nesmí obsahovat výraz indexu od-do (^).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <target state="translated">Strom výrazů možná neobsahuje vzor přístupu indexeru System.Index nebo System.Range.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
         <source>An expression tree may not contain a range ('..') expression.</source>
-        <target state="new">An expression tree may not contain a range ('..') expression.</target>
+        <target state="translated">Strom výrazů nesmí obsahovat výraz rozsahu (..).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
-        <target state="new">Output directory could not be determined</target>
+        <target state="translated">Nepovedlo se určit výstupní adresář.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -402,9 +402,39 @@
         <target state="translated">Metoda {0} určuje omezení struct pro parametr typu {1}, ale odpovídající parametr typu {2} přepsané nebo explicitně implementované metody {3} není typ, který nemůže mít hodnotu null.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodAccessibilityDifference">
+        <source>Both partial method declarations must have identical accessibility modifiers.</source>
+        <target state="new">Both partial method declarations must have identical accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodExtendedModDifference">
+        <source>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
+        <target state="new">Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="translated">Obě deklarace částečné metody musí mít modifikátor readonly, nebo nesmí mít modifikátor readonly žádná z nich.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
+        <source>Partial method '{0}' must have an implementation part because it has accessibility modifiers.</source>
+        <target state="new">Partial method '{0}' must have an implementation part because it has accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithExtendedModMustHaveAccessMods">
+        <source>Partial method '{0}' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.</source>
+        <target state="new">Partial method '{0}' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods">
+        <source>Partial method '{0}' must have accessibility modifiers because it has a non-void return type.</source>
+        <target state="new">Partial method '{0}' must have accessibility modifiers because it has a non-void return type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithOutParamMustHaveAccessMods">
+        <source>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</source>
+        <target state="new">Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -457,6 +487,26 @@
         <target state="translated">Cílový modul runtime nepodporuje pro člena rozhraní přístupnost na úrovni Protected, Protected internal nebo Private protected.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
+        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
+        <target state="new">Cannot specify /main if there is a compilation unit with top-level statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
+        <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
+        <target state="new">Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramMultipleUnitsWithTopLevelStatements">
+        <source>Only one compilation unit can have top-level statements.</source>
+        <target state="new">Only one compilation unit can have top-level statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramNotAnExecutable">
+        <source>Program using top-level statements must be an executable.</source>
+        <target state="new">Program using top-level statements must be an executable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Vzor deconstruct s jedním elementem vyžaduje určitou další syntaxi pro zajištění jednoznačnosti. Doporučuje se přidat označení discard „_“ za koncovou závorku „)“.</target>
@@ -479,7 +529,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">Zadal se argument stdin -, ale vstup se nepřesměroval na stream standardního vstupu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -500,6 +550,11 @@
       <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
         <source>Parentheses are required around the switch governing expression.</source>
         <target state="translated">Řídící výraz switch je nutné uzavřít do závorek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
+        <source>Top-level statements must precede namespace and type declarations.</source>
+        <target state="new">Top-level statements must precede namespace and type declarations.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TripleDotNotAllowed">
@@ -731,7 +786,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Parametry kompilátoru Visual C#
 
                        - VÝSTUPNÍ SOUBORY -
@@ -796,13 +851,15 @@
 -refonly                      Vytvoří referenční sestavení na místě hlavního výstupu.
 -instrument:TestCoverage      Vytvoří sestavení instrumentované ke shromažďování
                               informací o pokrytí.
--sourcelink:&lt;soubor&gt;            Informace o zdrojovém odkazu vkládané do souboru PDB.
-
+-sourcelink:&lt;soubor&gt;            Informace o zdrojovém odkazu vkládané do souboru PDB..
+ 
                        - CHYBY A UPOZORNĚNÍ -
 -warnaserror[+|-]             Hlásí všechna upozornění jako chyby.
 -warnaserror[+|-]:&lt;seznam upozornění&gt; Hlásí zadaná upozornění jako chyby.
+                              (Pro všechna upozornění na možnost použití hodnoty null použijte nullable.)
 -warn:&lt;n&gt;                     Nastaví úroveň pro upozornění (0–4). (Krátký formát: -w)
 -nowarn:&lt;seznam upozornění&gt;           Zakáže zadaná upozornění.
+                              (Pro všechna upozornění na možnost použití hodnoty null použijte nullable.)
 -ruleset:&lt;soubor&gt;               Určuje soubor sady pravidel, která zakazuje
                               specifickou diagnostiku.
 -errorlog:&lt;soubor&gt;&gt;[,version=&lt;verze_sarif&gt;]
@@ -929,6 +986,11 @@
         <target state="translated">deklarace proměnných výrazu v inicializátorech členů a dotazech</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtendedPartialMethods">
+        <source>extended partial methods</source>
+        <target state="new">extended partial methods</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
         <source>extensible fixed statement</source>
         <target state="translated">rozšiřitelný příkaz fixed</target>
@@ -936,7 +998,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExternLocalFunctions">
         <source>extern local functions</source>
-        <target state="new">extern local functions</target>
+        <target state="translated">externí místní funkce</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
@@ -951,7 +1013,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLocalFunctionAttributes">
         <source>local function attributes</source>
-        <target state="new">local function attributes</target>
+        <target state="translated">atributy místních funkcí</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaDiscardParameters">
@@ -961,7 +1023,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureMemberNotNull">
         <source>MemberNotNull attribute</source>
-        <target state="new">MemberNotNull attribute</target>
+        <target state="translated">Atribut MemberNotNull</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1127,6 +1189,11 @@
       <trans-unit id="IDS_RELATEDWARNING">
         <source>(Location of symbol related to previous warning)</source>
         <target state="translated">(Umístění symbolu vzhledem k předchozímu upozornění)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_TopLevelStatements">
+        <source>top-level statements</source>
+        <target state="new">top-level statements</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">
@@ -1521,12 +1588,12 @@
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch">
         <source>Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">Metodě {0} chybí poznámka [DoesNotReturn], která by odpovídala implementovanému nebo přepsanému členu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch_Title">
         <source>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">Metodě chybí poznámka [DoesNotReturn], která by odpovídala implementovanému nebo přepsanému členu</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1541,22 +1608,22 @@
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">Generátor {0} nemohl vygenerovat zdroj. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
-        <target state="new">Generator failed to generate source.</target>
+        <target state="translated">Generátoru se nepovedlo vygenerovat zdroj</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">Generátor {0} se nepovedlo inicializovat. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
-        <target state="new">Generator failed to initialize.</target>
+        <target state="translated">Generátor se nepovedlo inicializovat</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1621,32 +1688,32 @@
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull">
         <source>Member '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">Člen {0} musí mít při ukončení hodnotu jinou než null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember">
         <source>Member '{0}' cannot be used in this attribute.</source>
-        <target state="new">Member '{0}' cannot be used in this attribute.</target>
+        <target state="translated">Člen {0} se v tomto atributu nedá použít.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember_Title">
         <source>Member cannot be used in this attribute.</source>
-        <target state="new">Member cannot be used in this attribute.</target>
+        <target state="translated">Člen se v tomto atributu nedá použít.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen">
         <source>Member '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting with '{1}'.</target>
+        <target state="translated">Člen {0} musí mít při ukončení s návratovou hodnotou {1} hodnotu jinou než null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen_Title">
         <source>Member must have a non-null value when exiting in some condition.</source>
-        <target state="new">Member must have a non-null value when exiting in some condition.</target>
+        <target state="translated">Člen musí mít při ukončení za určité podmínky hodnotu jinou než null</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull_Title">
         <source>Member must have a non-null value when exiting.</source>
-        <target state="new">Member must have a non-null value when exiting.</target>
+        <target state="translated">Člen musí mít při ukončení hodnotu jinou než null</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
@@ -1961,22 +2028,22 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="needs-review-translation">Parametr {0} nemusí mít při ukončení s {1} hodnotu null.</target>
+        <target state="translated">Parametr {0} musí mít při ukončení s návratovou hodnotou {1} hodnotu jinou než null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting in some condition.</source>
-        <target state="needs-review-translation">Parametr nemusí mít při ukončení za určité podmínky hodnotu null</target>
+        <target state="translated">Parametr musí mít při ukončení za určité podmínky hodnotu jinou než null</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Parameter '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">Parametr {0} musí mít při ukončení hodnotu jinou než null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting.</source>
-        <target state="new">Parameter must have a non-null value when exiting.</target>
+        <target state="translated">Parametr musí mít při ukončení hodnotu jinou než null</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
@@ -1986,7 +2053,7 @@
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn_Title">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="translated">Metoda označená jako [DoesNotReturn] by neměla vracet hodnotu</target>
+        <target state="translated">Metoda označená jako [DoesNotReturn] by se neměla ukončit standardním způsobem</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -2021,62 +2088,62 @@
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru {0} neodpovídá implementovanému členu {1} (pravděpodobně kvůli atributům možnosti použití hodnoty null).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru neodpovídá implementovanému členu (pravděpodobně kvůli atributům možnosti použití hodnoty null)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru {0} z {1} neodpovídá implicitně implementovanému členu {2} (pravděpodobně kvůli atributům možnosti použití hodnoty null).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v typu parametru neodpovídá implicitně implementovanému členu (pravděpodobně kvůli atributům možnosti použití hodnoty null)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride">
         <source>Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Možnost použití hodnoty null u typu parametru {0} neodpovídá přepsanému členu (pravděpodobně kvůli atributům možnosti použití hodnoty null).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride_Title">
         <source>Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Možnost použití hodnoty null u typu parametru neodpovídá přepsanému členu (pravděpodobně kvůli atributům možnosti použití hodnoty null)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation">
         <source>Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null ve vráceném typu neodpovídá implementovanému členu {0} (pravděpodobně kvůli atributům možnosti použití hodnoty null).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v návratovém typu neodpovídá implementovanému členu (pravděpodobně kvůli atributům možnosti použití hodnoty null)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v návratovém typu {0} neodpovídá implicitně implementovanému členu {1} (pravděpodobně kvůli atributům možnosti použití hodnoty null).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Typ odkazu s možnou hodnotou null v návratovém typu neodpovídá implicitně implementovanému členu (pravděpodobně kvůli atributům možnosti použití hodnoty null)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Možnost použití hodnoty null u návratového typu neodpovídá přepsanému členu (pravděpodobně kvůli atributům možnosti použití hodnoty null)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Možnost použití hodnoty null u návratového typu neodpovídá přepsanému členu (pravděpodobně kvůli atributům možnosti použití hodnoty null)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
@@ -4355,7 +4422,7 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
         <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
-        <target state="needs-review-translation">Atribut DllImport nejde použít u metody, která je obecná nebo obsažená v obecném typu.</target>
+        <target state="translated">Atribut DllImport se nedá použít u metody, která je obecná nebo obsažená v obecné metodě nebo typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">
@@ -4989,18 +5056,13 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInvalidModifier">
-        <source>A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers</source>
-        <target state="translated">Částečná metoda nemůže používat modifikátory přístupu ani modifikátory virtual, abstract, override, new, sealed či extern.</target>
+        <source>A partial method cannot have the 'abstract' modifier</source>
+        <target state="needs-review-translation">Částečná metoda nemůže používat modifikátory přístupu ani modifikátory virtual, abstract, override, new, sealed či extern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
         <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
         <target state="translated">Částečná metoda musí být deklarovaná uvnitř částečné třídy, částečné struktury nebo částečného rozhraní.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
-        <source>A partial method cannot have out parameters</source>
-        <target state="translated">Částečná metoda nemůže mít výstupní parametry.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
@@ -5061,11 +5123,6 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       <trans-unit id="ERR_PartialMethodInExpressionTree">
         <source>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</source>
         <target state="translated">Ve stromech výrazů nejde používat částečné metody, pro které existuje jenom definující deklarace, nebo odebrané podmíněné metody.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodMustReturnVoid">
-        <source>Partial methods must have a void return type</source>
-        <target state="translated">Částečné metody musí mít návratový typ void.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteOverridingNonObsolete">
@@ -6229,7 +6286,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
         <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">Do pole jen pro čtení nejde provést přiřazení (kromě případu, kdy je v konstruktoru třídy, ve které je pole definované, nebo v inicializátoru proměnné).</target>
+        <target state="translated">Do pole jen pro čtení není možné přiřazovat hodnoty (kromě případu, kdy je v konstruktoru třídy, ve které je pole definované, nebo v inicializátoru proměnné).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -7868,13 +7925,13 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored">
-        <source>The entry point of the program is global script code; ignoring '{0}' entry point.</source>
-        <target state="translated">Vstupní bod programu je globální kód skriptu; vstupní bod se bude ignorovat {0}.</target>
+        <source>The entry point of the program is global code; ignoring '{0}' entry point.</source>
+        <target state="needs-review-translation">Vstupní bod programu je globální kód skriptu; vstupní bod se bude ignorovat {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored_Title">
-        <source>The entry point of the program is global script code; ignoring entry point</source>
-        <target state="translated">Vstupním bodem programu je globální kód skriptu. Vstupní bod se ignoruje.</target>
+        <source>The entry point of the program is global code; ignoring entry point</source>
+        <target state="needs-review-translation">Vstupním bodem programu je globální kód skriptu. Vstupní bod se ignoruje.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticInAsOrIs">
@@ -9852,7 +9909,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
         <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
-        <target state="needs-review-translation">'{0} je lokální funkce a musí proto vždy obsahovat text.</target>
+        <target state="translated">Místní funkce {0} musí deklarovat tělo, protože není označená jako static extern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

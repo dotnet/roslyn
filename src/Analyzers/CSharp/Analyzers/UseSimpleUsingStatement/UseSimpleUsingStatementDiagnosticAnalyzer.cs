@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 properties: null));
         }
 
-        private bool CausesVariableCollision(
+        private static bool CausesVariableCollision(
             SemanticModel semanticModel, BlockSyntax parentBlock,
             UsingStatementSyntax outermostUsing, UsingStatementSyntax innermostUsing,
             CancellationToken cancellationToken)

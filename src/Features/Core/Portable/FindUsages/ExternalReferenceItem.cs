@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// </summary>
         public DefinitionItem Definition { get; }
 
+        public string Repository { get; }
+        public ExternalScope Scope { get; }
         public string ProjectName { get; }
         public string DisplayPath { get; }
         public LinePositionSpan Span { get; }
@@ -25,12 +27,16 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public ExternalReferenceItem(
             DefinitionItem definition,
+            string repository,
+            ExternalScope scope,
             string projectName,
             string displayPath,
             LinePositionSpan span,
             string text)
         {
             Definition = definition;
+            Repository = repository;
+            Scope = scope;
             ProjectName = projectName;
             DisplayPath = displayPath;
             Span = span;

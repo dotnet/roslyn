@@ -378,7 +378,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             {
                 var protocol = ((TestWorkspace)workspace).ExportProvider.GetExportedValue<LanguageServerProtocol>();
 
-                var languageServer = new InProcLanguageServer(inputStream, outputStream, protocol, workspace, mockDiagnosticService, clientName: "RazorCSharp", supportsHover: false);
+                var languageServer = new InProcLanguageServer(inputStream, outputStream, protocol, workspace, mockDiagnosticService, clientName: "RazorCSharp");
                 return languageServer;
             }
         }

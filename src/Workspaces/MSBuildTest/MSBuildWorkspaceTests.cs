@@ -2662,7 +2662,7 @@ class C1
             }
         }
 
-        private FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
+        private static FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
         {
             var result = new List<(string, object)>();
             foreach (var (fileName, fileContent) in files)
@@ -2679,7 +2679,7 @@ class C1
             return new FileSet(result.ToArray());
         }
 
-        private string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)
+        private static string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)
         {
             var document = XDocument.Parse(projectFileText);
             var projectReferenceItems = document.Descendants(XName.Get("ProjectReference", MSBuildNamespace));
@@ -3583,7 +3583,7 @@ class C { }";
 
             CreateFiles(files);
 
-            string expectedEditorConfigPath = SolutionDirectory.CreateOrOpenFile(".editorconfig").Path;
+            var expectedEditorConfigPath = SolutionDirectory.CreateOrOpenFile(".editorconfig").Path;
 
             using (var workspace = CreateMSBuildWorkspace())
             {
