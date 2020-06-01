@@ -1787,7 +1787,7 @@ data class B(int X)
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b").WithLocation(14, 10));
         }
 
-        [Fact]
+        [Fact, WorkItem(44763, "https://github.com/dotnet/roslyn/issues/44763")]
         public void WithExpr_NullableAnalysis_05()
         {
             var src = @"
@@ -1801,27 +1801,28 @@ data class B(string? X, string? Y)
         B b = new B(""hello"", null);
         if (flag)
         {
-            b.X.ToString(); // PROTOTYPE(records)
+            b.X.ToString(); // shouldn't warn
             b.Y.ToString(); // 1
         }
 
         b = b with { Y = ""world"" };
-        b.X.ToString(); // PROTOTYPE(records)
+        b.X.ToString(); // shouldn't warn
         b.Y.ToString();
     }
 }";
-            // PROTOTYPE: it feels like records should propagate the nullability of
-            // the constructor arguments to the corresponding properties.
+            // records should propagate the nullability of the
+            // constructor arguments to the corresponding properties.
+            // https://github.com/dotnet/roslyn/issues/44763
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (12,13): warning CS8602: Dereference of a possibly null reference.
-                //             b.X.ToString(); // PROTOTYPE(records)
+                //             b.X.ToString(); // shouldn't warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(12, 13),
                 // (13,13): warning CS8602: Dereference of a possibly null reference.
                 //             b.Y.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(13, 13),
                 // (17,9): warning CS8602: Dereference of a possibly null reference.
-                //         b.X.ToString(); // PROTOTYPE(records)
+                //         b.X.ToString(); // shouldn't warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(17, 9));
         }
 
@@ -1859,7 +1860,7 @@ class B
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(16, 13));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44691")]
+        [Fact, WorkItem(44691, "https://github.com/dotnet/roslyn/issues/44691")]
         public void WithExpr_NullableAnalysis_07()
         {
             var src = @"
@@ -1873,14 +1874,23 @@ data class B([AllowNull] string X)
     static void M1(B b)
     {
         b.X.ToString();
-        b = b with { X = null };
+        b = b with { X = null }; // ok
         b.X.ToString(); // ok
-        b = new B(null);
+        b = new B((string?)null);
         b.X.ToString(); // ok
     }
 }";
+            // We should have a way to propagate attributes on
+            // positional parameters to the corresponding properties.
+            // https://github.com/dotnet/roslyn/issues/44691
             var comp = CreateCompilation(new[] { src, AllowNullAttributeDefinition });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         b = b with { X = null }; // ok
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 26),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         b.X.ToString(); // ok
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(13, 9));
         }
 
         [Fact]
