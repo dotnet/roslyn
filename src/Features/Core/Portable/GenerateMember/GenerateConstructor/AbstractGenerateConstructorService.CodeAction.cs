@@ -12,20 +12,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
     {
         private class GenerateConstructorCodeAction : CodeAction
         {
-            private readonly TService _service;
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _withFields;
             private readonly bool _withProperties;
 
             public GenerateConstructorCodeAction(
-                TService service,
                 Document document,
                 State state,
                 bool withFields,
                 bool withProperties)
             {
-                _service = service;
                 _document = document;
                 _state = state;
                 _withFields = withFields;
@@ -35,7 +32,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
-                var editor = new Editor(_service, semanticDocument, _state, _withFields, _withProperties, cancellationToken);
+                var editor = new Editor(semanticDocument, _state, _withFields, _withProperties, cancellationToken);
                 return await editor.GetEditAsync().ConfigureAwait(false);
             }
 

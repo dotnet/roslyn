@@ -54,13 +54,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 
                     if (state.ParameterToNewFieldMap.Count > 0)
-                        result.Add(new GenerateConstructorCodeAction((TService)this, document, state, withFields: true, withProperties: false));
+                        result.Add(new GenerateConstructorCodeAction(document, state, withFields: true, withProperties: false));
 
                     if (state.ParameterToNewPropertyMap.Count > 0)
-                        result.Add(new GenerateConstructorCodeAction((TService)this, document, state, withFields: false, withProperties: true));
+                        result.Add(new GenerateConstructorCodeAction(document, state, withFields: false, withProperties: true));
 
-                    if (state.AddingMembers)
-                        result.Add(new GenerateConstructorCodeAction((TService)this, document, state, withFields: false, withProperties: false));
+                    result.Add(new GenerateConstructorCodeAction(document, state, withFields: false, withProperties: false));
 
                     return result.ToImmutable();
                 }
