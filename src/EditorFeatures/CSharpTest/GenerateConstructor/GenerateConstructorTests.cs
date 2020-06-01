@@ -67,7 +67,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
 {
     public C(int v)
     {
+        V = v;
     }
+
+    public int V { get; }
 
     void M()
     {
@@ -292,7 +295,10 @@ class D
 
     public D(int v1)
     {
+        V = v1;
     }
+
+    public int V { get; }
 }", index: 1);
         }
 
@@ -1219,7 +1225,10 @@ class D : B
 {
     public D(int v)
     {
+        V = v;
     }
+
+    public int V { get; }
 }", index: 1);
         }
 
@@ -1567,7 +1576,10 @@ class Delta
 
     public Delta(string v1, int v2, bool v) : this(v1, v2)
     {
+        V = v;
     }
+
+    public bool V { get; }
 }", index: 1);
         }
 
@@ -1828,7 +1840,10 @@ class Delta
 
     public C(int v)
     {
+        V = v;
     }
+
+    public int V { get; }
 }", index: 1);
         }
 
@@ -2027,7 +2042,12 @@ internal class A
 {
     public A(object t1, object t2)
     {
+        T1 = t1;
+        T2 = t2;
     }
+
+    public object T1 { get; }
+    public object T2 { get; }
 }", index: 1);
         }
 
@@ -2263,7 +2283,10 @@ class MyAttribute : Attribute
 {
     public MyAttribute(int v)
     {
+        V = v;
     }
+
+    public int V { get; }
 }
 
 [MyAttribute(123)]
