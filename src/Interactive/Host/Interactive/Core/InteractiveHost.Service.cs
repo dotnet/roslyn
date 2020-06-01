@@ -155,9 +155,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             {                return null;
             }*/
 
-            public Task InitializeAsync(string replServiceProviderTypeName, string cultureName)            {
-                Debug.Assert(cultureName != null);
-                Contract.ThrowIfFalse(_serviceState == null, "Service already initialized"); 
+            public Task InitializeAsync(string replServiceProviderTypeName, string cultureName)
+            {                Debug.Assert(cultureName != null);
                 using (var resetEvent = new ManualResetEventSlim(false))
                 {
                     var uiThread = new Thread(() =>
@@ -172,8 +171,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                     uiThread.Start();
                     resetEvent.Wait();
                 }
-                // TODO (tomat): we should share the copied files with the host                var metadataFileProvider = new MetadataShadowCopyProvider(
-                    Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
+                // TODO (tomat): we should share the copied files with the host
+                var metadataFileProvider = new MetadataShadowCopyProvider(                    Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
                     noShadowCopyDirectories: s_systemNoShadowCopyDirectories,
                     documentationCommentsCulture: new CultureInfo(cultureName));
 
@@ -182,18 +181,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType);
                 var globals = new InteractiveScriptGlobals(Console.Out, replServiceProvider.ObjectFormatter);
 
-                //var replServiceProviderType = Type.GetType(replServiceProviderTypeName);
-                //_replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType);
                 _serviceState = new ServiceState(assemblyLoader, metadataFileProvider, replServiceProvider, globals);
 
                 return Task.CompletedTask;
-            }
-                return Task.CompletedTask;
-            private ServiceState GetServiceState()
+            }            private ServiceState GetServiceState()
             {
                 Contract.ThrowIfNull(_serviceState, "Service not initialized");
                 return _serviceState;
-
             }
 
             private MetadataReferenceResolver CreateMetadataReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
@@ -354,8 +348,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             public async Task<RemoteExecutionResult> InitializeContextAsync(string? initializationFile, bool isRestarting)
             {
 				var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
-                lock (_lastTaskGuard)                {
-                    _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFile, isRestarting);
+                lock (_lastTaskGuard)
+                {                    _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFile, isRestarting);
                 }
                 return await completionSource.Task.ConfigureAwait(false);
             }
@@ -363,21 +357,20 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Adds an assembly reference to the current session.
             /// </summary>
-            public async Task<bool> AddReferenceAsync(string reference)
+            public async Task<bool> AddReferenceAsync(string? reference)
             {
                 Debug.Assert(reference != null);
                 var completionSource = new TaskCompletionSource<bool>();
-                lock (_lastTaskGuard)                {
+                lock (_lastTaskGuard)
+                {
                     _lastTask = AddReferenceAsync(_lastTask, reference);
-					_lastTask = AddReferenceAsync(_lastTask, completionSource, reference!);
-                }
+					_lastTask = AddReferenceAsync(_lastTask, completionSource, reference!);                }
                 return await completionSouce.Task.ConfigureAwait(false);
             }
             private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, TaskCompletionSource<bool> completionSource, string reference)
             {
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
-                var success = false;
-                try
+                var success = false;                try
                 {
                     var resolvedReferences = state.ScriptOptions.MetadataResolver.ResolveReference(reference, baseFilePath: null, properties: MetadataReferenceProperties.Assembly);
                     if (!resolvedReferences.IsDefaultOrEmpty)
@@ -416,8 +409,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return await completionSource.Task.ConfigureAwait(false);
             }
 
-            private async Task<EvaluationState> ExecuteAsync(TaskCompletionSource<RemoteExecutionResult> completionSource, Task<EvaluationState> lastTask, string text)            {
-                var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
+            private async Task<EvaluationState> ExecuteAsync(TaskCompletionSource<RemoteExecutionResult> completionSource, Task<EvaluationState> lastTask, string text)
+            {                var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
 
                 var success = false;
                 try
@@ -470,8 +463,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = ExecuteFileAsync(completionSource, _lastTask, path!);                }
-
+                    _lastTask = ExecuteFileAsync(completionSource, _lastTask, path!);
+                }
                 return await completionSource.Task.ConfigureAwait(false);
             }
 

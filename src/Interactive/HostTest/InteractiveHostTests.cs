@@ -126,8 +126,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         //}
         
 		public Task<string> ReadErrorOutputToEnd()
-        {            return await ReadOutputToEnd(isError: true);        }
-
+        {            return await ReadOutputToEnd(isError: true);
+        }
         private void ClearOutput()
         {
             _outputReadPosition = new int[] { 0, 0 };

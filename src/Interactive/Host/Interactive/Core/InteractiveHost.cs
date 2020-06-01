@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             => _lazyRemoteService?.TryGetInitializedService()?.Service.Process;
 
         internal async Task<RemoteService> TryGetServiceAsync()
-            => (await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false)).Service;        // Triggered whenever we create a fresh process.
-        // The ProcessExited event is not hooked yet.
+            => (await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false)).Service;
+        // Triggered whenever we create a fresh process.        // The ProcessExited event is not hooked yet.
         internal event Action<Process>? InteractiveHostProcessCreated;
         }        #endregion
 
@@ -248,8 +248,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 return default!;
             }
-            return await Async<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);        }
-
+            return await Async<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);
+        }
         private static async Task<TResult> Async<TResult>(RemoteService remoteService, string targetName, params object?[] arguments)
         {
             try
@@ -257,8 +257,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return await remoteService.JsonRpc.InvokeAsync<TResult>(targetName, arguments).ConfigureAwait(false);            }
             catch (Exception e) when (e is ObjectDisposedException || !remoteService.Process.IsAlive())
             {
-                return default!;            }
-        }
+                return default!;
+            }        }
 
         #region Operations
 
@@ -323,8 +323,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             Contract.ThrowIfNull(path);
             return Async<RemoteExecutionResult>(nameof(Service.ExecuteFileAsync), path);
-        }        /// <summary>
-        /// Asynchronously adds a reference to the set of available references for next submission.
+        }
+        /// <summary>        /// Asynchronously adds a reference to the set of available references for next submission.
         /// </summary>
         /// <param name="reference">The reference to add.</param>
         /// <remarks>
