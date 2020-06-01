@@ -243,13 +243,14 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Empty Constructor for Struct is not allowed
                 if (!(parameters.Count == 0 && options != null && (options.TypeKind == TypeKind.Struct || options.TypeKind == TypeKind.Structure)))
                 {
-                    var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
+                    var newMembers = factory.CreateMemberDelegatingConstructor(
                         _semanticDocument.SemanticModel,
                         DetermineName(), null, parameters.ToImmutable(),
                         parameterToExistingFieldMap, parameterToNewFieldMap,
-                        addNullChecks: false, preferThrowExpression: false);
-                    members.AddRange(fields);
-                    members.Add(constructor);
+                        addNullChecks: false,
+                        preferThrowExpression: false,
+                        generateProperties: false);
+                    members.AddRange(newMembers);
                 }
             }
 

@@ -173,9 +173,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     return false;
 
                 var delegatedConstructor = Service.GetDelegatingConstructor(this, Document, argumentCount, namedType, instanceConstructors, cancellationToken);
-
-                // There was a best match.  Call it directly.  
-                var provider = Document.Project.Solution.Workspace.Services.GetLanguageServices(this.TypeToGenerateIn.Language);
+                if (delegatedConstructor == null)
+                    return false;
 
                 // Map the first N parameters to the other constructor in this type.  Then
                 // try to map any further parameters to existing fields.  Finally, generate

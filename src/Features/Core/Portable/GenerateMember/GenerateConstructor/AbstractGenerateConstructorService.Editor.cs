@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 //    remainingParameterTypes, remainingParameterNames, fieldNamingRule, parameterNamingRule,
                 //    out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var remainingParameters);
 
-                var members = 
+                var members =
                     _withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_state.RemainingParameters, _state.ParameterToNewFieldMap) :
                     _withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_state.RemainingParameters, _state.ParameterToNewPropertyMap) :
                     ImmutableArray<ISymbol>.Empty;
@@ -212,22 +212,25 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 //    out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var parameters);
 
                 var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
-                var syntaxFactory = provider.GetService<SyntaxGenerator>();
                 var codeGenerationService = provider.GetService<ICodeGenerationService>();
+                var syntaxFactory = provider.GetService<SyntaxGenerator>();
 
                 // var syntaxTree = _document.SyntaxTree;
-                var (fields, constructor) = syntaxFactory.CreateFieldDelegatingConstructor(
+                var members = syntaxFactory.CreateMemberDelegatingConstructor(
                     _document.SemanticModel,
                     _state.TypeToGenerateIn.Name,
                     _state.TypeToGenerateIn,
                     _state.RemainingParameters,
-                    parameterToExistingFieldMap, parameterToNewFieldMap,
-                    addNullChecks: false, preferThrowExpression: false);
+                    _state.ParameterToExistingMemberMap,
+                    _state.ParameterToNewFieldMap,
+                    addNullChecks: false,
+                    preferThrowExpression: false,
+                    generateProperties: _withProperties);
 
                 var result = await codeGenerationService.AddMembersAsync(
                     _document.Project.Solution,
                     _state.TypeToGenerateIn,
-                    fields.Concat(constructor),
+                    members,
                     new CodeGenerationOptions(_state.Token.GetLocation()),
                     _cancellationToken)
                     .ConfigureAwait(false);

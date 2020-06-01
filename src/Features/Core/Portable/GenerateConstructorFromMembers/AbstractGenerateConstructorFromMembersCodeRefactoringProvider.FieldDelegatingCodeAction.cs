@@ -55,15 +55,16 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var preferThrowExpression = _service.PrefersThrowExpression(options);
 
-                var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
+                var members = factory.CreateMemberDelegatingConstructor(
                     semanticModel,
                     _state.ContainingType.Name,
                     _state.ContainingType,
                     _state.Parameters,
                     parameterToExistingFieldMap,
-                    parameterToNewFieldMap: null,
+                    parameterToNewMemberMap: null,
                     addNullChecks: _addNullChecks,
-                    preferThrowExpression: preferThrowExpression);
+                    preferThrowExpression: preferThrowExpression,
+                    generateProperties: false);
 
                 // If the user has selected a set of members (i.e. TextSpan is not empty), then we will
                 // choose the right location (i.e. null) to insert the constructor.  However, if they're 
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
                     _state.ContainingType,
-                    fields.Concat(constructor),
+                    members,
                     new CodeGenerationOptions(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
                         afterThisLocation: afterThisLocation),
