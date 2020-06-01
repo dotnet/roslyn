@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return document;
             }
 
-            public async Task<(Document document, bool addedFields)> GetEditAsync(CancellationToken cancellationToken)
+            public async Task<(Document document, bool addedMembers)> GetEditAsync(CancellationToken cancellationToken)
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
                 var editor = new Editor(_service, semanticDocument, _state, _withFields, cancellationToken);

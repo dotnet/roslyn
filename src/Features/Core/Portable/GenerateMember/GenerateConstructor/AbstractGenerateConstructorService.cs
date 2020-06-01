@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
                 if (state != null)
                 {
-                    var result = ArrayBuilder<CodeAction>.GetInstance();
+                    using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
                     var codeAction = new GenerateConstructorCodeAction((TService)this, document, state, withFields: true);
                     result.Add(codeAction);
 
@@ -59,13 +59,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     // creates fields, then also offer to perform the code action without creating
                     // any fields.
                     var edit = await codeAction.GetEditAsync(cancellationToken).ConfigureAwait(false);
-                    if (edit.addedFields)
+                    if (edit.addedMembers)
                     {
-                        result.Add(
-                            new GenerateConstructorCodeAction((TService)this, document, state, withFields: false));
+                        result.Add(new GenerateConstructorCodeAction((TService)this, document, state, withFields: false));
                     }
 
-                    return result.ToImmutableAndFree();
+                    return result.ToImmutable();
                 }
             }
 
