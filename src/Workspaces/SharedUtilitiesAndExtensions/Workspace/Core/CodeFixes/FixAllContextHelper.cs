@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 case FixAllScope.Solution:
                     projectsToFix = project.Solution.Projects
+                        .Where(p => p.Language == project.Language)
                         .ToImmutableArray();
 
                     progressTrackerOpt?.AddItems(projectsToFix.Length);

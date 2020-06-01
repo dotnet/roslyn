@@ -148,6 +148,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentNullException(nameof(document));
             }
 
+            if (this.Project.Language != document.Project.Language)
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
+
             var getDiagnosticsTask = State.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
             return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds).ConfigureAwait(false);
         }
@@ -202,10 +207,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Contract.ThrowIfNull(project);
 
-            //if (this.Project.Language != project.Language)
-            //{
-            //    return ImmutableArray<Diagnostic>.Empty;
-            //}
+            if (this.Project.Language != project.Language)
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
 
             var getDiagnosticsTask = includeAllDocumentDiagnostics
                 ? State.DiagnosticProvider.GetAllDiagnosticsAsync(project, CancellationToken)
