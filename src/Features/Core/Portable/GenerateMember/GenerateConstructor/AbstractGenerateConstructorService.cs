@@ -81,12 +81,19 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 {
                     using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 
+                    // If we have any fields we'd like to generate, offer a code action to do that.
                     if (state.ParameterToNewFieldMap.Count > 0)
                         result.Add(new GenerateConstructorCodeAction(document, state, withFields: true, withProperties: false));
 
+                    // Same with a version that generates properties instead.
                     if (state.ParameterToNewPropertyMap.Count > 0)
                         result.Add(new GenerateConstructorCodeAction(document, state, withFields: false, withProperties: true));
 
+                    // Always offer to just generate the constructor and nothing else.  In the case where we have
+                    // fields/props to generate, this will have a title "Generate constructor (without fields).  In the
+                    // case that there are no fields/props to generate (for example, because we're delegating to a
+                    // base-constructor, or we're assigning to a set of pre-existing members), then this will just be
+                    // titled "Generate constructor".
                     result.Add(new GenerateConstructorCodeAction(document, state, withFields: false, withProperties: false));
 
                     return result.ToImmutable();
