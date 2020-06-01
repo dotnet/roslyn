@@ -11,8 +11,6 @@ using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.Remoting;
-using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
 using System.Text;
 using System.Threading;
