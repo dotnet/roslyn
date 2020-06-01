@@ -1935,6 +1935,56 @@ data class B(string? X, string? Y)
         }
 
         [Fact]
+        public void WithExpr_NullableAnalysis_09()
+        {
+            var src = @"
+#nullable enable
+data class B(string? X, string? Y)
+{
+    static void M1(B b1)
+    {
+        string? local = ""hello"";
+        _ = b1 with
+        {
+            X = local = null,
+            Y = local.ToString() // 1
+        };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (11,17): warning CS8602: Dereference of a possibly null reference.
+                //             Y = local.ToString() // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "local").WithLocation(11, 17));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_10()
+        {
+            var src = @"
+#nullable enable
+data class B(string X, string Y)
+{
+    static string M0(out string? s) { s = null; return ""hello""; }
+
+    static void M1(B b1)
+    {
+        string? local = ""world"";
+        _ = b1 with
+        {
+            X = M0(out local),
+            Y = local // 1
+        };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (13,17): warning CS8601: Possible null reference assignment.
+                //             Y = local // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "local").WithLocation(13, 17));
+        }
+
+        [Fact]
         public void WithExpr_NullableAnalysis_VariantClone()
         {
             var src = @"
