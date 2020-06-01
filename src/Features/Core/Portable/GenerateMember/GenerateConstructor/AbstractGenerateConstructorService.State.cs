@@ -26,37 +26,40 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
     {
         protected internal class State
         {
-            private readonly TService Service;
-            private readonly SemanticDocument Document;
+            private readonly TService _service;
+            private readonly SemanticDocument _document;
 
-            private NamingRule FieldNamingRule;
-            private NamingRule PropertyNamingRule;
-            private NamingRule ParameterNamingRule;
+            private readonly NamingRule _fieldNamingRule;
+            private readonly NamingRule _propertyNamingRule;
+            private readonly NamingRule _parameterNamingRule;
 
-            private ImmutableArray<TArgumentSyntax> Arguments;
+            private ImmutableArray<TArgumentSyntax> _arguments;
 
-            private ImmutableArray<TAttributeArgumentSyntax> AttributeArguments;
+            private ImmutableArray<TAttributeArgumentSyntax> _attributeArguments;
 
             // The type we're creating a constructor for.  Will be a class or struct type.
             public INamedTypeSymbol TypeToGenerateIn { get; private set; }
 
-            private IList<RefKind> ParameterRefKinds;
-            private ImmutableArray<ITypeSymbol> ParameterTypes;
+            private ImmutableArray<RefKind> _parameterRefKinds;
+            private ImmutableArray<ITypeSymbol> _parameterTypes;
 
             public SyntaxToken Token { get; private set; }
 
-            private IMethodSymbol DelegatedConstructor;
+            private IMethodSymbol _delegatedConstructor;
 
-            private ImmutableArray<IParameterSymbol> Parameters;
-            private ImmutableDictionary<string, ISymbol> ParameterToExistingMemberMap;
+            private ImmutableArray<IParameterSymbol> _parameters;
+            private ImmutableDictionary<string, ISymbol> _parameterToExistingMemberMap;
 
             public ImmutableDictionary<string, string> ParameterToNewFieldMap { get; private set; }
             public ImmutableDictionary<string, string> ParameterToNewPropertyMap { get; private set; }
 
-            private State(TService service, SemanticDocument document)
+            private State(TService service, SemanticDocument document, NamingRule fieldNamingRule, NamingRule propertyNamingRule, NamingRule parameterNamingRule)
             {
-                this.Service = service;
-                this.Document = document;
+                _service = service;
+                _document = document;
+                _fieldNamingRule = fieldNamingRule;
+                _propertyNamingRule = propertyNamingRule;
+                _parameterNamingRule = parameterNamingRule;
             }
 
             public static async Task<State> GenerateAsync(
@@ -65,7 +68,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 SyntaxNode node,
                 CancellationToken cancellationToken)
             {
-                var state = new State(service, document);
+                var fieldNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
+                var propertyNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Property, Accessibility.Public, cancellationToken).ConfigureAwait(false);
+                var parameterNamingRule = await document.Document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false);
+
+                var state = new State(service, document, fieldNamingRule, propertyNamingRule, parameterNamingRule);
                 if (!await state.TryInitializeAsync(node, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
@@ -78,16 +85,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 SyntaxNode node,
                 CancellationToken cancellationToken)
             {
-                this.FieldNamingRule = await Document.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
-                this.PropertyNamingRule = await Document.Document.GetApplicableNamingRuleAsync(SymbolKind.Property, Accessibility.Public, cancellationToken).ConfigureAwait(false);
-                this.ParameterNamingRule = await Document.Document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false);
-
-                if (Service.IsConstructorInitializerGeneration(Document, node, cancellationToken))
+                if (_service.IsConstructorInitializerGeneration(_document, node, cancellationToken))
                 {
                     if (!await TryInitializeConstructorInitializerGenerationAsync(node, cancellationToken).ConfigureAwait(false))
                         return false;
                 }
-                else if (Service.IsSimpleNameGeneration(Document, node, cancellationToken))
+                else if (_service.IsSimpleNameGeneration(_document, node, cancellationToken))
                 {
                     if (!await TryInitializeSimpleNameGenerationAsync(node, cancellationToken).ConfigureAwait(false))
                         return false;
@@ -97,11 +100,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     return false;
                 }
 
-                if (!CodeGenerator.CanAdd(Document.Project.Solution, TypeToGenerateIn, cancellationToken))
+                if (!CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, cancellationToken))
                     return false;
 
-                ParameterTypes = ParameterTypes.IsDefault ? GetParameterTypes(cancellationToken) : ParameterTypes;
-                ParameterRefKinds ??= Arguments.Select(Service.GetRefKind).ToList();
+                _parameterTypes = _parameterTypes.IsDefault ? GetParameterTypes(cancellationToken) : _parameterTypes;
+                _parameterRefKinds ??= _arguments.Select(_service.GetRefKind).ToImmutableArray();
 
                 if (ClashesWithExistingConstructor())
                     return false;
@@ -115,24 +118,24 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             private void InitializeNonDelegatedConstructor(CancellationToken cancellationToken)
             {
                 var typeParametersNames = this.TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToImmutableArray();
-                var parameterNames = GetParameterNames(Arguments, typeParametersNames, cancellationToken);
+                var parameterNames = GetParameterNames(_arguments, typeParametersNames, cancellationToken);
 
-                GetParameters(Arguments, AttributeArguments, ParameterTypes, parameterNames, cancellationToken);
+                GetParameters(_arguments, _attributeArguments, _parameterTypes, parameterNames, cancellationToken);
             }
 
             private ImmutableArray<ParameterName> GetParameterNames(
                 ImmutableArray<TArgumentSyntax> arguments, ImmutableArray<string> typeParametersNames, CancellationToken cancellationToken)
             {
-                return this.AttributeArguments != null
-                    ? Service.GenerateParameterNames(Document.SemanticModel, this.AttributeArguments, typeParametersNames, ParameterNamingRule, cancellationToken)
-                    : Service.GenerateParameterNames(Document.SemanticModel, arguments, typeParametersNames, ParameterNamingRule, cancellationToken);
+                return this._attributeArguments != null
+                    ? _service.GenerateParameterNames(_document.SemanticModel, this._attributeArguments, typeParametersNames, _parameterNamingRule, cancellationToken)
+                    : _service.GenerateParameterNames(_document.SemanticModel, arguments, typeParametersNames, _parameterNamingRule, cancellationToken);
             }
 
             private bool TryInitializeDelegatedConstructor(CancellationToken cancellationToken)
             {
                 // We don't have to deal with the zero length case, since there's nothing to
                 // delegate.  It will fall out of the GenerateFieldDelegatingConstructor above.
-                for (var i = this.Arguments.Length; i >= 1; i--)
+                for (var i = this._arguments.Length; i >= 1; i--)
                 {
                     if (InitializeDelegatedConstructor(i, cancellationToken))
                         return true;
@@ -148,21 +151,21 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             private bool InitializeDelegatedConstructor(int argumentCount, INamedTypeSymbol namedType, CancellationToken cancellationToken)
             {
                 // We can't resolve overloads across language.
-                if (Document.Project.Language != namedType.Language)
+                if (_document.Project.Language != namedType.Language)
                     return false;
 
-                var arguments = this.Arguments.Take(argumentCount).ToList();
-                var remainingArguments = this.Arguments.Skip(argumentCount).ToImmutableArray();
-                var remainingAttributeArguments = this.AttributeArguments != null
-                    ? this.AttributeArguments.Skip(argumentCount).ToImmutableArray()
+                var arguments = this._arguments.Take(argumentCount).ToList();
+                var remainingArguments = this._arguments.Skip(argumentCount).ToImmutableArray();
+                var remainingAttributeArguments = this._attributeArguments != null
+                    ? this._attributeArguments.Skip(argumentCount).ToImmutableArray()
                     : (ImmutableArray<TAttributeArgumentSyntax>?)null;
-                var remainingParameterTypes = this.ParameterTypes.Skip(argumentCount).ToImmutableArray();
+                var remainingParameterTypes = this._parameterTypes.Skip(argumentCount).ToImmutableArray();
 
-                var instanceConstructors = namedType.InstanceConstructors.Where(c => IsSymbolAccessible(c, Document)).ToSet();
+                var instanceConstructors = namedType.InstanceConstructors.Where(c => IsSymbolAccessible(c, _document)).ToSet();
                 if (instanceConstructors.IsEmpty())
                     return false;
 
-                var delegatedConstructor = Service.GetDelegatingConstructor(this, Document, argumentCount, namedType, instanceConstructors, cancellationToken);
+                var delegatedConstructor = _service.GetDelegatingConstructor(this, _document, argumentCount, namedType, instanceConstructors, cancellationToken);
                 if (delegatedConstructor == null)
                     return false;
 
@@ -172,10 +175,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 // Find the names of the parameters that will follow the parameters we're
                 // delegating.
-                var remainingParameterNames = Service.GenerateParameterNames(
-                    Document.SemanticModel, remainingArguments,
+                var remainingParameterNames = _service.GenerateParameterNames(
+                    _document.SemanticModel, remainingArguments,
                     delegatedConstructor.Parameters.Select(p => p.Name).ToList(),
-                    this.ParameterNamingRule,
+                    this._parameterNamingRule,
                     cancellationToken);
 
                 // Can't generate the constructor if the parameter names we're copying over forcibly
@@ -185,30 +188,30 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     return false;
                 }
 
-                this.DelegatedConstructor = delegatedConstructor;
+                this._delegatedConstructor = delegatedConstructor;
                 GetParameters(remainingArguments, remainingAttributeArguments, remainingParameterTypes, remainingParameterNames, cancellationToken);
                 return true;
             }
 
             private bool ClashesWithExistingConstructor()
             {
-                var destinationProvider = Document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
+                var destinationProvider = _document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
                 return TypeToGenerateIn.InstanceConstructors.Any(c => Matches(c, syntaxFacts));
             }
 
             private bool Matches(IMethodSymbol ctor, ISyntaxFactsService service)
             {
-                if (ctor.Parameters.Length != ParameterTypes.Length)
+                if (ctor.Parameters.Length != _parameterTypes.Length)
                 {
                     return false;
                 }
 
-                for (var i = 0; i < ParameterTypes.Length; i++)
+                for (var i = 0; i < _parameterTypes.Length; i++)
                 {
                     var ctorParameter = ctor.Parameters[i];
-                    var result = SymbolEquivalenceComparer.Instance.Equals(ctorParameter.Type, ParameterTypes[i]) &&
-                        ctorParameter.RefKind == ParameterRefKinds[i];
+                    var result = SymbolEquivalenceComparer.Instance.Equals(ctorParameter.Type, _parameterTypes[i]) &&
+                        ctorParameter.RefKind == _parameterRefKinds[i];
 
                     var parameterName = GetParameterName(service, i);
                     if (!string.IsNullOrEmpty(parameterName))
@@ -229,21 +232,21 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             private string GetParameterName(ISyntaxFactsService service, int index)
             {
-                if (Arguments.IsDefault || index >= Arguments.Length)
+                if (_arguments.IsDefault || index >= _arguments.Length)
                 {
                     return string.Empty;
                 }
 
-                return service.GetNameForArgument(Arguments[index]);
+                return service.GetNameForArgument(_arguments[index]);
             }
 
             internal ImmutableArray<ITypeSymbol> GetParameterTypes(CancellationToken cancellationToken)
             {
                 var allTypeParameters = TypeToGenerateIn.GetAllTypeParameters();
-                var semanticModel = Document.SemanticModel;
-                var allTypes = AttributeArguments != null
-                    ? AttributeArguments.Select(a => Service.GetAttributeArgumentType(semanticModel, a, cancellationToken))
-                    : Arguments.Select(a => Service.GetArgumentType(semanticModel, a, cancellationToken));
+                var semanticModel = _document.SemanticModel;
+                var allTypes = _attributeArguments != null
+                    ? _attributeArguments.Select(a => _service.GetAttributeArgumentType(semanticModel, a, cancellationToken))
+                    : _arguments.Select(a => _service.GetArgumentType(semanticModel, a, cancellationToken));
 
                 return allTypes.Select(t => FixType(t, semanticModel, allTypeParameters)).ToImmutableArray();
             }
@@ -260,16 +263,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 SyntaxNode constructorInitializer,
                 CancellationToken cancellationToken)
             {
-                if (!Service.TryInitializeConstructorInitializerGeneration(Document, constructorInitializer, cancellationToken,
+                if (!_service.TryInitializeConstructorInitializerGeneration(_document, constructorInitializer, cancellationToken,
                     out var token, out var arguments, out var typeToGenerateIn))
                 {
                     return false;
                 }
 
                 Token = token;
-                Arguments = arguments;
+                _arguments = arguments;
 
-                var semanticModel = Document.SemanticModel;
+                var semanticModel = _document.SemanticModel;
                 var semanticInfo = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -285,23 +288,23 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 SyntaxNode simpleName,
                 CancellationToken cancellationToken)
             {
-                if (Service.TryInitializeSimpleNameGenerationState(
-                        Document, simpleName, cancellationToken,
+                if (_service.TryInitializeSimpleNameGenerationState(
+                        _document, simpleName, cancellationToken,
                         out var token, out var arguments, out var typeToGenerateIn))
                 {
                     Token = token;
-                    Arguments = arguments;
+                    _arguments = arguments;
                 }
-                else if (Service.TryInitializeSimpleAttributeNameGenerationState(
-                    Document, simpleName, cancellationToken,
+                else if (_service.TryInitializeSimpleAttributeNameGenerationState(
+                    _document, simpleName, cancellationToken,
                     out token, out arguments, out var attributeArguments, out typeToGenerateIn))
                 {
                     Token = token;
-                    AttributeArguments = attributeArguments;
-                    Arguments = arguments;
+                    _attributeArguments = attributeArguments;
+                    _arguments = arguments;
 
                     //// Attribute parameters are restricted to be constant values (simple types or string, etc).
-                    if (AttributeArguments != null && GetParameterTypes(cancellationToken).Any(t => !IsValidAttributeParameterType(t)))
+                    if (_attributeArguments != null && GetParameterTypes(cancellationToken).Any(t => !IsValidAttributeParameterType(t)))
                     {
                         return false;
                     }
@@ -359,7 +362,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             private async Task<bool> TryDetermineTypeToGenerateInAsync(
                 INamedTypeSymbol original, CancellationToken cancellationToken)
             {
-                var definition = await SymbolFinder.FindSourceDefinitionAsync(original, Document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                var definition = await SymbolFinder.FindSourceDefinitionAsync(original, _document.Project.Solution, cancellationToken).ConfigureAwait(false);
                 TypeToGenerateIn = definition as INamedTypeSymbol;
 
                 return TypeToGenerateIn?.TypeKind == TypeKind.Class || TypeToGenerateIn?.TypeKind == TypeKind.Struct;
@@ -394,22 +397,22 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         // If no matching field was found, use the fieldNamingRule to create suitable name
                         var bestNameForParameter = parameterNames[i].BestNameForParameter;
                         var nameBasedOnArgument = parameterNames[i].NameBasedOnArgument;
-                        parameterToNewFieldMap[bestNameForParameter] = FieldNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
-                        parameterToNewPropertyMap[bestNameForParameter] = PropertyNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
+                        parameterToNewFieldMap[bestNameForParameter] = _fieldNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
+                        parameterToNewPropertyMap[bestNameForParameter] = _propertyNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
                     }
 
                     parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                         attributes: default,
-                        refKind: Service.GetRefKind(arguments[i]),
+                        refKind: _service.GetRefKind(arguments[i]),
                         isParams: false,
                         type: parameterTypes[i],
                         name: parameterNames[i].BestNameForParameter));
                 }
 
-                this.ParameterToExistingMemberMap = parameterToExistingMemberMap.ToImmutable();
+                this._parameterToExistingMemberMap = parameterToExistingMemberMap.ToImmutable();
                 this.ParameterToNewFieldMap = parameterToNewFieldMap.ToImmutable();
                 this.ParameterToNewPropertyMap = parameterToNewPropertyMap.ToImmutable();
-                this.Parameters = parameters.ToImmutable();
+                this._parameters = parameters.ToImmutable();
             }
 
             private bool TryFindMatchingFieldOrProperty(
@@ -427,9 +430,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 var parameterName = parameterNames[index];
                 var parameterType = parameterTypes[index];
-                var expectedFieldName = FieldNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
-                var expectedPropertyName = PropertyNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
-                var isFixed = Service.IsNamedArgument(arguments[index]);
+                var expectedFieldName = _fieldNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
+                var expectedPropertyName = _propertyNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
+                var isFixed = _service.IsNamedArgument(arguments[index]);
                 var newParameterNamesList = parameterNames.ToList();
 
                 // For non-out parameters, see if there's already a field there with the same name.
@@ -448,7 +451,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                     if (symbol != null)
                     {
-                        if (ignoreAccessibility || IsSymbolAccessible(symbol, Document))
+                        if (ignoreAccessibility || IsSymbolAccessible(symbol, _document))
                         {
                             if (IsViableFieldOrProperty(parameterType, symbol))
                             {
@@ -461,11 +464,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                 // this field.  So we need to create a new field.  Find a name not in
                                 // use so we can assign to that.  
                                 var baseName = attributeArguments != null
-                                    ? Service.GenerateNameForArgument(Document.SemanticModel, attributeArguments.Value[index], cancellationToken)
-                                    : Service.GenerateNameForArgument(Document.SemanticModel, arguments[index], cancellationToken);
+                                    ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArguments.Value[index], cancellationToken)
+                                    : _service.GenerateNameForArgument(_document.SemanticModel, arguments[index], cancellationToken);
 
-                                var baseFieldWithNamingStyle = FieldNamingRule.NamingStyle.MakeCompliant(baseName).First();
-                                var basePropertyWithNamingStyle = PropertyNamingRule.NamingStyle.MakeCompliant(baseName).First();
+                                var baseFieldWithNamingStyle = _fieldNamingRule.NamingStyle.MakeCompliant(baseName).First();
+                                var basePropertyWithNamingStyle = _propertyNamingRule.NamingStyle.MakeCompliant(baseName).First();
 
                                 var newFieldName = NameGenerator.EnsureUniqueness(baseFieldWithNamingStyle, unavailableMemberNames.Concat(parameterToNewFieldMap.Values));
                                 var newPropertyName = NameGenerator.EnsureUniqueness(basePropertyWithNamingStyle, unavailableMemberNames.Concat(parameterToNewPropertyMap.Values));
@@ -481,8 +484,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                 {
                                     // Can change the parameter name, so do so.  
                                     // But first remove any prefix added due to field naming styles
-                                    var fieldNameMinusPrefix = newFieldName.Substring(FieldNamingRule.NamingStyle.Prefix.Length);
-                                    var newParameterName = new ParameterName(fieldNameMinusPrefix, isFixed: false, ParameterNamingRule);
+                                    var fieldNameMinusPrefix = newFieldName.Substring(_fieldNamingRule.NamingStyle.Prefix.Length);
+                                    var newParameterName = new ParameterName(fieldNameMinusPrefix, isFixed: false, _parameterNamingRule);
                                     newParameterNamesList[index] = newParameterName;
 
                                     parameterToNewFieldMap[newParameterName.BestNameForParameter] = newFieldName;
@@ -523,14 +526,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     {
                         return
                             !field.IsConst &&
-                            Service.IsConversionImplicit(Document.SemanticModel.Compilation, parameterType, field.Type);
+                            _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, field.Type);
                     }
                     else if (symbol is IPropertySymbol property)
                     {
                         return
                             property.Parameters.Length == 0 &&
                             property.IsWritableInConstructor() &&
-                            Service.IsConversionImplicit(Document.SemanticModel.Compilation, parameterType, property.Type);
+                            _service.IsConversionImplicit(_document.SemanticModel.Compilation, parameterType, property.Type);
                     }
                 }
 
@@ -556,20 +559,20 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             private async Task<Document> GenerateThisOrBaseDelegatingConstructorAsync(
                 Document document, bool withFields, bool withProperties, CancellationToken cancellationToken)
             {
-                if (DelegatedConstructor == null)
+                if (_delegatedConstructor == null)
                     return null;
 
                 var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var (members, assignments) = await GenerateMembersAndAssignmentsAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false);
-                var isThis = DelegatedConstructor.ContainingType.OriginalDefinition.Equals(TypeToGenerateIn.OriginalDefinition);
-                var delegatingArguments = provider.GetService<SyntaxGenerator>().CreateArguments(DelegatedConstructor.Parameters);
+                var isThis = _delegatedConstructor.ContainingType.OriginalDefinition.Equals(TypeToGenerateIn.OriginalDefinition);
+                var delegatingArguments = provider.GetService<SyntaxGenerator>().CreateArguments(_delegatedConstructor.Parameters);
 
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,
                     accessibility: Accessibility.Public,
                     modifiers: default,
                     typeName: TypeToGenerateIn.Name,
-                    parameters: DelegatedConstructor.Parameters.Concat(Parameters),
+                    parameters: _delegatedConstructor.Parameters.Concat(_parameters),
                     statements: assignments,
                     baseConstructorArguments: isThis ? default : delegatingArguments,
                     thisConstructorArguments: isThis ? delegatingArguments : default);
@@ -587,16 +590,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             {
                 var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
 
-                var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(Parameters, ParameterToNewFieldMap) :
-                              withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(Parameters, ParameterToNewPropertyMap) :
+                var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap) :
+                              withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap) :
                               ImmutableArray<ISymbol>.Empty;
 
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var assignments = !withFields && !withProperties
                     ? ImmutableArray<SyntaxNode>.Empty
                     : provider.GetService<SyntaxGenerator>().CreateAssignmentStatements(
-                        semanticModel, Parameters,
-                        ParameterToExistingMemberMap,
+                        semanticModel, _parameters,
+                        _parameterToExistingMemberMap,
                         withFields ? ParameterToNewFieldMap : ParameterToNewPropertyMap,
                         addNullChecks: false, preferThrowExpression: false);
 
@@ -621,8 +624,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         semanticModel,
                         TypeToGenerateIn.Name,
                         TypeToGenerateIn,
-                        Parameters,
-                        ParameterToExistingMemberMap,
+                        _parameters,
+                        _parameterToExistingMemberMap,
                         newMemberMap,
                         addNullChecks: false,
                         preferThrowExpression: false,
