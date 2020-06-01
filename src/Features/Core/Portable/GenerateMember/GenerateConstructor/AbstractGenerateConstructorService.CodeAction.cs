@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             public override string Title
                 => _withFields ? string.Format(FeaturesResources.Generate_constructor_in_0_with_fields, _state.TypeToGenerateIn.Name) :
                    _withProperties ? string.Format(FeaturesResources.Generate_constructor_in_0_with_properties, _state.TypeToGenerateIn.Name) :
-                   _state.AddingMembers ? string.Format(FeaturesResources.Generate_constructor_in_0_without_members, _state.TypeToGenerateIn.Name) :
-                                          string.Format(FeaturesResources.Generate_constructor_in_0, _state.TypeToGenerateIn.Name);
+                                     string.Format(FeaturesResources.Generate_constructor_in_0, _state.TypeToGenerateIn.Name);
 
             public override string EquivalenceKey => Title;
 
