@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
@@ -13,6 +14,9 @@ namespace Microsoft.CodeAnalysis.Interactive
         private static async Task<int> Main(string[] args)
         {
             FatalError.Handler = FailFast.OnFatalException;
+
+            bool b = true;
+            while (b) { }
 
             try
             {

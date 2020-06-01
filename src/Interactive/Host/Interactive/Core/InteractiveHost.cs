@@ -157,7 +157,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 try
                 {
                     await clientStream.ConnectAsync(cancellationToken).ConfigureAwait(false);
-                    await jsonRpc.InvokeWithCancellationAsync<Task>("Initialize", new List<object> { _replServiceProviderType, culture.Name }, cancellationToken).ConfigureAwait(false);
+                    await jsonRpc.InvokeWithCancellationAsync<Task>("InitializeAsync",
+                        new object[] { _replServiceProviderType.AssemblyQualifiedName, culture.Name },
+                        cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (e is ObjectDisposedException || (!CheckAlive(newProcess, hostPath)))
                 {
