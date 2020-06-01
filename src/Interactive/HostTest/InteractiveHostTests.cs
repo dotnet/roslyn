@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         //{
         //    return _host.TryGetService().IsShadowCopy(path);
         //}
+
         public Task<string> ReadErrorOutputToEnd()
         {
             return ReadOutputToEnd(isError: true);
