@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,6 +65,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             private readonly SemanticDocument _document;
             private readonly State _state;
             private readonly bool _withFields;
+            private readonly bool _withProperties;
             private readonly CancellationToken _cancellationToken;
 
             public Editor(
@@ -71,145 +73,107 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 SemanticDocument document,
                 State state,
                 bool withFields,
+                bool withProperties,
                 CancellationToken cancellationToken)
             {
+                Debug.Assert(!withFields || !withProperties);
+
                 _service = service;
                 _document = document;
                 _state = state;
                 _withFields = withFields;
+                _withProperties = withProperties;
                 _cancellationToken = cancellationToken;
             }
 
-            internal async Task<(Document, bool addedFields)> GetEditAsync()
+            public async Task<Document> GetEditAsync()
             {
-                var document = _document.Document;
-
-                // Get naming rule for generating fields and parameters
-                var fieldNamingRule = await document.GetApplicableNamingRuleAsync(
-                    SymbolKind.Field, Accessibility.Private, _cancellationToken).ConfigureAwait(false);
-                var parameterNamingRule = await document.GetApplicableNamingRuleAsync(
-                    SymbolKind.Parameter, Accessibility.NotApplicable, _cancellationToken).ConfigureAwait(false);
-
                 // See if there's an accessible base constructor that would accept these
                 // types, then just call into that instead of generating fields.
                 //
                 // then, see if there are any constructors that would take the first 'n' arguments
                 // we've provided.  If so, delegate to those, and then create a field for any
                 // remaining arguments.  Try to match from largest to smallest.
-                var edit = await GenerateThisOrBaseDelegatingConstructorAsync(fieldNamingRule, parameterNamingRule).ConfigureAwait(false);
-                if (edit.document != null)
-                {
-                    return edit;
-                }
-
+                //
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
-                return await GenerateFieldDelegatingConstructorAsync(fieldNamingRule, parameterNamingRule).ConfigureAwait(false);
+                return await GenerateThisOrBaseDelegatingConstructorAsync().ConfigureAwait(false) ??
+                       await GenerateFieldDelegatingConstructorAsync().ConfigureAwait(false);
             }
 
-            private async Task<(Document document, bool addedFields)> GenerateThisOrBaseDelegatingConstructorAsync(NamingRule fieldNamingRule, NamingRule parameterNamingRule)
+            private async Task<Document> GenerateThisOrBaseDelegatingConstructorAsync()
             {
-                // We don't have to deal with the zero length case, since there's nothing to
-                // delegate.  It will fall out of the GenerateFieldDelegatingConstructor above.
-                for (var i = _state.Arguments.Length; i >= 1; i--)
-                {
-                    var edit = await GenerateThisOrBaseDelegatingConstructorAsync(i, fieldNamingRule, parameterNamingRule).ConfigureAwait(false);
-                    if (edit.document != null)
-                    {
-                        return edit;
-                    }
-                }
+                //if (namedType == null)
+                //{
+                //    return default;
+                //}
 
-                return default;
-            }
+                //// We can't resolve overloads across language.
+                //if (_document.Project.Language != namedType.Language)
+                //{
+                //    return default;
+                //}
 
-            private async Task<(Document document, bool addedFields)> GenerateThisOrBaseDelegatingConstructorAsync(
-                int argumentCount, NamingRule fieldNamingRule, NamingRule parameterNamingRule)
-            {
-                (Document document, bool addedField) edit;
-                if ((edit = await GenerateDelegatingConstructorAsync(argumentCount, _state.TypeToGenerateIn, fieldNamingRule, parameterNamingRule).ConfigureAwait(false)).document != null ||
-                    (edit = await GenerateDelegatingConstructorAsync(argumentCount, _state.TypeToGenerateIn.BaseType, fieldNamingRule, parameterNamingRule).ConfigureAwait(false)).document != null)
-                {
-                    return edit;
-                }
+                //var arguments = _state.Arguments.Take(argumentCount).ToList();
+                //var remainingArguments = _state.Arguments.Skip(argumentCount).ToImmutableArray();
+                //var remainingAttributeArguments = _state.AttributeArguments != null
+                //    ? _state.AttributeArguments.Skip(argumentCount).ToImmutableArray()
+                //    : (ImmutableArray<TAttributeArgumentSyntax>?)null;
+                //var remainingParameterTypes = _state.ParameterTypes.Skip(argumentCount).ToImmutableArray();
 
-                return default;
-            }
+                //var instanceConstructors = namedType.InstanceConstructors.Where(IsSymbolAccessibleToDocument).ToSet();
+                //if (instanceConstructors.IsEmpty())
+                //{
+                //    return default;
+                //}
 
-            private async Task<(Document, bool addedFields)> GenerateDelegatingConstructorAsync(
-                int argumentCount, INamedTypeSymbol namedType, NamingRule fieldNamingRule, NamingRule parameterNamingRule)
-            {
-                if (namedType == null)
-                {
-                    return default;
-                }
-
-                // We can't resolve overloads across language.
-                if (_document.Project.Language != namedType.Language)
-                {
-                    return default;
-                }
-
-                var arguments = _state.Arguments.Take(argumentCount).ToList();
-                var remainingArguments = _state.Arguments.Skip(argumentCount).ToImmutableArray();
-                var remainingAttributeArguments = _state.AttributeArguments != null
-                    ? _state.AttributeArguments.Skip(argumentCount).ToImmutableArray()
-                    : (ImmutableArray<TAttributeArgumentSyntax>?)null;
-                var remainingParameterTypes = _state.ParameterTypes.Skip(argumentCount).ToImmutableArray();
-
-                var instanceConstructors = namedType.InstanceConstructors.Where(IsSymbolAccessibleToDocument).ToSet();
-                if (instanceConstructors.IsEmpty())
-                {
-                    return default;
-                }
-
-                var delegatedConstructor = _service.GetDelegatingConstructor(_state, _document, argumentCount, namedType, instanceConstructors, _cancellationToken);
+                var delegatedConstructor = _state.DelegatedConstructor;
                 if (delegatedConstructor == null)
-                {
-                    return default;
-                }
+                    return null;
 
                 // There was a best match.  Call it directly.  
                 var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
                 var syntaxFactory = provider.GetService<SyntaxGenerator>();
                 var codeGenerationService = provider.GetService<ICodeGenerationService>();
 
-                // Map the first N parameters to the other constructor in this type.  Then
-                // try to map any further parameters to existing fields.  Finally, generate
-                // new fields if no such parameters exist.
+                //// Map the first N parameters to the other constructor in this type.  Then
+                //// try to map any further parameters to existing fields.  Finally, generate
+                //// new fields if no such parameters exist.
 
-                // Find the names of the parameters that will follow the parameters we're
-                // delegating.
-                var remainingParameterNames = _service.GenerateParameterNames(
-                    _document.SemanticModel, remainingArguments,
-                    delegatedConstructor.Parameters.Select(p => p.Name).ToList(),
-                    parameterNamingRule,
-                    _cancellationToken);
+                //// Find the names of the parameters that will follow the parameters we're
+                //// delegating.
+                //var remainingParameterNames = _service.GenerateParameterNames(
+                //    _document.SemanticModel, _state.RemainingArguments,
+                //    delegatedConstructor.Parameters.Select(p => p.Name).ToList(),
+                //    _state.ParameterNamingRule,
+                //    _cancellationToken);
 
-                // Can't generate the constructor if the parameter names we're copying over forcibly
-                // conflict with any names we generated.
-                if (delegatedConstructor.Parameters.Select(p => p.Name)
-                        .Intersect(remainingParameterNames.Select(n => n.BestNameForParameter)).Any())
-                {
-                    return default;
-                }
+                //// Can't generate the constructor if the parameter names we're copying over forcibly
+                //// conflict with any names we generated.
+                //if (delegatedConstructor.Parameters.Select(p => p.Name)
+                //        .Intersect(remainingParameterNames.Select(n => n.BestNameForParameter)).Any())
+                //{
+                //    return default;
+                //}
 
-                // Try to map those parameters to fields.
-                GetParameters(remainingArguments, remainingAttributeArguments,
-                    remainingParameterTypes, remainingParameterNames, fieldNamingRule, parameterNamingRule,
-                    out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var remainingParameters);
+                //// Try to map those parameters to fields.
+                //GetParameters(remainingArguments, remainingAttributeArguments,
+                //    remainingParameterTypes, remainingParameterNames, fieldNamingRule, parameterNamingRule,
+                //    out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var remainingParameters);
 
-                var fields = _withFields
-                    ? SyntaxGeneratorExtensions.CreateFieldsForParameters(remainingParameters, parameterToNewFieldMap)
-                    : ImmutableArray<IFieldSymbol>.Empty;
+                var members = 
+                    _withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_state.RemainingParameters, _state.ParameterToNewFieldMap) :
+                    _withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_state.RemainingParameters, _state.ParameterToNewPropertyMap) :
+                    ImmutableArray<ISymbol>.Empty;
+
                 var assignStatements = syntaxFactory.CreateAssignmentStatements(
-                    _document.SemanticModel, remainingParameters,
-                    parameterToExistingFieldMap, parameterToNewFieldMap,
+                    _document.SemanticModel, _state.RemainingParameters,
+                    _state.ParameterToExistingMemberMap, _state.ParameterToNewFieldMap,
                     addNullChecks: false, preferThrowExpression: false);
 
-                var allParameters = delegatedConstructor.Parameters.Concat(remainingParameters);
+                var allParameters = delegatedConstructor.Parameters.Concat(_state.RemainingParameters);
 
-                var isThis = namedType.Equals(_state.TypeToGenerateIn);
+                var isThis = delegatedConstructor.ContainingType.OriginalDefinition.Equals(_state.TypeToGenerateIn.OriginalDefinition);
                 var delegatingArguments = syntaxFactory.CreateArguments(delegatedConstructor.Parameters);
                 var baseConstructorArguments = isThis ? default : delegatingArguments;
                 var thisConstructorArguments = isThis ? delegatingArguments : default;
@@ -224,7 +188,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     baseConstructorArguments: baseConstructorArguments,
                     thisConstructorArguments: thisConstructorArguments);
 
-                var members = fields.OfType<ISymbol>().Concat(constructor);
+                members = members.Concat(constructor);
                 var result = await codeGenerationService.AddMembersAsync(
                     _document.Project.Solution,
                     _state.TypeToGenerateIn,
@@ -233,29 +197,30 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     _cancellationToken)
                     .ConfigureAwait(false);
 
-                return (result, fields.Length > 0);
+                return result;
             }
 
-            private async Task<(Document, bool addedFields)> GenerateFieldDelegatingConstructorAsync(NamingRule fieldNamingRule, NamingRule parameterNamingRule)
+            private async Task<Document> GenerateFieldDelegatingConstructorAsync()
             {
-                var arguments = _state.Arguments;
-                var parameterTypes = _state.ParameterTypes;
+                //var arguments = _state.Arguments;
+                //var parameterTypes = _state.ParameterTypes;
 
-                var typeParametersNames = _state.TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToImmutableArray();
-                var parameterNames = GetParameterNames(arguments, typeParametersNames, parameterNamingRule);
+                //var typeParametersNames = _state.TypeToGenerateIn.GetAllTypeParameters().Select(t => t.Name).ToImmutableArray();
+                //var parameterNames = GetParameterNames(arguments, typeParametersNames, parameterNamingRule);
 
-                GetParameters(arguments, _state.AttributeArguments, parameterTypes, parameterNames, fieldNamingRule, parameterNamingRule,
-                    out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var parameters);
+                //GetParameters(arguments, _state.AttributeArguments, parameterTypes, parameterNames, fieldNamingRule, parameterNamingRule,
+                //    out var parameterToExistingFieldMap, out var parameterToNewFieldMap, out var parameters);
 
                 var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
                 var syntaxFactory = provider.GetService<SyntaxGenerator>();
                 var codeGenerationService = provider.GetService<ICodeGenerationService>();
 
-                var syntaxTree = _document.SyntaxTree;
+                // var syntaxTree = _document.SyntaxTree;
                 var (fields, constructor) = syntaxFactory.CreateFieldDelegatingConstructor(
                     _document.SemanticModel,
                     _state.TypeToGenerateIn.Name,
-                    _state.TypeToGenerateIn, parameters,
+                    _state.TypeToGenerateIn,
+                    _state.RemainingParameters,
                     parameterToExistingFieldMap, parameterToNewFieldMap,
                     addNullChecks: false, preferThrowExpression: false);
 
@@ -267,7 +232,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     _cancellationToken)
                     .ConfigureAwait(false);
 
-                return (result, fields.Length > 0);
+                return result;
             }
 
             private ImmutableArray<ParameterName> GetParameterNames(
@@ -278,54 +243,54 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     : _service.GenerateParameterNames(_document.SemanticModel, arguments, typeParametersNames, parameterNamingRule, _cancellationToken);
             }
 
-            private void GetParameters(
-                ImmutableArray<TArgumentSyntax> arguments,
-                ImmutableArray<TAttributeArgumentSyntax>? attributeArguments,
-                ImmutableArray<ITypeSymbol> parameterTypes,
-                ImmutableArray<ParameterName> parameterNames,
-                NamingRule fieldNamingRule,
-                NamingRule parameterNamingRule,
-                out Dictionary<string, ISymbol> parameterToExistingFieldMap,
-                out Dictionary<string, string> parameterToNewFieldMap,
-                out ImmutableArray<IParameterSymbol> parameters)
-            {
-                parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
-                parameterToNewFieldMap = new Dictionary<string, string>();
-                var result = ArrayBuilder<IParameterSymbol>.GetInstance();
+            //private void GetParameters(
+            //    ImmutableArray<TArgumentSyntax> arguments,
+            //    ImmutableArray<TAttributeArgumentSyntax>? attributeArguments,
+            //    ImmutableArray<ITypeSymbol> parameterTypes,
+            //    ImmutableArray<ParameterName> parameterNames,
+            //    NamingRule fieldNamingRule,
+            //    NamingRule parameterNamingRule,
+            //    out Dictionary<string, ISymbol> parameterToExistingFieldMap,
+            //    out Dictionary<string, string> parameterToNewFieldMap,
+            //    out ImmutableArray<IParameterSymbol> parameters)
+            //{
+            //    parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
+            //    parameterToNewFieldMap = new Dictionary<string, string>();
+            //    var result = ArrayBuilder<IParameterSymbol>.GetInstance();
 
-                for (var i = 0; i < parameterNames.Length; i++)
-                {
-                    // See if there's a matching field we can use.  First test in a case sensitive
-                    // manner, then case insensitively.
-                    if (!TryFindMatchingField(
-                            arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap,
-                            parameterToNewFieldMap, caseSensitive: true, fieldNamingRule, parameterNamingRule, newParameterNames: out parameterNames))
-                    {
-                        if (!TryFindMatchingField(
-                                arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap,
-                                parameterToNewFieldMap, caseSensitive: false, fieldNamingRule, parameterNamingRule, newParameterNames: out parameterNames))
-                        {
-                            // If no matching field was found, use the fieldNamingRule to create suitable name
-                            parameterToNewFieldMap[parameterNames[i].BestNameForParameter] = fieldNamingRule.NamingStyle.MakeCompliant(
-                                parameterNames[i].NameBasedOnArgument).First();
-                        }
-                    }
+            //    for (var i = 0; i < parameterNames.Length; i++)
+            //    {
+            //        // See if there's a matching field we can use.  First test in a case sensitive
+            //        // manner, then case insensitively.
+            //        if (!TryFindMatchingField(
+            //                arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap,
+            //                parameterToNewFieldMap, caseSensitive: true, fieldNamingRule, parameterNamingRule, newParameterNames: out parameterNames))
+            //        {
+            //            if (!TryFindMatchingField(
+            //                    arguments, attributeArguments, parameterNames, parameterTypes, i, parameterToExistingFieldMap,
+            //                    parameterToNewFieldMap, caseSensitive: false, fieldNamingRule, parameterNamingRule, newParameterNames: out parameterNames))
+            //            {
+            //                // If no matching field was found, use the fieldNamingRule to create suitable name
+            //                parameterToNewFieldMap[parameterNames[i].BestNameForParameter] = fieldNamingRule.NamingStyle.MakeCompliant(
+            //                    parameterNames[i].NameBasedOnArgument).First();
+            //            }
+            //        }
 
-                    result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        attributes: default,
-                        refKind: _service.GetRefKind(arguments[i]),
-                        isParams: false,
-                        type: parameterTypes[i],
-                        name: parameterNames[i].BestNameForParameter));
-                }
+            //        result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
+            //            attributes: default,
+            //            refKind: _service.GetRefKind(arguments[i]),
+            //            isParams: false,
+            //            type: parameterTypes[i],
+            //            name: parameterNames[i].BestNameForParameter));
+            //    }
 
-                if (!_withFields)
-                {
-                    parameterToNewFieldMap.Clear();
-                }
+            //    if (!_withFields)
+            //    {
+            //        parameterToNewFieldMap.Clear();
+            //    }
 
-                parameters = result.ToImmutableAndFree();
-            }
+            //    parameters = result.ToImmutableAndFree();
+            //}
 
             private IEnumerable<string> GetUnavailableMemberNames()
             {

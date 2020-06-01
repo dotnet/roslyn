@@ -53,17 +53,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 {
                     using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 
-                    var codeAction = new GenerateConstructorCodeAction((TService)this, document, state, withFields: true);
-                    result.Add(codeAction);
+                    if (state.ParameterToNewFieldMap.Count > 0)
+                        result.Add(new GenerateConstructorCodeAction((TService)this, document, state, withFields: true, withProperties: false));
 
-                    // First see the type of edit our regular code action would create.  If it 
-                    // creates fields, then also offer to perform the code action without creating
-                    // any fields.
-                    var edit = await codeAction.GetEditAsync(cancellationToken).ConfigureAwait(false);
-                    if (edit.addedMembers)
-                    {
-                        result.Add(new GenerateConstructorCodeAction((TService)this, document, state, withFields: false));
-                    }
+                    if (state.ParameterToNewPropertyMap.Count > 0)
+                        result.Add(new GenerateConstructorCodeAction((TService)this, document, state, withFields: false, withProperties: true));
+
+                    if (state.AddingMembers)
+                        result.Add(new GenerateConstructorCodeAction((TService)this, document, state, withFields: false, withProperties: false));
 
                     return result.ToImmutable();
                 }

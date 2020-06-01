@@ -16,37 +16,34 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _withFields;
+            private readonly bool _withProperties;
 
             public GenerateConstructorCodeAction(
                 TService service,
                 Document document,
                 State state,
-                bool withFields)
+                bool withFields,
+                bool withProperties)
             {
                 _service = service;
                 _document = document;
                 _state = state;
                 _withFields = withFields;
+                _withProperties = withProperties;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var (document, _) = await GetEditAsync(cancellationToken).ConfigureAwait(false);
-                return document;
-            }
-
-            public async Task<(Document document, bool addedMembers)> GetEditAsync(CancellationToken cancellationToken)
-            {
                 var semanticDocument = await SemanticDocument.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
-                var editor = new Editor(_service, semanticDocument, _state, _withFields, cancellationToken);
+                var editor = new Editor(_service, semanticDocument, _state, _withFields, _withProperties, cancellationToken);
                 return await editor.GetEditAsync().ConfigureAwait(false);
             }
 
             public override string Title
-                => _withFields
-                    ? string.Format(FeaturesResources.Generate_constructor_in_0, _state.TypeToGenerateIn.Name)
-                    : string.Format(FeaturesResources.Generate_constructor_in_0_without_fields, _state.TypeToGenerateIn.Name);
-
+                => _withFields ? string.Format(FeaturesResources.Generate_constructor_in_0_with_fields, _state.TypeToGenerateIn.Name) :
+                   _withProperties ? string.Format(FeaturesResources.Generate_constructor_in_0_with_properties, _state.TypeToGenerateIn.Name) :
+                   _state.AddingMembers ? string.Format(FeaturesResources.Generate_constructor_in_0_without_members, _state.TypeToGenerateIn.Name) :
+                                          string.Format(FeaturesResources.Generate_constructor_in_0, _state.TypeToGenerateIn.Name);
             public override string EquivalenceKey => Title;
         }
     }

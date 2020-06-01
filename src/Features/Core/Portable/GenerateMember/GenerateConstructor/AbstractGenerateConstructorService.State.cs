@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             public Dictionary<string, string> ParameterToNewPropertyMap { get; private set; }
             public ImmutableArray<IParameterSymbol> RemainingParameters { get; private set; }
 
+            public bool AddingMembers => ParameterToNewFieldMap.Count > 0 || ParameterToNewPropertyMap.Count > 0;
+
             private State(TService service, SemanticDocument document)
             {
                 this.Service = service;
