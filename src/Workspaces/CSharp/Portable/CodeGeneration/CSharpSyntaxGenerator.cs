@@ -200,13 +200,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null);
         }
 
-        internal static SyntaxTokenList GetParameterModifiers(RefKind refKind)
+        internal static SyntaxTokenList GetParameterModifiers(RefKind refKind, bool forFunctionPointerReturnParameter = false)
             => refKind switch
             {
                 RefKind.None => new SyntaxTokenList(),
                 RefKind.Out => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword)),
                 RefKind.Ref => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword)),
-                RefKind.In => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword)),
+                // Note: RefKind.RefReadonly == RefKind.In. Function Pointers must use the correct
+                // ref kind syntax when generating for the return parameter vs other parameters.
+                // The return parameter must use ref readonly, like regular methods.
+                RefKind.In when !forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword)),
+                RefKind.RefReadOnly when forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)),
                 _ => throw ExceptionUtilities.UnexpectedValue(refKind),
             };
 

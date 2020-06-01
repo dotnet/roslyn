@@ -2589,8 +2589,8 @@ enum ET1
             };
 
             test.ExpectedDiagnostics.Add(
-                // error CS9004: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS9004"));
+                // error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805"));
 
             await test.RunAsync();
         }
