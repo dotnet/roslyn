@@ -136,29 +136,16 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var typeName = interfaceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 var assemblyName = interfaceType.ContainingAssembly.Name;
 
-                return GetCodeActionEquivalenceKey(assemblyName, typeName, explicitly, abstractly, onlyRemaining, throughMember, codeActionTypeName);
-            }
-
-            private static string GetCodeActionEquivalenceKey(
-                string interfaceTypeAssemblyName,
-                string interfaceTypeFullyQualifiedName,
-                bool explicitly,
-                bool abstractly,
-                bool onlyRemaining,
-                ISymbol throughMember,
-                string codeActionTypeName)
-            {
-                if (throughMember != null)
-                {
-                    return null;
-                }
-
+                // Consider code actions equivalent if they correspond to the same interface being implemented elsewhere
+                // in the same manner.  Note: 'implement through member' means implementing the same interface through
+                // an applicable member with the same name in the destination.
                 return explicitly.ToString() + ";" +
-                    abstractly.ToString() + ";" +
-                    onlyRemaining.ToString() + ":" +
-                    interfaceTypeAssemblyName + ";" +
-                    interfaceTypeFullyQualifiedName + ";" +
-                    codeActionTypeName;
+                   abstractly.ToString() + ";" +
+                   onlyRemaining.ToString() + ":" +
+                   typeName + ";" +
+                   assemblyName + ";" +
+                   codeActionTypeName + ";" +
+                   throughMember?.Name;
             }
 
             public override string EquivalenceKey => _equivalenceKey;
