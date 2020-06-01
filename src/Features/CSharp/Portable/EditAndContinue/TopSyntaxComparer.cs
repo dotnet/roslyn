@@ -306,11 +306,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => (int)GetLabel(node.Kind());
 
         internal static Label GetLabel(SyntaxKind kind)
-            => Classify(kind, out var isLeaf);
+            => Classify(kind, out _);
 
         // internal for testing
         internal static bool HasLabel(SyntaxKind kind)
-            => Classify(kind, out var isLeaf) != Label.Ignored;
+            => Classify(kind, out _) != Label.Ignored;
 
         protected internal override int LabelCount
         {

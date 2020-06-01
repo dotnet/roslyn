@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -13,12 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private (IList<SignatureHelpItem> items, int? selectedItem) GetDelegateTypeConstructors(
+        private static (IList<SignatureHelpItem> items, int? selectedItem) GetDelegateTypeConstructors(
             BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            INamedTypeSymbol delegateType,
-            CancellationToken cancellationToken)
+            INamedTypeSymbol delegateType)
         {
             var invokeMethod = delegateType.DelegateInvokeMethod;
             if (invokeMethod == null)
@@ -34,13 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 documentationFactory: null,
                 prefixParts: GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),
                 separatorParts: GetSeparatorParts(),
-                suffixParts: GetDelegateTypePostambleParts(invokeMethod),
-                parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position, cancellationToken));
+                suffixParts: GetDelegateTypePostambleParts(),
+                parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position));
 
             return (SpecializedCollections.SingletonList(item), 0);
         }
 
-        private IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
+        private static IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
         {
             var result = new List<SymbolDisplayPart>();
 
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private IList<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private static IList<SignatureHelpSymbolParameter> GetDelegateTypeParameters(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)
         {
             const string TargetName = "target";
 
@@ -84,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     displayParts: parts));
         }
 
-        private IList<SymbolDisplayPart> GetDelegateTypePostambleParts(IMethodSymbol invokeMethod)
+        private static IList<SymbolDisplayPart> GetDelegateTypePostambleParts()
         {
             return SpecializedCollections.SingletonList(
                 Punctuation(SyntaxKind.CloseParenToken));

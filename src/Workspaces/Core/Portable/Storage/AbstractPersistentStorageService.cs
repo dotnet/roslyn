@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Storage
             }
         }
 
-        private bool DatabaseSupported(Solution solution, bool checkBranchId)
+        private static bool DatabaseSupported(Solution solution, bool checkBranchId)
         {
             if (solution.FilePath == null)
             {

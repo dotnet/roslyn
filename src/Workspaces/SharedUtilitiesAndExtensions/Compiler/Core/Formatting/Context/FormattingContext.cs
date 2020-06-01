@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         [Conditional("DEBUG")]
-        private void DebugCheckEmpty<T, TIntrospector>(ContextIntervalTree<T, TIntrospector> tree, TextSpan textSpan)
+        private static void DebugCheckEmpty<T, TIntrospector>(ContextIntervalTree<T, TIntrospector> tree, TextSpan textSpan)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
             var intervals = tree.GetIntervalsThatContain(textSpan.Start, textSpan.Length);

@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return type != PredefinedType.None;
         }
 
-        private PredefinedType GetPredefinedType(SyntaxToken token)
+        private static PredefinedType GetPredefinedType(SyntaxToken token)
         {
             return (SyntaxKind)token.RawKind switch
             {
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return op != PredefinedOperator.None;
         }
 
-        private PredefinedOperator GetPredefinedOperator(SyntaxToken token)
+        private static PredefinedOperator GetPredefinedOperator(SyntaxToken token)
         {
             switch ((SyntaxKind)token.RawKind)
             {
@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        private TextSpan GetBlockBodySpan(BlockSyntax body)
+        private static TextSpan GetBlockBodySpan(BlockSyntax body)
             => TextSpan.FromBounds(body.OpenBraceToken.Span.End, body.CloseBraceToken.SpanStart);
 
         public int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node)
@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 }
 
                 // If this node is not parented by a name, we're done.
-                if (!(parent is NameSyntax name))
+                if (!(parent is NameSyntax))
                 {
                     break;
                 }
@@ -1202,6 +1202,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public string GetNameForArgument(SyntaxNode argument)
             => (argument as ArgumentSyntax)?.NameColon?.Name.Identifier.ValueText ?? string.Empty;
 
+        public string GetNameForAttributeArgument(SyntaxNode argument)
+            => (argument as AttributeArgumentSyntax)?.NameEquals?.Name.Identifier.ValueText ?? string.Empty;
+
         public bool IsLeftSideOfDot(SyntaxNode node)
             => (node as ExpressionSyntax).IsLeftSideOfDot();
 
@@ -1240,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.IsParentKind(SyntaxKind.PostIncrementExpression) ||
                node.IsParentKind(SyntaxKind.PreIncrementExpression);
 
-        public bool IsOperandOfDecrementExpression(SyntaxNode node)
+        public static bool IsOperandOfDecrementExpression(SyntaxNode node)
             => node.IsParentKind(SyntaxKind.PostDecrementExpression) ||
                node.IsParentKind(SyntaxKind.PreDecrementExpression);
 
@@ -1293,10 +1296,16 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                    node.IsKind(SyntaxKind.ExternAliasDirective);
         }
 
-        public bool IsGlobalAttribute(SyntaxNode node)
+        public bool IsGlobalAssemblyAttribute(SyntaxNode node)
+            => IsGlobalAttribute(node, SyntaxKind.AssemblyKeyword);
+
+        public bool IsGlobalModuleAttribute(SyntaxNode node)
+            => IsGlobalAttribute(node, SyntaxKind.ModuleKeyword);
+
+        private static bool IsGlobalAttribute(SyntaxNode node, SyntaxKind attributeTarget)
             => node.IsKind(SyntaxKind.Attribute) &&
                node.Parent.IsKind(SyntaxKind.AttributeList, out AttributeListSyntax attributeList) &&
-               attributeList.Target?.Identifier.Kind() == SyntaxKind.AssemblyKeyword;
+               attributeList.Target?.Identifier.Kind() == attributeTarget;
 
         private static bool IsMemberDeclaration(SyntaxNode node)
         {
@@ -1421,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsExpressionOfMemberAccessExpression(SyntaxNode node)
             => (node?.Parent as MemberAccessExpressionSyntax)?.Expression == node;
 
-        public SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node)
+        public static SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node)
             => ((InvocationExpressionSyntax)node).Expression;
 
         public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)

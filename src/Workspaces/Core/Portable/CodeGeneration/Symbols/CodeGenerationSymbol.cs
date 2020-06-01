@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 : AddAnnotationsTo(this, this.Clone(), annotations);
         }
 
-        private CodeGenerationSymbol AddAnnotationsTo(
+        private static CodeGenerationSymbol AddAnnotationsTo(
             CodeGenerationSymbol originalDefinition, CodeGenerationSymbol newDefinition, SyntaxAnnotation[] annotations)
         {
             annotationsTable.TryGetValue(originalDefinition, out var originalAnnotations);
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public IAssemblySymbol ContainingAssembly => null;
 
-        public IMethodSymbol ContainingMethod => null;
+        public static IMethodSymbol ContainingMethod => null;
 
         public IModuleSymbol ContainingModule => null;
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public ImmutableArray<SyntaxNode> DeclaringSyntaxNodes
+        public static ImmutableArray<SyntaxNode> DeclaringSyntaxNodes
         {
             get
             {

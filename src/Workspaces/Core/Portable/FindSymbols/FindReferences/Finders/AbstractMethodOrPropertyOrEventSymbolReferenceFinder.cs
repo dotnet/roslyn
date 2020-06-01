@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return ImmutableArray<ISymbol>.Empty;
         }
 
-        protected ImmutableArray<IMethodSymbol> GetReferencedAccessorSymbols(
+        protected static ImmutableArray<IMethodSymbol> GetReferencedAccessorSymbols(
             ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts,
             SemanticModel model, IPropertySymbol property, SyntaxNode node, CancellationToken cancellationToken)
         {

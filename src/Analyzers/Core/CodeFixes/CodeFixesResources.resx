@@ -138,4 +138,7 @@
   <data name="Remove_redundant_assignment" xml:space="preserve">
     <value>Remove redundant assignment</value>
   </data>
+  <data name="Remove_redundant_suppression" xml:space="preserve">
+    <value>Remove redundant suppression</value>
+  </data>
 </root>

@@ -98,8 +98,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Dim binding = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             For Each typeParameter In TypeParameterCollector.Collect(type)
-                Dim vbType = DirectCast(typeParameter, ITypeSymbol)
-
                 Dim typeName = SyntaxFactory.ParseTypeName(typeParameter.Name)
                 Dim symbolInfo = binding.GetSpeculativeSymbolInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace)
                 Dim currentType = TryCast(symbolInfo.Symbol, ITypeSymbol)
@@ -142,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return nextOperation.Invoke(previousToken, currentToken)
             End Function
 
-            Private Function IsLessThanInAttribute(token As SyntaxToken) As Boolean
+            Private Shared Function IsLessThanInAttribute(token As SyntaxToken) As Boolean
                 ' < in attribute
                 If token.Kind = SyntaxKind.LessThanToken AndAlso
                    token.Parent.Kind = SyntaxKind.AttributeList AndAlso

@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            var cacheService = solution.Services.CacheService;
-
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -164,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 }
                 else if (syntaxFactsService.IsDeclaration(node) ||
                          syntaxFactsService.IsUsingOrExternOrImport(node) ||
-                         syntaxFactsService.IsGlobalAttribute(node))
+                         syntaxFactsService.IsGlobalAssemblyAttribute(node))
                 {
                     break;
                 }

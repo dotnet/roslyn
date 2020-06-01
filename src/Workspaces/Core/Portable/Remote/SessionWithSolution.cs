@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // set connection state for this session.
                 // we might remove this in future. see https://github.com/dotnet/roslyn/issues/24836
                 await keepAliveSession.RunRemoteAsync(
-                    WellKnownServiceHubServices.ServiceHubServiceBase_Initialize,
+                    "Initialize",
                     solution: null,
                     new object[] { scope.SolutionInfo },
                     cancellationToken).ConfigureAwait(false);

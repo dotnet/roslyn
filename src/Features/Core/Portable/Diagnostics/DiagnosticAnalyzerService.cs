@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
-        public async Task ForceAnalyzeAsync(Solution solution, ProjectId? projectId = null, CancellationToken cancellationToken = default)
+        public async Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId = null, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(solution.Workspace, out var analyzer))
             {
@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (project != null)
                     {
                         await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                        onProjectAnalyzed(project);
                     }
                 }
                 else
@@ -149,8 +150,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var index = 0;
                     foreach (var project in solution.Projects)
                     {
-                        tasks[index++] = Task.Run(
-                            () => analyzer.ForceAnalyzeProjectAsync(project, cancellationToken));
+                        tasks[index++] = Task.Run(async () =>
+                            {
+                                await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                                onProjectAnalyzed(project);
+                            });
                     }
 
                     await Task.WhenAll(tasks).ConfigureAwait(false);
