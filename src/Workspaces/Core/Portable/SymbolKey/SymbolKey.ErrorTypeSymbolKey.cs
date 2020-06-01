@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -26,11 +27,7 @@ namespace Microsoft.CodeAnalysis
                         visitor.WriteStringArray(GetContainingNamespaceNamesInReverse(parentNamespace));
                         break;
                     default:
-                        // writing out `null` here is technically unnecessary.  However, it makes it easier to
-                        // understand the encoded form when the number of values for an encoded symbol is always the
-                        // same.  So we have all three cases write out two values to facilitate that.
                         visitor.WriteInteger(2);
-                        visitor.WriteSymbolKey(null);
                         break;
                 }
 
@@ -95,26 +92,26 @@ namespace Microsoft.CodeAnalysis
             private static SymbolKeyResolution ResolveContainer(SymbolKeyReader reader)
             {
                 var type = reader.ReadInteger();
-                switch (type)
+
+                if (type == 0)
+                    return reader.ReadSymbolKey();
+
+                if (type == 1)
                 {
-                    case 0:
-                        return reader.ReadSymbolKey();
-                    case 1:
-                        using (var namespaceNames = reader.ReadStringArray())
-                        {
-                            var currentNamespace = reader.Compilation.GlobalNamespace;
+                    using var namespaceNames = reader.ReadStringArray();
+                    var currentNamespace = reader.Compilation.GlobalNamespace;
 
-                            // have to walk the namespaces in reverse because that's how we encoded them.
-                            for (var i = namespaceNames.Count - 1; i >= 0; i--)
-                                currentNamespace = reader.Compilation.CreateErrorNamespaceSymbol(currentNamespace, namespaceNames[i]);
+                    // have to walk the namespaces in reverse because that's how we encoded them.
+                    for (var i = namespaceNames.Count - 1; i >= 0; i--)
+                        currentNamespace = reader.Compilation.CreateErrorNamespaceSymbol(currentNamespace, namespaceNames[i]);
 
-                            return new SymbolKeyResolution(currentNamespace);
-                        }
-                    case 2:
-                        return reader.ReadSymbolKey();
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(type);
+                    return new SymbolKeyResolution(currentNamespace);
                 }
+
+                if (type == 2)
+                    return default;
+
+                throw ExceptionUtilities.UnexpectedValue(type);
             }
 
             private static INamedTypeSymbol Construct(SymbolKeyReader reader, INamespaceOrTypeSymbol container, string name, int arity, ITypeSymbol[] typeArguments)
