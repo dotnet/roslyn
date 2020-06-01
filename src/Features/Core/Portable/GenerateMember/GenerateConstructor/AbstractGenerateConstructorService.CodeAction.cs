@@ -150,14 +150,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     preferThrowExpression: false,
                     generateProperties: _withProperties);
 
-                var result = await codeGenerationService.AddMembersAsync(
+                return await codeGenerationService.AddMembersAsync(
                     _document.Project.Solution,
                     _state.TypeToGenerateIn,
                     members,
                     new CodeGenerationOptions(_state.Token.GetLocation()),
                     cancellationToken).ConfigureAwait(false);
-
-                return result;
             }
         }
     }
