@@ -1,6 +1,6 @@
 ## compilation-from-portable-pdb
 
-Compilation from portable PDBs today is not completely possible, but is desirable in order to help reconstruct a compilation from source provided via source link or embedded in a pdb. Motivation is derived from [roslyn 41395](https://github.com/dotnet/roslyn/issues/41395).
+Compilation from portable PDBs today is not completely possible, but is desirable in order to help reconstruct a compilation from source provided via source link or embedded in a pdb. Motivation is derived from [roslyn 41395](https://github.com/dotnet/roslyn/issues/41395). Once work is finalized on this, a compilation should be able to be made that is exactly the same as an initial compilation as long as it meets the conditions outlined in the assumptions below. [roslyn#44703](https://github.com/dotnet/roslyn/issues/44703) tracks adding an end-to-end validation of the scenario and should also update documentation here to further outline the steps. 
 
 This document is restricted to the following assumptions:
 
