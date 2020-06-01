@@ -105,15 +105,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             // If everything classifies the same way, then just pick that classification.
             using var _ = PooledHashSet<ClassifiedSpan>.GetInstance(out var set);
+            using var _s = PooledHashSet<ClassifiedSpan>.GetInstance(out var sset);
+            var count = result.Count;
             foreach (var symbol in symbolInfo.CandidateSymbols)
             {
                 if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
                 {
-                    set.Add(classifiedSpan);
+                    if (classifiedSpan.ClassificationType != ClassificationTypeNames.Keyword)
+                    {
+                        TryClassifyStaticSymbol(symbol, classifiedSpan.TextSpan, result);
+                        if (result.Count > count)
+                        {
+                            sset.Add(classifiedSpan);
+                        }
+                    }
+                    else
+                    {
+                        set.Add(classifiedSpan);
+                    }
                 }
             }
 
-            if (set.Count == 1)
+            if (sset.Count == 1)
+            {
+                result.Add(sset.First());
+                return true;
+            }
+            else if (set.Count == 1)
             {
                 result.Add(set.First());
                 return true;
