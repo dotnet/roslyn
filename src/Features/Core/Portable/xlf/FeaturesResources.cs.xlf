@@ -395,11 +395,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Generate constructor in '{0}' (with properties)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_without_members">
-        <source>Generate constructor in '{0}' (without members)</source>
-        <target state="new">Generate constructor in '{0}' (without members)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="new">Generate for '{0}'</target>

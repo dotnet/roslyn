@@ -2765,9 +2765,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Document_must_be_contained_in_the_workspace_that_created_this_service" xml:space="preserve">
     <value>Document must be contained in the workspace that created this service</value>
   </data>
-  <data name="Generate_constructor_in_0_without_members" xml:space="preserve">
-    <value>Generate constructor in '{0}' (without members)</value>
-  </data>
   <data name="Generate_constructor_in_0_with_fields" xml:space="preserve">
     <value>Generate constructor in '{0}' (with fields)</value>
   </data>
