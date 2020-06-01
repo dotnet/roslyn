@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
 
-                if (!service.ValidateTypeToGenerateIn(
-                        document.Project.Solution, TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
+                if (!ValidateTypeToGenerateIn(TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
                 {
                     return false;
                 }
@@ -248,7 +247,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // to generate a method here.  Determine where the user wants to generate the method
                 // into, and if it's valid then proceed.
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!service.TryDetermineTypeToGenerateIn(semanticDocument, ContainingType, SimpleNameOrMemberAccessExpressionOpt, cancellationToken,
+                if (!TryDetermineTypeToGenerateIn(semanticDocument, ContainingType, SimpleNameOrMemberAccessExpressionOpt, cancellationToken,
                     out var typeToGenerateIn, out var isStatic))
                 {
                     return false;
@@ -353,10 +352,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return null;
             }
 
-            private bool FieldIsReadOnly(ISymbol symbol)
+            private static bool FieldIsReadOnly(ISymbol symbol)
                 => symbol is IFieldSymbol field && field.IsReadOnly;
 
-            private int GetStatementIndex(ChildSyntaxList children, SyntaxNode statement)
+            private static int GetStatementIndex(ChildSyntaxList children, SyntaxNode statement)
             {
                 var index = 0;
                 foreach (var child in children)

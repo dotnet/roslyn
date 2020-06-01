@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             foreach (var linkedDocumentId in linkedDocumentIds)
             {
                 var linkedDocument = document.Project.Solution.GetRequiredDocument(linkedDocumentId);
-                var linkedToken = await FindTokenInLinkedDocumentAsync(token, document, linkedDocument, cancellationToken).ConfigureAwait(false);
+                var linkedToken = await FindTokenInLinkedDocumentAsync(token, linkedDocument, cancellationToken).ConfigureAwait(false);
 
                 if (linkedToken != default)
                 {
@@ -124,9 +124,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             => symbols.Length > 0
                 && !ErrorVisitor.ContainsError(symbols.FirstOrDefault());
 
-        private async Task<SyntaxToken> FindTokenInLinkedDocumentAsync(
+        private static async Task<SyntaxToken> FindTokenInLinkedDocumentAsync(
             SyntaxToken token,
-            Document originalDocument,
             Document linkedDocument,
             CancellationToken cancellationToken)
         {
@@ -178,7 +177,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.Description, mainDescriptionTaggedParts);
             }
 
-            var documentedSymbol = symbols.FirstOrDefault()?.OriginalDefinition;
+            var documentedSymbol = symbols.FirstOrDefault();
 
             // if generating quick info for an attribute, bind to the class instead of the constructor
             if (syntaxFactsService.IsAttributeName(token.Parent) &&
@@ -301,7 +300,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return QuickInfoItem.Create(token.Span, tags, sections.ToImmutable());
         }
 
-        private ImmutableArray<TaggedText> GetDocumentationContent(
+        private static ImmutableArray<TaggedText> GetDocumentationContent(
             ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,
@@ -325,7 +324,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return default;
         }
 
-        private ImmutableArray<TaggedText> GetRemarksDocumentationContent(
+        private static ImmutableArray<TaggedText> GetRemarksDocumentationContent(
             Workspace workspace,
             ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
@@ -356,7 +355,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return default;
         }
 
-        private ImmutableArray<TaggedText> GetReturnsDocumentationContent(
+        private static ImmutableArray<TaggedText> GetReturnsDocumentationContent(
             ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,
@@ -380,7 +379,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return default;
         }
 
-        private ImmutableArray<TaggedText> GetValueDocumentationContent(
+        private static ImmutableArray<TaggedText> GetValueDocumentationContent(
             ISymbol? documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,

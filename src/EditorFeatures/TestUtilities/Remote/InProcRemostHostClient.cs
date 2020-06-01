@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Nerdbank;
@@ -27,14 +28,14 @@ namespace Roslyn.Test.Utilities.Remote
         private readonly InProcRemoteServices _inprocServices;
         private readonly RemoteEndPoint _endPoint;
 
-        public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup)
+        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, bool runCacheCleanup)
         {
             var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
-            var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.RemoteHostService).ConfigureAwait(false);
+            var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubService.RemoteHost).ConfigureAwait(false);
 
             var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
-            var instance = new InProcRemoteHostClient(current, workspace, inprocServices, remoteHostStream);
+            var instance = new InProcRemoteHostClient(current, services, inprocServices, remoteHostStream);
 
             // make sure connection is done right
             string? telemetrySession = null;
@@ -57,10 +58,10 @@ namespace Roslyn.Test.Utilities.Remote
 
         private InProcRemoteHostClient(
             string clientId,
-            Workspace workspace,
+            HostWorkspaceServices services,
             InProcRemoteServices inprocServices,
             Stream stream)
-            : base(workspace)
+            : base(services)
         {
             ClientId = clientId;
 
@@ -85,27 +86,26 @@ namespace Roslyn.Test.Utilities.Remote
         /// Remote API.
         /// </summary>
         public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => Task.FromResult(Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+            => Task.FromResult(Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
-        public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
-            => _inprocServices.RegisterService(name, serviceCreator);
+        public void RegisterService(RemoteServiceName serviceName, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
+            => _inprocServices.RegisterService(serviceName, serviceCreator);
 
-        public Task<Stream> RequestServiceAsync(string serviceName)
+        public Task<Stream> RequestServiceAsync(RemoteServiceName serviceName)
             => _inprocServices.RequestServiceAsync(serviceName);
 
         public override string ClientId { get; }
-        public override bool IsRemoteHost64Bit => IntPtr.Size == 8;
 
         protected override async Task<Connection?> TryCreateConnectionAsync(
-            string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+            RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate service specific information 
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName).ConfigureAwait(false);
 
-            return new JsonRpcConnection(Workspace, _inprocServices.Logger, callbackTarget, serviceStream);
+            return new JsonRpcConnection(Services, _inprocServices.Logger, callbackTarget, serviceStream);
         }
 
         public override void Dispose()
@@ -154,29 +154,29 @@ namespace Roslyn.Test.Utilities.Remote
         private class InProcRemoteServices
         {
             private readonly ServiceProvider _serviceProvider;
-            private readonly Dictionary<string, Func<Stream, IServiceProvider, ServiceBase>> _creatorMap;
+            private readonly Dictionary<RemoteServiceName, Func<Stream, IServiceProvider, ServiceBase>> _creatorMap;
 
             public InProcRemoteServices(bool runCacheCleanup)
             {
                 _serviceProvider = new ServiceProvider(runCacheCleanup);
-                _creatorMap = new Dictionary<string, Func<Stream, IServiceProvider, ServiceBase>>();
+                _creatorMap = new Dictionary<RemoteServiceName, Func<Stream, IServiceProvider, ServiceBase>>();
 
-                RegisterService(WellKnownServiceHubServices.RemoteHostService, (s, p) => new RemoteHostService(s, p));
-                RegisterService(WellKnownServiceHubServices.CodeAnalysisService, (s, p) => new CodeAnalysisService(s, p));
-                RegisterService(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, (s, p) => new RemoteSymbolSearchUpdateEngine(s, p));
-                RegisterService(WellKnownServiceHubServices.RemoteDesignerAttributeService, (s, p) => new RemoteDesignerAttributeService(s, p));
-                RegisterService(WellKnownServiceHubServices.RemoteProjectTelemetryService, (s, p) => new RemoteProjectTelemetryService(s, p));
-                RegisterService(WellKnownServiceHubServices.RemoteTodoCommentsService, (s, p) => new RemoteTodoCommentsService(s, p));
-                RegisterService(WellKnownServiceHubServices.LanguageServer, (s, p) => new LanguageServer(s, p));
+                RegisterService(WellKnownServiceHubService.RemoteHost, (s, p) => new RemoteHostService(s, p));
+                RegisterService(WellKnownServiceHubService.CodeAnalysis, (s, p) => new CodeAnalysisService(s, p));
+                RegisterService(WellKnownServiceHubService.RemoteSymbolSearchUpdateEngine, (s, p) => new RemoteSymbolSearchUpdateEngine(s, p));
+                RegisterService(WellKnownServiceHubService.RemoteDesignerAttributeService, (s, p) => new RemoteDesignerAttributeService(s, p));
+                RegisterService(WellKnownServiceHubService.RemoteProjectTelemetryService, (s, p) => new RemoteProjectTelemetryService(s, p));
+                RegisterService(WellKnownServiceHubService.RemoteTodoCommentsService, (s, p) => new RemoteTodoCommentsService(s, p));
+                RegisterService(WellKnownServiceHubService.LanguageServer, (s, p) => new LanguageServer(s, p));
             }
 
             public AssetStorage AssetStorage => _serviceProvider.AssetStorage;
             public TraceSource Logger { get; } = new TraceSource("Default");
 
-            public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
+            public void RegisterService(RemoteServiceName name, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
                 => _creatorMap.Add(name, serviceCreator);
 
-            public Task<Stream> RequestServiceAsync(string serviceName)
+            public Task<Stream> RequestServiceAsync(RemoteServiceName serviceName)
             {
                 if (_creatorMap.TryGetValue(serviceName, out var creator))
                 {

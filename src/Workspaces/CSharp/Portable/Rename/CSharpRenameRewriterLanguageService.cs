@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     token.ValueText == _replacementText ||
                     isOldText ||
                     _possibleNameConflicts.Contains(token.ValueText) ||
-                    IsPossiblyDestructorConflict(token, _replacementText);
+                    IsPossiblyDestructorConflict(token);
 
                 if (tokenNeedsConflictCheck)
                 {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 return newToken;
             }
 
-            private bool IsPossiblyDestructorConflict(SyntaxToken token, string replacementText)
+            private bool IsPossiblyDestructorConflict(SyntaxToken token)
             {
                 return _replacementText == "Finalize" &&
                     token.IsKind(SyntaxKind.IdentifierToken) &&
@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var properties = new List<ISymbol>();
                     foreach (var referencedSymbol in referencedSymbols)
                     {
-                        var property = await RenameLocations.ReferenceProcessing.GetPropertyFromAccessorOrAnOverrideAsync(
+                        var property = await RenameLocations.ReferenceProcessing.TryGetPropertyFromAccessorOrAnOverrideAsync(
                             referencedSymbol, baseSolution, cancellationToken).ConfigureAwait(false);
                         if (property != null)
                         {
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             }
         }
 
-        private void AddSymbolSourceSpans(
+        private static void AddSymbolSourceSpans(
             ArrayBuilder<Location> conflicts, IEnumerable<ISymbol> symbols,
             IDictionary<Location, Location> reverseMappedLocations)
         {

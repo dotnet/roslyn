@@ -258,3 +258,9 @@ dotnet_diagnostic.IDE0052.severity = warning
 
 # IDE0059: Unnecessary assignment to a value
 dotnet_diagnostic.IDE0059.severity = warning
+
+# IDE0060: Remove unused parameter
+dotnet_diagnostic.IDE0060.severity = warning
+
+# CA1822: Make member static
+dotnet_diagnostic.CA1822.severity = warning

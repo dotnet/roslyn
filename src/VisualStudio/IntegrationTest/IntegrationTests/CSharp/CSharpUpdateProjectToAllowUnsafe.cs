@@ -33,7 +33,7 @@ unsafe class C
             VisualStudio.Editor.Verify.CodeAction("Allow unsafe code in this project", applyFix: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/44301"), Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
         public void CPSProject_GeneralPropertyGroupUpdated()
         {
             var project = new ProjectUtils.Project(ProjectName);

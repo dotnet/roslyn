@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_CantOverrideSealed, overridingMemberLocation, overridingMember, overriddenMember);
                         suppressAccessors = true;
                     }
-                    else if (!overridingMember.IsPartialMethod() && !OverrideHasCorrectAccessibility(overriddenMember, overridingMember))
+                    else if (!OverrideHasCorrectAccessibility(overriddenMember, overridingMember))
                     {
                         var accessibility = SyntaxFacts.GetText(overriddenMember.DeclaredAccessibility);
                         diagnostics.Add(ErrorCode.ERR_CantChangeAccessOnOverride, overridingMemberLocation, overridingMember, accessibility, overriddenMember);

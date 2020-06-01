@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 {
     internal static class EditorConfigDocumentOptionsProviderFactory
     {
-        public static IDocumentOptionsProvider Create(Workspace workspace)
+        public static IDocumentOptionsProvider Create()
             => new EditorConfigDocumentOptionsProvider();
 
         private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";

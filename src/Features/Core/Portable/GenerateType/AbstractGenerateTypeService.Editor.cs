@@ -223,11 +223,11 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return namespaceToGenerateInto;
             }
 
-            private string AddGlobalDotToTheNamespace(string namespaceToBeGenerated)
+            private static string AddGlobalDotToTheNamespace(string namespaceToBeGenerated)
                 => "Global." + namespaceToBeGenerated;
 
             // Returns the length of the meaningful rootNamespace substring part of namespaceToGenerateInto
-            private int CheckIfRootNamespacePresentInNamespace(string namespaceToGenerateInto, string rootNamespace)
+            private static int CheckIfRootNamespacePresentInNamespace(string namespaceToGenerateInto, string rootNamespace)
             {
                 if (namespaceToGenerateInto == rootNamespace)
                 {
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return -1;
             }
 
-            private void AddFoldersToNamespaceContainers(List<string> container, IList<string> folders)
+            private static void AddFoldersToNamespaceContainers(List<string> container, IList<string> folders)
             {
                 // Add the folder as part of the namespace if there are not empty
                 if (folders != null && folders.Count != 0)

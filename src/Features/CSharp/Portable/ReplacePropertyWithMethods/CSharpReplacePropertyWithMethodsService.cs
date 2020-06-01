@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 cancellationToken);
         }
 
-        private List<SyntaxNode> ConvertPropertyToMembers(
+        private static List<SyntaxNode> ConvertPropertyToMembers(
             DocumentOptionSet documentOptions,
             ParseOptions parseOptions,
             SyntaxGenerator generator,

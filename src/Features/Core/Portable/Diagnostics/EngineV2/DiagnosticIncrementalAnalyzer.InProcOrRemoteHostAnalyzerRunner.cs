@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 try
                 {
                     _ = await client.TryRunRemoteAsync(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                         solution: null,
                         new object[]
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(
+            private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(
                 RemoteHostClient client, CompilationWithAnalyzers analyzerDriver, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
             {
                 var solution = project.Solution;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     project.Id, analyzerMap.Keys.ToArray());
 
                 var result = await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
                     solution,
                     new object[] { argument },
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result.HasValue ? result.Value : DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
             }
 
-            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
+            private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
             {
                 // handling of cancellation and exception
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);

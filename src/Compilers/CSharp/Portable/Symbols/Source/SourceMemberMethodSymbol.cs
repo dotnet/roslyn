@@ -441,11 +441,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool IsExtern
+        internal bool HasExternModifier
         {
             get
             {
                 return (this.DeclarationModifiers & DeclarationModifiers.Extern) != 0;
+            }
+        }
+
+        public override bool IsExtern
+        {
+            get
+            {
+                return HasExternModifier;
             }
         }
 

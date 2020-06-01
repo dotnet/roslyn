@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal static partial class DependentTypeFinder
     {
-        public static async Task<ImmutableArray<INamedTypeSymbol>?> TryFindAndCacheRemoteTypesAsync(
+        public static async Task<ImmutableArray<INamedTypeSymbol>?> TryFindRemoteTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     if (client != null)
                     {
                         var result = await client.TryRunRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
-                            WellKnownServiceHubServices.CodeAnalysisService,
+                            WellKnownServiceHubService.CodeAnalysis,
                             remoteFunctionName,
                             solution,
                             new object?[]
