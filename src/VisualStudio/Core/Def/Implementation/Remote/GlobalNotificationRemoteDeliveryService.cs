@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return previousTask.Result;
             }
 
-            _ = await client.TryRunRemoteAsync(
+            await client.RunRemoteAsync(
                 WellKnownServiceHubService.CodeAnalysis,
                 nameof(IRemoteGlobalNotificationDeliveryService.OnGlobalOperationStarted),
                 solution: null,
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return previousTask.Result;
             }
 
-            _ = await client.TryRunRemoteAsync(
+            await client.RunRemoteAsync(
                 WellKnownServiceHubService.CodeAnalysis,
                 nameof(IRemoteGlobalNotificationDeliveryService.OnGlobalOperationStopped),
                 solution: null,

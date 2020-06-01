@@ -373,7 +373,7 @@ public string Serialize()
     addWithIndent($"\"Item1\": \"{this.Item1.ToString()}\",");
     addWithIndent($"\"Item2\": {this.Item2.ToString()},");
 
-    sb.AppendLine("{");
+    sb.AppendLine("}");
 
     return sb.ToString();
 

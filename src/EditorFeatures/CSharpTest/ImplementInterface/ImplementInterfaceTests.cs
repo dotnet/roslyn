@@ -187,9 +187,7 @@ namespace System.Runtime.CompilerServices
 class Class : [|IInterface|]
 {
 }" + nativeIntegerAttributeDefinition,
-    @"using System;
-
-interface IInterface
+    @"interface IInterface
 {
     [return: System.Runtime.CompilerServices.NativeInteger(new[] { true, true })]
     (nint, nuint) Method(nint x, nuint x2);
@@ -199,7 +197,7 @@ class Class : IInterface
 {
     public (nint, nuint) Method(nint x, nuint x2)
     {
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }
 }" + nativeIntegerAttributeDefinition);
         }

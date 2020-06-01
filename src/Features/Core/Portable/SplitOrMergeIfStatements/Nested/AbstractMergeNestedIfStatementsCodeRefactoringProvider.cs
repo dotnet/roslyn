@@ -192,13 +192,13 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
                 // A statement should always be in a statement container, but we'll do a defensive check anyway so that
                 // we don't crash if the helper is missing some cases or there's a new language feature it didn't account for.
-                Debug.Assert(syntaxFacts.IsStatementContainer(outerIfStatement.Parent));
-                if (!syntaxFacts.IsStatementContainer(outerIfStatement.Parent))
+                Debug.Assert(syntaxFacts.GetStatementContainer(outerIfStatement) is object);
+                if (!(syntaxFacts.GetStatementContainer(outerIfStatement) is { } container))
                 {
                     return false;
                 }
 
-                var outerStatements = syntaxFacts.GetStatementContainerStatements(outerIfStatement.Parent);
+                var outerStatements = syntaxFacts.GetStatementContainerStatements(container);
                 var outerIfStatementIndex = outerStatements.IndexOf(outerIfStatement);
 
                 var remainingStatements = statements.Skip(1);

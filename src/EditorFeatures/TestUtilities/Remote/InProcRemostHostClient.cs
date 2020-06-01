@@ -25,6 +25,7 @@ namespace Roslyn.Test.Utilities.Remote
 {
     internal sealed class InProcRemoteHostClient : RemoteHostClient, IRemoteHostServiceCallback
     {
+        private readonly HostWorkspaceServices _services;
         private readonly InProcRemoteServices _inprocServices;
         private readonly RemoteEndPoint _endPoint;
 
@@ -34,21 +35,18 @@ namespace Roslyn.Test.Utilities.Remote
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubService.RemoteHost).ConfigureAwait(false);
 
-            var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
-            var instance = new InProcRemoteHostClient(current, services, inprocServices, remoteHostStream);
+            var clientId = $"InProc ({Guid.NewGuid()})";
+            var instance = new InProcRemoteHostClient(clientId, services, inprocServices, remoteHostStream);
 
             // make sure connection is done right
             string? telemetrySession = null;
             var uiCultureLCIDE = 0;
             var cultureLCID = 0;
 
-            var host = await instance._endPoint.InvokeAsync<string>(
-                nameof(IRemoteHostService.Connect),
-                new object?[] { current, uiCultureLCIDE, cultureLCID, telemetrySession },
+            await instance._endPoint.InvokeAsync(
+                nameof(IRemoteHostService.InitializeGlobalState),
+                new object?[] { clientId, uiCultureLCIDE, cultureLCID, telemetrySession },
                 CancellationToken.None).ConfigureAwait(false);
-
-            // TODO: change this to non fatal watson and make VS to use inproc implementation
-            Contract.ThrowIfFalse(host == current.ToString());
 
             instance.Started();
 
@@ -61,9 +59,9 @@ namespace Roslyn.Test.Utilities.Remote
             HostWorkspaceServices services,
             InProcRemoteServices inprocServices,
             Stream stream)
-            : base(services)
         {
             ClientId = clientId;
+            _services = services;
 
             _inprocServices = inprocServices;
 
@@ -79,14 +77,15 @@ namespace Roslyn.Test.Utilities.Remote
             => RemoteEndPoint.WriteDataToNamedPipeAsync(
                 pipeName,
                 (scopeId, checksums),
-                (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(writer, RemotableDataService, data.scopeId, data.checksums, cancellationToken),
+                (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(
+                    writer, _services.GetRequiredService<IRemotableDataService>(), data.scopeId, data.checksums, cancellationToken),
                 cancellationToken);
 
         /// <summary>
         /// Remote API.
         /// </summary>
         public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => Task.FromResult(Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+            => Task.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
@@ -98,14 +97,13 @@ namespace Roslyn.Test.Utilities.Remote
 
         public override string ClientId { get; }
 
-        protected override async Task<Connection?> TryCreateConnectionAsync(
-            RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
+        public override async Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate service specific information 
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName).ConfigureAwait(false);
 
-            return new JsonRpcConnection(Services, _inprocServices.Logger, callbackTarget, serviceStream);
+            return new JsonRpcConnection(_services, _inprocServices.Logger, callbackTarget, serviceStream, poolReclamation: null);
         }
 
         public override void Dispose()

@@ -28,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         public async Task<object[]> HandleAsync(ClassificationParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
+            request.TextDocument.Uri = requestContext.ProtocolConverter.FromProtocolUri(request.TextDocument.Uri);
             var document = requestContext.Context.GetDocument(request.TextDocument);
             var classificationService = document?.Project.LanguageServices.GetService<IClassificationService>();
 

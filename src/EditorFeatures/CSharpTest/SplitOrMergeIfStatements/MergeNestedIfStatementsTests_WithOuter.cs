@@ -2190,6 +2190,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
 
         [Fact]
+        public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits6()
+        {
+            await TestInRegularAndScriptAsync(
+@"bool a = bool.Parse("""");
+bool b = bool.Parse("""");
+
+start:
+System.Console.WriteLine();
+
+if (a)
+{
+    [||]if (b)
+        System.Console.WriteLine(a && b);
+    else
+        System.Console.WriteLine(a);
+
+    switch (a)
+    {
+        default:
+            goto start;
+    }
+}
+else
+    System.Console.WriteLine(a);
+
+switch (a)
+{
+    default:
+        goto start;
+}
+",
+@"bool a = bool.Parse("""");
+bool b = bool.Parse("""");
+
+start:
+System.Console.WriteLine();
+
+if (a && b)
+    System.Console.WriteLine(a && b);
+else
+    System.Console.WriteLine(a);
+
+switch (a)
+{
+    default:
+        goto start;
+}
+");
+        }
+
+        [Fact]
         public async Task MergedWithExtraMatchingStatementsIfControlFlowQuitsInSwitchSection()
         {
             // Switch sections are interesting in that they are blocks of statements that aren't BlockSyntax.

@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             // Second pass.  Convert those characters to Runes.
             using var _2 = ArrayBuilder<VirtualChar>.GetInstance(out var runeResults);
 
-            for (int i = 0; i < charResults.Count;)
+            for (var i = 0; i < charResults.Count;)
             {
                 var (ch, span) = charResults[i];
 

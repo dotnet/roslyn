@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // parameter has a different name in different parts that we won't find it.  However,
             // this only happens in error situations.  It is not legal in C# to use a different
             // name for a type parameter in different parts.
-            return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name, symbol.ContainingType.Name);
+            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, symbol.Name, symbol.ContainingType.Name);
         }
 
         protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(

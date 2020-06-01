@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal Cci.IMethodReference DebugEntryPoint;
 
         private readonly ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody> _methodBodyMap;
-        private readonly TokenMap<Cci.IReference> _referencesInILMap = new TokenMap<Cci.IReference>(MetadataEntityReferenceComparer.ConsiderEverything);
+        private readonly TokenMap _referencesInILMap = new TokenMap(MetadataEntityReferenceComparer.ConsiderEverything);
         private readonly ItemTokenMap<string> _stringsInILMap = new ItemTokenMap<string>();
         private readonly ItemTokenMap<Cci.DebugSourceDocument> _sourceDocumentsInILMap = new ItemTokenMap<Cci.DebugSourceDocument>();
 
@@ -291,11 +291,20 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public uint GetFakeSymbolTokenForIL(Cci.IReference symbol, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            bool added;
-            uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out added);
+            uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out bool added);
             if (added)
             {
                 ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true));
+            }
+            return token;
+        }
+
+        public uint GetFakeSymbolTokenForIL(Cci.ISignature symbol, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out bool added);
+            if (added)
+            {
+                ReferenceDependencyWalker.VisitSignature(symbol, new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true));
             }
             return token;
         }
@@ -310,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _sourceDocumentsInILMap.GetItem(token);
         }
 
-        public Cci.IReference GetReferenceFromToken(uint token)
+        public object GetReferenceFromToken(uint token)
         {
             return _referencesInILMap.GetItem(token);
         }
@@ -325,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _stringsInILMap.GetItem(token);
         }
 
-        public IEnumerable<Cci.IReference> ReferencesInIL(out int count)
+        public IEnumerable<object> ReferencesInIL(out int count)
         {
             return _referencesInILMap.GetAllItemsAndCount(out count);
         }

@@ -3065,6 +3065,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            Visit(node.InvokedExpression);
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.FunctionPointer.Signature);
+            return null;
+        }
+
+        public override BoundNode VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node)
+        {
+            // This is not encountered in correct programs, but can be seen if the function pointer was
+            // unable to be converted and the semantic model is used to query for information.
+            Visit(node.Operand);
+            return null;
+        }
+
         /// <summary>
         /// This visitor represents just the assignment part of the null coalescing assignment
         /// operator.
