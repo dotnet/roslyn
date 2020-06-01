@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 if (state != null)
                 {
                     using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
+
                     var codeAction = new GenerateConstructorCodeAction((TService)this, document, state, withFields: true);
                     result.Add(codeAction);
 

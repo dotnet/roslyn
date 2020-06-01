@@ -46,16 +46,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             public bool IsConstructorInitializerGeneration { get; private set; }
 
+            public IMethodSymbol DelegatedConstructor { get; private set; }
+
             public Dictionary<string, ISymbol> ParameterToExistingMemberMap { get; private set; }
             public Dictionary<string, string> ParameterToNewFieldMap { get; private set; }
             public Dictionary<string, string> ParameterToNewPropertyMap { get; private set; }
             public ImmutableArray<IParameterSymbol> RemainingParameters { get; private set; }
-
-            public IMethodSymbol DelegatedConstructor { get; private set; }
-            public Dictionary<string, ISymbol> DelegatedConstructorParameterToExistingMemberMap { get; private set; }
-            public Dictionary<string, string> DelegatedConstructorParameterToNewFieldMap { get; private set; }
-            public Dictionary<string, string> DelegatedConstructorParameterToNewPropertyMap { get; private set; }
-            public ImmutableArray<IParameterSymbol> DelegatedConstructorRemainingParameters { get; private set; }
 
             private State(TService service, SemanticDocument document)
             {
@@ -112,8 +108,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 if (ClashesWithExistingConstructor())
                     return false;
 
-                this.InitializeNonDelegatedConstructor(cancellationToken);
-                this.InitializeDelegatedConstructor(cancellationToken);
+                if (!this.TryInitializeDelegatedConstructor(cancellationToken))
+                    this.InitializeNonDelegatedConstructor(cancellationToken);
 
                 return true;
             }
@@ -129,16 +125,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 GetParameters(
                     arguments, this.AttributeArguments,
                     parameterTypes, parameterNames,
-                    out var parameterToExistingFieldMap,
-                    out var parameterToNewFieldMap,
-                    out var parameterToNewPropertyMap,
-                    out var remainingParameters,
                     cancellationToken);
-
-                this.ParameterToExistingMemberMap = parameterToExistingFieldMap;
-                this.ParameterToNewFieldMap = parameterToNewFieldMap;
-                this.ParameterToNewPropertyMap = parameterToNewPropertyMap;
-                this.RemainingParameters = remainingParameters;
             }
 
             private ImmutableArray<ParameterName> GetParameterNames(
@@ -149,15 +136,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     : Service.GenerateParameterNames(Document.SemanticModel, arguments, typeParametersNames, ParameterNamingRule, cancellationToken);
             }
 
-            private void InitializeDelegatedConstructor(CancellationToken cancellationToken)
+            private bool TryInitializeDelegatedConstructor(CancellationToken cancellationToken)
             {
                 // We don't have to deal with the zero length case, since there's nothing to
                 // delegate.  It will fall out of the GenerateFieldDelegatingConstructor above.
                 for (var i = this.Arguments.Length; i >= 1; i--)
                 {
                     if (InitializeDelegatedConstructor(i, cancellationToken))
-                        return;
+                        return true;
                 }
+
+                return false;
             }
 
             private bool InitializeDelegatedConstructor(int argumentCount, CancellationToken cancellationToken)
@@ -211,15 +200,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 GetParameters(
                     remainingArguments, remainingAttributeArguments,
                     remainingParameterTypes, remainingParameterNames,
-                    out var delegatedConstructorParameterToExistingMemberMap,
-                    out var delegatedConstructorParameterToNewFieldMap,
-                    out var delegatedConstructorParameterToNewPropertyMap,
-                    out var delegatedConstructorRemainingParameters,
                     cancellationToken);
-                this.DelegatedConstructorParameterToExistingMemberMap = delegatedConstructorParameterToExistingMemberMap;
-                this.DelegatedConstructorParameterToNewFieldMap = delegatedConstructorParameterToNewFieldMap;
-                this.DelegatedConstructorParameterToNewPropertyMap = delegatedConstructorParameterToNewPropertyMap;
-                this.DelegatedConstructorRemainingParameters = delegatedConstructorRemainingParameters;
                 return true;
             }
 
@@ -406,15 +387,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 ImmutableArray<TAttributeArgumentSyntax>? attributeArguments,
                 ImmutableArray<ITypeSymbol> parameterTypes,
                 ImmutableArray<ParameterName> parameterNames,
-                out Dictionary<string, ISymbol> parameterToExistingMemberMap,
-                out Dictionary<string, string> parameterToNewFieldMap,
-                out Dictionary<string, string> parameterToNewPropertyMap,
-                out ImmutableArray<IParameterSymbol> parameters,
                 CancellationToken cancellationToken)
             {
-                parameterToExistingMemberMap = new Dictionary<string, ISymbol>();
-                parameterToNewFieldMap = new Dictionary<string, string>();
-                parameterToNewPropertyMap = new Dictionary<string, string>();
+                var parameterToExistingMemberMap = new Dictionary<string, ISymbol>();
+                var parameterToNewFieldMap = new Dictionary<string, string>();
+                var parameterToNewPropertyMap = new Dictionary<string, string>();
 
                 using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var result);
 
@@ -446,10 +423,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         name: parameterNames[i].BestNameForParameter));
                 }
 
-                parameters = result.ToImmutable();
+                this.ParameterToExistingMemberMap = parameterToExistingMemberMap;
+                this.ParameterToNewFieldMap = parameterToNewFieldMap;
+                this.ParameterToNewPropertyMap = parameterToNewPropertyMap;
+                this.RemainingParameters = result.ToImmutable();
             }
-
-
 
             private bool TryFindMatchingFieldOrProperty(
                 ImmutableArray<TArgumentSyntax> arguments,
