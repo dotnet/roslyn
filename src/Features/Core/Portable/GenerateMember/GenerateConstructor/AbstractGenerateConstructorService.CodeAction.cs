@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
                 return await GenerateThisOrBaseDelegatingConstructorAsync(cancellationToken).ConfigureAwait(false) ??
-                       await GenerateFieldDelegatingConstructorAsync(cancellationToken).ConfigureAwait(false);
+                       await GenerateMemberDelegatingConstructorAsync(cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<Document> GenerateThisOrBaseDelegatingConstructorAsync(CancellationToken cancellationToken)
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 }
             }
 
-            private async Task<Document> GenerateFieldDelegatingConstructorAsync(CancellationToken cancellationToken)
+            private async Task<Document> GenerateMemberDelegatingConstructorAsync(CancellationToken cancellationToken)
             {
                 var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
                 var codeGenerationService = provider.GetService<ICodeGenerationService>();
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     _state.TypeToGenerateIn,
                     _state.RemainingParameters,
                     _state.ParameterToExistingMemberMap,
-                    _state.ParameterToNewFieldMap,
+                    _withProperties ? _state.ParameterToNewPropertyMap : _state.ParameterToNewFieldMap,
                     addNullChecks: false,
                     preferThrowExpression: false,
                     generateProperties: _withProperties);
