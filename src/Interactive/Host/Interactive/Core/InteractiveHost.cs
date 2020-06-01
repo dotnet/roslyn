@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal async Task<RemoteService> TryGetServiceAsync()
         {
             var service = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
-            return service.ServiceOpt;
+            return service.Service;
         }
         // Triggered whenever we create a fresh process.
         // The ProcessExited event is not hooked yet.
@@ -100,14 +100,9 @@ namespace Microsoft.CodeAnalysis.Interactive
         private static string GenerateUniqueChannelLocalName()
             => typeof(InteractiveHost).FullName + Guid.NewGuid();
 
+        private async Task<RemoteService?> TryStartProcessAsync(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
         {
-            return null;
-        }
-
-        //(miziga) made method async for the pipestream
-        private async Task<RemoteService> TryStartProcessAsync(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
-        {
-            Process newProcess = null;
+            Process? newProcess = null;
             int newProcessId = -1;
             try
             {
@@ -116,7 +111,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var remoteServerPort = "InteractiveHostChannel-" + Guid.NewGuid();
 
                 var processInfo = new ProcessStartInfo(hostPath);
-                //(miziga) same name as pipe - store somewhere
                 string pipeName = GenerateUniqueChannelLocalName();
                 processInfo.Arguments = pipeName + " " + currentProcessId;
                 processInfo.WorkingDirectory = _initialWorkingDirectory;
@@ -147,11 +141,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                     newProcessId = 0;
                 }
 
-                // (miziga) initializing pipe for replacement of remote channel
                 var clientStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
                 var jsonRpc = JsonRpc.Attach(clientStream);
 
-                // instantiate remote service:
                 try
                 {
                     await clientStream.ConnectAsync(cancellationToken).ConfigureAwait(false);
@@ -355,14 +347,13 @@ namespace Microsoft.CodeAnalysis.Interactive
             return default;
         }
 
-        private async Task<TResult> Async<TResult>(string targetName, params object[] arguments)
+        private async Task<TResult> Async<TResult>(string targetName, params object?[] arguments)
         {
-            InitializedRemoteService initializedRemoteService = TryGetOrCreateRemoteServiceAsync().Result;
-            RemoteService remoteService = initializedRemoteService.ServiceOpt;
-            return await Async<TResult>(remoteService, targetName, arguments).ConfigureAwait(false);
+            var initializedRemoteService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
+            return await Async<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);
         }
 
-        private static async Task<TResult> Async<TResult>(RemoteService remoteService, string targetName, params object[] arguments)
+        private static async Task<TResult> Async<TResult>(RemoteService remoteService, string targetName, params object?[] arguments)
         {
             try
             {
@@ -370,10 +361,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
             catch (Exception e) when (e is ObjectDisposedException || !remoteService.Process.IsAlive())
             {
-                return default;
-            }            catch (Exception e) when (FatalError.Report(e))
-            {
-                throw ExceptionUtilities.Unreachable;
+                return default!;
             }
         }
 
@@ -438,11 +426,9 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </remarks>
         public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-            return Async<RemoteExecutionResult>("ExecuteFileAsync", path);        }
+            Contract.ThrowIfNull(path);
+            return Async<RemoteExecutionResult>("ExecuteFileAsync", path);
+        }
 
         /// <summary>
         /// Asynchronously adds a reference to the set of available references for next submission.

@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal sealed class RemoteService
         {
             public readonly Process Process;
-            //public readonly Service Service;
-            public readonly JsonRpc JsonRpc; // make readonly JsonRpc
+            public readonly JsonRpc JsonRpc;
             private readonly int _processId;
             private readonly SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
             private readonly bool _joinOutputWritingThreadsOnDisposal;
@@ -33,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             private Thread? _readErrorOutputThread;      // nulled on dispose
             private volatile ProcessExitHandlerStatus _processExitHandlerStatus;  // set to Handled on dispose
 
-            //(miziga) should there be a jsonRpc object in parameters?
             internal RemoteService(InteractiveHost host, Process process, int processId, JsonRpc jsonRpc)
             {
                 Debug.Assert(host != null);

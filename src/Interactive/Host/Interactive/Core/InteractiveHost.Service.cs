@@ -155,18 +155,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _serviceState = null;
             }
 
-            public override object? InitializeLifetimeService()            {
+            /*public override object? InitializeLifetimeService()
+            {
                 return null;
-            }
-            
+            }*/
+
             public Task InitializeAsync(string replServiceProviderTypeName, string cultureName)
             {
-                Debug.Assert(replServiceProviderType != null);
                 Debug.Assert(cultureName != null);
+                Contract.ThrowIfFalse(_serviceState == null, "Service already initialized");
 
-                Debug.Assert(_metadataFileProvider == null);
-                Debug.Assert(_assemblyLoader == null);
-                Debug.Assert(_replServiceProvider == null);
 
                 // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(
@@ -175,19 +173,19 @@ namespace Microsoft.CodeAnalysis.Interactive
                     documentationCommentsCulture: new CultureInfo(cultureName));
 
                 var assemblyLoader = new InteractiveAssemblyLoader(metadataFileProvider);
+                var replServiceProviderType = Type.GetType(replServiceProviderTypeName);
                 var replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType);
                 var globals = new InteractiveScriptGlobals(Console.Out, replServiceProvider.ObjectFormatter);
 
-                //var replServiceProviderType = Type.GetType(replServiceProviderTypeName);
-                //_replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType);
                 _serviceState = new ServiceState(assemblyLoader, metadataFileProvider, replServiceProvider, globals);
 
                 return Task.CompletedTask;
+            }
+
             private ServiceState GetServiceState()
             {
                 Contract.ThrowIfNull(_serviceState, "Service not initialized");
                 return _serviceState;
-
             }
 
             private MetadataReferenceResolver CreateMetadataReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
@@ -328,9 +326,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             private async Task<EvaluationState> SetPathsAsync(
                 Task<EvaluationState> lastTask,
                 TaskCompletionSource<RemoteExecutionResult> completionSource,
-                string[] referenceSearchPaths,
-                string[] sourceSearchPaths,
-                string baseDirectory)
+                string[]? referenceSearchPaths,
+                string[]? sourceSearchPaths,
+                string? baseDirectory)
             {
                 var serviceState = GetServiceState();
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
@@ -359,8 +357,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Reads given initialization file (.rsp) and loads and executes all assembly references and files, respectively specified in it.
             /// Execution is performed on the UI thread.
             /// </summary>
-            public async Task<RemoteExecutionResult> InitializeContextAsync(string initializationFile, bool isRestarting)
-			{
+            public async Task<RemoteExecutionResult> InitializeContextAsync(string? initializationFile, bool isRestarting)
+            {
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
                 lock (_lastTaskGuard)
                 {
@@ -372,13 +370,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Adds an assembly reference to the current session.
             /// </summary>
-            public async Task<bool> AddReferenceAsync(string reference)
+            public async Task<bool> AddReferenceAsync(string? reference)
             {
                 Debug.Assert(reference != null);
-                TaskCompletionSource<bool> completionSource = new TaskCompletionSource<bool>();
+                var completionSource = new TaskCompletionSource<bool>();
                 lock (_lastTaskGuard)
                 {
-                    // (miziga) change operation to completionSource? Use JsonRpc in InteractiveHost instead?
                     _lastTask = AddReferenceAsync(_lastTask, completionSource, reference);
                 }
                 return await completionSource.Task.ConfigureAwait(false);
@@ -387,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, TaskCompletionSource<bool> completionSource, string reference)
             {
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
-                bool success = false;
+                var success = false;
 
                 try
                 {
@@ -430,12 +427,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return await completionSource.Task.ConfigureAwait(false);
             }
 
-            // remote api
             private async Task<EvaluationState> ExecuteAsync(TaskCompletionSource<RemoteExecutionResult> completionSource, Task<EvaluationState> lastTask, string text)
             {
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
 
-                bool success = false;
+                var success = false;
                 try
                 {
                     Script<object>? script = TryCompile(state.ScriptState?.Script, text, null, state.ScriptOptions);
@@ -484,7 +480,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
 
-				lock (_lastTaskGuard)                {
+                lock (_lastTaskGuard)
+                {
                     _lastTask = ExecuteFileAsync(completionSource, _lastTask, path);
                 }
 
