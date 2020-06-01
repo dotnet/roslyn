@@ -4828,6 +4828,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            if (node == null) return null;            
+
             switch (node)
             {
                 case AccessorDeclarationSyntax accessor:
