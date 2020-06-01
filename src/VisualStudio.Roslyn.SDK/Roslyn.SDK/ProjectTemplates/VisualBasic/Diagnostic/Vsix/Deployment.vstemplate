@@ -19,7 +19,6 @@
   <TemplateContent>
     <Project TargetFileName="$projectname$.vbproj" File="Deployment.vbproj" ReplaceParameters="true">
       <ProjectItem ReplaceParameters="true" TargetFileName="source.extension.vsixmanifest">source.extension.vsixmanifest</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="My Project\AssemblyInfo.vb">AssemblyInfo.vb</ProjectItem>
     </Project>
   </TemplateContent>
   <WizardExtension>

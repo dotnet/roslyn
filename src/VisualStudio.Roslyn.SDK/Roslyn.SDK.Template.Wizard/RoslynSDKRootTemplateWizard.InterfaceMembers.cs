@@ -18,6 +18,7 @@ public partial class RoslynSDKRootTemplateWizard : IWizard
     public void RunStarted(object automationObject, Dictionary<string, string> replacementsDictionary, WizardRunKind runKind, object[] customParams)
     {
         WriteOutBetaNugetSource("dotnet.myget.org roslyn", "https://dotnet.myget.org/F/roslyn/api/v3/index.json");
+        WriteOutBetaNugetSource("dotnet.myget.org roslyn-analyzers", "https://dotnet.myget.org/F/roslyn-analyzers/api/v3/index.json");
         OnRunStarted(automationObject as DTE, replacementsDictionary, runKind, customParams);
     }
 
@@ -28,7 +29,7 @@ public partial class RoslynSDKRootTemplateWizard : IWizard
         var document = XDocument.Load(nugetConfigPath);
         var packageSources = document.Root.Descendants().Where(x => x.Name.LocalName == "packageSources");
         var sources = packageSources.Elements(XName.Get("add"));
-        if (!sources.Where(x => x.Attribute(XName.Get("value")).Value == "https://dotnet.myget.org/F/roslyn/api/v3/index.json").Any())
+        if (!sources.Where(x => x.Attribute(XName.Get("value")).Value == value).Any())
         {
             var newSource = new XElement(XName.Get("add"));
             newSource.SetAttributeValue(XName.Get("key"), key);
