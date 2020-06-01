@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Composition.Hosting.Core;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.Composition;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 _exportProvider = exportProvider;
             }
 
-            public override bool TryGetExport(CompositionContract contract, out object export)
+            public override bool TryGetExport(CompositionContract contract, [NotNullWhen(true)] out object? export)
             {
                 var importMany = contract.MetadataConstraints.Contains(new KeyValuePair<string, object>("IsImportMany", true));
                 var (contractType, metadataType) = GetContractType(contract.ContractType, importMany);
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Testing
                                       select method).Single();
                     var parameterizedMethod = methodInfo.MakeGenericMethod(contractType, metadataType);
                     export = parameterizedMethod.Invoke(_exportProvider, new[] { contract.ContractName });
+                    RoslynDebug.AssertNotNull(export);
                 }
                 else
                 {
@@ -52,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Testing
                                       select method).Single();
                     var parameterizedMethod = methodInfo.MakeGenericMethod(contractType);
                     export = parameterizedMethod.Invoke(_exportProvider, new[] { contract.ContractName });
+                    RoslynDebug.AssertNotNull(export);
                 }
 
                 return true;

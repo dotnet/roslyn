@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
@@ -53,12 +54,14 @@ namespace Microsoft.CodeAnalysis.Testing
                     { "ExportTypeIdentity", typeof(IWorkspaceService).FullName },
                     { nameof(ExportWorkspaceServiceAttribute.ServiceType), assemblyQualifiedServiceTypeName },
                     { nameof(ExportWorkspaceServiceAttribute.Layer), ServiceLayer.Default },
-                    { typeof(CreationPolicy).FullName, CreationPolicy.Shared },
+                    { typeof(CreationPolicy).FullName!, CreationPolicy.Shared },
                     { "ContractType", typeof(IWorkspaceService) },
                     { "ContractName", null },
                 });
 
             var serviceImplType = typeof(Workspace).GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.DefaultDocumentTextDifferencingService");
+            RoslynDebug.AssertNotNull(serviceImplType);
+
             return catalog.AddPart(new ComposablePartDefinition(
                 TypeRef.Get(serviceImplType, Resolver.DefaultInstance),
                 new Dictionary<string, object?> { { "SharingBoundary", null } },
