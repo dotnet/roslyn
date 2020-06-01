@@ -1,3 +1,5 @@
+Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult.BuildMetadata.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
+Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult.BuildProperties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 Microsoft.CodeAnalysis.Compilation.CreateNativeIntegerTypeSymbol(bool signed) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.AssemblyLoader.get -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference other) -> bool

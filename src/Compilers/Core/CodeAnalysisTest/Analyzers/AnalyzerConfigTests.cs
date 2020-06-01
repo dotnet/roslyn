@@ -1076,6 +1076,224 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
 
         #endregion
 
+        #region Processing of build_* rules
+
+        [Fact]
+        public void BuildProperty()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+build_property.name = value
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("name", "value")),
+                ImmutableDictionary<string, string>.Empty,
+            }, options.Select(o => o.BuildProperties).ToArray());
+        }
+
+        [Fact]
+        public void GlobalBuildProperty()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+build_property.name = value
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("name", "value")),
+                CreateImmutableDictionary(("name", "value"))
+            }, options.Select(o => o.BuildProperties).ToArray());
+        }
+
+        [Fact]
+        public void SectionBuildPropertyOverridesGlobal()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+build_property.name = value
+
+[/test.cs]
+build_property.name = value2
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("name", "value2")),
+                CreateImmutableDictionary(("name", "value"))
+            }, options.Select(o => o.BuildProperties).ToArray());
+        }
+
+        [Fact]
+        public void LocalConfigBuildPropertyOverridesGlobal()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+build_property.name = value
+", "/.globalconfig"));
+
+            configs.Add(Parse(@"
+[*.cs]
+build_property.name = value2
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("name", "value2")),
+                CreateImmutableDictionary(("name", "value"))
+            }, options.Select(o => o.BuildProperties).ToArray());
+        }
+
+        [Fact]
+        public void MalformedBuildProperty()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+build_property = value1
+build_property. = value2
+build_property.. = value3
+build_property..abc = value4
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("", "value2"), (".", "value3"), (".abc", "value4")),
+                ImmutableDictionary<string, string>.Empty,
+            }, options.Select(o => o.BuildProperties).ToArray());
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("build_property", "value1")),
+                ImmutableDictionary<string, string>.Empty,
+            }, options.Select(o => o.AnalyzerOptions).ToArray());
+        }
+
+        [Fact]
+        public void BuildMetadata()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+build_metadata.compile.metadata = value
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("compile.metadata", "value")),
+                ImmutableDictionary<string, string>.Empty,
+            }, options.Select(o => o.BuildMetadata).ToArray());
+        }
+
+        [Fact]
+        public void SectionBuildMetadataOverridesGlobal()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+build_metadata.type.name = value
+
+[/test.cs]
+build_metadata.type.name = value2
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("type.name", "value2")),
+                CreateImmutableDictionary(("type.name", "value"))
+            }, options.Select(o => o.BuildMetadata).ToArray());
+        }
+
+        [Fact]
+        public void LocalConfigBuildMetadataOverridesGlobal()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+build_metadata.type.name = value
+", "/.globalconfig"));
+
+            configs.Add(Parse(@"
+[*.cs]
+build_metadata.type.name = value2
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("type.name", "value2")),
+                CreateImmutableDictionary(("type.name", "value"))
+            }, options.Select(o => o.BuildMetadata).ToArray());
+        }
+
+        [Fact]
+        public void MalformedBuildMetadata()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+build_metadata = value1
+build_metadata. = value2
+build_metadata.. = value3
+build_metadata.abc. = value4
+build_metadata..abc = value5
+
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("", "value2"), (".", "value3"), ("abc.", "value4"), (".abc", "value5")),
+                ImmutableDictionary<string, string>.Empty,
+            }, options.Select(o => o.BuildMetadata).ToArray());
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("build_metadata", "value1")),
+                ImmutableDictionary<string, string>.Empty,
+            }, options.Select(o => o.AnalyzerOptions).ToArray());
+        }
+
+        #endregion
+
         #region Processing of Analyzer Options
 
         private AnalyzerConfigOptionsResult[] GetAnalyzerConfigOptions(string[] filePaths, ArrayBuilder<AnalyzerConfig> configs)
