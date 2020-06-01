@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         public static async Task<RazorRemoteHostClient?> CreateAsync(Workspace workspace, CancellationToken cancellationToken = default)
         {
-            var clientFactory = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
-            var client = await clientFactory.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(workspace.Services, cancellationToken).ConfigureAwait(false);
             return client == null ? null : new RazorRemoteHostClient(client);
         }
 
