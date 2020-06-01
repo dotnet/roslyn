@@ -95,10 +95,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ISymbol> CreateFieldsForParameters(
-            ImmutableArray<IParameterSymbol> parameters,
-            IDictionary<string, string> parameterToNewFieldMap)
+            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>.Builder parameterToNewFieldMap)
         {
-            using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var result);
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var parameter in parameters)
             {
                 // For non-out parameters, create a field and assign the parameter to it.
@@ -118,13 +117,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<ISymbol> CreatePropertiesForParameters(
-            ImmutableArray<IParameterSymbol> parameters,
-            IDictionary<string, string> parameterToNewPropertyMap)
+            ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>.Builder parameterToNewPropertyMap)
         {
-            using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var result);
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
             foreach (var parameter in parameters)
             {
-                // For non-out parameters, create a field and assign the parameter to it.
+                // For non-out parameters, create a property and assign the parameter to it.
                 if (parameter.RefKind != RefKind.Out &&
                     TryGetValue(parameterToNewPropertyMap, parameter.Name, out var propertyName))
                 {
