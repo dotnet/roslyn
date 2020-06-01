@@ -4987,6 +4987,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Include only global statements at the top level
                         return (node) => node.Parent != unit || node.Kind() == SyntaxKind.GlobalStatement;
 
+                    case SymbolKind.NamedType:
+                        Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint.ContainingSymbol);
+                        return (node) => false;
+
                     default:
                         ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
                         break;
