@@ -22,10 +22,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         where TArgumentSyntax : SyntaxNode
         where TAttributeArgumentSyntax : SyntaxNode
     {
-        protected AbstractGenerateConstructorService()
-        {
-        }
-
         protected abstract bool IsSimpleNameGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract bool IsConstructorInitializerGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
 
@@ -33,21 +29,21 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         protected abstract bool TryInitializeConstructorInitializerGeneration(SemanticDocument document, SyntaxNode constructorInitializer, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeSimpleAttributeNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<TArgumentSyntax> arguments, out ImmutableArray<TAttributeArgumentSyntax> attributeArguments, out INamedTypeSymbol typeToGenerateIn);
         protected abstract ImmutableArray<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameterNamingRule, CancellationToken cancellationToken);
-        protected virtual ImmutableArray<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TAttributeArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameternamingRule, CancellationToken cancellationToken)
-            => default;
 
         protected abstract string GenerateNameForArgument(SemanticModel semanticModel, TArgumentSyntax argument, CancellationToken cancellationToken);
-        protected virtual string GenerateNameForArgument(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) => null;
         protected abstract RefKind GetRefKind(TArgumentSyntax argument);
         protected abstract bool IsNamedArgument(TArgumentSyntax argument);
         protected abstract ITypeSymbol GetArgumentType(SemanticModel semanticModel, TArgumentSyntax argument, CancellationToken cancellationToken);
-        protected virtual ITypeSymbol GetAttributeArgumentType(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) => null;
 
         protected abstract bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType);
 
         protected abstract IMethodSymbol GetDelegatingConstructor(State state, SemanticDocument document, int argumentCount, INamedTypeSymbol namedType, ISet<IMethodSymbol> candidates, CancellationToken cancellationToken);
         protected abstract IMethodSymbol GetCurrentConstructor(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
         protected abstract IMethodSymbol GetDelegatedConstructor(SemanticModel semanticModel, IMethodSymbol constructor, CancellationToken cancellationToken);
+
+        protected virtual string GenerateNameForArgument(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) => null;
+        protected virtual ImmutableArray<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TAttributeArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameternamingRule, CancellationToken cancellationToken) => default;
+        protected virtual ITypeSymbol GetAttributeArgumentType(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) => null;
 
         protected bool CanDelegeteThisConstructor(State state, SemanticDocument document, IMethodSymbol delegatedConstructor, CancellationToken cancellationToken = default)
         {
