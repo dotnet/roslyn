@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Classification
             if (client == null)
                 return false;
 
-            var classifiedSpans = await client.TryRunRemoteAsync<SerializableClassifiedSpans>(
+            var classifiedSpans = await client.RunRemoteAsync<SerializableClassifiedSpans>(
                 WellKnownServiceHubService.CodeAnalysis,
                 nameof(IRemoteSemanticClassificationService.GetSemanticClassificationsAsync),
                 document.Project.Solution,
@@ -71,10 +71,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 callbackTarget: null,
                 cancellationToken).ConfigureAwait(false);
 
-            if (!classifiedSpans.HasValue)
-                return false;
-
-            classifiedSpans.Value.Rehydrate(result);
+            classifiedSpans.Rehydrate(result);
             return true;
         }
 
