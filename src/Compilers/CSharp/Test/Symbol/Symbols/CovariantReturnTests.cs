@@ -353,7 +353,7 @@ namespace System
         {
             public const string CovariantReturnsOfClasses = nameof(CovariantReturnsOfClasses);
         }
-        public sealed class RequireMethodImplToRemainInEffectAttribute : Attribute { }
+        public sealed class PreserveBaseOverridesAttribute : Attribute { }
     }
 }
 ";
@@ -420,7 +420,7 @@ public class Derived2 : Base
                 var isCovariant = !method.ReturnType.Equals(method.OverriddenMethod.ReturnType);
                 Assert.Equal(needsAttribute, isCovariant);
                 var attributeExpected = isCovariant && !method.Locations[0].IsInSource;
-                var attrs = method.GetAttributes("System.Runtime.CompilerServices", "RequireMethodImplToRemainInEffectAttribute");
+                var attrs = method.GetAttributes("System.Runtime.CompilerServices", "PreserveBaseOverridesAttribute");
                 Assert.Equal(attributeExpected, !attrs.IsEmpty());
             }
         }
