@@ -26,31 +26,30 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
     {
         protected internal class State
         {
-            public readonly TService Service;
-            public readonly SemanticDocument Document;
+            private readonly TService Service;
+            private readonly SemanticDocument Document;
 
-            public NamingRule FieldNamingRule { get; private set; }
-            public NamingRule PropertyNamingRule { get; private set; }
-            public NamingRule ParameterNamingRule { get; private set; }
+            private NamingRule FieldNamingRule;
+            private NamingRule PropertyNamingRule;
+            private NamingRule ParameterNamingRule;
 
-            public ImmutableArray<TArgumentSyntax> Arguments { get; private set; }
+            private ImmutableArray<TArgumentSyntax> Arguments;
 
-            public ImmutableArray<TAttributeArgumentSyntax> AttributeArguments { get; private set; }
+            private ImmutableArray<TAttributeArgumentSyntax> AttributeArguments;
 
             // The type we're creating a constructor for.  Will be a class or struct type.
             public INamedTypeSymbol TypeToGenerateIn { get; private set; }
 
-            public IList<RefKind> ParameterRefKinds { get; private set; }
-            public ImmutableArray<ITypeSymbol> ParameterTypes { get; private set; }
+            private IList<RefKind> ParameterRefKinds;
+            private ImmutableArray<ITypeSymbol> ParameterTypes;
 
             public SyntaxToken Token { get; private set; }
 
-            public bool IsConstructorInitializerGeneration { get; private set; }
+            private IMethodSymbol DelegatedConstructor;
 
-            public IMethodSymbol DelegatedConstructor { get; private set; }
+            private ImmutableArray<IParameterSymbol> Parameters;
+            private ImmutableDictionary<string, ISymbol> ParameterToExistingMemberMap;
 
-            public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
-            public ImmutableDictionary<string, ISymbol> ParameterToExistingMemberMap { get; private set; }
             public ImmutableDictionary<string, string> ParameterToNewFieldMap { get; private set; }
             public ImmutableDictionary<string, string> ParameterToNewPropertyMap { get; private set; }
 
@@ -269,7 +268,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 Token = token;
                 Arguments = arguments;
-                IsConstructorInitializerGeneration = true;
 
                 var semanticModel = Document.SemanticModel;
                 var semanticInfo = semanticModel.GetSymbolInfo(constructorInitializer, cancellationToken);
