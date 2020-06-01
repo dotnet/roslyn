@@ -155,13 +155,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }),
                 cancellationToken))
             {
-                var previewService = workspace.Services.GetService<IPreviewDialogService>();
-                var glyph = languageOpt == null
-                    ? Glyph.Assembly
-                    : languageOpt == LanguageNames.CSharp
-                        ? Glyph.CSharpProject
-                        : Glyph.BasicProject;
+                var glyph = GetGlyph(currentSolution, newSolution, languageOpt);
 
+                var previewService = workspace.Services.GetService<IPreviewDialogService>();
                 var changedSolution = previewService.PreviewChanges(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, fixAllPreviewChangesTitle),
                     "vs.codefix.fixall",
@@ -181,6 +177,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 FixAllLogger.LogPreviewChangesResult(correlationId, applied: true, allChangesApplied: changedSolution == newSolution);
                 return changedSolution;
             }
+        }
+
+        private static Glyph GetGlyph(Solution currentSolution, Solution newSolution, string languageOpt)
+        {
+            if (languageOpt == null)
+            {
+                return Glyph.Assembly;
+            }
+
+            var changes = newSolution.GetChanges(currentSolution);
+            var projectChanges = changes.GetProjectChanges();
+            var hasCSharp = false;
+            var hasVB = false;
+            foreach (var pc in projectChanges)
+            {
+                hasCSharp = hasCSharp || pc.OldProject.Language == LanguageNames.CSharp;
+                hasVB = hasVB || pc.OldProject.Language == LanguageNames.VisualBasic;
+                if (hasCSharp && hasVB)
+                    break;
+            }
+
+            if (hasCSharp && hasVB)
+            {
+                return Glyph.OpenFolder;
+            }
+
+            return hasCSharp ? Glyph.CSharpProject : Glyph.BasicProject;
         }
 
         private static ImmutableArray<CodeActionOperation> GetNewFixAllOperations(ImmutableArray<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
