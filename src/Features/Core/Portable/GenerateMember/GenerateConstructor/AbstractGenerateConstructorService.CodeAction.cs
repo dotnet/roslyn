@@ -99,30 +99,18 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var provider = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
                 var syntaxFactory = provider.GetService<SyntaxGenerator>();
 
-                if (_withFields)
-                {
-                    var members = SyntaxGeneratorExtensions.CreateFieldsForParameters(_state.RemainingParameters, _state.ParameterToNewFieldMap);
-                    var assignments = syntaxFactory.CreateAssignmentStatements(
+                var members = _withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_state.RemainingParameters, _state.ParameterToNewFieldMap) :
+                              _withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_state.RemainingParameters, _state.ParameterToNewPropertyMap) :
+                              ImmutableArray<ISymbol>.Empty;
+
+                var assignments = !_withFields && !_withProperties
+                    ? ImmutableArray<SyntaxNode>.Empty
+                    : syntaxFactory.CreateAssignmentStatements(
                         semanticModel, _state.RemainingParameters,
-                        _state.ParameterToExistingMemberMap, _state.ParameterToNewFieldMap,
+                        _state.ParameterToExistingMemberMap, _withFields ? _state.ParameterToNewFieldMap : _state.ParameterToNewPropertyMap,
                         addNullChecks: false, preferThrowExpression: false);
 
-                    return (members, assignments);
-                }
-                else if (_withProperties)
-                {
-                    var members = SyntaxGeneratorExtensions.CreatePropertiesForParameters(_state.RemainingParameters, _state.ParameterToNewPropertyMap);
-                    var assignments = syntaxFactory.CreateAssignmentStatements(
-                        semanticModel, _state.RemainingParameters,
-                        _state.ParameterToExistingMemberMap, _state.ParameterToNewPropertyMap,
-                        addNullChecks: false, preferThrowExpression: false);
-
-                    return (members, assignments);
-                }
-                else
-                {
-                    return (ImmutableArray<ISymbol>.Empty, ImmutableArray<SyntaxNode>.Empty);
-                }
+                return (members, assignments);
             }
 
             private async Task<Document> GenerateMemberDelegatingConstructorAsync(CancellationToken cancellationToken)
