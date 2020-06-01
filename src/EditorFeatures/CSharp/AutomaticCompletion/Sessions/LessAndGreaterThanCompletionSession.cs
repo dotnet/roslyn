@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             // type argument or parameter list
             if (!token.CheckParent<TypeParameterListSyntax>(n => n.LessThanToken == token) &&
                 !token.CheckParent<TypeArgumentListSyntax>(n => n.LessThanToken == token) &&
+                !token.CheckParent<FunctionPointerTypeSyntax>(n => n.LessThanToken == token) &&
                 !PossibleTypeArgument(snapshot, token, cancellationToken))
             {
                 return false;
