@@ -786,7 +786,7 @@ class C
         }
 
         [Fact, WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
-        public void TestErrorType()
+        public void TestErrorType_CSharp()
         {
             var source = @"
 class C
@@ -801,6 +801,41 @@ class C
             var symbol = (IPropertySymbol)GetAllSymbols(
                 compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
                 n => n is CSharp.Syntax.PropertyDeclarationSyntax).Single();
+
+            var propType = symbol.Type;
+            Assert.True(propType.Kind == SymbolKind.ErrorType);
+
+            // Ensure we don't crash getting these symbol keys.
+            var id = SymbolKey.CreateString(propType);
+            Assert.NotNull(id);
+
+            // Validate that if the client does ask to resolve locations that we
+            // do not crash if those locations cannot be found.
+            var found = SymbolKey.ResolveString(id, compilation2).GetAnySymbol();
+            Assert.NotNull(found);
+
+            Assert.Equal(propType.Name, found.Name);
+            Assert.Equal(propType.Kind, found.Kind);
+
+            var method = found as IErrorTypeSymbol;
+            Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
+        }
+
+        [Fact, WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
+        public void TestErrorType_VB()
+        {
+            var source = @"
+class C
+    public readonly property i as integer
+end class";
+
+            // We don't add metadata references, so even `int` will be an error type.
+            var compilation1 = GetCompilation(source, LanguageNames.VisualBasic, "File1.vb", Array.Empty<MetadataReference>());
+            var compilation2 = GetCompilation(source, LanguageNames.VisualBasic, "File2.vb", Array.Empty<MetadataReference>());
+
+            var symbol = (IPropertySymbol)GetAllSymbols(
+                compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+                n => n is VisualBasic.Syntax.PropertyStatementSyntax).Single();
 
             var propType = symbol.Type;
             Assert.True(propType.Kind == SymbolKind.ErrorType);
@@ -848,6 +883,53 @@ class X
             var symbol = (IPropertySymbol)GetAllSymbols(
                 compilation2.GetSemanticModel(compilation2.SyntaxTrees.Single()),
                 n => n is CSharp.Syntax.MemberAccessExpressionSyntax).Single();
+
+            var propType = symbol.Type;
+            Assert.True(propType.Kind == SymbolKind.ErrorType);
+            Assert.Equal("Collections", propType.ContainingNamespace.Name);
+            Assert.Equal("System", propType.ContainingNamespace.ContainingNamespace.Name);
+
+            // Ensure we don't crash getting these symbol keys.
+            var id = SymbolKey.CreateString(propType);
+            Assert.NotNull(id);
+
+            // Validate that if the client does ask to resolve locations that we
+            // do not crash if those locations cannot be found.
+            var found = SymbolKey.ResolveString(id, compilation2).GetAnySymbol();
+            Assert.NotNull(found);
+
+            Assert.Equal(propType.Name, found.Name);
+            Assert.Equal(propType.Kind, found.Kind);
+            Assert.Equal(propType.ContainingNamespace.Name, found.ContainingNamespace.Name);
+
+            var method = found as IErrorTypeSymbol;
+            Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
+        }
+
+        [Fact, WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
+        public void TestErrorTypeInNestedNamespace_VB()
+        {
+            var source1 = @"
+public class C
+    public readonly property I as System.Collections.IEnumerable
+end class";
+
+            var source2 = @"
+class X
+    sub M()
+        dim y = new C().I;
+    end sub
+end class";
+
+            // We don't add metadata to the second compilation, so even `System.Collections.IEnumerable` will be an
+            // error type.
+            var compilation1 = GetCompilation(source1, LanguageNames.VisualBasic, "File1.vb");
+            var compilation2 = GetCompilation(source2, LanguageNames.VisualBasic, "File2.vb",
+                new[] { compilation1.ToMetadataReference() });
+
+            var symbol = (IPropertySymbol)GetAllSymbols(
+                compilation2.GetSemanticModel(compilation2.SyntaxTrees.Single()),
+                n => n is VisualBasic.Syntax.MemberAccessExpressionSyntax).Single();
 
             var propType = symbol.Type;
             Assert.True(propType.Kind == SymbolKind.ErrorType);
