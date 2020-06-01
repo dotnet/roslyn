@@ -255,8 +255,8 @@ build_metadata.Compile.ToRetrieve = abc123
             Assert.Equal($@"is_global = true
 
 [{expectedPath}]
-build_item.Compile.ToRetrieve = abc123
-build_item.AdditionalFile.ToRetrieve = def456
+build_metadata.Compile.ToRetrieve = abc123
+build_metadata.AdditionalFile.ToRetrieve = def456
 ", result);
         }
 

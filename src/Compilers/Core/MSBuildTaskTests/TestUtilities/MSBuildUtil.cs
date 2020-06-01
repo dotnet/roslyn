@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             return taskItem.Object;
         }
 
-        public static ITaskItem CreateTaskItem(string fileName, Dictionary<string,string> metadata)
+        public static ITaskItem CreateTaskItem(string fileName, Dictionary<string, string> metadata)
         {
             var taskItem = new Mock<ITaskItem>(MockBehavior.Strict);
             taskItem.Setup(x => x.ItemSpec).Returns(fileName);

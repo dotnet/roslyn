@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
     public class TargetTests
     {
         [Fact]
-        public void GenerateAnalyzerConfigShouldNotRunWhenNoPropertiesOrMetadata()
+        public void GenerateEditorConfigShouldNotRunWhenNoPropertiesOrMetadata()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "GenerateMSBuildAnalyzerConfigFileShouldRun", GetTestLoggers());
-            var shouldRun = instance.GetPropertyValue("_GeneratedAnalyzerConfigShouldRun");
-            var hasItems = instance.GetPropertyValue("_GeneratedAnalyzerConfigHasItems");
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFileShouldRun", GetTestLoggers());
+            var shouldRun = instance.GetPropertyValue("_GeneratedEditorConfigShouldRun");
+            var hasItems = instance.GetPropertyValue("_GeneratedEditorConfigHasItems");
 
             Assert.True(runSuccess);
             Assert.NotEqual("true", shouldRun);
@@ -45,23 +45,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void GenerateAnalyzerConfigShouldRunWhenPropertiesRequested()
+        public void GenerateEditorConfigShouldRunWhenPropertiesRequested()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
     <Import Project=""Microsoft.Managed.Core.targets"" />
 
     <ItemGroup>
-        <AnalyzerProperty Include=""prop"" />
+        <CompilerVisibleProperty Include=""prop"" />
     </ItemGroup>
 </Project>
 "));
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "GenerateMSBuildAnalyzerConfigFileShouldRun", GetTestLoggers());
-            var shouldRun = instance.GetPropertyValue("_GeneratedAnalyzerConfigShouldRun");
-            var hasItems = instance.GetPropertyValue("_GeneratedAnalyzerConfigHasItems");
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFileShouldRun", GetTestLoggers());
+            var shouldRun = instance.GetPropertyValue("_GeneratedEditorConfigShouldRun");
+            var hasItems = instance.GetPropertyValue("_GeneratedEditorConfigHasItems");
 
             Assert.True(runSuccess);
             Assert.Equal("true", shouldRun);
@@ -69,23 +69,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void GenerateAnalyzerConfigShouldRunWhenMetadataRequested()
+        public void GenerateEditorConfigShouldRunWhenMetadataRequested()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
     <Import Project=""Microsoft.Managed.Core.targets"" />
 
     <ItemGroup>
-        <AnalyzerItemMetadata Include=""item"" />
+        <CompilerVisibleItemMetadata Include=""item"" />
     </ItemGroup>
 </Project>
 "));
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "GenerateMSBuildAnalyzerConfigFileShouldRun", GetTestLoggers());
-            var shouldRun = instance.GetPropertyValue("_GeneratedAnalyzerConfigShouldRun");
-            var hasItems = instance.GetPropertyValue("_GeneratedAnalyzerConfigHasItems");
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFileShouldRun", GetTestLoggers());
+            var shouldRun = instance.GetPropertyValue("_GeneratedEditorConfigShouldRun");
+            var hasItems = instance.GetPropertyValue("_GeneratedEditorConfigHasItems");
 
             Assert.True(runSuccess);
             Assert.Equal("true", shouldRun);
@@ -93,24 +93,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void GenerateAnalyzerConfigShouldRunWhenPropertiesAndMetadata()
+        public void GenerateEditorConfigShouldRunWhenPropertiesAndMetadata()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
     <Import Project=""Microsoft.Managed.Core.targets"" />
 
     <ItemGroup>
-        <AnalyzerProperty Include=""prop"" />
-        <AnalyzerItemMetadata Include=""item"" Metadata=""meta"" />
+        <CompilerVisibleProperty Include=""prop"" />
+        <CompilerVisibleItemMetadata Include=""item"" Metadata=""meta"" />
     </ItemGroup>
 </Project>
 "));
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "GenerateMSBuildAnalyzerConfigFileShouldRun", GetTestLoggers());
-            var shouldRun = instance.GetPropertyValue("_GeneratedAnalyzerConfigShouldRun");
-            var hasItems = instance.GetPropertyValue("_GeneratedAnalyzerConfigHasItems");
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFileShouldRun", GetTestLoggers());
+            var shouldRun = instance.GetPropertyValue("_GeneratedEditorConfigShouldRun");
+            var hasItems = instance.GetPropertyValue("_GeneratedEditorConfigHasItems");
 
             Assert.True(runSuccess);
             Assert.Equal("true", shouldRun);
@@ -118,26 +118,26 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void GenerateAnalyzerConfigCanBeDisabled()
+        public void GenerateEditorConfigCanBeDisabled()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
     <Import Project=""Microsoft.Managed.Core.targets"" />
     <PropertyGroup>
-        <GenerateMSBuildAnalyzerConfigFile>false</GenerateMSBuildAnalyzerConfigFile>
+        <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
     </PropertyGroup>
     <ItemGroup>
-        <AnalyzerProperty Include=""prop"" />
-        <AnalyzerItemMetadata Include=""item"" Metadata=""meta"" />
+        <CompilerVisibleProperty Include=""prop"" />
+        <CompilerVisibleItemMetadata Include=""item"" Metadata=""meta"" />
     </ItemGroup>
 </Project>
 "));
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "GenerateMSBuildAnalyzerConfigFileShouldRun", GetTestLoggers());
-            var shouldRun = instance.GetPropertyValue("_GeneratedAnalyzerConfigShouldRun");
-            var hasItems = instance.GetPropertyValue("_GeneratedAnalyzerConfigHasItems");
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFileShouldRun", GetTestLoggers());
+            var shouldRun = instance.GetPropertyValue("_GeneratedEditorConfigShouldRun");
+            var hasItems = instance.GetPropertyValue("_GeneratedEditorConfigHasItems");
 
             Assert.True(runSuccess);
             Assert.NotEqual("true", shouldRun);
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void GenerateAnalyzerConfigCoreEvaluatesProperties()
+        public void GenerateEditorConfigCoreEvaluatesProperties()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
@@ -154,21 +154,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         <ValueToGet>abc</ValueToGet>
     </PropertyGroup>
     <ItemGroup>
-        <AnalyzerProperty Include=""ValueToGet"" />
+        <CompilerVisibleProperty Include=""ValueToGet"" />
     </ItemGroup>
 </Project>
 "));
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "GenerateMSBuildAnalyzerConfigFile", GetTestLoggers());
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFile", GetTestLoggers());
             Assert.True(runSuccess);
 
-            var items = instance.GetItems("_GeneratedAnalyzerConfigProperty");
+            var items = instance.GetItems("_GeneratedEditorConfigProperty");
             Assert.Single(items);
 
             var item = items.Single();
-            Assert.Equal("_GeneratedAnalyzerConfigProperty", item.ItemType);
+            Assert.Equal("_GeneratedEditorConfigProperty", item.ItemType);
             Assert.Single(item.Metadata);
 
             var metadata = item.Metadata.Single();
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void GenerateAnalyzerConfigCoreEvaluatesDynamicProperties()
+        public void GenerateEditorConfigCoreEvaluatesDynamicProperties()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
@@ -187,21 +187,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         <ValueToGet>$(RealValue)</ValueToGet>
     </PropertyGroup>
     <ItemGroup>
-        <AnalyzerProperty Include=""ValueToGet"" />
+        <CompilerVisibleProperty Include=""ValueToGet"" />
     </ItemGroup>
 </Project>
 "));
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "GenerateMSBuildAnalyzerConfigFile", GetTestLoggers());
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFile", GetTestLoggers());
             Assert.True(runSuccess);
 
-            var items = instance.GetItems("_GeneratedAnalyzerConfigProperty");
+            var items = instance.GetItems("_GeneratedEditorConfigProperty");
             Assert.Single(items);
 
             var item = items.Single();
-            Assert.Equal("_GeneratedAnalyzerConfigProperty", item.ItemType);
+            Assert.Equal("_GeneratedEditorConfigProperty", item.ItemType);
             Assert.Single(item.Metadata);
 
             var metadata = item.Metadata.Single();
@@ -210,27 +210,27 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void GenerateAnalyzerConfigCoreHandlesMissingProperties()
+        public void GenerateEditorConfigCoreHandlesMissingProperties()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
     <Import Project=""Microsoft.Managed.Core.targets"" />
     <ItemGroup>
-        <AnalyzerProperty Include=""ValueToGet"" />
+        <CompilerVisibleProperty Include=""ValueToGet"" />
     </ItemGroup>
 </Project>
 "));
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "GenerateMSBuildAnalyzerConfigFile", GetTestLoggers());
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFile", GetTestLoggers());
             Assert.True(runSuccess);
 
-            var items = instance.GetItems("_GeneratedAnalyzerConfigProperty");
+            var items = instance.GetItems("_GeneratedEditorConfigProperty");
             Assert.Single(items);
 
             var item = items.Single();
-            Assert.Equal("_GeneratedAnalyzerConfigProperty", item.ItemType);
+            Assert.Equal("_GeneratedEditorConfigProperty", item.ItemType);
             Assert.Single(item.Metadata);
 
             var metadata = item.Metadata.Single();
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void GenerateAnalyzerConfigCoreEvaluatesMetadata()
+        public void GenerateEditorConfigCoreEvaluatesMetadata()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
@@ -248,21 +248,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         <Compile Include=""file1.cs"" CustomMeta=""abc"" />
     </ItemGroup>
     <ItemGroup>
-        <AnalyzerItemMetadata Include=""Compile"" MetadataName=""CustomMeta"" />
+        <CompilerVisibleItemMetadata Include=""Compile"" MetadataName=""CustomMeta"" />
     </ItemGroup>
 </Project>
 "));
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "GenerateMSBuildAnalyzerConfigFile", GetTestLoggers());
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFile", GetTestLoggers());
             Assert.True(runSuccess);
 
-            var items = instance.GetItems("_GeneratedAnalyzerConfigMetadata");
+            var items = instance.GetItems("_GeneratedEditorConfigMetadata");
             Assert.Single(items);
 
             var item = items.Single();
-            Assert.Equal("_GeneratedAnalyzerConfigMetadata", item.ItemType);
+            Assert.Equal("_GeneratedEditorConfigMetadata", item.ItemType);
 
             var itemType = item.Metadata.SingleOrDefault(m => m.Name == "ItemType");
             Assert.NotNull(itemType);
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void GenerateAnalyzerConfigCoreEvaluatesDynamicMetadata()
+        public void GenerateEditorConfigCoreEvaluatesDynamicMetadata()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
@@ -290,21 +290,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         <Compile Include=""file1.cs"" CustomMeta=""$(DynamicValue)"" />
     </ItemGroup>
     <ItemGroup>
-        <AnalyzerItemMetadata Include=""Compile"" MetadataName=""CustomMeta"" />
+        <CompilerVisibleItemMetadata Include=""Compile"" MetadataName=""CustomMeta"" />
     </ItemGroup>
 </Project>
 "));
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "GenerateMSBuildAnalyzerConfigFile", GetTestLoggers());
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFile", GetTestLoggers());
             Assert.True(runSuccess);
 
-            var items = instance.GetItems("_GeneratedAnalyzerConfigMetadata");
+            var items = instance.GetItems("_GeneratedEditorConfigMetadata");
             Assert.Single(items);
 
             var item = items.Single();
-            Assert.Equal("_GeneratedAnalyzerConfigMetadata", item.ItemType);
+            Assert.Equal("_GeneratedEditorConfigMetadata", item.ItemType);
 
             var itemType = item.Metadata.SingleOrDefault(m => m.Name == "ItemType");
             Assert.NotNull(itemType);
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void GenerateAnalyzerConfigCoreHandlesMissingMetadata()
+        public void GenerateEditorConfigCoreHandlesMissingMetadata()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
@@ -329,22 +329,22 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         <Compile Include=""file1.cs"" />
     </ItemGroup>
     <ItemGroup>
-        <AnalyzerItemMetadata Include=""Compile"" MetadataName=""CustomMeta"" />
-        <AnalyzerItemMetadata Include=""Compile2"" MetadataName=""CustomMeta"" />
+        <CompilerVisibleItemMetadata Include=""Compile"" MetadataName=""CustomMeta"" />
+        <CompilerVisibleItemMetadata Include=""Compile2"" MetadataName=""CustomMeta"" />
     </ItemGroup>
 </Project>
 "));
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "GenerateMSBuildAnalyzerConfigFile", GetTestLoggers());
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFile", GetTestLoggers());
             Assert.True(runSuccess);
 
-            var items = instance.GetItems("_GeneratedAnalyzerConfigMetadata");
+            var items = instance.GetItems("_GeneratedEditorConfigMetadata");
             Assert.Single(items);
 
             var item = items.Single();
-            Assert.Equal("_GeneratedAnalyzerConfigMetadata", item.ItemType);
+            Assert.Equal("_GeneratedEditorConfigMetadata", item.ItemType);
 
             var itemType = item.Metadata.SingleOrDefault(m => m.Name == "ItemType");
             Assert.NotNull(itemType);
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void GenerateAnalyzerConfigCoreHandlesMalformedAnalyzerItemMetadata()
+        public void GenerateEditorConfigCoreHandlesMalformedCompilerVisibleItemMetadata()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
@@ -365,21 +365,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         <Compile Include=""file1.cs"" />
     </ItemGroup>
     <ItemGroup>
-        <AnalyzerItemMetadata Include=""Compile"" />
+        <CompilerVisibleItemMetadata Include=""Compile"" />
     </ItemGroup>
 </Project>
 "));
 
             var instance = CreateProjectInstance(xmlReader);
 
-            bool runSuccess = instance.Build(target: "GenerateMSBuildAnalyzerConfigFile", GetTestLoggers());
+            bool runSuccess = instance.Build(target: "GenerateMSBuildEditorConfigFile", GetTestLoggers());
             Assert.True(runSuccess);
 
-            var items = instance.GetItems("_GeneratedAnalyzerConfigMetadata");
+            var items = instance.GetItems("_GeneratedEditorConfigMetadata");
             Assert.Single(items);
 
             var item = items.Single();
-            Assert.Equal("_GeneratedAnalyzerConfigMetadata", item.ItemType);
+            Assert.Equal("_GeneratedEditorConfigMetadata", item.ItemType);
 
             var itemType = item.Metadata.SingleOrDefault(m => m.Name == "ItemType");
             Assert.NotNull(itemType);

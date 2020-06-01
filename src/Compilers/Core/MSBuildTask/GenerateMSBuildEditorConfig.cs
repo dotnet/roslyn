@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     string metadataName = item.GetMetadata("MetadataName");
                     if (!string.IsNullOrWhiteSpace(itemType) && !string.IsNullOrWhiteSpace(metadataName))
                     {
-                        builder.Append("build_item.")
+                        builder.Append("build_metadata.")
                                .Append(itemType)
                                .Append(".")
                                .Append(metadataName)
