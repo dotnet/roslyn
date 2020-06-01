@@ -87,15 +87,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     baseConstructorArguments: baseConstructorArguments,
                     thisConstructorArguments: thisConstructorArguments);
 
-                members = members.Concat(constructor);
-                var result = await codeGenerationService.AddMembersAsync(
+                return await codeGenerationService.AddMembersAsync(
                     _document.Project.Solution,
                     _state.TypeToGenerateIn,
-                    members,
+                    members.Concat(constructor),
                     new CodeGenerationOptions(_state.Token.GetLocation()),
                     cancellationToken).ConfigureAwait(false);
-
-                return result;
             }
 
             private (ImmutableArray<ISymbol>, ImmutableArray<SyntaxNode>) GenerateMembersAndAssignments(SemanticModel semanticModel)
