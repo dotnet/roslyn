@@ -152,15 +152,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
 
             /*public override object? InitializeLifetimeService()
-            {
-                return null;
+            {                return null;
             }*/
 
-            public Task InitializeAsync(string replServiceProviderTypeName, string cultureName)
-            {
+            public Task InitializeAsync(string replServiceProviderTypeName, string cultureName)            {
                 Debug.Assert(cultureName != null);
-                Contract.ThrowIfFalse(_serviceState == null, "Service already initialized");
- 
+                Contract.ThrowIfFalse(_serviceState == null, "Service already initialized"); 
                 using (var resetEvent = new ManualResetEventSlim(false))
                 {
                     var uiThread = new Thread(() =>
@@ -174,8 +171,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                     uiThread.IsBackground = true;
                     uiThread.Start();
                     resetEvent.Wait();
-                }                // TODO (tomat): we should share the copied files with the host
-                var metadataFileProvider = new MetadataShadowCopyProvider(
+                }
+                // TODO (tomat): we should share the copied files with the host                var metadataFileProvider = new MetadataShadowCopyProvider(
                     Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
                     noShadowCopyDirectories: s_systemNoShadowCopyDirectories,
                     documentationCommentsCulture: new CultureInfo(cultureName));
@@ -185,15 +182,18 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType);
                 var globals = new InteractiveScriptGlobals(Console.Out, replServiceProvider.ObjectFormatter);
 
+                //var replServiceProviderType = Type.GetType(replServiceProviderTypeName);
+                //_replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType);
                 _serviceState = new ServiceState(assemblyLoader, metadataFileProvider, replServiceProvider, globals);
 
                 return Task.CompletedTask;
             }
-
+                return Task.CompletedTask;
             private ServiceState GetServiceState()
             {
                 Contract.ThrowIfNull(_serviceState, "Service not initialized");
                 return _serviceState;
+
             }
 
             private MetadataReferenceResolver CreateMetadataReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
