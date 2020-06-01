@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
 }");
         }
 
+        [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithSimpleArgument_WithProperties()
         {
@@ -265,6 +266,7 @@ class D
 }");
         }
 
+        [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithExistingField2_WithProperties()
         {
@@ -1184,6 +1186,7 @@ class D : B
 }");
         }
 
+        [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestWithBaseDelegatingConstructor2_WithProperties()
         {
@@ -1530,6 +1533,7 @@ class Delta
 }");
         }
 
+        [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestDelegateToSmallerConstructor1_WithProperties()
         {
@@ -1822,6 +1826,7 @@ class Delta
 }");
         }
 
+        [WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromThisInitializer1_WithProperties()
         {

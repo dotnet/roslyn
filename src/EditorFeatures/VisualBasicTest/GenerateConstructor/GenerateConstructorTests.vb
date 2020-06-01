@@ -44,6 +44,7 @@ End Class",
 End Class")
         End Function
 
+        <WorkItem(44537, "https://github.com/dotnet/roslyn/issues/44537")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateIntoContainingType_WithProperties() As Task
             Await TestInRegularAndScriptAsync(
