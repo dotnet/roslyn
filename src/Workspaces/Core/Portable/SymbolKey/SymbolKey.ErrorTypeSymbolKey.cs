@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
                         break;
                     case INamespaceSymbol parentNamespace:
                         visitor.WriteInteger(1);
-                        visitor.WriteStringArray(GetContainingNamespaceNames(parentNamespace));
+                        visitor.WriteStringArray(GetContainingNamespaceNamesInReverse(parentNamespace));
                         break;
                     default:
                         // writing out `null` here is technically unnecessary.  However, it makes it easier to
@@ -45,7 +45,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private static ImmutableArray<string> GetContainingNamespaceNames(INamespaceSymbol namespaceSymbol)
+            /// <summary>
+            /// For a symbol like <c>System.Collections.Generic.IEnumerable</c>, this would produce <c>"Generic",
+            /// "Collections", "System"</c>
+            /// </summary>
+            private static ImmutableArray<string> GetContainingNamespaceNamesInReverse(INamespaceSymbol namespaceSymbol)
             {
                 using var _ = ArrayBuilder<string>.GetInstance(out var builder);
                 while (namespaceSymbol != null && namespaceSymbol.Name != "")
@@ -96,13 +100,16 @@ namespace Microsoft.CodeAnalysis
                     case 0:
                         return reader.ReadSymbolKey();
                     case 1:
-                        var namespaceNames = reader.ReadStringArray();
-                        var currentNamespace = reader.Compilation.GlobalNamespace;
+                        using (var namespaceNames = reader.ReadStringArray())
+                        {
+                            var currentNamespace = reader.Compilation.GlobalNamespace;
 
-                        foreach (var name in namespaceNames)
-                            currentNamespace = reader.Compilation.CreateErrorNamespaceSymbol(currentNamespace, name);
+                            // have to walk the namespaces in reverse because that's how we encoded them.
+                            for (var i = namespaceNames.Count - 1; i >= 0; i--)
+                                currentNamespace = reader.Compilation.CreateErrorNamespaceSymbol(currentNamespace, namespaceNames[i]);
 
-                        return new SymbolKeyResolution(currentNamespace);
+                            return new SymbolKeyResolution(currentNamespace);
+                        }
                     case 2:
                         return reader.ReadSymbolKey();
                     default:

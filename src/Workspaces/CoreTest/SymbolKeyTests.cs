@@ -793,8 +793,8 @@ class C
 {
     int i { get; }
 }";
-            // Tuples store locations along with them.  But we can only recover those locations
-            // if we're re-resolving into a compilation with the same files.
+
+            // We don't add metadata references, so even `int` will be an error type.
             var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs", Array.Empty<MetadataReference>());
             var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs", Array.Empty<MetadataReference>());
 
@@ -816,6 +816,56 @@ class C
 
             Assert.Equal(propType.Name, found.Name);
             Assert.Equal(propType.Kind, found.Kind);
+
+            var method = found as IErrorTypeSymbol;
+            Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
+        }
+
+        [Fact, WorkItem(14365, "https://github.com/dotnet/roslyn/issues/14365")]
+        public void TestErrorTypeInNestedNamespace()
+        {
+            var source1 = @"
+public class C
+{
+    public System.Collections.IEnumerable I { get; }
+}";
+
+            var source2 = @"
+class X
+{
+    void M()
+    {
+        new C().I;
+    }
+}";
+
+            // We don't add metadata to the second compilation, so even `System.Collections.IEnumerable` will be an
+            // error type.
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp, "File1.cs");
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp, "File2.cs",
+                new[] { compilation1.ToMetadataReference() });
+
+            var symbol = (IPropertySymbol)GetAllSymbols(
+                compilation2.GetSemanticModel(compilation2.SyntaxTrees.Single()),
+                n => n is CSharp.Syntax.MemberAccessExpressionSyntax).Single();
+
+            var propType = symbol.Type;
+            Assert.True(propType.Kind == SymbolKind.ErrorType);
+            Assert.Equal("Collections", propType.ContainingNamespace.Name);
+            Assert.Equal("System", propType.ContainingNamespace.ContainingNamespace.Name);
+
+            // Ensure we don't crash getting these symbol keys.
+            var id = SymbolKey.CreateString(propType);
+            Assert.NotNull(id);
+
+            // Validate that if the client does ask to resolve locations that we
+            // do not crash if those locations cannot be found.
+            var found = SymbolKey.ResolveString(id, compilation2).GetAnySymbol();
+            Assert.NotNull(found);
+
+            Assert.Equal(propType.Name, found.Name);
+            Assert.Equal(propType.Kind, found.Kind);
+            Assert.Equal(propType.ContainingNamespace.Name, found.ContainingNamespace.Name);
 
             var method = found as IErrorTypeSymbol;
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
