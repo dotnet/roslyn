@@ -3002,14 +3002,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
-                var inheritedProperties = PooledDictionary<string, PropertySymbol>.GetInstance();
-                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                addInheritedProperties(inheritedProperties, this, this, ref useSiteDiagnostics);
                 foreach (ParameterSymbol param in recordParameters)
                 {
                     var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
                     if (!memberSignatures.ContainsKey(property) &&
-                        !(inheritedProperties.TryGetValue(property.Name, out var inheritedProperty) && matchesRecordProperty(inheritedProperty, param.TypeWithAnnotations)))
+                        !hidesInheritedMember(property, this))
                     {
                         members.Add(property);
                         members.Add(property.GetMethod);
@@ -3017,35 +3014,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         members.Add(property.BackingField);
                     }
                 }
-                inheritedProperties.Free();
             }
 
-            static bool matchesRecordProperty(PropertySymbol property, TypeWithAnnotations requiredType)
+            static bool hidesInheritedMember(Symbol symbol, NamedTypeSymbol type)
             {
-                Debug.Assert(property.ParameterCount == 0);
-
-                return !property.IsStatic &&
-                    property.RefKind == RefKind.None &&
-                    requiredType.Equals(property.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
-            }
-
-            static void addInheritedProperties(Dictionary<string, PropertySymbol> properties, NamedTypeSymbol within, NamedTypeSymbol type, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
-            {
-                type = type.BaseTypeNoUseSiteDiagnostics;
-                if (type is null)
+                while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
                 {
-                    return;
-                }
-                addInheritedProperties(properties, within, type, ref useSiteDiagnostics);
-                foreach (var member in type.GetMembers())
-                {
-                    if (member is PropertySymbol property &&
-                        property.ParameterCount == 0 &&
-                        AccessCheck.IsSymbolAccessible(property, within, ref useSiteDiagnostics))
+                    OverriddenOrHiddenMembersHelpers.FindOverriddenOrHiddenMembersInType(
+                        symbol,
+                        memberIsFromSomeCompilation: true,
+                        memberContainingType: symbol.ContainingType,
+                        currType: type,
+                        out var bestMatch,
+                        out bool hasSameKindNonMatch,
+                        out var hiddenBuilder);
+                    if (hiddenBuilder is object)
                     {
-                        properties[property.Name] = property;
+                        hiddenBuilder.Free();
+                        return true;
+                    }
+                    if (bestMatch is object)
+                    {
+                        return true;
                     }
                 }
+                return false;
             }
 
             void addObjectEquals(MethodSymbol thisEquals)
@@ -3597,9 +3590,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        #endregion
+#endregion
 
-        #region Extension Methods
+#region Extension Methods
 
         internal bool ContainsExtensionMethods
         {
@@ -3637,7 +3630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        #endregion
+#endregion
 
         public sealed override NamedTypeSymbol ConstructedFrom
         {

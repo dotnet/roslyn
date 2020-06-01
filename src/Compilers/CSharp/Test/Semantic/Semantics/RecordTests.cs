@@ -298,23 +298,27 @@ data class C1(object O1)
         public void RecordProperties_09()
         {
             var src =
-@"data class C(object P1, object P2, object P3)
+@"data class C(object P1, object P2, object P3, object P4)
 {
     class P1 { }
     object P2 = 2;
-    int P3() => 3;
+    int P3(object o) => 3;
+    int P4<T>(T t) => 4;
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (1,21): error CS0102: The type 'C' already contains a definition for 'P1'
-                // data class C(object P1, object P2, object P3)
+                // data class C(object P1, object P2, object P3, object P4)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("C", "P1").WithLocation(1, 21),
                 // (1,32): error CS0102: The type 'C' already contains a definition for 'P2'
-                // data class C(object P1, object P2, object P3)
+                // data class C(object P1, object P2, object P3, object P4)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P2").WithArguments("C", "P2").WithLocation(1, 32),
                 // (1,43): error CS0102: The type 'C' already contains a definition for 'P3'
-                // data class C(object P1, object P2, object P3)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(1, 43));
+                // data class C(object P1, object P2, object P3, object P4)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(1, 43),
+                // (1,54): error CS0102: The type 'C' already contains a definition for 'P4'
+                // data class C(object P1, object P2, object P3, object P4)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P4").WithArguments("C", "P4").WithLocation(1, 54));
         }
 
         [Fact]
@@ -1939,12 +1943,7 @@ data class B(object P1, object P2, object P3, object P4, object P5, object P6, o
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            var expectedMembers = new[]
-            {
-                "System.Object B.P6 { get; init; }",
-                "System.Object B.P7 { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(new string[0], actualMembers);
         }
 
         [Fact]
@@ -1963,12 +1962,7 @@ data class B(int P1, object P2) : A
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            var expectedMembers = new[]
-            {
-                "System.Int32 B.P1 { get; init; }",
-                "System.Object B.P2 { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(new string[0], actualMembers);
         }
 
         [Fact]
@@ -1998,10 +1992,9 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (17,9): error CS0200: Property or indexer 'B.Z' cannot be assigned to -- it is read only
-                //         b.Z = 6;
-                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "b.Z").WithArguments("B.Z").WithLocation(17, 9));
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            AssertEx.Equal(new string[0], actualMembers);
         }
 
         [Fact]
@@ -2228,15 +2221,9 @@ data class C(object P1, int P2, object P3, int P4) : B
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
-            var expectedMembers = new[]
-            {
-                "System.Object C.P1 { get; init; }",
-                "System.Int32 C.P4 { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(new string[0], actualMembers);
         }
 
-        [WorkItem(44694, "https://github.com/dotnet/roslyn/issues/44694")]
         [Fact]
         public void Inheritance_15()
         {
@@ -2247,7 +2234,6 @@ data class C(object P1, int P2, object P3, int P4) : B
     public int P2 { get; set; }
 }";
             var comp = CreateCompilation(source);
-            // https://github.com/dotnet/roslyn/issues/44694: Report mismatch for `object P2` parameter and `int P2` property.
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -2279,14 +2265,12 @@ data class B(object P1, int P2, object P3, int P4) : A
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "System.Object B.P3 { get; init; }",
                 "System.Object B.P1 { get; }",
                 "System.Object B.P2 { get; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
-        [WorkItem(44694, "https://github.com/dotnet/roslyn/issues/44694")]
         [Fact]
         public void Inheritance_17()
         {
@@ -2304,20 +2288,17 @@ data class B(object P1, int P2, object P3, int P4) : A
     public new int P2 { get; }
 }";
             var comp = CreateCompilation(source);
-            // https://github.com/dotnet/roslyn/issues/44694: Report mismatch for `object P1` parameter and `int P1` property.
             comp.VerifyDiagnostics();
 
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "System.Int32 B.P4 { get; init; }",
                 "System.Int32 B.P1 { get; }",
                 "System.Int32 B.P2 { get; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
-        [WorkItem(44694, "https://github.com/dotnet/roslyn/issues/44694")]
         [Fact]
         public void Inheritance_18()
         {
@@ -2331,7 +2312,6 @@ data class B(object P1, int P2, object P3, int P4) : A
     public ref object P5 => throw null;
 }";
             var comp = CreateCompilation(source);
-            // https://github.com/dotnet/roslyn/issues/44694: Report mismatches between parameters and explicit properties.
             comp.VerifyDiagnostics(
                 // (1,1): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 // data class C(object P1, object P2, object P3, object P4, object P5)
@@ -2454,7 +2434,6 @@ class Program
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             AssertEx.Equal(new string[0], actualMembers);
 
-            // https://github.com/dotnet/roslyn/issues/44693: Record constructor should assign to explicit properties.
             var verifier = CompileAndVerify(comp, expectedOutput: "(, )");
             verifier.VerifyIL("C..ctor(object, object)",
 @"{
@@ -2505,11 +2484,7 @@ data class C(object P1, object P2) : B
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
-            var expectedMembers = new[]
-            {
-                "System.Object C.P2 { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(new string[0], actualMembers);
         }
 
         [Fact]
@@ -2532,11 +2507,7 @@ data class C(object P1, object P2) : B
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
-            var expectedMembers = new[]
-            {
-                "System.Object C.P2 { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(new string[0], actualMembers);
         }
 
         [Fact]
@@ -2546,19 +2517,21 @@ data class C(object P1, object P2) : B
 @"class A
 {
     public object get_P() => null;
+    public object set_Q() => null;
 }
-data class B(object P) : A
+data class B(object P, object Q) : A
 {
 }
 data class C(object P)
 {
     public object get_P() => null;
+    public object set_Q() => null;
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,21): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
+                // (9,21): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
                 // data class C(object P)
-                Diagnostic(ErrorCode.ERR_MemberReserved, "P").WithArguments("get_P", "C").WithLocation(8, 21));
+                Diagnostic(ErrorCode.ERR_MemberReserved, "P").WithArguments("get_P", "C").WithLocation(9, 21));
 
             var expectedMembers = new[]
             {
@@ -2567,11 +2540,15 @@ data class C(object P)
                 "System.Object B.P.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.P.init",
                 "System.Object B.P { get; init; }",
+                "System.Object B.<Q>k__BackingField",
+                "System.Object B.Q.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Q.init",
+                "System.Object B.Q { get; init; }",
                 "System.Boolean B.Equals(B? )",
                 "System.Boolean B.Equals(System.Object? )",
                 "System.Int32 B.GetHashCode()",
                 "B..ctor(B )",
-                "B..ctor(System.Object P)"
+                "B..ctor(System.Object P, System.Object Q)"
             };
             AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings());
 
@@ -2583,6 +2560,7 @@ data class C(object P)
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.P.init",
                 "System.Object C.P { get; init; }",
                 "System.Object C.get_P()",
+                "System.Object C.set_Q()",
                 "System.Boolean C.Equals(C? )",
                 "System.Boolean C.Equals(System.Object? )",
                 "System.Int32 C.GetHashCode()",
@@ -2594,6 +2572,89 @@ data class C(object P)
 
         [Fact]
         public void Inheritance_25()
+        {
+            var sourceA =
+@"public class A
+{
+    public class P1 { }
+    internal object P2 = 2;
+    public int P3(object o) => 3;
+    internal int P4<T>(T t) => 4;
+}";
+            var sourceB =
+@"data class B(object P1, object P2, object P3, object P4) : A
+{
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object B.P4 { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+
+            comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            expectedMembers = new[]
+            {
+                "System.Object B.P2 { get; init; }",
+                "System.Object B.P4 { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_26()
+        {
+            var sourceA =
+@"public class A
+{
+    internal const int P = 4;
+}";
+            var sourceB =
+@"data class B(object P) : A
+{
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics();
+            AssertEx.Equal(new string[0], GetProperties(comp, "B").ToTestDisplayStrings());
+
+            comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            AssertEx.Equal(new[] { "System.Object B.P { get; init; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Inheritance_27()
+        {
+            var source =
+@"class A
+{
+    public object P { get; }
+    public object Q { get; set; }
+}
+data class B(object get_P, object set_Q) : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object B.get_P { get; init; }",
+                "System.Object B.set_Q { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_28()
         {
             var source =
 @"interface I
@@ -2618,7 +2679,7 @@ data class C(object P) : I
         }
 
         [Fact]
-        public void Inheritance_26()
+        public void Inheritance_29()
         {
             var sourceA =
 @"Public Class A
@@ -2660,7 +2721,7 @@ End Class
         }
 
         [Fact]
-        public void Inheritance_27()
+        public void Inheritance_30()
         {
             var sourceA =
 @"Public Class A
@@ -2706,7 +2767,7 @@ End Class
         }
 
         [Fact]
-        public void Inheritance_28()
+        public void Inheritance_31()
         {
             var sourceA =
 @"Public Class A
@@ -2937,11 +2998,7 @@ data class B(object Q) : A
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Q").WithArguments("A", "Q").WithLocation(6, 16));
 
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            var expectedMembers = new[]
-            {
-                "System.Object B.Q { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(new string[0], actualMembers);
         }
 
         private static ImmutableArray<Symbol> GetProperties(CSharpCompilation comp, string typeName)
