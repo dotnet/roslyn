@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             string typeName,
             INamedTypeSymbol containingTypeOpt,
             ImmutableArray<IParameterSymbol> parameters,
-            IDictionary<string, ISymbol> parameterToExistingMemberMap,
-            IDictionary<string, string> parameterToNewMemberMap,
+            ImmutableDictionary<string, ISymbol> parameterToExistingMemberMap,
+            ImmutableDictionary<string, string> parameterToNewMemberMap,
             bool addNullChecks,
             bool preferThrowExpression,
             bool generateProperties)

@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             public IMethodSymbol DelegatedConstructor { get; private set; }
 
-            public Dictionary<string, ISymbol> ParameterToExistingMemberMap { get; private set; }
-            public Dictionary<string, string> ParameterToNewFieldMap { get; private set; }
-            public Dictionary<string, string> ParameterToNewPropertyMap { get; private set; }
+            public ImmutableDictionary<string, ISymbol> ParameterToExistingMemberMap { get; private set; }
+            public ImmutableDictionary<string, string> ParameterToNewFieldMap { get; private set; }
+            public ImmutableDictionary<string, string> ParameterToNewPropertyMap { get; private set; }
             public ImmutableArray<IParameterSymbol> RemainingParameters { get; private set; }
 
             public bool AddingMembers => ParameterToNewFieldMap.Count > 0 || ParameterToNewPropertyMap.Count > 0;
@@ -390,9 +390,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 ImmutableArray<ParameterName> parameterNames,
                 CancellationToken cancellationToken)
             {
-                var parameterToExistingMemberMap = new Dictionary<string, ISymbol>();
-                var parameterToNewFieldMap = new Dictionary<string, string>();
-                var parameterToNewPropertyMap = new Dictionary<string, string>();
+                var parameterToExistingMemberMap = ImmutableDictionary.CreateBuilder<string, ISymbol>();
+                var parameterToNewFieldMap = ImmutableDictionary.CreateBuilder<string, string>();
+                var parameterToNewPropertyMap = ImmutableDictionary.CreateBuilder<string, string>();
 
                 using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var result);
 
@@ -424,9 +424,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         name: parameterNames[i].BestNameForParameter));
                 }
 
-                this.ParameterToExistingMemberMap = parameterToExistingMemberMap;
-                this.ParameterToNewFieldMap = parameterToNewFieldMap;
-                this.ParameterToNewPropertyMap = parameterToNewPropertyMap;
+                this.ParameterToExistingMemberMap = parameterToExistingMemberMap.ToImmutable();
+                this.ParameterToNewFieldMap = parameterToNewFieldMap.ToImmutable();
+                this.ParameterToNewPropertyMap = parameterToNewPropertyMap.ToImmutable();
                 this.RemainingParameters = result.ToImmutable();
             }
 
@@ -436,9 +436,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 ImmutableArray<ParameterName> parameterNames,
                 ImmutableArray<ITypeSymbol> parameterTypes,
                 int index,
-                Dictionary<string, ISymbol> parameterToExistingMemberMap,
-                Dictionary<string, string> parameterToNewFieldMap,
-                Dictionary<string, string> parameterToNewPropertyMap,
+                ImmutableDictionary<string, ISymbol>.Builder parameterToExistingMemberMap,
+                ImmutableDictionary<string, string>.Builder parameterToNewFieldMap,
+                ImmutableDictionary<string, string>.Builder parameterToNewPropertyMap,
                 bool caseSensitive,
                 out ImmutableArray<ParameterName> newParameterNames,
                 CancellationToken cancellationToken)

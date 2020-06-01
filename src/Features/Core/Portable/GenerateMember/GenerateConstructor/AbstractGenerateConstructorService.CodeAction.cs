@@ -137,13 +137,18 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+                var newMemberMap =
+                    _withFields ? _state.ParameterToNewFieldMap :
+                    _withProperties ? _state.ParameterToNewPropertyMap :
+                    ImmutableDictionary<string, string>.Empty;
+
                 var members = syntaxFactory.CreateMemberDelegatingConstructor(
                     semanticModel,
                     _state.TypeToGenerateIn.Name,
                     _state.TypeToGenerateIn,
                     _state.RemainingParameters,
                     _state.ParameterToExistingMemberMap,
-                    _withProperties ? _state.ParameterToNewPropertyMap : _state.ParameterToNewFieldMap,
+                    newMemberMap,
                     addNullChecks: false,
                     preferThrowExpression: false,
                     generateProperties: _withProperties);

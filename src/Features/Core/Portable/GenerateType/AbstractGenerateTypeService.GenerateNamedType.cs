@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var parameterNames = _service.GenerateParameterNames(_semanticDocument.SemanticModel, argumentList, _cancellationToken);
                 using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
 
-                var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
-                var parameterToNewFieldMap = new Dictionary<string, string>();
+                var parameterToExistingFieldMap = ImmutableDictionary.CreateBuilder<string, ISymbol>();
+                var parameterToNewFieldMap = ImmutableDictionary.CreateBuilder<string, string>();
 
                 var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
                 for (var i = 0; i < parameterNames.Count; i++)
@@ -224,12 +224,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     parameterType = parameterType.RemoveUnavailableTypeParameters(
                         _semanticDocument.SemanticModel.Compilation, availableTypeParameters);
 
-                    if (!TryFindMatchingField(parameterName, parameterType, parameterToExistingFieldMap, caseSensitive: true))
+                    if (!TryFindMatchingField(parameterName, parameterType, parameterToExistingFieldMap, caseSensitive: true) &&
+                        !TryFindMatchingField(parameterName, parameterType, parameterToExistingFieldMap, caseSensitive: false))
                     {
-                        if (!TryFindMatchingField(parameterName, parameterType, parameterToExistingFieldMap, caseSensitive: false))
-                        {
-                            parameterToNewFieldMap[parameterName.BestNameForParameter] = parameterName.NameBasedOnArgument;
-                        }
+                        parameterToNewFieldMap[parameterName.BestNameForParameter] = parameterName.NameBasedOnArgument;
                     }
 
                     parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
@@ -246,7 +244,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     var newMembers = factory.CreateMemberDelegatingConstructor(
                         _semanticDocument.SemanticModel,
                         DetermineName(), null, parameters.ToImmutable(),
-                        parameterToExistingFieldMap, parameterToNewFieldMap,
+                        parameterToExistingFieldMap.ToImmutable(),
+                        parameterToNewFieldMap.ToImmutable(),
                         addNullChecks: false,
                         preferThrowExpression: false,
                         generateProperties: false);

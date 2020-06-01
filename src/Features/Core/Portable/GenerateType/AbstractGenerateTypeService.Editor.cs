@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -565,7 +566,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private bool TryFindMatchingField(
                 ParameterName parameterName,
                 ITypeSymbol parameterType,
-                Dictionary<string, ISymbol> parameterToFieldMap,
+                ImmutableDictionary<string, ISymbol>.Builder parameterToFieldMap,
                 bool caseSensitive)
             {
                 // If the base types have an accessible field or property with the same name and
