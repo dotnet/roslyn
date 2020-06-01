@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -48,10 +49,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             public IMethodSymbol DelegatedConstructor { get; private set; }
 
+            public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
             public ImmutableDictionary<string, ISymbol> ParameterToExistingMemberMap { get; private set; }
             public ImmutableDictionary<string, string> ParameterToNewFieldMap { get; private set; }
             public ImmutableDictionary<string, string> ParameterToNewPropertyMap { get; private set; }
-            public ImmutableArray<IParameterSymbol> RemainingParameters { get; private set; }
 
             private State(TService service, SemanticDocument document)
             {
@@ -377,7 +378,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var parameterToNewFieldMap = ImmutableDictionary.CreateBuilder<string, string>();
                 var parameterToNewPropertyMap = ImmutableDictionary.CreateBuilder<string, string>();
 
-                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var result);
+                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
 
                 for (var i = 0; i < parameterNames.Length; i++)
                 {
@@ -399,7 +400,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         parameterToNewPropertyMap[bestNameForParameter] = PropertyNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
                     }
 
-                    result.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
+                    parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                         attributes: default,
                         refKind: Service.GetRefKind(arguments[i]),
                         isParams: false,
@@ -410,7 +411,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 this.ParameterToExistingMemberMap = parameterToExistingMemberMap.ToImmutable();
                 this.ParameterToNewFieldMap = parameterToNewFieldMap.ToImmutable();
                 this.ParameterToNewPropertyMap = parameterToNewPropertyMap.ToImmutable();
-                this.RemainingParameters = result.ToImmutable();
+                this.Parameters = parameters.ToImmutable();
             }
 
             private bool TryFindMatchingFieldOrProperty(
@@ -536,6 +537,100 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 }
 
                 return false;
+            }
+
+            public async Task<Document> GetChangedDocumentAsync(
+                Document document, bool withFields, bool withProperties, CancellationToken cancellationToken)
+            {
+                // See if there's an accessible base constructor that would accept these
+                // types, then just call into that instead of generating fields.
+                //
+                // then, see if there are any constructors that would take the first 'n' arguments
+                // we've provided.  If so, delegate to those, and then create a field for any
+                // remaining arguments.  Try to match from largest to smallest.
+                //
+                // Otherwise, just generate a normal constructor that assigns any provided
+                // parameters into fields.
+                return await GenerateThisOrBaseDelegatingConstructorAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false) ??
+                       await GenerateMemberDelegatingConstructorAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false);
+            }
+
+            private async Task<Document> GenerateThisOrBaseDelegatingConstructorAsync(
+                Document document, bool withFields, bool withProperties, CancellationToken cancellationToken)
+            {
+                if (DelegatedConstructor == null)
+                    return null;
+
+                var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
+                var (members, assignments) = await GenerateMembersAndAssignmentsAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false);
+                var isThis = DelegatedConstructor.ContainingType.OriginalDefinition.Equals(TypeToGenerateIn.OriginalDefinition);
+                var delegatingArguments = provider.GetService<SyntaxGenerator>().CreateArguments(DelegatedConstructor.Parameters);
+
+                var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
+                    attributes: default,
+                    accessibility: Accessibility.Public,
+                    modifiers: default,
+                    typeName: TypeToGenerateIn.Name,
+                    parameters: DelegatedConstructor.Parameters.Concat(Parameters),
+                    statements: assignments,
+                    baseConstructorArguments: isThis ? default : delegatingArguments,
+                    thisConstructorArguments: isThis ? delegatingArguments : default);
+
+                return await provider.GetService<ICodeGenerationService>().AddMembersAsync(
+                    document.Project.Solution,
+                    TypeToGenerateIn,
+                    members.Concat(constructor),
+                    new CodeGenerationOptions(Token.GetLocation()),
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            private async Task<(ImmutableArray<ISymbol>, ImmutableArray<SyntaxNode>)> GenerateMembersAndAssignmentsAsync(
+                Document document, bool withFields, bool withProperties, CancellationToken cancellationToken)
+            {
+                var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
+
+                var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(Parameters, ParameterToNewFieldMap) :
+                              withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(Parameters, ParameterToNewPropertyMap) :
+                              ImmutableArray<ISymbol>.Empty;
+
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var assignments = !withFields && !withProperties
+                    ? ImmutableArray<SyntaxNode>.Empty
+                    : provider.GetService<SyntaxGenerator>().CreateAssignmentStatements(
+                        semanticModel, Parameters,
+                        ParameterToExistingMemberMap,
+                        withFields ? ParameterToNewFieldMap : ParameterToNewPropertyMap,
+                        addNullChecks: false, preferThrowExpression: false);
+
+                return (members, assignments);
+            }
+
+            private async Task<Document> GenerateMemberDelegatingConstructorAsync(
+                Document document, bool withFields, bool withProperties, CancellationToken cancellationToken)
+            {
+                var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                var newMemberMap =
+                    withFields ? ParameterToNewFieldMap :
+                    withProperties ? ParameterToNewPropertyMap :
+                    ImmutableDictionary<string, string>.Empty;
+
+                return await provider.GetService<ICodeGenerationService>().AddMembersAsync(
+                    document.Project.Solution,
+                    TypeToGenerateIn,
+                    provider.GetService<SyntaxGenerator>().CreateMemberDelegatingConstructor(
+                        semanticModel,
+                        TypeToGenerateIn.Name,
+                        TypeToGenerateIn,
+                        Parameters,
+                        ParameterToExistingMemberMap,
+                        newMemberMap,
+                        addNullChecks: false,
+                        preferThrowExpression: false,
+                        generateProperties: withProperties),
+                    new CodeGenerationOptions(Token.GetLocation()),
+                    cancellationToken).ConfigureAwait(false);
             }
         }
     }

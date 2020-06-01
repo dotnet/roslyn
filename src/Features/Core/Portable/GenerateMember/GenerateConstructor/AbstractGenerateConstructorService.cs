@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -83,14 +84,24 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                     // If we have any fields we'd like to generate, offer a code action to do that.
                     if (state.ParameterToNewFieldMap.Count > 0)
-                        result.Add(new GenerateConstructorCodeAction(document, state, withFields: true, withProperties: false));
+                    {
+                        result.Add(new MyCodeAction(
+                            string.Format(FeaturesResources.Generate_constructor_in_0_with_fields, state.TypeToGenerateIn.Name),
+                            c => state.GetChangedDocumentAsync(document, withFields: true, withProperties: false, c)));
+                    }
 
                     // Same with a version that generates properties instead.
                     if (state.ParameterToNewPropertyMap.Count > 0)
-                        result.Add(new GenerateConstructorCodeAction(document, state, withFields: false, withProperties: true));
+                    {
+                        result.Add(new MyCodeAction(
+                            string.Format(FeaturesResources.Generate_constructor_in_0_with_properties, state.TypeToGenerateIn.Name),
+                            c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: true, c)));
+                    }
 
                     // Always offer to just generate the constructor and nothing else.
-                    result.Add(new GenerateConstructorCodeAction(document, state, withFields: false, withProperties: false));
+                    result.Add(new MyCodeAction(
+                        string.Format(FeaturesResources.Generate_constructor_in_0, state.TypeToGenerateIn.Name),
+                        c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: false, c)));
 
                     return result.ToImmutable();
                 }
@@ -131,6 +142,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 default:
                     return false;
+            }
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
+            {
             }
         }
     }
