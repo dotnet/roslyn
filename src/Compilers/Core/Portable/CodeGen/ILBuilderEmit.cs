@@ -59,6 +59,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(token);
         }
 
+        internal void EmitToken(Cci.ISignature value, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
+            this.GetCurrentWriter().WriteUInt32(token);
+        }
+
         internal void EmitGreatestMethodToken()
         {
             // A magic value indicates that the token value is to be the literal value of the greatest method definition token.
