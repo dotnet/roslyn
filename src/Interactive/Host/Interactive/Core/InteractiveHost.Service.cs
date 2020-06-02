@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public async Task<RemoteExecutionResult> SetPathsAsync(
                 string[] referenceSearchPaths,
                 string[] sourceSearchPaths,
-                string baseDirectory)
+                string? baseDirectory)
             {
                 Debug.Assert(referenceSearchPaths != null);
                 Debug.Assert(sourceSearchPaths != null);
@@ -370,13 +370,13 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Adds an assembly reference to the current session.
             /// </summary>
-            public async Task<bool> AddReferenceAsync(string? reference)
+            public async Task<bool> AddReferenceAsync(string reference)
             {
                 Debug.Assert(reference != null);
                 var completionSource = new TaskCompletionSource<bool>();
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = AddReferenceAsync(_lastTask, completionSource, reference);
+                    _lastTask = AddReferenceAsync(_lastTask, completionSource, reference!);
                 }
                 return await completionSource.Task.ConfigureAwait(false);
             }
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = ExecuteAsync(completionSource, _lastTask, text);
+                    _lastTask = ExecuteAsync(completionSource, _lastTask, text!);
                 }
                 return await completionSource.Task.ConfigureAwait(false);
             }
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = ExecuteFileAsync(completionSource, _lastTask, path);
+                    _lastTask = ExecuteFileAsync(completionSource, _lastTask, path!);
                 }
 
                 return await completionSource.Task.ConfigureAwait(false);
