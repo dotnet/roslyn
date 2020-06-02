@@ -42,19 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
         }
 
         public void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
-        {
-            if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote) ||
-                ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_TextMate))
-            {
-                // do nothing here so that existing RoslynSyntacticTagger return nothing in this mode
-                return;
-            }
-            else
-            {
-                // Some other invalid flight.  Just fallback to the regular service.  Don't want to block the user based on an experimentation failure.
-                _originalService.AddLexicalClassifications(text, textSpan, result, cancellationToken);
-            }
-        }
+            => _originalService.AddLexicalClassifications(text, textSpan, result, cancellationToken);
 
         public void AddSemanticClassifications(SemanticModel semanticModel, TextSpan textSpan, CodeAnalysis.Workspace workspace, Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
@@ -79,19 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
         }
 
         public void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
-        {
-            if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote) ||
-                ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_TextMate))
-            {
-                // do nothing here so that existing RoslynSyntacticTagger return nothing in this mode
-                return;
-            }
-            else
-            {
-                // Invalid experiment flight or older client.  Since this is an experiment, just fallback.
-                _originalService.AddSyntacticClassifications(syntaxTree, textSpan, result, cancellationToken);
-            }
-        }
+            => _originalService.AddSyntacticClassifications(syntaxTree, textSpan, result, cancellationToken);
 
         public ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan)
             => _originalService.FixClassification(text, classifiedSpan);
