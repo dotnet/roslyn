@@ -56,9 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             string language,
             IServiceProvider serviceProvider,
             IThreadingContext threadingContext,
-            string externalErrorReportingPrefix,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
-            ICommandLineParserService commandLineParserServiceOpt)
+            string externalErrorReportingPrefix)
             : base(threadingContext, assertIsForeground: true)
         {
             Contract.ThrowIfNull(hierarchy);

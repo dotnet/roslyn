@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
@@ -20,39 +19,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
     internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject, IVisualStudioHostProject
     {
-        internal const string ProjectGuidPropertyName = "ProjectGuid";
-
-        internal static object RuleSetErrorId = new object();
-
         private string _displayName;
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
 
-        private readonly DiagnosticDescriptor _errorReadingRulesetRule = new DiagnosticDescriptor(
-            id: IDEDiagnosticIds.ErrorReadingRulesetId,
-            title: ServicesVSResources.ErrorReadingRuleset,
-            messageFormat: ServicesVSResources.Error_reading_ruleset_file_0_1,
-            category: FeaturesResources.Roslyn_HostError,
-            defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-
         public AbstractProject(
             VisualStudioProjectTracker projectTracker,
-            Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
             string projectSystemName,
             string projectFilePath,
             IVsHierarchy hierarchy,
             string language,
             Guid projectGuid,
-            IServiceProvider serviceProviderNotUsed, // not used, but left for compat with TypeScript
-            VisualStudioWorkspaceImpl workspace,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
-            ICommandLineParserService commandLineParserServiceOpt = null)
+            VisualStudioWorkspaceImpl workspace)
             : base(projectTracker.ThreadingContext)
         {
             Hierarchy = hierarchy;
@@ -61,47 +41,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ProjectTracker = projectTracker;
             _visualStudioWorkspace = workspace;
 
-            this.DisplayName = hierarchy != null && hierarchy.TryGetName(out var name) ? name : projectSystemName;
-
-            ProjectSystemName = projectSystemName;
-            HostDiagnosticUpdateSource = hostDiagnosticUpdateSourceOpt;
-
-            // Set the default value for last design time build result to be true, until the project system lets us know that it failed.
-            LastDesignTimeBuildSucceeded = true;
-
-            if (projectFilePath != null && File.Exists(projectFilePath))
+            if (File.Exists(projectFilePath))
             {
                 ProjectFilePath = projectFilePath;
             }
 
-            if (ProjectFilePath != null)
-            {
-                Version = VersionStamp.Create(File.GetLastWriteTimeUtc(ProjectFilePath));
-            }
-            else
-            {
-                Version = VersionStamp.Create();
-            }
-
-            if (reportExternalErrorCreatorOpt != null)
-            {
-                ExternalErrorReporter = reportExternalErrorCreatorOpt(Id);
-            }
+            ProjectSystemName = projectSystemName;
+            DisplayName = hierarchy != null && hierarchy.TryGetName(out var name) ? name : projectSystemName;
         }
 
-        /// <summary>
-        /// A full path to the project bin output binary, or null if the project doesn't have an bin output binary.
-        /// </summary>
-        // FYI: this can't be made virtual because there are calls to this where a 'call' instead of 'callvirt' is being used to call
-        // the method.
-        internal string BinOutputPath => GetOutputFilePath();
-
-        protected virtual string GetOutputFilePath()
-            => VisualStudioProject.OutputFilePath;
-
-        protected IVsReportExternalErrors ExternalErrorReporter { get; }
-
-        internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
+        // back-compat stub
+        public AbstractProject(
+            VisualStudioProjectTracker projectTracker,
+            Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
+            string projectSystemName,
+            string projectFilePath,
+            IVsHierarchy hierarchy,
+            string language,
+            Guid projectGuid,
+            IServiceProvider serviceProviderNotUsed,
+            VisualStudioWorkspaceImpl workspace,
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
+            ICommandLineParserService commandLineParserServiceOpt = null)
+            : this(projectTracker,
+                   projectSystemName,
+                   projectFilePath,
+                   hierarchy,
+                   language,
+                   projectGuid,
+                   workspace)
+        {
+        }
 
         public virtual ProjectId Id => VisualStudioProject?.Id ?? ExplicitId;
 
@@ -122,35 +92,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         public Guid Guid { get; protected set; }
 
-        public Workspace Workspace { get; }
-
-        public VersionStamp Version { get; }
-
-        public IProjectCodeModel ProjectCodeModel { get; protected set; }
-
-        /// <summary>
-        /// The containing directory of the project. Null if none exists (consider Venus.)
-        /// </summary>
-        protected string ContainingDirectoryPathOpt
-        {
-            get
-            {
-                var projectFilePath = this.ProjectFilePath;
-                if (projectFilePath != null)
-                {
-                    return Path.GetDirectoryName(projectFilePath);
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
-
         /// <summary>
         /// The full path of the project file. Null if none exists (consider Venus.)
         /// Note that the project file path might change with project file rename.
-        /// If you need the folder of the project, just use <see cref="ContainingDirectoryPathOpt" /> which doesn't change for a project.
         /// </summary>
         public string ProjectFilePath { get; private set; }
 
@@ -180,12 +124,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// These can be assumed to be unique within the Visual Studio workspace.
         /// </summary>
         public string ProjectSystemName { get; }
-
-        /// <summary>
-        /// Flag indicating if the latest design time build has succeeded for current project state.
-        /// </summary>
-        /// <remarks>Default value is true.</remarks>
-        protected bool LastDesignTimeBuildSucceeded { get; private set; }
 
 #nullable enable
 

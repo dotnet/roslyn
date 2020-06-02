@@ -33,6 +33,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
+    // Subclassed by FSharp (https://github.com/dotnet/fsharp/blob/master/vsintegration/src/FSharp.Editor/LanguageService/LanguageService.fs#L217)
+    // Subclassed by TypeScript (Microsoft.VisualStudio.LanguageServices.TypeScript.TypeScriptLanguageService).
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : AbstractLanguageService
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
@@ -61,7 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         // reverse order it was created in.
         internal VisualStudioWorkspaceImpl Workspace { get; private set; }
         internal IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; private set; }
-        internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; private set; }
         internal AnalyzerFileWatcherService AnalyzerFileWatcherService { get; private set; }
 
         /// <summary>
@@ -147,12 +148,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // This method should only contain calls to acquire services off of the component model
             // or service providers.  Anything else which is more complicated should go in Initialize
             // instead.
-            this.Workspace = this.Package.Workspace;
-            this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
-            this.HostDiagnosticUpdateSource = this.Package.ComponentModel.GetService<HostDiagnosticUpdateSource>();
-            this.AnalyzerFileWatcherService = this.Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
+            Workspace = Package.Workspace;
+            EditorAdaptersFactoryService = Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
+            AnalyzerFileWatcherService = Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
 
-            this.Debugger = (IVsDebugger)this.SystemServiceProvider.GetService(typeof(SVsShellDebugger));
+            Debugger = (IVsDebugger)SystemServiceProvider.GetService(typeof(SVsShellDebugger));
         }
 
         protected virtual void RemoveServices()

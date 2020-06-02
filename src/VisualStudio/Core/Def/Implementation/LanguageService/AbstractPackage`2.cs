@@ -21,6 +21,8 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
+    // Subclassed by FSharp (https://github.com/dotnet/fsharp/blob/master/vsintegration/src/FSharp.Editor/LanguageService/LanguageService.fs#L148).
+    // Subclassed by TypeScript (Microsoft.VisualStudio.LanguageServices.TypeScript.TypeScriptPackage).
     internal abstract partial class AbstractPackage<TPackage, TLanguageService> : AbstractPackage
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
