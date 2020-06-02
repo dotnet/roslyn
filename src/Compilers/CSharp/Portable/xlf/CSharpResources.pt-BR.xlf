@@ -612,6 +612,11 @@
         <target state="new">Use of new() is not valid in this context</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnexpectedArgumentList">
+        <source>Unexpected argument list.</source>
+        <target state="new">Unexpected argument list.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
         <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
         <target state="translated">'{0}': não é possível especificar uma classe de restrição e a restrição 'unmanaged'</target>
