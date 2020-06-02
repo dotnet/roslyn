@@ -26,6 +26,11 @@
         <MicrosoftCodeAnalysisPrimaryTestVersion>$(MicrosoftCodeAnalysis3PrimaryTestVersion)</MicrosoftCodeAnalysisPrimaryTestVersion>
       </PropertyGroup>
     </When>
+    <When Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+      <PropertyGroup>
+        <MicrosoftCodeAnalysisPrimaryTestVersion>$(MicrosoftCodeAnalysis3PrimaryTestVersion)</MicrosoftCodeAnalysisPrimaryTestVersion>
+      </PropertyGroup>
+    </When>
   </Choose>
 
   <ItemGroup>
