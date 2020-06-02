@@ -1558,6 +1558,570 @@ data class C(int X, int Y)
         }
 
         [Fact]
+        public void WithExpr_DefiniteAssignment_01()
+        {
+            var src = @"
+data class B(int X)
+{
+    static void M(B b)
+    {
+        int y;
+        _ = b with { X = y = 42 };
+        y.ToString();
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExpr_DefiniteAssignment_02()
+        {
+            var src = @"
+data class B(int X, string Y)
+{
+    static void M(B b)
+    {
+        int z;
+        _ = b with { X = z = 42, Y = z.ToString() };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExpr_DefiniteAssignment_03()
+        {
+            var src = @"
+data class B(int X, string Y)
+{
+    static void M(B b)
+    {
+        int z;
+        _ = b with { Y = z.ToString(), X = z = 42 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (7,26): error CS0165: Use of unassigned local variable 'z'
+                //         _ = b with { Y = z.ToString(), X = z = 42 };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(7, 26));
+        }
+
+        [Fact]
+        public void WithExpr_DefiniteAssignment_04()
+        {
+            var src = @"
+data class B(int X)
+{
+    static void M()
+    {
+        B b;
+        _ = (b = new B(42)) with { X = b.X };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExpr_DefiniteAssignment_05()
+        {
+            var src = @"
+data class B(int X)
+{
+    static void M()
+    {
+        B b;
+        _ = new B(b.X) with { X = (b = new B(42)).X };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (7,19): error CS0165: Use of unassigned local variable 'b'
+                //         _ = new B(b.X) with { X = new B(42).X };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(7, 19));
+        }
+
+        [Fact]
+        public void WithExpr_DefiniteAssignment_06()
+        {
+            var src = @"
+data class B(int X)
+{
+    static void M(B b)
+    {
+        int y;
+        _ = b with { X = M(out y) };
+        y.ToString();
+    }
+
+    static int M(out int y) { y = 42; return 43; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExpr_DefiniteAssignment_07()
+        {
+            var src = @"
+data class B(int X)
+{
+    static void M(B b)
+    {
+        _ = b with { X = M(out int y) };
+        y.ToString();
+    }
+
+    static int M(out int y) { y = 42; return 43; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_01()
+        {
+            var src = @"
+#nullable enable
+data class B(int X)
+{
+    static void M(B b)
+    {
+        string? s = null;
+        _ = b with { X = M(out s) };
+        s.ToString();
+    }
+
+    static int M(out string s) { s = ""a""; return 42; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_02()
+        {
+            var src = @"
+#nullable enable
+data class B(string X)
+{
+    static void M(B b, string? s)
+    {
+        b.X.ToString();
+        _ = b with { X = s }; // 1
+        b.X.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,26): warning CS8601: Possible null reference assignment.
+                //         _ = b with { X = s }; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "s").WithLocation(8, 26));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_03()
+        {
+            var src = @"
+#nullable enable
+data class B(string? X)
+{
+    public B Clone() => new B(X);
+
+    static void M1(B b, string s, bool flag)
+    {
+        if (flag) { b.X.ToString(); } // 1
+        _ = b with { X = s };
+        if (flag) { b.X.ToString(); } // 2
+    }
+
+    static void M2(B b, string s, bool flag)
+    {
+        if (flag) { b.X.ToString(); } // 3
+        b = b with { X = s };
+        if (flag) { b.X.ToString(); }
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (9,21): warning CS8602: Dereference of a possibly null reference.
+                //         if (flag) { b.X.ToString(); } // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(9, 21),
+                // (11,21): warning CS8602: Dereference of a possibly null reference.
+                //         if (flag) { b.X.ToString(); } // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(11, 21),
+                // (16,21): warning CS8602: Dereference of a possibly null reference.
+                //         if (flag) { b.X.ToString(); } // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(16, 21));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_04()
+        {
+            var src = @"
+#nullable enable
+data class B(int X)
+{
+    static void M1(B? b)
+    {
+        var b1 = b with { X = 42 }; // 1
+        _ = b.ToString();
+        _ = b1.ToString();
+    }
+
+    static void M2(B? b)
+    {
+        (b with { X = 42 }).ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (7,18): warning CS8602: Dereference of a possibly null reference.
+                //         var b1 = b with { X = 42 }; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b").WithLocation(7, 18),
+                // (14,10): warning CS8602: Dereference of a possibly null reference.
+                //         (b with { X = 42 }).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b").WithLocation(14, 10));
+        }
+
+        [Fact, WorkItem(44763, "https://github.com/dotnet/roslyn/issues/44763")]
+        public void WithExpr_NullableAnalysis_05()
+        {
+            var src = @"
+#nullable enable
+data class B(string? X, string? Y)
+{
+    public B Clone() => new B(X, Y);
+
+    static void M1(bool flag)
+    {
+        B b = new B(""hello"", null);
+        if (flag)
+        {
+            b.X.ToString(); // shouldn't warn
+            b.Y.ToString(); // 1
+        }
+
+        b = b with { Y = ""world"" };
+        b.X.ToString(); // shouldn't warn
+        b.Y.ToString();
+    }
+}";
+            // records should propagate the nullability of the
+            // constructor arguments to the corresponding properties.
+            // https://github.com/dotnet/roslyn/issues/44763
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (12,13): warning CS8602: Dereference of a possibly null reference.
+                //             b.X.ToString(); // shouldn't warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(12, 13),
+                // (13,13): warning CS8602: Dereference of a possibly null reference.
+                //             b.Y.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(13, 13),
+                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                //         b.X.ToString(); // shouldn't warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(17, 9));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_06()
+        {
+            var src = @"
+#nullable enable
+class B
+{
+    public string? X { get; init; }
+    public string? Y { get; init; }
+
+    public B Clone() => new B { X = X, Y = Y };
+
+    static void M1(bool flag)
+    {
+        B b = new B { X = ""hello"", Y = null };
+        if (flag)
+        {
+            b.X.ToString();
+            b.Y.ToString(); // 1
+        }
+
+        b = b with { Y = ""world"" };
+
+        b.X.ToString();
+        b.Y.ToString();
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (16,13): warning CS8602: Dereference of a possibly null reference.
+                //             b.Y.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(16, 13));
+        }
+
+        [Fact, WorkItem(44691, "https://github.com/dotnet/roslyn/issues/44691")]
+        public void WithExpr_NullableAnalysis_07()
+        {
+            var src = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+data class B([AllowNull] string X)
+{
+    public B Clone() => new B(X);
+
+    static void M1(B b)
+    {
+        b.X.ToString();
+        b = b with { X = null }; // ok
+        b.X.ToString(); // ok
+        b = new B((string?)null);
+        b.X.ToString(); // ok
+    }
+}";
+            // We should have a way to propagate attributes on
+            // positional parameters to the corresponding properties.
+            // https://github.com/dotnet/roslyn/issues/44691
+            var comp = CreateCompilation(new[] { src, AllowNullAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (12,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         b = b with { X = null }; // ok
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 26),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         b.X.ToString(); // ok
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(13, 9));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_08()
+        {
+            var src = @"
+#nullable enable
+data class B(string? X, string? Y)
+{
+    public B Clone() => new B(X, Y);
+
+    static void M1(B b1)
+    {
+        B b2 = b1 with { X = ""hello"" };
+        B b3 = b1 with { Y = ""world"" };
+        B b4 = b2 with { Y = ""world"" };
+        
+        b1.X.ToString(); // 1
+        b1.Y.ToString(); // 2
+        b2.X.ToString();
+        b2.Y.ToString(); // 3
+        b3.X.ToString(); // 4
+        b3.Y.ToString();
+        b4.X.ToString();
+        b4.Y.ToString();
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         b1.X.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.X").WithLocation(13, 9),
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                //         b1.Y.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1.Y").WithLocation(14, 9),
+                // (16,9): warning CS8602: Dereference of a possibly null reference.
+                //         b2.Y.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b2.Y").WithLocation(16, 9),
+                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                //         b3.X.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b3.X").WithLocation(17, 9));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_09()
+        {
+            var src = @"
+#nullable enable
+data class B(string? X, string? Y)
+{
+    static void M1(B b1)
+    {
+        string? local = ""hello"";
+        _ = b1 with
+        {
+            X = local = null,
+            Y = local.ToString() // 1
+        };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (11,17): warning CS8602: Dereference of a possibly null reference.
+                //             Y = local.ToString() // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "local").WithLocation(11, 17));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_10()
+        {
+            var src = @"
+#nullable enable
+data class B(string X, string Y)
+{
+    static string M0(out string? s) { s = null; return ""hello""; }
+
+    static void M1(B b1)
+    {
+        string? local = ""world"";
+        _ = b1 with
+        {
+            X = M0(out local),
+            Y = local // 1
+        };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (13,17): warning CS8601: Possible null reference assignment.
+                //             Y = local // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "local").WithLocation(13, 17));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_VariantClone()
+        {
+            var src = @"
+#nullable enable
+
+class A
+{
+    public string? Y { get; init; }
+    public string? Z { get; init; }
+}
+
+data class B(string? X) : A
+{
+    public A Clone() => new B(X) { Y = Y, Z = Z };
+    public new string Z { get; init; } = ""zed"";
+
+    static void M1(B b1)
+    {
+        b1.Z.ToString();
+        (b1 with { Y = ""hello"" }).Y.ToString();
+        (b1 with { Y = ""hello"" }).Z.ToString(); // 1
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (19,9): warning CS8602: Dereference of a possibly null reference.
+                //         (b1 with { Y = "hello" }).Z.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"(b1 with { Y = ""hello"" }).Z").WithLocation(19, 9));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_NullableClone()
+        {
+            var src = @"
+#nullable enable
+
+data class B(string? X)
+{
+    public B? Clone() => new B(X);
+
+    static void M1(B b1)
+    {
+        _ = b1 with { X = null }; // 1
+        (b1 with { X = null }).ToString(); // 2
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (10,21): warning CS8602: Dereference of a possibly null reference.
+                //         _ = b1 with { X = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ X = null }").WithLocation(10, 21),
+                // (11,18): warning CS8602: Dereference of a possibly null reference.
+                //         (b1 with { X = null }).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ X = null }").WithLocation(11, 18));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_MaybeNullClone()
+        {
+            var src = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+data class B(string? X)
+{
+    [return: MaybeNull]
+    public B Clone() => new B(X);
+
+    static void M1(B b1)
+    {
+        _ = b1 with { };
+        _ = b1 with { X = null }; // 1
+        (b1 with { X = null }).ToString(); // 2
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, MaybeNullAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (13,21): warning CS8602: Dereference of a possibly null reference.
+                //         _ = b1 with { X = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ X = null }").WithLocation(13, 21),
+                // (14,18): warning CS8602: Dereference of a possibly null reference.
+                //         (b1 with { X = null }).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ X = null }").WithLocation(14, 18));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_NotNullClone()
+        {
+            var src = @"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+data class B(string? X)
+{
+    [return: NotNull]
+    public B? Clone() => new B(X);
+
+    static void M1(B b1)
+    {
+        _ = b1 with { };
+        _ = b1 with { X = null };
+        (b1 with { X = null }).ToString();
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, NotNullAttributeDefinition });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_NullableClone_NoInitializers()
+        {
+            var src = @"
+#nullable enable
+
+data class B(string? X)
+{
+    public B? Clone() => new B(X);
+
+    static void M1(B b1)
+    {
+        _ = b1 with { };
+        (b1 with { }).ToString(); // 1
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            // Note: we expect to give a warning on `// 1`, but do not currently
+            // due to limitations of object initializer analysis.
+            // Tracking in https://github.com/dotnet/roslyn/issues/44759
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void WithExprNotRecord()
         {
             var src = @"

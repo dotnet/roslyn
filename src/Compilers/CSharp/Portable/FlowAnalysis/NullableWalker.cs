@@ -2222,12 +2222,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitWhileStatement(node);
         }
 
-        public override BoundNode VisitWithExpression(BoundWithExpression expr)
+        public override BoundNode VisitWithExpression(BoundWithExpression withExpr)
         {
-            // PROTOTYPE: This is wrong
-            SetResultType(expr,
-                expr.CloneMethod?.ReturnTypeWithAnnotations.ToTypeWithState()
-                    ?? TypeWithState.Create(expr.Type, NullableFlowState.NotNull));
+            Debug.Assert(!IsConditionalState);
+
+            var receiver = withExpr.Receiver;
+            VisitRvalue(receiver);
+            _ = CheckPossibleNullReceiver(receiver);
+
+            var resultType = withExpr.CloneMethod?.ReturnTypeWithAnnotations ?? ResultType.ToTypeWithAnnotations();
+            var resultState = ApplyUnconditionalAnnotations(resultType.ToTypeWithState(), GetRValueAnnotations(withExpr.CloneMethod));
+            var resultSlot = GetOrCreatePlaceholderSlot(withExpr);
+            // carry over the null state of members of 'receiver' to the result of the with-expression.
+            TrackNullableStateForAssignment(receiver, resultType, resultSlot, resultState, MakeSlot(receiver));
+            // use the declared nullability of Clone() for the top-level nullability of the result of the with-expression.
+            SetResult(withExpr, resultState, resultType);
+            VisitObjectCreationInitializer(containingSymbol: null, resultSlot, withExpr.InitializerExpression, FlowAnalysisAnnotations.None);
+
+            // Note: this does not account for the scenario where `Clone()` returns maybe-null and the with-expression has no initializers.
+            // Tracking in https://github.com/dotnet/roslyn/issues/44759
             return null;
         }
 
@@ -2610,7 +2623,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!node.Type.IsValueType && State[containingSlot].MayBeNull())
                     {
-                        ReportDiagnostic(ErrorCode.WRN_NullReferenceInitializer, node.Syntax, containingSymbol);
+                        if (containingSymbol is null)
+                        {
+                            ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, node.Syntax);
+                        }
+                        else
+                        {
+                            ReportDiagnostic(ErrorCode.WRN_NullReferenceInitializer, node.Syntax, containingSymbol);
+                        }
                     }
                 }
             }
