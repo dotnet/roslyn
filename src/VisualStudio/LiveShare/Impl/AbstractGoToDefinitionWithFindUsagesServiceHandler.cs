@@ -29,15 +29,17 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal abstract class AbstractGoToDefinitionWithFindUsagesServiceHandler : ILspRequestHandler<LSP.TextDocumentPositionParams, object, Solution>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
+        private readonly ILspSolutionProvider _solutionProvider;
 
-        public AbstractGoToDefinitionWithFindUsagesServiceHandler(IMetadataAsSourceFileService metadataAsSourceService)
-            => this._metadataAsSourceService = metadataAsSourceService;
+        public AbstractGoToDefinitionWithFindUsagesServiceHandler(IMetadataAsSourceFileService metadataAsSourceService, ILspSolutionProvider solutionProvider)
+        {
+            _metadataAsSourceService = metadataAsSourceService;
+            _solutionProvider = solutionProvider;
+        }
 
         public async Task<object> HandleAsync(LSP.TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var solution = requestContext.Context;
-
-            var document = solution.GetDocument(request.TextDocument);
+            var document = request.TextDocument.GetDocument(_solutionProvider);
             if (document == null)
             {
                 return Array.Empty<LSP.Location>();

@@ -23,16 +23,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName)]
-    internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    internal class CompletionResolveHandler : AbstractBaseRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionResolveHandler()
+        public CompletionResolveHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public async Task<LSP.CompletionItem> HandleRequestAsync(Solution solution, LSP.CompletionItem completionItem,
-            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities,
+            string? clientName, CancellationToken cancellationToken)
         {
             CompletionResolveData data;
             if (completionItem.Data is CompletionResolveData)
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var request = data.CompletionParams;
 
-            var document = solution.GetDocument(request.TextDocument, clientName);
+            var document = request.TextDocument.GetDocument(SolutionProvider, clientName);
             if (document == null)
             {
                 return completionItem;

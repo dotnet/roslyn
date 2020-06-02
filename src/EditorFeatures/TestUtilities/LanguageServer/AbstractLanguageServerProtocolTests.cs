@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -30,17 +32,50 @@ namespace Roslyn.Test.Utilities
     [UseExportProvider]
     public abstract class AbstractLanguageServerProtocolTests
     {
+        [Export(typeof(ILspSolutionProvider)), PartNotDiscoverable]
+        internal class TestLspSolutionProvider : ILspSolutionProvider
+        {
+            private Solution _currentSolution;
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public TestLspSolutionProvider()
+            {
+            }
+
+            public void UpdateSolution(Solution solution)
+            {
+                Contract.ThrowIfFalse(_currentSolution == null);
+                _currentSolution = solution;
+            }
+
+            public Solution GetCurrentSolution()
+            {
+                Contract.ThrowIfNull(_currentSolution);
+                return _currentSolution;
+            }
+
+            public ImmutableArray<Document> GetDocuments(Uri documentUri)
+            {
+                Contract.ThrowIfNull(_currentSolution);
+                return _currentSolution.GetDocuments(documentUri);
+            }
+        }
+
         protected virtual ExportProvider GetExportProvider()
         {
             var requestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(IRequestHandler).Assembly, typeof(IRequestHandler));
             var executeCommandHandlerTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(IExecuteWorkspaceCommandHandler).Assembly, typeof(IExecuteWorkspaceCommandHandler));
+            var solutionProviderTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(TestLspSolutionProvider).Assembly, typeof(ILspSolutionProvider));
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 .WithPart(typeof(LanguageServerProtocol))
                 .WithParts(requestHelperTypes)
-                .WithParts(executeCommandHandlerTypes));
+                .WithParts(executeCommandHandlerTypes)
+                .WithParts(solutionProviderTypes));
             return exportProviderFactory.CreateExportProvider();
         }
 
@@ -207,6 +242,8 @@ namespace Roslyn.Test.Utilities
             workspace.ChangeSolution(solution);
 
             locations = GetAnnotatedLocations(workspace, solution);
+
+            UpdateSolutionProvider(workspace, solution);
             return workspace;
         }
 
@@ -214,7 +251,14 @@ namespace Roslyn.Test.Utilities
         {
             var workspace = TestWorkspace.Create(xmlContent, exportProvider: GetExportProvider());
             locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);
+            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
             return workspace;
+        }
+
+        private void UpdateSolutionProvider(TestWorkspace workspace, Solution solution)
+        {
+            var provider = (TestLspSolutionProvider)workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
+            provider.UpdateSolution(solution);
         }
 
         private Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)

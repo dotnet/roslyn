@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
         private static async Task<LSP.TextEdit[]> RunFormatDocumentOnTypeAsync(Solution solution, string characterTyped, LSP.Location locationTyped)
             => await GetLanguageServer(solution)
             .ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentOnTypeFormattingName,
-                solution, CreateDocumentOnTypeFormattingParams(characterTyped, locationTyped), new LSP.ClientCapabilities(), null, CancellationToken.None);
+                CreateDocumentOnTypeFormattingParams(characterTyped, locationTyped), new LSP.ClientCapabilities(), null, CancellationToken.None);
 
         private static LSP.DocumentOnTypeFormattingParams CreateDocumentOnTypeFormattingParams(string characterTyped, LSP.Location locationTyped)
             => new LSP.DocumentOnTypeFormattingParams()

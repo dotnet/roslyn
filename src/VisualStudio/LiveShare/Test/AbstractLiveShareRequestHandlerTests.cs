@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
@@ -54,12 +55,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             // Get all of the execute workspace command handlers in M.CA.LanguageServer
             var executeCommandHandlerTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(IExecuteWorkspaceCommandHandler).Assembly, typeof(IExecuteWorkspaceCommandHandler));
+            var solutionProviderTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(TestLspSolutionProvider).Assembly, typeof(ILspSolutionProvider));
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
                 .WithPart(typeof(MockDocumentNavigationServiceFactory))
                 .WithParts(liveShareRequestHelperTypes)
                 .WithParts(roslynRequestHelperTypes)
-                .WithParts(executeCommandHandlerTypes));
+                .WithParts(executeCommandHandlerTypes)
+                .WithParts(solutionProviderTypes));
             return exportProviderFactory.CreateExportProvider();
         }
 

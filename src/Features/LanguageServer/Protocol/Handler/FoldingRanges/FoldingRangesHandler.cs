@@ -17,20 +17,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentFoldingRangeName)]
-    internal class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]>
+    internal class FoldingRangesHandler : AbstractBaseRequestHandler<FoldingRangeParams, FoldingRange[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FoldingRangesHandler()
+        public FoldingRangesHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
         {
         }
 
-        public async Task<FoldingRange[]> HandleRequestAsync(Solution solution, FoldingRangeParams request,
-            ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public override async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, ClientCapabilities clientCapabilities,
+            string? clientName, CancellationToken cancellationToken)
         {
             var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
 
-            var document = solution.GetDocument(request.TextDocument, clientName);
+            var document = request.TextDocument.GetDocument(SolutionProvider, clientName);
             if (document == null)
             {
                 return foldingRanges.ToArrayAndFree();

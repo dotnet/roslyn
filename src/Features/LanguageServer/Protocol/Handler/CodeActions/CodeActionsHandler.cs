@@ -5,6 +5,8 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -24,21 +26,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName)]
-    internal class CodeActionsHandler : CodeActionsHandlerBase, IRequestHandler<LSP.CodeActionParams, LSP.SumType<LSP.Command, LSP.CodeAction>[]>
+    internal class CodeActionsHandler : AbstractBaseRequestHandler<LSP.CodeActionParams, LSP.SumType<LSP.Command, LSP.CodeAction>[]>
     {
+        private readonly ICodeFixService _codeFixService;
+        private readonly ICodeRefactoringService _codeRefactoringService;
+
+        internal const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService) : base(codeFixService, codeRefactoringService)
+        public CodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, ILspSolutionProvider solutionProvider)
+            : base(solutionProvider)
         {
+            _codeFixService = codeFixService;
+            _codeRefactoringService = codeRefactoringService;
         }
 
-        public async Task<LSP.SumType<LSP.Command, LSP.CodeAction>[]> HandleRequestAsync(Solution solution, LSP.CodeActionParams request,
-            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
+        public override async Task<LSP.SumType<LSP.Command, LSP.CodeAction>[]> HandleRequestAsync(LSP.CodeActionParams request, LSP.ClientCapabilities clientCapabilities,
+            string? clientName, CancellationToken cancellationToken)
         {
-            var codeActions = await GetCodeActionsAsync(solution,
-                request.TextDocument,
+            var document = request.TextDocument.GetDocument(SolutionProvider, clientName);
+            var codeActions = await GetCodeActionsAsync(document,
+                _codeFixService,
+                _codeRefactoringService,
                 request.Range,
-                clientName, cancellationToken).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
 
             // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
             codeActions = codeActions.Where(c => !(c is CodeActionWithOptions));
@@ -71,6 +83,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             return result.ToArrayAndFree();
+        }
+
+        internal static async Task<IEnumerable<CodeAction>> GetCodeActionsAsync(Document? document,
+            ICodeFixService codeFixService,
+            ICodeRefactoringService codeRefactoringService,
+            LSP.Range selection,
+            CancellationToken cancellationToken)
+        {
+            if (document == null)
+            {
+                return ImmutableArray<CodeAction>.Empty;
+            }
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
+            var codeFixCollections = await codeFixService.GetFixesAsync(document, textSpan, true, cancellationToken).ConfigureAwait(false);
+            var codeRefactorings = await codeRefactoringService.GetRefactoringsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+
+            var codeActions = codeFixCollections.SelectMany(c => c.Fixes.Select(f => f.Action)).Concat(
+                                codeRefactorings.SelectMany(r => r.CodeActions.Select(ca => ca.action)));
+
+            // Flatten out the nested codeactions.
+            var nestedCodeActions = codeActions.Where(c => c is CodeAction.CodeActionWithNestedActions nc && nc.IsInlinable).SelectMany(nc => nc.NestedCodeActions);
+            codeActions = codeActions.Where(c => !(c is CodeAction.CodeActionWithNestedActions)).Concat(nestedCodeActions);
+
+            return codeActions;
         }
     }
 }
