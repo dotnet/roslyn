@@ -715,7 +715,7 @@ class D : B
 
     public D(int x)
     {
-        this.x = x;
+        X = x;
     }
 }");
         }
