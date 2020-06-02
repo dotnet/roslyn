@@ -372,30 +372,35 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 for (var i = 0; i < parameterNames.Length; i++)
                 {
+                    var parameterName = parameterNames[i];
+                    var parameterType = parameterTypes[i];
+                    var argument = arguments[i];
+                    var attributeArgument = attributeArguments != null ? attributeArguments.Value[i] : null;
+
                     // See if there's a matching field or property we can use.  First test in a case sensitive
                     // manner, then case insensitively.
-                    if (!TryFindMatchingFieldOrProperty(
-                            arguments, attributeArguments, parameterNames, parameterTypes, i,
+                    if (!TryFindMatchingMember(
+                            ref parameterName, parameterType, argument, attributeArgument,
                             parameterToExistingMemberMap, parameterToNewFieldMap, parameterToNewPropertyMap,
-                            caseSensitive: true, newParameterNames: out parameterNames, cancellationToken) &&
-                       !TryFindMatchingFieldOrProperty(
-                           arguments, attributeArguments, parameterNames, parameterTypes, i,
+                            caseSensitive: true, cancellationToken) &&
+                        !TryFindMatchingMember(
+                            ref parameterName, parameterType, argument, attributeArgument,
                             parameterToExistingMemberMap, parameterToNewFieldMap, parameterToNewPropertyMap,
-                            caseSensitive: false, newParameterNames: out parameterNames, cancellationToken))
+                            caseSensitive: false, cancellationToken))
                     {
                         // If no matching field was found, use the fieldNamingRule to create suitable name
-                        var bestNameForParameter = parameterNames[i].BestNameForParameter;
-                        var nameBasedOnArgument = parameterNames[i].NameBasedOnArgument;
+                        var bestNameForParameter = parameterName.BestNameForParameter;
+                        var nameBasedOnArgument = parameterName.NameBasedOnArgument;
                         parameterToNewFieldMap[bestNameForParameter] = _fieldNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
                         parameterToNewPropertyMap[bestNameForParameter] = _propertyNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
                     }
 
                     parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                         attributes: default,
-                        refKind: _service.GetRefKind(arguments[i]),
+                        refKind: _service.GetRefKind(argument),
                         isParams: false,
-                        type: parameterTypes[i],
-                        name: parameterNames[i].BestNameForParameter));
+                        type: parameterType,
+                        name: parameterName.BestNameForParameter));
                 }
 
                 _parameters = parameters.ToImmutable();
@@ -404,25 +409,20 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 ParameterToNewPropertyMap = parameterToNewPropertyMap.ToImmutable();
             }
 
-            private bool TryFindMatchingFieldOrProperty(
-                ImmutableArray<TArgumentSyntax> arguments,
-                ImmutableArray<TAttributeArgumentSyntax>? attributeArguments,
-                ImmutableArray<ParameterName> parameterNames,
-                ImmutableArray<ITypeSymbol> parameterTypes,
-                int index,
+            private bool TryFindMatchingMember(
+                ref ParameterName parameterName,
+                ITypeSymbol parameterType,
+                TArgumentSyntax argument,
+                TAttributeArgumentSyntax attributeArgument,
                 ImmutableDictionary<string, ISymbol>.Builder parameterToExistingMemberMap,
                 ImmutableDictionary<string, string>.Builder parameterToNewFieldMap,
                 ImmutableDictionary<string, string>.Builder parameterToNewPropertyMap,
                 bool caseSensitive,
-                out ImmutableArray<ParameterName> newParameterNames,
                 CancellationToken cancellationToken)
             {
-                var parameterName = parameterNames[index];
-                var parameterType = parameterTypes[index];
                 var expectedFieldName = _fieldNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
                 var expectedPropertyName = _propertyNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
-                var isFixed = _service.IsNamedArgument(arguments[index]);
-                var newParameterNamesList = parameterNames.ToList();
+                var isFixed = _service.IsNamedArgument(argument);
 
                 // For non-out parameters, see if there's already a field there with the same name.
                 // If so, and it has a compatible type, then we can just assign to that field.
@@ -452,9 +452,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                 // Uh-oh.  Now we have a problem.  We can't assign this parameter to
                                 // this field.  So we need to create a new field.  Find a name not in
                                 // use so we can assign to that.  
-                                var baseName = attributeArguments != null
-                                    ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArguments.Value[index], cancellationToken)
-                                    : _service.GenerateNameForArgument(_document.SemanticModel, arguments[index], cancellationToken);
+                                var baseName = attributeArgument != null
+                                    ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArgument, cancellationToken)
+                                    : _service.GenerateNameForArgument(_document.SemanticModel, argument, cancellationToken);
 
                                 var baseFieldWithNamingStyle = _fieldNamingRule.NamingStyle.MakeCompliant(baseName).First();
                                 var basePropertyWithNamingStyle = _propertyNamingRule.NamingStyle.MakeCompliant(baseName).First();
@@ -475,20 +475,18 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                     // But first remove any prefix added due to field naming styles
                                     var fieldNameMinusPrefix = newFieldName.Substring(_fieldNamingRule.NamingStyle.Prefix.Length);
                                     var newParameterName = new ParameterName(fieldNameMinusPrefix, isFixed: false, _parameterNamingRule);
-                                    newParameterNamesList[index] = newParameterName;
+                                    parameterName = newParameterName;
 
                                     parameterToNewFieldMap[newParameterName.BestNameForParameter] = newFieldName;
                                     parameterToNewPropertyMap[newParameterName.BestNameForParameter] = newPropertyName;
                                 }
                             }
 
-                            newParameterNames = newParameterNamesList.ToImmutableArray();
                             return true;
                         }
                     }
                 }
 
-                newParameterNames = newParameterNamesList.ToImmutableArray();
                 return false;
             }
 
@@ -505,9 +503,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 ISymbol symbol)
             {
                 if (parameterType.Language != symbol.Language)
-                {
                     return false;
-                }
 
                 if (symbol != null && !symbol.IsStatic)
                 {
