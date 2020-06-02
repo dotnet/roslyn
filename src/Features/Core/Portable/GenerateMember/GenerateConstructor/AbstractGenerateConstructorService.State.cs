@@ -419,59 +419,58 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var unavailableMemberNames = GetUnavailableMemberNames().ToImmutableArray();
 
-                foreach (var type in TypeToGenerateIn.GetBaseTypesAndThis())
+                var members = from t in TypeToGenerateIn.GetBaseTypesAndThis()
+                              let ignoreAccessibility = t.Equals(TypeToGenerateIn)
+                              from m in t.GetMembers()
+                              where m.Name.Equals(expectedFieldName, StringComparison.OrdinalIgnoreCase)
+                              where ignoreAccessibility || IsSymbolAccessible(m, _document)
+                              select m;
+
+                var membersArray = members.ToImmutableArray();
+                var symbol = membersArray.FirstOrDefault(m => m.Name.Equals(expectedFieldName, StringComparison.Ordinal)) ?? membersArray.FirstOrDefault();
+                if (symbol != null)
                 {
-                    var ignoreAccessibility = type.Equals(TypeToGenerateIn);
-                    var symbol = type.GetMembers().FirstOrDefault(s => s.Name.Equals(expectedFieldName, StringComparison.Ordinal)) ??
-                                 type.GetMembers().FirstOrDefault(s => s.Name.Equals(expectedFieldName, StringComparison.OrdinalIgnoreCase));
-
-                    if (symbol == null)
-                        continue;
-
-                    if (ignoreAccessibility || IsSymbolAccessible(symbol, _document))
+                    if (IsViableFieldOrProperty(parameterType, symbol))
                     {
-                        if (IsViableFieldOrProperty(parameterType, symbol))
+                        // Ok!  We can just the existing field.  
+                        parameterToExistingMemberMap[parameterName.BestNameForParameter] = symbol;
+                    }
+                    else
+                    {
+                        // Uh-oh.  Now we have a problem.  We can't assign this parameter to
+                        // this field.  So we need to create a new field.  Find a name not in
+                        // use so we can assign to that.  
+                        var baseName = attributeArgument != null
+                            ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArgument, cancellationToken)
+                            : _service.GenerateNameForArgument(_document.SemanticModel, argument, cancellationToken);
+
+                        var baseFieldWithNamingStyle = _fieldNamingRule.NamingStyle.MakeCompliant(baseName).First();
+                        var basePropertyWithNamingStyle = _propertyNamingRule.NamingStyle.MakeCompliant(baseName).First();
+
+                        var newFieldName = NameGenerator.EnsureUniqueness(baseFieldWithNamingStyle, unavailableMemberNames.Concat(parameterToNewFieldMap.Values));
+                        var newPropertyName = NameGenerator.EnsureUniqueness(basePropertyWithNamingStyle, unavailableMemberNames.Concat(parameterToNewPropertyMap.Values));
+
+                        if (isFixed)
                         {
-                            // Ok!  We can just the existing field.  
-                            parameterToExistingMemberMap[parameterName.BestNameForParameter] = symbol;
+                            // Can't change the parameter name, so map the existing parameter
+                            // name to the new field name.
+                            parameterToNewFieldMap[parameterName.NameBasedOnArgument] = newFieldName;
+                            parameterToNewPropertyMap[parameterName.NameBasedOnArgument] = newPropertyName;
                         }
                         else
                         {
-                            // Uh-oh.  Now we have a problem.  We can't assign this parameter to
-                            // this field.  So we need to create a new field.  Find a name not in
-                            // use so we can assign to that.  
-                            var baseName = attributeArgument != null
-                                ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArgument, cancellationToken)
-                                : _service.GenerateNameForArgument(_document.SemanticModel, argument, cancellationToken);
+                            // Can change the parameter name, so do so.  
+                            // But first remove any prefix added due to field naming styles
+                            var fieldNameMinusPrefix = newFieldName.Substring(_fieldNamingRule.NamingStyle.Prefix.Length);
+                            var newParameterName = new ParameterName(fieldNameMinusPrefix, isFixed: false, _parameterNamingRule);
+                            parameterName = newParameterName;
 
-                            var baseFieldWithNamingStyle = _fieldNamingRule.NamingStyle.MakeCompliant(baseName).First();
-                            var basePropertyWithNamingStyle = _propertyNamingRule.NamingStyle.MakeCompliant(baseName).First();
-
-                            var newFieldName = NameGenerator.EnsureUniqueness(baseFieldWithNamingStyle, unavailableMemberNames.Concat(parameterToNewFieldMap.Values));
-                            var newPropertyName = NameGenerator.EnsureUniqueness(basePropertyWithNamingStyle, unavailableMemberNames.Concat(parameterToNewPropertyMap.Values));
-
-                            if (isFixed)
-                            {
-                                // Can't change the parameter name, so map the existing parameter
-                                // name to the new field name.
-                                parameterToNewFieldMap[parameterName.NameBasedOnArgument] = newFieldName;
-                                parameterToNewPropertyMap[parameterName.NameBasedOnArgument] = newPropertyName;
-                            }
-                            else
-                            {
-                                // Can change the parameter name, so do so.  
-                                // But first remove any prefix added due to field naming styles
-                                var fieldNameMinusPrefix = newFieldName.Substring(_fieldNamingRule.NamingStyle.Prefix.Length);
-                                var newParameterName = new ParameterName(fieldNameMinusPrefix, isFixed: false, _parameterNamingRule);
-                                parameterName = newParameterName;
-
-                                parameterToNewFieldMap[newParameterName.BestNameForParameter] = newFieldName;
-                                parameterToNewPropertyMap[newParameterName.BestNameForParameter] = newPropertyName;
-                            }
+                            parameterToNewFieldMap[newParameterName.BestNameForParameter] = newFieldName;
+                            parameterToNewPropertyMap[newParameterName.BestNameForParameter] = newPropertyName;
                         }
-
-                        return;
                     }
+
+                    return;
                 }
 
                 // If no matching field was found, use the fieldNamingRule to create suitable name

@@ -563,25 +563,26 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return typeSymbol.RemoveUnnamedErrorTypes(compilation);
             }
 
-            private bool TryFindMatchingField(
+            private bool FindExistingOrCreateNewMember(
                 ParameterName parameterName,
                 ITypeSymbol parameterType,
-                ImmutableDictionary<string, ISymbol>.Builder parameterToFieldMap,
-                bool caseSensitive)
+                ImmutableDictionary<string, ISymbol>.Builder parameterToFieldMap)
             {
                 // If the base types have an accessible field or property with the same name and
                 // an acceptable type, then we should just defer to that.
                 if (_state.BaseTypeOrInterfaceOpt != null)
                 {
-                    var comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-                    var query =
-                        _state.BaseTypeOrInterfaceOpt
-                            .GetBaseTypesAndThis()
-                            .SelectMany(t => t.GetMembers())
-                            .Where(s => s.Name.Equals(parameterName.NameBasedOnArgument, comparison));
-                    var symbol = query.FirstOrDefault(IsSymbolAccessible);
+                    var expectedFieldName = parameterName.NameBasedOnArgument;
+                    var members = from t in _state.BaseTypeOrInterfaceOpt.GetBaseTypesAndThis()
+                                  from m in t.GetMembers()
+                                  where m.Name.Equals(expectedFieldName, StringComparison.OrdinalIgnoreCase)
+                                  where IsSymbolAccessible(m)
+                                  where IsViableFieldOrProperty(parameterType, m)
+                                  select m;
 
-                    if (IsViableFieldOrProperty(parameterType, symbol))
+                    var membersArray = members.ToImmutableArray();
+                    var symbol = membersArray.FirstOrDefault(m => m.Name.Equals(expectedFieldName, StringComparison.Ordinal)) ?? membersArray.FirstOrDefault();
+                    if (symbol != null)
                     {
                         parameterToFieldMap[parameterName.BestNameForParameter] = symbol;
                         return true;
