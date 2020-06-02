@@ -12193,7 +12193,6 @@ generated_code = auto");
             }
         }
 
-
         [Fact]
         public void SourceGenerators_EmbeddedSources()
         {
@@ -12212,7 +12211,6 @@ class C
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
-
         }
 
         [Fact]
