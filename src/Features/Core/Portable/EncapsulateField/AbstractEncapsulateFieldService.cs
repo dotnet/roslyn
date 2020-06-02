@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var result = await client.TryRunRemoteAsync<(DocumentId, TextChange[])[]>(
+                    var result = await client.RunRemoteAsync<(DocumentId, TextChange[])[]>(
                         WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteEncapsulateFieldService.EncapsulateFieldsAsync),
                         solution,
@@ -117,11 +117,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
-                    if (result.HasValue)
-                    {
-                        return await RemoteUtilities.UpdateSolutionAsync(
-                            solution, result.Value, cancellationToken).ConfigureAwait(false);
-                    }
+                    return await RemoteUtilities.UpdateSolutionAsync(
+                        solution, result, cancellationToken).ConfigureAwait(false);
                 }
             }
 

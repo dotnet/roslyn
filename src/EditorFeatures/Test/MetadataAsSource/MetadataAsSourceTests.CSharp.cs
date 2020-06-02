@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-
 public class [|C|]
 {{
     public nint i;

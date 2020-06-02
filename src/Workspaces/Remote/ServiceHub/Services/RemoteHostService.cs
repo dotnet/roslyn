@@ -43,11 +43,9 @@ namespace Microsoft.CodeAnalysis.Remote
         // it is saved here more on debugging purpose.
         private static Func<FunctionId, bool> s_logChecker = _ => false;
 
-        private string? _host;
-        private int _primaryInstance;
 #pragma warning disable IDE0052 // Remove unread private members
         private PerformanceReporter? _performanceReporter;
-#pragma warning restore IDE0052 // Remove unread private members
+#pragma warning restore
 
         static RemoteHostService()
         {
@@ -70,18 +68,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API. Initializes ServiceHub process global state.
         /// </summary>
-        public string Connect(string host, int uiCultureLCID, int cultureLCID, string? serializedSession, CancellationToken cancellationToken)
+        public void InitializeGlobalState(string host, int uiCultureLCID, int cultureLCID, string? serializedSession, CancellationToken cancellationToken)
         {
-            return RunService(() =>
+            RunService(() =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // initialize global assert storage
+                // initialize global asset storage
                 AssetStorage.Initialize(this);
-
-                _primaryInstance = InstanceId;
-
-                var existing = Interlocked.CompareExchange(ref _host, host, null);
 
                 // serializedSession may be null for testing
                 if (serializedSession != null)
@@ -89,13 +81,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     SetGlobalContext(uiCultureLCID, cultureLCID, serializedSession);
                 }
 
-                if (existing != null && existing != host)
-                {
-                    Log(TraceEventType.Error, $"{host} is given for {existing}");
-                }
-
                 // log telemetry that service hub started
-                RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(SetSessionInfo));
+                RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m =>
+                {
+                    m["Host"] = host;
+                    m["InstanceId"] = InstanceId;
+                }));
 
                 if (serializedSession != null)
                 {
@@ -104,8 +95,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     // host's work such as responsiveness or build.
                     Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
                 }
-
-                return _host;
             }, cancellationToken);
         }
 
@@ -188,12 +177,6 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 RoslynLogger.SetLogger(AggregateLogger.Remove(RoslynLogger.GetLogger(), l => l is T));
             }
-        }
-
-        private void SetSessionInfo(Dictionary<string, object?> m)
-        {
-            m["Host"] = _host;
-            m["InstanceId"] = _primaryInstance;
         }
 
         private void SetGlobalContext(int uiCultureLCID, int cultureLCID, string serializedSession)

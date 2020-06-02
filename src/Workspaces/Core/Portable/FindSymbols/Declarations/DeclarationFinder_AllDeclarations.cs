@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var solution = project.Solution;
 
-                var result = await client.TryRunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
+                var result = await client.RunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
                     WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
                     solution,
@@ -49,10 +49,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
-                }
+                return await RehydrateAsync(solution, result, cancellationToken).ConfigureAwait(false);
             }
 
             return await FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(

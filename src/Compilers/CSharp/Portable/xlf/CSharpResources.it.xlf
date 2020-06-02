@@ -17,6 +17,16 @@
         <target state="translated">'{0}': l'evento astratto non può usare la sintassi della funzione di accesso agli eventi</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AddressOfMethodGroupInExpressionTree">
+        <source>'&amp;' on method groups cannot be used in expression trees</source>
+        <target state="new">'&amp;' on method groups cannot be used in expression trees</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AddressOfToNonFunctionPointer">
+        <source>Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</source>
+        <target state="new">Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
         <target state="translated">Per usare '@$' invece di '$@' per una stringa verbatim interpolata, usare la versione '{0}' o versioni successive del linguaggio.</target>
@@ -77,6 +87,16 @@
         <target state="translated">Non è possibile usare una raccolta di tipo dinamico in un'istruzione foreach asincrona</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadFuncPointerArgCount">
+        <source>Function pointer '{0}' does not take {1} arguments</source>
+        <target state="new">Function pointer '{0}' does not take {1} arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadFuncPointerParamModifier">
+        <source>'{0}' cannot be used as a modifier on a function pointer parameter.</source>
+        <target state="new">'{0}' cannot be used as a modifier on a function pointer parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
         <target state="translated">L'opzione '{0}' non è valida per /nullable. Deve essere 'disable', 'enable', 'warnings' o 'annotations'</target>
@@ -100,6 +120,21 @@
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Errore di sintassi della riga di comando: '{0}' non è un valore valido per l'opzione '{1}'. Il valore deve essere espresso nel formato '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
+        <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
+        <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotUseFunctionPointerAsFixedLocal">
+        <source>The type of a local declared in a fixed statement cannot be a function pointer type.</source>
+        <target state="new">The type of a local declared in a fixed statement cannot be a function pointer type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
+        <source>Cannot use an extension method with a receiver as the target of a '&amp;' operator.</source>
+        <target state="new">Cannot use an extension method with a receiver as the target of a '&amp;' operator.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -150,6 +185,11 @@
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">Il criterio di rimozione non è consentito come etichetta case in un'istruzione switch. Usare 'case var _:' per un criterio di rimozione oppure 'case @_:' per una costante denominata '_'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DupReturnTypeMod">
+        <source>A return type can only have one '{0}' modifier.</source>
+        <target state="new">A return type can only have one '{0}' modifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateExplicitImpl">
@@ -252,6 +292,16 @@
         <target state="translated">L'istruzione foreach non può funzionare con variabili di tipo '{0}' perché '{0}' non contiene una definizione di istanza pubblica per '{1}'. Si intendeva 'await foreach' invece di 'foreach'?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FuncPtrMethMustBeStatic">
+        <source>Cannot create a function pointer for '{0}' because it is not a static method</source>
+        <target state="new">Cannot create a function pointer for '{0}' because it is not a static method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FuncPtrRefMismatch">
+        <source>Ref mismatch between '{0}' and function pointer '{1}'</source>
+        <target state="new">Ref mismatch between '{0}' and function pointer '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">Un'istruzione goto non può passare a una posizione che precede una dichiarazione using all'interno dello stesso blocco.</target>
@@ -292,6 +342,16 @@
         <target state="translated">Si è verificato un errore interno nel compilatore C#.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
+        <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
+        <target state="new">'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidFunctionPointerCallingConvention">
+        <source>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</source>
+        <target state="new">'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Il nome dell'algoritmo hash non è valido: '{0}'</target>
@@ -325,6 +385,16 @@
       <trans-unit id="ERR_IteratorMustBeAsync">
         <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
         <target state="translated">Il metodo '{0}' con un blocco iteratore deve essere 'async' per restituire '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MethFuncPtrMismatch">
+        <source>No overload for '{0}' matches function pointer '{1}'</source>
+        <target state="new">No overload for '{0}' matches function pointer '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingAddressOf">
+        <source>Cannot convert method group to function pointer (Are you missing a '&amp;'?)</source>
+        <target state="new">Cannot convert method group to function pointer (Are you missing a '&amp;'?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
@@ -487,6 +557,26 @@
         <target state="translated">Il runtime di destinazione non supporta l'accessibilità 'protected', 'protected internal' o 'private protected' per un membro di un'interfaccia.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
+        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
+        <target state="new">Cannot specify /main if there is a compilation unit with top-level statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
+        <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
+        <target state="new">Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramMultipleUnitsWithTopLevelStatements">
+        <source>Only one compilation unit can have top-level statements.</source>
+        <target state="new">Only one compilation unit can have top-level statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramNotAnExecutable">
+        <source>Program using top-level statements must be an executable.</source>
+        <target state="new">Program using top-level statements must be an executable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Per risolvere le ambiguità, è necessario usare una sintassi diversa per il criterio di decostruzione di singoli elementi. È consigliabile aggiungere un indicatore di rimozione '_' dopo la parentesi di chiusura ')'.</target>
@@ -530,6 +620,11 @@
       <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
         <source>Parentheses are required around the switch governing expression.</source>
         <target state="translated">L'espressione che gestisce lo switch deve essere racchiusa tra parentesi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
+        <source>Top-level statements must precede namespace and type declarations.</source>
+        <target state="new">Top-level statements must precede namespace and type declarations.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TripleDotNotAllowed">
@@ -577,6 +672,11 @@
         <target state="translated">Il tipo '{2}' deve essere un tipo valore che non ammette i valori Null, unitamente a tutti i campi a ogni livello di annidamento, per poter essere usato come parametro '{1}' nel tipo o metodo generico '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCallingConvention">
+        <source>The calling convention of '{0}' is not supported by the language.</source>
+        <target state="new">The calling convention of '{0}' is not supported by the language.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForRelationalPattern">
         <source>Relational patterns may not be used for a value of type '{0}'.</source>
         <target state="new">Relational patterns may not be used for a value of type '{0}'.</target>
@@ -597,6 +697,11 @@
         <target state="translated">Non è possibile dichiarare enumerazioni, classi e strutture in un'interfaccia che contiene un parametro di tipo 'in' o 'out'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_WrongFuncPtrCallingConvention">
+        <source>Calling convention of '{0}' is not compatible with '{1}'.</source>
+        <target state="new">Calling convention of '{0}' is not compatible with '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
         <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
         <target state="translated">Per la corrispondenza del tipo di tupla '{0}' sono richiesti '{1}' criteri secondari, ma ne sono presenti '{2}'.</target>
@@ -605,6 +710,11 @@
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
         <target state="translated">Il nome file '{0}' è vuoto, contiene caratteri non validi, include una specifica di unità senza percorso assoluto oppure è troppo lungo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_AddressOfMethodGroup">
+        <source>&amp;method group</source>
+        <target state="new">&amp;method group</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_CSCHelp">
@@ -976,6 +1086,11 @@
         <target state="translated">funzioni locali extern</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFunctionPointers">
+        <source>function pointers</source>
+        <target state="new">function pointers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
         <source>index operator</source>
         <target state="translated">operatore di indice</target>
@@ -1164,6 +1279,11 @@
       <trans-unit id="IDS_RELATEDWARNING">
         <source>(Location of symbol related to previous warning)</source>
         <target state="translated">(Posizione del simbolo relativo all'avviso precedente)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_TopLevelStatements">
+        <source>top-level statements</source>
+        <target state="new">top-level statements</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">
@@ -1514,6 +1634,16 @@
       <trans-unit id="IDS_FeatureTypeVariance">
         <source>type variance</source>
         <target state="translated">varianza dei tipi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotSameNumberParameterTypesAndRefKinds">
+        <source>Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</source>
+        <target state="new">Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OutIsNotValidForReturn">
+        <source>'RefKind.Out' is not a valid ref kind for a return type.</source>
+        <target state="new">'RefKind.Out' is not a valid ref kind for a return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
@@ -7895,13 +8025,13 @@ Come procedura consigliata, è consigliabile attendere sempre la chiamata.
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored">
-        <source>The entry point of the program is global script code; ignoring '{0}' entry point.</source>
-        <target state="translated">Il punto di ingresso del programma è codice script globale. Il punto di ingresso '{0}' verrà ignorato.</target>
+        <source>The entry point of the program is global code; ignoring '{0}' entry point.</source>
+        <target state="needs-review-translation">Il punto di ingresso del programma è codice script globale. Il punto di ingresso '{0}' verrà ignorato.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored_Title">
-        <source>The entry point of the program is global script code; ignoring entry point</source>
-        <target state="translated">Il punto di ingresso del programma è codice script globale. Il punto di ingresso verrà ignorato</target>
+        <source>The entry point of the program is global code; ignoring entry point</source>
+        <target state="needs-review-translation">Il punto di ingresso del programma è codice script globale. Il punto di ingresso verrà ignorato</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticInAsOrIs">

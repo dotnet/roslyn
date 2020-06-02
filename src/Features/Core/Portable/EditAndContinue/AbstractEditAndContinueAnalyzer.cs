@@ -1959,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static List<SyntaxNode?>? GetAncestors(SyntaxNode? root, SyntaxNode node, Func<SyntaxNode, bool> nodeSelector)
         {
             List<SyntaxNode?>? list = null;
-            SyntaxNode? current = node;
+            var current = node;
 
             while (current is object && current != root)
             {
@@ -3802,7 +3802,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return memberBody;
             }
 
-            SyntaxNode? node = GetSymbolSyntax(localOrParameter, cancellationToken);
+            var node = GetSymbolSyntax(localOrParameter, cancellationToken);
             while (true)
             {
                 RoslynDebug.Assert(node is object);

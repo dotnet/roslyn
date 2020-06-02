@@ -10,12 +10,15 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 {
     internal abstract class AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer
         : AbstractCodeQualityDiagnosticAnalyzer
     {
+        internal const string DocCommentIdKey = nameof(DocCommentIdKey);
+
         private static readonly LocalizableResourceString s_localizableTitle = new LocalizableResourceString(
            nameof(AnalyzersResources.Invalid_global_SuppressMessageAttribute), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly LocalizableResourceString s_localizableInvalidScopeMessage = new LocalizableResourceString(
@@ -28,8 +31,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         private static readonly DiagnosticDescriptor s_invalidOrMissingTargetDescriptor = CreateDescriptor(
             IDEDiagnosticIds.InvalidSuppressMessageAttributeDiagnosticId, s_localizableTitle, s_localizableInvalidOrMissingTargetMessage, isUnnecessary: true);
 
+        private static readonly LocalizableResourceString s_localizableLegacyFormatTitle = new LocalizableResourceString(
+           nameof(AnalyzersResources.Avoid_legacy_format_target_in_SuppressMessageAttribute), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+        private static readonly LocalizableResourceString s_localizableLegacyFormatMessage = new LocalizableResourceString(
+            nameof(AnalyzersResources.Avoid_legacy_format_target_0_in_SuppressMessageAttribute), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+        internal static readonly DiagnosticDescriptor LegacyFormatTargetDescriptor = CreateDescriptor(
+            IDEDiagnosticIds.LegacyFormatSuppressMessageAttributeDiagnosticId, s_localizableLegacyFormatTitle, s_localizableLegacyFormatMessage, isUnnecessary: false);
+
         public AbstractRemoveUnnecessarySuppressionsDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_invalidScopeDescriptor, s_invalidOrMissingTargetDescriptor), GeneratedCodeAnalysisFlags.None)
+            : base(ImmutableArray.Create(s_invalidScopeDescriptor, s_invalidOrMissingTargetDescriptor, LegacyFormatTargetDescriptor), GeneratedCodeAnalysisFlags.None)
         {
         }
 
@@ -66,21 +76,41 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                     return;
                 }
 
-                DiagnosticDescriptor rule;
-                if (SuppressMessageAttributeState.HasInvalidScope(namedAttributeArguments, out var targetScope))
+                if (!SuppressMessageAttributeState.HasValidScope(namedAttributeArguments, out var targetScope))
                 {
-                    rule = s_invalidScopeDescriptor;
-                }
-                else if (_state.HasInvalidOrMissingTarget(namedAttributeArguments, targetScope))
-                {
-                    rule = s_invalidOrMissingTargetDescriptor;
-                }
-                else
-                {
+                    reportDiagnostic(Diagnostic.Create(s_invalidScopeDescriptor, attributeSyntax.GetLocation()));
                     return;
                 }
 
-                reportDiagnostic(Diagnostic.Create(rule, attributeSyntax.GetLocation()));
+                if (!_state.HasValidTarget(namedAttributeArguments, targetScope, out var targetHasDocCommentIdFormat,
+                        out var targetSymbolString, out var targetValueOperation, out var resolvedSymbols))
+                {
+                    reportDiagnostic(Diagnostic.Create(s_invalidOrMissingTargetDescriptor, attributeSyntax.GetLocation()));
+                    return;
+                }
+
+                // We want to flag valid target which uses legacy format to update to Roslyn based DocCommentId format.
+                if (resolvedSymbols.Length > 0 && !targetHasDocCommentIdFormat)
+                {
+                    RoslynDebug.Assert(!string.IsNullOrEmpty(targetSymbolString));
+                    RoslynDebug.Assert(targetValueOperation != null);
+
+                    var properties = ImmutableDictionary<string, string?>.Empty;
+                    if (resolvedSymbols.Length == 1)
+                    {
+                        // We provide a code fix for the case where the target resolved to a single symbol.
+                        var docCommentId = DocumentationCommentId.CreateDeclarationId(resolvedSymbols[0]);
+                        if (!string.IsNullOrEmpty(docCommentId))
+                        {
+                            // Suppression target has an optional "~" prefix to distinguish it from legacy FxCop suppressions.
+                            // IDE suppression code fixes emit this prefix, so we we also add this prefix to new suppression target string.
+                            properties = properties.Add(DocCommentIdKey, "~" + docCommentId);
+                        }
+                    }
+
+                    reportDiagnostic(Diagnostic.Create(LegacyFormatTargetDescriptor, targetValueOperation.Syntax.GetLocation(), properties!, targetSymbolString));
+                    return;
+                }
             }
         }
     }

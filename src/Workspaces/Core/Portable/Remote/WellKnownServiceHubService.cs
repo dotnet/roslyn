@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Remote
         RemoteTodoCommentsService,
         LanguageServer,
         IntelliCode,
-        Razor
+        Razor,
+
+        // owned by Unit Testing team:
+        UnitTestingAnalysisService,
+        LiveUnitTestingService,
+        TestSourceLocationLookupService,
     }
 }

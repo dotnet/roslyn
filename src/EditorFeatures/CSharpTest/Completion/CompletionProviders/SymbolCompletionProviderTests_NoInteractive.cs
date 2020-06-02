@@ -64,11 +64,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task InvalidLocation1()
             => await VerifyItemIsAbsentAsync(@"System.Console.$$", @"Beep");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task InvalidLocation2()
         {
             await VerifyItemIsAbsentAsync(@"using System;

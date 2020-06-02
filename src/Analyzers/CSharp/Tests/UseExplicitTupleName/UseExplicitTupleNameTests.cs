@@ -231,7 +231,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
         public async Task TestOnRestField()
         {
-            string valueTuple8 = @"
+            var valueTuple8 = @"
 namespace System
 {
     public struct ValueTuple<T1>

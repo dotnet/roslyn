@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private static SyntaxNode? GetDeclaration(SyntaxNode node, UseExpressionBodyHelper helper)
         {
-            for (SyntaxNode? current = node; current != null; current = current.Parent)
+            for (var current = node; current != null; current = current.Parent)
             {
                 if (helper.SyntaxKinds.Contains(current.Kind()))
                     return current;
