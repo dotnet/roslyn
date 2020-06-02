@@ -283,6 +283,8 @@ void goo()
             var mayTerminate = new ManualResetEvent(false);
             _host.ErrorOutputReceived += (_, __) => mayTerminate.Set();
 
+            await _host.ExecuteAsync(MethodWithInfiniteLoop + "\r\nfoo()");
+
             Assert.True(mayTerminate.WaitOne());
 
             await RestartHost();
@@ -353,6 +355,8 @@ while(true) {}
 
             var mayTerminate = new ManualResetEvent(false);
             _host.ErrorOutputReceived += (_, __) => mayTerminate.Set();
+
+            await _host.ExecuteFileAsync(file);
 
             mayTerminate.WaitOne();
 
