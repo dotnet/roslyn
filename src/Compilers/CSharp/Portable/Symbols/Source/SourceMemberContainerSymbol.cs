@@ -2954,7 +2954,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var binder = binderFactory.GetBinder(paramList);
 
                 var ctor = addCtor(binder, paramList);
-                addProperties(ctor.Parameters);
+                var (properties, shouldAddDeconstructor) = addProperties(ctor.Parameters);
+                if (shouldAddDeconstructor)
+                {
+                    addDeconstructor(properties);
+                }
             }
 
             addCopyCtor();
@@ -2983,6 +2987,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ctor;
             }
 
+            void addDeconstructor(ImmutableArray<SynthesizedRecordPropertySymbol> properties)
+            {
+                var ctor = new SynthesizedRecordDeconstructor(this, properties);
+                if (!memberSignatures.ContainsKey(ctor))
+                {
+                    members.Add(ctor);
+                }
+            }
+
             void addCopyCtor()
             {
                 var ctor = new SynthesizedRecordCopyCtor(this, diagnostics);
@@ -3001,19 +3014,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void addProperties(ImmutableArray<ParameterSymbol> recordParameters)
+            (ImmutableArray<SynthesizedRecordPropertySymbol> properties, bool shouldAddDeconstructor) addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
+                var properties = ArrayBuilder<SynthesizedRecordPropertySymbol>.GetInstance(recordParameters.Length);
+                var shouldAddDeconstructor = true;
                 foreach (ParameterSymbol param in recordParameters)
                 {
                     var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
                     if (!memberSignatures.ContainsKey(property))
                     {
+                        properties.Add(property);
                         members.Add(property);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
                         members.Add(property.BackingField);
                     }
+                    else
+                    {
+                        // There already exists a member corresponding to the candidate synthesized property.
+                        // The property has no compiler-known connection to the positional parameter,
+                        // so we don't want to generate a deconstructor in this case.
+                        shouldAddDeconstructor = false;
+                    }
                 }
+                return (properties.ToImmutableAndFree(), shouldAddDeconstructor);
             }
 
             void addObjectEquals(MethodSymbol thisEquals)

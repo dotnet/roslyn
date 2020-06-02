@@ -2627,6 +2627,7 @@ data class B(int X, int Y) : A
                 "System.Int32 B.Y.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
                 "System.Int32 B.Y { get; init; }",
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
                 "System.Boolean B.Equals(B? )",
                 "System.Boolean B.Equals(System.Object? )",
                 "System.Int32 B.GetHashCode()",
@@ -2667,6 +2668,7 @@ data class B(int X, int Y) : A
                 "System.Int32 B.Y.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
                 "System.Int32 B.Y { get; init; }",
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
                 "System.Boolean B.Equals(B? )",
                 "System.Boolean B.Equals(System.Object? )",
                 "System.Int32 B.GetHashCode()",
@@ -2703,6 +2705,235 @@ True
 True
 False
 1 2 3");
+        }
+
+        [Fact]
+        public void Deconstruct_Simple()
+        {
+            var source =
+@"using System;
+
+data class B(int X, int Y)
+{
+    public static void Main()
+    {
+        M(new B(1, 2));
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+            
+            verifier.VerifyIL("B.Deconstruct", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int B.<X>k__BackingField""
+  IL_0007:  stind.i4
+  IL_0008:  ldarg.2
+  IL_0009:  ldarg.0
+  IL_000a:  ldfld      ""int B.<Y>k__BackingField""
+  IL_000f:  stind.i4
+  IL_0010:  ret
+}");
+
+            var deconstruct = ((CSharpCompilation)verifier.Compilation).GetMember<MethodSymbol>("B.Deconstruct");
+            Assert.Equal(2, deconstruct.ParameterCount);
+
+            Assert.Equal(RefKind.Out, deconstruct.Parameters[0].RefKind);
+            Assert.Equal("X", deconstruct.Parameters[0].Name);
+
+            Assert.Equal(RefKind.Out, deconstruct.Parameters[1].RefKind);
+            Assert.Equal("Y", deconstruct.Parameters[1].Name);
+
+            Assert.True(deconstruct.ReturnsVoid);
+            Assert.False(deconstruct.IsVirtual);
+            Assert.False(deconstruct.IsStatic);
+            Assert.Equal(Accessibility.Public, deconstruct.DeclaredAccessibility);
+        }
+
+        [Fact]
+        public void Deconstruct_Nested()
+        {
+            var source =
+@"using System;
+
+data class B(int X, int Y);
+
+data class C(B B, int Z)
+{
+    public static void Main()
+    {
+        M(new C(new B(1, 2), 3));
+    }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(B(int x, int y), int z):
+                Console.Write(x);
+                Console.Write(y);
+                Console.Write(z);
+                break;
+        }
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "123");
+            verifier.VerifyDiagnostics();
+            
+            verifier.VerifyIL("B.Deconstruct", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""int B.<X>k__BackingField""
+  IL_0007:  stind.i4
+  IL_0008:  ldarg.2
+  IL_0009:  ldarg.0
+  IL_000a:  ldfld      ""int B.<Y>k__BackingField""
+  IL_000f:  stind.i4
+  IL_0010:  ret
+}");
+            
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""B C.<B>k__BackingField""
+  IL_0007:  stind.ref
+  IL_0008:  ldarg.2
+  IL_0009:  ldarg.0
+  IL_000a:  ldfld      ""int C.<Z>k__BackingField""
+  IL_000f:  stind.i4
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void Deconstruct_PropertyCollision()
+        {
+            var source =
+@"using System;
+
+data class B(int X, int Y)
+{
+    public int X { get; init; }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,19): error CS1061: 'B' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
+                //             case B(int x, int y):
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int x, int y)").WithArguments("B", "Deconstruct").WithLocation(11, 19),
+                // (11,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'B', with 2 out parameters and a void return type.
+                //             case B(int x, int y):
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("B", "2").WithLocation(11, 19));
+
+            var bClass = comp.GetMember<NamedTypeSymbol>("B");
+            var deconstruct = bClass.GetMember("Deconstruct");
+            Assert.Null(deconstruct);
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined()
+        {
+            var source =
+@"using System;
+
+data class B(int X, int Y)
+{
+    public void Deconstruct(out int X, out int Y)
+    {
+        X = this.X + 1;
+        Y = this.Y + 2;
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(0, 0));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined_DifferentSignature()
+        {
+            var source =
+@"using System;
+
+data class B(int X, int Y)
+{
+    public void Deconstruct(out int Z)
+    {
+        Z = X + Y;
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+        switch (b)
+        {
+            case B(int z):
+                Console.Write(z);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1, 2));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "123");
+            verifier.VerifyDiagnostics();
         }
 
         private static ImmutableArray<Symbol> GetProperties(CSharpCompilation comp, string typeName)

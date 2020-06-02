@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static readonly LexicalSortKey NotInitialized = new LexicalSortKey() { _treeOrdinal = -1, _position = -1 };
 
+        public static readonly LexicalSortKey SynthesizedRecordDeconstructor = new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 6 };
+
         // Put Record Equals right before synthesized constructors.
         public static LexicalSortKey SynthesizedRecordEquals => new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 5 };
         public static LexicalSortKey SynthesizedRecordObjEquals => new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 4 };
