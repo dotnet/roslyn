@@ -41,7 +41,7 @@
   <Import Project="$(MSBuildThisFileDirectory)tools\$(TestRunnerName)\$(TestRunnerName).props" Condition="'$(TestRunnerName)' != '' and Exists('$(MSBuildThisFileDirectory)tools\$(TestRunnerName)\$(TestRunnerName).props')"/>
 
   <PropertyGroup>
-    <TestTargetFrameworks>net472;net46;netcoreapp1.1;netcoreapp2.0</TestTargetFrameworks>
+    <TestTargetFrameworks>netcoreapp3.1;net472;net46;netcoreapp1.1;netcoreapp2.0</TestTargetFrameworks>
 
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
