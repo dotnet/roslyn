@@ -99,7 +99,7 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             int initCount = 0, executeCount = 0;
-            var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++, sourceOpt: "public class C { }");
+            var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++, source: "public class C { }");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
             driver = driver.RunFullGeneration(compilation, out var outputCompilation, out _);
@@ -510,7 +510,7 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             var exception = new InvalidOperationException("init error");
-            var generator = new CallbackGenerator((ic) => throw exception, (sgc) => { }, sourceOpt: "class D { }");
+            var generator = new CallbackGenerator((ic) => throw exception, (sgc) => { }, source: "class D { }");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out var outputCompilation, out _);
@@ -559,7 +559,7 @@ class C { }
             var exception = new InvalidOperationException("generate error");
 
             var generator = new CallbackGenerator((ic) => { }, (sgc) => throw exception);
-            var generator2 = new CallbackGenerator((ic) => { }, (sgc) => { }, sourceOpt: "public class D { }");
+            var generator2 = new CallbackGenerator((ic) => { }, (sgc) => { }, source: "public class D { }");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator, generator2), ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
@@ -595,7 +595,7 @@ class C
 
             var exception = new InvalidOperationException("generate error");
 
-            var generator = new CallbackGenerator((ic) => { }, (sgc) => throw exception, sourceOpt: "public class D { }");
+            var generator = new CallbackGenerator((ic) => { }, (sgc) => throw exception, source: "public class D { }");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
