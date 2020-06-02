@@ -14,9 +14,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             FatalError.Handler = FailFast.OnFatalException;
 
-            bool b = true;
-            while (b) { }
-
             try
             {
                 await InteractiveHost.Service.RunServerAsync(args).ConfigureAwait(false);
