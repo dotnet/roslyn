@@ -3590,9 +3590,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#endregion
+        #endregion
 
-#region Extension Methods
+        #region Extension Methods
 
         internal bool ContainsExtensionMethods
         {
@@ -3630,7 +3630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#endregion
+        #endregion
 
         public sealed override NamedTypeSymbol ConstructedFrom
         {
