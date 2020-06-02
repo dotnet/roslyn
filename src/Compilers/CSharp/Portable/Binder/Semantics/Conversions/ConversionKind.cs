@@ -24,8 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         NullLiteral,
         ImplicitReference,
         Boxing,
-        PointerToVoid,
-        NullToPointer,
+        ImplicitPointerToVoid,
+        ImplicitNullToPointer,
+        // Any explicit conversions involving pointers not covered by PointerToVoid or NullToPointer.
+        // Currently, this is just implicit function pointer conversions.
+        ImplicitPointer,
         ImplicitDynamic,
         ExplicitDynamic,
         ImplicitConstant,
@@ -38,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExplicitReference,
         Unboxing,
         ExplicitUserDefined,
-        PointerToPointer,
-        IntegerToPointer,
-        PointerToInteger,
+        ExplicitPointerToPointer,
+        ExplicitIntegerToPointer,
+        ExplicitPointerToInteger,
         // The IntPtr conversions are not described by the specification but we must
         // implement them for compatibility with the native compiler.
         IntPtr,
