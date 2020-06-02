@@ -27,17 +27,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
         private readonly ISyntaxClassificationService _originalService;
         private readonly ClassificationTypeMap _classificationTypeMap;
-        private readonly IExperimentationService _experimentationService;
         private readonly IThreadingContext _threadingContext;
 
         public RoslynSyntaxClassificationService(AbstractLspClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace, ISyntaxClassificationService originalService,
-            ClassificationTypeMap classificationTypeMap, IExperimentationService experimentationService, IThreadingContext threadingContext)
+            ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
         {
             _roslynLspClientServiceFactory = roslynLspClientServiceFactory;
             _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace;
             _originalService = originalService;
             _classificationTypeMap = classificationTypeMap;
-            _experimentationService = experimentationService;
             _threadingContext = threadingContext;
         }
 
@@ -74,27 +72,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
 
         public ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
             => _originalService.GetDefaultSyntaxClassifiers();
-
-        /// <summary>
-        /// Check if the experiment should run.
-        /// Only runs the experiment if the server provides the capability
-        /// and the experiment flight is enabled.
-        /// </summary>
-        public bool ShouldRunExperiment(string experimentName)
-            => ShouldRunExperiment(_roslynLspClientServiceFactory, _experimentationService, experimentName);
-
-        public static bool ShouldRunExperiment(
-            AbstractLspClientServiceFactory lspClientServiceFactory,
-            IExperimentationService experimentationService,
-            string experimentName)
-        {
-            if (lspClientServiceFactory.ServerCapabilities?.Experimental is RoslynExperimentalCapabilities experimentalCapabilities)
-            {
-                return experimentalCapabilities.SyntacticLspProvider && experimentationService.IsExperimentEnabled(experimentName);
-            }
-
-            return false;
-        }
 
         public async Task AddRemoteClassificationsAsync(string classificationsServiceName, string filePath, SourceText sourceText, TextSpan textSpan, Action<ClassifiedSpan> tagAdder, CancellationToken cancellationToken)
         {
