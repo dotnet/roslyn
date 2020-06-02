@@ -932,7 +932,7 @@ end class";
                 n => n is VisualBasic.Syntax.MemberAccessExpressionSyntax).Single();
 
             var propType = symbol.Type;
-            Assert.True(propType.Kind == SymbolKind.ErrorType);
+            Assert.Equal(SymbolKind.ErrorType, propType.Kind);
             Assert.Equal("Collections", propType.ContainingNamespace.Name);
             Assert.Equal("System", propType.ContainingNamespace.ContainingNamespace.Name);
 
