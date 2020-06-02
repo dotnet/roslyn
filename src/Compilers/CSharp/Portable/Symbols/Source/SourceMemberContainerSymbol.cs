@@ -2991,10 +2991,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addCopyCtor();
             addCloneMethod();
 
-            var thisEquals = addThisEquals();
+            var equalityContract = addEqualityContract();
+            var otherEqualsMethods = ArrayBuilder<MethodSymbol>.GetInstance(); // PROTOTYPE: We don't need to hold onto the other Equals methods. The values aren't used.
+            getOtherEquals(otherEqualsMethods, equalityContract);
+
+            var thisEquals = addThisEquals(equalityContract, otherEqualsMethods.Count == 0 ? null : otherEqualsMethods[0]);
+            addOtherEquals(otherEqualsMethods, equalityContract, thisEquals);
             addObjectEquals(thisEquals);
             addHashCode();
 
+            otherEqualsMethods.Free();
             memberSignatures.Free();
 
             return;
@@ -3017,7 +3023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addCopyCtor()
             {
-                var ctor = new SynthesizedRecordCopyCtor(this, diagnostics);
+                var ctor = new SynthesizedRecordCopyCtor(this, memberOffset: members.Count);
                 if (!memberSignatures.ContainsKey(ctor))
                 {
                     members.Add(ctor);
@@ -3040,7 +3046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
                     if (!memberSignatures.ContainsKey(property) &&
-                        !hidesInheritedMember(property, this))
+                        getInheritedMember(property, this) is null)
                     {
                         members.Add(property);
                         members.Add(property.GetMethod);
@@ -3062,7 +3068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
             }
 
-            static bool hidesInheritedMember(Symbol symbol, NamedTypeSymbol type)
+            static Symbol? getInheritedMember(Symbol symbol, NamedTypeSymbol type)
             {
                 while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
                 {
@@ -3076,20 +3082,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         out var hiddenBuilder);
                     if (hiddenBuilder is object)
                     {
+                        var result = hiddenBuilder[0];
                         hiddenBuilder.Free();
-                        return true;
+                        return result;
                     }
                     if (bestMatch is object)
                     {
-                        return true;
+                        return bestMatch;
                     }
                 }
-                return false;
+                return null;
             }
 
             void addObjectEquals(MethodSymbol thisEquals)
             {
-                var objEquals = new SynthesizedRecordObjEquals(this, thisEquals);
+                var objEquals = new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count);
                 if (!memberSignatures.ContainsKey(objEquals))
                 {
                     // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
@@ -3099,7 +3106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addHashCode()
             {
-                var hashCode = new SynthesizedRecordGetHashCode(this);
+                var hashCode = new SynthesizedRecordGetHashCode(this, memberOffset: members.Count);
                 if (!memberSignatures.ContainsKey(hashCode))
                 {
                     // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
@@ -3107,15 +3114,72 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            MethodSymbol addThisEquals()
+            PropertySymbol addEqualityContract()
             {
-                var thisEquals = new SynthesizedRecordEquals(this);
+                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: false);
+                // PROTOTYPE: Test with explicit EqualityContract property from source.
+                // PROTOTYPE: Handle inherited member of unexpected member kind or unexpected
+                // property signature (distinct type, not virtual, sealed, etc.)
+                if (getInheritedMember(property, this) is PropertySymbol inheritedProperty)
+                {
+                    // PROTOTYPE: Should not have to re-create property!
+                    property = new SynthesizedRecordEqualityContractProperty(this, isOverride: true);
+                }
+                members.Add(property);
+                members.Add(property.GetMethod);
+                return property;
+            }
+
+            MethodSymbol addThisEquals(PropertySymbol equalityContract, MethodSymbol? otherEqualsMethod)
+            {
+                var thisEquals = new SynthesizedRecordEquals(this, parameterType: this, isOverride: false, equalityContract, otherEqualsMethod, memberOffset: members.Count);
                 if (!memberSignatures.TryGetValue(thisEquals, out var existing))
                 {
                     members.Add(thisEquals);
                     return thisEquals;
                 }
                 return (MethodSymbol)existing;
+            }
+
+            static void getOtherEquals(ArrayBuilder<MethodSymbol> otherEqualsMethods, PropertySymbol equalityContract)
+            {
+                while ((equalityContract = equalityContract.OverriddenProperty) is object)
+                {
+                    var containingType = equalityContract.ContainingType;
+                    var member = containingType.GetMembers("Equals").FirstOrDefault(m =>
+                    {
+                        if (m is MethodSymbol method)
+                        {
+                            var parameters = method.Parameters;
+                            if (parameters.Length == 1 && parameters[0].Type.Equals(containingType, TypeCompareKind.AllIgnoreOptions))
+                            {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                    // PROTOTYPE: Test with missing or unexpected Equals(Base) methods on base type.
+                    if (member is MethodSymbol method)
+                    {
+                        otherEqualsMethods.Add(method);
+                    }
+                }
+            }
+
+            void addOtherEquals(ArrayBuilder<MethodSymbol> otherEqualsMethods, PropertySymbol equalityContract, MethodSymbol thisEquals)
+            {
+                foreach (var otherEqualsMethod in otherEqualsMethods)
+                {
+                    var method = new SynthesizedRecordEquals(
+                        this,
+                        parameterType: otherEqualsMethod.Parameters[0].Type,
+                        isOverride: true,
+                        equalityContract,
+                        otherEqualsMethod: thisEquals,
+                        memberOffset: members.Count);
+                    // PROTOTYPE: Test with explicit strongly-typed Equals(Base) methods on derived record type.
+                    members.Add(method);
+                }
             }
         }
 
