@@ -161,8 +161,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 {
                     $@"{root2}: {root2}",
                     $@"{root1}: {root1}",
-                    $@"{root1}sub1\: {root1}sub1\",
-                    $@"{root1}sub2\: {root1}sub2\",
+                    $@"{root1}sub1{Path.DirectorySeparatorChar}: {root1}sub1{Path.DirectorySeparatorChar}",
+                    $@"{root1}sub2{Path.DirectorySeparatorChar}: {root1}sub2{Path.DirectorySeparatorChar}",
                     @"",
                     $@""
                 });
@@ -170,8 +170,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 $@"[{root2}]=[https://raw.githubusercontent.com/Source/Package/*]," +
                 $@"[{root1}]=[https://raw.githubusercontent.com/R1/*]," +
-                $@"[{root1}sub1\]=[https://raw.githubusercontent.com/M1/*]," +
-                $@"[{root1}sub2\]=[https://raw.githubusercontent.com/M2/*]",
+                $@"[{root1}sub1{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M1/*]," +
+                $@"[{root1}sub2{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M2/*]",
                 File.ReadAllText(sourceLinkJsonPath));
 
             // DeterministicSourcePaths override:
@@ -197,8 +197,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 {
                     $@"{root2}: {root2}",
                     $@"{root1}: {root1}",
-                    $@"{root1}sub1\: {root1}sub1\",
-                    $@"{root1}sub2\: {root1}sub2\",
+                    $@"{root1}sub1{Path.DirectorySeparatorChar}: {root1}sub1{Path.DirectorySeparatorChar}",
+                    $@"{root1}sub2{Path.DirectorySeparatorChar}: {root1}sub2{Path.DirectorySeparatorChar}",
                     @"false",
                     $@""
                 });
@@ -206,8 +206,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
                 $@"[{root2}]=[https://raw.githubusercontent.com/Source/Package/*]," +
                 $@"[{root1}]=[https://raw.githubusercontent.com/R1/*]," +
-                $@"[{root1}sub1\]=[https://raw.githubusercontent.com/M1/*]," +
-                $@"[{root1}sub2\]=[https://raw.githubusercontent.com/M2/*]",
+                $@"[{root1}sub1{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M1/*]," +
+                $@"[{root1}sub2{Path.DirectorySeparatorChar}]=[https://raw.githubusercontent.com/M2/*]",
                 File.ReadAllText(sourceLinkJsonPath));
 
             // SourceControlInformationFeatureSupported = false:
