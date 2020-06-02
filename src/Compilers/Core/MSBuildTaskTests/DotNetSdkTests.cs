@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.IO;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -41,8 +42,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
   <Target Name=""_InitializeSourceControlProperties"" BeforeTargets=""InitializeSourceControlInformation"">
     <ItemGroup>
       <SourceRoot Include=""{root1}"" SourceControl=""git"" SourceLinkUrl=""https://raw.githubusercontent.com/R1/*""/>
-      <SourceRoot Include=""{root1}sub1\"" SourceControl=""git"" NestedRoot=""sub1"" ContainingRoot=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/M1/*""/>
-      <SourceRoot Include=""{root1}sub2\"" SourceControl=""git"" NestedRoot=""sub2"" ContainingRoot=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/M2/*""/>
+      <SourceRoot Include=""{root1}sub1{Path.DirectorySeparatorChar}"" SourceControl=""git"" NestedRoot=""sub1"" ContainingRoot=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/M1/*""/>
+      <SourceRoot Include=""{root1}sub2{Path.DirectorySeparatorChar}"" SourceControl=""git"" NestedRoot=""sub2"" ContainingRoot=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/M2/*""/>
     </ItemGroup>
   </Target>
   <Target Name=""_GenerateSourceLinkFile""
