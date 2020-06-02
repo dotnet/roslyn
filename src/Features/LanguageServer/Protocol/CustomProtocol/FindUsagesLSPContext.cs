@@ -91,6 +91,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 if (definitionItem != null)
                 {
+                    // If a definition shouldn't be included in the results list if it doesn't have references, we
+                    // have to hold off on reporting it until later when we do find a reference.
                     if (definition.DisplayIfNoReferences)
                     {
                         AddToReferencesToReport_MustBeCalledUnderLock(definitionItem);
