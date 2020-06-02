@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
-                var project = solution.GetOriginatingProject(symbol);
-                if (project != null)
+                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
                 {
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                     if (client != null)
@@ -39,21 +38,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         // the 'progress' parameter which will then update the UI.
                         var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
 
-                        var success = await client.TryRunRemoteAsync(
-                            WellKnownServiceHubServices.CodeAnalysisService,
+                        await client.RunRemoteAsync(
+                            WellKnownServiceHubService.CodeAnalysis,
                             nameof(IRemoteSymbolFinder.FindReferencesAsync),
                             solution,
                             new object[]
                             {
-                                SerializableSymbolAndProjectId.Create(symbol, project, cancellationToken),
+                                serializedSymbol,
                                 documents?.Select(d => d.Id).ToArray(),
                                 SerializableFindReferencesSearchOptions.Dehydrate(options),
                             },
                             serverCallback,
                             cancellationToken).ConfigureAwait(false);
 
-                        if (success)
-                            return;
+                        return;
                     }
                 }
 

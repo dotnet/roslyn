@@ -48,6 +48,7 @@ public class C
     public B this[B b] { get { return b; } }
     public event D E;
     public event D E2 { add; remove; }
+    public delegate*<C, B> Ptr;
 }
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
@@ -223,7 +224,7 @@ public class C
     public A GetA<A>(A a) { return a; }
     public A GetA<A, B>(A a, B b) { return a; }
     public B GetB<A, B>(A a, B b) { return b; }
-    publi C GetC() { return default(C); }
+    public C GetC() { return default(C); }
 }
 
 public class C<T>
@@ -699,7 +700,7 @@ class C
                 Assert.NotNull(found);
 
                 // note: we don't check that the symbols are equal.  That's because the compiler
-                // doesn't guarantee that the TypeParameters will be hte same across successive
+                // doesn't guarantee that the TypeParameters will be the same across successive
                 // invocations. 
                 Assert.Equal(symbol.OriginalDefinition, found.OriginalDefinition);
 
@@ -736,7 +737,7 @@ class C
 
             // Validate that if the client does ask to resolve locations that we
             // do not crash if those locations cannot be found.
-            var found = SymbolKey.ResolveString(id, compilation2, resolveLocations: true).GetAnySymbol();
+            var found = SymbolKey.ResolveString(id, compilation2).GetAnySymbol();
             Assert.NotNull(found);
 
             Assert.Equal(symbol.Name, found.Name);
@@ -773,7 +774,7 @@ class C
 
             // Validate that if the client does ask to resolve locations that we
             // do not crash if those locations cannot be found.
-            var found = SymbolKey.ResolveString(id, compilation2, resolveLocations: true).GetAnySymbol();
+            var found = SymbolKey.ResolveString(id, compilation2).GetAnySymbol();
             Assert.NotNull(found);
 
             Assert.Equal(symbol.Name, found.Name);
@@ -783,7 +784,22 @@ class C
             Assert.True(method.Parameters[0].Type.IsTupleType);
         }
 
-        private void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
+        [Fact]
+        public void TestFunctionPointerTypeSymbols()
+        {
+            var source = @"
+class C
+{
+    public delegate*<ref string, out int, in C, ref C> ptr1;
+    public delegate*<ref readonly C> ptr1;
+}";
+
+            var comp = GetCompilation(source, LanguageNames.CSharp);
+            var fields = GetDeclaredSymbols(comp).OfType<IFieldSymbol>().Select(f => f.Type);
+            TestRoundTrip(fields, comp);
+        }
+
+        private static void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
             foreach (var symbol in symbols)
             {
@@ -791,7 +807,7 @@ class C
             }
         }
 
-        private void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
+        private static void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
             var id = SymbolKey.CreateString(symbol);
             Assert.NotNull(id);
@@ -810,7 +826,7 @@ class C
             }
         }
 
-        private Compilation GetCompilation(string source, string language, string path = "")
+        private static Compilation GetCompilation(string source, string language, string path = "")
         {
             var references = new[]
             {

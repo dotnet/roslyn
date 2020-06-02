@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return nextOperation.Invoke(previousToken, currentToken)
         End Function
 
-        Private Function UnderStructuredTrivia(previousToken As SyntaxToken, currentToken As SyntaxToken) As Boolean
+        Private Shared Function UnderStructuredTrivia(previousToken As SyntaxToken, currentToken As SyntaxToken) As Boolean
             ' this actually doesn't check all cases but the cases where we care
             ' since checking all cases would be expansive
             If TypeOf previousToken.Parent Is StructuredTriviaSyntax OrElse TypeOf currentToken.Parent Is StructuredTriviaSyntax Then

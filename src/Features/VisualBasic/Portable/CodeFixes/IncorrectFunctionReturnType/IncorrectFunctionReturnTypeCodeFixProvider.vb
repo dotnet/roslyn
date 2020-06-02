@@ -70,12 +70,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectFunctionReturnTy
             End If
         End Function
 
-        Private Function GetNodeToFix(Of T As SyntaxNode)(token As SyntaxToken, span As TextSpan) As T
+        Private Shared Function GetNodeToFix(Of T As SyntaxNode)(token As SyntaxToken, span As TextSpan) As T
             Return token.GetAncestors(Of T)() _
                 .FirstOrDefault(Function(c) c.Span.IntersectsWith(span))
         End Function
 
-        Private Async Function GetCodeActions(document As Document, node As SyntaxNode, rewrittenNode As SyntaxNode, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction))
+        Private Shared Async Function GetCodeActions(document As Document, node As SyntaxNode, rewrittenNode As SyntaxNode, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction))
             If rewrittenNode IsNot node Then
                 Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
                 Dim newRoot = root.ReplaceNode(node, rewrittenNode)

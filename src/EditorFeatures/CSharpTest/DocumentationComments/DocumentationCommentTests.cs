@@ -1985,7 +1985,6 @@ class C { }";
                 TestWorkspace.CreateCSharp("").GetService<IEditorOptionsFactoryService>().GlobalOptions
                         .SetOptionValue(DefaultOptions.TrimTrailingWhiteSpaceOptionName, false);
             }
-
         }
 
         protected override char DocumentationCommentCharacter

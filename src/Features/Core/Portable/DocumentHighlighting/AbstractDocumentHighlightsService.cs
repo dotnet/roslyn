@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryRunRemoteAsync<IList<SerializableDocumentHighlights>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                var result = await client.RunRemoteAsync<IList<SerializableDocumentHighlights>>(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                     solution,
                     new object[]
@@ -43,10 +43,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return result.Value.SelectAsArray(h => h.Rehydrate(solution));
-                }
+                return result.SelectAsArray(h => h.Rehydrate(solution));
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
@@ -78,7 +75,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
+        private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();

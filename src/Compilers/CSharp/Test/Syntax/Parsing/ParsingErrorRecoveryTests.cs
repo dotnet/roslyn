@@ -432,13 +432,6 @@ class C
             var file = this.ParseTree(text);
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(1, file.Externs.Count);
-            Assert.Equal(1, file.Usings.Count);
-            Assert.Equal(1, file.AttributeLists.Count);
-            Assert.Equal(3, file.Members.Count);
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
-            Assert.Equal(SyntaxKind.IncompleteMember, file.Members[1].Kind());
-            Assert.Equal(SyntaxKind.IncompleteMember, file.Members[2].Kind());
         }
 
         [Fact]
@@ -676,10 +669,6 @@ class C
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(1, file.Members.Count);
-            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_EOFExpected, file.Errors()[0].Code);
         }
 
         [Fact]
@@ -6529,23 +6518,12 @@ public class Test
     };
 }";
 
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.RegularPreview);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
-
-            Assert.Equal($"{{{Environment.NewLine}", syntaxTree.GetCompilationUnitRoot().GetLeadingTrivia().Node.ToFullString());
 
             // The issue (9391) was exhibited while enumerating the diagnostics
             Assert.True(syntaxTree.GetDiagnostics().Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)).SequenceEqual(new[]
             {
-                "(1,2): error CS1031: Type expected",
-                "(1,1): error CS1022: Type or namespace definition, or end-of-file expected",
-                "(2,13): error CS1003: Syntax error, '[' expected",
-                "(2,13): error CS1001: Identifier expected",
-                "(2,16): error CS1001: Identifier expected",
-                "(2,19): error CS1003: Syntax error, ',' expected",
-                "(2,20): error CS1003: Syntax error, ']' expected",
-                "(2,20): error CS1514: { expected",
-                "(3,6): error CS1597: Semicolon after method or accessor block is not valid",
                 "(4,1): error CS1022: Type or namespace definition, or end-of-file expected",
             }));
         }

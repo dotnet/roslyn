@@ -3,83 +3,74 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
-#pragma warning disable CS0618 // Type or member is obsolete
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal readonly struct UnitTestingRemoteHostClientWrapper
     {
-        internal UnitTestingRemoteHostClientWrapper(RemoteHostClient underlyingObject)
-            => UnderlyingObject = underlyingObject ?? throw new ArgumentNullException(nameof(underlyingObject));
+        internal UnitTestingRemoteHostClientWrapper(RemoteHostClient? underlyingObject)
+            => UnderlyingObject = underlyingObject;
 
-        internal RemoteHostClient UnderlyingObject { get; }
+        internal RemoteHostClient? UnderlyingObject { get; }
 
-        public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateSessionAsync(
-            string serviceName, IUnitTestingRemoteSessionCallback callbackTarget, CancellationToken cancellationToken)
+        public bool IsDefault => UnderlyingObject == null;
+
+        public static async Task<UnitTestingRemoteHostClientWrapper?> TryGetClientAsync(HostWorkspaceServices services, CancellationToken cancellationToken = default)
+            => new UnitTestingRemoteHostClientWrapper(await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false));
+
+        public async Task<bool> TryRunRemoteAsync(UnitTestingServiceHubService service, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
         {
-            var keepAliveSession = await UnderlyingObject.TryCreateKeepAliveSessionAsync(serviceName, callbackTarget: callbackTarget, cancellationToken).ConfigureAwait(false);
-            return new UnitTestingKeepAliveSessionWrapper(keepAliveSession);
+            await UnderlyingObject!.RunRemoteAsync((WellKnownServiceHubService)service, targetName, solution, arguments, callbackTarget, cancellationToken).ConfigureAwait(false);
+            return true;
         }
 
-        public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateSessionAsync(
-            string serviceName, CancellationToken cancellationToken)
-        {
-            var keepAliveSession = await UnderlyingObject.TryCreateKeepAliveSessionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
-            return new UnitTestingKeepAliveSessionWrapper(keepAliveSession);
-        }
+        public async Task<Optional<T>> TryRunRemoteAsync<T>(UnitTestingServiceHubService service, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
+            => await UnderlyingObject!.RunRemoteAsync<T>((WellKnownServiceHubService)service, targetName, solution, arguments, callbackTarget, cancellationToken).ConfigureAwait(false);
 
-        public Task<UnitTestingSessionWithSolutionWrapper> TryCreateSessionWithSolutionAsync(
-            string serviceName, Solution solution, CancellationToken cancellationToken)
-            => TryCreateUnitTestingSessionWithSolutionAsync(serviceName, solution, cancellationToken);
+        public async Task<UnitTestingRemoteServiceConnectionWrapper> CreateConnectionAsync(UnitTestingServiceHubService service, object? callbackTarget, CancellationToken cancellationToken)
+            => new UnitTestingRemoteServiceConnectionWrapper(await UnderlyingObject!.CreateConnectionAsync((WellKnownServiceHubService)service, callbackTarget, cancellationToken).ConfigureAwait(false));
 
         [Obsolete]
-        public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateUnitTestingKeepAliveSessionWrapperAsync(
-            string serviceName, CancellationToken cancellationToken)
+        public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateUnitTestingKeepAliveSessionWrapperAsync(string serviceName, CancellationToken cancellationToken)
         {
-            var keepAliveSession = await UnderlyingObject.TryCreateKeepAliveSessionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
-            return new UnitTestingKeepAliveSessionWrapper(keepAliveSession);
+            var connection = await UnderlyingObject!.CreateConnectionAsync(new RemoteServiceName(serviceName), callbackTarget: null, cancellationToken).ConfigureAwait(false);
+            return new UnitTestingKeepAliveSessionWrapper(connection);
         }
 
         [Obsolete]
-        public Task<UnitTestingSessionWithSolutionWrapper> TryCreateUnitingSessionWithSolutionWrapperAsync(
-            string serviceName, Solution solution, CancellationToken cancellationToken)
-            => TryCreateUnitTestingSessionWithSolutionAsync(serviceName, solution, cancellationToken);
-
-        private async Task<UnitTestingSessionWithSolutionWrapper> TryCreateUnitTestingSessionWithSolutionAsync(
-            string serviceName, Solution solution, CancellationToken cancellationToken)
+        public async Task<UnitTestingSessionWithSolutionWrapper> TryCreateUnitingSessionWithSolutionWrapperAsync(string serviceName, Solution solution, CancellationToken cancellationToken)
         {
-            var keepAliveSession = await UnderlyingObject.TryCreateKeepAliveSessionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
-            if (keepAliveSession == null)
-            {
-                return default;
-            }
+            var connection = await UnderlyingObject!.CreateConnectionAsync(new RemoteServiceName(serviceName), callbackTarget: null, cancellationToken).ConfigureAwait(false);
 
             SessionWithSolution? session = null;
             try
             {
                 // transfer ownership of the connection to the session object:
-                session = await SessionWithSolution.CreateAsync(keepAliveSession, solution, cancellationToken).ConfigureAwait(false);
+                session = await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
                 if (session == null)
                 {
-                    keepAliveSession.Dispose();
+                    connection.Dispose();
                 }
             }
 
             return new UnitTestingSessionWithSolutionWrapper(session);
         }
 
+        [Obsolete]
         public event EventHandler<bool> StatusChanged
         {
-            add => UnderlyingObject.StatusChanged += value;
-            remove => UnderlyingObject.StatusChanged -= value;
+            add => UnderlyingObject!.StatusChanged += value;
+            remove => UnderlyingObject!.StatusChanged -= value;
         }
     }
 }

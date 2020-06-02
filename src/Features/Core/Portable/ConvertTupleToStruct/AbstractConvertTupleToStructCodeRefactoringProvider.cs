@@ -167,8 +167,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var resultOpt = await client.TryRunRemoteAsync<SerializableConvertTupleToStructResult>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                    var result = await client.RunRemoteAsync<SerializableConvertTupleToStructResult>(
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteConvertTupleToStructCodeRefactoringProvider.ConvertToStructAsync),
                         solution,
                         new object[]
@@ -180,14 +180,11 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
-                    if (resultOpt.HasValue)
-                    {
-                        var result = resultOpt.Value;
-                        var resultSolution = await RemoteUtilities.UpdateSolutionAsync(
-                            solution, result.DocumentTextChanges, cancellationToken).ConfigureAwait(false);
-                        return await AddRenameTokenAsync(
-                            resultSolution, result.RenamedToken, cancellationToken).ConfigureAwait(false);
-                    }
+                    var resultSolution = await RemoteUtilities.UpdateSolutionAsync(
+                        solution, result.DocumentTextChanges, cancellationToken).ConfigureAwait(false);
+
+                    return await AddRenameTokenAsync(
+                        resultSolution, result.RenamedToken, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -195,7 +192,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 document, span, scope, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Solution> AddRenameTokenAsync(
+        private static async Task<Solution> AddRenameTokenAsync(
             Solution solution,
             (DocumentId documentId, TextSpan span) renamedToken,
             CancellationToken cancellationToken)

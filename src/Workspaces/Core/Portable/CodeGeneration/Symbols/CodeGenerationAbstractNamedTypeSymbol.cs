@@ -111,5 +111,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool IsRefLikeType => Modifiers.IsRef;
 
         public INamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+        public INamedTypeSymbol TupleUnderlyingType => null;
+
+        public bool IsSerializable => false;
     }
 }
