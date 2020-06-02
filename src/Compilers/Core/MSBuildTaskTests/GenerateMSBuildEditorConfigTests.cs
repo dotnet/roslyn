@@ -54,7 +54,7 @@ build_property.Property2 = def456
         [Fact]
         public void ItemMetaDataCreatesSection()
         {
-            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
@@ -74,9 +74,9 @@ build_metadata.Compile.ToRetrieve = abc123
         [Fact]
         public void MutlipleItemMetaDataCreatesSections()
         {
-            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
-            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:\\file2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
-            ITaskItem item3 = MSBuildUtil.CreateTaskItem("c:\\file3.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFiles" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "ghi789" } });
+            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:/file2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
+            ITaskItem item3 = MSBuildUtil.CreateTaskItem("c:/file3.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFiles" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "ghi789" } });
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
@@ -102,8 +102,8 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
         [Fact]
         public void DuplicateItemSpecsAreCombinedInSections()
         {
-            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
-            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
+            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:/file1.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
@@ -124,7 +124,7 @@ build_metadata.AdditionalFile.ToRetrieve = def456
         [Fact]
         public void ItemIsMissingRequestedMetadata()
         {
-            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" } });
+            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" } });
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
@@ -144,9 +144,9 @@ build_metadata.Compile.ToRetrieve =
         [Fact]
         public void ItemIsMissingRequiredMetadata()
         {
-            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:\\file1.cs", new Dictionary<string, string> { });
-            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" } });
-            ITaskItem item3 = MSBuildUtil.CreateTaskItem("c:\\file1.cs", new Dictionary<string, string> { { "MetadataName", "ToRetrieve" } });
+            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/file1.cs", new Dictionary<string, string> { });
+            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:/file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" } });
+            ITaskItem item3 = MSBuildUtil.CreateTaskItem("c:/file1.cs", new Dictionary<string, string> { { "MetadataName", "ToRetrieve" } });
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
@@ -165,10 +165,10 @@ build_metadata.Compile.ToRetrieve =
         [Fact]
         public void PropertiesAreGeneratedBeforeItems()
         {
-            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
-            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:\\file2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
-            ITaskItem item3 = MSBuildUtil.CreateTaskItem("c:\\file3.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFiles" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "ghi789" } });
-            ITaskItem item4 = MSBuildUtil.CreateTaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFiles" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "jkl012" } });
+            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:/file2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
+            ITaskItem item3 = MSBuildUtil.CreateTaskItem("c:/file3.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFiles" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "ghi789" } });
+            ITaskItem item4 = MSBuildUtil.CreateTaskItem("c:/file1.cs", new Dictionary<string, string> { { "ItemType", "AdditionalFiles" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "jkl012" } });
 
             ITaskItem property1 = MSBuildUtil.CreateTaskItem("Property1", new Dictionary<string, string> { { "Value", "abc123" } });
             ITaskItem property2 = MSBuildUtil.CreateTaskItem("Property2", new Dictionary<string, string> { { "Value", "def456" } });
@@ -302,6 +302,26 @@ property = looking
 values
 
 build_property.Property2 = def456
+", result);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void ItemMetadataPathIsAdjustedOnWindows()
+        {
+            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:\\file1.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
+            {
+                MetadataItems = new[] { item1 }
+            };
+            configTask.Execute();
+
+            var result = configTask.ConfigFileContents;
+
+            Assert.Equal(@"is_global = true
+
+[c:/file1.cs]
+build_metadata.Compile.ToRetrieve = abc123
 ", result);
         }
     }
