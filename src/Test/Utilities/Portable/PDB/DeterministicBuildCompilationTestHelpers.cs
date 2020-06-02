@@ -28,8 +28,9 @@ namespace Roslyn.Test.Utilities.PDB
                 defaultSourceFileEncoding: Encoding.UTF32);
 
             yield return emitOptions;
-            yield return emitOptions.WithDefaultSourceFileEncoding(null);
             yield return emitOptions.WithDefaultSourceFileEncoding(Encoding.ASCII);
+            yield return emitOptions.WithDefaultSourceFileEncoding(null).WithFallbackSourceFileEncoding(Encoding.UTF7);
+            yield return emitOptions.WithFallbackSourceFileEncoding(Encoding.UTF7).WithDefaultSourceFileEncoding(Encoding.ASCII);
         }
 
         public static string GetCurrentCompilerVersion()
@@ -39,11 +40,12 @@ namespace Roslyn.Test.Utilities.PDB
 
         internal static void AssertEncoding(EmitOptions emitOptions, Compilation compilation, ImmutableDictionary<string, string> pdbOptions)
         {
-            if (emitOptions.DefaultSourceFileEncoding is null)
+            if (emitOptions.FallbackSourceFileEncoding != null)
             {
-                Assert.Equal(compilation.SyntaxTrees.First().Encoding.CodePage.ToString(), pdbOptions["fallbackencoding"]);
+                Assert.Equal(emitOptions.FallbackSourceFileEncoding.CodePage.ToString(), pdbOptions["fallbackencoding"]);
             }
-            else
+
+            if (emitOptions.DefaultSourceFileEncoding != null)
             {
                 Assert.Equal(emitOptions.DefaultSourceFileEncoding.CodePage.ToString(), pdbOptions["defaultencoding"]);
             }

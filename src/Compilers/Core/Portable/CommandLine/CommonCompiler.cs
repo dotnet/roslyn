@@ -64,6 +64,12 @@ namespace Microsoft.CodeAnalysis
 
         private readonly string _clientDirectory;
 
+        /// <summary>
+        /// Fallback encoding that is lazily retrieved if needed. If <see cref="EncodedStringText.GetFallbackEncoding"/> is
+        /// evaluated and stored, the value is used if a PDB is created for this compilation.
+        /// </summary>
+        private readonly Lazy<Encoding> _fallbackEncoding = new Lazy<Encoding>(EncodedStringText.GetFallbackEncoding);
+
         public CommonMessageProvider MessageProvider { get; }
         public CommandLineArguments Arguments { get; }
         public IAnalyzerAssemblyLoader AssemblyLoader { get; private set; }
@@ -256,13 +262,13 @@ namespace Microsoft.CodeAnalysis
                 {
                     using var data = Console.OpenStandardInput();
                     normalizedFilePath = filePath;
-                    return EncodedStringText.Create(data, Arguments.Encoding, Arguments.ChecksumAlgorithm, canBeEmbedded: EmbeddedSourcePaths.Contains(file.Path));
+                    return EncodedStringText.Create(data, _fallbackEncoding, Arguments.Encoding, Arguments.ChecksumAlgorithm, canBeEmbedded: EmbeddedSourcePaths.Contains(file.Path));
                 }
                 else
                 {
                     using var data = OpenFileForReadWithSmallBufferOptimization(filePath);
                     normalizedFilePath = data.Name;
-                    return EncodedStringText.Create(data, Arguments.Encoding, Arguments.ChecksumAlgorithm, canBeEmbedded: EmbeddedSourcePaths.Contains(file.Path));
+                    return EncodedStringText.Create(data, _fallbackEncoding, Arguments.Encoding, Arguments.ChecksumAlgorithm, canBeEmbedded: EmbeddedSourcePaths.Contains(file.Path));
                 }
             }
             catch (Exception e)
@@ -328,6 +334,20 @@ namespace Microsoft.CodeAnalysis
             analyzerConfigSet = AnalyzerConfigSet.Create(configs, out var setDiagnostics);
             diagnostics.AddRange(setDiagnostics);
             return true;
+        }
+
+        /// <summary>
+        /// Returns the fallback encoding for parsing source files, if used, or null
+        /// if not used
+        /// </summary>
+        internal Encoding GetFallbackEncoding()
+        {
+            if (_fallbackEncoding.IsValueCreated)
+            {
+                return _fallbackEncoding.Value;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -1157,6 +1177,9 @@ namespace Microsoft.CodeAnalysis
                             privateKeyOpt = compilation.StrongNameKeys.PrivateKey;
                         }
 
+                        // If we're going to serialize to a
+                        emitOptions = emitOptions.WithFallbackSourceFileEncoding(GetFallbackEncoding());
+
                         success = compilation.SerializeToPeStream(
                             moduleBeingBuilt,
                             peStreamProvider,
@@ -1164,13 +1187,8 @@ namespace Microsoft.CodeAnalysis
                             pdbStreamProviderOpt,
                             testSymWriterFactory: null,
                             diagnostics: diagnostics,
-                            metadataOnly: emitOptions.EmitMetadataOnly,
-                            includePrivateMembers: emitOptions.IncludePrivateMembers,
-                            emitTestCoverageData: emitOptions.EmitTestCoverageData,
-                            pePdbFilePath: emitOptions.PdbFilePath,
+                            emitOptions: emitOptions,
                             privateKeyOpt: privateKeyOpt,
-                            defaultSourceEncoding: Arguments.Encoding,
-                            fallbackSourceEncoding: compilation.SyntaxTrees.FirstOrDefault()?.Encoding,
                             cancellationToken: cancellationToken);
 
                         peStreamProvider.Close(diagnostics);

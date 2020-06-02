@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit.NoPia;
@@ -44,8 +45,10 @@ namespace Microsoft.CodeAnalysis.Emit
         // Only set when running tests to allow realized IL for a given method to be looked up by method.
         internal ConcurrentDictionary<IMethodSymbolInternal, CompilationTestData.MethodData> TestData { get; private set; }
 
-        internal readonly DebugInformationFormat DebugInformationFormat;
-        internal readonly HashAlgorithmName PdbChecksumAlgorithm;
+        internal EmitOptions EmitOptions { get; }
+
+        internal DebugInformationFormat DebugInformationFormat => EmitOptions.DebugInformationFormat;
+        internal HashAlgorithmName PdbChecksumAlgorithm => EmitOptions.PdbChecksumAlgorithm;
 
         public CommonPEModuleBuilder(
             IEnumerable<ResourceDescription> manifestResources,
@@ -63,8 +66,7 @@ namespace Microsoft.CodeAnalysis.Emit
             OutputKind = outputKind;
             SerializationProperties = serializationProperties;
             _methodBodyMap = new ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
-            DebugInformationFormat = emitOptions.DebugInformationFormat;
-            PdbChecksumAlgorithm = emitOptions.PdbChecksumAlgorithm;
+            EmitOptions = emitOptions;
         }
 
         /// <summary>

@@ -69,8 +69,6 @@ namespace Microsoft.Cci
 
         private readonly int _numTypeDefsEstimate;
         private readonly bool _deterministic;
-        private readonly Encoding _fallbackSourceEncoding;
-        private readonly Encoding _defaultSourceEncoding;
 
         internal readonly bool MetadataOnly;
         internal readonly bool EmitTestCoverageData;
@@ -96,15 +94,12 @@ namespace Microsoft.Cci
             bool deterministic,
             bool emitTestCoverageData,
             Encoding defaultSourceEncoding,
-            Encoding fallbackSourceEncoding,
             CancellationToken cancellationToken)
         {
             Debug.Assert(metadata != debugMetadataOpt);
 
             this.module = context.Module;
             _deterministic = deterministic;
-            _fallbackSourceEncoding = fallbackSourceEncoding;
-            _defaultSourceEncoding = defaultSourceEncoding;
             this.MetadataOnly = metadataOnly;
             this.EmitTestCoverageData = emitTestCoverageData;
 

@@ -847,14 +847,14 @@ namespace Microsoft.Cci
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
             WriteValue("compilerversion", compilerVersion);
 
-            if (_fallbackSourceEncoding != null)
+            if (module.EmitOptions.FallbackSourceFileEncoding != null)
             {
-                WriteValue("fallbackencoding", _fallbackSourceEncoding.CodePage.ToString());
+                WriteValue("fallbackencoding", module.EmitOptions.FallbackSourceFileEncoding.CodePage.ToString());
             }
 
-            if (_defaultSourceEncoding != null)
+            if (module.EmitOptions.DefaultSourceFileEncoding != null)
             {
-                WriteValue("defaultencoding", _defaultSourceEncoding.CodePage.ToString());
+                WriteValue("defaultencoding", module.EmitOptions.DefaultSourceFileEncoding.CodePage.ToString());
             }
 
             int portabilityPolicy = 0;

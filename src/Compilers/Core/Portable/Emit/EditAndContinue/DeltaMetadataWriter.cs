@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.Emit
                    metadataOnly: false,
                    deterministic: false,
                    emitTestCoverageData: false,
-                   fallbackSourceEncoding: null,
                    defaultSourceEncoding: null,
                    cancellationToken: cancellationToken)
         {

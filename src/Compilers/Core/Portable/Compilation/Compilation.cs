@@ -2480,14 +2480,6 @@ namespace Microsoft.CodeAnalysis
         {
             options = options ?? EmitOptions.Default.WithIncludePrivateMembers(metadataPEStream == null);
 
-            if (options.DefaultSourceFileEncoding is null)
-            {
-                // If there's no source encoding default already provided, pull it out from the 
-                // first source that was compiled. This encoding depends on the fallback logic for parsing
-                // text and needs to be stored if available. SourceText parsed
-                options = options.WithDefaultSourceFileEncoding(SyntaxTrees.FirstOrDefault()?.Encoding);
-            }
-
             bool embedPdb = options.DebugInformationFormat == DebugInformationFormat.Embedded;
             Debug.Assert(!embedPdb || pdbStream == null);
             Debug.Assert(metadataPEStream == null || !options.IncludePrivateMembers); // you may not use a secondary stream and include private members together
@@ -2565,13 +2557,8 @@ namespace Microsoft.CodeAnalysis
                         (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
                         testData?.SymWriterFactory,
                         diagnostics,
-                        metadataOnly: options.EmitMetadataOnly,
-                        includePrivateMembers: options.IncludePrivateMembers,
-                        emitTestCoverageData: options.EmitTestCoverageData,
-                        pePdbFilePath: options.PdbFilePath,
+                        emitOptions: options,
                         privateKeyOpt: privateKeyOpt,
-                        defaultSourceEncoding: options.DefaultSourceFileEncoding,
-                        fallbackSourceEncoding: SyntaxTrees.FirstOrDefault()?.Encoding,
                         cancellationToken: cancellationToken);
                 }
             }
@@ -2731,13 +2718,8 @@ namespace Microsoft.CodeAnalysis
             EmitStreamProvider? pdbStreamProvider,
             Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             DiagnosticBag diagnostics,
-            bool metadataOnly,
-            bool includePrivateMembers,
-            bool emitTestCoverageData,
-            string? pePdbFilePath,
+            EmitOptions emitOptions,
             RSAParameters? privateKeyOpt,
-            Encoding? defaultSourceEncoding,
-            Encoding? fallbackSourceEncoding,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -2750,6 +2732,8 @@ namespace Microsoft.CodeAnalysis
 
             // PDB Stream provider should not be given if PDB is to be embedded into the PE file:
             Debug.Assert(moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Embedded || pdbStreamProvider == null);
+
+            string? pePdbFilePath = emitOptions.PdbFilePath;
 
             if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded || pdbStreamProvider != null)
             {
@@ -2805,13 +2789,12 @@ namespace Microsoft.CodeAnalysis
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
-                        metadataOnly,
-                        includePrivateMembers,
+                        emitOptions.EmitMetadataOnly,
+                        emitOptions.IncludePrivateMembers,
                         deterministic,
-                        emitTestCoverageData,
+                        emitOptions.EmitTestCoverageData,
                         privateKeyOpt,
-                        defaultSourceEncoding,
-                        fallbackSourceEncoding,
+                        emitOptions.DefaultSourceFileEncoding,
                         cancellationToken))
                     {
                         if (nativePdbWriter != null)
@@ -2894,7 +2877,6 @@ namespace Microsoft.CodeAnalysis
             bool emitTestCoverageData,
             RSAParameters? privateKeyOpt,
             Encoding? defaultSourceEncoding,
-            Encoding? fallbackSourceEncoding,
             CancellationToken cancellationToken)
         {
             bool emitSecondaryAssembly = getMetadataPeStreamOpt != null;
@@ -2913,7 +2895,6 @@ namespace Microsoft.CodeAnalysis
                 emitTestCoverageData,
                 privateKeyOpt,
                 defaultSourceEncoding,
-                fallbackSourceEncoding,
                 cancellationToken))
             {
                 return false;
@@ -2937,7 +2918,6 @@ namespace Microsoft.CodeAnalysis
                     emitTestCoverageData: false,
                     privateKeyOpt: privateKeyOpt,
                     defaultSourceEncoding,
-                    fallbackSourceEncoding,
                     cancellationToken: cancellationToken))
                 {
                     return false;

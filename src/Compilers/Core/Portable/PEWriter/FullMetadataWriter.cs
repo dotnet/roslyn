@@ -47,7 +47,6 @@ namespace Microsoft.Cci
             bool emitTestCoverageData,
             bool hasPdbStream,
             Encoding? defaultSourceEncoding,
-            Encoding? fallbackSourceEncoding,
             CancellationToken cancellationToken)
         {
             var builder = new MetadataBuilder();
@@ -72,7 +71,7 @@ namespace Microsoft.Cci
                 null;
 
             return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, metadataOnly, deterministic,
-                emitTestCoverageData, defaultSourceEncoding, fallbackSourceEncoding, cancellationToken);
+                emitTestCoverageData, defaultSourceEncoding, cancellationToken);
         }
 
         private FullMetadataWriter(
@@ -85,10 +84,9 @@ namespace Microsoft.Cci
             bool deterministic,
             bool emitTestCoverageData,
             Encoding? defaultSourceEncoding,
-            Encoding? fallbackSourceEncoding,
             CancellationToken cancellationToken)
             : base(builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, metadataOnly, deterministic,
-                  emitTestCoverageData, defaultSourceEncoding, fallbackSourceEncoding, cancellationToken)
+                  emitTestCoverageData, defaultSourceEncoding, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
