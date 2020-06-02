@@ -267,7 +267,7 @@ data class C(); ";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (2,13): error CS8770: Records must have both a 'data' modifier and non-empty parameter list
-                // data class C(); 
+                // data class C();
                 Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 13)
             );
         }
@@ -1467,7 +1467,7 @@ class C
         {
             var src = @"
 class B
-{ 
+{
     public int X { get; init; }
 }
 class C : B
@@ -1901,7 +1901,7 @@ data class B(string? X, string? Y)
         B b2 = b1 with { X = ""hello"" };
         B b3 = b1 with { Y = ""world"" };
         B b4 = b2 with { Y = ""world"" };
-        
+
         b1.X.ToString(); // 1
         b1.Y.ToString(); // 2
         b2.X.ToString();
@@ -2126,7 +2126,7 @@ class C
     public string Y { get; init; }
     public long Z;
     public event Action E;
-    
+
     public C Clone() => new C {
             X = this.X,
             Y = this.Y,
@@ -2171,7 +2171,7 @@ public class C
     public int X { get; set; }
     public string Y { get; init; }
     public long Z;
-    
+
     public C Clone() => new C {
             X = this.X,
             Y = this.Y,
@@ -2733,7 +2733,7 @@ data class B(int X, int Y)
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "12");
             verifier.VerifyDiagnostics();
-            
+
             verifier.VerifyIL("B.Deconstruct", @"
 {
   // Code size       17 (0x11)
@@ -2795,7 +2795,7 @@ data class C(B B, int Z)
 
             var verifier = CompileAndVerify(source, expectedOutput: "123");
             verifier.VerifyDiagnostics();
-            
+
             verifier.VerifyIL("B.Deconstruct", @"
 {
   // Code size       17 (0x11)
@@ -2810,7 +2810,7 @@ data class C(B B, int Z)
   IL_000f:  stind.i4
   IL_0010:  ret
 }");
-            
+
             verifier.VerifyIL("C.Deconstruct", @"
 {
   // Code size       17 (0x11)
