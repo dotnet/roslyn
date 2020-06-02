@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             return false;
         }
 
-        public static CodeAction TryGetCodeAction(
+        public static (CodeAction action, TextSpan renameSpan) TryGetCodeAction(
             Document document, TextSpan textSpan,
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     }
                 }
 
-                return null;
+                return default;
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
