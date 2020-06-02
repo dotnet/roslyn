@@ -7,10 +7,18 @@
     <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\ExceptionUtilities.cs" Link="ExceptionUtilities.cs" />
+    <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\Extensions\IVerifierExtensions.cs" Link="IVerifierExtensions.cs" />
+    <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\IVerifier.cs" Link="IVerifier.cs" />
     <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Analyzer.Testing\NullableAttributes.cs" Link="NullableAttributes.cs" />
+    <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Verifiers.XUnit\EmptyWithMessageException.cs" Link="EmptyWithMessageException.cs" />
+    <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Verifiers.XUnit\EqualWithMessageException.cs" Link="EqualWithMessageException.cs" />
+    <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Verifiers.XUnit\NotEmptyWithMessageException.cs" Link="NotEmptyWithMessageException.cs" />
+    <Compile Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Verifiers.XUnit\XUnitVerifier.cs" Link="XUnitVerifier.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DiffPlex" Version="$(DiffPlexVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime" Version="$(MicrosoftVisualStudioShellInterop121DesignTimeVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioShellInterop140DesignTimeVersion)" />
