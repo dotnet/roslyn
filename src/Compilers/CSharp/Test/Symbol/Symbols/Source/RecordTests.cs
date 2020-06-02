@@ -7,6 +7,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -99,7 +100,12 @@ data class C(int x, string y)
     {
     }
 }");
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (4,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
+                //     public C(int a, int b) // overload
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
+                );
+
             var c = comp.GlobalNamespace.GetTypeMember("C");
             var ctors = c.GetMembers(".ctor");
             Assert.Equal(3, ctors.Length);
@@ -657,12 +663,12 @@ True");
         }
 
         [Fact]
-        public void RecordClone2()
+        public void RecordClone2_0()
         {
             var comp = CreateCompilation(@"
 data class C(int x, int y)
 {
-    public C(C other) { }
+    public C(C other) : this(other.x, other.y) { }
 }");
             comp.VerifyDiagnostics();
 
@@ -688,15 +694,53 @@ data class C(int x, int y)
 ");
             verifier.VerifyIL("C..ctor(C)", @"
 {
-  // Code size        7 (0x7)
-  .maxstack  1
+  // Code size       19 (0x13)
+  .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  call       ""object..ctor()""
-  IL_0006:  ret
-}");
+  IL_0001:  ldarg.1
+  IL_0002:  callvirt   ""int C.x.get""
+  IL_0007:  ldarg.1
+  IL_0008:  callvirt   ""int C.y.get""
+  IL_000d:  call       ""C..ctor(int, int)""
+  IL_0012:  ret
+}
+");
         }
 
         [Fact]
+        [WorkItem(44781, "https://github.com/dotnet/roslyn/issues/44781")]
+        public void RecordClone2_1()
+        {
+            var comp = CreateCompilation(@"
+data class C(int x, int y)
+{
+    public C(C other) { }
+}");
+            comp.VerifyDiagnostics(
+                // (4,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
+                //     public C(C other) { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
+                );
+        }
+
+        [Fact]
+        [WorkItem(44781, "https://github.com/dotnet/roslyn/issues/44781")]
+        public void RecordClone2_2()
+        {
+            var comp = CreateCompilation(@"
+data class C(int x, int y)
+{
+    public C(C other) : base() { }
+}");
+            comp.VerifyDiagnostics(
+                // (4,25): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
+                //     public C(C other) : base() { }
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
+        [WorkItem(44782, "https://github.com/dotnet/roslyn/issues/44782")]
         public void RecordClone3()
         {
             var comp = CreateCompilation(@"
@@ -705,6 +749,7 @@ public data class C(int x, int y)
 {
     public event Action E;
     public int Z;
+    public int W = 123;
 }");
             comp.VerifyDiagnostics();
 
@@ -729,7 +774,7 @@ public data class C(int x, int y)
 }");
             verifier.VerifyIL("C..ctor(C)", @"
 {
-  // Code size       55 (0x37)
+  // Code size       67 (0x43)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  call       ""object..ctor()""
@@ -749,12 +794,17 @@ public data class C(int x, int y)
   IL_002b:  ldarg.1
   IL_002c:  ldfld      ""int C.Z""
   IL_0031:  stfld      ""int C.Z""
-  IL_0036:  ret
-}");
+  IL_0036:  ldarg.0
+  IL_0037:  ldarg.1
+  IL_0038:  ldfld      ""int C.W""
+  IL_003d:  stfld      ""int C.W""
+  IL_0042:  ret
+}
+");
         }
 
         [Fact]
-        public void RecordClone4()
+        public void RecordClone4_0()
         {
             var comp = CreateCompilation(@"
 using System;
@@ -764,6 +814,12 @@ public data struct S(int x, int y)
     public int Z;
 }");
             comp.VerifyDiagnostics(
+                // (3,21): error CS0171: Field 'S.E' must be fully assigned before control is returned to the caller
+                // public data struct S(int x, int y)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "(int x, int y)").WithArguments("S.E").WithLocation(3, 21),
+                // (3,21): error CS0171: Field 'S.Z' must be fully assigned before control is returned to the caller
+                // public data struct S(int x, int y)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "(int x, int y)").WithArguments("S.Z").WithLocation(3, 21),
                 // (5,25): warning CS0067: The event 'S.E' is never used
                 //     public event Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("S.E").WithLocation(5, 25)
@@ -778,39 +834,29 @@ public data struct S(int x, int y)
             var ctor = (MethodSymbol)s.GetMembers(".ctor")[1];
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(s, TypeCompareKind.ConsiderEverything));
+        }
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
-            verifier.VerifyIL("S." + WellKnownMemberNames.CloneMethodName, @"
+        [Fact]
+        public void RecordClone4_1()
+        {
+            var comp = CreateCompilation(@"
+using System;
+public data struct S(int x, int y)
 {
-  // Code size       12 (0xc)
-  .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldobj      ""S""
-  IL_0006:  newobj     ""S..ctor(S)""
-  IL_000b:  ret
+    public event Action E = null;
+    public int Z = 0;
 }");
-            verifier.VerifyIL("S..ctor(S)", @"
-{
-  // Code size       49 (0x31)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  ldfld      ""int S.<x>k__BackingField""
-  IL_0007:  stfld      ""int S.<x>k__BackingField""
-  IL_000c:  ldarg.0
-  IL_000d:  ldarg.1
-  IL_000e:  ldfld      ""int S.<y>k__BackingField""
-  IL_0013:  stfld      ""int S.<y>k__BackingField""
-  IL_0018:  ldarg.0
-  IL_0019:  ldarg.1
-  IL_001a:  ldfld      ""System.Action S.E""
-  IL_001f:  stfld      ""System.Action S.E""
-  IL_0024:  ldarg.0
-  IL_0025:  ldarg.1
-  IL_0026:  ldfld      ""int S.Z""
-  IL_002b:  stfld      ""int S.Z""
-  IL_0030:  ret
-}");
+            comp.VerifyDiagnostics(
+                // (5,25): error CS0573: 'S': cannot have instance property or field initializers in structs
+                //     public event Action E = null;
+                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "E").WithArguments("S").WithLocation(5, 25),
+                // (5,25): warning CS0414: The field 'S.E' is assigned but its value is never used
+                //     public event Action E = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E").WithArguments("S.E").WithLocation(5, 25),
+                // (6,16): error CS0573: 'S': cannot have instance property or field initializers in structs
+                //     public int Z = 0;
+                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "Z").WithArguments("S").WithLocation(6, 16)
+                );
         }
     }
 }

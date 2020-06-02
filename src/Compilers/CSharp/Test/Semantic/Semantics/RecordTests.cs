@@ -115,6 +115,7 @@ data class Point(int x, int y);
 using System;
 data class C(int X, int Y)
 {
+    int Z = 123;
     public static void Main()
     {
         var c = new C(1, 2);
@@ -122,9 +123,27 @@ data class C(int X, int Y)
         Console.WriteLine(c.Y);
     }
 }";
-            CompileAndVerify(src, expectedOutput: @"
+            var verifier = CompileAndVerify(src, expectedOutput: @"
 1
 2");
+            verifier.VerifyIL("C..ctor(int, int)", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.<X>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      ""int C.<Y>k__BackingField""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.s   123
+  IL_0011:  stfld      ""int C.Z""
+  IL_0016:  ldarg.0
+  IL_0017:  call       ""object..ctor()""
+  IL_001c:  ret
+}
+");
         }
 
         [Fact]
@@ -2625,6 +2644,7 @@ data class B(int X, int Y) : A
             var expectedMembers = new[]
             {
                 "B B.Clone()",
+                "B..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 B.<X>k__BackingField",
                 "System.Int32 B.X.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.X.init",
@@ -2637,7 +2657,6 @@ data class B(int X, int Y) : A
                 "System.Boolean B.Equals(System.Object? )",
                 "System.Int32 B.GetHashCode()",
                 "B..ctor(B )",
-                "B..ctor(System.Int32 X, System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -2665,6 +2684,7 @@ data class B(int X, int Y) : A
             var expectedMembers = new[]
             {
                 "B B.Clone()",
+                "B..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 B.<X>k__BackingField",
                 "System.Int32 B.X.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.X.init",
@@ -2677,7 +2697,6 @@ data class B(int X, int Y) : A
                 "System.Boolean B.Equals(System.Object? )",
                 "System.Int32 B.GetHashCode()",
                 "B..ctor(B )",
-                "B..ctor(System.Int32 X, System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -2685,6 +2704,114 @@ data class B(int X, int Y) : A
         private static ImmutableArray<Symbol> GetProperties(CSharpCompilation comp, string typeName)
         {
             return comp.GetMember<NamedTypeSymbol>(typeName).GetMembers().WhereAsArray(m => m.Kind == SymbolKind.Property);
+        }
+
+        [Fact]
+        public void PartialTypes_01()
+        {
+            var src = @"
+using System;
+data partial class C(int X, int Y)
+{
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(c.X);
+        Console.WriteLine(c.Y);
+    }
+}
+
+data partial class C(int X, int Y)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                // data partial class C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(3, 1),
+                // (3,6): error CS1525: Invalid expression term 'partial'
+                // data partial class C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(3, 6),
+                // (3,6): error CS1002: ; expected
+                // data partial class C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(3, 6),
+                // (3,21): error CS8850: Records must have both a 'data' modifier and non-empty parameter list
+                // data partial class C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "(int X, int Y)").WithLocation(3, 21),
+                // (13,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                // data partial class C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(13, 1),
+                // (13,6): error CS1525: Invalid expression term 'partial'
+                // data partial class C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(13, 6),
+                // (13,6): error CS1002: ; expected
+                // data partial class C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(13, 6),
+                // (13,6): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
+                // data partial class C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("<invalid-global-code>", "").WithLocation(13, 6)
+                );
+
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
+        }
+
+        [Fact]
+        public void PartialTypes_02()
+        {
+            var src = @"
+using System;
+partial class C(int X, int Y)
+{
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(c.X);
+        Console.WriteLine(c.Y);
+    }
+}
+
+partial class C(int X, int Y)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,16): error CS8850: Records must have both a 'data' modifier and non-empty parameter list
+                // partial class C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "(int X, int Y)").WithLocation(3, 16)
+                );
+
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
+        }
+
+        [Fact]
+        public void PartialTypes_03()
+        {
+            var src = @"
+using System;
+partial class C(int X, int Y)
+{
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(c.X);
+        Console.WriteLine(c.Y);
+    }
+}
+
+partial class C(int X)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,16): error CS8850: Records must have both a 'data' modifier and non-empty parameter list
+                // partial class C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "(int X, int Y)").WithLocation(3, 16)
+                );
+
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
         }
     }
 }

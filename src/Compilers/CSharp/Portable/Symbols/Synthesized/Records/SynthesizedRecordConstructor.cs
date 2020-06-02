@@ -5,59 +5,80 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedRecordConstructor : SynthesizedInstanceConstructor
+    internal sealed class SynthesizedRecordConstructor : SourceConstructorSymbolBase
     {
-        public override ImmutableArray<ParameterSymbol> Parameters { get; }
-
         public SynthesizedRecordConstructor(
-            SourceMemberContainerTypeSymbol containingType,
-            Binder parameterBinder,
-            ParameterListSyntax parameterList,
-            DiagnosticBag diagnostics)
-            : base(containingType)
+             SourceMemberContainerTypeSymbol containingType,
+             TypeDeclarationSyntax syntax,
+             DiagnosticBag diagnostics) :
+             base(containingType, GetParameterList(syntax).GetLocation(), syntax, MethodKind.Constructor, diagnostics)
         {
-            Parameters = ParameterHelpers.MakeParameters(
-                parameterBinder,
-                this,
-                parameterList,
-                out _,
-                diagnostics,
-                allowRefOrOut: true,
-                allowThis: false,
-                addRefReadOnlyModifier: false);
+            Debug.Assert(syntax.IsKind(SyntaxKind.ClassDeclaration) || syntax.IsKind(SyntaxKind.StructDeclaration));
+            this.MakeFlags(MethodKind.Constructor, DeclarationModifiers.Public, returnsVoid: true, isExtensionMethod: false);
         }
 
-        internal override LexicalSortKey GetLexicalSortKey()
+        internal TypeDeclarationSyntax GetSyntax()
         {
-            // We need a separate sort key because struct records will have two synthesized
-            // constructors: the record constructor, and the parameterless constructor
-            return LexicalSortKey.SynthesizedRecordCtor;
+            Debug.Assert(syntaxReferenceOpt != null);
+            return (TypeDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
-        internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory F, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics)
+        protected override ParameterListSyntax GetParameterList()
         {
-            // Write assignments to backing fields
-            //
-            // {
-            //     this.backingField1 = arg1
-            //     ...
-            //     this.backingFieldN = argN
-            // }
-            var containing = (SourceMemberContainerTypeSymbol)ContainingType;
-            foreach (var param in Parameters)
+            return GetParameterList(GetSyntax());
+        }
+
+        private static ParameterListSyntax GetParameterList(TypeDeclarationSyntax syntax)
+        {
+            switch (syntax)
             {
-                var members = containing.GetMembers(param.Name);
-                if (members.Length == 1 && members[0] is SynthesizedRecordPropertySymbol prop)
-                {
-                    var field = prop.BackingField;
-                    statements.Add(F.Assignment(F.Field(F.This(), field), F.Parameter(param)));
-                }
+                case ClassDeclarationSyntax classDecl:
+                    return classDecl.ParameterList!;
+                case StructDeclarationSyntax structDecl:
+                    return structDecl.ParameterList!;
+                default:
+                    throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        protected override CSharpSyntaxNode? GetInitializer()
+        {
+            var baseTypeSyntax = GetSyntax().BaseList?.Types.FirstOrDefault() as SimpleBaseTypeSyntax;
+
+            if (baseTypeSyntax?.ArgumentList is object)
+            {
+                return baseTypeSyntax;
+            }
+
+            return null;
+        }
+
+        internal override bool IsExpressionBodied
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        protected override bool IsWithinExpressionOrBlockBody(int position, out int offset)
+        {
+            offset = -1;
+            return false;
+        }
+
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, BinderFlags additionalFlags = BinderFlags.None)
+        {
+            TypeDeclarationSyntax typeDecl = GetSyntax();
+            InMethodBinder result = (binderFactoryOpt ?? this.DeclaringCompilation.GetBinderFactory(typeDecl.SyntaxTree)).GetRecordConstructorInMethodBinder(this);
+            return new ExecutableCodeBinder(SyntaxNode, this, result.WithAdditionalFlags(additionalFlags));
         }
     }
 }

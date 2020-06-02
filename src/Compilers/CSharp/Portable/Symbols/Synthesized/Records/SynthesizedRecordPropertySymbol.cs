@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SetMethod = new InitAccessorSymbol(this, name, diagnostics);
         }
 
+        public ParameterSymbol BackingParameter => _backingParameter;
+
         internal override bool IsAutoProperty => true;
 
         public override RefKind RefKind => RefKind.None;
