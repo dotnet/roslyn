@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             return Task.CompletedTask;
         }
 
-        private void AddEdits(
+        private static void AddEdits(
             SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             if (diagnostic.Properties[Constants.Kind] == Constants.VariableAndIfStatementForm)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             }
         }
 
-        private void HandleSingleIfStatementForm(
+        private static void HandleSingleIfStatementForm(
             SyntaxEditor editor,
             Diagnostic diagnostic,
             CancellationToken cancellationToken)

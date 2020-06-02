@@ -2727,6 +2727,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw New NotSupportedException(VBResources.ThereAreNoPointerTypesInVB)
         End Function
 
+        Protected Overrides Function CommonCreateFunctionPointerTypeSymbol(
+                returnType As ITypeSymbol,
+                refKind as RefKind,
+                parameterTypes as ImmutableArray(Of ITypeSymbol),
+                parameterRefKinds as ImmutableArray(Of RefKind)) As IFunctionPointerTypeSymbol
+            Throw New NotSupportedException(VBResources.ThereAreNoFunctionPointerTypesInVB)
+        End Function
+
         Protected Overrides Function CommonCreateNativeIntegerTypeSymbol(signed As Boolean) As INamedTypeSymbol
             Throw New NotSupportedException(VBResources.ThereAreNoNativeIntegerTypesInVB)
         End Function

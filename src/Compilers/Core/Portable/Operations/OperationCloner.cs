@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal override IOperation VisitNoneOperation(IOperation operation, object argument)
         {
-            return new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit);
+            return new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit, operation.Type);
         }
 
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation

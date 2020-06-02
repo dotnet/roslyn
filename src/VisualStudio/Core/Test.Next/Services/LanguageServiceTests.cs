@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,9 +31,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             var code = @"class Test { void Method() { } }";
 
             using var workspace = TestWorkspace.CreateCSharp(code);
-            var solution = workspace.CurrentSolution;
 
-            var results = await GetVsSearchResultsAsync(workspace, WellKnownServiceHubServices.LanguageServer, "met");
+            var results = await GetVsSearchResultsAsync(workspace, "met");
 
             Assert.Equal("Method", Assert.Single(results).Name);
         }
@@ -53,9 +50,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 }";
 
             using var workspace = TestWorkspace.CreateCSharp(code);
-            var solution = workspace.CurrentSolution;
-
-            var results = await GetVsSearchResultsAsync(workspace, WellKnownServiceHubServices.LanguageServer, "met");
+            var results = await GetVsSearchResultsAsync(workspace, "met");
 
             Assert.Equal(4, results.Length);
         }
@@ -70,20 +65,19 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 End Class";
 
             using var workspace = TestWorkspace.CreateVisualBasic(code);
-            var solution = workspace.CurrentSolution;
 
-            var results = await GetVsSearchResultsAsync(workspace, WellKnownServiceHubServices.LanguageServer, "met");
+            var results = await GetVsSearchResultsAsync(workspace, "met");
 
             Assert.Equal("Method", Assert.Single(results).Name);
         }
 
-        private async Task<ImmutableArray<SymbolInformation>> GetVsSearchResultsAsync(TestWorkspace workspace, string server, string query)
+        private async Task<ImmutableArray<SymbolInformation>> GetVsSearchResultsAsync(TestWorkspace workspace, string query)
         {
             var solution = workspace.CurrentSolution;
-            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(solution.Workspace, runCacheCleanup: false);
+            var client = (InProcRemoteHostClient)await InProcRemoteHostClient.CreateAsync(workspace.Services, runCacheCleanup: false);
 
             var document = solution.Projects.First().Documents.First();
-            await UpdatePrimaryWorkspace(client, solution.WithDocumentFilePath(document.Id, @"c:\" + document.FilePath));
+            await UpdatePrimaryWorkspace(client, solution.WithDocumentFilePath(document.Id, Path.Combine(TempRoot.Root, document.FilePath)));
 
             var workspaceSymbolParams = new WorkspaceSymbolParams
             {
@@ -98,7 +92,7 @@ End Class";
             }, threadingContext.JoinableTaskFactory);
             workspaceSymbolParams.PartialResultToken = awaitableProgress;
 
-            using (var jsonRpc = JsonRpc.Attach(await client.RequestServiceAsync(server)))
+            using (var jsonRpc = JsonRpc.Attach(await client.RequestServiceAsync(WellKnownServiceHubService.LanguageServer)))
             {
                 var result = await jsonRpc.InvokeWithCancellationAsync<JObject>(
                     Methods.InitializeName,
@@ -111,6 +105,8 @@ End Class";
                     Methods.WorkspaceSymbolName,
                     new object[] { workspaceSymbolParams },
                     CancellationToken.None);
+
+                await awaitableProgress.WaitAsync(CancellationToken.None);
             }
 
             return symbolResultsBuilder.ToImmutableAndFree();
@@ -121,13 +117,13 @@ End Class";
 
         private async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
         {
-            Assert.True(await client.TryRunRemoteAsync(
-                WellKnownServiceHubServices.RemoteHostService,
+            await client.RunRemoteAsync(
+                WellKnownServiceHubService.RemoteHost,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 solution,
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
                 callbackTarget: null,
-                CancellationToken.None));
+                CancellationToken.None);
         }
     }
 }

@@ -3175,7 +3175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function GetSimpleNonTypeMembers(name As String) As ImmutableArray(Of Symbol)
-            If _lazyMembersAndInitializers IsNot Nothing OrElse MemberNames.Contains(name) Then
+            If _lazyMembersAndInitializers IsNot Nothing OrElse MemberNames.Contains(name, IdentifierComparison.Comparer) Then
                 Return GetMembers(name)
             End If
 

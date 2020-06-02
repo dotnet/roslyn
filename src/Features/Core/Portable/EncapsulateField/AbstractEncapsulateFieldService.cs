@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var result = await client.TryRunRemoteAsync<(DocumentId, TextChange[])[]>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                    var result = await client.RunRemoteAsync<(DocumentId, TextChange[])[]>(
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteEncapsulateFieldService.EncapsulateFieldsAsync),
                         solution,
                         new object[]
@@ -117,11 +117,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
-                    if (result.HasValue)
-                    {
-                        return await RemoteUtilities.UpdateSolutionAsync(
-                            solution, result.Value, cancellationToken).ConfigureAwait(false);
-                    }
+                    return await RemoteUtilities.UpdateSolutionAsync(
+                        solution, result, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -278,7 +275,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             }
         }
 
-        private async Task<Solution> RenameAsync(
+        private static async Task<Solution> RenameAsync(
             Solution solution,
             IFieldSymbol field,
             string finalName,
@@ -296,7 +293,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return resolution.NewSolution;
         }
 
-        private bool IntersectsWithAny(Location location, ISet<Location> constructorLocations)
+        private static bool IntersectsWithAny(Location location, ISet<Location> constructorLocations)
         {
             foreach (var constructor in constructorLocations)
             {
@@ -312,7 +309,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         internal abstract IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType);
 
-        protected async Task<Solution> AddPropertyAsync(Document document, Solution destinationSolution, IFieldSymbol field, IPropertySymbol property, CancellationToken cancellationToken)
+        protected static async Task<Solution> AddPropertyAsync(Document document, Solution destinationSolution, IFieldSymbol field, IPropertySymbol property, CancellationToken cancellationToken)
         {
             var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
 
@@ -331,7 +328,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return updatedDocument.Project.Solution;
         }
 
-        protected IPropertySymbol GenerateProperty(
+        protected static IPropertySymbol GenerateProperty(
             string propertyName, string fieldName,
             Accessibility accessibility,
             IFieldSymbol field,
@@ -359,7 +356,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         protected abstract (string fieldName, string propertyName) GenerateFieldAndPropertyNames(IFieldSymbol field);
 
-        protected Accessibility ComputeAccessibility(Accessibility accessibility, ITypeSymbol type)
+        protected static Accessibility ComputeAccessibility(Accessibility accessibility, ITypeSymbol type)
         {
             var computedAccessibility = accessibility;
             if (accessibility == Accessibility.NotApplicable || accessibility == Accessibility.Private)
@@ -372,7 +369,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return AccessibilityUtilities.Minimum(computedAccessibility, returnTypeAccessibility);
         }
 
-        protected IMethodSymbol CreateSet(string originalFieldName, IFieldSymbol field, SyntaxGenerator factory)
+        protected static IMethodSymbol CreateSet(string originalFieldName, IFieldSymbol field, SyntaxGenerator factory)
         {
             var assigned = !field.IsStatic
                 ? factory.MemberAccessExpression(
@@ -391,7 +388,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 ImmutableArray.Create(body));
         }
 
-        protected IMethodSymbol CreateGet(string originalFieldName, IFieldSymbol field, SyntaxGenerator factory)
+        protected static IMethodSymbol CreateGet(string originalFieldName, IFieldSymbol field, SyntaxGenerator factory)
         {
             var value = !field.IsStatic
                 ? factory.MemberAccessExpression(
@@ -410,7 +407,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         private static readonly char[] s_underscoreCharArray = new[] { '_' };
 
-        protected string GeneratePropertyName(string fieldName)
+        protected static string GeneratePropertyName(string fieldName)
         {
             // Trim leading underscores
             var baseName = fieldName.TrimStart(s_underscoreCharArray);

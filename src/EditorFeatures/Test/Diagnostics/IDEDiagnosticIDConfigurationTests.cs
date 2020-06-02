@@ -379,6 +379,9 @@ dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 # IDE0076
 dotnet_diagnostic.IDE0076.severity = %value%
 
+# IDE0077
+dotnet_diagnostic.IDE0077.severity = %value%
+
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -521,6 +524,9 @@ dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
 # IDE0076
 dotnet_diagnostic.IDE0076.severity = %value%
+
+# IDE0077
+dotnet_diagnostic.IDE0077.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
@@ -891,6 +897,9 @@ dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 # IDE0076
 No editorconfig based code style option
 
+# IDE0077
+No editorconfig based code style option
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -1065,6 +1074,9 @@ file_header_template = unset
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 
 # IDE0076
+No editorconfig based code style option
+
+# IDE0077
 No editorconfig based code style option
 
 # IDE1006

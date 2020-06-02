@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return false;
         }
 
-        private bool TryAnalyzeDeclarationExpression(
+        private static bool TryAnalyzeDeclarationExpression(
             DeclarationExpressionSyntax declarationExpression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 declarationType, newDeclarationType);
         }
 
-        private bool IsSafeToSwitchToVarWithoutNeedingSpeculation(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static bool IsSafeToSwitchToVarWithoutNeedingSpeculation(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // It's not always safe to convert a decl expression like "Method(out int i)" to
             // "Method(out var i)".  Changing to 'var' may cause overload resolution errors.
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
         }
 
-        private bool IsSwitchExpressionAndCannotUseVar(TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel)
+        private static bool IsSwitchExpressionAndCannotUseVar(TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel)
         {
             if (initializer.IsKind(SyntaxKind.SwitchExpression))
             {

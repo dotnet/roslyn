@@ -149,8 +149,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 // the 'progress' parameter which will then update the UI.
                 var serverCallback = new FindUsagesServerCallback(solution, context);
 
-                var success = await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                await client.RunRemoteAsync(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteFindUsagesService.FindReferencesAsync),
                     solution,
                     new object[]
@@ -160,14 +160,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     },
                     serverCallback,
                     cancellationToken).ConfigureAwait(false);
-
-                if (success)
-                    return;
             }
-
-            // Couldn't effectively search in OOP. Perform the search in-process.
-            await FindReferencesInCurrentProcessAsync(
-                context, symbol, project, options).ConfigureAwait(false);
+            else
+            {
+                // Couldn't effectively search in OOP. Perform the search in-process.
+                await FindReferencesInCurrentProcessAsync(
+                    context, symbol, project, options).ConfigureAwait(false);
+            }
         }
 
         private static Task FindReferencesInCurrentProcessAsync(

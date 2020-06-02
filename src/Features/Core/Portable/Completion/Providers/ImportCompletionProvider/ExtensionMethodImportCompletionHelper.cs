@@ -44,18 +44,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    var result = await client.TryRunRemoteAsync<(IList<SerializableImportCompletionItem> items, StatisticCounter counter)>(
-                        WellKnownServiceHubServices.CodeAnalysisService,
+                    var result = await client.RunRemoteAsync<(IList<SerializableImportCompletionItem> items, StatisticCounter counter)>(
+                        WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteExtensionMethodImportCompletionService.GetUnimportedExtensionMethodsAsync),
                         project.Solution,
                         new object[] { document.Id, position, SymbolKey.CreateString(receiverTypeSymbol), namespaceInScope.ToArray(), forceIndexCreation },
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
-                    if (result.HasValue)
-                    {
-                        return (result.Value.items.ToImmutableArray(), result.Value.counter);
-                    }
+                    return (result.items.ToImmutableArray(), result.counter);
                 }
 
                 return await GetUnimportedExtensionMethodsInCurrentProcessAsync(document, position, receiverTypeSymbol, namespaceInScope, forceIndexCreation, cancellationToken).ConfigureAwait(false);

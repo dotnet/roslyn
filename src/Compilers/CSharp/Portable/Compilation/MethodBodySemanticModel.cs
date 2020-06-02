@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)owner != null);
             Debug.Assert(owner.Kind == SymbolKind.Method);
             Debug.Assert(syntax != null);
-            Debug.Assert(syntax.Kind() != SyntaxKind.CompilationUnit);
+            Debug.Assert(parentRemappedSymbolsOpt is null || IsSpeculativeSemanticModel);
+            Debug.Assert((syntax.Kind() == SyntaxKind.CompilationUnit) == (!IsSpeculativeSemanticModel && owner is SynthesizedSimpleProgramEntryPointSymbol));
         }
 
         /// <summary>
@@ -93,6 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.CompilationUnit:
+                    // When we are binding the root for a multi-unit simple program (for example to do a flow analysis),
+                    // here we are going to bind all units.
                     return binder.BindMethodBody(node, diagnostics);
             }
 
