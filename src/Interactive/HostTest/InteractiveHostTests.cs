@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
     [Trait(Traits.Feature, Traits.Features.InteractiveHost)]
-    public sealed class InteractiveHostTests : AbstractInteractiveHostTests
+    public sealed class InteractiveHostTests : AbstractInteractiveHostTests, IAsyncLifetime
     {
         #region Utils
 
@@ -50,14 +50,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             _host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1, joinOutputWritingThreadsOnDisposal: true);
 
             RedirectOutput();
+        }
 
-            _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture)).Wait();
+        public async Task InitializeAsync()
+        {
+            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture));
 
-            _host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir).Wait();
+            await _host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir);
 
             // assert and remove logo:
-            var output = SplitLines(ReadOutputToEnd().Result);
-            var errorOutput = ReadOutputToEnd().Result;
+            var output = SplitLines(await ReadOutputToEnd());
+            var errorOutput = await ReadOutputToEnd();
 
             Assert.Equal("", errorOutput);
             Assert.Equal(2, output.Length);
@@ -70,11 +73,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             ClearOutput();
         }
 
+        public Task DisposeAsync()
+        {
+            return Task.CompletedTask;
+        }
+
         public override void Dispose()
         {
             try
             {
                 var process = _host.TryGetProcess();
+
+                _host.Dispose();
 
                 // the process should be terminated 
                 if (process != null && !process.HasExited)
@@ -103,16 +113,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             return ImmutableArray.Create(text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
         }
 
-        private bool LoadReference(string reference)
+        private async Task<bool> LoadReference(string reference)
         {
-            return Execute($"#r \"{reference}\"");
+            return await Execute($"#r \"{reference}\"");
         }
 
-        private bool Execute(string code)
+        private async Task<bool> Execute(string code)
         {
-            var task = _host.ExecuteAsync(code);
-            task.Wait();
-            return task.Result.Success;
+            var task = await _host.ExecuteAsync(code);
+            return task.Success;
         }
 
         //private bool IsShadowCopy(string path)
@@ -132,12 +141,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             _synchronizedErrorOutput.Clear();
         }
 
-        private void RestartHost(string? rspFile = null)
+        private async Task RestartHost(string? rspFile = null)
         {
             ClearOutput();
 
-            var initTask = _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile, culture: CultureInfo.InvariantCulture));
-            initTask.Wait();
+            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile, culture: CultureInfo.InvariantCulture));
         }
 
         public async Task<string> ReadOutputToEnd(bool isError = false)
@@ -182,7 +190,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         [Fact]
         public async Task OutputRedirection()
         {
-            Execute(@"
+            await Execute(@"
 System.Console.WriteLine(""hello-\u4567!""); 
 System.Console.Error.WriteLine(""error-\u7890!""); 
 1+1
@@ -198,8 +206,8 @@ System.Console.Error.WriteLine(""error-\u7890!"");
         [Fact]
         public async Task OutputRedirection2()
         {
-            Execute(@"System.Console.WriteLine(1);");
-            Execute(@"System.Console.Error.WriteLine(2);");
+            await Execute(@"System.Console.WriteLine(1);");
+            await Execute(@"System.Console.Error.WriteLine(2);");
 
             var output = await ReadOutputToEnd();
             var error = await ReadErrorOutputToEnd();
@@ -209,8 +217,8 @@ System.Console.Error.WriteLine(""error-\u7890!"");
 
             RedirectOutput();
 
-            Execute(@"System.Console.WriteLine(3);");
-            Execute(@"System.Console.Error.WriteLine(4);");
+            await Execute(@"System.Console.WriteLine(3);");
+            await Execute(@"System.Console.Error.WriteLine(4);");
 
             output = await ReadOutputToEnd();
             error = await ReadErrorOutputToEnd();
@@ -230,7 +238,7 @@ System.Console.Error.WriteLine(""error-\u7890!"");
 
             var process = _host.TryGetProcess();
 
-            Execute(@"
+            await Execute(@"
 int goo(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9) 
 { 
     return goo(0,1,2,3,4,5,6,7,8,9) + goo(0,1,2,3,4,5,6,7,8,9); 
@@ -245,7 +253,7 @@ goo(0,1,2,3,4,5,6,7,8,9)
             var errorOutput = (await ReadErrorOutputToEnd()).Trim();
             Assert.Equal("Process is terminated due to StackOverflowException.\n" + string.Format(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, process!.ExitCode), errorOutput);
 
-            Execute(@"1+1");
+            await Execute(@"1+1");
             output = await ReadOutputToEnd();
             Assert.Equal("2\r\n", output.ToString());
         }
@@ -275,15 +283,14 @@ void goo()
             var mayTerminate = new ManualResetEvent(false);
             _host.ErrorOutputReceived += (_, __) => mayTerminate.Set();
 
-            var executeTask = _host.ExecuteAsync(MethodWithInfiniteLoop + "\r\nfoo()");
             Assert.True(mayTerminate.WaitOne());
 
-            RestartHost();
+            await RestartHost();
 
-            executeTask.Wait();
+            await _host.ExecuteAsync(MethodWithInfiniteLoop + "\r\nfoo()");
 
             var output = await ReadOutputToEnd();
-            Assert.True(Execute(@"1+1"));
+            Assert.True(await Execute(@"1+1"));
             Assert.Equal("2\r\n", output);
         }
 
@@ -347,15 +354,14 @@ while(true) {}
             var mayTerminate = new ManualResetEvent(false);
             _host.ErrorOutputReceived += (_, __) => mayTerminate.Set();
 
-            var executeTask = _host.ExecuteFileAsync(file);
             mayTerminate.WaitOne();
 
-            RestartHost();
+            await RestartHost();
 
-            executeTask.Wait();
+            await _host.ExecuteFileAsync(file);
 
             var output = await ReadOutputToEnd();
-            Assert.True(Execute(@"1+1"));
+            Assert.True(await Execute(@"1+1"));
             Assert.Equal("2\r\n", output);
         }
 
@@ -363,9 +369,8 @@ while(true) {}
         public async Task AsyncExecuteFile_SourceKind()
         {
             var file = Temp.CreateFile().WriteAllText("1 1").Path;
-            var task = _host.ExecuteFileAsync(file);
-            task.Wait();
-            Assert.False(task.Result.Success);
+            var task = await _host.ExecuteFileAsync(file);
+            Assert.False(task.Success);
 
             var errorOut = (await ReadErrorOutputToEnd()).Trim();
             Assert.True(errorOut.StartsWith(file + "(1,3):", StringComparison.Ordinal), "Error output should start with file name, line and column");
@@ -399,32 +404,29 @@ public int Goo(int i) { return i; }
 
 WriteLine(5);
 ").Path;
-            var task = _host.ExecuteFileAsync(file);
-            task.Wait();
+            var task = await _host.ExecuteFileAsync(file);
 
             var output = await ReadOutputToEnd();
-            Assert.True(task.Result.Success);
+            Assert.True(task.Success);
             Assert.Equal("5", output.Trim());
 
             output = await ReadOutputToEnd();
-            Execute("Goo(2)");
+            await Execute("Goo(2)");
             Assert.Equal("2", output.Trim());
 
             output = await ReadOutputToEnd();
-            Execute("new C().Goo(3)");
+            await Execute("new C().Goo(3)");
             Assert.Equal("3", output.Trim());
 
             output = await ReadOutputToEnd();
-            Execute("new C().field");
+            await Execute("new C().field");
             Assert.Equal("4", output.Trim());
         }
 
         [Fact]
         public async Task AsyncExecuteFile_InvalidFileContent()
         {
-            var executeTask = _host.ExecuteFileAsync(typeof(Process).Assembly.Location);
-
-            executeTask.Wait();
+            await _host.ExecuteFileAsync(typeof(Process).Assembly.Location);
 
             var errorOut = (await ReadErrorOutputToEnd()).Trim();
             Assert.True(errorOut.StartsWith(typeof(Process).Assembly.Location + "(1,3):", StringComparison.Ordinal), "Error output should start with file name, line and column");
@@ -437,7 +439,7 @@ WriteLine(5);
         {
             var file = Temp.CreateFile().WriteAllText("#load blah.csx" + "\r\n" + "class C {}");
 
-            _host.ExecuteFileAsync(file.Path).Wait();
+            await _host.ExecuteFileAsync(file.Path);
 
             var errorOut = (await ReadErrorOutputToEnd()).Trim();
             Assert.True(errorOut.StartsWith(file.Path + "(1,7):", StringComparison.Ordinal), "Error output should start with file name, line and column");
@@ -455,72 +457,71 @@ WriteLine(5);
             _host.ErrorOutputReceived += (_, __) => mayTerminate.Set();
 
             // TODO: _host.TryGetService()!.HookMaliciousAssemblyResolve();
-            var executeTask = _host.AddReferenceAsync("nonexistingassembly" + Guid.NewGuid());
 
             Assert.True(mayTerminate.WaitOne());
-            executeTask.Wait();
+            await _host.AddReferenceAsync("nonexistingassembly" + Guid.NewGuid());
 
-            Assert.True(Execute(@"1+1"));
+            Assert.True(await Execute(@"1+1"));
 
             var output = await ReadOutputToEnd();
             Assert.Equal("2\r\n", output);
         }
 
         [Fact]
-        public void AddReference_Path()
+        public async Task AddReference_Path()
         {
-            Assert.False(Execute("new System.Data.DataSet()"));
-            Assert.True(LoadReference(Assembly.Load(new AssemblyName("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")).Location));
-            Assert.True(Execute("new System.Data.DataSet()"));
+            Assert.False(await Execute("new System.Data.DataSet()"));
+            Assert.True(await LoadReference(Assembly.Load(new AssemblyName("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")).Location));
+            Assert.True(await Execute("new System.Data.DataSet()"));
         }
 
         [Fact]
-        public void AddReference_PartialName()
+        public async Task AddReference_PartialName()
         {
-            Assert.False(Execute("new System.Data.DataSet()"));
-            Assert.True(LoadReference("System.Data"));
-            Assert.True(Execute("new System.Data.DataSet()"));
+            Assert.False(await Execute("new System.Data.DataSet()"));
+            Assert.True(await LoadReference("System.Data"));
+            Assert.True(await Execute("new System.Data.DataSet()"));
         }
 
         [Fact]
         public async Task AddReference_PartialName_LatestVersion()
         {
             // there might be two versions of System.Data - v2 and v4, we should get the latter:
-            Assert.True(LoadReference("System.Data"));
-            Assert.True(LoadReference("System"));
-            Assert.True(LoadReference("System.Xml"));
-            Execute(@"new System.Data.DataSet().GetType().Assembly.GetName().Version");
+            Assert.True(await LoadReference("System.Data"));
+            Assert.True(await LoadReference("System"));
+            Assert.True(await LoadReference("System.Xml"));
+            await Execute(@"new System.Data.DataSet().GetType().Assembly.GetName().Version");
             var output = await ReadOutputToEnd();
             Assert.Equal("[4.0.0.0]\r\n", output);
         }
 
         [Fact]
-        public void AddReference_FullName()
+        public async Task AddReference_FullName()
         {
-            Assert.False(Execute("new System.Data.DataSet()"));
-            Assert.True(LoadReference("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
-            Assert.True(Execute("new System.Data.DataSet()"));
+            Assert.False(await Execute("new System.Data.DataSet()"));
+            Assert.True(await LoadReference("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
+            Assert.True(await Execute("new System.Data.DataSet()"));
         }
 
         [ConditionalFact(typeof(Framework35Installed), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/5167")]
         public async Task AddReference_VersionUnification1()
         {
             // V3.5 unifies with the current Framework version:
-            var result = LoadReference("System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+            var result = await LoadReference("System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
             var output = await ReadOutputToEnd();
             var error = await ReadOutputToEnd();
             Assert.Equal("", error.Trim());
             Assert.Equal("", output.Trim());
             Assert.True(result);
 
-            result = LoadReference("System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+            result = await LoadReference("System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
             output = await ReadOutputToEnd();
             error = await ReadOutputToEnd();
             Assert.Equal("", error.Trim());
             Assert.Equal("", output.Trim());
             Assert.True(result);
 
-            result = LoadReference("System.Core");
+            result = await LoadReference("System.Core");
             output = await ReadOutputToEnd();
             error = await ReadOutputToEnd();
             Assert.Equal("", error.Trim());
@@ -531,14 +532,14 @@ WriteLine(5);
         [Fact]
         public async Task AddReference_AssemblyAlreadyLoaded()
         {
-            var result = LoadReference("System.Core");
+            var result = await LoadReference("System.Core");
             var output = await ReadOutputToEnd();
             var error = await ReadOutputToEnd();
             Assert.Equal("", error.Trim());
             Assert.Equal("", output.Trim());
             Assert.True(result);
 
-            result = LoadReference("System.Core.dll");
+            result = await LoadReference("System.Core.dll");
             output = await ReadOutputToEnd();
             error = await ReadOutputToEnd();
             Assert.Equal("", error.Trim());
@@ -557,15 +558,15 @@ WriteLine(5);
 
             // load C.dll: 
             var output = await ReadOutputToEnd();
-            Assert.True(LoadReference(c.Path));
-            Assert.True(Execute("new C()"));
+            Assert.True(await LoadReference(c.Path));
+            Assert.True(await Execute("new C()"));
             Assert.Equal("C { }", output.Trim());
 
             // rewrite C.dll:
             File.WriteAllBytes(c.Path, new byte[] { 1, 2, 3 });
 
             // we can still run code:
-            var result = Execute("new C()");
+            var result = await Execute("new C()");
             output = await ReadOutputToEnd();
             var error = await ReadOutputToEnd();
             Assert.Equal("", error.Trim());
@@ -625,8 +626,8 @@ WriteLine(5);
             var main = CompileLibrary(dir, "main.exe", "Main", @"public class Program { public static int Main() { return C.Main(); } }",
                 MetadataReference.CreateFromImage(dll.Image));
 
-            Assert.True(LoadReference(main.Path));
-            Assert.True(Execute("Program.Main()"));
+            Assert.True(await LoadReference(main.Path));
+            Assert.True(await Execute("Program.Main()"));
 
             var output = await ReadOutputToEnd();
             var error = await ReadOutputToEnd();
@@ -647,14 +648,14 @@ WriteLine(5);
             // [assembly:AssemblyVersion("2.0.0.0")] public class C { public static int Main() { return 2; } }");
             var file2 = dir2.CreateFile("c.dll").WriteAllBytes(TestResources.General.C2);
 
-            Assert.True(LoadReference(file1.Path));
-            Assert.True(LoadReference(file2.Path));
+            Assert.True(await LoadReference(file1.Path));
+            Assert.True(await LoadReference(file2.Path));
 
             var main = CompileLibrary(dir3, "main.exe", "Main", @"public class Program { public static int Main() { return C.Main(); } }",
                 MetadataReference.CreateFromImage(TestResources.General.C2.AsImmutableOrNull()));
 
-            Assert.True(LoadReference(main.Path));
-            Assert.True(Execute("Program.Main()"));
+            Assert.True(await LoadReference(main.Path));
+            Assert.True(await Execute("Program.Main()"));
 
             var output = await ReadOutputToEnd();
             var error = await ReadOutputToEnd();
@@ -671,9 +672,9 @@ WriteLine(5);
             var lib2 = CompileLibrary(dir, "lib2.dll", "lib2", @"public class C : I { public int M() { return 1; } }",
                 MetadataReference.CreateFromFile(lib1.Path));
 
-            Execute("#r \"" + lib1.Path + "\"");
-            Execute("#r \"" + lib2.Path + "\"");
-            Execute("new C().M()");
+            await Execute("#r \"" + lib1.Path + "\"");
+            await Execute("#r \"" + lib2.Path + "\"");
+            await Execute("new C().M()");
 
             var output = await ReadOutputToEnd();
             var error = await ReadOutputToEnd();
@@ -691,7 +692,7 @@ WriteLine(5);
             var file = dir.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             // use:
-            Execute($@"
+            await Execute($@"
 #r ""{file.Path}""
 C goo() => new C();
 new C().X
@@ -703,7 +704,7 @@ new C().X
             file.WriteAllBytes(c2.EmitToArray());
 
             // add the reference again:
-            Execute($@"
+            await Execute($@"
 #r ""{file.Path}""
 
 new D().Y
@@ -735,12 +736,12 @@ new D().Y
             var c2 = CreateCompilation(source2, assemblyName: "C");
             var file2 = dir2.CreateFile("c.dll").WriteAllBytes(c2.EmitToArray());
 
-            Execute($@"
+            await Execute($@"
 #r ""{file1.Path}""
 #r ""{file2.Path}""
 ");
-            Execute("new C1()");
-            Execute("new C2()");
+            await Execute("new C1()");
+            await Execute("new C2()");
 
             // TODO: We should report an error that assembly named 'c' was already loaded with different content.
             // In future we can let it load and let the compiler report the error CS1704: "An assembly with the same simple name 'C' has already been imported".
@@ -771,12 +772,12 @@ new D().Y
             var c2 = CreateCompilation(source2, assemblyName: "C");
             var file2 = dir2.CreateFile("c.dll").WriteAllBytes(c2.EmitToArray());
 
-            Execute($@"
+            await Execute($@"
 #r ""{file1.Path}""
 #r ""{file2.Path}""
 ");
-            Execute("new C1()");
-            Execute("new C2()");
+            await Execute("new C1()");
+            await Execute("new C2()");
 
             // TODO: We should report an error that assembly named 'c' was already loaded with different content.
             // In future we can let it load and improve error reporting around type conversions.
@@ -878,9 +879,9 @@ new D().Y
             var rspFile = Temp.CreateFile();
             rspFile.WriteAllText("/lib:" + directory.Path);
 
-            _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture));
 
-            Execute(
+            await Execute(
 $@"#r ""{assemblyName}.dll""
 typeof(C).Assembly.GetName()");
 
@@ -911,27 +912,27 @@ typeof(C).Assembly.GetName()");
 /u:System.Text
 /u:System.Threading.Tasks
 ");
-            _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture));
 
-            Execute(@"
+            await Execute(@"
 dynamic d = new ExpandoObject();
 ");
-            Execute(@"
+            await Execute(@"
 Process p = new Process();
 ");
-            Execute(@"
+            await Execute(@"
 Expression<Func<int>> e = () => 1;
 ");
-            Execute(@"
+            await Execute(@"
 var squares = from x in new[] { 1, 2, 3 } select x * x;
 ");
-            Execute(@"
+            await Execute(@"
 var sb = new StringBuilder();
 ");
-            Execute(@"
+            await Execute(@"
 var list = new List<int>();
 ");
-            Execute(@"
+            await Execute(@"
 var stream = new MemoryStream();
 await Task.Delay(10);
 p = new Process();
@@ -962,9 +963,9 @@ OK
 {initFile.Path}
 ");
 
-            _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture));
 
-            Execute("new Process()");
+            await Execute("new Process()");
 
             var error = await ReadOutputToEnd();
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
@@ -990,7 +991,7 @@ a
 b
 c
 ");
-            _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture));
 
             var error = await ReadOutputToEnd();
             Assert.Equal("", error);
@@ -1007,7 +1008,7 @@ $@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFile
         [Fact]
         public async Task ReferenceDirectives()
         {
-            Execute(@"
+            await Execute(@"
 #r ""System.Numerics""
 #r """ + typeof(System.Linq.Expressions.Expression).Assembly.Location + @"""
 
@@ -1026,7 +1027,7 @@ WriteLine(new Complex(2, 6).Real);
         public async Task Script_NoHostNamespaces()
         {
             var error = await ReadOutputToEnd();
-            Execute("nameof(Microsoft.Missing)");
+            await Execute("nameof(Microsoft.Missing)");
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
 (1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }",
     error);
@@ -1038,7 +1039,7 @@ WriteLine(new Complex(2, 6).Real);
         [Fact]
         public async Task ExecutesOnStaThread()
         {
-            Execute(@"
+            await Execute(@"
 #r ""System""
 #r ""System.Xaml""
 #r ""WindowsBase""
@@ -1062,11 +1063,11 @@ System.Console.WriteLine(""OK"");
         [Fact]
         public async Task ExecuteSequentially()
         {
-            Execute(@"using System;
+            await Execute(@"using System;
 using System.Threading.Tasks;");
-            Execute(@"await Task.Delay(1000).ContinueWith(t => 1)");
-            Execute(@"await Task.Delay(500).ContinueWith(t => 2)");
-            Execute(@"3");
+            await Execute(@"await Task.Delay(1000).ContinueWith(t => 1)");
+            await Execute(@"await Task.Delay(500).ContinueWith(t => 2)");
+            await Execute(@"3");
             var output = await ReadOutputToEnd();
             Assert.Equal("1\r\n2\r\n3\r\n", output);
         }
@@ -1079,7 +1080,7 @@ using System.Threading.Tasks;");
             dir.CreateFile("mod2.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod2);
             dir.CreateFile("mod3.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod3);
 
-            Execute(@"
+            await Execute(@"
 #r """ + dll.Path + @"""
 
 new object[] { new Class1(), new Class2(), new Class3() }
@@ -1103,33 +1104,33 @@ new object[] { new Class1(), new Class2(), new Class3() }
             string normalizeSeparatorsAndFrameworkFolders(string s) => s.Replace("\\", "\\\\").Replace("Framework64", "Framework");
 
             // print default:
-            _host.ExecuteAsync(@"ReferencePaths").Wait();
+            await _host.ExecuteAsync(@"ReferencePaths");
             var output = await ReadOutputToEnd();
             Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { s_fxDir })) + "\" }\r\n", output);
 
-            _host.ExecuteAsync(@"SourcePaths").Wait();
+            await _host.ExecuteAsync(@"SourcePaths");
             output = await ReadOutputToEnd();
             Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { s_homeDir })) + "\" }\r\n", output);
 
             // add and test if added:
-            _host.ExecuteAsync("SourcePaths.Add(@\"" + srcDir + "\");").Wait();
+            await _host.ExecuteAsync("SourcePaths.Add(@\"" + srcDir + "\");");
 
-            _host.ExecuteAsync(@"SourcePaths").Wait();
+            await _host.ExecuteAsync(@"SourcePaths");
 
             output = await ReadOutputToEnd();
             Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { s_homeDir, srcDir.Path })) + "\" }\r\n", output);
 
             // execute file (uses modified search paths), the file adds a reference path
-            _host.ExecuteFileAsync("goo.csx").Wait();
+            await _host.ExecuteFileAsync("goo.csx");
 
-            _host.ExecuteAsync(@"ReferencePaths").Wait();
+            await _host.ExecuteAsync(@"ReferencePaths");
 
             output = await ReadOutputToEnd();
             Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", new[] { s_fxDir, dllDir })) + "\" }\r\n", output);
 
-            _host.AddReferenceAsync(Path.GetFileName(dll.Path)).Wait();
+            await _host.AddReferenceAsync(Path.GetFileName(dll.Path));
 
-            _host.ExecuteAsync(@"typeof(Metadata.ICSProp)").Wait();
+            await _host.ExecuteAsync(@"typeof(Metadata.ICSProp)");
 
             var error = await ReadOutputToEnd();
             Assert.Equal("", error);
@@ -1156,9 +1157,9 @@ new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var libFile = Temp.CreateFile("lib").WriteAllBytes(lib.EmitToArray());
 
-            Execute($@"#r ""{libFile.Path}""");
-            Execute("C c;");
-            Execute("c = new C()");
+            await Execute($@"#r ""{libFile.Path}""");
+            await Execute("C c;");
+            await Execute("c = new C()");
 
             var error = await ReadOutputToEnd();
             Assert.Equal("", error);
@@ -1170,7 +1171,7 @@ new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         [Fact, WorkItem(7280, "https://github.com/dotnet/roslyn/issues/7280")]
         public async Task AsyncContinueOnDifferentThread()
         {
-            Execute(@"
+            await Execute(@"
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1187,7 +1188,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
         [Fact]
         public async Task Exception()
         {
-            Execute(@"throw new System.Exception();");
+            await Execute(@"throw new System.Exception();");
 
             var output = await ReadOutputToEnd();
             var error = await ReadOutputToEnd();
@@ -1200,9 +1201,9 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
         [Fact, WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException()
         {
-            Execute(@"int i = 100;");
-            Execute(@"int j = 20; throw new System.Exception(""Bang!""); int k = 3;");
-            Execute(@"i + j + k");
+            await Execute(@"int i = 100;");
+            await Execute(@"int j = 20; throw new System.Exception(""Bang!""); int k = 3;");
+            await Execute(@"i + j + k");
 
             var output = await ReadOutputToEnd();
             var error = await ReadOutputToEnd();
@@ -1232,7 +1233,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
         [Fact]
         public async Task SubmissionResult_PrintingNull()
         {
-            Execute(@"
+            await Execute(@"
 string s; 
 s
 ");
@@ -1245,12 +1246,12 @@ s
         [Fact]
         public async Task SubmissionResult_PrintingVoid()
         {
-            Execute(@"System.Console.WriteLine(2)");
+            await Execute(@"System.Console.WriteLine(2)");
 
             var output = await ReadOutputToEnd();
             Assert.Equal("2\r\n", output);
 
-            Execute(@"
+            await Execute(@"
 void goo() { } 
 goo()
 ");

@@ -142,11 +142,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 var clientStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-                var jsonRpc = JsonRpc.Attach(clientStream);
+                JsonRpc jsonRpc; // = JsonRpc.Attach(clientStream);
 
                 try
                 {
                     await clientStream.ConnectAsync(cancellationToken).ConfigureAwait(false);
+                    jsonRpc = JsonRpc.Attach(clientStream);
                     await jsonRpc.InvokeWithCancellationAsync<Task>("InitializeAsync",
                         new object[] { _replServiceProviderType.AssemblyQualifiedName, culture.Name },
                         cancellationToken).ConfigureAwait(false);
