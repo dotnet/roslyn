@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
-using System.IO;
 
 #nullable enable
 namespace Microsoft.CodeAnalysis

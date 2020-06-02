@@ -37,21 +37,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
     {
         private readonly Action<InitializationContext> _onInit;
         private readonly Action<SourceGeneratorContext> _onExecute;
-        private readonly string _sourceOpt;
+        private readonly string? _source;
 
-        public CallbackGenerator(Action<InitializationContext> onInit, Action<SourceGeneratorContext> onExecute, string sourceOpt = "")
+        public CallbackGenerator(Action<InitializationContext> onInit, Action<SourceGeneratorContext> onExecute, string? source = "")
         {
             _onInit = onInit;
             _onExecute = onExecute;
-            _sourceOpt = sourceOpt;
+            _source = source;
         }
 
         public void Execute(SourceGeneratorContext context)
         {
             _onExecute(context);
-            if (!string.IsNullOrWhiteSpace(_sourceOpt))
+            if (!string.IsNullOrWhiteSpace(_source))
             {
-                context.AdditionalSources.Add("source.cs", SourceText.From(_sourceOpt, Encoding.UTF8));
+                context.AdditionalSources.Add("source.cs", SourceText.From(_source, Encoding.UTF8));
             }
         }
         public void Initialize(InitializationContext context) => _onInit(context);
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         public InMemoryAdditionalText(string path, string content)
         {
             Path = path;
-            _content = SourceText.From(content);
+            _content = SourceText.From(content, Encoding.UTF8);
         }
 
         public override string Path { get; }

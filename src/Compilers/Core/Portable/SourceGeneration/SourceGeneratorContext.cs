@@ -60,8 +60,18 @@ namespace Microsoft.CodeAnalysis
 
         internal AdditionalSourcesCollection AdditionalSources { get; }
 
+        /// <summary>
+        /// Adds a <see cref="SourceText"/> to the compilation
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text</param>
+        /// <param name="sourceText">The text to add</param>
         public void AddSource(string hintName, SourceText sourceText)
         {
+            if (string.IsNullOrWhiteSpace(hintName))
+            {
+                throw new ArgumentNullException(nameof(hintName));
+            }
+
             if (!Path.GetExtension(hintName).Equals(".cs", StringComparison.OrdinalIgnoreCase))
             {
                 hintName = string.Concat(hintName, ".cs");
