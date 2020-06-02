@@ -927,7 +927,7 @@ namespace Microsoft.Cci
                         ? 0b10
                         : 0b0);
 
-                    kindAndEmbedInteropTypes += portableReference.Properties.Kind switch
+                    kindAndEmbedInteropTypes |= portableReference.Properties.Kind switch
                     {
                         MetadataImageKind.Assembly => 1,
                         MetadataImageKind.Module => 0,
