@@ -1137,5 +1137,401 @@ class C
             }
             EOF();
         }
+
+        [Theory]
+        [CombinatorialData]
+        public void Base_01(
+            [CombinatorialValues(true, false)] bool withDataKeyword,
+            [CombinatorialValues("class", "struct")] string typeKeyword,
+            [CombinatorialValues(true, false)] bool withParameters,
+            [CombinatorialValues(true, false)] bool withBaseArguments,
+            [CombinatorialValues(true, false)] bool withBody)
+        {
+            var text = (withDataKeyword ? "data " : "") + typeKeyword + " C" + (withParameters ? "(int X, int Y)" : "") + @"
+: B" + (withBaseArguments ? "(X, Y)" : "") + @"
+" + (withBody ? "{ }" : ";");
+
+            if (withBaseArguments && (!withParameters || typeKeyword != "class"))
+            {
+                UsingTree(text,
+                    // (2,4): error CS8861: Unexpected argument list.
+                    // : B(X, Y)
+                    Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(2, 4)
+                    );
+            }
+            else
+            {
+                UsingTree(text);
+            }
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(typeKeyword == "class" ? SyntaxKind.ClassDeclaration : SyntaxKind.StructDeclaration);
+                {
+                    if (withDataKeyword)
+                    {
+                        N(SyntaxKind.DataKeyword);
+                    }
+
+                    N(typeKeyword == "class" ? SyntaxKind.ClassKeyword : SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+
+                    if (withParameters)
+                    {
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+
+                            if (withBaseArguments)
+                            {
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "X");
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Y");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                        }
+                    }
+
+                    if (withBody)
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    else
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Base_02(
+            [CombinatorialValues(true, false)] bool withDataKeyword,
+            [CombinatorialValues("class", "struct")] string typeKeyword,
+            [CombinatorialValues(true, false)] bool withBody)
+        {
+            var text = (withDataKeyword ? "data " : "") + typeKeyword + " C(int X, int Y)" + @"
+: B, D(X, Y)" + @"
+" + (withBody ? "{ }" : ";");
+
+            UsingTree(text,
+                // (2,7): error CS1003: Syntax error, ',' expected
+                // : B, D(X, Y)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(2, 7),
+                // (2,8): error CS1003: Syntax error, ',' expected
+                // : B, D(X, Y)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "X").WithArguments(",", "").WithLocation(2, 8),
+                // (2,12): error CS1003: Syntax error, ',' expected
+                // : B, D(X, Y)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(2, 12)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(typeKeyword == "class" ? SyntaxKind.ClassDeclaration : SyntaxKind.StructDeclaration);
+                {
+                    if (withDataKeyword)
+                    {
+                        N(SyntaxKind.DataKeyword);
+                    }
+
+                    N(typeKeyword == "class" ? SyntaxKind.ClassKeyword : SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "D");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                        }
+                    }
+
+                    if (withBody)
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    else
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Base_03()
+        {
+            var text = "interface C : B;";
+            UsingTree(text,
+                // (1,16): error CS1514: { expected
+                // interface C : B;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 16),
+                // (1,16): error CS1513: } expected
+                // interface C : B;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 16)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Base_04()
+        {
+            var text = "interface C(int X, int Y) : B;";
+            UsingTree(text,
+                // (1,12): error CS1514: { expected
+                // interface C(int X, int Y) : B;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 12),
+                // (1,12): error CS1513: } expected
+                // interface C(int X, int Y) : B;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
+                // (1,25): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // interface C(int X, int Y) : B;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ")").WithLocation(1, 25),
+                // (1,27): error CS1022: Type or namespace definition, or end-of-file expected
+                // interface C(int X, int Y) : B;
+                Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 27),
+                // (1,29): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // interface C(int X, int Y) : B;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "B").WithLocation(1, 29),
+                // (1,30): error CS1022: Type or namespace definition, or end-of-file expected
+                // interface C(int X, int Y) : B;
+                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(1, 30)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.TupleType);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "B");
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Base_05()
+        {
+            var text = "interface C : B(X, Y);";
+            UsingTree(text,
+                // (1,16): error CS8861: Unexpected argument list.
+                // interface C : B(X, Y);
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(1, 16),
+                // (1,22): error CS1514: { expected
+                // interface C : B(X, Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 22),
+                // (1,22): error CS1513: } expected
+                // interface C : B(X, Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 22)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Y");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }

@@ -2026,7 +2026,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitWithExpression(BoundWithExpression node)
         {
-            // PROTOTYPE: This is wrong
+            VisitRvalue(node.Receiver);
+            VisitObjectOrCollectionInitializerExpression(node.InitializerExpression.Initializers);
             return null;
         }
 

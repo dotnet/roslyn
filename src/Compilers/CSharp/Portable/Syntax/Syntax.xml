@@ -3391,6 +3391,7 @@
     <Kind Name="SimpleBaseType"/>
     <Field Name="Type" Type="TypeSyntax" Override="true">
     </Field>
+    <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="true"/>
   </Node>
 
   <Node Name="TypeParameterConstraintClauseSyntax" Base="CSharpSyntaxNode">

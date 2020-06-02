@@ -276,7 +276,7 @@ base_type
   ;
 
 simple_base_type
-  : type
+  : type argument_list?
   ;
 
 enum_member_declaration
