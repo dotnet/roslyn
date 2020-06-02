@@ -817,7 +817,7 @@ class C
             Assert.Equal(propType.Name, found.Name);
             Assert.Equal(propType.Kind, found.Kind);
 
-            var method = found as IErrorTypeSymbol;
+            var method = (IErrorTypeSymbol)found;
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
         }
 
