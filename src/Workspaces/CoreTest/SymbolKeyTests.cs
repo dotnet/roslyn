@@ -949,7 +949,7 @@ end class";
             Assert.Equal(propType.Kind, found.Kind);
             Assert.Equal(propType.ContainingNamespace.Name, found.ContainingNamespace.Name);
 
-            var method = found as IErrorTypeSymbol;
+            var method = (IErrorTypeSymbol)found;
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
         }
 
