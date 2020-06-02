@@ -803,7 +803,7 @@ class C
                 n => n is CSharp.Syntax.PropertyDeclarationSyntax).Single();
 
             var propType = symbol.Type;
-            Assert.True(propType.Kind == SymbolKind.ErrorType);
+            Assert.Equal(SymbolKind.ErrorType, propType.Kind);
 
             // Ensure we don't crash getting these symbol keys.
             var id = SymbolKey.CreateString(propType);
@@ -817,7 +817,7 @@ class C
             Assert.Equal(propType.Name, found.Name);
             Assert.Equal(propType.Kind, found.Kind);
 
-            var method = found as IErrorTypeSymbol;
+            var method = (IErrorTypeSymbol)found;
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
         }
 
@@ -838,7 +838,7 @@ end class";
                 n => n is VisualBasic.Syntax.PropertyStatementSyntax).Single();
 
             var propType = symbol.Type;
-            Assert.True(propType.Kind == SymbolKind.ErrorType);
+            Assert.Equal(SymbolKind.ErrorType, propType.Kind);
 
             // Ensure we don't crash getting these symbol keys.
             var id = SymbolKey.CreateString(propType);
@@ -852,7 +852,7 @@ end class";
             Assert.Equal(propType.Name, found.Name);
             Assert.Equal(propType.Kind, found.Kind);
 
-            var method = found as IErrorTypeSymbol;
+            var method = (IErrorTypeSymbol)found;
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
         }
 
@@ -885,7 +885,7 @@ class X
                 n => n is CSharp.Syntax.MemberAccessExpressionSyntax).Single();
 
             var propType = symbol.Type;
-            Assert.True(propType.Kind == SymbolKind.ErrorType);
+            Assert.Equal(SymbolKind.ErrorType, propType.Kind);
             Assert.Equal("Collections", propType.ContainingNamespace.Name);
             Assert.Equal("System", propType.ContainingNamespace.ContainingNamespace.Name);
 
@@ -902,7 +902,7 @@ class X
             Assert.Equal(propType.Kind, found.Kind);
             Assert.Equal(propType.ContainingNamespace.Name, found.ContainingNamespace.Name);
 
-            var method = found as IErrorTypeSymbol;
+            var method = (IErrorTypeSymbol)found;
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
         }
 
@@ -932,7 +932,7 @@ end class";
                 n => n is VisualBasic.Syntax.MemberAccessExpressionSyntax).Single();
 
             var propType = symbol.Type;
-            Assert.True(propType.Kind == SymbolKind.ErrorType);
+            Assert.Equal(SymbolKind.ErrorType, propType.Kind);
             Assert.Equal("Collections", propType.ContainingNamespace.Name);
             Assert.Equal("System", propType.ContainingNamespace.ContainingNamespace.Name);
 
@@ -949,7 +949,7 @@ end class";
             Assert.Equal(propType.Kind, found.Kind);
             Assert.Equal(propType.ContainingNamespace.Name, found.ContainingNamespace.Name);
 
-            var method = found as IErrorTypeSymbol;
+            var method = (IErrorTypeSymbol)found;
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(propType, found));
         }
 
