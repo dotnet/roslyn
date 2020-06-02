@@ -847,11 +847,12 @@ namespace Microsoft.Cci
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
             WriteValue("compilerversion", compilerVersion);
 
-            if (_codePage != null)
+            if (_fallbackSourceEncoding != null)
             {
-                WriteValue("codepage", _codePage.CodePage.ToString());
+                WriteValue("fallbackencoding", _fallbackSourceEncoding.CodePage.ToString());
             }
-            else if (_defaultSourceEncoding != null)
+
+            if (_defaultSourceEncoding != null)
             {
                 WriteValue("defaultencoding", _defaultSourceEncoding.CodePage.ToString());
             }

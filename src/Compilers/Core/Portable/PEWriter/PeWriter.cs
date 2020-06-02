@@ -52,7 +52,7 @@ namespace Microsoft.Cci
             Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
             var mdWriter = FullMetadataWriter.Create(context, messageProvider, metadataOnly, isDeterministic,
-                emitTestCoverageData, getPortablePdbStreamOpt != null, fallbackSourceEncoding, defaultSourceFileEncoding, cancellationToken);
+                emitTestCoverageData, getPortablePdbStreamOpt != null, defaultSourceFileEncoding, fallbackSourceEncoding, cancellationToken);
 
             var properties = context.Module.SerializationProperties;
 
