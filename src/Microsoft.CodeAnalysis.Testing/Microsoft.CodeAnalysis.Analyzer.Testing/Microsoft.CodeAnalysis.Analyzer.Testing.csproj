@@ -56,6 +56,6 @@
     <PackageReference Include="NuGet.Packaging" Version="$(NuGetApiVersion)" PrivateAssets="compile" />
 
     <!-- Use PrivateAssets=compile to avoid exposing our DiffPlex dependency downstream as public API. -->
-    <PackageReference Include="DiffPlex" Version="1.4.4" PrivateAssets="compile" />
+    <PackageReference Include="DiffPlex" Version="$(DiffPlexVersion)" PrivateAssets="compile" />
   </ItemGroup>
 </Project>

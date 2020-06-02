@@ -47,7 +47,9 @@ namespace Roslyn.SyntaxVisualizer.Extension
             {
 
                 // Only enable this feature if the Visual Studio package for DGML is installed.
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                 shellService.IsPackageInstalled(GuidList.GuidProgressionPkg, out var canDisplayDirectedSyntaxGraph);
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
                 if (Convert.ToBoolean(canDisplayDirectedSyntaxGraph))
                 {
                     syntaxVisualizer.SyntaxNodeDirectedGraphRequested += DisplaySyntaxNodeDgml;
@@ -124,8 +126,10 @@ namespace Roslyn.SyntaxVisualizer.Extension
             {
                 if (globalServiceProvider == null)
                 {
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                     globalServiceProvider = (Microsoft.VisualStudio.OLE.Interop.IServiceProvider)Package.GetGlobalService(
                         typeof(Microsoft.VisualStudio.OLE.Interop.IServiceProvider));
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
                 }
 
                 return globalServiceProvider;
@@ -153,7 +157,9 @@ namespace Roslyn.SyntaxVisualizer.Extension
             var ptr = IntPtr.Zero;
             object service = null;
 
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
             if (serviceProvider.QueryService(ref guidService, ref guidInterface, out ptr) == 0 &&
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
                 ptr != IntPtr.Zero)
             {
                 try
@@ -219,7 +225,9 @@ namespace Roslyn.SyntaxVisualizer.Extension
         {
             if (RunningDocumentTable != null)
             {
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                 RunningDocumentTable.AdviseRunningDocTableEvents(this, out runningDocumentTableCookie);
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
             }
         }
 
@@ -227,7 +235,9 @@ namespace Roslyn.SyntaxVisualizer.Extension
         {
             if (runningDocumentTableCookie != 0)
             {
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                 runningDocumentTable.UnadviseRunningDocTableEvents(runningDocumentTableCookie);
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
                 runningDocumentTableCookie = 0;
             }
         }
@@ -252,8 +262,8 @@ namespace Roslyn.SyntaxVisualizer.Extension
                     if (document != null)
                     {
                         // Get the SyntaxTree and SemanticModel corresponding to the Document.
-                        activeSyntaxTree = document.GetSyntaxTreeAsync().Result;
-                        var activeSemanticModel = document.GetSemanticModelAsync().Result;
+                        activeSyntaxTree = ThreadHelper.JoinableTaskFactory.Run(() => document.GetSyntaxTreeAsync());
+                        var activeSemanticModel = ThreadHelper.JoinableTaskFactory.Run(() => document.GetSemanticModelAsync());
 
                         // Display the SyntaxTree.
                         if (contentType.IsOfType(VisualBasicContentType) || contentType.IsOfType(CSharpContentType))
@@ -449,10 +459,14 @@ namespace Roslyn.SyntaxVisualizer.Extension
             // contents of the file on disk with the new directed syntax graph and load 
             // this new graph into the already open view of the file.
             if (VsShellUtilities.IsDocumentOpen(
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                 ServiceProvider.GlobalProvider, dgmlFilePath, GuidList.GuidVsDesignerViewKind,
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
                 out var docUIHierarchy, out var docItemId, out var docWindowFrame) && docWindowFrame != null)
             {
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                 if (RunningDocumentTable.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, dgmlFilePath,
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
                                                              out var docHierarchy, out docItemId,
                                                              out var docDataIUnknownPointer,
                                                              out cookie) == VSConstants.S_OK)
@@ -465,24 +479,32 @@ namespace Roslyn.SyntaxVisualizer.Extension
                         try
                         {
                             var persistDocDataService =
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                                 (IVsPersistDocData)Marshal.GetObjectForIUnknown(persistDocDataServicePointer);
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
 
                             if (persistDocDataService != null)
                             {
                                 // The below call ensures that there are no pop-ups from Visual Studio
                                 // prompting the user to reload the file each time it is changed.
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                                 FileChangeService.IgnoreFile(0, dgmlFilePath, TRUE);
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
 
                                 // Update the file on disk with the new directed syntax graph.
                                 dgml.Save(dgmlFilePath);
 
                                 // The below calls ensure that the file is refreshed inside Visual Studio
                                 // so that the latest contents are displayed to the user.
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                                 FileChangeService.SyncFile(dgmlFilePath);
                                 persistDocDataService.ReloadDocData((uint)_VSRELOADDOCDATA.RDD_IgnoreNextFileChange);
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
 
                                 // Make sure the directed syntax graph window is visible but don't give it focus.
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                                 docWindowFrame.ShowNoActivate();
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
                             }
                         }
                         finally
@@ -499,13 +521,17 @@ namespace Roslyn.SyntaxVisualizer.Extension
 
                 // Open the new directed syntax graph in the 'design' view.
                 VsShellUtilities.OpenDocument(
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                     ServiceProvider.GlobalProvider, dgmlFilePath, GuidList.GuidVsDesignerViewKind,
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
                     out docUIHierarchy, out docItemId, out docWindowFrame);
 
                 // Register event handler to ensure that directed syntax graph file is deleted when the solution is closed.
                 // This ensures that the file won't be persisted in the .suo file and that it therefore won't get re-opened
                 // when the solution is re-opened.
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                 SolutionService.AdviseSolutionEvents(this, out cookie);
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
             }
         }
 

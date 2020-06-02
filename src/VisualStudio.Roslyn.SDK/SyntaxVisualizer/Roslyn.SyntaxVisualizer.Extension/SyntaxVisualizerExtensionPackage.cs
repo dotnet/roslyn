@@ -55,8 +55,10 @@ namespace Roslyn.SyntaxVisualizer.Extension
                 throw new NotSupportedException(Resources.CanNotCreateWindow);
             }
 
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
             var windowFrame = (IVsWindowFrame)window.Frame;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
         }
 
         // Overridden Package Implementation.
@@ -73,7 +75,9 @@ namespace Roslyn.SyntaxVisualizer.Extension
             base.Initialize();
 
             // Add our command handlers for menu (commands must exist in the .vsct file).
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
             if (GetService(typeof(IMenuCommandService)) is OleMenuCommandService mcs)
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
             {
                 // Create the command for the tool window.
                 var toolwndCommandID = new CommandID(GuidList.GuidSyntaxVisualizerExtensionCmdSet, (int)PkgCmdIDList.CmdIDRoslynSyntaxVisualizer);

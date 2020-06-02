@@ -13,7 +13,9 @@ public class RoslynSDKAnalyzerTemplateWizard : RoslynSDKChildTemplateWizard
         // included in the VSIX. The only way to solve this is to have th wizard mark the
         // assemblies as copy local false.
         Project = project;
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
         if (project.Object is VSProject vsProject)
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
         {
             if (vsProject.References != null)
             {
