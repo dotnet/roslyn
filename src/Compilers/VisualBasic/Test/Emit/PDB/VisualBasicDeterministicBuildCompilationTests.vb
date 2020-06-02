@@ -238,6 +238,8 @@ End Class", fileName:="three.vb", options:=compilationOptions.ParseOptions, enco
 
         Yield parseOptions
         Yield parseOptions.WithLanguageVersion(LanguageVersion.VisualBasic15_3)
-        Yield parseOptions.WithPreprocessorSymbols({New KeyValuePair(Of String, Object)("TestPre", True), New KeyValuePair(Of String, Object)("TestPreTwo", True)})
+        ' https://github.com/dotnet/roslyn/issues/44802 tracks
+        ' enabling preprocessor symbol validation for VB
+        ' Yield parseOptions.WithPreprocessorSymbols({New KeyValuePair(Of String, Object)("TestPre", True), New KeyValuePair(Of String, Object)("TestPreTwo", True)})
     End Function
 End Class
