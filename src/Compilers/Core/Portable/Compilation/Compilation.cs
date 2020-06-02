@@ -2479,6 +2479,15 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken)
         {
             options = options ?? EmitOptions.Default.WithIncludePrivateMembers(metadataPEStream == null);
+
+            if (options.DefaultSourceFileEncoding is null)
+            {
+                // If there's no source encoding default already provided, pull it out from the 
+                // first source that was compiled. This encoding depends on the fallback logic for parsing
+                // text and needs to be stored if available. SourceText parsed
+                options = options.WithDefaultSourceFileEncoding(SyntaxTrees.FirstOrDefault()?.Encoding);
+            }
+
             bool embedPdb = options.DebugInformationFormat == DebugInformationFormat.Embedded;
             Debug.Assert(!embedPdb || pdbStream == null);
             Debug.Assert(metadataPEStream == null || !options.IncludePrivateMembers); // you may not use a secondary stream and include private members together
@@ -2561,7 +2570,8 @@ namespace Microsoft.CodeAnalysis
                         emitTestCoverageData: options.EmitTestCoverageData,
                         pePdbFilePath: options.PdbFilePath,
                         privateKeyOpt: privateKeyOpt,
-                        codePage: options.DefaultSourceFileEncoding,
+                        defaultSourceEncoding: options.DefaultSourceFileEncoding,
+                        fallbackSourceEncoding: SyntaxTrees.FirstOrDefault()?.Encoding,
                         cancellationToken: cancellationToken);
                 }
             }
@@ -2726,7 +2736,8 @@ namespace Microsoft.CodeAnalysis
             bool emitTestCoverageData,
             string? pePdbFilePath,
             RSAParameters? privateKeyOpt,
-            Encoding? codePage,
+            Encoding? defaultSourceEncoding,
+            Encoding? fallbackSourceEncoding,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -2799,7 +2810,8 @@ namespace Microsoft.CodeAnalysis
                         deterministic,
                         emitTestCoverageData,
                         privateKeyOpt,
-                        codePage,
+                        defaultSourceEncoding,
+                        fallbackSourceEncoding,
                         cancellationToken))
                     {
                         if (nativePdbWriter != null)
@@ -2881,7 +2893,8 @@ namespace Microsoft.CodeAnalysis
             bool isDeterministic,
             bool emitTestCoverageData,
             RSAParameters? privateKeyOpt,
-            Encoding? codePage,
+            Encoding? defaultSourceEncoding,
+            Encoding? fallbackSourceEncoding,
             CancellationToken cancellationToken)
         {
             bool emitSecondaryAssembly = getMetadataPeStreamOpt != null;
@@ -2899,7 +2912,8 @@ namespace Microsoft.CodeAnalysis
                 deterministicPrimaryOutput,
                 emitTestCoverageData,
                 privateKeyOpt,
-                codePage,
+                defaultSourceEncoding,
+                fallbackSourceEncoding,
                 cancellationToken))
             {
                 return false;
@@ -2922,7 +2936,8 @@ namespace Microsoft.CodeAnalysis
                     isDeterministic: true,
                     emitTestCoverageData: false,
                     privateKeyOpt: privateKeyOpt,
-                    codePage,
+                    defaultSourceEncoding,
+                    fallbackSourceEncoding,
                     cancellationToken: cancellationToken))
                 {
                     return false;

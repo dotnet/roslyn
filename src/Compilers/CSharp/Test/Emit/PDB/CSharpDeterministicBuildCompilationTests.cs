@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             compilerVersion ??= DeterministicBuildCompilationTestHelpers.GetCurrentCompilerVersion();
 
 
+            DeterministicBuildCompilationTestHelpers.AssertEncoding(emitOptions, compilation, pdbOptions);
+
             Assert.Equal(DeterministicBuildCompilationTestHelpers.GetPortabilityPolicy(originalOptions), pdbOptions["portability-policy"]);
 
             // See CSharpCompilation.SerializeForPdb to see options that are included
@@ -42,15 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
             var isOptimized = originalOptions.OptimizationLevel == OptimizationLevel.Release ? true : false;
             Assert.Equal(isOptimized.ToString(), pdbOptions["optimize"]);
-
-            if (emitOptions.DefaultSourceFileEncoding is null)
-            {
-                Assert.False(pdbOptions.ContainsKey("codepage"));
-            }
-            else
-            {
-                Assert.Equal(emitOptions.DefaultSourceFileEncoding.ToString(), pdbOptions["codepage"]);
-            }
 
             var firstSyntaxTree = compilation.SyntaxTrees.FirstOrDefault() as CSharpSyntaxTree;
             if (firstSyntaxTree is null || firstSyntaxTree.Options.PreprocessorSymbols.IsEmpty)

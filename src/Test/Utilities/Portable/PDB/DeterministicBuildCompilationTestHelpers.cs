@@ -25,7 +25,7 @@ namespace Roslyn.Test.Utilities.PDB
             var emitOptions = new EmitOptions(
                 debugInformationFormat: DebugInformationFormat.Embedded,
                 pdbChecksumAlgorithm: HashAlgorithmName.SHA256,
-                codePage: Encoding.UTF32);
+                defaultSourceFileEncoding: Encoding.UTF32);
 
             yield return emitOptions;
             yield return emitOptions.WithDefaultSourceFileEncoding(null);
@@ -35,6 +35,18 @@ namespace Roslyn.Test.Utilities.PDB
         public static string GetCurrentCompilerVersion()
         {
             return typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        }
+
+        internal static void AssertEncoding(EmitOptions emitOptions, Compilation compilation, ImmutableDictionary<string, string> pdbOptions)
+        {
+            if (emitOptions.DefaultSourceFileEncoding is null)
+            {
+                Assert.Equal(compilation.SyntaxTrees.First().Encoding.CodePage.ToString(), pdbOptions["fallbackencoding"]);
+            }
+            else
+            {
+                Assert.Equal(emitOptions.DefaultSourceFileEncoding.CodePage.ToString(), pdbOptions["defaultencoding"]);
+            }
         }
 
         public static string GetPortabilityPolicy(CompilationOptions options)

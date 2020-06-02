@@ -849,7 +849,11 @@ namespace Microsoft.Cci
 
             if (_codePage != null)
             {
-                WriteValue("codepage", _codePage.ToString());
+                WriteValue("codepage", _codePage.CodePage.ToString());
+            }
+            else if (_defaultSourceEncoding != null)
+            {
+                WriteValue("defaultencoding", _defaultSourceEncoding.CodePage.ToString());
             }
 
             int portabilityPolicy = 0;

@@ -106,7 +106,8 @@ namespace Microsoft.CodeAnalysis.Emit
         public string? RuntimeMetadataVersion { get; private set; }
 
         /// <summary>
-        /// The CodePage used to parse source before producing a compilation.
+        /// The default source encoding used to parse source before producing a compilation. Only embedded in
+        /// the pdb if 
         /// </summary>
         public Encoding? DefaultSourceFileEncoding { get; private set; }
 
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Emit
             bool includePrivateMembers = true,
             ImmutableArray<InstrumentationKind> instrumentationKinds = default,
             HashAlgorithmName? pdbChecksumAlgorithm = null,
-            Encoding? codePage = null)
+            Encoding? defaultSourceFileEncoding = null)
         {
             EmitMetadataOnly = metadataOnly;
             DebugInformationFormat = (debugInformationFormat == 0) ? DebugInformationFormat.Pdb : debugInformationFormat;
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IncludePrivateMembers = includePrivateMembers;
             InstrumentationKinds = instrumentationKinds.NullToEmpty();
             PdbChecksumAlgorithm = pdbChecksumAlgorithm ?? HashAlgorithmName.SHA256;
-            DefaultSourceFileEncoding = codePage;
+            DefaultSourceFileEncoding = defaultSourceFileEncoding;
         }
 
         private EmitOptions(EmitOptions other) : this(

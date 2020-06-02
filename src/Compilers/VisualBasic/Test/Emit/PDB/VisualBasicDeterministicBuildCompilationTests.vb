@@ -18,18 +18,16 @@ Public Class VisualBasicDeterministicBuildCompilationTests
     Inherits BasicTestBase
     Implements IEnumerable(Of Object())
 
-    Private Sub VerifyCompilationOptions(originalOptions As VisualBasicCompilationOptions, compilationOptionsBlobReader As BlobReader, Optional compilerVersion As String = Nothing)
+    Private Sub VerifyCompilationOptions(originalOptions As VisualBasicCompilationOptions, compilationOptionsBlobReader As BlobReader, emitOptions As EmitOptions, compilation As VisualBasicCompilation)
         Dim pdbOptions = DeterministicBuildCompilationTestHelpers.ParseCompilationOptions(compilationOptionsBlobReader)
 
-        If (compilerVersion = Nothing) Then
-            compilerVersion = DeterministicBuildCompilationTestHelpers.GetCurrentCompilerVersion()
-        End If
+        DeterministicBuildCompilationTestHelpers.AssertEncoding(emitOptions, compilation, pdbOptions)
 
         Assert.Equal(DeterministicBuildCompilationTestHelpers.GetPortabilityPolicy(originalOptions), pdbOptions("portability-policy"))
 
 
         ' See VisualBasicCompilation.SerializeForPdb for options that are added
-        Assert.Equal(compilerVersion.ToString(), pdbOptions("compilerversion"))
+        Assert.Equal(DeterministicBuildCompilationTestHelpers.GetCurrentCompilerVersion(), pdbOptions("compilerversion"))
         Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions("checked"))
         Assert.Equal(originalOptions.OptionStrict.ToString(), pdbOptions("optionstrict"))
 
@@ -74,7 +72,7 @@ Public Class VisualBasicDeterministicBuildCompilationTests
                 Dim metadataReferenceReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.MetadataReferenceInfo, pdbReader)
                 Dim compilationOptionsReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader)
 
-                VerifyCompilationOptions(compilationOptions, compilationOptionsReader)
+                VerifyCompilationOptions(compilationOptions, compilationOptionsReader, emitOptions, originalCompilation)
                 DeterministicBuildCompilationTestHelpers.VerifyReferenceInfo(metadataReferences, metadataReferenceReader)
             End Using
         End Using
