@@ -5170,5 +5170,41 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineIntoWithExpression()
+        {
+            await TestInRegularAndScriptAsync(@"
+data class Person(string Name)
+{
+    void M(Person p)
+    {
+        string [||]x = """";
+        _ = p with { Name = x };
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}",
+@"
+data class Person(string Name)
+{
+    void M(Person p)
+    {
+        _ = p with { Name = """" };
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
     }
 }
