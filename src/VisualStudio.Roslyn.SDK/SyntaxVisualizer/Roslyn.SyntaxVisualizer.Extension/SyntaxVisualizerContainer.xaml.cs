@@ -262,8 +262,8 @@ namespace Roslyn.SyntaxVisualizer.Extension
                     if (document != null)
                     {
                         // Get the SyntaxTree and SemanticModel corresponding to the Document.
-                        activeSyntaxTree = document.GetSyntaxTreeAsync().Result;
-                        var activeSemanticModel = document.GetSemanticModelAsync().Result;
+                        activeSyntaxTree = ThreadHelper.JoinableTaskFactory.Run(() => document.GetSyntaxTreeAsync());
+                        var activeSemanticModel = ThreadHelper.JoinableTaskFactory.Run(() => document.GetSemanticModelAsync());
 
                         // Display the SyntaxTree.
                         if (contentType.IsOfType(VisualBasicContentType) || contentType.IsOfType(CSharpContentType))
