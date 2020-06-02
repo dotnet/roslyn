@@ -451,8 +451,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
 
-                // Document contains no active statements, or
-                // document has been added, is out-of-sync or a design-time-only document.
+                // Document contains no active statements, or the document is not C#/VB document,
+                // it has been added, is out-of-sync or a design-time-only document.
                 spans.Add(ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>.Empty);
             }
 
@@ -463,6 +463,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var editSession = _editSession;
             if (editSession == null)
+            {
+                return default;
+            }
+
+            if (!SupportsEditAndContinue(document.Project))
             {
                 return default;
             }

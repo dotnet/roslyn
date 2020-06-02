@@ -197,29 +197,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(DummyLanguageService)));
 
-            using (var workspace = new TestWorkspace(exportProvider: exportProviderFactory.CreateExportProvider()))
-            {
-                var solution = workspace.CurrentSolution;
-                var project = solution.AddProject("dummy_proj", "dummy_proj", DummyLanguageService.LanguageName);
-                var document = project.AddDocument("test", SourceText.From("dummy1"));
-                workspace.ChangeSolution(document.Project.Solution);
+            using var workspace = new TestWorkspace(exportProvider: exportProviderFactory.CreateExportProvider());
+            var solution = workspace.CurrentSolution;
+            var project = solution.AddProject("dummy_proj", "dummy_proj", DummyLanguageService.LanguageName);
+            var document = project.AddDocument("test", SourceText.From("dummy1"));
+            workspace.ChangeSolution(document.Project.Solution);
 
-                var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService(workspace);
 
-                StartDebuggingSession(service);
+            StartDebuggingSession(service);
 
-                // no changes:
-                var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
-                var diagnostics = await service.GetDocumentDiagnosticsAsync(document1, CancellationToken.None).ConfigureAwait(false);
-                Assert.Empty(diagnostics);
+            // no changes:
+            var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            var diagnostics = await service.GetDocumentDiagnosticsAsync(document1, CancellationToken.None).ConfigureAwait(false);
+            Assert.Empty(diagnostics);
 
-                // change the source:
-                workspace.ChangeDocument(document1.Id, SourceText.From("dummy2"));
-                var document2 = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            // change the source:
+            workspace.ChangeDocument(document1.Id, SourceText.From("dummy2"));
+            var document2 = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
-                diagnostics = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
-                Assert.Empty(diagnostics);
-            }
+            diagnostics = await service.GetDocumentDiagnosticsAsync(document2, CancellationToken.None).ConfigureAwait(false);
+            Assert.Empty(diagnostics);
         }
 
         [Fact]
@@ -2503,6 +2501,40 @@ class C1
 
             Assert.Null(await service.GetCurrentActiveStatementPositionAsync(document2.Project.Solution, activeInstruction1, CancellationToken.None).ConfigureAwait(false));
             Assert.Null(await service.GetCurrentActiveStatementPositionAsync(document2.Project.Solution, activeInstruction2, CancellationToken.None).ConfigureAwait(false));
+        }
+
+        [Fact]
+        public async Task ActiveStatements_ForeignDocument()
+        {
+            var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(DummyLanguageService)));
+
+            using var workspace = new TestWorkspace(exportProvider: exportProviderFactory.CreateExportProvider());
+            var solution = workspace.CurrentSolution;
+            var project = solution.AddProject("dummy_proj", "dummy_proj", DummyLanguageService.LanguageName);
+            var document = project.AddDocument("test", SourceText.From("dummy1"));
+            workspace.ChangeSolution(document.Project.Solution);
+
+            var service = CreateEditAndContinueService(workspace);
+
+            var debuggingSession = StartDebuggingSession(service);
+
+            var activeStatements = ImmutableArray.Create(
+                new ActiveStatementDebugInfo(
+                    new ActiveInstructionId(default, methodToken: 0x06000001, methodVersion: 1, ilOffset: 0),
+                    documentNameOpt: document.Name,
+                    linePositionSpan: new LinePositionSpan(new LinePosition(0, 1), new LinePosition(0, 2)),
+                    threadIds: ImmutableArray.Create(default(Guid)),
+                    ActiveStatementFlags.IsNonLeafFrame));
+
+            service.StartEditSession(_ => Task.FromResult(activeStatements));
+
+            // active statements are tracked not in non-Roslyn projects:
+            var currentSpans = await service.GetDocumentActiveStatementSpansAsync(document, CancellationToken.None).ConfigureAwait(false);
+            Assert.True(currentSpans.IsDefault);
+
+            var baseSpans = await service.GetBaseActiveStatementSpansAsync(ImmutableArray.Create(document.Id), CancellationToken.None).ConfigureAwait(false);
+            Assert.Empty(baseSpans.Single());
         }
     }
 }
