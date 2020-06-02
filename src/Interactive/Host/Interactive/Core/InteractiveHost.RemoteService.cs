@@ -36,12 +36,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                 Debug.Assert(process != null);
                 Debug.Assert(jsonRpc != null);
 
-                Process = process;
-                JsonRpc = jsonRpc;
+                Process = process!;
+                JsonRpc = jsonRpc!;
 
                 _host = host;
-                _joinOutputWritingThreadsOnDisposal = _host._joinOutputWritingThreadsOnDisposal;
-                _processId = processId;
+                _joinOutputWritingThreadsOnDisposal = _host._joinOutputWritingThreadsOnDisposal;                _processId = processId;
                 _processExitHandlerStatus = ProcessExitHandlerStatus.Uninitialized;
 
                 // TODO (tomat): consider using single-thread async readers

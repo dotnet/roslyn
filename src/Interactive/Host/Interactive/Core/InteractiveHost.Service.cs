@@ -299,8 +299,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             public async Task<RemoteExecutionResult> SetPathsAsync(
                 string[] referenceSearchPaths,
                 string[] sourceSearchPaths,
-                string? baseDirectory)            {
-                Debug.Assert(referenceSearchPaths != null);
+                string? baseDirectory)
+            {                Debug.Assert(referenceSearchPaths != null);
                 Debug.Assert(sourceSearchPaths != null);
                 Debug.Assert(baseDirectory != null);
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();                lock (_lastTaskGuard)
@@ -357,16 +357,16 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Adds an assembly reference to the current session.
             /// </summary>
-            public async Task<bool> AddReferenceAsync(string? reference)
+            public async Task<bool> AddReferenceAsync(string reference)
             {
                 Debug.Assert(reference != null);
                 var completionSource = new TaskCompletionSource<bool>();
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = AddReferenceAsync(_lastTask, reference);
-					_lastTask = AddReferenceAsync(_lastTask, completionSource, reference!);                }
-                return await completionSouce.Task.ConfigureAwait(false);
-            }
+
+					_lastTask = AddReferenceAsync(_lastTask, completionSource, reference!);
+                }
+                return await completionSouce.Task.ConfigureAwait(false);            }
             private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, TaskCompletionSource<bool> completionSource, string reference)
             {
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
