@@ -224,11 +224,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     parameterType = parameterType.RemoveUnavailableTypeParameters(
                         _semanticDocument.SemanticModel.Compilation, availableTypeParameters);
 
-                    if (!TryFindMatchingField(parameterName, parameterType, parameterToExistingFieldMap, caseSensitive: true) &&
-                        !TryFindMatchingField(parameterName, parameterType, parameterToExistingFieldMap, caseSensitive: false))
-                    {
-                        parameterToNewFieldMap[parameterName.BestNameForParameter] = parameterName.NameBasedOnArgument;
-                    }
+                    FindExistingOrCreateNewMember(parameterName, parameterType, parameterToExistingFieldMap, parameterToNewFieldMap);
 
                     parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                         attributes: default,

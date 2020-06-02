@@ -566,7 +566,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private bool FindExistingOrCreateNewMember(
                 ParameterName parameterName,
                 ITypeSymbol parameterType,
-                ImmutableDictionary<string, ISymbol>.Builder parameterToFieldMap)
+                ImmutableDictionary<string, ISymbol>.Builder parameterToFieldMap,
+                ImmutableDictionary<string, string>.Builder parameterToNewFieldMap)
             {
                 // If the base types have an accessible field or property with the same name and
                 // an acceptable type, then we should just defer to that.
@@ -589,6 +590,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
+                parameterToNewFieldMap[parameterName.BestNameForParameter] = parameterName.NameBasedOnArgument;
                 return false;
             }
 
