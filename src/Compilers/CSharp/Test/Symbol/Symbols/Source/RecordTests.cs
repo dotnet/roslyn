@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -857,6 +859,126 @@ public data struct S(int x, int y)
                 //     public int Z = 0;
                 Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "Z").WithArguments("S").WithLocation(6, 16)
                 );
+        }
+
+        [Fact]
+        public void NominalRecordEquals()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+data class C
+{
+    private int X;
+    private int Y { get; set; }
+    private event Action E;
+
+    public static void Main()
+    {
+        var c = new C { X = 1, Y = 2 };
+        c.E = () => { };
+        var c2 = new C { X = 1, Y = 2 };
+        c2.E = () => { };
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c.Equals((object)c2));
+        c2.E = c.E;
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c.Equals((object)c2));
+    }
+}", expectedOutput: @"False
+False
+True
+True");
+            verifier.VerifyIL("C.Equals(object)", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""C""
+  IL_0007:  call       ""bool C.Equals(C)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("C.Equals(C)", @"
+{
+  // Code size       76 (0x4c)
+  .maxstack  3
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_004a
+  IL_0003:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0008:  ldarg.0
+  IL_0009:  ldfld      ""int C.X""
+  IL_000e:  ldarg.1
+  IL_000f:  ldfld      ""int C.X""
+  IL_0014:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0019:  brfalse.s  IL_004a
+  IL_001b:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0020:  ldarg.0
+  IL_0021:  ldfld      ""int C.<Y>k__BackingField""
+  IL_0026:  ldarg.1
+  IL_0027:  ldfld      ""int C.<Y>k__BackingField""
+  IL_002c:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0031:  brfalse.s  IL_004a
+  IL_0033:  call       ""System.Collections.Generic.EqualityComparer<System.Action> System.Collections.Generic.EqualityComparer<System.Action>.Default.get""
+  IL_0038:  ldarg.0
+  IL_0039:  ldfld      ""System.Action C.E""
+  IL_003e:  ldarg.1
+  IL_003f:  ldfld      ""System.Action C.E""
+  IL_0044:  callvirt   ""bool System.Collections.Generic.EqualityComparer<System.Action>.Equals(System.Action, System.Action)""
+  IL_0049:  ret
+  IL_004a:  ldc.i4.0
+  IL_004b:  ret
+}");
+        }
+
+        [Fact]
+        public void PositionalAndNominalSameEquals()
+        {
+            var v1 = CompileAndVerify(@"
+using System;
+data class C(int X, string Y)
+{
+    public event Action E;
+}
+");
+            var v2 = CompileAndVerify(@"
+using System;
+data class C
+{
+    public int X { get; }
+    public string Y { get; }
+    public event Action E;
+}");
+            Assert.Equal(v1.VisualizeIL("C.Equals(C)"), v2.VisualizeIL("C.Equals(C)"));
+            Assert.Equal(v1.VisualizeIL("C.Equals(object)"), v2.VisualizeIL("C.Equals(object)"));
+        }
+
+        [Fact]
+        public void NominalRecordMembers()
+        {
+            var comp = CreateCompilation(@"
+#nullable enable
+data class C
+{
+    public int X { get; init; }
+    public string Y { get; init; }
+}");
+            var members = comp.GlobalNamespace.GetTypeMember("C").GetMembers();
+            AssertEx.Equal(new[] {
+                "C! C.Clone()",
+                "System.Int32 C.<X>k__BackingField",
+                "System.Int32 C.X { get; init; }",
+                "System.Int32 C.X.get",
+                "void C.X.init",
+                "System.String! C.<Y>k__BackingField",
+                "System.String! C.Y { get; init; }",
+                "System.String! C.Y.get",
+                "void C.Y.init",
+                "System.Boolean C.Equals(C? )",
+                "System.Boolean C.Equals(System.Object? )",
+                "System.Int32 C.GetHashCode()",
+                "C.C(C! )",
+                "C.C()",
+            }, members.Select(m => m.ToTestDisplayString(includeNonNullable: true)));
         }
     }
 }

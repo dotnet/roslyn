@@ -2960,23 +2960,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterListSyntax? paramList = builder.RecordConstructorParamList;
 
-            if (paramList is null)
+            if (paramList is null && !_declModifiers.HasFlag(DeclarationModifiers.Data))
             {
-                if (_declModifiers.HasFlag(DeclarationModifiers.Data))
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, declaration.NameLocations[0]);
-                }
+                // Not a record
                 return;
-            }
-
-            Debug.Assert(builder.RecordDeclarationWithParameters is object);
-            Debug.Assert(builder.InstanceInitializersForRecordDeclarationWithParameters is object);
-
-            if (paramList.ParameterCount == 0 || !_declModifiers.HasFlag(DeclarationModifiers.Data))
-            {
-                // PROTOTYPE: The semantics of an empty parameter list have not been decided. Error
-                // for now
-                diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
             }
 
             // PROTOTYPE: need to check base members as well
@@ -2987,10 +2974,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 memberSignatures.Add(member, member);
             }
 
-            var ctor = addCtor(builder.RecordDeclarationWithParameters);
+            // Positional record
+            if (!(paramList is null))
+            {
+                Debug.Assert(builder.RecordDeclarationWithParameters is object);
+                Debug.Assert(builder.InstanceInitializersForRecordDeclarationWithParameters is object);
+
+                // PROTOTYPE: The semantics of an empty parameter list have not been decided. Error
+                // for now
+                if (paramList.ParameterCount == 0 || !_declModifiers.HasFlag(DeclarationModifiers.Data))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
+                }
+
+                BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(paramList.SyntaxTree);
+                var binder = binderFactory.GetBinder(paramList);
+
+                var ctor = addCtor(builder.RecordDeclarationWithParameters);
+                addProperties(ctor.Parameters);
+            }
+
             addCopyCtor();
             addCloneMethod();
-            addProperties(ctor.Parameters);
+
             var thisEquals = addThisEquals();
             addObjectEquals(thisEquals);
             addHashCode();
@@ -3035,7 +3041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             void addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
                 int addedCount = 0;
-                foreach (ParameterSymbol param in ctor.Parameters)
+                foreach (ParameterSymbol param in recordParameters)
                 {
                     var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
                     if (!memberSignatures.ContainsKey(property))
@@ -3110,8 +3116,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (method.MethodKind)
                     {
                         case MethodKind.Constructor:
-                            hasInstanceConstructor = true;
-                            hasParameterlessInstanceConstructor = hasParameterlessInstanceConstructor || method.ParameterCount == 0;
+                            // Ignore the record copy constructor
+                            if (!(method is SynthesizedRecordCopyCtor))
+                            {
+                                hasInstanceConstructor = true;
+                                hasParameterlessInstanceConstructor = hasParameterlessInstanceConstructor || method.ParameterCount == 0;
+                            }
                             break;
 
                         case MethodKind.StaticConstructor:
