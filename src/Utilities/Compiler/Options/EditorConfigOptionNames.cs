@@ -178,7 +178,7 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// String option to configure allowed suffixed (separated by '|').
-        /// Configurable rule: CA1711 (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca1711).
+        /// Configurable rule: CA1711 (https://docs.microsoft.com/visualstudio/code-quality/ca1711).
         /// </summary>
         public const string AllowedSuffixes = "allowed_suffixes";
     }
