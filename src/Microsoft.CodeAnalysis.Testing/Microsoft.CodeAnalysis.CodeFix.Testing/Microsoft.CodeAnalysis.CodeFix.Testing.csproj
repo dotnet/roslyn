@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.5;netstandard2.0;net452</TargetFrameworks>
+    <TargetFrameworks>$(TestingLibraryTargetFrameworks)</TargetFrameworks>
     <AssemblyName>Microsoft.CodeAnalysis.CodeFix.Testing</AssemblyName>
     <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
   </PropertyGroup>
