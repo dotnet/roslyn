@@ -611,7 +611,6 @@ Dim [|x|] = 1
 </File>.ConvertTestSourceTag()
             Await TestMissingInRegularAndScriptAsync(globalField, New TestParameters(options:=GetHostOptions(host)))
 
-
             Dim namespaceField = <File>
 Namespace N
     Dim [|x|] = 1

@@ -548,7 +548,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(declareStatement.SyntaxTree, text, startPosition)
             End Function
 
-
             Private Function GetDeclareStatementEndPoint(text As SourceText, declareStatement As DeclareStatementSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim endPosition As Integer
 

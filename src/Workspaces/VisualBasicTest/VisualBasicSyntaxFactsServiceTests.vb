@@ -176,7 +176,6 @@ Enum E
 End Enum"))
         End Sub
 
-
         <Fact>
         Public Sub IsMethodLevelMember_DeclareStatement()
             Assert.True(IsMethodLevelMember("

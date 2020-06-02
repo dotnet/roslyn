@@ -137,7 +137,6 @@ Module Program
 End Module")
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestSimpleTypeName() As Task
             Await TestInRegularAndScript1Async(
