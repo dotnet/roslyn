@@ -377,19 +377,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     var argument = arguments[i];
                     var attributeArgument = attributeArguments != null ? attributeArguments.Value[i] : null;
 
-                    // See if there's a matching field or property we can use.  First test in a case sensitive
-                    // manner, then case insensitively.
-                    if (!TryFindMatchingMember(
-                            ref parameterName, parameterType, argument, attributeArgument,
-                            parameterToExistingMemberMap, parameterToNewFieldMap, parameterToNewPropertyMap,
-                            cancellationToken))
-                    {
-                        // If no matching field was found, use the fieldNamingRule to create suitable name
-                        var bestNameForParameter = parameterName.BestNameForParameter;
-                        var nameBasedOnArgument = parameterName.NameBasedOnArgument;
-                        parameterToNewFieldMap[bestNameForParameter] = _fieldNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
-                        parameterToNewPropertyMap[bestNameForParameter] = _propertyNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
-                    }
+                    // See if there's a matching field or property we can use, or create a new member otherwise.
+                    FindExistingOrCreateNewMember(
+                        ref parameterName, parameterType, argument, attributeArgument,
+                        parameterToExistingMemberMap, parameterToNewFieldMap, parameterToNewPropertyMap,
+                        cancellationToken);
 
                     parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                         attributes: default,
@@ -405,7 +397,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 ParameterToNewPropertyMap = parameterToNewPropertyMap.ToImmutable();
             }
 
-            private bool TryFindMatchingMember(
+            private void FindExistingOrCreateNewMember(
                 ref ParameterName parameterName,
                 ITypeSymbol parameterType,
                 TArgumentSyntax argument,
@@ -478,11 +470,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                             }
                         }
 
-                        return true;
+                        return;
                     }
                 }
 
-                return false;
+                // If no matching field was found, use the fieldNamingRule to create suitable name
+                var bestNameForParameter = parameterName.BestNameForParameter;
+                var nameBasedOnArgument = parameterName.NameBasedOnArgument;
+                parameterToNewFieldMap[bestNameForParameter] = _fieldNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
+                parameterToNewPropertyMap[bestNameForParameter] = _propertyNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
             }
 
             private IEnumerable<string> GetUnavailableMemberNames()
