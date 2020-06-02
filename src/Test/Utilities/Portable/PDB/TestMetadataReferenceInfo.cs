@@ -44,7 +44,7 @@ namespace Roslyn.Test.Utilities.PDB
                 metadataReader.GetGuid(moduleDefinition.Mvid),
                 metadataReference.Properties.Aliases,
                 metadataReference.Properties.Kind,
-                metadataReference.Properties.EmbedInteropTypes); ;
+                metadataReference.Properties.EmbedInteropTypes);
         }
 
         public static TestMetadataReferenceInfo Create(Compilation compilation, string fullPath, EmitOptions emitOptions)

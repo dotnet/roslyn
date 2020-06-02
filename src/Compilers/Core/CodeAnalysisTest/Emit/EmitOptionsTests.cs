@@ -90,7 +90,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 nameof(EmitOptions.TolerateErrors),
                 nameof(EmitOptions.IncludePrivateMembers),
                 nameof(EmitOptions.InstrumentationKinds),
-                nameof(EmitOptions.DefaultSourceFileEncoding));
+                nameof(EmitOptions.DefaultSourceFileEncoding),
+                nameof(EmitOptions.FallbackSourceFileEncoding));
         }
 
         [Fact]
