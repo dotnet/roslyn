@@ -37,7 +37,9 @@ public partial class RoslynSDKChildTemplateWizard : IWizard
         WriteOutBetaNugetSource("dotnet.myget.org roslyn", "https://dotnet.myget.org/F/roslyn/api/v3/index.json");
         WriteOutBetaNugetSource("dotnet.myget.org roslyn-analyzers", "https://dotnet.myget.org/F/roslyn-analyzers/api/v3/index.json");
         NugetWizard.RunStarted(automationObject, replacementsDictionary, runKind, customParams);
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
         OnRunStarted(automationObject as DTE, replacementsDictionary, runKind, customParams);
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
     }
 
     private void WriteOutBetaNugetSource(string key, string value)

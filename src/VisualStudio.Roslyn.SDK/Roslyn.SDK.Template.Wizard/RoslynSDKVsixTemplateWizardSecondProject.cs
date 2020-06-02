@@ -9,10 +9,12 @@ public class RoslynSDKVsixTemplateWizardSecondProject : RoslynSDKTestTemplateWiz
         base.OnProjectFinishedGenerating(project);
 
         // set the VSIX project to be the starting project
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
         var dte = project.DTE;
         if (dte.Solution.Projects.Count == 2)
         {
             dte.Solution.Properties.Item("StartupProject").Value = project.Name;
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
         }
     }
 }
