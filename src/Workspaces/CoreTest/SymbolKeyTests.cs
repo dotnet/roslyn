@@ -838,7 +838,7 @@ end class";
                 n => n is VisualBasic.Syntax.PropertyStatementSyntax).Single();
 
             var propType = symbol.Type;
-            Assert.True(propType.Kind == SymbolKind.ErrorType);
+            Assert.Equal(SymbolKind.ErrorType, propType.Kind);
 
             // Ensure we don't crash getting these symbol keys.
             var id = SymbolKey.CreateString(propType);
