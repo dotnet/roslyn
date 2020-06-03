@@ -7,15 +7,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             _registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(workspace);
 
-            DiagnosticService = new DiagnosticService(_listenerProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
+            DiagnosticService = (DiagnosticService)workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
             DiagnosticService.Register(updateSource);
 
             if (createTaggerProvider)
@@ -99,13 +98,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     }
                     else if (typeof(TProvider) == typeof(DiagnosticsClassificationTaggerProvider))
                     {
-                        _taggerProvider = new DiagnosticsClassificationTaggerProvider(
-                            _threadingContext,
-                            DiagnosticService,
-                            _workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
-                            _workspace.GetService<IForegroundNotificationService>(),
-                            _workspace.GetService<IEditorOptionsFactoryService>(),
-                            _listenerProvider);
+                        _taggerProvider = _workspace.ExportProvider.GetExportedValues<ITaggerProvider>()
+                            .OfType<DiagnosticsClassificationTaggerProvider>()
+                            .Single();
                     }
                     else
                     {
