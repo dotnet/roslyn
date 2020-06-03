@@ -59,11 +59,11 @@ MVID: 16 byte integer (GUID)
 
 #### Retriving Metadata References
 
-Metadata references are stored in the CustomDebugInformation in a PDB using the GUID `7E4D4708-096E-4C5C-AEDA-CB10BA6A740D`. 
+Metadata references are stored in the CustomDebugInformation in a PDB using the GUID `7E4D4708-096E-4C5C-AEDA-CB10BA6A740D` . 
 
-Example how to retrieve and read this information using `System.Reflection.Metadata`: 
+Example how to retrieve and read this information using `System.Reflection.Metadata` : 
 
-```csharp
+``` csharp
 var metadataReferencesGuid = new Guid("7E4D4708-096E-4C5C-AEDA-CB10BA6A740D");
 var path = "path/to/pdb";
 
@@ -264,12 +264,12 @@ See [compiler options](https://docs.microsoft.com/en-us/dotnet/csharp/language-r
 | portability-policy | see [portability policy](#portability-policy) |
 | checked | [checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/checked-compiler-option) |
 | default-encoding | see [file encoding](#file-encoding) |
-| compilerversion | full version with SHA |
+| compiler-version | full version with SHA |
 | fallback-encoding | see see [file encoding](#file-encoding) |
 | define | [define](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/define-compiler-option) |
-| langversion | [langversion](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/langversion-compiler-option) |
+| language-version | [langversion](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/langversion-compiler-option) |
 | nullable | [nullable](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references) |
-| optimize | [optimize](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/optimize-compiler-option) |
+| optimize | see [optimization](#optimization) |
 | unsafe | [unsafe](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/unsafe-compiler-option) |
 
 #### Portability Policy
@@ -277,20 +277,24 @@ See [compiler options](https://docs.microsoft.com/en-us/dotnet/csharp/language-r
 Portability policy is derived from the [appconfig command option](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/appconfig-compiler-option). 
 
 Since appconfig is a pointer to a file not embedded in the PDB or PE, information that will directly impact the compilation is extracted. This is stored in a flag called `portability-policy` with a numeric value from \[0-3\]. This value directly correlates to reconstructing the [AssemblyPortabilityPolicy](https://github.com/dotnet/roslyn/blob/bdb3ece74c85892709f5e42ae7d67248999ecc3b/src/Compilers/Core/Portable/Desktop/AssemblyPortabilityPolicy.cs).
-    - 0 -> SuppressSilverlightPlatformAssembliesPortability = false, SuppressSilverlightLibraryAssembliesPortability = false
-    - 1 -> SuppressSilverlightPlatformAssembliesPortability = true, SuppressSilverlightLibraryAssembliesPortability = false
-    - 2 -> SuppressSilverlightPlatformAssembliesPortability = false, SuppressSilverlightLibraryAssembliesPortability = true
-    - 3 -> SuppressSilverlightPlatformAssembliesPortability = true, SuppressSilverlightLibraryAssembliesPortability = true
+- 0 -> SuppressSilverlightPlatformAssembliesPortability = false, SuppressSilverlightLibraryAssembliesPortability = false
+- 1 -> SuppressSilverlightPlatformAssembliesPortability = true, SuppressSilverlightLibraryAssembliesPortability = false
+- 2 -> SuppressSilverlightPlatformAssembliesPortability = false, SuppressSilverlightLibraryAssembliesPortability = true
+- 3 -> SuppressSilverlightPlatformAssembliesPortability = true, SuppressSilverlightLibraryAssembliesPortability = true
 
 #### File Encoding 
 
 Encoding will be stored in two keys: "default-encoding" and "fallback-encoding". 
 
-If "default-encoding" is present, it represents the forced encoding used, such as by passing in "codepage" to the command line. All files should be decoded using this codepage value.
+If `default-encoding` is present, it represents the forced encoding used, such as by passing in "codepage" to the command line. All files should be decoded using this codepage value.
 
-If "fallback-encoding" is present, it means that no default encoding was specified but an encoding was detected and used. The compiler [has logic](https://github.com/dotnet/roslyn/blob/462eac607741023e5c2d518ac1045f4c6dabd501/src/Compilers/Core/Portable/EncodedStringText.cs#L32) to determine an encoding is none is specified, so the value that was computed is stored so it can be reused in future compilations.
+If `fallback-encoding` is present, it means that no default encoding was specified but an encoding was detected and used. The compiler [has logic](https://github.com/dotnet/roslyn/blob/462eac607741023e5c2d518ac1045f4c6dabd501/src/Compilers/Core/Portable/EncodedStringText.cs#L32) to determine an encoding is none is specified, so the value that was computed is stored so it can be reused in future compilations.
 
 Both values are codepage values for an encoding, such as `65001` for UTF-8. 
+
+#### Optimization
+
+Optimization level can be specified from the command line with [optimize](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/optimize-compiler-option). It gets translated to the [OptimizationLevel](https://github.com/dotnet/roslyn/blob/e704ca635bd6de70a0250e34c4567c7a28fa9f6d/src/Compilers/Core/Portable/Compilation/OptimizationLevel.cs) that is emitted to the PDB. That means it will be stored as the enum, not a boolean value like the command line switch.
 
 ### Options For Visual Basic
 
@@ -298,21 +302,20 @@ See [compiler options](https://docs.microsoft.com/en-us/dotnet/visual-basic/refe
 
 | PDB Key | Documentation   |
 | ------- | --------------- |
-| compilerversion | full version with SHA |
+| compiler-version | full version with SHA |
 | define | [define](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/define) |
-| langversion | [langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion) |
-| optimize | [optimize](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optimize) |
-| optionstrict | [optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict) |
-| removeintchecks | [removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks) |
-
+| language-version | [langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion) |
+| optimize | see [optimization](#optimization) |
+| option-strict | [optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict) |
+| checked | Opposite of [removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks) |
 
 ### Retriving Compiler Flags
 
-Compiler flags are stored in the CustomDebugInformation in a PDB using the GUID `B5FEEC05-8CD0-4A83-96DA-466284BB4BD8`. 
+Compiler flags are stored in the CustomDebugInformation in a PDB using the GUID `B5FEEC05-8CD0-4A83-96DA-466284BB4BD8` . 
 
-Example how to retrieve and read this information using `System.Reflection.Metadata`: 
+Example how to retrieve and read this information using `System.Reflection.Metadata` : 
 
-```csharp
+``` csharp
 var compilationOptionsGuid = new Guid("B5FEEC05-8CD0-4A83-96DA-466284BB4BD8");
 var path = "path/to/pdb";
 
@@ -350,4 +353,3 @@ foreach (var handle in metadataReader.GetCustomDebugInformation(EntityHandle.Mod
     }
 }
 ```
-
