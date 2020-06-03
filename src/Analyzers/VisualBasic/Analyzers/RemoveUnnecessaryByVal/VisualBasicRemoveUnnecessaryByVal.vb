@@ -12,9 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
     Friend Class VisualBasicRemoveUnnecessaryByVal
         Inherits AbstractCodeStyleDiagnosticAnalyzer
 
-        Friend Const DiagnosticFixableId As String = IDEDiagnosticIds.RemoveUnnecessaryByValDiagnosticId
         Private Shared ReadOnly s_descriptor As DiagnosticDescriptor = New DiagnosticDescriptor(
-            id:=DiagnosticFixableId,
+            id:=IDEDiagnosticIds.RemoveUnnecessaryByValDiagnosticId,
             title:="",
             messageFormat:="",
             category:="",
