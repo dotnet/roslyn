@@ -31,8 +31,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
             Dim snapshot = line.Snapshot
             Dim text = line.Snapshot.GetText()
 
-            _hasSpaceAfterComment = text.Contains(CommentSplitter.CommentCharacter + " ")
-
             If caretPosition > line.End.Position Then
                 Return False
             Else
@@ -48,10 +46,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
             Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
             Dim sourceText = root.SyntaxTree.GetText(cancellationToken)
 
-            Dim splitter = CommentSplitter.Create(
+            Dim splitter = CommentSplitter.TryCreate(
                 document, position, root, sourceText,
-                useTabs, tabSize, indentStyle, _hasSpaceAfterComment,
-                cancellationToken)
+                useTabs, tabSize, indentStyle, cancellationToken)
 
             If splitter Is Nothing Then
                 Return Nothing

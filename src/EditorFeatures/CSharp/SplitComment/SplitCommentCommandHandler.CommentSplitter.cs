@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
 {
     internal partial class SplitCommentCommandHandler
     {
-        private class CommentSplitter : AbstractCommentSplitter
+        internal class CommentSplitter : AbstractCommentSplitter
         {
             internal const string CommentCharacter = "//";
 
@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                Document document, int position,
                SyntaxNode root, SourceText sourceText,
                bool useTabs, int tabSize, SyntaxTrivia trivia,
-               IndentStyle indentStyle,
-               bool hasSpaceAfterComment, CancellationToken cancellationToken)
+               IndentStyle indentStyle, CancellationToken cancellationToken)
             {
                 _document = document;
                 _cursorPosition = position;
@@ -32,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                 _tabSize = tabSize;
                 _trivia = trivia;
                 _indentStyle = indentStyle;
-                _hasSpaceAfterComment = hasSpaceAfterComment;
                 _cancellationToken = cancellationToken;
             }
 
@@ -40,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                 Document document, int position,
                 SyntaxNode root, SourceText sourceText,
                 bool useTabs, int tabSize, IndentStyle indentStyle,
-                bool hasSpaceAfterComment,
                 CancellationToken cancellationToken)
             {
                 var trivia = root.FindTrivia(position);
@@ -49,21 +46,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                     ? new CommentSplitter(
                         document, position, root,
                         sourceText, useTabs, tabSize,
-                        trivia, indentStyle,
-                        hasSpaceAfterComment, cancellationToken)
+                        trivia, indentStyle, cancellationToken)
                     : null;
             }
 
             protected override SyntaxTriviaList CreateSplitComment(string indentString)
             {
-                var prefix = _sourceText.GetSubText(TextSpan.FromBounds(_trivia.SpanStart, _cursorPosition)).ToString().Trim(' ');
-                var suffix = _sourceText.GetSubText(TextSpan.FromBounds(_cursorPosition, _trivia.Span.End)).ToString().Trim(' ');
+                var prefix = _sourceText.GetSubText(TextSpan.FromBounds(_trivia.SpanStart, _cursorPosition)).ToString().TrimStart();
+                var suffix = _sourceText.GetSubText(TextSpan.FromBounds(_cursorPosition, _trivia.Span.End)).ToString().TrimEnd();
 
                 var firstTrivia = SyntaxFactory.Comment(prefix);
                 var secondTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed;
-                var thirdTrivia = _hasSpaceAfterComment
-                    ? SyntaxFactory.Comment(indentString + CommentCharacter + " " + suffix)
-                    : SyntaxFactory.Comment(indentString + CommentCharacter + suffix);
+                var thirdTrivia = SyntaxFactory.Comment(indentString + CommentCharacter + " " + suffix);
 
                 return SyntaxFactory.TriviaList(firstTrivia, secondTrivia, thirdTrivia);
             }
