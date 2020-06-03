@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
             Assert.Equal(originalOptions.AllowUnsafe.ToString(), pdbOptions["unsafe"]);
             Assert.Equal(langVersion, pdbOptions["language-version"]);
-            Assert.Equal(originalOptions.OptimizationLevel.ToString(), pdbOptions["optimization"]);
 
             var firstSyntaxTree = compilation.SyntaxTrees.FirstOrDefault() as CSharpSyntaxTree;
             if (firstSyntaxTree is null || firstSyntaxTree.Options.PreprocessorSymbols.IsEmpty)
@@ -270,6 +269,7 @@ public struct StructWithValue
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Disable);
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Warnings);
             yield return defaultOptions.WithOptimizationLevel(OptimizationLevel.Release);
+            yield return defaultOptions.WithDebugPlusMode(true);
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: false, suppressSilverlightPlatformAssembliesPortability: false)));
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: true, suppressSilverlightPlatformAssembliesPortability: false)));
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: false, suppressSilverlightPlatformAssembliesPortability: true)));

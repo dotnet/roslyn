@@ -291,10 +291,11 @@ See [compiler options](https://docs.microsoft.com/en-us/dotnet/visual-basic/refe
 Portability policy is derived from the [appconfig command option](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/appconfig-compiler-option). 
 
 Since appconfig is a pointer to a file not embedded in the PDB or PE, information that will directly impact the compilation is extracted. This is stored in a flag called `portability-policy` with a numeric value from \[0-3\]. This value directly correlates to reconstructing the [AssemblyPortabilityPolicy](https://github.com/dotnet/roslyn/blob/bdb3ece74c85892709f5e42ae7d67248999ecc3b/src/Compilers/Core/Portable/Desktop/AssemblyPortabilityPolicy.cs).
-- 0 -> SuppressSilverlightPlatformAssembliesPortability = false, SuppressSilverlightLibraryAssembliesPortability = false
-- 1 -> SuppressSilverlightPlatformAssembliesPortability = true, SuppressSilverlightLibraryAssembliesPortability = false
-- 2 -> SuppressSilverlightPlatformAssembliesPortability = false, SuppressSilverlightLibraryAssembliesPortability = true
-- 3 -> SuppressSilverlightPlatformAssembliesPortability = true, SuppressSilverlightLibraryAssembliesPortability = true
+
+* 0 -> SuppressSilverlightPlatformAssembliesPortability = false, SuppressSilverlightLibraryAssembliesPortability = false
+* 1 -> SuppressSilverlightPlatformAssembliesPortability = true, SuppressSilverlightLibraryAssembliesPortability = false
+* 2 -> SuppressSilverlightPlatformAssembliesPortability = false, SuppressSilverlightLibraryAssembliesPortability = true
+* 3 -> SuppressSilverlightPlatformAssembliesPortability = true, SuppressSilverlightLibraryAssembliesPortability = true
 
 #### File Encoding 
 
@@ -308,7 +309,13 @@ Both values are written as [WebName](https://docs.microsoft.com/en-us/dotnet/api
 
 #### Optimization
 
-Optimization level can be specified from the command line with [optimize](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/optimize-compiler-option). It gets translated to the [OptimizationLevel](https://github.com/dotnet/roslyn/blob/e704ca635bd6de70a0250e34c4567c7a28fa9f6d/src/Compilers/Core/Portable/Compilation/OptimizationLevel.cs) that is emitted to the PDB. That means it will be stored as the enum, not a boolean value like the command line switch.
+Optimization level can be specified from the command line with [optimize](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/optimize-compiler-option). It gets translated to the [OptimizationLevel](https://github.com/dotnet/roslyn/blob/e704ca635bd6de70a0250e34c4567c7a28fa9f6d/src/Compilers/Core/Portable/Compilation/OptimizationLevel.cs) that is emitted to the PDB. 
+
+There are three possible values:
+
+* `debug` -> OptimizationLevel. Debug and DebugPlusMode is false
+* `debug+` -> OptimizationLevel. Debug and DebugPlusMode is true
+* `release` -> OptimizationLevel. Release and DebugPlusMode is ignored
 
 #### Runtime Version
 

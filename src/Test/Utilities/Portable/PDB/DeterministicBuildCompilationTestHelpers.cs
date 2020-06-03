@@ -62,6 +62,13 @@ namespace Roslyn.Test.Utilities.PDB
 
             var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             Assert.Equal(runtimeVersion, pdbOptions["runtime-version"]);
+
+            var optimization = compilationOptions.OptimizationLevel == OptimizationLevel.Debug
+                ? (compilationOptions.DebugPlusMode ? "debug+" : "debug")
+                : "release";
+
+            Assert.Equal(optimization, pdbOptions["optimization"]);
+
         }
 
         public static void VerifyReferenceInfo(TestMetadataReferenceInfo[] references, BlobReader metadataReferenceReader)

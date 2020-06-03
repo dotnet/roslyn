@@ -712,7 +712,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             WriteValue(builder, "checked", Options.CheckOverflow.ToString())
             WriteValue(builder, "language-version", LanguageVersion.ToDisplayString())
             WriteValue(builder, "strict", Options.OptionStrict.ToString())
-            WriteValue(builder, "optimization", Options.OptimizationLevel.ToString())
 
             If Options.ParseOptions IsNot Nothing Then
                 Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)

@@ -3492,7 +3492,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             WriteValue("nullable", Options.NullableContextOptions.ToString());
             WriteValue("unsafe", Options.AllowUnsafe.ToString());
             WriteValue("language-version", LanguageVersion.ToString());
-            WriteValue("optimization", Options.OptimizationLevel.ToString());
+
+            var optimization = Options.OptimizationLevel == OptimizationLevel.Debug
+                ? (Options.DebugPlusMode ? "debug+" : "debug")
+                : "release";
+
+            WriteValue("optimization", optimization);
 
             var preprocessorSymbols = GetPreprocessorSymbols();
             if (preprocessorSymbols.Any())
