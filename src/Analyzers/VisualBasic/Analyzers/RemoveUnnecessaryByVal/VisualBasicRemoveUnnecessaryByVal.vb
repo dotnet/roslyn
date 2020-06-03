@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
-
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicRemoveUnnecessaryByVal
         Inherits AbstractCodeStyleDiagnosticAnalyzer
@@ -32,15 +31,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
         End Sub
 
         Protected Overrides Sub InitializeWorker(ByVal context As AnalysisContext)
-            context.EnableConcurrentExecution()
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze Or GeneratedCodeAnalysisFlags.ReportDiagnostics)
-
             context.RegisterSyntaxNodeAction(
             Sub(syntaxContext As SyntaxNodeAnalysisContext)
                 Dim location = GetByValLocation(CType(syntaxContext.Node, ParameterSyntax).Modifiers)
                 If location IsNot Nothing Then
                     syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
-                                               s_descriptor, location, ReportDiagnostic.Hidden, additionalLocations:=Nothing, properties:=Nothing))
+                        s_descriptor, location, ReportDiagnostic.Hidden, additionalLocations:=Nothing, properties:=Nothing))
                 End If
             End Sub, SyntaxKind.Parameter)
         End Sub
