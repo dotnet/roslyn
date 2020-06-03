@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <IsProductComponent>false</IsProductComponent>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
 
   <!-- Package References -->
@@ -12,18 +13,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="$(MicrosoftCodeAnalysisVisualBasicVersionVS2019)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Resources.Designer.vb">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Resources.resx">
-      <SubType>Designer</SubType>
-      <CustomToolNamespace>My.Resources</CustomToolNamespace>
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="Resources.resx" GenerateSource="true" ClassName="Roslyn.SyntaxVisualizer.DgmlHelper.My.Resources.Resources" ManifestResourceName="Roslyn.SyntaxVisualizer.DgmlHelper.My.Resources.Resources" />
   </ItemGroup>
 </Project>
