@@ -204,6 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         DataKeyword = 8441,
         WithKeyword = 8442,
         InitKeyword = 8443,
+        RecordKeyword = 8444,
+
         /// when adding a contextual keyword following functions must be adapted:
         /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
         /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
@@ -619,5 +621,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WithExpression = 9061,
         WithInitializerExpression = 9062,
+        RecordDeclaration = 9063
     }
 }

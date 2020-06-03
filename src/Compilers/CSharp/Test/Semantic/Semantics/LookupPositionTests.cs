@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void PositionalRecord1()
         {
             var text = @"
-data class C(int x, int y)
+record C(int x, int y)
 `{
 `}";
             var expectedNames = MakeExpectedSymbols(
@@ -61,7 +61,7 @@ data class C(int x, int y)
         public void PositionalRecord2()
         {
             var text = @"
-data `class C`<T`>(int x, T t = default(T));";
+`record C`<T`>(int x, T t = default(T));";
             var expectedNames = MakeExpectedSymbols(
                 Add( // Global
                     "System",
@@ -94,7 +94,7 @@ data `class C`<T`>(int x, T t = default(T));";
         public void NominalRecord()
         {
             var text = @"
-data `class C`<T`>
+`record C`<T`>
 `{
     int x { get; }
     T t { get; }
@@ -1759,7 +1759,7 @@ class Derived : Base<int>
             keyPositions = keyPositionBuilder.ToArrayAndFree();
             var text = textBuilder.ToString();
 
-            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var parseOptions = TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose);
             var compilation = CreateCompilationWithMscorlib40(text, parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees[0];
             return compilation.GetSemanticModel(tree);

@@ -2162,7 +2162,7 @@ public class C
         public void InitOnlyOnMembersOfRecords()
         {
             string source = @"
-public data class C(int i)
+public record C(int i)
 {
     void M() { }
 }

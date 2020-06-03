@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void GeneratedConstructor()
         {
-            var comp = CreateCompilation(@"data class C(int x, string y);");
+            var comp = CreateCompilation(@"record C(int x, string y);");
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
             var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void GeneratedConstructorDefaultValues()
         {
-            var comp = CreateCompilation(@"data class C<T>(int x, T t = default);");
+            var comp = CreateCompilation(@"record C<T>(int x, T t = default);");
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
             Assert.Equal(1, c.Arity);
@@ -68,16 +68,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RecordExistingConstructor1()
         {
             var comp = CreateCompilation(@"
-data class C(int x, string y)
+record C(int x, string y)
 {
     public C(int a, string b)
     {
     }
 }");
             comp.VerifyDiagnostics(
-                // (2,13): error CS8762: There cannot be a primary constructor and a member constructor with the same parameter types.
-                // data class C(int x, string y)
-                Diagnostic(ErrorCode.ERR_DuplicateRecordConstructor, "(int x, string y)").WithLocation(2, 13)
+                // (2,9): error CS8851: There cannot be a primary constructor and a member constructor with the same parameter types.
+                // record C(int x, string y)
+                Diagnostic(ErrorCode.ERR_DuplicateRecordConstructor, "(int x, string y)").WithLocation(2, 9)
             );
             var c = comp.GlobalNamespace.GetTypeMember("C");
             var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
@@ -96,7 +96,7 @@ data class C(int x, string y)
         public void RecordExistingConstructor01()
         {
             var comp = CreateCompilation(@"
-data class C(int x, string y)
+record C(int x, string y)
 {
     public C(int a, int b) // overload
     {
@@ -143,7 +143,7 @@ data class C(int x, string y)
         [Fact]
         public void GeneratedProperties()
         {
-            var comp = CreateCompilation("data class C(int x, int y);");
+            var comp = CreateCompilation("record C(int x, int y);");
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
 
@@ -212,7 +212,7 @@ data class C(int x, string y)
         {
             CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public static void Main()
     {
@@ -229,7 +229,7 @@ data class C(int X, int Y)
         {
             CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public static void Main()
     {
@@ -247,7 +247,7 @@ True");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public static void Main()
     {
@@ -295,7 +295,7 @@ False");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public static void Main()
     {
@@ -347,7 +347,7 @@ False");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public static void Main()
     {
@@ -366,7 +366,7 @@ False");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int[] X, string Y)
+record C(int[] X, string Y)
 {
     public static void Main()
     {
@@ -386,7 +386,7 @@ True");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public int Z;
     public static void Main()
@@ -442,7 +442,7 @@ True");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public int Z { get; set; }
     public static void Main()
@@ -468,7 +468,7 @@ True");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public static int Z;
     public static void Main()
@@ -518,7 +518,7 @@ True");
             var verifier = CompileAndVerify(@"
 using System;
 using System.Collections.Generic;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     static Dictionary<C, int> s_dict = new Dictionary<C, int>();
     public int Z { get => s_dict[this]; set => s_dict[this] = value; }
@@ -569,7 +569,7 @@ True");
             var verifier = CompileAndVerify(@"
 using System;
 using System.Collections.Generic;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     private event Action E;
     public static void Main()
@@ -623,7 +623,7 @@ True");
         [Fact]
         public void RecordClone1()
         {
-            var comp = CreateCompilation("data class C(int x, int y);");
+            var comp = CreateCompilation("record C(int x, int y);");
             comp.VerifyDiagnostics();
 
             var c = comp.GlobalNamespace.GetTypeMember("C");
@@ -668,7 +668,7 @@ True");
         public void RecordClone2_0()
         {
             var comp = CreateCompilation(@"
-data class C(int x, int y)
+record C(int x, int y)
 {
     public C(C other) : this(other.x, other.y) { }
 }");
@@ -714,7 +714,7 @@ data class C(int x, int y)
         public void RecordClone2_1()
         {
             var comp = CreateCompilation(@"
-data class C(int x, int y)
+record C(int x, int y)
 {
     public C(C other) { }
 }");
@@ -730,7 +730,7 @@ data class C(int x, int y)
         public void RecordClone2_2()
         {
             var comp = CreateCompilation(@"
-data class C(int x, int y)
+record C(int x, int y)
 {
     public C(C other) : base() { }
 }");
@@ -747,7 +747,7 @@ data class C(int x, int y)
         {
             var comp = CreateCompilation(@"
 using System;
-public data class C(int x, int y)
+public record C(int x, int y)
 {
     public event Action E;
     public int Z;
@@ -805,7 +805,7 @@ public data class C(int x, int y)
 ");
         }
 
-        [Fact]
+        [Fact(Skip = "record struct")]
         public void RecordClone4_0()
         {
             var comp = CreateCompilation(@"
@@ -838,7 +838,7 @@ public data struct S(int x, int y)
             Assert.True(ctor.Parameters[0].Type.Equals(s, TypeCompareKind.ConsiderEverything));
         }
 
-        [Fact]
+        [Fact(Skip = "record struct")]
         public void RecordClone4_1()
         {
             var comp = CreateCompilation(@"
@@ -866,7 +866,7 @@ public data struct S(int x, int y)
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C
+record C
 {
     private int X;
     private int Y { get; set; }
@@ -935,14 +935,14 @@ True");
         {
             var v1 = CompileAndVerify(@"
 using System;
-data class C(int X, string Y)
+record C(int X, string Y)
 {
     public event Action E;
 }
 ");
             var v2 = CompileAndVerify(@"
 using System;
-data class C
+record C
 {
     public int X { get; }
     public string Y { get; }
@@ -957,7 +957,7 @@ data class C
         {
             var comp = CreateCompilation(@"
 #nullable enable
-data class C
+record C
 {
     public int X { get; init; }
     public string Y { get; init; }
@@ -979,6 +979,64 @@ data class C
                 "C.C(C! )",
                 "C.C()",
             }, members.Select(m => m.ToTestDisplayString(includeNonNullable: true)));
+        }
+
+        [Fact]
+        public void PartialTypes_01()
+        {
+            var src = @"
+using System;
+partial record C(int X, int Y)
+{
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(c.X);
+        Console.WriteLine(c.Y);
+    }
+}
+
+partial record C(int X, int Y)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // partial record C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X, int Y)").WithLocation(13, 17)
+                );
+
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
+        }
+
+        [Fact]
+        public void PartialTypes_02()
+        {
+            var src = @"
+using System;
+partial record C(int X, int Y)
+{
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(c.X);
+        Console.WriteLine(c.Y);
+    }
+}
+
+partial record C(int X)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // partial record C(int X)
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X)").WithLocation(13, 17)
+                );
+
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
         }
     }
 }
