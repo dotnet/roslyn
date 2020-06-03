@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<IParameterSymbol> parametersOpt,
             IMethodSymbol getMethod,
             IMethodSymbol setMethod)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
             this._refKind = refKind;
