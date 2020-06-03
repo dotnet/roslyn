@@ -711,7 +711,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)
             WriteValue(builder, "checked", Options.CheckOverflow.ToString())
             WriteValue(builder, "language-version", LanguageVersion.ToDisplayString())
-            WriteValue(builder, "option-strict", Options.OptionStrict.ToString())
+            WriteValue(builder, "strict", Options.OptionStrict.ToString())
             WriteValue(builder, "optimization", Options.OptimizationLevel.ToString())
 
             If Options.ParseOptions IsNot Nothing Then

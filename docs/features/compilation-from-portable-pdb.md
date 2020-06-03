@@ -282,7 +282,7 @@ See [compiler options](https://docs.microsoft.com/en-us/dotnet/visual-basic/refe
 | define | [define](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/define) |
 | language-version | [langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion) |
 | optimization | see [optimization](#optimization) |
-| option-strict | [optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict) |
+| strict | [optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict) |
 | runtime-version | see [runtime version](#runtime-version) |
 | checked | Opposite of [removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks) |
 

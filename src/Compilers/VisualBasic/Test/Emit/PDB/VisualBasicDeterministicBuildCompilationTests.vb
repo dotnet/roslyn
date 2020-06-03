@@ -25,7 +25,7 @@ Public Class VisualBasicDeterministicBuildCompilationTests
 
         ' See VisualBasicCompilation.SerializeForPdb for options that are added
         Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions("checked"))
-        Assert.Equal(originalOptions.OptionStrict.ToString(), pdbOptions("option-strict"))
+        Assert.Equal(originalOptions.OptionStrict.ToString(), pdbOptions("strict"))
         Assert.Equal(originalOptions.OptimizationLevel.ToString(), pdbOptions("optimization"))
         Assert.Equal(originalOptions.ParseOptions.LanguageVersion.ToString(), pdbOptions("language-version"))
 
