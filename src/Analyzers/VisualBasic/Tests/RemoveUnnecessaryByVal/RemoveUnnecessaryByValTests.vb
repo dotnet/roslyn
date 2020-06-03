@@ -5,7 +5,7 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
+Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryByVal
 
