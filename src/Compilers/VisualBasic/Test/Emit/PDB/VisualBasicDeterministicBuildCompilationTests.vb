@@ -21,13 +21,9 @@ Public Class VisualBasicDeterministicBuildCompilationTests
     Private Sub VerifyCompilationOptions(originalOptions As VisualBasicCompilationOptions, compilationOptionsBlobReader As BlobReader, emitOptions As EmitOptions, compilation As VisualBasicCompilation)
         Dim pdbOptions = DeterministicBuildCompilationTestHelpers.ParseCompilationOptions(compilationOptionsBlobReader)
 
-        DeterministicBuildCompilationTestHelpers.AssertEncoding(emitOptions, compilation, pdbOptions)
-
-        Assert.Equal(DeterministicBuildCompilationTestHelpers.GetPortabilityPolicy(originalOptions), pdbOptions("portability-policy"))
-
+        DeterministicBuildCompilationTestHelpers.AssertCommonOptions(emitOptions, originalOptions, compilation, pdbOptions)
 
         ' See VisualBasicCompilation.SerializeForPdb for options that are added
-        Assert.Equal(DeterministicBuildCompilationTestHelpers.GetCurrentCompilerVersion(), pdbOptions("compiler-version"))
         Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions("checked"))
         Assert.Equal(originalOptions.OptionStrict.ToString(), pdbOptions("option-strict"))
         Assert.Equal(originalOptions.OptimizationLevel.ToString(), pdbOptions("optimization"))

@@ -236,7 +236,6 @@ Example:
 * nologo
 * nowarn
 * nowin32manifest
-* optimize
 * optioncompare
 * optionexplicit
 * optioninfer
@@ -269,8 +268,23 @@ See [compiler options](https://docs.microsoft.com/en-us/dotnet/csharp/language-r
 | define | [define](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/define-compiler-option) |
 | language-version | [langversion](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/langversion-compiler-option) |
 | nullable | [nullable](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references) |
-| optimize | see [optimization](#optimization) |
+| optimization | see [optimization](#optimization) |
+| runtime-version | see [runtime version](#runtime-version) |
 | unsafe | [unsafe](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/unsafe-compiler-option) |
+
+#### Options For Visual Basic
+
+See [compiler options](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/compiler-options-listed-alphabetically) documentation
+
+| PDB Key | Documentation   |
+| ------- | --------------- |
+| compiler-version | full version with SHA |
+| define | [define](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/define) |
+| language-version | [langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion) |
+| optimization | see [optimization](#optimization) |
+| option-strict | [optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict) |
+| runtime-version | see [runtime version](#runtime-version) |
+| checked | Opposite of [removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks) |
 
 #### Portability Policy
 
@@ -296,18 +310,11 @@ Both values are written as [WebName](https://docs.microsoft.com/en-us/dotnet/api
 
 Optimization level can be specified from the command line with [optimize](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/optimize-compiler-option). It gets translated to the [OptimizationLevel](https://github.com/dotnet/roslyn/blob/e704ca635bd6de70a0250e34c4567c7a28fa9f6d/src/Compilers/Core/Portable/Compilation/OptimizationLevel.cs) that is emitted to the PDB. That means it will be stored as the enum, not a boolean value like the command line switch.
 
-### Options For Visual Basic
+#### Runtime Version
 
-See [compiler options](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/compiler-options-listed-alphabetically) documentation
+The runtime version used that the compiler was running in when generating the PE. This is stored as [informational version](https://docs.microsoft.com/en-us/dotnet/api/system.reflection.assemblyinformationalversionattribute.informationalversion?view=netcore-3.1#System_Reflection_AssemblyInformationalVersionAttribute_InformationalVersion).
 
-| PDB Key | Documentation   |
-| ------- | --------------- |
-| compiler-version | full version with SHA |
-| define | [define](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/define) |
-| language-version | [langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion) |
-| optimize | see [optimization](#optimization) |
-| option-strict | [optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict) |
-| checked | Opposite of [removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks) |
+Runtime version is stored since it can impact the unicode character interpretation and decimla arithmetics, which both play a role in how code is compiled from source. There may also be future variations where the different versions of the runtime impact compilation. 
 
 ### Retriving Compiler Flags
 

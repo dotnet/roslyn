@@ -866,6 +866,9 @@ namespace Microsoft.Cci
 
             WriteValue("portability-policy", portabilityPolicy.ToString());
 
+            var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            WriteValue("runtime-version", runtimeVersion);
+
             module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
 
             _debugMetadataOpt.AddCustomDebugInformation(

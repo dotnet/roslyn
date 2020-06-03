@@ -33,12 +33,7 @@ namespace Roslyn.Test.Utilities.PDB
             yield return emitOptions.WithFallbackSourceFileEncoding(Encoding.UTF7).WithDefaultSourceFileEncoding(Encoding.ASCII);
         }
 
-        public static string GetCurrentCompilerVersion()
-        {
-            return typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-        }
-
-        internal static void AssertEncoding(EmitOptions emitOptions, Compilation compilation, ImmutableDictionary<string, string> pdbOptions)
+        internal static void AssertCommonOptions(EmitOptions emitOptions, CompilationOptions compilationOptions, Compilation compilation, ImmutableDictionary<string, string> pdbOptions)
         {
             if (emitOptions.FallbackSourceFileEncoding != null)
             {
@@ -49,18 +44,24 @@ namespace Roslyn.Test.Utilities.PDB
             {
                 Assert.Equal(emitOptions.DefaultSourceFileEncoding.WebName, pdbOptions["default-encoding"]);
             }
-        }
 
-        public static string GetPortabilityPolicy(CompilationOptions options)
-        {
+            var runtimeInformationalVersionAttribute = (AssemblyInformationalVersionAttribute)typeof(object).Assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false).Single();
+            Assert.Equal(runtimeInformationalVersionAttribute.InformationalVersion, pdbOptions["runtime-version"]);
+
             int portabilityPolicy = 0;
-            if (options.AssemblyIdentityComparer is DesktopAssemblyIdentityComparer identityComparer)
+            if (compilationOptions.AssemblyIdentityComparer is DesktopAssemblyIdentityComparer identityComparer)
             {
                 portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightLibraryAssembliesPortability ? 0b1 : 0;
                 portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
             }
 
-            return portabilityPolicy.ToString();
+            Assert.Equal(portabilityPolicy.ToString(), pdbOptions["portability-policy"]);
+
+            var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            Assert.Equal(compilerVersion.ToString(), pdbOptions["compiler-version"]);
+
+            var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            Assert.Equal(runtimeVersion, pdbOptions["runtime-version"]);
         }
 
         public static void VerifyReferenceInfo(TestMetadataReferenceInfo[] references, BlobReader metadataReferenceReader)

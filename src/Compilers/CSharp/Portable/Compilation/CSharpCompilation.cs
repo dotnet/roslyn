@@ -3511,7 +3511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<string> GetPreprocessorSymbols()
         {
-            CSharpSyntaxTree firstTree = (CSharpSyntaxTree)SyntaxTrees.FirstOrDefault(t => t is CSharpSyntaxTree);
+            CSharpSyntaxTree firstTree = (CSharpSyntaxTree)SyntaxTrees.FirstOrDefault();
 
             if (firstTree is null)
             {

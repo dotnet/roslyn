@@ -29,15 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             string langVersion)
         {
             var pdbOptions = DeterministicBuildCompilationTestHelpers.ParseCompilationOptions(compilationOptionsBlobReader);
-            var compilerVersion = DeterministicBuildCompilationTestHelpers.GetCurrentCompilerVersion();
 
 
-            DeterministicBuildCompilationTestHelpers.AssertEncoding(emitOptions, compilation, pdbOptions);
-
-            Assert.Equal(DeterministicBuildCompilationTestHelpers.GetPortabilityPolicy(originalOptions), pdbOptions["portability-policy"]);
+            DeterministicBuildCompilationTestHelpers.AssertCommonOptions(emitOptions, originalOptions, compilation, pdbOptions);
 
             // See CSharpCompilation.SerializeForPdb to see options that are included
-            Assert.Equal(compilerVersion.ToString(), pdbOptions["compiler-version"]);
             Assert.Equal(originalOptions.NullableContextOptions.ToString(), pdbOptions["nullable"]);
             Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
             Assert.Equal(originalOptions.AllowUnsafe.ToString(), pdbOptions["unsafe"]);
