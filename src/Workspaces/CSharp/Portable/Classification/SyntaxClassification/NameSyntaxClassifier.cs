@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
@@ -107,17 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             // If everything classifies the same way, then just pick that classification.
             using var _ = PooledHashSet<ClassifiedSpan>.GetInstance(out var set);
             var isStatic = false;
-            var staticSpan = new TextSpan();
             foreach (var symbol in symbolInfo.CandidateSymbols)
             {
                 if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
                 {
                     // If one symbol resolves to static, then just make it bold
                     isStatic = isStatic || IsStaticSymbol(symbol);
-                    if (IsStaticSymbol(symbol))
-                    {
-                        staticSpan = classifiedSpan.TextSpan;
-                    }
                     set.Add(classifiedSpan);
                 }
             }
@@ -127,11 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 // If any of the symbols are static, add the static classification and the regular symbol classification
                 if (isStatic)
                 {
-                    result.Add(new ClassifiedSpan(staticSpan, ClassificationTypeNames.StaticSymbol));
+                    result.Add(new ClassifiedSpan(set.First().TextSpan, ClassificationTypeNames.StaticSymbol));
                 }
+
                 result.Add(set.First());
                 return true;
             }
+
             return false;
         }
 

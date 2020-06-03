@@ -87,31 +87,8 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
             TextSpan span,
             ArrayBuilder<ClassifiedSpan> result)
         {
-            if (symbol is null || !symbol.IsStatic)
+            if (!IsStaticSymbol(symbol))
             {
-                return;
-            }
-
-            if (symbol.IsEnumMember())
-            {
-                // EnumMembers are not classified as static since there is no
-                // instance equivalent of the concept and they have their own
-                // classification type.
-                return;
-            }
-
-            if (symbol.IsNamespace())
-            {
-                // Namespace names are not classified as static since there is no
-                // instance equivalent of the concept and they have their own
-                // classification type.
-                return;
-            }
-
-            if (symbol.IsLocalFunction())
-            {
-                // Local function names are not classified as static since the
-                // the symbol returning true for IsStatic is an implementation detail.
                 return;
             }
 
@@ -147,6 +124,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
                 // the symbol returning true for IsStatic is an implementation detail.
                 return false;
             }
+
             return true;
         }
     }
