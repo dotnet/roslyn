@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
@@ -40,6 +39,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
         private readonly Dictionary<DefinitionItem, int> _definitionToId =
             new Dictionary<DefinitionItem, int>();
+
+        /// <summary>
+        /// Keeps track of definitions that cannot be reported without references and which we have
+        /// not yet found a reference for.
+        /// </summary>
+        private readonly Dictionary<int, VSReferenceItem> _definitionsWithoutReference =
+            new Dictionary<int, VSReferenceItem>();
 
         private readonly List<VSReferenceItem> _resultsChunk =
             new List<VSReferenceItem>();
@@ -77,28 +83,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 _id++;
                 _definitionToId.Add(definition, _id);
 
-                // VSReferenceItem currently doesn't support the ClassifiedTextElement type for DefinitionText,
-                // so for now we just pass in a string.
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138
-                var classifiedText = definition.GetClassifiedText();
-
-                using var pd = PooledStringBuilder.GetInstance(out var pooledBuilder);
-                foreach (var text in classifiedText.Runs)
-                {
-                    pooledBuilder.Append(text.Text);
-                }
-
-                var definitionText = pooledBuilder.ToString();
-
                 // Creating a new VSReferenceItem for the definition
                 var definitionItem = await GenerateVSReferenceItemAsync(
                     _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrDefault(),
-                    definition.DisplayableProperties, _metadataAsSourceFileService, definitionText,
+                    definition.DisplayableProperties, _metadataAsSourceFileService, definition.GetClassifiedText(),
                     symbolUsageInfo: null, CancellationToken).ConfigureAwait(false);
 
                 if (definitionItem != null)
                 {
-                    AddToReferencesToReport_MustBeCalledUnderLock(definitionItem);
+                    // If a definition shouldn't be included in the results list if it doesn't have references, we
+                    // have to hold off on reporting it until later when we do find a reference.
+                    if (definition.DisplayIfNoReferences)
+                    {
+                        AddToReferencesToReport_MustBeCalledUnderLock(definitionItem);
+                    }
+                    else
+                    {
+                        _definitionsWithoutReference.Add(definitionItem.Id, definitionItem);
+                    }
                 }
             }
         }
@@ -112,6 +114,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
                 {
                     return;
+                }
+
+                // If the definition hasn't been reported yet, add it to our list of references to report.
+                if (_definitionsWithoutReference.TryGetValue(definitionId, out var definition))
+                {
+                    AddToReferencesToReport_MustBeCalledUnderLock(definition);
+                    _definitionsWithoutReference.Remove(definitionId);
                 }
 
                 _id++;
@@ -143,7 +152,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             DocumentSpan documentSpan,
             ImmutableDictionary<string, string> properties,
             IMetadataAsSourceFileService metadataAsSourceFileService,
-            string? definitionText,
+            ClassifiedTextElement? definitionText,
             SymbolUsageInfo? symbolUsageInfo,
             CancellationToken cancellationToken)
         {
@@ -232,7 +241,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             static async Task<object?> ComputeTextAsync(
                 int id, int? definitionId,
                 DocumentSpan documentSpan,
-                string? definitionText,
+                ClassifiedTextElement? definitionText,
                 CancellationToken cancellationToken)
             {
                 if (id == definitionId)
