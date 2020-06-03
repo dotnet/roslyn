@@ -286,11 +286,11 @@ Since appconfig is a pointer to a file not embedded in the PDB or PE, informatio
 
 Encoding will be stored in two keys: "default-encoding" and "fallback-encoding". 
 
-If `default-encoding` is present, it represents the forced encoding used, such as by passing in "codepage" to the command line. All files should be decoded using this codepage value.
+If `default-encoding` is present, it represents the forced encoding used, such as by passing in "codepage" to the command line. All files should be decoded using this encoding.
 
 If `fallback-encoding` is present, it means that no default encoding was specified but an encoding was detected and used. The compiler [has logic](https://github.com/dotnet/roslyn/blob/462eac607741023e5c2d518ac1045f4c6dabd501/src/Compilers/Core/Portable/EncodedStringText.cs#L32) to determine an encoding is none is specified, so the value that was computed is stored so it can be reused in future compilations.
 
-Both values are codepage values for an encoding, such as `65001` for UTF-8. 
+Both values are written as [WebName](https://docs.microsoft.com/en-us/dotnet/api/system.text.encoding.webname?view=netcore-3.1) values for an encoding.
 
 #### Optimization
 

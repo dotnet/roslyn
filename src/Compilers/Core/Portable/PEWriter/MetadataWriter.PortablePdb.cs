@@ -849,12 +849,12 @@ namespace Microsoft.Cci
 
             if (module.EmitOptions.FallbackSourceFileEncoding != null)
             {
-                WriteValue("fallback-encoding", module.EmitOptions.FallbackSourceFileEncoding.CodePage.ToString());
+                WriteValue("fallback-encoding", module.EmitOptions.FallbackSourceFileEncoding.WebName);
             }
 
             if (module.EmitOptions.DefaultSourceFileEncoding != null)
             {
-                WriteValue("default-encoding", module.EmitOptions.DefaultSourceFileEncoding.CodePage.ToString());
+                WriteValue("default-encoding", module.EmitOptions.DefaultSourceFileEncoding.WebName);
             }
 
             int portabilityPolicy = 0;
