@@ -409,7 +409,6 @@ namespace Microsoft.CodeAnalysis.AddImport
             return compilation.WithReferences(reference);
         }
 
-
         bool IEqualityComparer<PortableExecutableReference>.Equals(PortableExecutableReference x, PortableExecutableReference y)
             => StringComparer.OrdinalIgnoreCase.Equals(x.FilePath ?? x.Display, y.FilePath ?? y.Display);
 

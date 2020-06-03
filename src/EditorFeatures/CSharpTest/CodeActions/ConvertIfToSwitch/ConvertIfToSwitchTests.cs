@@ -2517,7 +2517,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     }
 }";
 
-
             var fixedSource =
  @"class C
 {

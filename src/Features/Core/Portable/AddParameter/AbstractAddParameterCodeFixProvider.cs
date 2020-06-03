@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var argumentExpression = syntaxFacts.GetExpressionOfArgument(argument);
-            var argumentType = semanticModel.GetTypeInfo(argumentExpression).Type ?? semanticModel.Compilation.ObjectType;
+            var argumentType = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type ?? semanticModel.Compilation.ObjectType;
             var refKind = syntaxFacts.GetRefKindOfArgument(argument);
             return (argumentType, refKind);
         }

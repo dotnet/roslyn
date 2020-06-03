@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // Get the unique key to identify our data.
                     var key = PrefixMetadataSymbolTreeInfo + keySuffix;
                     using (var stream = await storage.ReadStreamAsync(key, checksum, cancellationToken).ConfigureAwait(false))
-                    using (var reader = ObjectReader.TryGetReader(stream))
+                    using (var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken))
                     {
                         if (reader != null)
                         {
