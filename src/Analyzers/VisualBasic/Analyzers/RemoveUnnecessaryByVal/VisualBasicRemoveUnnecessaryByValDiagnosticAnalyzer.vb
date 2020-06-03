@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
     Friend Class VisualBasicRemoveUnnecessaryByValDiagnosticAnalyzer
         Inherits AbstractCodeStyleDiagnosticAnalyzer
 
-        Private Shared ReadOnly s_descriptor As DiagnosticDescriptor = New DiagnosticDescriptor(
+        Private Shared ReadOnly s_descriptor As New DiagnosticDescriptor(
             id:=IDEDiagnosticIds.RemoveUnnecessaryByValDiagnosticId,
             title:="",
             messageFormat:="",
