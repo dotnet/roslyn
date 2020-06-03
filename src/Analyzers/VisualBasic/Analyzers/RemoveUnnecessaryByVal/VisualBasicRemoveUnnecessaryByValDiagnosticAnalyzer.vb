@@ -29,18 +29,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
             MyBase.New(s_descriptor.Id, s_descriptor.Title, s_descriptor.MessageFormat)
         End Sub
 
-        Protected Overrides Sub InitializeWorker(ByVal context As AnalysisContext)
+        Protected Overrides Sub InitializeWorker(context As AnalysisContext)
             context.RegisterSyntaxNodeAction(
-            Sub(syntaxContext As SyntaxNodeAnalysisContext)
-                Dim modifiers = CType(syntaxContext.Node, ParameterSyntax).Modifiers
-                For Each modifier In modifiers
-                    If modifier.IsKind(SyntaxKind.ByValKeyword) Then
-                        syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                Sub(syntaxContext As SyntaxNodeAnalysisContext)
+                    Dim modifiers = CType(syntaxContext.Node, ParameterSyntax).Modifiers
+                    For Each modifier In modifiers
+                        If modifier.IsKind(SyntaxKind.ByValKeyword) Then
+                            syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                                 s_descriptor, modifier.GetLocation(), ReportDiagnostic.Hidden, additionalLocations:=Nothing, properties:=Nothing))
-                    End If
-                Next
+                        End If
+                    Next
 
-            End Sub, SyntaxKind.Parameter)
+                End Sub, SyntaxKind.Parameter)
         End Sub
     End Class
 End Namespace
