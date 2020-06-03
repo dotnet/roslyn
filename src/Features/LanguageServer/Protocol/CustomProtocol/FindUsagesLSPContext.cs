@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         /// Keeps track of definitions that cannot be reported without references and which we have
         /// not yet found a reference for.
         /// </summary>
-        private readonly List<VSReferenceItem> _definitionsWithoutReferences =
-            new List<VSReferenceItem>();
+        private readonly Dictionary<int, VSReferenceItem> _definitionsWithoutReference =
+            new Dictionary<int, VSReferenceItem>();
 
         private readonly List<VSReferenceItem> _resultsChunk =
             new List<VSReferenceItem>();
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     }
                     else
                     {
-                        _definitionsWithoutReferences.Add(definitionItem);
+                        _definitionsWithoutReference.Add(definitionItem.Id, definitionItem);
                     }
                 }
             }
@@ -117,11 +117,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 }
 
                 // If the definition hasn't been reported yet, add it to our list of references to report.
-                var definitionItem = _definitionsWithoutReferences.Where(d => d.DefinitionId == definitionId).FirstOrDefault();
-                if (definitionItem != null)
+                if (_definitionsWithoutReference.TryGetValue(definitionId, out var definition))
                 {
-                    AddToReferencesToReport_MustBeCalledUnderLock(definitionItem);
-                    _definitionsWithoutReferences.Remove(definitionItem);
+                    AddToReferencesToReport_MustBeCalledUnderLock(definition);
+                    _definitionsWithoutReference.Remove(definitionId);
                 }
 
                 _id++;
