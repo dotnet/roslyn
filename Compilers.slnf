@@ -15,6 +15,7 @@
       "src\\CodeStyle\\CSharp\\Tests\\Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests.csproj",
       "src\\CodeStyle\\Core\\Analyzers\\Microsoft.CodeAnalysis.CodeStyle.csproj",
       "src\\CodeStyle\\Core\\CodeFixes\\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj",
+      "src\\CodeStyle\\Core\\Tests\\Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities.csproj",
       "src\\CodeStyle\\Core\\Tests\\Microsoft.CodeAnalysis.CodeStyle.UnitTestUtilities.csproj",
       "src\\CodeStyle\\VisualBasic\\Analyzers\\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.vbproj",
       "src\\CodeStyle\\VisualBasic\\CodeFixes\\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.vbproj",
