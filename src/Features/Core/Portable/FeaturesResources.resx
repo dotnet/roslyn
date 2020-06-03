@@ -1129,9 +1129,6 @@ This version used in: {2}</value>
   <data name="Convert_to_full_property" xml:space="preserve">
     <value>Convert to full property</value>
   </data>
-  <data name="Generate_constructor_in_0_without_fields" xml:space="preserve">
-    <value>Generate constructor in '{0}' (without fields)</value>
-  </data>
   <data name="Warning_Method_overrides_symbol_from_metadata" xml:space="preserve">
     <value>Warning: Method overrides symbol from metadata</value>
   </data>
@@ -2767,5 +2764,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Document_must_be_contained_in_the_workspace_that_created_this_service" xml:space="preserve">
     <value>Document must be contained in the workspace that created this service</value>
+  </data>
+  <data name="Generate_constructor_in_0_with_fields" xml:space="preserve">
+    <value>Generate constructor in '{0}' (with fields)</value>
+  </data>
+  <data name="Generate_constructor_in_0_with_properties" xml:space="preserve">
+    <value>Generate constructor in '{0}' (with properties)</value>
   </data>
 </root>

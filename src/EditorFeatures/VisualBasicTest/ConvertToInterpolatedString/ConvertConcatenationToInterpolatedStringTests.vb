@@ -231,7 +231,6 @@ Public Class C
 End Class")
         End Function
 
-
         <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithMultipleStringConcatinations2() As Task
@@ -249,7 +248,6 @@ Public Class C
     End Sub
 End Class")
         End Function
-
 
         <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
