@@ -202,15 +202,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _cachedDiagnostics;
         }
 
-        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, Location location)
-            : this(containingType, syntaxReferenceOpt, ImmutableArray.Create(location))
+        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, Location location, bool isIterator)
+            : this(containingType, syntaxReferenceOpt, ImmutableArray.Create(location), isIterator)
         {
         }
 
         protected SourceMemberMethodSymbol(
             NamedTypeSymbol containingType,
             SyntaxReference syntaxReferenceOpt,
-            ImmutableArray<Location> locations)
+            ImmutableArray<Location> locations,
+            bool isIterator)
             : base(syntaxReferenceOpt)
         {
             Debug.Assert((object)containingType != null);
@@ -218,6 +219,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _containingType = containingType;
             this.locations = locations;
+
+            if (isIterator)
+            {
+                _lazyIteratorElementType = TypeWithAnnotations.Boxed.Sentinel;
+            }
         }
 
         protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
@@ -586,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal Binder TryGetInMethodBinder(BinderFactory binderFactoryOpt = null)
+        private Binder TryGetInMethodBinder(BinderFactory binderFactoryOpt = null)
         {
             CSharpSyntaxNode contextNode = GetInMethodSyntaxNode();
             if (contextNode == null)
@@ -613,10 +619,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, BinderFlags additionalFlags = BinderFlags.None)
+        internal virtual ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
             Binder inMethod = TryGetInMethodBinder(binderFactoryOpt);
-            return inMethod == null ? null : new ExecutableCodeBinder(SyntaxNode, this, inMethod.WithAdditionalFlags(additionalFlags));
+            return inMethod == null ? null : new ExecutableCodeBinder(SyntaxNode, this, inMethod.WithAdditionalFlags(ignoreAccessibility ? BinderFlags.IgnoreAccessibility : BinderFlags.None));
         }
 
         /// <summary>
@@ -684,10 +690,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             set
             {
-                Debug.Assert(_lazyIteratorElementType == null || TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2));
-                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), null);
+                Debug.Assert(_lazyIteratorElementType == TypeWithAnnotations.Boxed.Sentinel || TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2));
+                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), TypeWithAnnotations.Boxed.Sentinel);
             }
         }
+
+        internal override bool IsIterator => _lazyIteratorElementType is object;
 
         //overridden appropriately in SourceMemberMethodSymbol
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations

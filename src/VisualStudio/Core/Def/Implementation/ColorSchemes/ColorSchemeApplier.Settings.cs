@@ -41,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 HasThemeBeenDefaulted = new HasThemeBeenDefaultedIndexer(visualStudioWorkspace);
             }
 
-
             public ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
             {
                 return new[]

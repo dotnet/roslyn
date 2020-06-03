@@ -119,7 +119,6 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-
             VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
 
             VisualStudio.Editor.Verify.TextContains(@"

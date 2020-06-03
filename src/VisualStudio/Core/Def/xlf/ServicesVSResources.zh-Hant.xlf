@@ -227,6 +227,11 @@
         <target state="new">Index</target>
         <note>Index of parameter in original signature</note>
       </trans-unit>
+      <trans-unit id="Infer_from_context">
+        <source>Infer from context</source>
+        <target state="new">Infer from context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexed_in_organization">
         <source>Indexed in organization</source>
         <target state="new">Indexed in organization</target>

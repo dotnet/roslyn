@@ -39,7 +39,6 @@ namespace N
 }
 </Code>
 
-
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
 
@@ -66,7 +65,6 @@ namespace N
 }
 </Code>
 
-
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
@@ -90,7 +88,6 @@ namespace N
     }
 }
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
@@ -116,7 +113,6 @@ namespace N
 }
 </Code>
 
-
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
@@ -140,7 +136,6 @@ namespace N
 }
 </Code>
             Dim code = <Code></Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code, metaDatacode, False))
                 Dim library = state.GetLibrary()
@@ -183,7 +178,6 @@ class C : B
     }
 }
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
@@ -237,7 +231,6 @@ class C : B
     }
 }
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
@@ -293,7 +286,6 @@ class C : B
 }
 </Code>
 
-
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
@@ -326,7 +318,6 @@ namespace N
     }
 }
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()
@@ -425,7 +416,6 @@ class Z&lt;T,U,V&gt; : Dictionary&lt;U,V&gt;
     where U : V
     where V : List&lt;T&gt;
 </Code>
-
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
                 Dim library = state.GetLibrary()

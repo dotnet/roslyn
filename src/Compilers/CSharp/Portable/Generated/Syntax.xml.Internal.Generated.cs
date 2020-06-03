@@ -1049,6 +1049,188 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+    internal sealed partial class FunctionPointerTypeSyntax : TypeSyntax
+    {
+        internal readonly SyntaxToken delegateKeyword;
+        internal readonly SyntaxToken asteriskToken;
+        internal readonly SyntaxToken? callingConvention;
+        internal readonly SyntaxToken lessThanToken;
+        internal readonly GreenNode? parameters;
+        internal readonly SyntaxToken greaterThanToken;
+
+        internal FunctionPointerTypeSyntax(SyntaxKind kind, SyntaxToken delegateKeyword, SyntaxToken asteriskToken, SyntaxToken? callingConvention, SyntaxToken lessThanToken, GreenNode? parameters, SyntaxToken greaterThanToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 6;
+            this.AdjustFlagsAndWidth(delegateKeyword);
+            this.delegateKeyword = delegateKeyword;
+            this.AdjustFlagsAndWidth(asteriskToken);
+            this.asteriskToken = asteriskToken;
+            if (callingConvention != null)
+            {
+                this.AdjustFlagsAndWidth(callingConvention);
+                this.callingConvention = callingConvention;
+            }
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
+        }
+
+        internal FunctionPointerTypeSyntax(SyntaxKind kind, SyntaxToken delegateKeyword, SyntaxToken asteriskToken, SyntaxToken? callingConvention, SyntaxToken lessThanToken, GreenNode? parameters, SyntaxToken greaterThanToken, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 6;
+            this.AdjustFlagsAndWidth(delegateKeyword);
+            this.delegateKeyword = delegateKeyword;
+            this.AdjustFlagsAndWidth(asteriskToken);
+            this.asteriskToken = asteriskToken;
+            if (callingConvention != null)
+            {
+                this.AdjustFlagsAndWidth(callingConvention);
+                this.callingConvention = callingConvention;
+            }
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
+        }
+
+        internal FunctionPointerTypeSyntax(SyntaxKind kind, SyntaxToken delegateKeyword, SyntaxToken asteriskToken, SyntaxToken? callingConvention, SyntaxToken lessThanToken, GreenNode? parameters, SyntaxToken greaterThanToken)
+          : base(kind)
+        {
+            this.SlotCount = 6;
+            this.AdjustFlagsAndWidth(delegateKeyword);
+            this.delegateKeyword = delegateKeyword;
+            this.AdjustFlagsAndWidth(asteriskToken);
+            this.asteriskToken = asteriskToken;
+            if (callingConvention != null)
+            {
+                this.AdjustFlagsAndWidth(callingConvention);
+                this.callingConvention = callingConvention;
+            }
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
+        }
+
+        /// <summary>SyntaxToken representing the delegate keyword.</summary>
+        public SyntaxToken DelegateKeyword => this.delegateKeyword;
+        /// <summary>SyntaxToken representing the asterisk.</summary>
+        public SyntaxToken AsteriskToken => this.asteriskToken;
+        /// <summary>SyntaxToken representing the optional calling convention.</summary>
+        public SyntaxToken? CallingConvention => this.callingConvention;
+        /// <summary>SyntaxToken representing the less than token.</summary>
+        public SyntaxToken LessThanToken => this.lessThanToken;
+        /// <summary>SeparatedSyntaxList of ParameterSyntaxes representing the list of parameters and return type.</summary>
+        public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> Parameters => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.parameters));
+        /// <summary>SyntaxToken representing the greater than token.</summary>
+        public SyntaxToken GreaterThanToken => this.greaterThanToken;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.delegateKeyword,
+                1 => this.asteriskToken,
+                2 => this.callingConvention,
+                3 => this.lessThanToken,
+                4 => this.parameters,
+                5 => this.greaterThanToken,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.FunctionPointerTypeSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerType(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFunctionPointerType(this);
+
+        public FunctionPointerTypeSyntax Update(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, SyntaxToken callingConvention, SyntaxToken lessThanToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        {
+            if (delegateKeyword != this.DelegateKeyword || asteriskToken != this.AsteriskToken || callingConvention != this.CallingConvention || lessThanToken != this.LessThanToken || parameters != this.Parameters || greaterThanToken != this.GreaterThanToken)
+            {
+                var newNode = SyntaxFactory.FunctionPointerType(delegateKeyword, asteriskToken, callingConvention, lessThanToken, parameters, greaterThanToken);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new FunctionPointerTypeSyntax(this.Kind, this.delegateKeyword, this.asteriskToken, this.callingConvention, this.lessThanToken, this.parameters, this.greaterThanToken, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new FunctionPointerTypeSyntax(this.Kind, this.delegateKeyword, this.asteriskToken, this.callingConvention, this.lessThanToken, this.parameters, this.greaterThanToken, GetDiagnostics(), annotations);
+
+        internal FunctionPointerTypeSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 6;
+            var delegateKeyword = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(delegateKeyword);
+            this.delegateKeyword = delegateKeyword;
+            var asteriskToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(asteriskToken);
+            this.asteriskToken = asteriskToken;
+            var callingConvention = (SyntaxToken?)reader.ReadValue();
+            if (callingConvention != null)
+            {
+                AdjustFlagsAndWidth(callingConvention);
+                this.callingConvention = callingConvention;
+            }
+            var lessThanToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            var parameters = (GreenNode?)reader.ReadValue();
+            if (parameters != null)
+            {
+                AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            var greaterThanToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.delegateKeyword);
+            writer.WriteValue(this.asteriskToken);
+            writer.WriteValue(this.callingConvention);
+            writer.WriteValue(this.lessThanToken);
+            writer.WriteValue(this.parameters);
+            writer.WriteValue(this.greaterThanToken);
+        }
+
+        static FunctionPointerTypeSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(FunctionPointerTypeSyntax), r => new FunctionPointerTypeSyntax(r));
+        }
+    }
+
     /// <summary>Class which represents the syntax node for a nullable type.</summary>
     internal sealed partial class NullableTypeSyntax : TypeSyntax
     {
@@ -31792,6 +31974,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitArrayType(ArrayTypeSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitFunctionPointerType(FunctionPointerTypeSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitTupleType(TupleTypeSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
@@ -32018,6 +32201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitArrayType(ArrayTypeSyntax node) => this.DefaultVisit(node);
         public virtual void VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node) => this.DefaultVisit(node);
         public virtual void VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitFunctionPointerType(FunctionPointerTypeSyntax node) => this.DefaultVisit(node);
         public virtual void VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
         public virtual void VisitTupleType(TupleTypeSyntax node) => this.DefaultVisit(node);
         public virtual void VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
@@ -32261,6 +32445,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override CSharpSyntaxNode VisitPointerType(PointerTypeSyntax node)
             => node.Update((TypeSyntax)Visit(node.ElementType), (SyntaxToken)Visit(node.AsteriskToken));
+
+        public override CSharpSyntaxNode VisitFunctionPointerType(FunctionPointerTypeSyntax node)
+            => node.Update((SyntaxToken)Visit(node.DelegateKeyword), (SyntaxToken)Visit(node.AsteriskToken), (SyntaxToken)Visit(node.CallingConvention), (SyntaxToken)Visit(node.LessThanToken), VisitList(node.Parameters), (SyntaxToken)Visit(node.GreaterThanToken));
 
         public override CSharpSyntaxNode VisitNullableType(NullableTypeSyntax node)
             => node.Update((TypeSyntax)Visit(node.ElementType), (SyntaxToken)Visit(node.QuestionToken));
@@ -33120,6 +33307,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return result;
+        }
+
+        public FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, SyntaxToken? callingConvention, SyntaxToken lessThanToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        {
+            #if DEBUG
+            if (delegateKeyword == null) throw new ArgumentNullException(nameof(delegateKeyword));
+            if (delegateKeyword.Kind != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
+            if (asteriskToken == null) throw new ArgumentNullException(nameof(asteriskToken));
+            if (asteriskToken.Kind != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
+            if (lessThanToken == null) throw new ArgumentNullException(nameof(lessThanToken));
+            if (lessThanToken.Kind != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+            if (greaterThanToken == null) throw new ArgumentNullException(nameof(greaterThanToken));
+            if (greaterThanToken.Kind != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+            #endif
+
+            return new FunctionPointerTypeSyntax(SyntaxKind.FunctionPointerType, delegateKeyword, asteriskToken, callingConvention, lessThanToken, parameters.Node, greaterThanToken, this.context);
         }
 
         public NullableTypeSyntax NullableType(TypeSyntax elementType, SyntaxToken questionToken)
@@ -37846,6 +38049,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
+        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, SyntaxToken? callingConvention, SyntaxToken lessThanToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        {
+            #if DEBUG
+            if (delegateKeyword == null) throw new ArgumentNullException(nameof(delegateKeyword));
+            if (delegateKeyword.Kind != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
+            if (asteriskToken == null) throw new ArgumentNullException(nameof(asteriskToken));
+            if (asteriskToken.Kind != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
+            if (lessThanToken == null) throw new ArgumentNullException(nameof(lessThanToken));
+            if (lessThanToken.Kind != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+            if (greaterThanToken == null) throw new ArgumentNullException(nameof(greaterThanToken));
+            if (greaterThanToken.Kind != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+            #endif
+
+            return new FunctionPointerTypeSyntax(SyntaxKind.FunctionPointerType, delegateKeyword, asteriskToken, callingConvention, lessThanToken, parameters.Node, greaterThanToken);
+        }
+
         public static NullableTypeSyntax NullableType(TypeSyntax elementType, SyntaxToken questionToken)
         {
             #if DEBUG
@@ -42366,6 +42585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(ArrayTypeSyntax),
                 typeof(ArrayRankSpecifierSyntax),
                 typeof(PointerTypeSyntax),
+                typeof(FunctionPointerTypeSyntax),
                 typeof(NullableTypeSyntax),
                 typeof(TupleTypeSyntax),
                 typeof(TupleElementSyntax),

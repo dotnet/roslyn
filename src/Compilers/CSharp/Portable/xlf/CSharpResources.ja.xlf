@@ -17,6 +17,16 @@
         <target state="translated">'{0}': 抽象イベントはイベント アクセサーの構文を使用できません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AddressOfMethodGroupInExpressionTree">
+        <source>'&amp;' on method groups cannot be used in expression trees</source>
+        <target state="new">'&amp;' on method groups cannot be used in expression trees</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AddressOfToNonFunctionPointer">
+        <source>Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</source>
+        <target state="new">Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
         <target state="translated">挿入される逐語的文字列で '$@' の代わりに '@$' を使用するには、言語バージョン '{0}' 以上をご使用ください。</target>
@@ -82,6 +92,16 @@
         <target state="translated">非同期 foreach では動的な型のコレクションを使用できません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadFuncPointerArgCount">
+        <source>Function pointer '{0}' does not take {1} arguments</source>
+        <target state="new">Function pointer '{0}' does not take {1} arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadFuncPointerParamModifier">
+        <source>'{0}' cannot be used as a modifier on a function pointer parameter.</source>
+        <target state="new">'{0}' cannot be used as a modifier on a function pointer parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadInitAccessor">
         <source>The 'init' accessor is not valid on static members</source>
         <target state="new">The 'init' accessor is not valid on static members</target>
@@ -115,6 +135,21 @@
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">コマンドライン構文エラー: '{0}' は、'{1}' オプションの有効な値ではありません。値は '{2}' の形式にする必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
+        <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
+        <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotUseFunctionPointerAsFixedLocal">
+        <source>The type of a local declared in a fixed statement cannot be a function pointer type.</source>
+        <target state="new">The type of a local declared in a fixed statement cannot be a function pointer type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
+        <source>Cannot use an extension method with a receiver as the target of a '&amp;' operator.</source>
+        <target state="new">Cannot use an extension method with a receiver as the target of a '&amp;' operator.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeInitOnlyOnOverride">
@@ -180,6 +215,11 @@
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">この破棄パターンは switch ステートメントの case ラベルとして許可されていません。破棄パターンに 'case var _:' を使用するか、'_' という定数に'case @_:' をご使用ください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DupReturnTypeMod">
+        <source>A return type can only have one '{0}' modifier.</source>
+        <target state="new">A return type can only have one '{0}' modifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateExplicitImpl">
@@ -292,6 +332,16 @@
         <target state="translated">foreach ステートメントは、'{0}' が '{1}' のパブリック インスタンス定義を含んでいないため、型 '{0}' の変数に対して使用できません。'foreach' ではなく 'await foreach' ですか?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FuncPtrMethMustBeStatic">
+        <source>Cannot create a function pointer for '{0}' because it is not a static method</source>
+        <target state="new">Cannot create a function pointer for '{0}' because it is not a static method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FuncPtrRefMismatch">
+        <source>Ref mismatch between '{0}' and function pointer '{1}'</source>
+        <target state="new">Ref mismatch between '{0}' and function pointer '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">goto は同じブロック内の using 宣言より前の位置にはジャンプできません。</target>
@@ -332,6 +382,16 @@
         <target state="translated">C# コンパイラで内部エラーが発生しました。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
+        <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
+        <target state="new">'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidFunctionPointerCallingConvention">
+        <source>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</source>
+        <target state="new">'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">無効なハッシュ アルゴリズム名: '{0}'</target>
@@ -370,6 +430,16 @@
       <trans-unit id="ERR_IteratorMustBeAsync">
         <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
         <target state="translated">反復子ブロックを伴うメソッド '{0}' が '{1}' を返すには 'async' でなければなりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MethFuncPtrMismatch">
+        <source>No overload for '{0}' matches function pointer '{1}'</source>
+        <target state="new">No overload for '{0}' matches function pointer '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingAddressOf">
+        <source>Cannot convert method group to function pointer (Are you missing a '&amp;'?)</source>
+        <target state="new">Cannot convert method group to function pointer (Are you missing a '&amp;'?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
@@ -537,6 +607,26 @@
         <target state="translated">ターゲット ランタイムは、インターフェイスのメンバーに対して 'protected'、'protected internal'、'private protected' アクセシビリティをサポートしていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
+        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
+        <target state="new">Cannot specify /main if there is a compilation unit with top-level statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
+        <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
+        <target state="new">Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramMultipleUnitsWithTopLevelStatements">
+        <source>Only one compilation unit can have top-level statements.</source>
+        <target state="new">Only one compilation unit can have top-level statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramNotAnExecutable">
+        <source>Program using top-level statements must be an executable.</source>
+        <target state="new">Program using top-level statements must be an executable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">単一要素の分解パターンには、あいまいさを排除するための他の構文が必要です。破棄指定子 '_' を閉じかっこ ')' の後に追加することをお勧めします。</target>
@@ -580,6 +670,11 @@
       <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
         <source>Parentheses are required around the switch governing expression.</source>
         <target state="translated">switch を制御する式の周囲にはかっこが必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
+        <source>Top-level statements must precede namespace and type declarations.</source>
+        <target state="new">Top-level statements must precede namespace and type declarations.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TripleDotNotAllowed">
@@ -632,6 +727,11 @@
         <target state="translated">型 '{2}' と、入れ子になっているあらゆるレベルのすべてのフィールドは、ジェネリック型またはメソッド '{0}' のパラメーター '{1}' として使用するために、Null 非許容の値型でなければなりません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCallingConvention">
+        <source>The calling convention of '{0}' is not supported by the language.</source>
+        <target state="new">The calling convention of '{0}' is not supported by the language.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForRelationalPattern">
         <source>Relational patterns may not be used for a value of type '{0}'.</source>
         <target state="new">Relational patterns may not be used for a value of type '{0}'.</target>
@@ -657,6 +757,11 @@
         <target state="new">All arguments to a `with` expression must be compiler-generated record properties.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_WrongFuncPtrCallingConvention">
+        <source>Calling convention of '{0}' is not compatible with '{1}'.</source>
+        <target state="new">Calling convention of '{0}' is not compatible with '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
         <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
         <target state="translated">タプル型 '{0}' のマッチングには '{1}' サブパターンが必要ですが、'{2}' サブパターンが指定されています。</target>
@@ -665,6 +770,11 @@
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
         <target state="translated">ファイル名 '{0}' は、空である、無効な文字を含んでいる、絶対パスが指定されていないドライブ指定がある、または長すぎるかのいずれかです。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_AddressOfMethodGroup">
+        <source>&amp;method group</source>
+        <target state="new">&amp;method group</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_CSCHelp">
@@ -1034,6 +1144,11 @@
         <target state="new">extern local functions</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFunctionPointers">
+        <source>function pointers</source>
+        <target state="new">function pointers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
         <source>index operator</source>
         <target state="translated">インデックス演算子</target>
@@ -1232,6 +1347,11 @@
       <trans-unit id="IDS_RELATEDWARNING">
         <source>(Location of symbol related to previous warning)</source>
         <target state="translated">(以前のエラーに関連する警告の位置)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_TopLevelStatements">
+        <source>top-level statements</source>
+        <target state="new">top-level statements</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">
@@ -1582,6 +1702,16 @@
       <trans-unit id="IDS_FeatureTypeVariance">
         <source>type variance</source>
         <target state="translated">型変性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotSameNumberParameterTypesAndRefKinds">
+        <source>Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</source>
+        <target state="new">Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OutIsNotValidForReturn">
+        <source>'RefKind.Out' is not a valid ref kind for a return type.</source>
+        <target state="new">'RefKind.Out' is not a valid ref kind for a return type.</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
@@ -7963,13 +8093,13 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored">
-        <source>The entry point of the program is global script code; ignoring '{0}' entry point.</source>
-        <target state="translated">プログラムのエントリ ポイントは、グローバル スクリプト コードです。エントリ ポイント '{0}' を無視します。</target>
+        <source>The entry point of the program is global code; ignoring '{0}' entry point.</source>
+        <target state="needs-review-translation">プログラムのエントリ ポイントは、グローバル スクリプト コードです。エントリ ポイント '{0}' を無視します。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored_Title">
-        <source>The entry point of the program is global script code; ignoring entry point</source>
-        <target state="translated">プログラムのエントリ ポイントは、グローバル スクリプト コードです。エントリ ポイントを無視します</target>
+        <source>The entry point of the program is global code; ignoring entry point</source>
+        <target state="needs-review-translation">プログラムのエントリ ポイントは、グローバル スクリプト コードです。エントリ ポイントを無視します</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticInAsOrIs">

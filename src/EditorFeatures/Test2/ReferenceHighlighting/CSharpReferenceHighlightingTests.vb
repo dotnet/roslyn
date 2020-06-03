@@ -588,7 +588,6 @@ class C
             Await VerifyHighlightsAsync(input)
         End Function
 
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Async Function TestPatternMatchingType2() As Task
             Dim input =

@@ -23,7 +23,6 @@ namespace AnalyzerRunner
         public readonly bool UseAll;
         public readonly int Iterations;
 
-
         // Options specific to incremental analyzers
         public readonly bool UsePersistentStorage;
         public readonly ImmutableArray<string> IncrementalAnalyzerNames;

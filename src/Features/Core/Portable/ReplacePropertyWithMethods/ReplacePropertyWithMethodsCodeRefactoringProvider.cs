@@ -428,7 +428,6 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             return originalDefinition.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol() as TSymbol;
         }
 
-
         private class ReplacePropertyWithMethodsCodeAction : CodeAction.SolutionChangeAction
         {
             public ReplacePropertyWithMethodsCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)

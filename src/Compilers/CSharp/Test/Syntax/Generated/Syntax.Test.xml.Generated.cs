@@ -37,6 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.PointerTypeSyntax GeneratePointerType()
             => InternalSyntaxFactory.PointerType(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.AsteriskToken));
 
+        private static Syntax.InternalSyntax.FunctionPointerTypeSyntax GenerateFunctionPointerType()
+            => InternalSyntaxFactory.FunctionPointerType(InternalSyntaxFactory.Token(SyntaxKind.DelegateKeyword), InternalSyntaxFactory.Token(SyntaxKind.AsteriskToken), null, InternalSyntaxFactory.Token(SyntaxKind.LessThanToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ParameterSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+
         private static Syntax.InternalSyntax.NullableTypeSyntax GenerateNullableType()
             => InternalSyntaxFactory.NullableType(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.QuestionToken));
 
@@ -775,6 +778,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(node.ElementType);
             Assert.Equal(SyntaxKind.AsteriskToken, node.AsteriskToken.Kind);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestFunctionPointerTypeFactoryAndProperties()
+        {
+            var node = GenerateFunctionPointerType();
+
+            Assert.Equal(SyntaxKind.DelegateKeyword, node.DelegateKeyword.Kind);
+            Assert.Equal(SyntaxKind.AsteriskToken, node.AsteriskToken.Kind);
+            Assert.Null(node.CallingConvention);
+            Assert.Equal(SyntaxKind.LessThanToken, node.LessThanToken.Kind);
+            Assert.Equal(default, node.Parameters);
+            Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -3754,6 +3772,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestPointerTypeIdentityRewriter()
         {
             var oldNode = GeneratePointerType();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerTypeTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFunctionPointerType();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerTypeIdentityRewriter()
+        {
+            var oldNode = GenerateFunctionPointerType();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -9330,6 +9374,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static PointerTypeSyntax GeneratePointerType()
             => SyntaxFactory.PointerType(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.AsteriskToken));
 
+        private static FunctionPointerTypeSyntax GenerateFunctionPointerType()
+            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.LessThanToken), new SeparatedSyntaxList<ParameterSyntax>(), SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+
         private static NullableTypeSyntax GenerateNullableType()
             => SyntaxFactory.NullableType(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.QuestionToken));
 
@@ -10069,6 +10116,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.ElementType);
             Assert.Equal(SyntaxKind.AsteriskToken, node.AsteriskToken.Kind());
             var newNode = node.WithElementType(node.ElementType).WithAsteriskToken(node.AsteriskToken);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerTypeFactoryAndProperties()
+        {
+            var node = GenerateFunctionPointerType();
+
+            Assert.Equal(SyntaxKind.DelegateKeyword, node.DelegateKeyword.Kind());
+            Assert.Equal(SyntaxKind.AsteriskToken, node.AsteriskToken.Kind());
+            Assert.Equal(SyntaxKind.None, node.CallingConvention.Kind());
+            Assert.Equal(SyntaxKind.LessThanToken, node.LessThanToken.Kind());
+            Assert.Equal(default, node.Parameters);
+            Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind());
+            var newNode = node.WithDelegateKeyword(node.DelegateKeyword).WithAsteriskToken(node.AsteriskToken).WithCallingConvention(node.CallingConvention).WithLessThanToken(node.LessThanToken).WithParameters(node.Parameters).WithGreaterThanToken(node.GreaterThanToken);
             Assert.Equal(node, newNode);
         }
 
@@ -13047,6 +13109,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestPointerTypeIdentityRewriter()
         {
             var oldNode = GeneratePointerType();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFunctionPointerTypeTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFunctionPointerType();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerTypeIdentityRewriter()
+        {
+            var oldNode = GenerateFunctionPointerType();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

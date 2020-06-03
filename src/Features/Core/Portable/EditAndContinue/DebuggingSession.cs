@@ -22,6 +22,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </summary>
     internal sealed class DebuggingSession : IDisposable
     {
+        public readonly Workspace Workspace;
+        public readonly IDebuggeeModuleMetadataProvider DebugeeModuleMetadataProvider;
+
         private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
         private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
 
@@ -82,15 +85,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly CommittedSolution LastCommittedSolution;
 
         internal DebuggingSession(
-            Solution solution,
+            Workspace workspace,
+            IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider,
             Func<Project, CompilationOutputs> compilationOutputsProvider)
         {
+            Workspace = workspace;
+            DebugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
             _compilationOutputsProvider = compilationOutputsProvider;
             _projectModuleIds = new Dictionary<ProjectId, (Guid, Diagnostic)>();
             _projectEmitBaselines = new Dictionary<ProjectId, EmitBaseline>();
             _modulesPreparedForUpdate = new HashSet<Guid>();
 
-            LastCommittedSolution = new CommittedSolution(this, solution);
+            LastCommittedSolution = new CommittedSolution(this, workspace.CurrentSolution);
             NonRemappableRegions = ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
         }
 
@@ -141,12 +147,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal CompilationOutputs GetCompilationOutputs(Project project)
             => _compilationOutputsProvider(project);
 
-        internal bool AddModulePreparedForUpdate(Guid mvid)
+        internal void PrepareModuleForUpdate(Guid mvid, CancellationToken cancellationToken)
         {
             lock (_modulesPreparedForUpdateGuard)
             {
-                return _modulesPreparedForUpdate.Add(mvid);
+                if (!_modulesPreparedForUpdate.Add(mvid))
+                {
+                    return;
+                }
             }
+
+            // fire and forget:
+            _ = Task.Run(() => DebugeeModuleMetadataProvider.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
         }
 
         public void CommitSolutionUpdate(PendingSolutionUpdate update)
@@ -241,7 +253,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         /// <returns>Null if the module corresponding to he project hasn't been loaded yet</returns>
         /// <exception cref="IOException">Error reading project's binary.</exception>
-        public EmitBaseline? GetOrCreateEmitBaseline(ProjectId projectId, Guid mvid, IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider)
+        public EmitBaseline? GetOrCreateEmitBaseline(ProjectId projectId, Guid mvid)
         {
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA, "SymReader requires MTA");
 
@@ -254,7 +266,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            var moduleInfo = debugeeModuleMetadataProvider.TryGetBaselineModuleInfo(mvid);
+            var moduleInfo = DebugeeModuleMetadataProvider.TryGetBaselineModuleInfo(mvid);
             if (moduleInfo == null)
             {
                 // Module not loaded.

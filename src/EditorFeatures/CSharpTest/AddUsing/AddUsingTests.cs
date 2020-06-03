@@ -3905,7 +3905,6 @@ namespace X
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingOrdinalUppercase()
         {
@@ -4991,7 +4990,6 @@ namespace B
 }");
         }
 
-
         [WorkItem(745490, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/745490")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingForAwaitableReturningExtensionMethod()
@@ -5331,7 +5329,6 @@ namespace N
 }
 ");
         }
-
 
         [WorkItem(30734, "https://github.com/dotnet/roslyn/issues/30734")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
