@@ -129,4 +129,7 @@
   <data name="If_statement_can_be_simplified" xml:space="preserve">
     <value>'If' statement can be simplified</value>
   </data>
+  <data name="Remove_ByVal" xml:space="preserve">
+    <value>'ByVal' keyword is unnecessary and can be removed.</value>
+  </data>
 </root>
