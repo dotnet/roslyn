@@ -360,7 +360,6 @@ class Class
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationCrossingNullableAnnotationsEnabled()
         {
@@ -436,7 +435,6 @@ class Class
     }
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationNamedValueArg()

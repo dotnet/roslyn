@@ -2416,7 +2416,6 @@ public class C
                     Generator.GetAccessorDeclaration(Accessibility.NotApplicable, new[] { Generator.ReturnStatement() })),
                 "x p\r\n{\r\n    get\r\n    {\r\n        return;\r\n    }\r\n}");
 
-
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(
                     Generator.PropertyDeclaration("p", Generator.IdentifierName("x")),

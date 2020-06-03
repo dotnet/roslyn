@@ -104,7 +104,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                              Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
                          End Function)
 
-
             Dim handled = controller.TryHandleDownKey()
 
             Assert.False(handled)
@@ -121,7 +120,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                              mre.WaitOne()
                              Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
                          End Function)
-
 
             Dim handled = controller.TryHandleUpKey()
 
