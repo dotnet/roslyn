@@ -31,6 +31,9 @@
       <ProjectTemplateLink ProjectName="$safeprojectname$">
         ProjectTemplates\VisualBasic\Diagnostic\Analyzer\DiagnosticAnalyzer.vstemplate
       </ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$safeprojectname$.Package">
+        ProjectTemplates\VisualBasic\Diagnostic\Package\Package.vstemplate
+      </ProjectTemplateLink>
       <ProjectTemplateLink ProjectName="$safeprojectname$.Test">
         ProjectTemplates\VisualBasic\Diagnostic\Test\Test.vstemplate
       </ProjectTemplateLink>

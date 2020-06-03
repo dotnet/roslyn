@@ -2,25 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-  </PropertyGroup>
+    <IsPackable>false</IsPackable>
 
-  <PropertyGroup>
-    <PackageId>$safeprojectname$</PackageId>
-    <PackageVersion>1.0.0.0</PackageVersion>
-    <Authors>$username$</Authors>
-    <PackageLicenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</PackageLicenseUrl>
-    <PackageProjectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</PackageProjectUrl>
-    <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl>
-    <RepositoryUrl>http://REPOSITORY_URL_HERE_OR_DELETE_THIS_LINE</RepositoryUrl>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Description>$safeprojectname$</Description>
-    <PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
-    <Copyright>Copyright</Copyright>
-    <PackageTags>$safeprojectname$, analyzers</PackageTags>
-    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <!-- Avoid ID conflicts with the package project. -->
+    <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,11 +16,6 @@
   <ItemGroup>
     <Compile Update="Resources.Designer.cs" DesignTime="True" AutoGen="True" DependentUpon="Resources.resx" />
     <EmbeddedResource Update="Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
 </Project>

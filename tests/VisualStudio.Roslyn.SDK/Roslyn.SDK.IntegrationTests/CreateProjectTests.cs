@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
             var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
-            Assert.Equal("========== Build: 3 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+            Assert.Equal("========== Build: 4 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
             await TestServices.ErrorList.ShowBuildErrorsAsync();
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Testing
             await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(HangMitigatingCancellationToken);
 
             var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAsync(waitForBuildToFinish: true);
-            Assert.Equal("========== Build: 3 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+            Assert.Equal("========== Build: 4 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
 
             await TestServices.ErrorList.ShowBuildErrorsAsync();
 

@@ -29,7 +29,10 @@
          Modifying it requires changes to the wizard code.-->
     <ProjectCollection>
       <ProjectTemplateLink ProjectName="$safeprojectname$">
-       ProjectTemplates\CSharp\Diagnostic\Analyzer\DiagnosticAnalyzer.vstemplate
+        ProjectTemplates\CSharp\Diagnostic\Analyzer\DiagnosticAnalyzer.vstemplate
+      </ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$safeprojectname$.Package">
+        ProjectTemplates\CSharp\Diagnostic\Package\Package.vstemplate
       </ProjectTemplateLink>
       <ProjectTemplateLink ProjectName="$safeprojectname$.Test">
         ProjectTemplates\CSharp\Diagnostic\Test\Test.vstemplate
