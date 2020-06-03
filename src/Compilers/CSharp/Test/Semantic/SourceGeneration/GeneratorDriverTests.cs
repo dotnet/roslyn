@@ -662,6 +662,7 @@ class C { }
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
             outputCompilation.VerifyDiagnostics();
+            generatorDiagnostics.Verify();
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
         }
 
@@ -682,6 +683,7 @@ class C { }
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator, generator2), ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
             outputCompilation.VerifyDiagnostics();
+            generatorDiagnostics.Verify();
             Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
 
             var filePaths = outputCompilation.SyntaxTrees.Skip(1).Select(t => t.FilePath).ToArray();

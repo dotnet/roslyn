@@ -12219,7 +12219,6 @@ class C
         [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file2.cs")] // same files, different names
         [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file1.cs")] // same files, same names
         [InlineData("partial class D {}", "file1.cs", "", "file2.cs")] // empty second file
-        [InlineData("partial class D {}", "file1.cs", "", " \\ / : * ? \" < > | ")] // illegal path name chars
         public void SourceGenerators_EmbeddedSources_MultipleFiles(string source1, string source1Name, string source2, string source2Name)
         {
             var dir = Temp.CreateDirectory();
@@ -12525,10 +12524,7 @@ option1 = def");
 
         public void Execute(SourceGeneratorContext context)
         {
-            if (!string.IsNullOrWhiteSpace(_sourceToAdd))
-            {
-                context.AddSource(_fileName, SourceText.From(_sourceToAdd, Encoding.UTF8));
-            }
+            context.AddSource(_fileName, SourceText.From(_sourceToAdd, Encoding.UTF8));
         }
 
         public void Initialize(InitializationContext context)
