@@ -60,7 +60,6 @@ Public Class VisualBasicDeterministicBuildCompilationTests
             Dim reproducible = entries(2)
             Dim embedded = entries(3)
 
-
             Using embeddedPdb As MetadataReaderProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded)
                 Dim pdbReader = embeddedPdb.GetMetadataReader()
 

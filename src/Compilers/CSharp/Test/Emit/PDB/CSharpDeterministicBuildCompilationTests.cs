@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         {
             var pdbOptions = DeterministicBuildCompilationTestHelpers.ParseCompilationOptions(compilationOptionsBlobReader);
 
-
             DeterministicBuildCompilationTestHelpers.AssertCommonOptions(emitOptions, originalOptions, compilation, pdbOptions);
 
             // See CSharpCompilation.SerializeForPdb to see options that are included
@@ -70,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                 var checksum = entries[1];
                 var reproducible = entries[2];
                 var embedded = entries[3];
-
 
                 using (var embeddedPdb = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded))
                 {
@@ -203,11 +201,9 @@ public struct StructWithValue
             TestDeterministicCompilationCSharp(parseOptions.LanguageVersion.ToString(), testSource, compilationOptions, emitOptions, referenceOne, referenceTwo);
         }
 
-        public IEnumerator<object[]> GetEnumerator()
-        => GetTestParameters().GetEnumerator();
+        public IEnumerator<object[]> GetEnumerator() => GetTestParameters().GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-        => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         private static IEnumerable<object[]> GetTestParameters()
         {

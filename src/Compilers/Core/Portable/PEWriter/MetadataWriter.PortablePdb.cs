@@ -841,7 +841,6 @@ namespace Microsoft.Cci
         /// </summary>
         private void EmbedCompilationOptions(CommonPEModuleBuilder module)
         {
-
             var builder = new BlobBuilder();
 
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;

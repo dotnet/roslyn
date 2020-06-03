@@ -65,10 +65,10 @@ namespace Microsoft.CodeAnalysis
         private readonly string _clientDirectory;
 
         /// <summary>
-        /// Fallback encoding that is lazily retrieved if needed. If <see cref="EncodedStringText.GetFallbackEncoding"/> is
+        /// Fallback encoding that is lazily retrieved if needed. If <see cref="EncodedStringText.CreateFallbackEncoding"/> is
         /// evaluated and stored, the value is used if a PDB is created for this compilation.
         /// </summary>
-        private readonly Lazy<Encoding> _fallbackEncoding = new Lazy<Encoding>(EncodedStringText.GetFallbackEncoding);
+        private readonly Lazy<Encoding> _fallbackEncoding = new Lazy<Encoding>(EncodedStringText.CreateFallbackEncoding);
 
         public CommonMessageProvider MessageProvider { get; }
         public CommandLineArguments Arguments { get; }

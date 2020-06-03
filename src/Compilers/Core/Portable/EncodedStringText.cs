@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         private static readonly Encoding s_utf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
-        private static readonly Lazy<Encoding> s_fallbackEncoding = new Lazy<Encoding>(GetFallbackEncoding);
+        private static readonly Lazy<Encoding> s_fallbackEncoding = new Lazy<Encoding>(CreateFallbackEncoding);
 
         /// <summary>
         /// Encoding to use when UTF-8 fails. We try to find the following, in order, if available:
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Text
         ///     2. CodePage 1252.
         ///     3. Latin1.
         /// </summary>
-        internal static Encoding GetFallbackEncoding()
+        internal static Encoding CreateFallbackEncoding()
         {
             try
             {

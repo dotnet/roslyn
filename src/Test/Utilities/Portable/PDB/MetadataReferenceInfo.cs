@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslyn.Test.Utilities.PDB
 {
-    internal struct MetadataReferenceInfo
+    internal readonly struct MetadataReferenceInfo
     {
         public readonly int Timestamp;
         public readonly int ImageSize;
