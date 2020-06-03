@@ -49,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return arrowExpression;
                 case LocalFunctionStatementSyntax localFunction:
                     return (CSharpSyntaxNode?)localFunction.Body ?? localFunction.ExpressionBody;
+                case TypeDeclarationSyntax recordDecl:
+                    return recordDecl;
                 default:
                     return null;
             }

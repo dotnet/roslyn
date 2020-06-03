@@ -85,6 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement rewritten, SyntaxNode syntax)
         {
+            if (syntax.IsKind(SyntaxKind.Parameter))
+            {
+                // This is an initialization of a generated property based on record parameter.
+                return AddSequencePoint(rewritten);
+            }
+
             Debug.Assert(syntax is { Parent: { Parent: { } } });
             var grandparent = syntax.Parent.Parent;
             switch (grandparent.Kind())

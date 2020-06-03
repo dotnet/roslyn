@@ -35,10 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 GeneratedNames.MakeBackingFieldName(name),
                 isReadOnly: true,
                 isStatic: false,
-                hasInitializer: backingParameter.HasExplicitDefaultValue);
+                hasInitializer: true);
             GetMethod = new GetAccessorSymbol(this, name);
             SetMethod = new InitAccessorSymbol(this, name, diagnostics);
         }
+
+        public ParameterSymbol BackingParameter => _backingParameter;
 
         internal override bool IsAutoProperty => true;
 
