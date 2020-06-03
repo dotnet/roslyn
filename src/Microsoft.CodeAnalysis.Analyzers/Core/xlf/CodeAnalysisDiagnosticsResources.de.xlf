@@ -72,6 +72,36 @@
         <target state="translated">Fügen Sie dem Analysetoolrelease Analysetooldiagnose-IDs hinzu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign.</source>
+        <target state="new">The diagnostic description should be one or multiple sentences ending with a punctuation sign.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
+        <source>Define diagnostic description correctly</source>
+        <target state="new">Define diagnostic description correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
+        <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</source>
+        <target state="new">The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
+        <source>Define diagnostic message correctly</source>
+        <target state="new">Define diagnostic message correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
+        <source>The diagnostic title should not contain a period or any line return character</source>
+        <target state="new">The diagnostic title should not contain a period or any line return character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
+        <source>Define diagnostic title correctly</source>
+        <target state="new">Define diagnostic title correctly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
         <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
         <target state="translated">"GetSemanticModel" ist eine kostspielige Methode zum Aufruf in einem Diagnoseanalysetool, weil damit ein vollständig neues Semantikmodell erstellt wird, das keine Kompilierungsdaten mit dem Compiler oder anderen Analysetools teilt. Dies führt zu zusätzlichen Leistungseinbußen bei der Semantikanalyse. Erwägen Sie stattdessen die Registrierung einer anderen Analysetoolaktion, die die Verwendung eines freigegebenen "SemanticModel" wie z. B. "RegisterOperationAction", "RegisterSyntaxNodeAction" oder "RegisterSemanticModelAction" ermöglicht.</target>

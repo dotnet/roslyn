@@ -230,6 +230,12 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Checks if the given method has the signature "Task CloseAsync()".
+        /// </summary>
+        private static bool HasDisposeCloseAsyncMethodSignature(this IMethodSymbol method, INamedTypeSymbol? taskType)
+            => taskType != null && method.Parameters.IsEmpty && method.Name == "CloseAsync" && method.ReturnType.Equals(taskType);
+
+        /// <summary>
         /// Checks if the given method has the signature "Task DisposeAsync()" or "ValueTask DisposeAsync()".
         /// </summary>
         private static bool HasDisposeAsyncMethodSignature(this IMethodSymbol method,
@@ -306,6 +312,10 @@ namespace Analyzer.Utilities.Extensions
                 else if (method.HasDisposeCloseMethodSignature())
                 {
                     return DisposeMethodKind.Close;
+                }
+                else if (method.HasDisposeCloseAsyncMethodSignature(task))
+                {
+                    return DisposeMethodKind.CloseAsync;
                 }
             }
 
@@ -561,10 +571,12 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Returns true for void returning methods with two parameters, where
         /// the first parameter is of <see cref="object"/> type and the second
-        /// parameter inherits from or equals <see cref="EventArgs"/> type.
+        /// parameter inherits from or equals <see cref="EventArgs"/> type or
+        /// whose name ends with 'EventArgs'.
         /// </summary>
         public static bool HasEventHandlerSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? eventArgsType)
             => eventArgsType != null &&
+               method.ReturnsVoid &&
                method.Parameters.Length == 2 &&
                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
                // FxCop compat: Struct with name ending with "EventArgs" are allowed

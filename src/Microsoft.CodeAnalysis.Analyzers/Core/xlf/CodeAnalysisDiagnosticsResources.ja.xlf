@@ -72,6 +72,36 @@
         <target state="translated">アナライザー診断 ID をアナライザー リリースに追加します。</target>
         <note />
       </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign.</source>
+        <target state="new">The diagnostic description should be one or multiple sentences ending with a punctuation sign.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
+        <source>Define diagnostic description correctly</source>
+        <target state="new">Define diagnostic description correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
+        <source>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</source>
+        <target state="new">The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
+        <source>Define diagnostic message correctly</source>
+        <target state="new">Define diagnostic message correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
+        <source>The diagnostic title should not contain a period or any line return character</source>
+        <target state="new">The diagnostic title should not contain a period or any line return character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
+        <source>Define diagnostic title correctly</source>
+        <target state="new">Define diagnostic title correctly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
         <source>'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.</source>
         <target state="translated">'GetSemanticModel' は、コンパイラやその他のアナライザーとコンパイル データを共有しないまったく新しいセマンティック モデルを作成するため、診断アナライザー内で呼び出すのにコストの高い方法です。セマンティック分析中に追加のパフォーマンス コストが発生します。代わりに、'RegisterOperationAction'、'RegisterSyntaxNodeAction'、'RegisterSemanticModelAction' など、共有されている 'SemanticModel' を使用できる別のアナライザー操作を登録することをご検討ください。</target>

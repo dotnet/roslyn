@@ -503,4 +503,22 @@
   <data name="EnableAnalyzerReleaseTrackingRuleDescription" xml:space="preserve">
     <value>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</value>
   </data>
+  <data name="DefineDiagnosticTitleCorrectlyMessage" xml:space="preserve">
+    <value>The diagnostic title should not contain a period or any line return character</value>
+  </data>
+  <data name="DefineDiagnosticTitleCorrectlyTitle" xml:space="preserve">
+    <value>Define diagnostic title correctly</value>
+  </data>
+  <data name="DefineDiagnosticMessageCorrectlyMessage" xml:space="preserve">
+    <value>The diagnostic message should not contain any line return character and should either be a single sentence without a trailing period or a multi-sentences with a trailing period.</value>
+  </data>
+  <data name="DefineDiagnosticMessageCorrectlyTitle" xml:space="preserve">
+    <value>Define diagnostic message correctly</value>
+  </data>
+  <data name="DefineDiagnosticDescriptionCorrectlyMessage" xml:space="preserve">
+    <value>The diagnostic description should be one or multiple sentences ending with a punctuation sign.</value>
+  </data>
+  <data name="DefineDiagnosticDescriptionCorrectlyTitle" xml:space="preserve">
+    <value>Define diagnostic description correctly</value>
+  </data>
 </root>

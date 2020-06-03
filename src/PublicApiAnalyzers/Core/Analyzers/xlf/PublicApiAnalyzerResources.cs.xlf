@@ -179,7 +179,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="needs-review-translation">Všechny veřejné typy a členy by se měly deklarovat s anotacemi o možnosti použití hodnoty null v souboru PublicAPI.txt. To přitáhne pozornost ke změnám možnosti použití hodnoty null u rozhraní API při revizích a v historii správy zdrojového kódu a pomůže předejít změnám způsobujícím chybu.</target>
+        <target state="translated">Soubory PublicAPI.txt by měly mít #nullable enable, aby se sledovala informace o možné hodnotě null, nebo by se tato diagnostika měla potlačit. Když se možnost nastavit hodnotu null povolí, PublicAPI.txt bude uchovávat informace o tom, které typy bude možné nastavit na null (přípona typu ?) a které ne (přípona !). Kromě toho sleduje všechna rozhraní API, která stále používají typy bez určení možnosti použití hodnoty null (předpona ~ na řádku).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
         <source>Enable tracking of nullability of reference types in the declared API</source>
-        <target state="needs-review-translation">Přidat anotace o možnosti použití hodnoty null u typů a členů v deklarovaném rozhraní API</target>
+        <target state="translated">Povolit sledování možnosti použití hodnoty null pro typy odkazů v deklarovaném rozhraní API</target>
         <note />
       </trans-unit>
     </body>

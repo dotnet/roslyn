@@ -179,7 +179,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="needs-review-translation">Alle öffentlichen Typen und Member müssen in "PublicAPI.txt" mit Anmerkungen zur NULL-Zulässigkeit deklariert werden. Dadurch wird die Aufmerksamkeit auf Änderungen an der NULL-Zulässigkeit der API in den Code Reviews und der Versionsgeschichte der Quellcodeverwaltung gelenkt, und Breaking Changes werden verhindert.</target>
+        <target state="translated">Für "PublicAPI.txt"-Dateien muss "#nullable enable" festgelegt sein, um Informationen zur NULL-Zulässigkeit nachzuverfolgen. Andernfalls sollte diese Diagnose unterdrückt werden. Bei aktivierter NULL-Zulässigkeit zeichnet "PublicAPI.txt" auf, welche Typen NULL-Werte zulassen (Suffix "?" für den Typ) bzw. keine NULL-Werte zulassen (Suffix "!"). Zudem werden alle APIs verfolgt, die noch immer einen nicht beachtenden Verweistyp verwenden (Präfix "~" in der Zeile).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
         <source>Enable tracking of nullability of reference types in the declared API</source>
-        <target state="needs-review-translation">NULL-Zulässigkeit von Typen und Membern in der deklarierten API anmerken</target>
+        <target state="translated">Nachverfolgung der NULL-Zulässigkeit von Verweistypen in der deklarierten API aktivieren</target>
         <note />
       </trans-unit>
     </body>
