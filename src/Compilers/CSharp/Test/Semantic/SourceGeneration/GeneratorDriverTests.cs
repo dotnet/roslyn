@@ -442,7 +442,7 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             SingleFileTestGenerator testGenerator1 = new SingleFileTestGenerator("public class D { }");
-            SingleFileTestGenerator testGenerator2 = new SingleFileTestGenerator("public class E { }");
+            SingleFileTestGenerator2 testGenerator2 = new SingleFileTestGenerator2("public class E { }");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions,
                                                                generators: ImmutableArray.Create<ISourceGenerator>(testGenerator1),
@@ -559,7 +559,7 @@ class C { }
             var exception = new InvalidOperationException("generate error");
 
             var generator = new CallbackGenerator((ic) => { }, (sgc) => throw exception);
-            var generator2 = new CallbackGenerator((ic) => { }, (sgc) => { }, source: "public class D { }");
+            var generator2 = new CallbackGenerator2((ic) => { }, (sgc) => { }, source: "public class D { }");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator, generator2), ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
@@ -635,6 +635,60 @@ class C { }
             generatorDiagnostics.Verify(
                 Diagnostic("TG001").WithLocation(1, 1)
                 );
+        }
+
+        [Fact]
+        public void Generator_HintName_MustBe_Unique()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new CallbackGenerator((ic) => { }, (sgc) =>
+            {
+                sgc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8));
+
+                // the assert should swallow the exception, so we'll actually succesfully generate
+                Assert.Throws<ArgumentException>("hintName", () => sgc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8)));
+
+                // also throws for <name> vs <name>.cs
+                Assert.Throws<ArgumentException>("hintName", () => sgc.AddSource("test.cs", SourceText.From("public class D{}", Encoding.UTF8)));
+            });
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
+            outputCompilation.VerifyDiagnostics();
+            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
+        }
+
+        [Fact]
+        public void Generator_HintName_Is_Appended_With_GeneratorName()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new SingleFileTestGenerator("public class D {}", "source.cs");
+            var generator2 = new SingleFileTestGenerator2("public class E {}", "source.cs");
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator, generator2), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
+            outputCompilation.VerifyDiagnostics();
+            Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
+
+            var filePaths = outputCompilation.SyntaxTrees.Skip(1).Select(t => t.FilePath).ToArray();
+            Assert.Equal(new[] {
+                "Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration.SingleFileTestGenerator_source.cs",
+                "Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration.SingleFileTestGenerator2_source.cs"
+            }, filePaths);
         }
     }
 }

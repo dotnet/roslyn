@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(GeneratorDriverState state)
         {
+            Debug.Assert(state.Generators.GroupBy(s => s.GetType()).Count() == state.Generators.Length); // ensure we don't have duplicate generator types
             _state = state;
         }
 
@@ -99,7 +102,7 @@ namespace Microsoft.CodeAnalysis
                     _ = receivers.TryGetValue(generator, out var syntaxReceiverOpt);
                     var context = new SourceGeneratorContext(compilation, state.AdditionalTexts.NullToEmpty(), syntaxReceiverOpt, diagnosticsBag);
                     generator.Execute(context);
-                    stateBuilder[generator] = generatorState.WithSources(ParseAdditionalSources(context.AdditionalSources.ToImmutableAndFree(), cancellationToken));
+                    stateBuilder[generator] = generatorState.WithSources(ParseAdditionalSources(generator, context.AdditionalSources.ToImmutableAndFree(), cancellationToken));
                 }
                 catch
                 {
@@ -190,7 +193,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // update the state with the new edits
-                    state = state.With(generatorStates: state.GeneratorStates.SetItem(generator, generatorState.WithSources(ParseAdditionalSources(context.AdditionalSources.ToImmutableAndFree(), cancellationToken))));
+                    state = state.With(generatorStates: state.GeneratorStates.SetItem(generator, generatorState.WithSources(ParseAdditionalSources(generator, context.AdditionalSources.ToImmutableAndFree(), cancellationToken))));
                 }
             }
             state = edit.Commit(state);
@@ -246,12 +249,13 @@ namespace Microsoft.CodeAnalysis
             return comp;
         }
 
-        private ImmutableDictionary<GeneratedSourceText, SyntaxTree> ParseAdditionalSources(ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
+        private ImmutableDictionary<GeneratedSourceText, SyntaxTree> ParseAdditionalSources(ISourceGenerator generator, ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
         {
             var trees = PooledDictionary<GeneratedSourceText, SyntaxTree>.GetInstance();
+            var prefix = generator.GetType().FullName;
             foreach (var source in generatedSources)
             {
-                trees.Add(source, ParseGeneratedSourceText(source, cancellationToken));
+                trees.Add(source, ParseGeneratedSourceText(source, $"{prefix}_{source.HintName}", cancellationToken));
             }
             return trees.ToImmutableDictionaryAndFree();
         }
@@ -275,6 +279,6 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract GeneratorDriver FromState(GeneratorDriverState state);
 
-        internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, CancellationToken cancellationToken);
+        internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken);
     }
 }

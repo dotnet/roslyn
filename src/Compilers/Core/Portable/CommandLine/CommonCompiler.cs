@@ -799,10 +799,7 @@ namespace Microsoft.CodeAnalysis
                     sourceFileAnalyzerConfigOptions = sourceFileAnalyzerConfigOptions.AddRange(generatedSyntaxTrees.Select(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath)));
                 }
 
-                if (!embeddedTexts.IsDefault)
-                {
-                    embeddedTexts = embeddedTexts.AddRange(generatedSyntaxTrees.Select(t => EmbeddedText.FromSource(t.FilePath, t.GetText())));
-                }
+                embeddedTexts = embeddedTexts.AddRange(generatedSyntaxTrees.Select(t => EmbeddedText.FromSource(t.FilePath, t.GetText())));
             }
 
             CompileAndEmit(

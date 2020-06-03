@@ -12203,11 +12203,44 @@ class C
 }");
 
             var generatedSource = "public class D { }";
-            var generator = new SimpleGenerator(generatedSource);
+            var generator = new SimpleGenerator(generatedSource, "generatedSource.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
-            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, SimpleGenerator.FileName), generatedSource } }, dir, true);
+            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, "Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.SimpleGenerator_generatedSource.cs"), generatedSource } }, dir, true);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+        }
+
+        [Theory]
+        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file2.cs")] // different files, different names
+        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file1.cs")] // different files, same names
+        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file2.cs")] // same files, different names
+        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file1.cs")] // same files, same names
+        [InlineData("partial class D {}", "file1.cs", "", "file2.cs")] // empty second file
+        [InlineData("partial class D {}", "file1.cs", "", " \\ / : * ? \" < > | ")] // illegal path name chars
+        public void SourceGenerators_EmbeddedSources_MultipleFiles(string source1, string source1Name, string source2, string source2Name)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generator = new SimpleGenerator(source1, source1Name);
+            var generator2 = new SimpleGenerator2(source2, source2Name);
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
+
+            var generator1Prefix = generator.GetType().FullName;
+            var generator2Prefix = generator2.GetType().FullName;
+
+
+            ValidateEmbeddedSources_Portable(new Dictionary<string, string>
+            {
+                { Path.Combine(dir.Path, $"{generator1Prefix}_{source1Name}"), source1},
+                { Path.Combine(dir.Path, $"{generator2Prefix}_{source2Name}"), source2},
+            }, dir, true);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -12226,7 +12259,7 @@ class C
 [*.cs]
 key = value");
 
-            var generator = new SimpleGenerator("public class D {}");
+            var generator = new SimpleGenerator("public class D {}", "generated.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: null);
         }
@@ -12474,8 +12507,7 @@ option1 = def");
     internal class SimpleGenerator : ISourceGenerator
     {
         private readonly string _sourceToAdd;
-
-        public const string FileName = "addedSource.cs";
+        private readonly string _fileName;
 
         /// <remarks>
         /// Required for reflection based tests
@@ -12485,20 +12517,28 @@ option1 = def");
             _sourceToAdd = string.Empty;
         }
 
-        public SimpleGenerator(string sourceToAdd)
+        public SimpleGenerator(string sourceToAdd, string fileName)
         {
             _sourceToAdd = sourceToAdd;
+            _fileName = fileName;
         }
 
         public void Execute(SourceGeneratorContext context)
         {
             if (!string.IsNullOrWhiteSpace(_sourceToAdd))
             {
-                context.AddSource(FileName, SourceText.From(_sourceToAdd, Encoding.UTF8));
+                context.AddSource(_fileName, SourceText.From(_sourceToAdd, Encoding.UTF8));
             }
         }
 
         public void Initialize(InitializationContext context)
+        {
+        }
+    }
+
+    internal class SimpleGenerator2 : SimpleGenerator
+    {
+        public SimpleGenerator2(string sourceToAdd, string fileName) : base(sourceToAdd, fileName)
         {
         }
     }

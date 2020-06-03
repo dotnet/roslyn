@@ -33,6 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
     }
 
+    internal class SingleFileTestGenerator2 : SingleFileTestGenerator
+    {
+        public SingleFileTestGenerator2(string content, string hintName = "generatedFile") : base(content, hintName)
+        {
+        }
+    }
+
     internal class CallbackGenerator : ISourceGenerator
     {
         private readonly Action<InitializationContext> _onInit;
@@ -55,6 +62,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             }
         }
         public void Initialize(InitializationContext context) => _onInit(context);
+    }
+
+    internal class CallbackGenerator2 : CallbackGenerator
+    {
+        public CallbackGenerator2(Action<InitializationContext> onInit, Action<SourceGeneratorContext> onExecute, string? source = "") : base(onInit, onExecute, source)
+        {
+        }
     }
 
     internal class AdditionalFileAddedGenerator : ISourceGenerator

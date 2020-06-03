@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Adds a <see cref="SourceText"/> to the compilation
         /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text</param>
-        /// <param name="sourceText">The text to add</param>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
         public void AddSource(string hintName, SourceText sourceText)
         {
             if (string.IsNullOrWhiteSpace(hintName))
@@ -76,6 +76,12 @@ namespace Microsoft.CodeAnalysis
             {
                 hintName = string.Concat(hintName, ".cs");
             }
+
+            if (AdditionalSources.Contains(hintName))
+            {
+                throw new ArgumentException(CodeAnalysisResources.HintNameUniquePerGenerator, nameof(hintName));
+            }
+
             AdditionalSources.Add(hintName, sourceText);
         }
 
