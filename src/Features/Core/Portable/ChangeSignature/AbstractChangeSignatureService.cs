@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             if (reference != null)
             {
-                insertPosition = declarationChangeSignatureService.GetPositionBeforeParameterListClosingBrace(reference.GetSyntax());
+                insertPosition = declarationChangeSignatureService.GetPositionBeforeParameterListClosingBrace(reference.GetSyntax(cancellationToken));
             }
             else
             {

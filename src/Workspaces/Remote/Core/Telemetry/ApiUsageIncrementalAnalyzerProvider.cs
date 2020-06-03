@@ -183,8 +183,8 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     var root = model.SyntaxTree.GetRoot(cancellationToken);
 
                     // go through all nodes until we find first node that has IOperation
-                    foreach (var rootOperation in root.DescendantNodes(n => model.GetOperation(n) == null)
-                                                     .Select(n => model.GetOperation(n))
+                    foreach (var rootOperation in root.DescendantNodes(n => model.GetOperation(n, cancellationToken) == null)
+                                                     .Select(n => model.GetOperation(n, cancellationToken))
                                                      .Where(o => o != null))
                     {
                         foreach (var operation in rootOperation.DescendantsAndSelf())
