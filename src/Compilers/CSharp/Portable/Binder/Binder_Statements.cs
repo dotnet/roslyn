@@ -3265,6 +3265,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (syntax)
             {
+                case TypeDeclarationSyntax recordDecl:
+                    return BindRecordConstructorBody(recordDecl);
+
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
                     {
@@ -3311,6 +3314,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      expressionBody: null);
         }
 
+        private BoundNode BindRecordConstructorBody(TypeDeclarationSyntax recordDecl)
+        {
+            return new BoundConstructorMethodBody(recordDecl,
+                                                  locals: ImmutableArray<LocalSymbol>.Empty,
+                                                  initializer: null,
+                                                  blockBody: new BoundBlock(recordDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
+                                                  expressionBody: null);
+        }
+
         private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, DiagnosticBag diagnostics)
         {
             if (constructor.Initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
@@ -3320,6 +3332,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder bodyBinder = this.GetBinder(constructor);
             Debug.Assert(bodyBinder != null);
+
+            if (constructor.Initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) != true &&
+                ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any())
+            {
+                Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, constructor.Initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+            }
 
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,

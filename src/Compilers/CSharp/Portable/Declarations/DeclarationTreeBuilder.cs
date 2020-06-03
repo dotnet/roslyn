@@ -397,6 +397,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
                                                     ref declFlags);
 
+            // A record with parameters at least has a primary constructor
+            if ((declFlags & SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers) == 0)
+            {
+                switch (node)
+                {
+                    case ClassDeclarationSyntax { ParameterList: { } }:
+                    case StructDeclarationSyntax { ParameterList: { } }:
+                        declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
+                        break;
+                }
+            }
+
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
 
             return new SingleTypeDeclaration(

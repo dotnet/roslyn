@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitTypeDeclarationCore(parent, extraInfo);
             }
 
-            private Binder VisitTypeDeclarationCore(TypeDeclarationSyntax parent, NodeUsage extraInfo)
+            internal Binder VisitTypeDeclarationCore(TypeDeclarationSyntax parent, NodeUsage extraInfo)
             {
                 var key = CreateBinderCacheKey(parent, extraInfo);
 
@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private static BinderCacheKey CreateBinderCacheKey(CSharpSyntaxNode node, NodeUsage usage)
+            internal static BinderCacheKey CreateBinderCacheKey(CSharpSyntaxNode node, NodeUsage usage)
             {
                 Debug.Assert(BitArithmeticUtilities.CountBits((uint)usage) <= 1, "Not a flags enum.");
                 return new BinderCacheKey(node, usage);

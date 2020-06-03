@@ -156,6 +156,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.ExpressionBody, enclosing);
         }
 
+        public override void VisitClassDeclaration(ClassDeclarationSyntax node)
+        {
+            // We get here for record's primary constructor
+        }
+
+        public override void VisitStructDeclaration(StructDeclarationSyntax node)
+        {
+            // We get here for record's primary constructor
+        }
+
         public override void VisitDestructorDeclaration(DestructorDeclarationSyntax node)
         {
             Visit(node.Body);
