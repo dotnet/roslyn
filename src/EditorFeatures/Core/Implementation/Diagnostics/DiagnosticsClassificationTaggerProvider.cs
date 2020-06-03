@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public DiagnosticsClassificationTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
@@ -60,13 +61,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         // If we are under high contrast mode, the editor ignores classification tags that fade things out,
         // because that reduces contrast. Since the editor will ignore them, there's no reason to produce them.
-        protected internal override bool IsEnabled => !_editorOptionsFactoryService.GlobalOptions.GetOptionValue(DefaultTextViewHostOptions.IsInContrastModeId);
+        protected internal override bool IsEnabled
+            => !_editorOptionsFactoryService.GlobalOptions.GetOptionValue(DefaultTextViewHostOptions.IsInContrastModeId);
 
-        protected internal override bool IncludeDiagnostic(DiagnosticData data) =>
-            data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+        protected internal override bool IncludeDiagnostic(DiagnosticData data)
+            => data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
-        protected internal override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data) =>
-            new TagSpan<ClassificationTag>(span, _classificationTag);
+        protected internal override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
+            => new TagSpan<ClassificationTag>(span, _classificationTag);
 
         protected internal override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
         {
