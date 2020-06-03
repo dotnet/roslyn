@@ -76,24 +76,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 && diagnosticData.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var unnecessaryIndices)
                 && unnecessaryIndices is object)
             {
-                using var locationsToTagDisposer = PooledObjects.ArrayBuilder<DiagnosticDataLocation>.GetInstance(out var locationsToTag);
+                using var _ = PooledObjects.ArrayBuilder<DiagnosticDataLocation>.GetInstance(out var locationsToTag);
 
                 var additionalLocations = diagnosticData.AdditionalLocations.ToImmutableArray();
-                var indices = GetLocationIndices(unnecessaryIndices);
-                locationsToTag.AddRange(indices.Select(i => additionalLocations[i]).ToImmutableArray());
+                foreach (var index in GetLocationIndices(unnecessaryIndices))
+                    locationsToTag.Add(additionalLocations[index]);
+
+                return locationsToTag.ToImmutable();
             }
 
             // Default to the base implementation for the diagnostic data
             return base.GetLocationsToTag(diagnosticData);
 
-            static IEnumerable<int>? GetLocationIndices(string indicesProperty)
+            static IEnumerable<int> GetLocationIndices(string indicesProperty)
             {
                 try
                 {
                     using var stream = new MemoryStream(Encoding.UTF8.GetBytes(indicesProperty));
                     var serializer = new DataContractJsonSerializer(typeof(IEnumerable<int>));
                     var result = serializer.ReadObject(stream) as IEnumerable<int>;
-                    return result;
+                    return result ?? Array.Empty<int>();
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                 {
