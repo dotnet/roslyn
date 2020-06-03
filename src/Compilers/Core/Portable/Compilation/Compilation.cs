@@ -2794,7 +2794,6 @@ namespace Microsoft.CodeAnalysis
                         deterministic,
                         emitOptions.EmitTestCoverageData,
                         privateKeyOpt,
-                        emitOptions.DefaultSourceFileEncoding,
                         cancellationToken))
                     {
                         if (nativePdbWriter != null)
@@ -2876,7 +2875,6 @@ namespace Microsoft.CodeAnalysis
             bool isDeterministic,
             bool emitTestCoverageData,
             RSAParameters? privateKeyOpt,
-            Encoding? defaultSourceEncoding,
             CancellationToken cancellationToken)
         {
             bool emitSecondaryAssembly = getMetadataPeStreamOpt != null;
@@ -2894,7 +2892,6 @@ namespace Microsoft.CodeAnalysis
                 deterministicPrimaryOutput,
                 emitTestCoverageData,
                 privateKeyOpt,
-                defaultSourceEncoding,
                 cancellationToken))
             {
                 return false;
@@ -2917,7 +2914,6 @@ namespace Microsoft.CodeAnalysis
                     isDeterministic: true,
                     emitTestCoverageData: false,
                     privateKeyOpt: privateKeyOpt,
-                    defaultSourceEncoding,
                     cancellationToken: cancellationToken))
                 {
                     return false;

@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             Compilation compilation,
             EmitOptions emitOptions,
             BlobReader compilationOptionsBlobReader,
-            string compilerVersion = null)
+            string langVersion)
         {
             var pdbOptions = DeterministicBuildCompilationTestHelpers.ParseCompilationOptions(compilationOptionsBlobReader);
-            compilerVersion ??= DeterministicBuildCompilationTestHelpers.GetCurrentCompilerVersion();
+            var compilerVersion = DeterministicBuildCompilationTestHelpers.GetCurrentCompilerVersion();
 
 
             DeterministicBuildCompilationTestHelpers.AssertEncoding(emitOptions, compilation, pdbOptions);
@@ -37,13 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             Assert.Equal(DeterministicBuildCompilationTestHelpers.GetPortabilityPolicy(originalOptions), pdbOptions["portability-policy"]);
 
             // See CSharpCompilation.SerializeForPdb to see options that are included
-            Assert.Equal(compilerVersion.ToString(), pdbOptions["compilerversion"]);
+            Assert.Equal(compilerVersion.ToString(), pdbOptions["compiler-version"]);
             Assert.Equal(originalOptions.NullableContextOptions.ToString(), pdbOptions["nullable"]);
             Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
             Assert.Equal(originalOptions.AllowUnsafe.ToString(), pdbOptions["unsafe"]);
-
-            var isOptimized = originalOptions.OptimizationLevel == OptimizationLevel.Release ? true : false;
-            Assert.Equal(isOptimized.ToString(), pdbOptions["optimize"]);
+            Assert.Equal(langVersion, pdbOptions["language-version"]);
+            Assert.Equal(originalOptions.OptimizationLevel.ToString(), pdbOptions["optimization"]);
 
             var firstSyntaxTree = compilation.SyntaxTrees.FirstOrDefault() as CSharpSyntaxTree;
             if (firstSyntaxTree is null || firstSyntaxTree.Options.PreprocessorSymbols.IsEmpty)
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             }
         }
 
-        private static void TestDeterministicCompilationCSharp(SyntaxTree[] syntaxTrees, CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, params TestMetadataReferenceInfo[] metadataReferences)
+        private static void TestDeterministicCompilationCSharp(string langVersion, SyntaxTree[] syntaxTrees, CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, params TestMetadataReferenceInfo[] metadataReferences)
         {
             var originalCompilation = CreateCompilation(
                 syntaxTrees,
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                     var metadataReferenceReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.MetadataReferenceInfo, pdbReader);
                     var compilationOptionsReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader);
 
-                    VerifyCompilationOptions(compilationOptions, originalCompilation, emitOptions, compilationOptionsReader);
+                    VerifyCompilationOptions(compilationOptions, originalCompilation, emitOptions, compilationOptionsReader, langVersion);
                     DeterministicBuildCompilationTestHelpers.VerifyReferenceInfo(metadataReferences, metadataReferenceReader);
                 }
             }
@@ -147,7 +146,7 @@ public struct StructWithValue
                 emitOptions: emitOptions);
 
             var testSource = new[] { sourceOne, sourceTwo, sourceThree };
-            TestDeterministicCompilationCSharp(testSource, compilationOptions, emitOptions, referenceOne, referenceTwo);
+            TestDeterministicCompilationCSharp(parseOptions.LanguageVersion.ToString(), testSource, compilationOptions, emitOptions, referenceOne, referenceTwo);
         }
 
         [ConditionalTheory(typeof(DesktopOnly))]
@@ -206,7 +205,7 @@ public struct StructWithValue
                 emitOptions: emitOptions);
 
             var testSource = new[] { sourceOne, sourceTwo, sourceThree };
-            TestDeterministicCompilationCSharp(testSource, compilationOptions, emitOptions, referenceOne, referenceTwo);
+            TestDeterministicCompilationCSharp(parseOptions.LanguageVersion.ToString(), testSource, compilationOptions, emitOptions, referenceOne, referenceTwo);
         }
 
         public IEnumerator<object[]> GetEnumerator()

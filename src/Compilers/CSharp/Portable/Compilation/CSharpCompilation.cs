@@ -3491,10 +3491,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             WriteValue("checked", Options.CheckOverflow.ToString());
             WriteValue("nullable", Options.NullableContextOptions.ToString());
             WriteValue("unsafe", Options.AllowUnsafe.ToString());
-            WriteValue("langversion", LanguageVersion.ToDisplayString());
-
-            var isOptimized = Options.OptimizationLevel == OptimizationLevel.Release ? true : false;
-            WriteValue("optimize", isOptimized.ToString());
+            WriteValue("language-version", LanguageVersion.ToString());
+            WriteValue("optimization", Options.OptimizationLevel.ToString());
 
             var preprocessorSymbols = GetPreprocessorSymbols();
             if (preprocessorSymbols.Any())

@@ -42,12 +42,12 @@ namespace Roslyn.Test.Utilities.PDB
         {
             if (emitOptions.FallbackSourceFileEncoding != null)
             {
-                Assert.Equal(emitOptions.FallbackSourceFileEncoding.CodePage.ToString(), pdbOptions["fallbackencoding"]);
+                Assert.Equal(emitOptions.FallbackSourceFileEncoding.CodePage.ToString(), pdbOptions["fallback-encoding"]);
             }
 
             if (emitOptions.DefaultSourceFileEncoding != null)
             {
-                Assert.Equal(emitOptions.DefaultSourceFileEncoding.CodePage.ToString(), pdbOptions["defaultencoding"]);
+                Assert.Equal(emitOptions.DefaultSourceFileEncoding.CodePage.ToString(), pdbOptions["default-encoding"]);
             }
         }
 

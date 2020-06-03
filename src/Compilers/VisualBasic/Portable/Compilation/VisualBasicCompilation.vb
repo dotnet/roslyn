@@ -710,11 +710,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)
             WriteValue(builder, "checked", Options.CheckOverflow.ToString())
-            WriteValue(builder, "langversion", LanguageVersion.ToDisplayString())
-            WriteValue(builder, "optionstrict", Options.OptionStrict.ToString())
-
-            Dim isOptimized = If(Options.OptimizationLevel = OptimizationLevel.Release, True, False)
-            WriteValue(builder, "optimize", isOptimized.ToString())
+            WriteValue(builder, "language-version", LanguageVersion.ToDisplayString())
+            WriteValue(builder, "option-strict", Options.OptionStrict.ToString())
+            WriteValue(builder, "optimization", Options.OptimizationLevel.ToString())
 
             If Options.ParseOptions IsNot Nothing Then
                 Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)

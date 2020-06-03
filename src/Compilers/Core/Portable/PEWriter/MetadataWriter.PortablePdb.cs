@@ -845,16 +845,16 @@ namespace Microsoft.Cci
             var builder = new BlobBuilder();
 
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
-            WriteValue("compilerversion", compilerVersion);
+            WriteValue("compiler-version", compilerVersion);
 
             if (module.EmitOptions.FallbackSourceFileEncoding != null)
             {
-                WriteValue("fallbackencoding", module.EmitOptions.FallbackSourceFileEncoding.CodePage.ToString());
+                WriteValue("fallback-encoding", module.EmitOptions.FallbackSourceFileEncoding.CodePage.ToString());
             }
 
             if (module.EmitOptions.DefaultSourceFileEncoding != null)
             {
-                WriteValue("defaultencoding", module.EmitOptions.DefaultSourceFileEncoding.CodePage.ToString());
+                WriteValue("default-encoding", module.EmitOptions.DefaultSourceFileEncoding.CodePage.ToString());
             }
 
             int portabilityPolicy = 0;
