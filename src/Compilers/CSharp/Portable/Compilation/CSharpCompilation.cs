@@ -2638,7 +2638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree,
                     diagnostics => FilterDiagnosticsByLocation(diagnostics, syntaxTree, filterSpanWithinTree));
 
-                var syntaxDiagnostics = syntaxTree.GetDiagnostics();
+                var syntaxDiagnostics = syntaxTree.GetDiagnostics(cancellationToken);
                 syntaxDiagnostics = FilterDiagnosticsByLocation(syntaxDiagnostics, syntaxTree, filterSpanWithinTree);
                 builder.AddRange(syntaxDiagnostics);
             }

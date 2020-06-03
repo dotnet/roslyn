@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     var newDeclaration = model.SyntaxTree.GetRoot(cancellationToken).GetCurrentNode(decl);
                     if (newDeclaration != null)
                     {
-                        var newSymbol = model.GetDeclaredSymbol(newDeclaration);
+                        var newSymbol = model.GetDeclaredSymbol(newDeclaration, cancellationToken);
                         if (newSymbol != null)
                         {
                             return newSymbol;

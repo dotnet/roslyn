@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     var textBuffer = text.Container.TryGetTextBuffer();
                     if (textBuffer != null &&
                         textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine) &&
-                        stateMachine.CanInvokeRename(out _))
+                        stateMachine.CanInvokeRename(out _, cancellationToken: cancellationToken))
                     {
                         return stateMachine.TryGetCodeAction(
                             document, text, textSpan, refactorNotifyServices, undoHistoryRegistry, cancellationToken);
