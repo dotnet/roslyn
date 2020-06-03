@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <IsProductComponent>false</IsProductComponent>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
 
   <!-- Package References -->
@@ -21,7 +22,7 @@
   <ItemGroup>
     <EmbeddedResource Update="Resources.resx">
       <SubType>Designer</SubType>
-      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <CustomToolNamespace>Roslyn.SyntaxVisualizer.DgmlHelper.My.Resources</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>
     </EmbeddedResource>
