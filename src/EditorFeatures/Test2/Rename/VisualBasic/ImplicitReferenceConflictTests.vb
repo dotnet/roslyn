@@ -46,7 +46,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="MovNext")
 
-
                 result.AssertLabeledSpansAre("foreachconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -84,7 +83,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="MOVENEXT")
 
-
             End Using
         End Sub
 
@@ -94,7 +92,6 @@ End Class
         Public Sub RenameMoveNextToChangeCasingInCSDoesntCauseConflictInForEach(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 public class B
@@ -116,7 +113,6 @@ public class C
 
                         </Document>
                     </Project>
-
                     <Project Language="Visual Basic" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -132,9 +128,7 @@ Class X
 End Class
                         </Document>
                     </Project>
-
                 </Workspace>, host:=host, renameTo:="MOVENEXT")
-
 
             End Using
         End Sub
@@ -145,7 +139,6 @@ End Class
         Public Sub RenameMoveNextInCSCauseConflictInForEach(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
-
                     <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
                         <Document>
 public class B
@@ -167,7 +160,6 @@ public class C
 
                         </Document>
                     </Project>
-
                     <Project Language="Visual Basic" AssemblyName="Project2" CommonReferences="true">
                         <ProjectReference>Project1</ProjectReference>
                         <Document>
@@ -183,9 +175,7 @@ Class X
 End Class
                         </Document>
                     </Project>
-
                 </Workspace>, host:=host, renameTo:="Move")
-
 
                 result.AssertLabeledSpansAre("foreachconflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using

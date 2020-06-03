@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteExtensionMethodImportCompletionService.GetUnimportedExtensionMethodsAsync),
                         project.Solution,
-                        new object[] { document.Id, position, SymbolKey.CreateString(receiverTypeSymbol), namespaceInScope.ToArray(), forceIndexCreation },
+                        new object[] { document.Id, position, SymbolKey.CreateString(receiverTypeSymbol, cancellationToken), namespaceInScope.ToArray(), forceIndexCreation },
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 

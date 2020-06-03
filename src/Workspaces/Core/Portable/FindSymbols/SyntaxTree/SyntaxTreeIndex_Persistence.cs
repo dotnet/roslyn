@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // attempt to load from persisted state
                 using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
                 using var stream = await storage.ReadStreamAsync(document, PersistenceName, checksum, cancellationToken).ConfigureAwait(false);
-                using var reader = ObjectReader.TryGetReader(stream);
+                using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
                 if (reader != null)
                 {
                     return ReadFrom(GetStringTable(document.Project), reader, checksum);

@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var project = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
             if (project != null && project.SupportsCompilation)
             {
-                var symbolId = symbol.GetSymbolKey();
+                var symbolId = symbol.GetSymbolKey(cancellationToken);
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var result = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(compilation));
             }
 
-            var key = symbol.GetSymbolKey();
+            var key = symbol.GetSymbolKey(cancellationToken);
 
             // We may be talking about different compilations.  So do not try to resolve locations.
             var result = new HashSet<TSymbol>();

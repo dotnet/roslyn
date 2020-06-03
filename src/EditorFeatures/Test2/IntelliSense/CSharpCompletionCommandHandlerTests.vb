@@ -6745,7 +6745,6 @@ namespace NS2
             End Using
         End Function
 
-
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletelyMatchedExpandedItemAndPrefixMatchedNonExpandedItem(showCompletionInArgumentLists As Boolean) As Task
@@ -6900,7 +6899,6 @@ namespace NS2
                 ' make sure expander is selected
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
                 Await state.AssertSelectedCompletionItem(displayText:="MyTask1", inlineDescription:="")
-
 
                 Dim expectedOrder As (String, String)() =
                     {
