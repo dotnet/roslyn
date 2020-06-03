@@ -270,6 +270,7 @@ public struct StructWithValue
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Warnings);
             yield return defaultOptions.WithOptimizationLevel(OptimizationLevel.Release);
             yield return defaultOptions.WithDebugPlusMode(true);
+            yield return defaultOptions.WithOptimizationLevel(OptimizationLevel.Release).WithDebugPlusMode(true);
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: false, suppressSilverlightPlatformAssembliesPortability: false)));
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: true, suppressSilverlightPlatformAssembliesPortability: false)));
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: false, suppressSilverlightPlatformAssembliesPortability: true)));
