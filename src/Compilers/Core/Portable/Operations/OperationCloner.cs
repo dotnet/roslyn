@@ -662,7 +662,5 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new UsingDeclarationOperation(Visit(operation.DeclarationGroup), operation.IsAsynchronous, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
-
-        // TODO2
     }
 }
