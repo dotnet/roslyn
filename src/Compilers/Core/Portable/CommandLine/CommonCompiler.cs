@@ -1177,7 +1177,8 @@ namespace Microsoft.CodeAnalysis
                             privateKeyOpt = compilation.StrongNameKeys.PrivateKey;
                         }
 
-                        // If we're going to serialize to a
+                        // If we serialize to a PE stream we need to record the fallback encoding if it was used
+                        // so the compilation can be recreated.
                         emitOptions = emitOptions.WithFallbackSourceFileEncoding(GetFallbackEncoding());
 
                         success = compilation.SerializeToPeStream(

@@ -106,14 +106,14 @@ namespace Microsoft.CodeAnalysis.Emit
         public string? RuntimeMetadataVersion { get; private set; }
 
         /// <summary>
-        /// The default source encoding used to parse source before producing a compilation. Only embedded in
-        /// the pdb if the value is non-null. 
+        /// The encoding used to parse source files that do not have a Byte Order Mark. If specified,
+        /// is stored in the emitted PDB in order to allow recreating the original compilation.
         /// </summary>
         public Encoding? DefaultSourceFileEncoding { get; private set; }
 
         /// <summary>
-        /// The fallback source encoding used to parse source before producing a compilation. Only embedded
-        /// in the pdb if the value is non-null.
+        /// If <see cref="DefaultSourceFileEncoding"/> is not specified, the encoding used to parse source files
+        /// that do not declare their encoding via Byte Order Mark and are not UTF8-encoded.
         /// </summary>
         public Encoding? FallbackSourceFileEncoding { get; private set; }
 

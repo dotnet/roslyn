@@ -44,14 +44,13 @@ namespace Microsoft.Cci
             bool isDeterministic,
             bool emitTestCoverageData,
             RSAParameters? privateKeyOpt,
-            Encoding defaultSourceFileEncoding,
             CancellationToken cancellationToken)
         {
             // If PDB writer is given, we have to have PDB path.
             Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
             var mdWriter = FullMetadataWriter.Create(context, messageProvider, metadataOnly, isDeterministic,
-                emitTestCoverageData, getPortablePdbStreamOpt != null, defaultSourceFileEncoding, cancellationToken);
+                emitTestCoverageData, getPortablePdbStreamOpt != null, cancellationToken);
 
             var properties = context.Module.SerializationProperties;
 

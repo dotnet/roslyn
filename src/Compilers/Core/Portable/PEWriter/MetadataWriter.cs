@@ -93,7 +93,6 @@ namespace Microsoft.Cci
             bool metadataOnly,
             bool deterministic,
             bool emitTestCoverageData,
-            Encoding defaultSourceEncoding,
             CancellationToken cancellationToken)
         {
             Debug.Assert(metadata != debugMetadataOpt);

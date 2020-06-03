@@ -716,7 +716,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim isOptimized = If(Options.OptimizationLevel = OptimizationLevel.Release, True, False)
             WriteValue(builder, "optimize", isOptimized.ToString())
 
-            If (Options.ParseOptions IsNot Nothing) Then
+            If Options.ParseOptions IsNot Nothing Then
                 Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
                                                                                               If (p.Value Is Nothing) Then
                                                                                                   Return p.Key
