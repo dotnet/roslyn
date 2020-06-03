@@ -79,18 +79,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
             }
 
             protected IEnumerable<TypeInferenceInfo> CreateResult(SpecialType type, NullableAnnotation nullableAnnotation = NullableAnnotation.None)
-                => CreateResult(Compilation.GetSpecialType(type)
-#if !CODE_STYLE // TODO: remove this #if directive once the below public API is available in CodeStyle layer.
-                        .WithNullableAnnotation(nullableAnnotation)
-#endif
-                    );
+                => CreateResult(Compilation.GetSpecialType(type).WithNullableAnnotation(nullableAnnotation));
 
-            protected IEnumerable<TypeInferenceInfo> CreateResult(ITypeSymbol type)
+            protected static IEnumerable<TypeInferenceInfo> CreateResult(ITypeSymbol type)
                 => type == null
                     ? SpecializedCollections.EmptyCollection<TypeInferenceInfo>()
                     : SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(type));
 
-            protected IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
+            protected static IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
             {
                 var result = new List<ITypeSymbol>();
                 result.Add(parameterSymbol.Type);
@@ -104,6 +100,29 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
                 }
 
                 return result;
+            }
+
+            protected static IEnumerable<TypeInferenceInfo> GetCollectionElementType(INamedTypeSymbol type)
+            {
+                if (type != null)
+                {
+                    var parameters = type.TypeArguments;
+
+                    var elementType = parameters.ElementAtOrDefault(0);
+                    if (elementType != null)
+                    {
+                        return SpecializedCollections.SingletonCollection(new TypeInferenceInfo(elementType));
+                    }
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            protected static bool IsEnumHasFlag(ISymbol symbol)
+            {
+                return symbol.Kind == SymbolKind.Method &&
+                       symbol.Name == nameof(Enum.HasFlag) &&
+                       symbol.ContainingType?.SpecialType == SpecialType.System_Enum;
             }
         }
     }

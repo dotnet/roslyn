@@ -54,14 +54,15 @@ namespace Microsoft.CodeAnalysis
         /// Creates and loads the rule set from a file
         /// </summary>
         /// <param name="filePath">The file path to load the rule set</param>
+#nullable enable
         public static RuleSet LoadFromFile(string filePath)
         {
             // First read the file without doing any validation
             filePath = FileUtilities.NormalizeAbsolutePath(filePath);
             XmlReaderSettings settings = GetDefaultXmlReaderSettings();
 
-            XDocument ruleSetDocument = null;
-            XElement ruleSetNode = null;
+            XDocument? ruleSetDocument = null;
+            XElement? ruleSetNode = null;
 
             using (Stream stream = FileUtilities.OpenRead(filePath))
             using (XmlReader xmlReader = XmlReader.Create(stream, settings))
@@ -137,6 +138,7 @@ namespace Microsoft.CodeAnalysis
 
             return new RuleSet(filePath, generalOption, specificOptions.ToImmutable(), includes.ToImmutable());
         }
+#nullable restore
 
         /// <summary>
         /// Load the rules from the XML node

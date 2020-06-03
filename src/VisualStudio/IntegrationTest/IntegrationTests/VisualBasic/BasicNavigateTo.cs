@@ -34,7 +34,6 @@ Class FirstClass
     End Sub
 End Class");
 
-
             VisualStudio.SolutionExplorer.AddFile(project, "test2.vb", open: true, contents: @"
 ");
             VisualStudio.Editor.InvokeNavigateTo("FirstMethod", VirtualKey.Enter);

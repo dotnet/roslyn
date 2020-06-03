@@ -1,7 +1,8 @@
-﻿Option Strict Off
-' Licensed to the .NET Foundation under one or more agreements.
+﻿' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
+
+Option Strict Off
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -306,7 +307,6 @@ End Class
 Namespace A.B
 End Namespace</Document>
                                        <Document FilePath="Test2.vb">
-
                                        </Document>
                                    </Project>
                                </Workspace>.ToString()
@@ -337,7 +337,6 @@ Class Program
     End Sub
 End Class</Document>
                                        <Document Folders="outer\inner" FilePath="Test2.vb">
-
                                        </Document>
                                    </Project>
                                </Workspace>.ToString()
@@ -380,7 +379,6 @@ End Class
 Namespace A.B
 End Namespace</Document>
                                        <Document FilePath="Test2.vb" Folders="outer\inner">
-
                                        </Document>
                                    </Project>
                                </Workspace>.ToString()
@@ -891,7 +889,6 @@ Class Program
     End Sub
 End Class</Document>
                                    </Project>
-
                                </Workspace>.ToString()
             Await TestWithMockedGenerateTypeDialog(
 initial:=markupString,

@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()
             Dim context = New TaggerContext(Of BraceHighlightTag)(
                 doc, buffer.CurrentSnapshot, New SnapshotPoint(buffer.CurrentSnapshot, position))
-            Await producer.ProduceTagsAsync_ForTestingPurposesOnly(context)
+            Await producer.GetTestAccessor().ProduceTagsAsync(context)
             Return context.tagSpans
         End Function
 
@@ -72,7 +72,6 @@ End Module")
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(32, 33), Span.FromBounds(45, 46))))
             End Using
         End Function
-
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Async Function TestNestedTouchingItems() As Tasks.Task

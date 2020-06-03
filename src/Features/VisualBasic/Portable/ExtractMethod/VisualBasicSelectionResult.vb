@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
             End If
 
-            Dim expression As ExpressionSyntax = Nothing
+            Dim expression As ExpressionSyntax
             If TypeOf node Is CollectionInitializerSyntax Then
                 expression = node.GetUnparenthesizedExpression()
                 Return semanticModel.GetTypeInfo(expression).ConvertedType
@@ -286,7 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             ' Contract.ThrowIfFalse(last.IsParentKind(SyntaxKind.GlobalStatement))
             ' Contract.ThrowIfFalse(last.Parent.IsParentKind(SyntaxKind.CompilationUnit))
             ' Return last.Parent.Parent
-            Return Contract.FailWithReturn(Of SyntaxNode)("No REPL yet")
+            throw ExceptionUtilities.Unreachable
         End Function
 
         Public Function IsUnderModuleBlock() As Boolean

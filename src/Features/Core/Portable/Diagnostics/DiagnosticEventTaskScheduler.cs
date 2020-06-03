@@ -35,14 +35,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             while (true)
             {
                 var task = _tasks.Take();
-                var ret = TryExecuteTask(task);
+                _ = TryExecuteTask(task);
             }
         }
 
         protected override void QueueTask(Task task)
-        {
-            _tasks.Add(task);
-        }
+            => _tasks.Add(task);
 
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {

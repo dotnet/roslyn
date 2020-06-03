@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private bool _defaultRenameFileFlag;
         private bool _defaultPreviewChangesFlag;
 
-
         public DashboardViewModel(InlineRenameSession session)
         {
             Contract.ThrowIfNull(session);
@@ -111,14 +110,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string name = null)
-        {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+            => this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
         private void AllPropertiesChanged()
-        {
-            NotifyPropertyChanged(string.Empty);
-        }
+            => NotifyPropertyChanged(string.Empty);
 
         private void UpdateSearchText(int referenceCount, int fileCount)
         {

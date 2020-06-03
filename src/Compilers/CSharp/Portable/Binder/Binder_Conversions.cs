@@ -130,6 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (conversion.IsObjectCreation)
+            {
+                return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
+            }
+
             if (conversion.IsUserDefined)
             {
                 // User-defined conversions are likely to be represented as multiple
@@ -155,6 +160,64 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: destination,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = wasCompilerGenerated };
+        }
+
+        private BoundExpression ConvertObjectCreationExpression(SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        {
+            var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
+            BoundExpression expr = BindObjectCreationExpression(node, destination.StrippedType(), arguments, diagnostics);
+            if (destination.IsNullableType())
+            {
+                // We manually create an ImplicitNullable conversion
+                // if the destination is nullable, in which case we
+                // target the underlying type e.g. `S? x = new();`
+                // is actually identical to `S? x = new S();`.
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                var conversion = Conversions.ClassifyStandardConversion(null, expr.Type, destination, ref useSiteDiagnostics);
+                expr = new BoundConversion(
+                    node.Syntax,
+                    operand: expr,
+                    conversion: conversion,
+                    @checked: false,
+                    explicitCastInCode: isCast,
+                    conversionGroupOpt: new ConversionGroup(conversion),
+                    constantValueOpt: expr.ConstantValue,
+                    type: destination);
+
+                diagnostics.Add(syntax, useSiteDiagnostics);
+            }
+            arguments.Free();
+            return expr;
+        }
+
+        private BoundExpression BindObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, TypeSymbol type, AnalyzedArguments arguments, DiagnosticBag diagnostics)
+        {
+            var syntax = node.Syntax;
+            switch (type.TypeKind)
+            {
+                case TypeKind.Enum:
+                case TypeKind.Struct:
+                case TypeKind.Class when !type.IsAnonymousType: // We don't want to enable object creation with unspeakable types
+                    return BindClassCreationExpression(syntax, type.Name, typeNode: syntax, (NamedTypeSymbol)type, arguments, diagnostics, node.InitializerOpt, wasTargetTyped: true);
+                case TypeKind.TypeParameter:
+                    return BindTypeParameterCreationExpression(syntax, (TypeParameterSymbol)type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);
+                case TypeKind.Delegate:
+                    return BindDelegateCreationExpression(syntax, (NamedTypeSymbol)type, arguments, node.InitializerOpt, diagnostics);
+                case TypeKind.Interface:
+                    return BindInterfaceCreationExpression(syntax, (NamedTypeSymbol)type, diagnostics, typeNode: syntax, arguments, node.InitializerOpt, wasTargetTyped: true);
+                case TypeKind.Array:
+                case TypeKind.Class:
+                case TypeKind.Dynamic:
+                    Error(diagnostics, ErrorCode.ERR_TypelessNewIllegalTargetType, syntax, type);
+                    goto case TypeKind.Error;
+                case TypeKind.Pointer:
+                    Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, type);
+                    goto case TypeKind.Error;
+                case TypeKind.Error:
+                    return MakeBadExpressionForObjectCreation(syntax, type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);
+                case var v:
+                    throw ExceptionUtilities.UnexpectedValue(v);
+            }
         }
 
         /// <summary>
@@ -241,6 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (D?)(C)(B)(B?)(A)x
             //
             // And thereby skip the unnecessary nullable conversion.
+
+            Debug.Assert(conversion.BestUserDefinedConversionAnalysis is object); // All valid user-defined conversions have this populated
 
             // Original expression --> conversion's "from" type
             BoundExpression convertedOperand = CreateConversion(
@@ -376,13 +441,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression CreateMethodGroupConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
         {
-            BoundMethodGroup group = FixMethodGroupWithTypeOrValue((BoundMethodGroup)source, conversion, diagnostics);
+            var originalGroup = source switch
+            {
+                BoundMethodGroup m => m,
+                BoundUnconvertedAddressOfOperator { Operand: { } m } => m,
+                _ => throw ExceptionUtilities.UnexpectedValue(source),
+            };
+            BoundMethodGroup group = FixMethodGroupWithTypeOrValue(originalGroup, conversion, diagnostics);
             BoundExpression? receiverOpt = group.ReceiverOpt;
-            MethodSymbol method = conversion.Method;
+            MethodSymbol? method = conversion.Method;
             bool hasErrors = false;
 
-            NamedTypeSymbol delegateType = (NamedTypeSymbol)destination;
-            if (MethodGroupConversionHasErrors(syntax, conversion, group.ReceiverOpt, conversion.IsExtensionMethod, delegateType, diagnostics))
+            if (MethodGroupConversionHasErrors(syntax, conversion, group.ReceiverOpt, conversion.IsExtensionMethod, destination, diagnostics))
             {
                 hasErrors = true;
             }
@@ -794,26 +864,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// This method implements the checks in spec section 15.2.
         /// </summary>
-        internal bool MethodGroupIsCompatibleWithDelegate(BoundExpression? receiverOpt, bool isExtensionMethod, MethodSymbol method, NamedTypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
+        internal bool MethodIsCompatibleWithDelegateOrFunctionPointer(BoundExpression? receiverOpt, bool isExtensionMethod, MethodSymbol method, TypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
         {
-            Debug.Assert(delegateType.TypeKind == TypeKind.Delegate);
-            RoslynDebug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
-                         "This method should only be called for valid delegate types.");
+            Debug.Assert(delegateType is NamedTypeSymbol { TypeKind: TypeKind.Delegate, DelegateInvokeMethod: { HasUseSiteError: false } }
+                           || delegateType.TypeKind == TypeKind.FunctionPointer,
+                         "This method should only be called for valid delegate or function pointer types.");
 
-            MethodSymbol delegateMethod = delegateType.DelegateInvokeMethod;
+            MethodSymbol delegateOrFuncPtrMethod = delegateType switch
+            {
+                NamedTypeSymbol { DelegateInvokeMethod: { } invokeMethod } => invokeMethod,
+                FunctionPointerTypeSymbol { Signature: { } signature } => signature,
+                _ => throw ExceptionUtilities.UnexpectedValue(delegateType),
+            };
 
             Debug.Assert(!isExtensionMethod || (receiverOpt != null));
 
             // - Argument types "match", and
-            var delegateParameters = delegateMethod.Parameters;
+            var delegateOrFuncPtrParameters = delegateOrFuncPtrMethod.Parameters;
             var methodParameters = method.Parameters;
-            int numParams = delegateParameters.Length;
+            int numParams = delegateOrFuncPtrParameters.Length;
 
             if (methodParameters.Length != numParams + (isExtensionMethod ? 1 : 0))
             {
                 // This can happen if "method" has optional parameters.
                 Debug.Assert(methodParameters.Length > numParams + (isExtensionMethod ? 1 : 0));
-                Error(diagnostics, ErrorCode.ERR_MethDelegateMismatch, errorLocation, method, delegateType);
+                Error(diagnostics, getMethodMismatchErrorCode(delegateType.TypeKind), errorLocation, method, delegateType);
                 return false;
             }
 
@@ -828,34 +903,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numParams; i++)
             {
-                var delegateParameter = delegateParameters[i];
+                var delegateParameter = delegateOrFuncPtrParameters[i];
                 var methodParameter = methodParameters[isExtensionMethod ? i + 1 : i];
 
-                if (delegateParameter.RefKind != methodParameter.RefKind ||
-                    !Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameter.Type, methodParameter.Type, ref useSiteDiagnostics))
+                // The delegate compatibility checks are stricter than the checks on applicable functions: it's possible
+                // to get here with a method that, while all the parameters are applicable, is not actually delegate
+                // compatible. This is because the Applicable function member spec requires that:
+                //  * Every value parameter (non-ref or similar) from the delegate type has an implicit conversion to the corresponding
+                //    target parameter
+                //  * Every ref or similar parameter has an identity conversion to the corresponding target parameter
+                // However, the delegate compatiblity requirements are stricter:
+                //  * Every value parameter (non-ref or similar) from the delegate type has an implicit _reference_ conversion to the
+                //    corresponding target parameter.
+                //  * Every ref or similar parameter has an identity conversion to the corresponding target parameter
+                // Note the addition of the reference requirement: it means that for delegate type void D(int i), void M(long l) is
+                // _applicable_, but not _compatible_.
+                if (!hasConversion(delegateType.TypeKind, Conversions, delegateParameter.Type, methodParameter.Type, delegateParameter.RefKind, methodParameter.RefKind, ref useSiteDiagnostics))
                 {
                     // No overload for '{0}' matches delegate '{1}'
-                    Error(diagnostics, ErrorCode.ERR_MethDelegateMismatch, errorLocation, method, delegateType);
+                    Error(diagnostics, getMethodMismatchErrorCode(delegateType.TypeKind), errorLocation, method, delegateType);
                     diagnostics.Add(errorLocation, useSiteDiagnostics);
                     return false;
                 }
             }
 
-            if (delegateMethod.RefKind != method.RefKind)
+            if (delegateOrFuncPtrMethod.RefKind != method.RefKind)
             {
-                Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
+                Error(diagnostics, getRefMismatchErrorCode(delegateType.TypeKind), errorLocation, method, delegateType);
                 diagnostics.Add(errorLocation, useSiteDiagnostics);
                 return false;
             }
 
             var methodReturnType = method.ReturnType;
-            var delegateReturnType = delegateMethod.ReturnType;
-            bool returnsMatch = delegateMethod.RefKind != RefKind.None ?
-                                    // - Return types identity-convertible
-                                    Conversions.HasIdentityConversion(methodReturnType, delegateReturnType) :
-                                    // - Return types "match"
-                                    method.ReturnsVoid && delegateMethod.ReturnsVoid ||
-                                        Conversions.HasIdentityOrImplicitReferenceConversion(methodReturnType, delegateReturnType, ref useSiteDiagnostics);
+            var delegateReturnType = delegateOrFuncPtrMethod.ReturnType;
+            bool returnsMatch = delegateOrFuncPtrMethod switch
+            {
+                { RefKind: RefKind.None, ReturnsVoid: true } => method.ReturnsVoid,
+                { RefKind: var destinationRefKind } => hasConversion(delegateType.TypeKind, Conversions, methodReturnType, delegateReturnType, method.RefKind, destinationRefKind, ref useSiteDiagnostics),
+            };
 
             if (!returnsMatch)
             {
@@ -864,8 +949,68 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (delegateType.IsFunctionPointer())
+            {
+                if (isExtensionMethod)
+                {
+                    Error(diagnostics, ErrorCode.ERR_CannotUseReducedExtensionMethodInAddressOf, errorLocation);
+                    diagnostics.Add(errorLocation, useSiteDiagnostics);
+                    return false;
+                }
+
+                if (!method.IsStatic)
+                {
+                    // This check is here purely for completeness of implementing the spec. It should
+                    // never be hit, as static methods should be eliminated as candidates in overload
+                    // resolution and should never make it to this point.
+                    Debug.Fail("This method should have been eliminated in overload resolution!");
+                    Error(diagnostics, ErrorCode.ERR_FuncPtrMethMustBeStatic, errorLocation, method);
+                    diagnostics.Add(errorLocation, useSiteDiagnostics);
+                    return false;
+                }
+            }
+
             diagnostics.Add(errorLocation, useSiteDiagnostics);
             return true;
+
+            static bool hasConversion(TypeKind targetKind, Conversions conversions, TypeSymbol source, TypeSymbol destination,
+                RefKind sourceRefKind, RefKind destinationRefKind, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+            {
+                if (sourceRefKind != destinationRefKind)
+                {
+                    return false;
+                }
+
+                if (sourceRefKind != RefKind.None)
+                {
+                    return ConversionsBase.HasIdentityConversion(source, destination);
+                }
+
+                if (conversions.HasIdentityOrImplicitReferenceConversion(source, destination, ref useSiteDiagnostics))
+                {
+                    return true;
+                }
+
+                return targetKind == TypeKind.FunctionPointer
+                       && (ConversionsBase.HasImplicitPointerToVoidConversion(source, destination)
+                           || conversions.HasImplicitPointerConversion(source, destination, ref useSiteDiagnostics));
+            }
+
+            static ErrorCode getMethodMismatchErrorCode(TypeKind type)
+                => type switch
+                {
+                    TypeKind.Delegate => ErrorCode.ERR_MethDelegateMismatch,
+                    TypeKind.FunctionPointer => ErrorCode.ERR_MethFuncPtrMismatch,
+                    _ => throw ExceptionUtilities.UnexpectedValue(type)
+                };
+
+            static ErrorCode getRefMismatchErrorCode(TypeKind type)
+                => type switch
+                {
+                    TypeKind.Delegate => ErrorCode.ERR_DelegateRefMismatch,
+                    TypeKind.FunctionPointer => ErrorCode.ERR_FuncPtrRefMismatch,
+                    _ => throw ExceptionUtilities.UnexpectedValue(type)
+                };
         }
 
         /// <summary>
@@ -875,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="conversion">Conversion to be performed.</param>
         /// <param name="receiverOpt">Optional receiver.</param>
         /// <param name="isExtensionMethod">Method invoked as extension method.</param>
-        /// <param name="delegateType">Target delegate type.</param>
+        /// <param name="delegateOrFuncPtrType">Target delegate type.</param>
         /// <param name="diagnostics">Where diagnostics should be added.</param>
         /// <returns>True if a diagnostic has been added.</returns>
         private bool MethodGroupConversionHasErrors(
@@ -883,14 +1028,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             BoundExpression? receiverOpt,
             bool isExtensionMethod,
-            NamedTypeSymbol delegateType,
+            TypeSymbol delegateOrFuncPtrType,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(delegateType.TypeKind == TypeKind.Delegate);
+            Debug.Assert(delegateOrFuncPtrType.TypeKind == TypeKind.Delegate || delegateOrFuncPtrType.TypeKind == TypeKind.FunctionPointer);
 
+            Debug.Assert(conversion.Method is object);
             MethodSymbol selectedMethod = conversion.Method;
 
-            if (!MethodGroupIsCompatibleWithDelegate(receiverOpt, isExtensionMethod, selectedMethod, delegateType, syntax.Location, diagnostics) ||
+            if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, syntax.Location, diagnostics) ||
                 MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
             {
                 return true;
@@ -942,11 +1088,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            conversion = Conversions.GetMethodGroupConversion(boundMethodGroup, delegateType, ref useSiteDiagnostics);
+            conversion = Conversions.GetMethodGroupDelegateConversion(boundMethodGroup, delegateType, ref useSiteDiagnostics);
             diagnostics.Add(delegateMismatchLocation, useSiteDiagnostics);
             if (!conversion.Exists)
             {
-                if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, boundMethodGroup, delegateType, diagnostics))
+                if (!Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(this, boundMethodGroup, delegateType, diagnostics))
                 {
                     // No overload for '{0}' matches delegate '{1}'
                     diagnostics.Add(ErrorCode.ERR_MethDelegateMismatch, delegateMismatchLocation, boundMethodGroup.Name, delegateType);
@@ -1167,6 +1313,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Int16: return (short)byteValue;
                             case SpecialType.System_Int32: return (int)byteValue;
                             case SpecialType.System_Int64: return (long)byteValue;
+                            case SpecialType.System_IntPtr: return (int)byteValue;
+                            case SpecialType.System_UIntPtr: return (uint)byteValue;
                             case SpecialType.System_Single:
                             case SpecialType.System_Double: return (double)byteValue;
                             case SpecialType.System_Decimal: return (decimal)byteValue;
@@ -1185,6 +1333,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Int16: return (short)charValue;
                             case SpecialType.System_Int32: return (int)charValue;
                             case SpecialType.System_Int64: return (long)charValue;
+                            case SpecialType.System_IntPtr: return (int)charValue;
+                            case SpecialType.System_UIntPtr: return (uint)charValue;
                             case SpecialType.System_Single:
                             case SpecialType.System_Double: return (double)charValue;
                             case SpecialType.System_Decimal: return (decimal)charValue;
@@ -1203,6 +1353,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Int16: return (short)uint16Value;
                             case SpecialType.System_Int32: return (int)uint16Value;
                             case SpecialType.System_Int64: return (long)uint16Value;
+                            case SpecialType.System_IntPtr: return (int)uint16Value;
+                            case SpecialType.System_UIntPtr: return (uint)uint16Value;
                             case SpecialType.System_Single:
                             case SpecialType.System_Double: return (double)uint16Value;
                             case SpecialType.System_Decimal: return (decimal)uint16Value;
@@ -1221,6 +1373,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Int16: return (short)uint32Value;
                             case SpecialType.System_Int32: return (int)uint32Value;
                             case SpecialType.System_Int64: return (long)uint32Value;
+                            case SpecialType.System_IntPtr: return (int)uint32Value;
+                            case SpecialType.System_UIntPtr: return (uint)uint32Value;
                             case SpecialType.System_Single: return (double)(float)uint32Value;
                             case SpecialType.System_Double: return (double)uint32Value;
                             case SpecialType.System_Decimal: return (decimal)uint32Value;
@@ -1239,9 +1393,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Int16: return (short)uint64Value;
                             case SpecialType.System_Int32: return (int)uint64Value;
                             case SpecialType.System_Int64: return (long)uint64Value;
+                            case SpecialType.System_IntPtr: return (int)uint64Value;
+                            case SpecialType.System_UIntPtr: return (uint)uint64Value;
                             case SpecialType.System_Single: return (double)(float)uint64Value;
                             case SpecialType.System_Double: return (double)uint64Value;
                             case SpecialType.System_Decimal: return (decimal)uint64Value;
+                            default: throw ExceptionUtilities.UnexpectedValue(destinationType);
+                        }
+                    case ConstantValueTypeDiscriminator.NUInt:
+                        uint nuintValue = value.UInt32Value;
+                        switch (destinationType)
+                        {
+                            case SpecialType.System_Byte: return (byte)nuintValue;
+                            case SpecialType.System_Char: return (char)nuintValue;
+                            case SpecialType.System_UInt16: return (ushort)nuintValue;
+                            case SpecialType.System_UInt32: return (uint)nuintValue;
+                            case SpecialType.System_UInt64: return (ulong)nuintValue;
+                            case SpecialType.System_SByte: return (sbyte)nuintValue;
+                            case SpecialType.System_Int16: return (short)nuintValue;
+                            case SpecialType.System_Int32: return (int)nuintValue;
+                            case SpecialType.System_Int64: return (long)nuintValue;
+                            case SpecialType.System_IntPtr: return (int)nuintValue;
+                            case SpecialType.System_Single: return (double)(float)nuintValue;
+                            case SpecialType.System_Double: return (double)nuintValue;
+                            case SpecialType.System_Decimal: return (decimal)nuintValue;
                             default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
                     case ConstantValueTypeDiscriminator.SByte:
@@ -1257,6 +1432,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Int16: return (short)sbyteValue;
                             case SpecialType.System_Int32: return (int)sbyteValue;
                             case SpecialType.System_Int64: return (long)sbyteValue;
+                            case SpecialType.System_IntPtr: return (int)sbyteValue;
+                            case SpecialType.System_UIntPtr: return (uint)sbyteValue;
                             case SpecialType.System_Single:
                             case SpecialType.System_Double: return (double)sbyteValue;
                             case SpecialType.System_Decimal: return (decimal)sbyteValue;
@@ -1275,6 +1452,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Int16: return (short)int16Value;
                             case SpecialType.System_Int32: return (int)int16Value;
                             case SpecialType.System_Int64: return (long)int16Value;
+                            case SpecialType.System_IntPtr: return (int)int16Value;
+                            case SpecialType.System_UIntPtr: return (uint)int16Value;
                             case SpecialType.System_Single:
                             case SpecialType.System_Double: return (double)int16Value;
                             case SpecialType.System_Decimal: return (decimal)int16Value;
@@ -1293,6 +1472,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Int16: return (short)int32Value;
                             case SpecialType.System_Int32: return (int)int32Value;
                             case SpecialType.System_Int64: return (long)int32Value;
+                            case SpecialType.System_IntPtr: return (int)int32Value;
+                            case SpecialType.System_UIntPtr: return (uint)int32Value;
                             case SpecialType.System_Single: return (double)(float)int32Value;
                             case SpecialType.System_Double: return (double)int32Value;
                             case SpecialType.System_Decimal: return (decimal)int32Value;
@@ -1311,9 +1492,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Int16: return (short)int64Value;
                             case SpecialType.System_Int32: return (int)int64Value;
                             case SpecialType.System_Int64: return (long)int64Value;
+                            case SpecialType.System_IntPtr: return (int)int64Value;
+                            case SpecialType.System_UIntPtr: return (uint)int64Value;
                             case SpecialType.System_Single: return (double)(float)int64Value;
                             case SpecialType.System_Double: return (double)int64Value;
                             case SpecialType.System_Decimal: return (decimal)int64Value;
+                            default: throw ExceptionUtilities.UnexpectedValue(destinationType);
+                        }
+                    case ConstantValueTypeDiscriminator.NInt:
+                        int nintValue = value.Int32Value;
+                        switch (destinationType)
+                        {
+                            case SpecialType.System_Byte: return (byte)nintValue;
+                            case SpecialType.System_Char: return (char)nintValue;
+                            case SpecialType.System_UInt16: return (ushort)nintValue;
+                            case SpecialType.System_UInt32: return (uint)nintValue;
+                            case SpecialType.System_UInt64: return (ulong)nintValue;
+                            case SpecialType.System_SByte: return (sbyte)nintValue;
+                            case SpecialType.System_Int16: return (short)nintValue;
+                            case SpecialType.System_Int32: return (int)nintValue;
+                            case SpecialType.System_Int64: return (long)nintValue;
+                            case SpecialType.System_IntPtr: return (int)nintValue;
+                            case SpecialType.System_UIntPtr: return (uint)nintValue;
+                            case SpecialType.System_Single: return (double)(float)nintValue;
+                            case SpecialType.System_Double: return (double)nintValue;
+                            case SpecialType.System_Decimal: return (decimal)nintValue;
                             default: throw ExceptionUtilities.UnexpectedValue(destinationType);
                         }
                     case ConstantValueTypeDiscriminator.Single:
@@ -1333,6 +1536,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Int16: return (short)doubleValue;
                             case SpecialType.System_Int32: return (int)doubleValue;
                             case SpecialType.System_Int64: return (long)doubleValue;
+                            case SpecialType.System_IntPtr: return (int)doubleValue;
+                            case SpecialType.System_UIntPtr: return (uint)doubleValue;
                             case SpecialType.System_Single: return (double)(float)doubleValue;
                             case SpecialType.System_Double: return (double)doubleValue;
                             case SpecialType.System_Decimal: return (value.Discriminator == ConstantValueTypeDiscriminator.Single) ? (decimal)(float)doubleValue : (decimal)doubleValue;
@@ -1351,6 +1556,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SpecialType.System_Int16: return (short)decimalValue;
                             case SpecialType.System_Int32: return (int)decimalValue;
                             case SpecialType.System_Int64: return (long)decimalValue;
+                            case SpecialType.System_IntPtr: return (int)decimalValue;
+                            case SpecialType.System_UIntPtr: return (uint)decimalValue;
                             case SpecialType.System_Single: return (double)(float)decimalValue;
                             case SpecialType.System_Double: return (double)decimalValue;
                             case SpecialType.System_Decimal: return (decimal)decimalValue;
@@ -1433,11 +1640,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConstantValueTypeDiscriminator.Int16: return (decimal)value.Int16Value;
                 case ConstantValueTypeDiscriminator.Int32: return (decimal)value.Int32Value;
                 case ConstantValueTypeDiscriminator.Int64: return (decimal)value.Int64Value;
+                case ConstantValueTypeDiscriminator.NInt: return (decimal)value.Int32Value;
                 case ConstantValueTypeDiscriminator.Byte: return (decimal)value.ByteValue;
                 case ConstantValueTypeDiscriminator.Char: return (decimal)value.CharValue;
                 case ConstantValueTypeDiscriminator.UInt16: return (decimal)value.UInt16Value;
                 case ConstantValueTypeDiscriminator.UInt32: return (decimal)value.UInt32Value;
                 case ConstantValueTypeDiscriminator.UInt64: return (decimal)value.UInt64Value;
+                case ConstantValueTypeDiscriminator.NUInt: return (decimal)value.UInt32Value;
                 case ConstantValueTypeDiscriminator.Single:
                 case ConstantValueTypeDiscriminator.Double: return value.DoubleValue;
                 case ConstantValueTypeDiscriminator.Decimal: return value.DecimalValue;

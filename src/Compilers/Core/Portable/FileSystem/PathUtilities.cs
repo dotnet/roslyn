@@ -400,13 +400,13 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Combine two paths, the first of which may be absolute.
         /// </summary>
-        /// <param name="rootOpt">First path: absolute, relative, or null.</param>
+        /// <param name="root">First path: absolute, relative, or null.</param>
         /// <param name="relativePath">Second path: relative and non-null.</param>
-        /// <returns>null, if <paramref name="rootOpt"/> is null; a combined path, otherwise.</returns>
+        /// <returns>null, if <paramref name="root"/> is null; a combined path, otherwise.</returns>
         /// <seealso cref="CombineAbsoluteAndRelativePaths"/>
-        public static string? CombinePossiblyRelativeAndRelativePaths(string? rootOpt, string? relativePath)
+        public static string? CombinePossiblyRelativeAndRelativePaths(string? root, string? relativePath)
         {
-            if (RoslynString.IsNullOrEmpty(rootOpt))
+            if (RoslynString.IsNullOrEmpty(root))
             {
                 return null;
             }
@@ -414,7 +414,7 @@ namespace Roslyn.Utilities
             switch (GetPathKind(relativePath))
             {
                 case PathKind.Empty:
-                    return rootOpt;
+                    return root;
 
                 case PathKind.Absolute:
                 case PathKind.RelativeToCurrentRoot:
@@ -422,7 +422,7 @@ namespace Roslyn.Utilities
                     return null;
             }
 
-            return CombinePathsUnchecked(rootOpt, relativePath);
+            return CombinePathsUnchecked(root, relativePath);
         }
 
         public static string CombinePathsUnchecked(string root, string? relativePath)
@@ -732,6 +732,10 @@ namespace Roslyn.Utilities
         /// If the current environment uses the '\' directory separator, replaces all uses of '\'
         /// in the given string with '/'. Otherwise, returns the string.
         /// </summary>
+        /// <remarks>
+        /// This method is equivalent to Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig.NormalizeWithForwardSlash
+        /// Both methods should be kept in sync.
+        /// </remarks>
         public static string NormalizeWithForwardSlash(string p)
             => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
 

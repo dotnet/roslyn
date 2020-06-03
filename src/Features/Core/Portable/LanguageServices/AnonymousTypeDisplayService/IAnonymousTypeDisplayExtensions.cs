@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal static class IAnonymousTypeDisplayExtensions
     {
         public static IList<SymbolDisplayPart> InlineDelegateAnonymousTypes(
-            this IAnonymousTypeDisplayService service, IList<SymbolDisplayPart> parts, SemanticModel semanticModel, int position, ISymbolDisplayService displayService)
+            this IAnonymousTypeDisplayService service, IList<SymbolDisplayPart> parts, SemanticModel semanticModel, int position)
         {
             var result = parts;
             while (true)
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 result = result == parts ? new List<SymbolDisplayPart>(parts) : result;
                 ReplaceAnonymousType(result, delegateAnonymousType,
-                    service.GetAnonymousTypeParts(delegateAnonymousType, semanticModel, position, displayService));
+                    service.GetAnonymousTypeParts(delegateAnonymousType, semanticModel, position));
             }
 
             return result;

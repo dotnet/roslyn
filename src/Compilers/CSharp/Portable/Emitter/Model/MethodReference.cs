@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return UnderlyingMethod.ReturnTypeWithAnnotations.CustomModifiers.As<Cci.ICustomModifier>();
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(UnderlyingMethod.ReturnTypeWithAnnotations.CustomModifiers);
             }
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return UnderlyingMethod.RefCustomModifiers.As<Cci.ICustomModifier>();
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(UnderlyingMethod.RefCustomModifiers);
             }
         }
 

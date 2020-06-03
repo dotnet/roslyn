@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return _underlyingParameter.TypeWithAnnotations.CustomModifiers.As<Cci.ICustomModifier>();
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(_underlyingParameter.TypeWithAnnotations.CustomModifiers);
             }
         }
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return _underlyingParameter.RefCustomModifiers.As<Cci.ICustomModifier>();
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(_underlyingParameter.RefCustomModifiers);
             }
         }
 

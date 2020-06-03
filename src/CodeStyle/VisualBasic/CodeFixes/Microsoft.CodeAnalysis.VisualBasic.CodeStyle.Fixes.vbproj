@@ -6,6 +6,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace></RootNamespace>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>

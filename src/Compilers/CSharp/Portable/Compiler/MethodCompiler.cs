@@ -207,10 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             var entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken);
-            if (entryPointAndDiagnostics == null)
-            {
-                return null;
-            }
 
             Debug.Assert(!entryPointAndDiagnostics.Diagnostics.IsDefault);
             diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics);
@@ -218,7 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)entryPoint == null)
             {
-                Debug.Assert(entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
                 return null;
             }
 
@@ -335,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_compilation.Options.ConcurrentBuild)
             {
-                Task worker = CompileNamespaceAsTask(symbol);
+                Task worker = CompileNamespaceAsAsync(symbol);
                 _compilerTasks.Push(worker);
             }
             else
@@ -346,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private Task CompileNamespaceAsTask(NamespaceSymbol symbol)
+        private Task CompileNamespaceAsAsync(NamespaceSymbol symbol)
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
@@ -381,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_compilation.Options.ConcurrentBuild)
             {
-                Task worker = CompileNamedTypeAsTask(symbol);
+                Task worker = CompileNamedTypeAsync(symbol);
                 _compilerTasks.Push(worker);
             }
             else
@@ -392,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private Task CompileNamedTypeAsTask(NamedTypeSymbol symbol)
+        private Task CompileNamedTypeAsync(NamedTypeSymbol symbol)
         {
             return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
@@ -541,7 +536,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.Field:
                         {
-                            SourceMemberFieldSymbol fieldSymbol = member as SourceMemberFieldSymbol;
+                            var field = (FieldSymbol)member;
+                            var fieldSymbol = (field.TupleUnderlyingField ?? field) as SourceMemberFieldSymbol;
                             if ((object)fieldSymbol != null)
                             {
                                 if (fieldSymbol.IsConst)
@@ -1229,28 +1225,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
+                        if (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers))
+                        {
+                            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
 
-                        var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
+                            var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 
-                        var emittedBody = GenerateMethodBody(
-                            _moduleBeingBuiltOpt,
-                            methodSymbol,
-                            methodOrdinal,
-                            boundBody,
-                            lambdaDebugInfoBuilder.ToImmutable(),
-                            closureDebugInfoBuilder.ToImmutable(),
-                            stateMachineTypeOpt,
-                            lazyVariableSlotAllocator,
-                            diagsForCurrentMethod,
-                            _debugDocumentProvider,
-                            importChain,
-                            _emittingPdb,
-                            _emitTestCoverageData,
-                            dynamicAnalysisSpans,
-                            entryPointOpt: null);
+                            var emittedBody = GenerateMethodBody(
+                                _moduleBeingBuiltOpt,
+                                methodSymbol,
+                                methodOrdinal,
+                                boundBody,
+                                lambdaDebugInfoBuilder.ToImmutable(),
+                                closureDebugInfoBuilder.ToImmutable(),
+                                stateMachineTypeOpt,
+                                lazyVariableSlotAllocator,
+                                diagsForCurrentMethod,
+                                _debugDocumentProvider,
+                                importChain,
+                                _emittingPdb,
+                                _emitTestCoverageData,
+                                dynamicAnalysisSpans,
+                                entryPointOpt: null);
 
-                        _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                            _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                        }
                     }
 
                     _diagnostics.AddRange(diagsForCurrentMethod);
@@ -1344,7 +1343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement bodyWithoutLambdas = loweredBody;
                 if (sawLambdas || sawLocalFunctions)
                 {
-                    bodyWithoutLambdas = LambdaRewriter.Rewrite(
+                    bodyWithoutLambdas = ClosureConversion.Rewrite(
                         loweredBody,
                         method.ContainingType,
                         method.ThisParameter,
@@ -1663,7 +1662,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bodyBinder != null)
                 {
                     importChain = bodyBinder.ImportChain;
-                    bodyBinder.ValidateIteratorMethods(diagnostics);
 
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
                     BoundNode methodBodyForSemanticModel = methodBody;

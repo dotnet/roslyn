@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis
             public static readonly Data Disposed = new Data();
 
             public readonly ImmutableArray<ModuleMetadata> Modules;
-            public readonly PEAssembly Assembly;
+            public readonly PEAssembly? Assembly;
 
             private Data()
             {
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         /// Shall only throw <see cref="BadImageFormatException"/> or <see cref="IOException"/>.
         /// Null of all modules were specified at construction time.
         /// </summary>
-        private readonly Func<string, ModuleMetadata> _moduleFactoryOpt;
+        private readonly Func<string, ModuleMetadata>? _moduleFactoryOpt;
 
         /// <summary>
         /// Modules the <see cref="AssemblyMetadata"/> was created with, in case they are eagerly allocated.
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableArray<ModuleMetadata> _initialModules;
 
         // Encapsulates the modules and the corresponding PEAssembly produced by the modules factory.
-        private Data _lazyData;
+        private Data? _lazyData;
 
         // The actual array of modules exposed via Modules property.
         // The same modules as the ones produced by the factory or their copies.
@@ -166,7 +168,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static AssemblyMetadata CreateFromFile(ModuleMetadata manifestModule, string path)
         {
-            return new AssemblyMetadata(manifestModule, moduleName => ModuleMetadata.CreateFromFile(Path.Combine(Path.GetDirectoryName(path), moduleName)));
+            return new AssemblyMetadata(manifestModule, moduleName => ModuleMetadata.CreateFromFile(Path.Combine(Path.GetDirectoryName(path) ?? "", moduleName)));
         }
 
         /// <summary>
@@ -302,7 +304,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
         /// <exception cref="IOException">IO error while reading the metadata. See <see cref="Exception.InnerException"/> for details.</exception>
         /// <exception cref="ObjectDisposedException">The object has been disposed.</exception>
-        internal PEAssembly GetAssembly()
+        internal PEAssembly? GetAssembly()
         {
             return GetOrCreateData().Assembly;
         }
@@ -315,7 +317,7 @@ namespace Microsoft.CodeAnalysis
             if (_lazyData == null)
             {
                 ImmutableArray<ModuleMetadata> modules = _initialModules;
-                ImmutableArray<ModuleMetadata>.Builder moduleBuilder = null;
+                ImmutableArray<ModuleMetadata>.Builder? moduleBuilder = null;
 
                 bool createdModulesUsed = false;
                 try
@@ -445,11 +447,11 @@ namespace Microsoft.CodeAnalysis
         /// <param name="display">Display string used in error messages to identity the reference.</param>
         /// <returns>A reference to the assembly metadata.</returns>
         public PortableExecutableReference GetReference(
-            DocumentationProvider documentation = null,
-            ImmutableArray<string> aliases = default(ImmutableArray<string>),
+            DocumentationProvider? documentation = null,
+            ImmutableArray<string> aliases = default,
             bool embedInteropTypes = false,
-            string filePath = null,
-            string display = null)
+            string? filePath = null,
+            string? display = null)
         {
             return new MetadataImageReference(this, new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases, embedInteropTypes), documentation, filePath, display);
         }

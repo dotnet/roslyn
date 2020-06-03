@@ -70,7 +70,6 @@ namespace Roslyn.Test.Utilities
             return value.ToString();
         }
 
-
         /// <summary>
         /// <see cref="System.Xml.Linq.XComment.Value"/> is serialized with "--" replaced by "- -"
         /// </summary>
@@ -91,7 +90,7 @@ namespace Roslyn.Test.Utilities
             return result;
         }
 
-        internal static DiagnosticDescription Diagnostic(
+        public static DiagnosticDescription Diagnostic(
             object code,
             string squiggledText = null,
             object[] arguments = null,

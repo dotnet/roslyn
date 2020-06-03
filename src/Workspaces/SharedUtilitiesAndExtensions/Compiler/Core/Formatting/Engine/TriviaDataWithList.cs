@@ -2,24 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Threading;
+#nullable enable
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
     internal abstract class TriviaDataWithList : TriviaData
     {
-        public TriviaDataWithList(OptionSet optionSet, string language)
-            : base(optionSet, language)
+        public TriviaDataWithList(AnalyzerConfigOptions options, string language)
+            : base(options, language)
         {
         }
 
-        public abstract List<SyntaxTrivia> GetTriviaList(CancellationToken cancellationToken);
+        public abstract SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken);
     }
 }

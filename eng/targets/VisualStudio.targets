@@ -29,20 +29,20 @@
   
   <!-- CPS doesn't show these items by default, but we want to show them. -->
   <ItemGroup>
-    <None Include="@(VSCTCompile)" />
+    <AvailableItemName Include="VSCTCompile" />
   </ItemGroup>
 
   <Target Name="IncludeVsixLocalOnlyItems">
     <!-- This is shamelessly ripped from Microsoft.VsSDK.targets -->
     <ItemGroup>
-      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' AND '%(Content.VSIXSubPath)' == ''">
+      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' and '%(Content.VSIXSubPath)' == ''">
         <!-- Sets VSIXSubPath for content items that are nonlinked files -->
         <VSIXSubPath Condition="'%(Content.Link)' == ''">%(Content.RelativeDir)</VSIXSubPath>
         <!-- Sets VSIXSubPath for content items that are linked files -->
         <VSIXSubPath Condition="'%(Content.Link)' != ''">$([System.IO.Path]::GetDirectoryName(%(Content.Link)))</VSIXSubPath>
       </VSIXSourceItemLocalOnly>
 
-      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' AND '%(Content.VSIXSubPath)' != ''" />
+      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' and '%(Content.VSIXSubPath)' != ''" />
     </ItemGroup>
   </Target>
 
@@ -57,7 +57,10 @@
        2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
           by the NuGet build task. -->
 
-  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolvePackageDependenciesForBuild" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
+  <Target Name="IncludeNuGetResolvedAssets"
+          DependsOnTargets="ResolvePackageDependenciesForBuild"
+          BeforeTargets="GeneratePkgDef"
+          Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
 
     <!-- Calculate a list of packages ReferenceCopyLocalPaths originate from whose content should not be included in the VSIX -->
     <ItemGroup>
@@ -73,35 +76,26 @@
 
       <_AssetsByPackageId Remove="@(_ExcludedPackageId)" />
     </ItemGroup>
-    
+
+    <!-- Flow metadata set on NuGetPackageToIncludeInVsix to VSIXCopyLocalReferenceSourceItem -->
+    <JoinItems Left="@(_AssetsByPackageId)" LeftKey="" LeftMetadata="*"
+               Right="@(NuGetPackageToIncludeInVsix)" RightKey="" RightMetadata="*">
+      <Output TaskParameter="JoinResult" ItemName="_AssetsWithMetadata" />
+    </JoinItems>
+
     <ItemGroup>
-      <_PackageToOptimize Include="@(NuGetPackageToIncludeInVsix)" Condition="'%(NuGetPackageToIncludeInVsix.Optimization)' == 'true'" />
-      <_PackageNotToOptimize Include="@(NuGetPackageToIncludeInVsix)" Condition="'%(NuGetPackageToIncludeInVsix.Optimization)' != 'true'" />
-
-      <_AssetsToOptimize Include="@(_AssetsByPackageId)" />
-      <_AssetsToOptimize Remove="@(_PackageNotToOptimize)" />
-
-      <_AssetsNotToOptimize Include="@(_AssetsByPackageId)" />
-      <_AssetsNotToOptimize Remove="@(_PackageToOptimize)" />
-
-      <_AllAssetsToInclude Include="@(_AssetsToOptimize)">
-        <Optimization>true</Optimization>
-      </_AllAssetsToInclude>
-
-      <_AllAssetsToInclude Include="@(_AssetsNotToOptimize)">
-        <Optimization>false</Optimization>
-      </_AllAssetsToInclude>
-    </ItemGroup>
-
-    <!-- Include the assets in the VSIX -->
-    <ItemGroup>
-      <VSIXCopyLocalReferenceSourceItem Include="@(_AllAssetsToInclude->'%(Path)')">
+      <!-- Include the assets in the VSIX -->
+      <VSIXCopyLocalReferenceSourceItem Include="@(_AssetsWithMetadata->'%(Path)')">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
-        <Ngen Condition="'%(_AllAssetsToInclude.Optimization)' == 'true'">true</Ngen>
-        <NgenArchitecture Condition="'%(_AllAssetsToInclude.Optimization)' == 'true'">All</NgenArchitecture>
-        <NgenPriority Condition="'%(_AllAssetsToInclude.Optimization)' == 'true'">3</NgenPriority>
+        <Ngen Condition="'%(_AssetsWithMetadata.Optimization)' == 'true'">true</Ngen>
+        <NgenArchitecture Condition="'%(_AssetsWithMetadata.Optimization)' == 'true'">All</NgenArchitecture>
+        <NgenPriority Condition="'%(_AssetsWithMetadata.Optimization)' == 'true'">3</NgenPriority>
       </VSIXCopyLocalReferenceSourceItem>
+
+      <!-- Add PkgDef* items for assets that specify PkgDefEntry -->
+      <PkgDefBindingRedirect Include="@(_AssetsWithMetadata->'%(Path)')" Condition="'%(_AssetsWithMetadata.PkgDefEntry)' == 'BindingRedirect' and %(_AssetsWithMetadata.AssetType) == 'runtime'" />
+      <PkgDefCodeBase Include="@(_AssetsWithMetadata->'%(Path)')" Condition="'%(_AssetsWithMetadata.PkgDefEntry)' == 'CodeBase' and %(_AssetsWithMetadata.AssetType) == 'runtime'" />
     </ItemGroup>
   </Target>
 
@@ -127,6 +121,10 @@
                              or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.11.0'">
         <EmbedInteropTypes>false</EmbedInteropTypes>
       </ReferencePath>
+
+      <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.StaticReviews.Embeddable'">
+        <EmbedInteropTypes>true</EmbedInteropTypes>
+      </ReferencePath>      
     </ItemGroup>
   </Target>
 
@@ -144,4 +142,5 @@
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" ExcludeAssets="all"/>
   </ItemGroup>
 
+  <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
 </Project>

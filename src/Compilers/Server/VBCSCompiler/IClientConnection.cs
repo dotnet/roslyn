@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Server the connection and return the result.
         /// </summary>
-        Task<ConnectionData> HandleConnection(bool allowCompilationRequests, CancellationToken cancellationToken);
+        Task<ConnectionData> HandleConnectionAsync(bool allowCompilationRequests, CancellationToken cancellationToken);
 
         /// <summary>
         /// Close the underlying client connection.

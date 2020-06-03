@@ -248,9 +248,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPartial()
-        {
-            await VerifyAbsenceAsync(@"partial $$");
-        }
+            => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterNestedPartial()
@@ -409,9 +407,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterStatementAttribute()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(@"[Goo] $$"));
-        }
+            => await VerifyKeywordAsync(AddInsideMethod(@"[Goo] $$"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterConstructorOpenParen()
@@ -737,15 +733,11 @@ class C { }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAsync()
-        {
-            await VerifyKeywordAsync(@"class c { async $$ }");
-        }
+            => await VerifyKeywordAsync(@"class c { async $$ }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAsyncAsType()
-        {
-            await VerifyAbsenceAsync(@"class c { async async $$ }");
-        }
+            => await VerifyAbsenceAsync(@"class c { async async $$ }");
 
         [WorkItem(1468, "https://github.com/dotnet/roslyn/issues/1468")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -796,6 +788,42 @@ class Program
         ($$
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerType()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeAfterComma()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<int, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeAfterModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterDelegateAsterisk()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    delegate*$$");
         }
     }
 }

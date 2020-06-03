@@ -5,7 +5,6 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -272,9 +271,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return true;
                 }
 
-                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
+                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpr))
                 {
-                    var parenExpr = token.Parent as ParenthesizedExpressionSyntax;
                     var expr = parenExpr.Expression;
 
                     if (expr is TypeSyntax)
@@ -461,7 +459,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
-
             if (targetToken.Kind() == SyntaxKind.OpenParenToken ||
                 targetToken.Kind() == SyntaxKind.CommaToken)
             {
@@ -610,16 +607,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             if (node.IsKind(SyntaxKind.TypeParameterList))
             {
-                if (node.IsParentKind(SyntaxKind.InterfaceDeclaration))
-                {
-                    var decl = node.Parent as TypeDeclarationSyntax;
-                    return decl.TypeParameterList == node;
-                }
-                else if (node.IsParentKind(SyntaxKind.DelegateDeclaration))
-                {
-                    var decl = node.Parent as DelegateDeclarationSyntax;
-                    return decl.TypeParameterList == node;
-                }
+                if (node.IsParentKind(SyntaxKind.InterfaceDeclaration, out TypeDeclarationSyntax typeDecl))
+                    return typeDecl.TypeParameterList == node;
+                else if (node.IsParentKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax delegateDecl))
+                    return delegateDecl.TypeParameterList == node;
             }
 
             return false;

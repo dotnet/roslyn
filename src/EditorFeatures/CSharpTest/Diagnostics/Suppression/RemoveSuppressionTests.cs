@@ -36,14 +36,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
             }
 
             public UserDiagnosticAnalyzer(bool reportDiagnosticsWithoutLocation = false)
-            {
-                _reportDiagnosticsWithoutLocation = reportDiagnosticsWithoutLocation;
-            }
+                => _reportDiagnosticsWithoutLocation = reportDiagnosticsWithoutLocation;
 
             public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
-            }
+                => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
@@ -809,8 +805,6 @@ class Class2
     </Project>
 </Workspace>";
 
-
-
                 await TestInRegularAndScriptAsync(input, expected);
             }
 
@@ -1064,8 +1058,6 @@ class Class2
     @"</Document>
     </Project>
 </Workspace>";
-
-
 
                 await TestInRegularAndScriptAsync(input, expected);
             }

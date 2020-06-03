@@ -98,8 +98,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         public static TextBlock ToTextBlock(this TaggedText part, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
-        {
-            return SpecializedCollections.SingletonEnumerable(part).ToTextBlock(formatMap, typeMap);
-        }
+            => SpecializedCollections.SingletonEnumerable(part).ToTextBlock(formatMap, typeMap);
     }
 }

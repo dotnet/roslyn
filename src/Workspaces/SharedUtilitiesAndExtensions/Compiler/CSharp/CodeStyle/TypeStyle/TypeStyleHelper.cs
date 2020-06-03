@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #else
-using Microsoft.CodeAnalysis.Options;
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             var containingType = semanticModel.GetTypeInfo(containingTypeName, cancellationToken).Type;
 
             return IsPossibleCreationMethod(methodSymbol, typeInDeclaration, containingType)
-                || IsPossibleConversionMethod(methodSymbol, typeInDeclaration, containingType, semanticModel);
+                || IsPossibleConversionMethod(methodSymbol);
         }
 
         /// <summary>
@@ -175,10 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         /// If we have a method ToXXX and its return type is also XXX, then type name is apparent
         /// e.g: Convert.ToString.
         /// </summary>
-        private static bool IsPossibleConversionMethod(IMethodSymbol methodSymbol,
-            ITypeSymbol typeInDeclaration,
-            ITypeSymbol containingType,
-            SemanticModel semanticModel)
+        private static bool IsPossibleConversionMethod(IMethodSymbol methodSymbol)
         {
             var returnType = methodSymbol.ReturnType;
             var returnTypeName = returnType.IsNullable()

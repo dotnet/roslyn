@@ -7,18 +7,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -134,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return false;
         }
 
-        private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(
+        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result, Project project, CancellationToken cancellationToken)
         {
             // see whether solution is loaded successfully
@@ -144,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result;
             }
 
-            var compilerAnalyzer = DiagnosticAnalyzerInfoCache.GetCompilerDiagnosticAnalyzer(project.Language);
+            var compilerAnalyzer = project.Solution.State.Analyzers.GetCompilerDiagnosticAnalyzer(project.Language);
             if (compilerAnalyzer == null)
             {
                 // this language doesn't support compiler analyzer
@@ -232,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> MergeExistingDiagnostics(
+        private static ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> MergeExistingDiagnostics(
             VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
         {
             // quick bail out.
@@ -254,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return result;
         }
 
-        private bool TryReduceAnalyzersToRun(
+        private static bool TryReduceAnalyzersToRun(
             CompilationWithAnalyzers compilation, Project project, VersionStamp version,
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
             out ImmutableArray<DiagnosticAnalyzer> analyzers)
@@ -290,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return true;
         }
 
-        private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
+        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
             Project project,
             ImmutableArray<DiagnosticAnalyzer> ideAnalyzers,
             Compilation? compilation,
@@ -351,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private async Task<(DiagnosticAnalysisResult loadDiagnostics, ImmutableHashSet<Document>? failedDocuments)> GetDocumentLoadFailuresAsync(Project project, VersionStamp version, CancellationToken cancellationToken)
+        private static async Task<(DiagnosticAnalysisResult loadDiagnostics, ImmutableHashSet<Document>? failedDocuments)> GetDocumentLoadFailuresAsync(Project project, VersionStamp version, CancellationToken cancellationToken)
         {
             ImmutableHashSet<Document>.Builder? failedDocuments = null;
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? lazyLoadDiagnostics = null;
@@ -385,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             foreach (var (analyzer, telemetryInfo) in telemetry)
             {
-                bool isTelemetryCollectionAllowed = DiagnosticAnalyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
+                var isTelemetryCollectionAllowed = DiagnosticAnalyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
                 _telemetry.UpdateAnalyzerActionsTelemetry(analyzer, telemetryInfo, isTelemetryCollectionAllowed);
             }
         }
@@ -414,10 +410,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     title = "semantic";
                     break;
                 default:
-                    functionId = FunctionId.Diagnostics_ProjectDiagnostic;
-                    title = "nonLocal";
-                    Contract.Fail("shouldn't reach here");
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
     }

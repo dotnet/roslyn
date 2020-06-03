@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return root.ReplaceTokens(map.Keys, (o, n) => map[o]);
             }
 
-            private Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
+            private static Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
                 Dictionary<TriviaLocation, PreviousNextTokenPair> tokenPairs,
                 Dictionary<TriviaLocation, LeadingTrailingTriviaPair> triviaPairs)
             {
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return GetTrailingAndLeadingTrivia(trivia);
             }
 
-            private IEnumerable<Tuple<PreviousNextTokenPair, LeadingTrailingTriviaPair>> CreateUniqueTokenTriviaPairs(
+            private static IEnumerable<Tuple<PreviousNextTokenPair, LeadingTrailingTriviaPair>> CreateUniqueTokenTriviaPairs(
                 Dictionary<TriviaLocation, PreviousNextTokenPair> tokenPairs,
                 Dictionary<TriviaLocation, LeadingTrailingTriviaPair> triviaPairs)
             {
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return map;
             }
 
-            private Dictionary<TriviaLocation, PreviousNextTokenPair> CreatePreviousNextTokenPairs(
+            private static Dictionary<TriviaLocation, PreviousNextTokenPair> CreatePreviousNextTokenPairs(
                 Dictionary<TriviaLocation, SyntaxToken> tokens)
             {
                 var tokenPairs = new Dictionary<TriviaLocation, PreviousNextTokenPair>();
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return tokenPairs;
             }
 
-            private IEnumerable<SyntaxTrivia> CreateTriviaListFromTo(
+            private static IEnumerable<SyntaxTrivia> CreateTriviaListFromTo(
                 List<SyntaxTrivia> list,
                 int startIndex,
                 int endIndex)

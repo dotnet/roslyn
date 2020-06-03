@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 });
             }
 
-            return service != default(Lazy<IWorkspaceService, WorkspaceServiceMetadata>);
+            return service != null;
         }
 
         private Lazy<IWorkspaceService, WorkspaceServiceMetadata> PickWorkspaceService(IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
@@ -106,13 +106,13 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             // no service.
-            return default;
+            return null;
         }
 
         private static bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)
         {
             service = services.SingleOrDefault(lz => lz.Metadata.Layer == layer);
-            return service != default(Lazy<IWorkspaceService, WorkspaceServiceMetadata>);
+            return service != null;
         }
 
         private IEnumerable<string> _languages;
@@ -137,9 +137,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         public override bool IsSupported(string languageName)
-        {
-            return this.GetSupportedLanguages().Contains(languageName);
-        }
+            => this.GetSupportedLanguages().Contains(languageName);
 
         public override HostLanguageServices GetLanguageServices(string languageName)
         {
@@ -166,7 +164,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         {
             foreach (var language in this.SupportedLanguages)
             {
+#pragma warning disable RS0030 // Do not used banned API 'GetLanguageServices', use 'GetExtendedLanguageServices' instead - allowed in this context.
                 var services = (MefLanguageServices)this.GetLanguageServices(language);
+#pragma warning restore RS0030 // Do not used banned APIs
                 if (services.TryGetService(typeof(TLanguageService), out var service))
                 {
                     if (filter(service.Metadata.Data))
@@ -178,8 +178,6 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         internal bool TryGetLanguageServices(string languageName, out MefLanguageServices languageServices)
-        {
-            return _languageServicesMap.TryGetValue(languageName, out languageServices);
-        }
+            => _languageServicesMap.TryGetValue(languageName, out languageServices);
     }
 }

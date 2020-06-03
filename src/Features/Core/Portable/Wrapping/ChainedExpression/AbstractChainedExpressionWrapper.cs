@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         where TNameSyntax : SyntaxNode
         where TBaseArgumentListSyntax : SyntaxNode
     {
-        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts;
         private readonly int _dotToken;
         private readonly int _questionToken;
 
         protected AbstractChainedExpressionWrapper(
             Indentation.IIndentationService indentationService,
-            ISyntaxFactsService syntaxFacts) : base(indentationService)
+            ISyntaxFacts syntaxFacts) : base(indentationService)
         {
             _syntaxFacts = syntaxFacts;
             _dotToken = syntaxFacts.SyntaxKinds.DotToken;
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             // nodes and tokens we want to treat as individual elements.  i.e. an 
             // element that would be kept together.  For example, the arg-list of an
             // invocation is an element we do not want to ever break-up/wrap. 
-            var pieces = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var pieces);
             Decompose(node, pieces);
 
             // Now that we have the pieces, find 'chunks' similar to the form:
@@ -136,8 +136,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
 
             var chunks = ArrayBuilder<ImmutableArray<SyntaxNodeOrToken>>.GetInstance();
             BreakPiecesIntoChunks(pieces, chunks);
-
-            pieces.Free();
             return chunks.ToImmutableAndFree();
         }
 
@@ -221,19 +219,19 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             return -1;
         }
 
-        private bool IsNode<TNode>(ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
+        private static bool IsNode<TNode>(ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
             => index < pieces.Count &&
                pieces[index] is var piece &&
                piece.IsNode &&
                piece.AsNode() is TNode;
 
-        private bool IsToken(int tokenKind, ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
+        private static bool IsToken(int tokenKind, ArrayBuilder<SyntaxNodeOrToken> pieces, int index)
             => index < pieces.Count &&
                pieces[index] is var piece &&
                piece.IsToken &&
                piece.AsToken().RawKind == tokenKind;
 
-        private ImmutableArray<SyntaxNodeOrToken> GetSubRange(
+        private static ImmutableArray<SyntaxNodeOrToken> GetSubRange(
             ArrayBuilder<SyntaxNodeOrToken> pieces, int start, int end)
         {
             using var resultDisposer = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(end - start, out var result);

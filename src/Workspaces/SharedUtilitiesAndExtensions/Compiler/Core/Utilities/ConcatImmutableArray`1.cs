@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
@@ -22,6 +23,11 @@ namespace Roslyn.Utilities
             _first = first;
             _second = second;
         }
+
+        public int Length => _first.Length + _second.Length;
+
+        public bool Any(Func<T, bool> predicate)
+            => _first.Any(predicate) || _second.Any(predicate);
 
         public Enumerator GetEnumerator()
             => new Enumerator(_first, _second);
@@ -66,9 +72,7 @@ namespace Roslyn.Utilities
             }
 
             void IEnumerator.Reset()
-            {
-                throw new NotSupportedException();
-            }
+                => throw new NotSupportedException();
         }
     }
 }

@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -53,7 +54,6 @@ class {|Definition:C1|}
         </Document>
     </Project>
 </Workspace>
-
 
             Dim exportProvider = ExportProviderCache _
                 .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic() _
@@ -211,6 +211,8 @@ class { }
 </Workspace>
 
             Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+                Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
@@ -219,7 +221,7 @@ class { }
                 ' confirm there are errors
                 Assert.True(model.GetDiagnostics().Any())
 
-                Dim diagnosticService = New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
 
                 ' confirm diagnostic support is off for the document
                 Assert.False(document.SupportsDiagnostics())
@@ -334,6 +336,7 @@ class { }
             Implements SVsServiceProvider
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 

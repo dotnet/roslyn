@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // These are the public entrypoints to finding source declarations.  They will attempt to
         // remote the query to the OOP process, and will fallback to local processing if they can't.
 
-        public static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryAsync(
+        public static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithNormalQueryAsync(
             Solution solution, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             if (solution == null)
@@ -38,31 +38,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                return ImmutableArray<SymbolAndProjectId>.Empty;
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryRunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                var result = await client.RunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithNormalQueryAsync),
                     solution,
                     new object[] { name, ignoreCase, criteria },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
-                }
+                return await RehydrateAsync(solution, result, cancellationToken).ConfigureAwait(false);
             }
 
             return await FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
                 solution, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryAsync(
+        public static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithNormalQueryAsync(
             Project project, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             if (project == null)
@@ -77,31 +74,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                return ImmutableArray<SymbolAndProjectId>.Empty;
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryRunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                var result = await client.RunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
                     project.Solution,
                     new object[] { project.Id, name, ignoreCase, criteria },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return await RehydrateAsync(project.Solution, result.Value, cancellationToken).ConfigureAwait(false);
-                }
+                return await RehydrateAsync(project.Solution, result, cancellationToken).ConfigureAwait(false);
             }
 
             return await FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
                 project, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithPatternAsync(
+        public static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithPatternAsync(
             Solution solution, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             if (solution == null)
@@ -114,29 +108,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(pattern));
             }
 
-
             var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryRunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                var result = await client.RunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithPatternAsync),
                     solution,
                     new object[] { pattern, criteria },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
-                }
+                return await RehydrateAsync(solution, result, cancellationToken).ConfigureAwait(false);
             }
 
             return await FindSourceDeclarationsWithPatternInCurrentProcessAsync(
                 solution, pattern, criteria, cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithPatternAsync(
+        public static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithPatternAsync(
             Project project, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             if (project == null)
@@ -152,18 +142,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryRunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                var result = await client.RunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
                     project.Solution,
                     new object[] { project.Id, pattern, criteria },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return await RehydrateAsync(project.Solution, result.Value, cancellationToken).ConfigureAwait(false);
-                }
+                return await RehydrateAsync(project.Solution, result, cancellationToken).ConfigureAwait(false);
             }
 
             return await FindSourceDeclarationsWithPatternInCurrentProcessAsync(
@@ -178,12 +165,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // be called 'in proc' in the remote process if we are able to remote the request.  Or they
         // will be called 'in proc' from within VS if we are not able to remote the request.
 
-        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
+        internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
             Solution solution, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             using var query = SearchQuery.Create(name, ignoreCase);
 
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+            var result = ArrayBuilder<ISymbol>.GetInstance();
             foreach (var projectId in solution.ProjectIds)
             {
                 var project = solution.GetProject(projectId);
@@ -194,10 +181,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result.ToImmutableAndFree();
         }
 
-        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
+        internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
             Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            var list = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+            var list = ArrayBuilder<ISymbol>.GetInstance();
 
             using var query = SearchQuery.Create(name, ignoreCase);
 
@@ -206,8 +193,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return list.ToImmutableAndFree();
         }
 
-        private static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithPatternInCurrentProcessAsync(
-            string pattern, Func<SearchQuery, Task<ImmutableArray<SymbolAndProjectId>>> searchAsync)
+        private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithPatternInCurrentProcessAsync(
+            string pattern, Func<SearchQuery, Task<ImmutableArray<ISymbol>>> searchAsync)
         {
             // The compiler API only supports a predicate which is given a symbol's name.  Because
             // we only have the name, and nothing else, we need to check it against the last segment
@@ -241,10 +228,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var containerPatternMatcher = PatternMatcher.CreateDotSeparatedContainerMatcher(containerPart);
 
             return symbolAndProjectIds.WhereAsArray(t =>
-                containerPatternMatcher.Matches(GetContainer(t.Symbol)));
+                containerPatternMatcher.Matches(GetContainer(t)));
         }
 
-        internal static Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithPatternInCurrentProcessAsync(
+        internal static Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithPatternInCurrentProcessAsync(
             Solution solution, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             return FindSourceDeclarationsWithPatternInCurrentProcessAsync(
@@ -252,7 +239,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 query => SymbolFinder.FindSourceDeclarationsWithCustomQueryAsync(solution, query, criteria, cancellationToken));
         }
 
-        internal static Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithPatternInCurrentProcessAsync(
+        internal static Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithPatternInCurrentProcessAsync(
             Project project, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             return FindSourceDeclarationsWithPatternInCurrentProcessAsync(

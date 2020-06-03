@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -11,23 +13,15 @@ namespace Microsoft.CodeAnalysis.Formatting
         IIntervalIntrospector<SuppressWrappingData>
     {
         int IIntervalIntrospector<SuppressSpacingData>.GetStart(SuppressSpacingData value)
-        {
-            return value.TextSpan.Start;
-        }
+            => value.TextSpan.Start;
 
         int IIntervalIntrospector<SuppressSpacingData>.GetLength(SuppressSpacingData value)
-        {
-            return value.TextSpan.Length;
-        }
+            => value.TextSpan.Length;
 
         int IIntervalIntrospector<SuppressWrappingData>.GetStart(SuppressWrappingData value)
-        {
-            return value.TextSpan.Start;
-        }
+            => value.TextSpan.Start;
 
         int IIntervalIntrospector<SuppressWrappingData>.GetLength(SuppressWrappingData value)
-        {
-            return value.TextSpan.Length;
-        }
+            => value.TextSpan.Length;
     }
 }

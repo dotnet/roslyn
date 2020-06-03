@@ -9,6 +9,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
+using System;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         : AbstractPreviewTaggerProvider<NavigableHighlightTag>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PreviewReferenceHighlightingTaggerProvider()
             : base(PredefinedPreviewTaggerKeys.ReferenceHighlightingSpansKey, ReferenceHighlightTag.Instance)
         {
@@ -40,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         : AbstractPreviewTaggerProvider<NavigableHighlightTag>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PreviewWrittenReferenceHighlightingTaggerProvider()
             : base(PredefinedPreviewTaggerKeys.WrittenReferenceHighlightingSpansKey, WrittenReferenceHighlightTag.Instance)
         {
@@ -55,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         : AbstractPreviewTaggerProvider<NavigableHighlightTag>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PreviewDefinitionHighlightingTaggerProvider()
             : base(PredefinedPreviewTaggerKeys.DefinitionHighlightingSpansKey, DefinitionHighlightTag.Instance)
         {

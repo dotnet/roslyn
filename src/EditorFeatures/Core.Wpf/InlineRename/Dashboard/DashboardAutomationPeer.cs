@@ -15,28 +15,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private string _identifier;
 
         public DashboardAutomationPeer(UserControl owner, string identifier) : base(owner)
-        {
-            _identifier = identifier;
-        }
+            => _identifier = identifier;
 
         protected override bool HasKeyboardFocusCore()
-        {
-            return true;
-        }
+            => true;
 
         protected override bool IsKeyboardFocusableCore()
-        {
-            return true;
-        }
+            => true;
 
         protected override string GetNameCore()
-        {
-            return string.Format(EditorFeaturesResources.An_inline_rename_session_is_active_for_identifier_0, _identifier);
-        }
+            => string.Format(EditorFeaturesResources.An_inline_rename_session_is_active_for_identifier_0, _identifier);
 
         protected override AutomationControlType GetAutomationControlTypeCore()
-        {
-            return AutomationControlType.Custom;
-        }
+            => AutomationControlType.Custom;
     }
 }

@@ -14,14 +14,13 @@ namespace Microsoft.CodeAnalysis.Host
     internal sealed class DocumentationProviderServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentationProviderServiceFactory()
         {
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new DocumentationProviderService();
-        }
+            => new DocumentationProviderService();
 
         internal sealed class DocumentationProviderService : IDocumentationProviderService
         {

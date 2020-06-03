@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -12,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
     {
-        internal override IHighlighter CreateHighlighter()
-            => new AsyncAwaitHighlighter();
+        internal override Type GetHighlighterType()
+            => typeof(AsyncAwaitHighlighter);
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample2_2()

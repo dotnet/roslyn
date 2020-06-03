@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
 namespace Microsoft.CodeAnalysis
 {
     public enum ApplyChangesKind
@@ -26,6 +25,8 @@ namespace Microsoft.CodeAnalysis
         ChangeDocumentInfo = 16,
         AddAnalyzerConfigDocument = 17,
         RemoveAnalyzerConfigDocument = 18,
-        ChangeAnalyzerConfigDocument = 19
+        ChangeAnalyzerConfigDocument = 19,
+        AddSolutionAnalyzerReference = 20,
+        RemoveSolutionAnalyzerReference = 21,
     }
 }

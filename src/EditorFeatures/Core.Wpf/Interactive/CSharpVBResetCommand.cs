@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.Editor.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow;
@@ -30,10 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private readonly IStandardClassificationService _registry;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ResetCommand(IStandardClassificationService registry)
-        {
-            _registry = registry;
-        }
+            => _registry = registry;
 
         public string Description
         {
@@ -96,7 +96,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             while (true)
             {
                 var index = arguments.IndexOf(NoConfigParameterName, startIndex, StringComparison.Ordinal);
-                if (index < 0) yield break;
+                if (index < 0)
+                    yield break;
 
                 if ((index == 0 || char.IsWhiteSpace(arguments[index - 1])) &&
                     (index + s_noConfigParameterNameLength == arguments.Length || char.IsWhiteSpace(arguments[index + s_noConfigParameterNameLength])))

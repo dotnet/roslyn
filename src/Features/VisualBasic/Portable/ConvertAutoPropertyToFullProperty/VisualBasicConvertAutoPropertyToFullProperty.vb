@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
@@ -18,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
         Private Const Underscore As String = "_"
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -57,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             Return (getAccessor, setAccessor)
         End Function
 
-        Private Function IsReadOnly(propertySyntax As PropertyStatementSyntax) As Boolean
+        Private Shared Function IsReadOnly(propertySyntax As PropertyStatementSyntax) As Boolean
             Dim modifiers = propertySyntax.GetModifiers()
             For Each modifier In modifiers
                 If modifier.IsKind(SyntaxKind.ReadOnlyKeyword) Then

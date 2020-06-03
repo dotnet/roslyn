@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -674,6 +674,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return default;
                 }
             }
+
+            internal override bool IsIterator => false;
         }
     }
 }

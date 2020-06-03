@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         }
 
         internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-        {
-            return new ObjectCreationExpressionSignatureHelpProvider();
-        }
+            => new ObjectCreationExpressionSignatureHelpProvider();
 
         #region "Regular tests"
 
@@ -38,6 +36,30 @@ class C
         var c = [|new C($$|]);
     }
 }";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("C()", string.Empty, null, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestImplicitInvocationWithoutParameters()
+        {
+            var markup = @"
+<Workspace>
+    <Project Language=""C#"" LanguageVersion=""Preview"" CommonReferences=""true"">
+        <Document FilePath=""SourceDocument""><![CDATA[
+class C
+{
+    void M()
+    {
+        C c = [|new($$|]);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("C()", string.Empty, null, currentParameterIndex: 0));
@@ -78,6 +100,26 @@ class C
     void Goo()
     {
         C c = [|new C($$2, 3|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestImplicitInvocationWithParametersOn1()
+        {
+            var markup = @"
+class C
+{
+    C(int a, int b) { }
+
+    void M()
+    {
+        C c = [|new($$2, 3|]);
     }
 }";
 
@@ -180,6 +222,29 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task PickCorrectOverload_PickFirst_ImplicitObjectCreation()
+        {
+            var markup = @"
+class D
+{
+    void M()
+    {
+        D d = [|new(i: 1$$|]);
+    }
+    D(D filtered) => throw null;
+    D(string i) => throw null;
+    D(int i) => throw null;
+}";
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("D(int i)", currentParameterIndex: 0, isSelected: true),
+                new SignatureHelpTestItem("D(string i)", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
         public async Task PickCorrectOverload_PickSecond()
         {
@@ -189,6 +254,29 @@ class D
     void M()
     {
         [|new D(i: null$$|]);
+    }
+    D(D filtered) => throw null;
+    D(string i) => throw null;
+    D(int i) => throw null;
+}";
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("D(int i)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("D(string i)", currentParameterIndex: 0, isSelected: true),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task PickCorrectOverload_PickSecond_ImplicitObjectCreation()
+        {
+            var markup = @"
+class D
+{
+    void M()
+    {
+        D d = [|new(i: null$$|]);
     }
     D(D filtered) => throw null;
     D(string i) => throw null;

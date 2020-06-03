@@ -696,6 +696,18 @@ public class Program
                         "Suggestion",
                         "Warning",
                         "Error",
+                    "Configure severity for all 'Style' analyzers",
+                        "None",
+                        "Silent",
+                        "Suggestion",
+                        "Warning",
+                        "Error",
+                    "Configure severity for all analyzers",
+                        "None",
+                        "Silent",
+                        "Suggestion",
+                        "Warning",
+                        "Error",
             };
 
             VisualStudio.Editor.Verify.CodeActions(expectedItems, ensureExpectedItemsAreOrdered: true);

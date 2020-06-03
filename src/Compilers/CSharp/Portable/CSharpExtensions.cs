@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the first directive of the tree rooted by this node.
         /// </summary>
-        public static DirectiveTriviaSyntax GetFirstDirective(this SyntaxNode node, Func<DirectiveTriviaSyntax, bool>? predicate = null)
+        public static DirectiveTriviaSyntax? GetFirstDirective(this SyntaxNode node, Func<DirectiveTriviaSyntax, bool>? predicate = null)
         {
             return ((CSharpSyntaxNode)node).GetFirstDirective(predicate);
         }
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the last directive of the tree rooted by this node.
         /// </summary>
-        public static DirectiveTriviaSyntax GetLastDirective(this SyntaxNode node, Func<DirectiveTriviaSyntax, bool>? predicate = null)
+        public static DirectiveTriviaSyntax? GetLastDirective(this SyntaxNode node, Func<DirectiveTriviaSyntax, bool>? predicate = null)
         {
             return ((CSharpSyntaxNode)node).GetLastDirective(predicate);
         }
@@ -1237,6 +1237,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given a member declaration syntax, get the corresponding symbol.
         /// </summary>
         public static ISymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a compilation unit syntax, get the corresponding Simple Program entry point symbol.
+        /// </summary>
+        public static IMethodSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, CompilationUnitSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);

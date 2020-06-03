@@ -15,7 +15,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
+
+#if NETSTANDARD2_0
 using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
@@ -73,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         [Conditional("DEBUG")]
-        private void DebugVerifyDiagnosticLocations(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
+        private static void DebugVerifyDiagnosticLocations(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> buildDiagnostics)
         {
             foreach (var diagnostic in buildDiagnostics.Values.SelectMany(v => v))
             {
@@ -132,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return builder == null ? ImmutableArray<DiagnosticData>.Empty : builder.ToImmutable();
         }
 
-        private ImmutableArray<DiagnosticData> ConvertToLiveDiagnostics(
+        private static ImmutableArray<DiagnosticData> ConvertToLiveDiagnostics(
             ILookup<string, DiagnosticData> lookup, ImmutableArray<DiagnosticDescriptor> descriptors, HashSet<string> seen)
         {
             if (lookup == null)

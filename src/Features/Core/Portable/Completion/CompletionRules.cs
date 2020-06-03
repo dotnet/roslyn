@@ -129,41 +129,31 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Creates a copy of this <see cref="CompletionRules"/> with the <see cref="DismissIfEmpty"/> property changed.
         /// </summary>
         public CompletionRules WithDismissIfEmpty(bool dismissIfEmpty)
-        {
-            return With(dismissIfEmpty: dismissIfEmpty);
-        }
+            => With(dismissIfEmpty: dismissIfEmpty);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionRules"/> with the <see cref="DismissIfLastCharacterDeleted"/> property changed.
         /// </summary>
         public CompletionRules WithDismissIfLastCharacterDeleted(bool dismissIfLastCharacterDeleted)
-        {
-            return With(dismissIfLastCharacterDeleted: dismissIfLastCharacterDeleted);
-        }
+            => With(dismissIfLastCharacterDeleted: dismissIfLastCharacterDeleted);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionRules"/> with the <see cref="DefaultCommitCharacters"/> property changed.
         /// </summary>
         public CompletionRules WithDefaultCommitCharacters(ImmutableArray<char> defaultCommitCharacters)
-        {
-            return With(defaultCommitCharacters: defaultCommitCharacters);
-        }
+            => With(defaultCommitCharacters: defaultCommitCharacters);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionRules"/> with the <see cref="DefaultEnterKeyRule"/> property changed.
         /// </summary>
         public CompletionRules WithDefaultEnterKeyRule(EnterKeyRule defaultEnterKeyRule)
-        {
-            return With(defaultEnterKeyRule: defaultEnterKeyRule);
-        }
+            => With(defaultEnterKeyRule: defaultEnterKeyRule);
 
         /// <summary>
         /// Creates a copy of the this <see cref="CompletionRules"/> with the <see cref="SnippetsRule"/> property changed.
         /// </summary>
         public CompletionRules WithSnippetsRule(SnippetsRule snippetsRule)
-        {
-            return With(snippetsRule: snippetsRule);
-        }
+            => With(snippetsRule: snippetsRule);
 
         private static readonly ImmutableArray<char> s_defaultCommitKeys = ImmutableArray.Create(
                 ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',

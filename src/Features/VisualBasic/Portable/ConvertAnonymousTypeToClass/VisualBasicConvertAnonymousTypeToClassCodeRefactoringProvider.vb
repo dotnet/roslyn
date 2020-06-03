@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -20,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToClass
             NamespaceBlockSyntax)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -51,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToClass
                        CreateArgument(CType(declOrComma, FieldInitializerSyntax)))
         End Function
 
-        Private Function CreateArgument(initializer As FieldInitializerSyntax) As ArgumentSyntax
+        Private Shared Function CreateArgument(initializer As FieldInitializerSyntax) As ArgumentSyntax
             Dim expression = If(TryCast(initializer, InferredFieldInitializerSyntax)?.Expression,
                                 TryCast(initializer, NamedFieldInitializerSyntax)?.Expression)
             Return SyntaxFactory.SimpleArgument(expression)

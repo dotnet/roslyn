@@ -5,6 +5,7 @@
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -14,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of XmlCommentSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

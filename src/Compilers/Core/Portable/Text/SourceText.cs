@@ -469,7 +469,9 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal void CheckSubSpan(TextSpan span)
         {
-            if (span.Start < 0 || span.Start > this.Length || span.End > this.Length)
+            Debug.Assert(0 <= span.Start && span.Start <= span.End);
+
+            if (span.End > this.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(span));
             }
@@ -535,13 +537,13 @@ namespace Microsoft.CodeAnalysis.Text
             var buffer = s_charArrayPool.Allocate();
             try
             {
-                int offset = Math.Min(this.Length, span.Start);
-                int length = Math.Min(this.Length, span.End) - offset;
-                while (offset < length)
+                int offset = span.Start;
+                int end = span.End;
+                while (offset < end)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    int count = Math.Min(buffer.Length, length - offset);
+                    int count = Math.Min(buffer.Length, end - offset);
                     this.CopyTo(offset, buffer, 0, count);
                     writer.Write(buffer, 0, count);
                     offset += count;

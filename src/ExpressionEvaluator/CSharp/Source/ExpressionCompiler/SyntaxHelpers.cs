@@ -209,7 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, lexerMode: InternalSyntax.LexerMode.DebuggerSyntax);
 
             var node = parser.ParseExpression();
-            if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
+            if (consumeFullText)
+                node = parser.ConsumeUnexpectedTokens(node);
             return node;
         }
 
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// We don't want to use the real lexer because we want to treat keywords as identifiers.
         /// Since the inputs are so simple, we'll just do the lexing ourselves.
         /// </remarks>
-        internal static bool TryParseDottedName(string input, [NotNullWhen(true)]out NameSyntax? output)
+        internal static bool TryParseDottedName(string input, [NotNullWhen(true)] out NameSyntax? output)
         {
             var pooled = PooledStringBuilder.GetInstance();
             try

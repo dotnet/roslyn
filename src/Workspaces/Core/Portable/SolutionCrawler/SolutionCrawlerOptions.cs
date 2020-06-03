@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using Microsoft.CodeAnalysis.Options;
 
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// Option to turn configure background analysis scope.
         /// </summary>
-        public static readonly PerLanguageOption<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new PerLanguageOption<BackgroundAnalysisScope>(
+        public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new PerLanguageOption2<BackgroundAnalysisScope>(
             nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: BackgroundAnalysisScope.Default,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
 

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             BaseMethodDeclarationSyntax syntax,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), location)
+            base(containingType, syntax.GetReference(), location, isIterator: SyntaxFacts.HasYieldOperations(syntax.Body))
         {
             _name = name;
             _isExpressionBodied = syntax.Body == null && syntax.ExpressionBody != null;
@@ -665,6 +665,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+
+            if (ReturnType.ContainsNativeInteger())
+            {
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, ReturnTypeSyntax.Location, modifyCompilation: true);
+            }
+
+            ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 ReturnTypeWithAnnotations.NeedsNullableAttribute())

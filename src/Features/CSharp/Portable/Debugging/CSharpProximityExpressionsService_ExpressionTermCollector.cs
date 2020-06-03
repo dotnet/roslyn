@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -45,14 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
         }
 
         private static bool IsValidTerm(ExpressionType type)
-        {
-            return (type & ExpressionType.ValidTerm) == ExpressionType.ValidTerm;
-        }
+            => (type & ExpressionType.ValidTerm) == ExpressionType.ValidTerm;
 
         private static bool IsValidExpression(ExpressionType type)
-        {
-            return (type & ExpressionType.ValidExpression) == ExpressionType.ValidExpression;
-        }
+            => (type & ExpressionType.ValidExpression) == ExpressionType.ValidExpression;
 
         private static void AddSubExpressionTerms(ExpressionSyntax expression, IList<string> terms, ref ExpressionType expressionType)
         {
@@ -256,9 +251,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
         private static void AddInvocationExpressionTerms(InvocationExpressionSyntax invocationExpression, IList<string> terms, ref ExpressionType expressionType)
         {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             // Invocations definitely have side effects.  So we assume this
             // is invalid initially;
             expressionType = ExpressionType.Invalid;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
             ExpressionType leftFlags = ExpressionType.Invalid, rightFlags = ExpressionType.Invalid;
 
             AddSubExpressionTerms(invocationExpression.Expression, terms, ref leftFlags);

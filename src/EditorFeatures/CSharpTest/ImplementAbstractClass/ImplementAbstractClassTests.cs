@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -12,8 +11,8 @@ using Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -25,27 +24,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementAbstractClassCodeFixProvider());
 
-        private IDictionary<OptionKey, object> AllOptionsOff =>
-            OptionsSet(
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
+        private OptionsCollection AllOptionsOff
+            => new OptionsCollection(GetLanguage())
+            {
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
 
         internal Task TestAllOptionsOffAsync(
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            IDictionary<OptionKey, object> options = null,
+            OptionsCollection options = null,
             ParseOptions parseOptions = null)
         {
-            options = options ?? new Dictionary<OptionKey, object>();
-            foreach (var kvp in AllOptionsOff)
-            {
-                options.Add(kvp);
-            }
+            options = options ?? new OptionsCollection(GetLanguage());
+            options.AddRange(AllOptionsOff);
 
             return TestInRegularAndScriptAsync(
                 initialMarkup,
@@ -743,41 +741,6 @@ class [|Program|] : Goo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestGenerateIntoNonHiddenPart()
-        {
-            await TestAllOptionsOffAsync(
-@"using System;
-
-abstract class Goo { public abstract void F(); }
-
-partial class [|Program|] : Goo
-{
-#line hidden
-}
-#line default
-
-partial class Program ",
-@"using System;
-
-abstract class Goo { public abstract void F(); }
-
-partial class Program : Goo
-{
-#line hidden
-}
-#line default
-
-partial class Program
-{
-    public override void F()
-    {
-        throw new NotImplementedException();
-    }
-}
-");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestGenerateIfLocationAvailable()
         {
             await TestAllOptionsOffAsync(
@@ -1274,9 +1237,11 @@ class T : A
             throw new System.NotImplementedException();
         }
     }
-}", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.Silent)));
+}", options: new OptionsCollection(GetLanguage())
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+    });
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1311,9 +1276,11 @@ class T : A
             throw new System.NotImplementedException();
         }
     }
-}", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.Silent)));
+}", options: new OptionsCollection(GetLanguage())
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+    });
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1367,9 +1334,11 @@ class T : A
             throw new System.NotImplementedException();
         }
     }
-}", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.Silent)));
+}", options: new OptionsCollection(GetLanguage())
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+    });
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1404,9 +1373,11 @@ class T : A
             throw new System.NotImplementedException();
         }
     }
-}", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.Silent)));
+}", options: new OptionsCollection(GetLanguage())
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+    });
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1430,9 +1401,11 @@ class [|T|] : A
 class T : A
 {
     public override int M { get => throw new System.NotImplementedException(); }
-}", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption.Silent),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent)));
+}", options: new OptionsCollection(GetLanguage())
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+    });
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1817,6 +1790,58 @@ public class [|Test|] : ParentTest
 public class Test : ParentTest
 {
     public override void M<T>()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NothingOfferedWhenInheritanceIsPreventedByInternalAbstractMember()
+        {
+            await TestMissingAsync(
+@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public abstract class Base
+{
+    internal abstract void Method();
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+class [|Derived|] : Base
+{
+    Base inner;
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestWithIncompleteGenericInBaseList()
+        {
+            await TestAllOptionsOffAsync(
+@"abstract class A<T>
+{
+    public abstract void AbstractMethod();
+}
+
+class [|B|] : A<int
+{
+
+}",
+@"abstract class A<T>
+{
+    public abstract void AbstractMethod();
+}
+
+class B : A<int
+{
+    public override void AbstractMethod()
     {
         throw new System.NotImplementedException();
     }

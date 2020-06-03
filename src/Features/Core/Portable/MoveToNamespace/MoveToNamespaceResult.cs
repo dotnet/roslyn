@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         }
 
         private MoveToNamespaceResult()
-        {
-            Succeeded = false;
-        }
+            => Succeeded = false;
     }
 }

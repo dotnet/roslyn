@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -37,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         Inherits AbstractGenerateMemberCodeFixProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 

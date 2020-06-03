@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
@@ -20,75 +17,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
     internal class CSharpCompletionServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCompletionServiceFactory()
         {
         }
 
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new CSharpCompletionService(languageServices.WorkspaceServices.Workspace);
-        }
+            => new CSharpCompletionService(languageServices.WorkspaceServices.Workspace);
     }
 
     internal class CSharpCompletionService : CommonCompletionService
     {
         private readonly Workspace _workspace;
-        private readonly ImmutableArray<CompletionProvider> _defaultCompletionProviders;
 
-        public CSharpCompletionService(
-            Workspace workspace, ImmutableArray<CompletionProvider>? exclusiveProviders = null)
-            : base(workspace, exclusiveProviders)
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+        public CSharpCompletionService(Workspace workspace)
+            : base(workspace)
         {
             _workspace = workspace;
-
-            var defaultCompletionProviders = ImmutableArray.Create<CompletionProvider>(
-                new AttributeNamedParameterCompletionProvider(),
-                new NamedParameterCompletionProvider(),
-                new KeywordCompletionProvider(),
-                new SpeculativeTCompletionProvider(),
-                new SymbolCompletionProvider(),
-                new ExplicitInterfaceMemberCompletionProvider(),
-                new ExplicitInterfaceTypeCompletionProvider(),
-                new ObjectCreationCompletionProvider(),
-                new ObjectInitializerCompletionProvider(),
-                new CSharpSuggestionModeCompletionProvider(),
-                new EnumAndCompletionListTagCompletionProvider(),
-                new CrefCompletionProvider(),
-                new SnippetCompletionProvider(),
-                new ExternAliasCompletionProvider(),
-                new OverrideCompletionProvider(),
-                new PartialMethodCompletionProvider(),
-                new PartialTypeCompletionProvider(),
-                new XmlDocCommentCompletionProvider(),
-                new TupleNameCompletionProvider(),
-                new DeclarationNameCompletionProvider(),
-                new InternalsVisibleToCompletionProvider(),
-                new PropertySubpatternCompletionProvider(),
-                new TypeImportCompletionProvider(),
-                new ExtensionMethodImportCompletionProvider());
-
-            var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
-            var languagesProvider = languageServices.GetService<IEmbeddedLanguagesProvider>();
-            if (languagesProvider != null)
-            {
-                defaultCompletionProviders = defaultCompletionProviders.Add(
-                    new EmbeddedLanguageCompletionProvider(languagesProvider));
-            }
-
-            _defaultCompletionProviders = defaultCompletionProviders;
         }
 
         public override string Language => LanguageNames.CSharp;
 
-        protected override ImmutableArray<CompletionProvider> GetBuiltInProviders()
-        {
-            return _defaultCompletionProviders;
-        }
-
         public override TextSpan GetDefaultCompletionListSpan(SourceText text, int caretPosition)
-        {
-            return CompletionUtilities.GetCompletionItemSpan(text, caretPosition);
-        }
+            => CompletionUtilities.GetCompletionItemSpan(text, caretPosition);
 
         private CompletionRules _latestRules = CompletionRules.Default;
 

@@ -138,6 +138,43 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestConstructor9()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public C(){|textspan:
+    {
+    }|}|}
+    public C()
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestConstructor10()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public C(){|textspan:
+    {
+    }|}|}
+
+    public C(int x)
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestConstructorWithComments()
         {
             const string code = @"

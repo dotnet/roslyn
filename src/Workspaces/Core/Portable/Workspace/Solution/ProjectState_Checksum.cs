@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,20 +16,24 @@ namespace Microsoft.CodeAnalysis
     internal partial class ProjectState
     {
         public bool TryGetStateChecksums(out ProjectStateChecksums stateChecksums)
-        {
-            return _lazyChecksums.TryGetValue(out stateChecksums);
-        }
+            => _lazyChecksums.TryGetValue(out stateChecksums);
 
         public Task<ProjectStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
-        {
-            return _lazyChecksums.GetValueAsync(cancellationToken);
-        }
+            => _lazyChecksums.GetValueAsync(cancellationToken);
 
         public async Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
         {
             var collection = await _lazyChecksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return collection.Checksum;
         }
+
+        public Checksum GetParseOptionsChecksum(CancellationToken cancellationToken)
+            => GetParseOptionsChecksum(_solutionServices.Workspace.Services.GetService<ISerializerService>(), cancellationToken);
+
+        private Checksum GetParseOptionsChecksum(ISerializerService serializer, CancellationToken cancellationToken)
+            => this.SupportsCompilation
+                ? ChecksumCache.GetOrCreate(this.ParseOptions, _ => serializer.CreateChecksum(this.ParseOptions, cancellationToken))
+                : Checksum.Null;
 
         private async Task<ProjectStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
         {
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis
 
                     // these compiler objects doesn't have good place to cache checksum. but rarely ever get changed.
                     var compilationOptionsChecksum = SupportsCompilation ? ChecksumCache.GetOrCreate(CompilationOptions, _ => serializer.CreateChecksum(CompilationOptions, cancellationToken)) : Checksum.Null;
-                    var parseOptionsChecksum = SupportsCompilation ? ChecksumCache.GetOrCreate(ParseOptions, _ => serializer.CreateChecksum(ParseOptions, cancellationToken)) : Checksum.Null;
+                    var parseOptionsChecksum = GetParseOptionsChecksum(serializer, cancellationToken);
 
                     var projectReferenceChecksums = ChecksumCache.GetOrCreate<ProjectReferenceChecksumCollection>(ProjectReferences, _ => new ProjectReferenceChecksumCollection(ProjectReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
                     var metadataReferenceChecksums = ChecksumCache.GetOrCreate<MetadataReferenceChecksumCollection>(MetadataReferences, _ => new MetadataReferenceChecksumCollection(MetadataReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));

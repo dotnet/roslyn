@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -35,24 +36,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal partial class SemanticClassificationViewTaggerProvider : AsynchronousViewTaggerProvider<IClassificationTag>
     {
-        private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly ClassificationTypeMap _typeMap;
 
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-        protected override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
+        protected override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SemanticClassificationViewTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
-            ISemanticChangeNotificationService semanticChangeNotificationService,
             ClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
         {
-            _semanticChangeNotificationService = semanticChangeNotificationService;
             _typeMap = typeMap;
         }
 
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // we appear semantically unclassified for a very short amount of time.
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
-                TaggerEventSources.OnSemanticChanged(subjectBuffer, Delay, _semanticChangeNotificationService),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay, this.AsyncListener),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
         }
 

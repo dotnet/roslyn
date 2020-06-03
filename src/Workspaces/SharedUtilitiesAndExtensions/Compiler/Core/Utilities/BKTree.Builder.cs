@@ -287,9 +287,7 @@ namespace Roslyn.Utilities
                 public Dictionary<int, int> SpilloverEdges;
 
                 public BuilderNode(TextSpan characterSpan) : this()
-                {
-                    this.CharacterSpan = characterSpan;
-                }
+                    => this.CharacterSpan = characterSpan;
             }
         }
     }

@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -14,10 +13,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     <UseExportProvider>
     Public Class ExtensionMethodImportCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
-
-        Private Shared ReadOnly s_exportProviderFactory As IExportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(TestExperimentationService)))
 
         Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
             MyBase.New(workspaceFixture)
@@ -35,12 +30,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue).WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
         End Function
 
-        Protected Overrides Function GetExportProvider() As ExportProvider
-            Return s_exportProviderFactory.CreateExportProvider()
+        Protected Overrides Function GetExportCatalog() As ComposableCatalog
+            Return MyBase.GetExportCatalog().WithPart(GetType(TestExperimentationService))
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New ExtensionMethodImportCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(ExtensionMethodImportCompletionProvider)
         End Function
 
         Public Enum ReferenceType

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             string typeNameBase,
             string methodName,
             DiagnosticBag diagnostics,
-            [NotNullWhen(true)]out CommonPEModuleBuilder? module)
+            [NotNullWhen(true)] out CommonPEModuleBuilder? module)
         {
             // Create a separate synthesized type for each evaluation method.
             // (Necessary for VB in particular since the EENamedTypeSymbol.Locations
@@ -139,8 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ImmutableArray<Alias> aliases,
             CompilationTestData? testData,
             DiagnosticBag diagnostics,
-            [NotNullWhen(true)]out CommonPEModuleBuilder? module,
-            [NotNullWhen(true)]out EEMethodSymbol? synthesizedMethod)
+            [NotNullWhen(true)] out CommonPEModuleBuilder? module,
+            [NotNullWhen(true)] out EEMethodSymbol? synthesizedMethod)
         {
             var synthesizedType = CreateSynthesizedType(syntax, typeName, methodName, aliases);
 
@@ -210,8 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ImmutableArray<Alias> aliases,
             CompilationTestData? testData,
             DiagnosticBag diagnostics,
-            [NotNullWhen(true)]out CommonPEModuleBuilder? module,
-            [NotNullWhen(true)]out EEMethodSymbol? synthesizedMethod)
+            [NotNullWhen(true)] out CommonPEModuleBuilder? module,
+            [NotNullWhen(true)] out EEMethodSymbol? synthesizedMethod)
         {
             var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
             var synthesizedType = new EENamedTypeSymbol(
@@ -1122,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return true;
         }
 
-        private static bool TryParseIdentifierNameSyntax(string name, [NotNullWhen(true)]out IdentifierNameSyntax? syntax)
+        private static bool TryParseIdentifierNameSyntax(string name, [NotNullWhen(true)] out IdentifierNameSyntax? syntax)
         {
             if (name == MetadataReferenceProperties.GlobalAlias)
             {
@@ -1533,9 +1533,9 @@ REPARSE:
             }
         }
 
-        private static bool TryParseGeneratedName(string name, out GeneratedNameKind kind, [NotNullWhen(true)]out string? part)
+        private static void TryParseGeneratedName(string name, out GeneratedNameKind kind, out string? part)
         {
-            bool result = GeneratedNames.TryParseGeneratedName(name, out kind, out int openBracketOffset, out int closeBracketOffset);
+            _ = GeneratedNames.TryParseGeneratedName(name, out kind, out int openBracketOffset, out int closeBracketOffset);
             switch (kind)
             {
                 case GeneratedNameKind.AnonymousTypeField:
@@ -1547,8 +1547,6 @@ REPARSE:
                     part = null;
                     break;
             }
-
-            return result;
         }
 
         private static bool IsDisplayClassType(TypeSymbol type)

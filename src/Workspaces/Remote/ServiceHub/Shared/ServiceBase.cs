@@ -8,9 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
 
@@ -35,6 +35,12 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly int InstanceId;
         protected readonly TraceSource Logger;
         protected readonly AssetStorage AssetStorage;
+
+        static ServiceBase()
+        {
+            // Use a TraceListener hook to intercept assertion failures and report them through FatalError.
+            WatsonTraceListener.Install();
+        }
 
         protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
         {
@@ -81,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Remote
         protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
             => CreateSolutionService(solutionInfo).GetSolutionAsync(solutionInfo, cancellationToken);
 
-        protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
+        protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
         {
             AssetStorage.UpdateLastActivityTime();
 
@@ -89,13 +95,13 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return await callAsync().ConfigureAwait(false);
             }
-            catch (Exception ex) when (EndPoint.ReportAndPropagateUnexpectedException(ex, cancellationToken, callerName))
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
         }
 
-        protected async Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
+        protected async Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken)
         {
             AssetStorage.UpdateLastActivityTime();
 
@@ -103,13 +109,13 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 await callAsync().ConfigureAwait(false);
             }
-            catch (Exception ex) when (EndPoint.ReportAndPropagateUnexpectedException(ex, cancellationToken, callerName))
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
         }
 
-        protected T RunService<T>(Func<T> call, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
+        protected T RunService<T>(Func<T> call, CancellationToken cancellationToken)
         {
             AssetStorage.UpdateLastActivityTime();
 
@@ -117,13 +123,13 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return call();
             }
-            catch (Exception ex) when (EndPoint.ReportAndPropagateUnexpectedException(ex, cancellationToken, callerName))
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
         }
 
-        protected void RunService(Action call, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
+        protected void RunService(Action call, CancellationToken cancellationToken)
         {
             AssetStorage.UpdateLastActivityTime();
 
@@ -131,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 call();
             }
-            catch (Exception ex) when (EndPoint.ReportAndPropagateUnexpectedException(ex, cancellationToken, callerName))
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

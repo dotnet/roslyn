@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis
@@ -15,12 +18,12 @@ namespace Microsoft.CodeAnalysis
         public struct Enumerator
         {
             private SyntaxToken _token;
-            private GreenNode _singleNodeOrList;
+            private GreenNode? _singleNodeOrList;
             private int _baseIndex;
             private int _count;
 
             private int _index;
-            private GreenNode _current;
+            private GreenNode? _current;
             private int _position;
 
             internal Enumerator(in SyntaxTriviaList list)
@@ -53,7 +56,10 @@ namespace Microsoft.CodeAnalysis
             // by ref since it's a non-trivial struct
             internal void InitializeFromLeadingTrivia(in SyntaxToken token)
             {
-                InitializeFrom(in token, token.Node.GetLeadingTriviaCore(), 0, token.Position);
+                Debug.Assert(token.Node is object);
+                var node = token.Node.GetLeadingTriviaCore();
+                Debug.Assert(node is object);
+                InitializeFrom(in token, node, 0, token.Position);
             }
 
             // PERF: Used to initialize an enumerator for trailing trivia directly from a token.
@@ -61,6 +67,7 @@ namespace Microsoft.CodeAnalysis
             // by ref since it's a non-trivial struct
             internal void InitializeFromTrailingTrivia(in SyntaxToken token)
             {
+                Debug.Assert(token.Node is object);
                 var leading = token.Node.GetLeadingTriviaCore();
                 int index = 0;
                 if (leading != null)
@@ -75,6 +82,7 @@ namespace Microsoft.CodeAnalysis
                     trailingPosition -= trailingGreen.FullWidth;
                 }
 
+                Debug.Assert(trailingGreen is object);
                 InitializeFrom(in token, trailingGreen, index, trailingPosition);
             }
 
@@ -95,6 +103,7 @@ namespace Microsoft.CodeAnalysis
                     _position += _current.FullWidth;
                 }
 
+                Debug.Assert(_singleNodeOrList is object);
                 _current = GetGreenNodeAt(_singleNodeOrList, newIndex);
                 return true;
             }

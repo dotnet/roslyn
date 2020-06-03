@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis
             private readonly ComparisonOptions _options;
 
             private SymbolKeyComparer(ComparisonOptions options)
-            {
-                _options = options;
-            }
+                => _options = options;
 
             public bool Equals(SymbolKey x, SymbolKey y)
             {
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private string RemoveAssemblyKeys(string data)
+            private static string RemoveAssemblyKeys(string data)
             {
                 var reader = new RemoveAssemblySymbolKeysReader();
                 reader.Initialize(data);
@@ -48,14 +46,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             public int GetHashCode(SymbolKey obj)
-            {
-                return obj.GetHashCode();
-            }
+                => obj.GetHashCode();
 
             public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKey)
-            {
-                return GetComparer(new ComparisonOptions(ignoreCase, ignoreAssemblyKey));
-            }
+                => GetComparer(new ComparisonOptions(ignoreCase, ignoreAssemblyKey));
 
             private static readonly SymbolKeyComparer[] s_cachedComparers = new SymbolKeyComparer[4];
 
@@ -66,9 +60,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public static IEqualityComparer<SymbolKey> GetComparer(ComparisonOptions options)
-            {
-                return EnsureInitialized(ref s_cachedComparers[options.FlagsValue], options);
-            }
+                => EnsureInitialized(ref s_cachedComparers[options.FlagsValue], options);
         }
     }
 }

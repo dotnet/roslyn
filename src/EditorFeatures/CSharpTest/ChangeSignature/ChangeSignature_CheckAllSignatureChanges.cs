@@ -13,8 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task TestAllSignatureChanges_1This_3Regular_2Default_1Params()
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [MemberData(nameof(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), new[] { 1, 3, 2, 1 }, MemberType = typeof(AbstractChangeSignatureTests))]
+        public async Task TestAllSignatureChanges_1This_3Regular_2Default_1Params(int totalParameters, int[] signature)
         {
             var markup = @"
 static class Ext
@@ -57,12 +58,19 @@ static class Ext
         M(p: new[] { 5 }, y: ""four"", x: 3, c: true, b: ""two"", a: 1, o: t);
     }
 }";
-            var signaturePartCounts = new[] { 1, 3, 2, 1 };
-            await TestAllSignatureChangesAsync(LanguageNames.CSharp, markup, signaturePartCounts);
+
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp,
+                markup,
+                expectedSuccess: true,
+                updatedSignature: signature,
+                totalParameters: totalParameters,
+                verifyNoDiagnostics: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task TestAllSignatureChanges_OnDelegate_3Regular()
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [MemberData(nameof(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), new[] { 0, 3, 0, 0 }, MemberType = typeof(AbstractChangeSignatureTests))]
+        public async Task TestAllSignatureChanges_OnDelegate_3Regular(int totalParameters, int[] signature)
         {
             var markup = @"
 using System;
@@ -151,8 +159,15 @@ class C
     /// <param name=""c""></param>
     void Goo5(int a, string b, bool c) { }
 }";
-            var signaturePartCounts = new[] { 0, 3, 0, 0 };
-            await TestAllSignatureChangesAsync(LanguageNames.CSharp, markup, signaturePartCounts, new CSharpParseOptions(LanguageVersion.CSharp7));
+
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp,
+                markup,
+                expectedSuccess: true,
+                updatedSignature: signature,
+                totalParameters: totalParameters,
+                verifyNoDiagnostics: true,
+                parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
         }
     }
 }

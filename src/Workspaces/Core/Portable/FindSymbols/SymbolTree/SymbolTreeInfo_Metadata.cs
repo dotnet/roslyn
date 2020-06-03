@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static MetadataId GetMetadataIdNoThrow(PortableExecutableReference reference)
+        public static MetadataId GetMetadataIdNoThrow(PortableExecutableReference reference)
         {
             try
             {
@@ -194,9 +194,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 solution,
                 checksum,
                 loadOnly,
-                createAsync: () => CreateMetadataSymbolTreeInfoAsync(solution, checksum, reference, cancellationToken),
+                createAsync: () => CreateMetadataSymbolTreeInfoAsync(solution, checksum, reference),
                 keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerTask(solution, checksum, filePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerAsync(solution, checksum, filePath, names, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfFalse(result != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
             return result;
@@ -204,22 +204,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
             Solution solution, Checksum checksum,
-            PortableExecutableReference reference,
-            CancellationToken cancellationToken)
+            PortableExecutableReference reference)
         {
-            var creator = new MetadataInfoCreator(solution, checksum, reference, cancellationToken);
+            var creator = new MetadataInfoCreator(solution, checksum, reference);
             return Task.FromResult(creator.Create());
         }
 
         private struct MetadataInfoCreator : IDisposable
         {
-            private static Predicate<string> s_isNotNullOrEmpty = s => !string.IsNullOrEmpty(s);
-            private static ObjectPool<List<string>> s_stringListPool = SharedPools.Default<List<string>>();
+            private static readonly Predicate<string> s_isNotNullOrEmpty = s => !string.IsNullOrEmpty(s);
+            private static readonly ObjectPool<List<string>> s_stringListPool = SharedPools.Default<List<string>>();
 
             private readonly Solution _solution;
             private readonly Checksum _checksum;
             private readonly PortableExecutableReference _reference;
-            private readonly CancellationToken _cancellationToken;
 
             private readonly OrderPreservingMultiDictionary<string, string> _inheritanceMap;
             private readonly OrderPreservingMultiDictionary<MetadataNode, MetadataNode> _parentToChildren;
@@ -238,16 +236,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //      public static bool AnotherExtensionMethod1(this int x);
             //      public static bool AnotherExtensionMethod1(this bool x);
             //
-            private MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo;
+            private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo;
             private bool _containsExtensionsMethod;
 
             public MetadataInfoCreator(
-                Solution solution, Checksum checksum, PortableExecutableReference reference, CancellationToken cancellationToken)
+                Solution solution, Checksum checksum, PortableExecutableReference reference)
             {
                 _solution = solution;
                 _checksum = checksum;
                 _reference = reference;
-                _cancellationToken = cancellationToken;
                 _metadataReader = null;
                 _allTypeDefinitions = new List<MetadataDefinition>();
                 _containsExtensionsMethod = false;

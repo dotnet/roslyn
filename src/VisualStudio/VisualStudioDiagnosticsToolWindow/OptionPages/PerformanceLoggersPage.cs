@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     {
         private IGlobalOptionService _optionService;
         private IThreadingContext _threadingContext;
-        private IRemoteHostClientService _remoteService;
+        private IRemoteHostClientProvider _remoteClientProvider;
 
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
@@ -35,7 +35,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 _threadingContext = componentModel.GetService<IThreadingContext>();
 
                 var workspace = componentModel.GetService<VisualStudioWorkspace>();
-                _remoteService = workspace.Services.GetService<IRemoteHostClientService>();
+                _remoteClientProvider = workspace.Services.GetService<IRemoteHostClientProvider>();
             }
 
             return new InternalOptionsControl(nameof(LoggerOptions), optionStore);
@@ -45,10 +45,10 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         {
             base.OnApply(e);
 
-            SetLoggers(_optionService, _threadingContext, _remoteService);
+            SetLoggers(_optionService, _threadingContext, _remoteClientProvider);
         }
 
-        public static void SetLoggers(IGlobalOptionService optionService, IThreadingContext threadingContext, IRemoteHostClientService remoteService)
+        public static void SetLoggers(IGlobalOptionService optionService, IThreadingContext threadingContext, IRemoteHostClientProvider remoteClientProvider)
         {
             var loggerTypes = GetLoggerTypes(optionService).ToList();
 
@@ -60,7 +60,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             SetRoslynLogger(loggerTypes, () => new OutputWindowLogger(options));
 
             // second set RemoteHost options
-            var client = threadingContext.JoinableTaskFactory.Run(() => remoteService.TryGetRemoteHostClientAsync(CancellationToken.None));
+            var client = threadingContext.JoinableTaskFactory.Run(() => remoteClientProvider.TryGetRemoteHostClientAsync(CancellationToken.None));
             if (client == null)
             {
                 // Remote host is disabled
@@ -69,8 +69,8 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
             var functionIds = GetFunctionIds(options).ToList();
 
-            threadingContext.JoinableTaskFactory.Run(() => client.TryRunRemoteAsync(
-                WellKnownRemoteHostServices.RemoteHostService,
+            threadingContext.JoinableTaskFactory.Run(() => client.RunRemoteAsync(
+                WellKnownServiceHubService.RemoteHost,
                 nameof(IRemoteHostService.SetLoggingFunctionIds),
                 solution: null,
                 new object[] { loggerTypes, functionIds },

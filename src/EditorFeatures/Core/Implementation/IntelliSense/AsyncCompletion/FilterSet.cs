@@ -125,9 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         public FilterSet()
-        {
-            _vector = new BitVector32();
-        }
+            => _vector = new BitVector32();
 
         public (ImmutableArray<CompletionFilter> filters, int data) GetFiltersAndAddToSet(RoslynCompletionItem item)
         {
@@ -169,9 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         public void CombineData(int filterSetData)
-        {
-            _vector[filterSetData] = true;
-        }
+            => _vector[filterSetData] = true;
 
         public ImmutableArray<CompletionFilterWithState> GetFilterStatesInSet(bool addUnselectedExpander)
         {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return lineText.GetColumnFromLineOffset(lineText.Length, tabSize);
             }
 
-            private SyntaxToken GetTokenWithLineBreaks(SyntaxToken token)
+            private static SyntaxToken GetTokenWithLineBreaks(SyntaxToken token)
             {
                 var currentToken = token.GetPreviousToken(includeZeroWidth: true);
 

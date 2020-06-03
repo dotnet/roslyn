@@ -2,14 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -21,83 +27,76 @@ namespace Microsoft.CodeAnalysis.Rename
     /// </summary>
     internal sealed partial class RenameLocations
     {
-        private class SearchResult
-        {
-            public readonly IEnumerable<ReferenceLocation> ImplicitLocations;
-            public readonly ISet<RenameLocation> Locations;
-            public readonly IEnumerable<SymbolAndProjectId> ReferencedSymbols;
+        public readonly Solution Solution;
+        public readonly ISymbol Symbol;
+        public readonly RenameOptionSet Options;
 
-            public SearchResult(
-                ISet<RenameLocation> locations,
-                IEnumerable<ReferenceLocation> implicitLocations,
-                IEnumerable<SymbolAndProjectId> referencedSymbols)
-            {
-                this.Locations = locations;
-                this.ImplicitLocations = implicitLocations;
-                this.ReferencedSymbols = referencedSymbols;
-            }
-        }
+        private readonly SearchResult? _originalSymbolResult;
 
-        // never null fields
-        private readonly SymbolAndProjectId _symbolAndProjectId;
-        private readonly Solution _solution;
         private readonly SearchResult _mergedResult;
-        internal OptionSet Options { get; }
 
-        // possibly null fields
-        private readonly SearchResult _originalSymbolResult;
-        private readonly List<SearchResult> _overloadsResult;
-        private readonly IEnumerable<RenameLocation> _stringsResult;
-        private readonly IEnumerable<RenameLocation> _commentsResult;
-
-        internal RenameLocations(
-            ISet<RenameLocation> locations,
-            SymbolAndProjectId symbolAndProjectId,
-            Solution solution,
-            IEnumerable<SymbolAndProjectId> referencedSymbols,
-            IEnumerable<ReferenceLocation> implicitLocations,
-            OptionSet options)
-        {
-            _symbolAndProjectId = symbolAndProjectId;
-            _solution = solution;
-            _mergedResult = new SearchResult(locations, implicitLocations, referencedSymbols);
-            Options = options;
-        }
+        // can be default
+        private readonly ImmutableArray<SearchResult> _overloadsResult;
+        private readonly ImmutableArray<RenameLocation> _stringsResult;
+        private readonly ImmutableArray<RenameLocation> _commentsResult;
 
         private RenameLocations(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             Solution solution,
-            OptionSet options,
-            SearchResult originalSymbolResult,
-            List<SearchResult> overloadsResult,
-            IEnumerable<RenameLocation> stringsResult,
-            IEnumerable<RenameLocation> commentsResult)
+            RenameOptionSet options,
+            SearchResult? originalSymbolResult,
+            SearchResult mergedResult,
+            ImmutableArray<SearchResult> overloadsResult,
+            ImmutableArray<RenameLocation> stringsResult,
+            ImmutableArray<RenameLocation> commentsResult)
         {
-            _symbolAndProjectId = symbolAndProjectId;
-            _solution = solution;
+            Solution = solution;
+            Symbol = symbol;
             Options = options;
             _originalSymbolResult = originalSymbolResult;
+            _mergedResult = mergedResult;
             _overloadsResult = overloadsResult;
             _stringsResult = stringsResult;
             _commentsResult = commentsResult;
+        }
 
-            var mergedLocations = new HashSet<RenameLocation>();
-            var mergedReferencedSymbols = new List<SymbolAndProjectId>();
-            var mergedImplicitLocations = new List<ReferenceLocation>();
+        internal static RenameLocations Create(
+            ImmutableHashSet<RenameLocation> locations,
+            ISymbol symbol,
+            Solution solution,
+            ImmutableArray<ISymbol> referencedSymbols,
+            ImmutableArray<ReferenceLocation> implicitLocations,
+            RenameOptionSet options)
+        {
+            return new RenameLocations(
+                symbol, solution, options, originalSymbolResult: null,
+                new SearchResult(locations, implicitLocations, referencedSymbols),
+                overloadsResult: default, stringsResult: default, commentsResult: default);
+        }
 
-            if (options.GetOption(RenameOptions.RenameInStrings))
-            {
+        private static RenameLocations Create(
+            ISymbol symbol,
+            Solution solution,
+            RenameOptionSet options,
+            SearchResult originalSymbolResult,
+            ImmutableArray<SearchResult> overloadsResult,
+            ImmutableArray<RenameLocation> stringsResult,
+            ImmutableArray<RenameLocation> commentsResult)
+        {
+            var mergedLocations = ImmutableHashSet.CreateBuilder<RenameLocation>();
+            using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var mergedReferencedSymbols);
+            using var _2 = ArrayBuilder<ReferenceLocation>.GetInstance(out var mergedImplicitLocations);
+
+            if (options.RenameInStrings)
                 mergedLocations.AddRange(stringsResult);
-            }
 
-            if (options.GetOption(RenameOptions.RenameInComments))
-            {
+            if (options.RenameInComments)
                 mergedLocations.AddRange(commentsResult);
-            }
 
-            var renameMethodGroupReferences =
-                options.GetOption(RenameOptions.RenameOverloads) || !GetOverloadedSymbols(symbolAndProjectId).Any();
-            var overloadsToMerge = (options.GetOption(RenameOptions.RenameOverloads) ? overloadsResult : null) ?? SpecializedCollections.EmptyEnumerable<SearchResult>();
+            var renameMethodGroupReferences = options.RenameOverloads || !GetOverloadedSymbols(symbol).Any();
+            var overloadsToMerge = options.RenameOverloads
+                ? overloadsResult.NullToEmpty()
+                : ImmutableArray<SearchResult>.Empty;
             foreach (var result in overloadsToMerge.Concat(originalSymbolResult))
             {
                 mergedLocations.AddRange(renameMethodGroupReferences
@@ -108,74 +107,117 @@ namespace Microsoft.CodeAnalysis.Rename
                 mergedReferencedSymbols.AddRange(result.ReferencedSymbols);
             }
 
-            _mergedResult = new SearchResult(mergedLocations, mergedImplicitLocations, mergedReferencedSymbols);
+            return new RenameLocations(
+                symbol, solution, options, originalSymbolResult,
+                new SearchResult(mergedLocations.ToImmutable(), mergedImplicitLocations.ToImmutable(), mergedReferencedSymbols.ToImmutable()),
+                overloadsResult, stringsResult, commentsResult);
         }
 
         public ISet<RenameLocation> Locations => _mergedResult.Locations;
-        public SymbolAndProjectId SymbolAndProjectId => _symbolAndProjectId;
-        public ISymbol Symbol => _symbolAndProjectId.Symbol;
-        public Solution Solution => _solution;
-        public IEnumerable<SymbolAndProjectId> ReferencedSymbols => _mergedResult.ReferencedSymbols;
-        public IEnumerable<ReferenceLocation> ImplicitLocations => _mergedResult.ImplicitLocations;
+        public ImmutableArray<ISymbol> ReferencedSymbols => _mergedResult.ReferencedSymbols;
+        public ImmutableArray<ReferenceLocation> ImplicitLocations => _mergedResult.ImplicitLocations;
 
         /// <summary>
         /// Find the locations that need to be renamed.
         /// </summary>
-        internal static async Task<RenameLocations> FindAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, OptionSet optionSet, CancellationToken cancellationToken)
+        public static async Task<RenameLocations> FindLocationsAsync(
+            ISymbol symbol, Solution solution, RenameOptionSet optionSet, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(symbolAndProjectId.Symbol);
+            Contract.ThrowIfNull(solution);
+            Contract.ThrowIfNull(symbol);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
+            {
+                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
+                {
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    if (client != null)
+                    {
+                        var result = await client.RunRemoteAsync<SerializableRenameLocations?>(
+                            WellKnownServiceHubService.CodeAnalysis,
+                            nameof(IRemoteRenamer.FindRenameLocationsAsync),
+                            solution,
+                            new object[]
+                            {
+                                serializedSymbol,
+                                SerializableRenameOptionSet.Dehydrate(optionSet),
+                            },
+                            callbackTarget: null,
+                            cancellationToken).ConfigureAwait(false);
+
+                        if (result != null)
+                        {
+                            var rehydrated = await RenameLocations.TryRehydrateAsync(
+                                solution, result, cancellationToken).ConfigureAwait(false);
+
+                            if (rehydrated != null)
+                                return rehydrated;
+                        }
+                    }
+                }
+            }
+
+            // Couldn't effectively search in OOP. Perform the search in-proc.
+            return await FindLocationsInCurrentProcessAsync(
+                symbol, solution, optionSet, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<RenameLocations> FindLocationsInCurrentProcessAsync(
+            ISymbol symbol, Solution solution, RenameOptionSet optionSet, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(symbol);
             using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
             {
-                symbolAndProjectId = await ReferenceProcessing.FindDefinitionSymbolAsync(symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
-                var originalSymbolResult = await AddLocationsReferenceSymbolsAsync(symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
-                var intermediateResult = new RenameLocations(symbolAndProjectId, solution, optionSet, originalSymbolResult, overloadsResult: null, stringsResult: null, commentsResult: null);
+                symbol = await ReferenceProcessing.FindDefinitionSymbolAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+                var originalSymbolResult = await AddLocationsReferenceSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+                var intermediateResult = Create(
+                    symbol, solution, optionSet, originalSymbolResult, overloadsResult: default, stringsResult: default, commentsResult: default);
 
                 return await intermediateResult.FindWithUpdatedOptionsAsync(optionSet, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        internal async Task<RenameLocations> FindWithUpdatedOptionsAsync(OptionSet optionSet, CancellationToken cancellationToken)
+        internal async Task<RenameLocations> FindWithUpdatedOptionsAsync(RenameOptionSet optionSet, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(Options, "FindWithUpdatedOptionsAsync can only be called on a result of FindAsync");
             using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
             {
-                var overloadsResult = _overloadsResult ?? (optionSet.GetOption(RenameOptions.RenameOverloads)
-                    ? await GetOverloadsAsync(_symbolAndProjectId, _solution, cancellationToken).ConfigureAwait(false)
-                    : null);
+                var overloadsResult = !_overloadsResult.IsDefault
+                    ? _overloadsResult
+                    : optionSet.RenameOverloads
+                        ? await GetOverloadsAsync(Symbol, Solution, cancellationToken).ConfigureAwait(false)
+                        : default;
 
+                Contract.ThrowIfNull(_originalSymbolResult);
                 var stringsAndComments = await ReferenceProcessing.GetRenamableLocationsInStringsAndCommentsAsync(
-                    _symbolAndProjectId.Symbol,
-                    _solution,
+                    Symbol,
+                    Solution,
                     _originalSymbolResult.Locations,
-                    optionSet.GetOption(RenameOptions.RenameInStrings) && _stringsResult == null,
-                    optionSet.GetOption(RenameOptions.RenameInComments) && _commentsResult == null,
+                    optionSet.RenameInStrings && _stringsResult.IsDefault,
+                    optionSet.RenameInComments && _commentsResult.IsDefault,
                     cancellationToken).ConfigureAwait(false);
 
-                return new RenameLocations(
-                    _symbolAndProjectId, _solution, optionSet, _originalSymbolResult,
-                    _overloadsResult ?? overloadsResult,
-                    _stringsResult ?? stringsAndComments.Item1,
-                    _commentsResult ?? stringsAndComments.Item2);
+                return Create(
+                    Symbol, Solution, optionSet, _originalSymbolResult,
+                    _overloadsResult.IsDefault ? overloadsResult : _overloadsResult,
+                    _stringsResult.IsDefault ? stringsAndComments.Item1 : _stringsResult,
+                    _commentsResult.IsDefault ? stringsAndComments.Item2 : _commentsResult);
             }
         }
 
-        private static async Task<List<SearchResult>> GetOverloadsAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<SearchResult>> GetOverloadsAsync(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            var overloadsResult = new List<SearchResult>();
-            foreach (var overloadedSymbol in GetOverloadedSymbols(symbolAndProjectId))
-            {
+            using var _ = ArrayBuilder<SearchResult>.GetInstance(out var overloadsResult);
+            foreach (var overloadedSymbol in GetOverloadedSymbols(symbol))
                 overloadsResult.Add(await AddLocationsReferenceSymbolsAsync(overloadedSymbol, solution, cancellationToken).ConfigureAwait(false));
-            }
 
-            return overloadsResult;
+            return overloadsResult.ToImmutable();
         }
 
-        internal static IEnumerable<SymbolAndProjectId> GetOverloadedSymbols(
-            SymbolAndProjectId symbolAndProjectId)
+        internal static IEnumerable<ISymbol> GetOverloadedSymbols(ISymbol symbol)
         {
-            var symbol = symbolAndProjectId.Symbol;
             if (symbol is IMethodSymbol)
             {
                 var containingType = symbol.ContainingType;
@@ -185,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     {
                         if (string.Equals(member.MetadataName, symbol.MetadataName, StringComparison.Ordinal) && member is IMethodSymbol && !member.Equals(symbol))
                         {
-                            yield return symbolAndProjectId.WithSymbol(member);
+                            yield return member;
                         }
                     }
                 }
@@ -193,14 +235,13 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         private static async Task<SearchResult> AddLocationsReferenceSymbolsAsync(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             Solution solution,
             CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
-            var locations = new HashSet<RenameLocation>();
+            var locations = ImmutableHashSet.CreateBuilder<RenameLocation>();
             var referenceSymbols = await SymbolFinder.FindRenamableReferencesAsync(
-                symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
+                symbol, solution, cancellationToken).ConfigureAwait(false);
 
             foreach (var referencedSymbol in referenceSymbols)
             {
@@ -213,10 +254,33 @@ namespace Microsoft.CodeAnalysis.Rename
                         cancellationToken).ConfigureAwait(false));
             }
 
-            var implicitLocations = referenceSymbols.SelectMany(refSym => refSym.Locations).Where(loc => loc.IsImplicit).ToList();
-            var referencedSymbols = referenceSymbols.Select(r => r.DefinitionAndProjectId).Where(r => !r.Symbol.Equals(symbol)).ToList();
+            var implicitLocations = referenceSymbols.SelectMany(refSym => refSym.Locations).Where(loc => loc.IsImplicit).ToImmutableArray();
+            var referencedSymbols = referenceSymbols.Select(r => r.Definition).Where(r => !r.Equals(symbol)).ToImmutableArray();
 
-            return new SearchResult(locations, implicitLocations, referencedSymbols);
+            return new SearchResult(locations.ToImmutable(), implicitLocations, referencedSymbols);
         }
+
+        /// <summary>
+        /// Performs the renaming of the symbol in the solution, identifies renaming conflicts and automatically
+        /// resolves them where possible.
+        /// </summary>
+        /// <param name="replacementText">The new name of the identifier</param>
+        /// <param name="nonConflictSymbols">Used after renaming references. References that now bind to any of these
+        /// symbols are not considered to be in conflict. Useful for features that want to rename existing references to
+        /// point at some existing symbol. Normally this would be a conflict, but this can be used to override that
+        /// behavior.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A conflict resolution containing the new solution.</returns>
+        public Task<ConflictResolution> ResolveConflictsAsync(string replacementText, ImmutableHashSet<ISymbol>? nonConflictSymbols = null, CancellationToken cancellationToken = default)
+            => ConflictResolver.ResolveConflictsAsync(this, replacementText, nonConflictSymbols, cancellationToken);
+
+        public RenameLocations Filter(Func<Location, bool> filter)
+            => Create(
+                this.Locations.Where(loc => filter(loc.Location)).ToImmutableHashSet(),
+                this.Symbol,
+                this.Solution,
+                this.ReferencedSymbols,
+                this.ImplicitLocations.WhereAsArray(loc => filter(loc.Location)),
+                this.Options);
     }
 }

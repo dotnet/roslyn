@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             AnonymousMethodExpressionSyntax anonymousMethod,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 anonymousMethod,
                 startToken,
                 lastToken,
+                compressEmptyLines: false,
                 autoCollapse: false,
                 type: BlockTypes.Expression,
                 isCollapsible: true));

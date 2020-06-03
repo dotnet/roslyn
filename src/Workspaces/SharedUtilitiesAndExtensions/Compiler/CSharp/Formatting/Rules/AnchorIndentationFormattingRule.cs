@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -18,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Anchor Indentation Formatting Rule";
 
-        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, in NextAnchorIndentationOperationAction nextOperation)
+        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -72,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case AccessorDeclarationSyntax accessorDeclNode:
                     AddAnchorIndentationOperation(list, accessorDeclNode);
                     return;
-                case CSharpSyntaxNode switchExpressionArm when switchExpressionArm.IsKind(SyntaxKind.SwitchExpressionArm):
+                case SwitchExpressionArmSyntax switchExpressionArm:
                     // The expression in a switch expression arm should be anchored to the beginning of the arm
                     // ```
                     // e switch
@@ -92,9 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddAnchorIndentationOperation(List<AnchorIndentationOperation> list, SyntaxNode node)
-        {
-            AddAnchorIndentationOperation(list, node.GetFirstToken(includeZeroWidth: true), node.GetLastToken(includeZeroWidth: true));
-        }
+        private static void AddAnchorIndentationOperation(List<AnchorIndentationOperation> list, SyntaxNode node)
+            => AddAnchorIndentationOperation(list, node.GetFirstToken(includeZeroWidth: true), node.GetLastToken(includeZeroWidth: true));
     }
 }

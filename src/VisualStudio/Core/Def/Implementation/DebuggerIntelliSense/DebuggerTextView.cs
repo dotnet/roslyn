@@ -317,49 +317,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         public void Close()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public void DisplayTextLineContainingBufferPosition(SnapshotPoint bufferPosition, double verticalDistance, ViewRelativePosition relativeTo, double? viewportWidthOverride, double? viewportHeightOverride)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public void DisplayTextLineContainingBufferPosition(SnapshotPoint bufferPosition, double verticalDistance, ViewRelativePosition relativeTo)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public SnapshotSpan GetTextElementSpan(SnapshotPoint point)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public ITextViewLine GetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition)
-        {
-            return _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
-        }
+            => _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
 
         public void QueueSpaceReservationStackRefresh()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public IAdornmentLayer GetAdornmentLayer(string name)
-        {
-            return _innerTextView.GetAdornmentLayer(name);
-        }
+            => _innerTextView.GetAdornmentLayer(name);
 
         public ISpaceReservationManager GetSpaceReservationManager(string name)
-        {
-            return _innerTextView.GetSpaceReservationManager(name);
-        }
+            => _innerTextView.GetSpaceReservationManager(name);
 
         IWpfTextViewLine IWpfTextView.GetTextViewLineContainingBufferPosition(SnapshotPoint bufferPosition)
-        {
-            return _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
-        }
+            => _innerTextView.GetTextViewLineContainingBufferPosition(bufferPosition);
 
         public void Cleanup()
         {

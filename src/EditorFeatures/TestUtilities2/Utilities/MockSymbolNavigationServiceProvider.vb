@@ -20,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         Private _instance As MockSymbolNavigationService = New MockSymbolNavigationService()
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -76,6 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// Initializes a new instance of the <see cref="RemoteLanguageServiceWorkspace"/> class.
         /// </summary>
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteLanguageServiceWorkspace(ExportProvider exportProvider,
                                               IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
                                               IVsFolderWorkspaceService vsFolderWorkspaceService,
@@ -155,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// </summary>
         private async Task UpdatePathsToRemoteFilesAsync(CollaborationSession session)
         {
-            var (remoteRootPaths, externalPaths) = await GetLocalPathsOfRemoteRoots(session).ConfigureAwait(false);
+            var (remoteRootPaths, externalPaths) = await GetLocalPathsOfRemoteRootsAsync(session).ConfigureAwait(false);
 
             // Make sure we update our references to the remote roots and iterate RDT only one at a time.
             using (await s_RemotePathsGate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
@@ -169,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             }
         }
 
-        private static async Task<(ImmutableHashSet<string> remoteRootPaths, ImmutableHashSet<string> externalPaths)> GetLocalPathsOfRemoteRoots(CollaborationSession session)
+        private static async Task<(ImmutableHashSet<string> remoteRootPaths, ImmutableHashSet<string> externalPaths)> GetLocalPathsOfRemoteRootsAsync(CollaborationSession session)
         {
             var roots = await session.ListRootsAsync(CancellationToken.None).ConfigureAwait(false);
             var localPathsOfRemoteRoots = roots.Select(root => session.ConvertSharedUriToLocalPath(root)).ToImmutableArray();
@@ -290,7 +292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             return AddDocumentToProject(filePath, language, ExternalProjectName);
         }
 
-        public async Task<DocumentSpan?> GetDocumentSpanFromLocation(LSP.Location location, CancellationToken cancellationToken)
+        public async Task<DocumentSpan?> GetDocumentSpanFromLocationAsync(LSP.Location location, CancellationToken cancellationToken)
         {
             var document = GetOrAddDocument(location.Uri.LocalPath);
             if (document == null)
@@ -448,9 +450,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-        }
+            => base.Dispose(disposing);
 
         /// <summary>
         /// Marker class to easily group error reporting for missing live share text buffers.
@@ -476,7 +476,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
                     if (textBuffer == null)
                     {
-                        WatsonReporter.Report("Text buffer is missing for opened Live Share document.", new LiveShareTextBufferMissingException());
+                        // Text buffer is missing for opened Live Share document.
+                        FatalError.ReportWithoutCrash(new LiveShareTextBufferMissingException());
                         return;
                     }
 
@@ -513,13 +514,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         private void StartSolutionCrawler()
-        {
-            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
-        }
+            => DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
 
         private void StopSolutionCrawler()
-        {
-            DiagnosticProvider.Disable(this);
-        }
+            => DiagnosticProvider.Disable(this);
     }
 }

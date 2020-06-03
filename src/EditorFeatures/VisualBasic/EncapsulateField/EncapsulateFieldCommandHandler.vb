@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -19,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
         Inherits AbstractEncapsulateFieldCommandHandler
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New(threadingContext As IThreadingContext,
                        undoManager As ITextBufferUndoManagerProvider,
                        listenerProvider As IAsynchronousOperationListenerProvider)

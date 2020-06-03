@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis
             return set;
         }
 
-        internal abstract AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager);
+        internal abstract AnalyzerDriver CreateAnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager, SeverityFilter severityFilter);
 
         /// <summary>
         /// Gets the source language ("C#" or "Visual Basic").
@@ -850,6 +850,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The TypeSymbol for the type 'dynamic' in this Compilation.
         /// </summary>
+        /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
         public ITypeSymbol DynamicType { get { return CommonDynamicType; } }
         protected abstract ITypeSymbol CommonDynamicType { get; }
 
@@ -874,7 +875,7 @@ namespace Microsoft.CodeAnalysis
 
             for (int i = 0; i < parts.Length - 1; i++)
             {
-                INamespaceSymbol next = container.GetNestedNamespace(parts[i]);
+                INamespaceSymbol? next = container.GetNestedNamespace(parts[i]);
                 if (next == null)
                 {
                     AssertNoScriptTrees();
@@ -927,15 +928,49 @@ namespace Microsoft.CodeAnalysis
         protected abstract IArrayTypeSymbol CommonCreateArrayTypeSymbol(ITypeSymbol elementType, int rank, NullableAnnotation elementNullableAnnotation);
 
         /// <summary>
-        /// Returns a new PointerTypeSymbol representing a pointer type tied to a type in this
+        /// Returns a new IPointerTypeSymbol representing a pointer type tied to a type in this
         /// Compilation.
         /// </summary>
+        /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
         public IPointerTypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType)
         {
             return CommonCreatePointerTypeSymbol(pointedAtType);
         }
 
         protected abstract IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType);
+
+
+        /// <summary>
+        /// Returns a new IFunctionPointerTypeSymbol representing a function pointer type tied to types in this
+        /// Compilation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
+        /// <exception cref="ArgumentException">
+        /// If:
+        ///  * <see cref="RefKind.Out"/> is passed as the returnRefKind.
+        ///  * parameterTypes and parameterRefKinds do not have the same length.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// If returnType is <see langword="null"/>, or if parameterTypes or parameterRefKinds are default,
+        /// or if any of the types in parameterTypes are null.</exception>
+         // https://github.com/dotnet/roslyn/issues/39865 allow setting calling convention in creation
+        public IFunctionPointerTypeSymbol CreateFunctionPointerTypeSymbol(ITypeSymbol returnType, RefKind returnRefKind, ImmutableArray<ITypeSymbol> parameterTypes, ImmutableArray<RefKind> parameterRefKinds)
+        {
+            return CommonCreateFunctionPointerTypeSymbol(returnType, returnRefKind, parameterTypes, parameterRefKinds);
+        }
+
+        protected abstract IFunctionPointerTypeSymbol CommonCreateFunctionPointerTypeSymbol(ITypeSymbol returnType, RefKind returnRefKind, ImmutableArray<ITypeSymbol> parameterTypes, ImmutableArray<RefKind> parameterRefKinds);
+
+        /// <summary>
+        /// Returns a new INamedTypeSymbol representing a native integer.
+        /// </summary>
+        /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
+        public INamedTypeSymbol CreateNativeIntegerTypeSymbol(bool signed)
+        {
+            return CommonCreateNativeIntegerTypeSymbol(signed);
+        }
+
+        protected abstract INamedTypeSymbol CommonCreateNativeIntegerTypeSymbol(bool signed);
 
         // PERF: ETW Traces show that analyzers may use this method frequently, often requesting
         // the same symbol over and over again. XUnit analyzers, in particular, were consuming almost
@@ -1282,8 +1317,7 @@ namespace Microsoft.CodeAnalysis
 
             void checkInCompilationReferences(ISymbol s, string parameterName)
             {
-                var containingAssembly = computeContainingAssembly(s);
-                if (!assemblyIsInReferences(containingAssembly))
+                if (!isContainingAssemblyInReferences(s))
                 {
                     throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, parameterName), parameterName);
                 }
@@ -1331,14 +1365,14 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            IAssemblySymbol computeContainingAssembly(ISymbol s)
+            bool isContainingAssemblyInReferences(ISymbol s)
             {
                 while (true)
                 {
                     switch (s.Kind)
                     {
                         case SymbolKind.Assembly:
-                            return (IAssemblySymbol)s;
+                            return assemblyIsInReferences((IAssemblySymbol)s);
                         case SymbolKind.PointerType:
                             s = ((IPointerTypeSymbol)s).PointedAtType;
                             continue;
@@ -1351,15 +1385,31 @@ namespace Microsoft.CodeAnalysis
                         case SymbolKind.Discard:
                             s = ((IDiscardSymbol)s).Type;
                             continue;
+                        case SymbolKind.FunctionPointer:
+                            var funcPtr = (IFunctionPointerTypeSymbol)s;
+                            if (!isContainingAssemblyInReferences(funcPtr.Signature.ReturnType))
+                            {
+                                return false;
+                            }
+
+                            foreach (var param in funcPtr.Signature.Parameters)
+                            {
+                                if (!isContainingAssemblyInReferences(param.Type))
+                                {
+                                    return false;
+                                }
+                            }
+
+                            return true;
                         case SymbolKind.DynamicType:
                         case SymbolKind.ErrorType:
                         case SymbolKind.Preprocessing:
                         case SymbolKind.Namespace:
                             // these symbols are not restricted in where they can be accessed, so unless they report
                             // a containing assembly, we treat them as in the current assembly for access purposes
-                            return s.ContainingAssembly ?? this.Assembly;
+                            return assemblyIsInReferences(s.ContainingAssembly ?? this.Assembly);
                         default:
-                            return s.ContainingAssembly;
+                            return assemblyIsInReferences(s.ContainingAssembly);
                     }
                 }
             }
@@ -2136,7 +2186,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBeingBuilt,
             Stream? xmlDocumentationStream,
             Stream? win32ResourcesStream,
-            string outputNameOverride,
+            string? outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
 
@@ -2268,8 +2318,8 @@ namespace Microsoft.CodeAnalysis
                 manifestResources,
                 options,
                 debugEntryPoint,
-                default(Stream),
-                default(IEnumerable<EmbeddedText>),
+                sourceLinkStream: null,
+                embeddedTexts: null,
                 cancellationToken);
         }
 
@@ -2679,7 +2729,7 @@ namespace Microsoft.CodeAnalysis
             if (IsSubmission && !HasCodeToEmit())
             {
                 // Still report diagnostics since downstream submissions will assume there are no errors.
-                diagnostics.AddRange(this.GetDiagnostics());
+                diagnostics.AddRange(this.GetDiagnostics(cancellationToken));
                 return null;
             }
 

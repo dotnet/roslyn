@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMember;
@@ -16,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
         AbstractGenerateDeconstructMethodService<CSharpGenerateDeconstructMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpGenerateDeconstructMethodService()
         {
         }
@@ -27,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             => new CSharpGenerateParameterizedMemberService<CSharpGenerateDeconstructMethodService>.InvocationExpressionInfo(document, state);
 
         protected override bool AreSpecialOptionsActive(SemanticModel semanticModel)
-            => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel);
+            => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive();
 
         protected override bool IsValidSymbol(ISymbol symbol, SemanticModel semanticModel)
-            => CSharpCommonGenerationServiceMethods.IsValidSymbol(symbol, semanticModel);
+            => CSharpCommonGenerationServiceMethods.IsValidSymbol();
     }
 }

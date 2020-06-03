@@ -65,7 +65,7 @@ class Hello
         {
             var connection = new Mock<IClientConnection>();
             connection
-                .Setup(x => x.HandleConnection(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.HandleConnectionAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns(task);
             return connection.Object;
         }
@@ -75,7 +75,7 @@ class Hello
             var host = new Mock<IClientConnectionHost>();
             var index = 0;
             host
-                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns((CancellationToken ct) => connections[index++]);
 
             return host.Object;
@@ -121,7 +121,7 @@ class Hello
         {
             var host = new Mock<IClientConnectionHost>();
             host
-                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns(new TaskCompletionSource<IClientConnection>().Task);
             return host;
         }
@@ -139,12 +139,12 @@ class Hello
             var ex = new Exception();
             var clientConnection = new Mock<IClientConnection>();
             clientConnection
-                .Setup(x => x.HandleConnection(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.HandleConnectionAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns(FromException<ConnectionData>(ex));
 
             var task = Task.FromResult(clientConnection.Object);
 
-            var connectionData = await ServerDispatcher.HandleClientConnection(task).ConfigureAwait(true);
+            var connectionData = await ServerDispatcher.HandleClientConnectionAsync(task).ConfigureAwait(true);
             Assert.Equal(CompletionReason.ClientException, connectionData.CompletionReason);
             Assert.Null(connectionData.KeepAlive);
         }
@@ -154,7 +154,7 @@ class Hello
         {
             var ex = new Exception();
             var task = FromException<IClientConnection>(ex);
-            var connectionData = await ServerDispatcher.HandleClientConnection(task).ConfigureAwait(true);
+            var connectionData = await ServerDispatcher.HandleClientConnectionAsync(task).ConfigureAwait(true);
             Assert.Equal(CompletionReason.CompilationNotStarted, connectionData.CompletionReason);
             Assert.Null(connectionData.KeepAlive);
         }
@@ -165,7 +165,7 @@ class Hello
             var keepAlive = TimeSpan.FromSeconds(3);
             var connectionHost = new Mock<IClientConnectionHost>();
             connectionHost
-                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns(new TaskCompletionSource<IClientConnection>().Task);
 
             var listener = new TestableDiagnosticListener();
@@ -233,7 +233,7 @@ class Hello
             var list = new List<TaskCompletionSource<ConnectionData>>();
             var host = new Mock<IClientConnectionHost>();
             host
-                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns((CancellationToken ct) =>
                 {
                     if (list.Count < totalCount)
@@ -273,7 +273,7 @@ class Hello
         {
             var client = new Mock<IClientConnection>();
             client
-                .Setup(x => x.HandleConnection(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.HandleConnectionAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Throws(new Exception());
 
             var listenCancellationToken = default(CancellationToken);
@@ -281,7 +281,7 @@ class Hello
 
             var host = new Mock<IClientConnectionHost>();
             host
-                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns((CancellationToken cancellationToken) =>
                 {
                     if (first)
@@ -366,7 +366,7 @@ class Hello
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
             var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
             host
-                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Setup(x => x.ListenAsync(It.IsAny<CancellationToken>()))
                 .Returns(() =>
                 {
                     // Use a thread instead of Task to guarantee this code runs on a different

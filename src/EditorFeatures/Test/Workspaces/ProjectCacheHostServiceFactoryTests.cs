@@ -5,11 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -246,16 +249,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             private MockHostServices() { }
 
             protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
-            {
-                return new MockHostWorkspaceServices(this, workspace);
-            }
+                => new MockHostWorkspaceServices(this, workspace);
+        }
+
+        private sealed class MockTaskSchedulerProvider : ITaskSchedulerProvider
+        {
+            public TaskScheduler CurrentContextScheduler
+                => (SynchronizationContext.Current != null) ? TaskScheduler.FromCurrentSynchronizationContext() : TaskScheduler.Default;
+        }
+
+        private sealed class MockWorkspaceAsynchronousOperationListenerProvider : IWorkspaceAsynchronousOperationListenerProvider
+        {
+            public IAsynchronousOperationListener GetListener()
+                => AsynchronousOperationListenerProvider.NullListener;
         }
 
         private class MockHostWorkspaceServices : HostWorkspaceServices
         {
             private readonly HostServices _hostServices;
             private readonly Workspace _workspace;
-            private static readonly IWorkspaceTaskSchedulerFactory s_taskSchedulerFactory = new WorkspaceTaskSchedulerFactory();
+            private static readonly ITaskSchedulerProvider s_taskSchedulerProvider = new MockTaskSchedulerProvider();
+            private static readonly IWorkspaceAsynchronousOperationListenerProvider s_asyncListenerProvider = new MockWorkspaceAsynchronousOperationListenerProvider();
             private readonly OptionServiceFactory.OptionService _optionService;
 
             public MockHostWorkspaceServices(HostServices hostServices, Workspace workspace)
@@ -272,17 +286,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             public override Workspace Workspace => _workspace;
 
             public override IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter)
-            {
-                return ImmutableArray<TLanguageService>.Empty;
-            }
+                => ImmutableArray<TLanguageService>.Empty;
 
             public override TWorkspaceService GetService<TWorkspaceService>()
             {
-                if (s_taskSchedulerFactory is TWorkspaceService)
+                if (s_taskSchedulerProvider is TWorkspaceService)
                 {
-                    return (TWorkspaceService)s_taskSchedulerFactory;
+                    return (TWorkspaceService)s_taskSchedulerProvider;
                 }
-                else if (_optionService is TWorkspaceService workspaceOptionService)
+
+                if (s_asyncListenerProvider is TWorkspaceService)
+                {
+                    return (TWorkspaceService)s_asyncListenerProvider;
+                }
+
+                if (_optionService is TWorkspaceService workspaceOptionService)
                 {
                     return workspaceOptionService;
                 }

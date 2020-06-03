@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -42,11 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case AccessorDeclarationSyntax accessor:
                     return (CSharpSyntaxNode?)accessor.Body ?? accessor.ExpressionBody;
                 case ArrowExpressionClauseSyntax arrowExpression:
-                    Debug.Assert(arrowExpression.Parent.Kind() == SyntaxKind.PropertyDeclaration ||
+                    Debug.Assert(arrowExpression.Parent!.Kind() == SyntaxKind.PropertyDeclaration ||
                                  arrowExpression.Parent.Kind() == SyntaxKind.IndexerDeclaration);
                     return arrowExpression;
                 case LocalFunctionStatementSyntax localFunction:
                     return (CSharpSyntaxNode?)localFunction.Body ?? localFunction.ExpressionBody;
+                case CompilationUnitSyntax _ when this is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
+                    return (CSharpSyntaxNode)entryPoint.ReturnTypeSyntax;
                 default:
                     return null;
             }
@@ -61,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal CSharpSyntaxNode SyntaxNode
+        internal virtual CSharpSyntaxNode SyntaxNode
         {
             get
             {
@@ -77,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
             {
@@ -450,29 +454,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (VerifyObsoleteAttributeAppliedToMethod(ref arguments, AttributeDescription.DeprecatedAttribute))
             {
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
+                ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.NullableContextAttribute | ReservedAttributes.CaseSensitiveExtensionAttribute))
             {
-                // IsReadOnlyAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
-            {
-                // IsUnmanagedAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
-            {
-                // IsByRefLikeAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
-            {
-                // [Extension] attribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableContextAttribute))
-            {
-                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullableContextAttribute);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)
                 || attribute.IsTargetAttribute(this, AttributeDescription.SecuritySafeCriticalAttribute))
@@ -484,11 +468,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
             {
-                attribute.DecodeSkipLocalsInitAttribute<MethodWellKnownAttributeData>(DeclaringCompilation, ref arguments);
+                CSharpAttributeData.DecodeSkipLocalsInitAttribute<MethodWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasDoesNotReturnAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.MemberNotNullAttribute))
+            {
+                MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                CSharpAttributeData.DecodeMemberNotNullAttribute<MethodWellKnownAttributeData>(ContainingType, ref arguments);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.MemberNotNullWhenAttribute))
+            {
+                MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                CSharpAttributeData.DecodeMemberNotNullWhenAttribute<MethodWellKnownAttributeData>(ContainingType, ref arguments);
             }
             else
             {
@@ -499,6 +493,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal override ImmutableArray<string> NotNullMembers =>
+            GetDecodedWellKnownAttributeData()?.NotNullMembers ?? ImmutableArray<string>.Empty;
+
+        internal override ImmutableArray<string> NotNullWhenTrueMembers =>
+            GetDecodedWellKnownAttributeData()?.NotNullWhenTrueMembers ?? ImmutableArray<string>.Empty;
+
+        internal override ImmutableArray<string> NotNullWhenFalseMembers =>
+            GetDecodedWellKnownAttributeData()?.NotNullWhenFalseMembers ?? ImmutableArray<string>.Empty;
 
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
@@ -614,34 +617,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // MarshalAs applied to the return value:
                 MarshalAsAttributeDecoder<ReturnTypeWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.ReturnValue, MessageProvider.Instance);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DynamicAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
+                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute))
             {
-                // DynamicAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
-            {
-                // IsUnmanagedAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
-            {
-                // IsReadOnlyAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
-            {
-                // IsByRefLikeAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
-            {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
-            {
-                // NullableAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MaybeNullAttribute))
             {
@@ -666,7 +644,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             bool hasErrors = false;
 
-            if (!this.IsExtern || !this.IsStatic)
+            var implementationPart = this.PartialImplementationPart ?? this;
+            if (!implementationPart.IsExtern || !implementationPart.IsStatic)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;

@@ -36,6 +36,7 @@
   </Target>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion)" />
+    <PackageReference Include="Humanizer.Core" Version="$(HumanizerCoreVersion)" PrivateAssets="compile" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />

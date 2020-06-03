@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal static class DestructorGenerator
     {
         private static MemberDeclarationSyntax LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return LastConstructor(members) ?? LastField(members);
-        }
+            => LastConstructor(members) ?? LastField(members);
 
         internal static TypeDeclarationSyntax AddDestructorTo(
             TypeDeclarationSyntax destination,
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var destructorDeclaration = GenerateDestructorDeclaration(destructor, GetDestination(destination), options);
+            var destructorDeclaration = GenerateDestructorDeclaration(destructor, options);
 
             // Generate after the last constructor, or after the last field, or at the start of the
             // type.
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal static DestructorDeclarationSyntax GenerateDestructorDeclaration(
-            IMethodSymbol destructor, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IMethodSymbol destructor, CodeGenerationOptions options)
         {
             options ??= CodeGenerationOptions.Default;
 

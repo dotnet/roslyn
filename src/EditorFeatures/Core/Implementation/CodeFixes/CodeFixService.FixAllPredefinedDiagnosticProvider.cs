@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             private readonly ImmutableArray<Diagnostic> _diagnostics;
 
             public FixAllPredefinedDiagnosticProvider(ImmutableArray<Diagnostic> diagnostics)
-            {
-                _diagnostics = diagnostics;
-            }
+                => _diagnostics = diagnostics;
 
             public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
                 => Task.FromResult<IEnumerable<Diagnostic>>(_diagnostics);

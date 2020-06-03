@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -14,20 +18,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentImplementationName)]
-    internal class FindImplementationsHandler : IRequestHandler<LSP.TextDocumentPositionParams, object>
+    internal class FindImplementationsHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
-        public async Task<object> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FindImplementationsHandler()
+        {
+        }
+
+        public async Task<LSP.Location[]> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
+            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = solution.GetDocument(request.TextDocument, clientName);
             if (document == null)
             {
                 return locations.ToArrayAndFree();
             }
 
-            var findUsagesService = document.Project.LanguageServices.GetService<IFindUsagesService>();
+            var findUsagesService = document.Project.LanguageServices.GetRequiredService<IFindUsagesService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var context = new SimpleFindUsagesContext(cancellationToken);

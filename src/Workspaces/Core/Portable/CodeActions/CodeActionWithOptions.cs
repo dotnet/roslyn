@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         /// <param name="options">An object instance returned from a prior call to <see cref="GetOptions(CancellationToken)"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
-        public async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(object options, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(object options, CancellationToken cancellationToken)
         {
             if (options == null)
             {
@@ -61,8 +63,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         protected abstract Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken);
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
-        }
+            => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
     }
 }

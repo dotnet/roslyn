@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-        {
-            return await ComputeOperationsAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
-        }
+            => await ComputeOperationsAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
 
         internal override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 _showPreviewChangesDialog);
         }
 
-        internal async override Task<Solution> GetChangedSolutionAsync(
+        internal override async Task<Solution> GetChangedSolutionAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -88,18 +86,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         internal TestAccessor GetTestAccessor()
-        {
-            return new TestAccessor(this);
-        }
+            => new TestAccessor(this);
 
         internal readonly struct TestAccessor
         {
             private readonly FixSomeCodeAction _fixSomeCodeAction;
 
             internal TestAccessor(FixSomeCodeAction fixSomeCodeAction)
-            {
-                _fixSomeCodeAction = fixSomeCodeAction;
-            }
+                => _fixSomeCodeAction = fixSomeCodeAction;
 
             /// <summary>
             /// Gets a reference to <see cref="_showPreviewChangesDialog"/>, which can be read or written by test code.

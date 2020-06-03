@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
@@ -103,7 +104,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                              Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
                          End Function)
 
-
             Dim handled = controller.TryHandleDownKey()
 
             Assert.False(handled)
@@ -120,7 +120,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                              mre.WaitOne()
                              Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
                          End Function)
-
 
             Dim handled = controller.TryHandleUpKey()
 
@@ -267,6 +266,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             presenterSession.Setup(Sub(p) p.PresentItems(It.IsAny(Of ITrackingSpan), It.IsAny(Of IList(Of SignatureHelpItem)), It.IsAny(Of SignatureHelpItem), It.IsAny(Of Integer?))) _
                 .Callback(Sub() presenterSession.SetupGet(Function(p) p.EditorSessionIsActive).Returns(True))
 
+            Dim mockCompletionBroker = New Mock(Of IAsyncCompletionBroker)
+            mockCompletionBroker.Setup(Function(b) b.GetSession(It.IsAny(Of ITextView))).Returns(DirectCast(Nothing, IAsyncCompletionSession))
 
             Dim controller = New Controller(
                 threadingContext,
@@ -275,7 +276,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 presenter.Object,
                 asyncListener.Object,
                 documentProvider.Object,
-                {provider})
+                {provider},
+                mockCompletionBroker.Object)
 
             s_controllerMocksMap.Add(controller, New ControllerMocks(
                       view,

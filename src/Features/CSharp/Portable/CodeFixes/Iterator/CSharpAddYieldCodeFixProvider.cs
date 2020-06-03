@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         private const string CS0266 = nameof(CS0266);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpAddYieldCodeFixProvider()
         {
         }
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return new MyCodeAction(CSharpFeaturesResources.Replace_return_with_yield_return, document.WithSyntaxRoot(root));
         }
 
-        private bool TryGetExpressionType(
+        private static bool TryGetExpressionType(
             SemanticModel model, ExpressionSyntax? expression, [NotNullWhen(true)] out ITypeSymbol? returnExpressionType)
         {
             if (expression == null)
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return returnExpressionType != null;
         }
 
-        private bool TryGetMethodReturnType(
+        private static bool TryGetMethodReturnType(
             SyntaxNode node, SemanticModel model, CancellationToken cancellationToken,
             [NotNullWhen(true)] out ITypeSymbol? methodReturnType)
         {
@@ -116,10 +117,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
         private bool IsCorrectTypeForYieldReturn(ITypeSymbol typeArgument, ITypeSymbol returnExpressionType, ITypeSymbol methodReturnType, SemanticModel model)
         {
-            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
-            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator).FullName);
-            var ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName);
-            var ienumeratorGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator<>).FullName);
+            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
+            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator).FullName!);
+            var ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName!);
+            var ienumeratorGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator<>).FullName!);
 
             if (ienumerableGenericSymbol == null ||
                 ienumerableSymbol == null ||
@@ -187,10 +188,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return true;
         }
 
-        private bool IsCorrectTypeForYieldReturn(ITypeSymbol methodReturnType, SemanticModel model)
+        private static bool IsCorrectTypeForYieldReturn(ITypeSymbol methodReturnType, SemanticModel model)
         {
-            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
-            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator).FullName);
+            var ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
+            var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator).FullName!);
 
             if (ienumerableSymbol == null ||
                     ienumeratorSymbol == null)

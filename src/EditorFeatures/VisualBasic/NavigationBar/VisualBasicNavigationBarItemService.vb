@@ -38,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         Private ReadOnly _textUndoHistoryRegistry As ITextUndoHistoryRegistry
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService, textUndoHistoryRegistry As ITextUndoHistoryRegistry)
             _editorOperationsFactoryService = editorOperationsFactoryService
             _textUndoHistoryRegistry = textUndoHistoryRegistry
@@ -208,7 +209,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Else
                 childItems.AddRange(CreateItemsForMemberGroup(constructors, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
             End If
-
 
             ' Get any of the methods named "Finalize" in this class, and list them first. The legacy
             ' behavior that we will consider a method a finalizer even if it is shadowing the real

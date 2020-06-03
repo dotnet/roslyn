@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -20,13 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal struct LoweredDynamicOperation
     {
-        private readonly SyntheticBoundNodeFactory _factory;
+        private readonly SyntheticBoundNodeFactory? _factory;
         private readonly TypeSymbol _resultType;
         private readonly ImmutableArray<LocalSymbol> _temps;
-        public readonly BoundExpression SiteInitialization;
+        public readonly BoundExpression? SiteInitialization;
         public readonly BoundExpression SiteInvocation;
 
-        public LoweredDynamicOperation(SyntheticBoundNodeFactory factory, BoundExpression siteInitialization, BoundExpression siteInvocation, TypeSymbol resultType, ImmutableArray<LocalSymbol> temps)
+        public LoweredDynamicOperation(SyntheticBoundNodeFactory? factory, BoundExpression? siteInitialization, BoundExpression siteInvocation, TypeSymbol resultType, ImmutableArray<LocalSymbol> temps)
         {
             _factory = factory;
             _resultType = resultType;
@@ -36,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public static LoweredDynamicOperation Bad(
-            BoundExpression loweredReceiver,
+            BoundExpression? loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            BoundExpression loweredRight,
+            BoundExpression? loweredRight,
             TypeSymbol resultType)
         {
             var children = ArrayBuilder<BoundExpression>.GetInstance();
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static LoweredDynamicOperation Bad(TypeSymbol resultType, ImmutableArray<BoundExpression> children)
         {
             Debug.Assert(children.Length > 0);
-            var bad = new BoundBadExpression(children[0].Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, children, resultType);
+            var bad = new BoundBadExpression(children[0].Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, children, resultType);
             return new LoweredDynamicOperation(null, null, bad, resultType, default(ImmutableArray<LocalSymbol>));
         }
 
@@ -65,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // TODO (tomat): we might be able to use SiteInvocation.Type instead of resultType once we stop using GetLoweredType
+            Debug.Assert(SiteInitialization is { });
             if (_temps.IsDefaultOrEmpty)
             {
                 return _factory.Sequence(new[] { SiteInitialization }, SiteInvocation, _resultType);

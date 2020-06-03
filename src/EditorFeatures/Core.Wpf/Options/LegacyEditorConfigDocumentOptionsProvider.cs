@@ -7,10 +7,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -30,17 +28,18 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         /// </summary>
         private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
 
+#pragma warning disable IDE0052 // Remove unread private members - Used in EditorFeatures project context
         private readonly Workspace _workspace;
         private readonly IAsynchronousOperationListener _listener;
+#pragma warning disable IDE0052
+
         private readonly ICodingConventionsManager _codingConventionsManager;
-        private readonly IErrorLoggerService _errorLogger;
 
         internal LegacyEditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager, IAsynchronousOperationListenerProvider listenerProvider)
         {
             _workspace = workspace;
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
             _codingConventionsManager = codingConventionsManager;
-            _errorLogger = workspace.Services.GetRequiredService<IErrorLoggerService>();
 
             workspace.DocumentOpened += Workspace_DocumentOpened;
             workspace.DocumentClosed += Workspace_DocumentClosed;
@@ -162,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     TaskScheduler.Default);
 
                 var context = await cancellableContextTask.ConfigureAwait(false);
-                return new DocumentOptions(context.CurrentConventions, _errorLogger);
+                return new DocumentOptions(context.CurrentConventions);
             }
             else
             {
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 using var context = await conventionsAsync.ConfigureAwait(false);
 
-                return new DocumentOptions(context.CurrentConventions, _errorLogger);
+                return new DocumentOptions(context.CurrentConventions);
             }
         }
 

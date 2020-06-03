@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -36,31 +37,21 @@ namespace Microsoft.CodeAnalysis.Formatting
         public SyntaxToken Token { get; }
 
         public TokenData GetPreviousTokenData()
-        {
-            return this.TokenStream.GetPreviousTokenData(this);
-        }
+            => this.TokenStream.GetPreviousTokenData(this);
 
         public TokenData GetNextTokenData()
-        {
-            return this.TokenStream.GetNextTokenData(this);
-        }
+            => this.TokenStream.GetNextTokenData(this);
 
         public bool Equals(TokenData x, TokenData y)
-        {
-            return x.Equals(y);
-        }
+            => x.Equals(y);
 
         public int GetHashCode(TokenData obj)
-        {
-            return obj.GetHashCode();
-        }
+            => obj.GetHashCode();
 
         public override int GetHashCode()
-        {
-            return this.Token.GetHashCode();
-        }
+            => this.Token.GetHashCode();
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TokenData data &&
                    this.Equals(data);
@@ -82,9 +73,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public int Compare(TokenData x, TokenData y)
-        {
-            return x.CompareTo(y);
-        }
+            => x.CompareTo(y);
 
         public int CompareTo(TokenData other)
         {
@@ -109,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // this is expansive check. but there is no other way to check.
             var commonRoot = this.Token.GetCommonRoot(other.Token);
-            Debug.Assert(commonRoot != null);
+            RoslynDebug.Assert(commonRoot != null);
 
             var tokens = commonRoot.DescendantTokens();
 
@@ -120,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return index1 - index2;
         }
 
-        private int Index(IEnumerable<SyntaxToken> tokens, SyntaxToken token)
+        private static int Index(IEnumerable<SyntaxToken> tokens, SyntaxToken token)
         {
             var index = 0;
 
@@ -138,23 +127,15 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public static bool operator <(TokenData left, TokenData right)
-        {
-            return left.CompareTo(right) < 0;
-        }
+            => left.CompareTo(right) < 0;
 
         public static bool operator >(TokenData left, TokenData right)
-        {
-            return left.CompareTo(right) > 0;
-        }
+            => left.CompareTo(right) > 0;
 
         public static bool operator ==(TokenData left, TokenData right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(TokenData left, TokenData right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
     }
 }

@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Private |
                 syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics);
 
+            if (SyntaxFacts.HasYieldOperations(syntax.Body))
+            {
+                _lazyIteratorElementType = TypeWithAnnotations.Boxed.Sentinel;
+            }
+
             this.CheckUnsafeModifier(_declarationModifiers, _declarationDiagnostics);
 
             ScopeBinder = binder;
@@ -130,6 +135,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AsyncMethodChecks(_declarationDiagnostics);
 
             addTo.AddRange(_declarationDiagnostics);
+
+            if (IsEntryPointCandidate && !IsGenericMethod &&
+                ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol &&
+                DeclaringCompilation.HasEntryPointSignature(this, new DiagnosticBag()).IsCandidate)
+            {
+                addTo.Add(ErrorCode.WRN_MainIgnored, Syntax.Identifier.GetLocation(), this);
+            }
         }
 
         internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
@@ -177,6 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = DeclaringCompilation;
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, parameters, diagnostics, modifyCompilation: false);
+            ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, parameters, diagnostics, modifyCompilation: false);
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, parameters, diagnostics, modifyCompilation: false);
             // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
 
@@ -232,6 +245,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_refKind == RefKind.RefReadOnly)
                 {
                     compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
+                }
+
+                if (returnType.Type.ContainsNativeInteger())
+                {
+                    compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: false);
                 }
 
                 if (compilation.ShouldEmitNullableAttributes(this) &&
@@ -295,10 +313,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             set
             {
-                Debug.Assert(_lazyIteratorElementType == null || TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2));
-                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), null);
+                Debug.Assert(_lazyIteratorElementType == TypeWithAnnotations.Boxed.Sentinel || (_lazyIteratorElementType is object && TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2)));
+                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), TypeWithAnnotations.Boxed.Sentinel);
             }
         }
+
+        internal override bool IsIterator => _lazyIteratorElementType is object;
 
         public override MethodKind MethodKind => MethodKind.LocalFunction;
 

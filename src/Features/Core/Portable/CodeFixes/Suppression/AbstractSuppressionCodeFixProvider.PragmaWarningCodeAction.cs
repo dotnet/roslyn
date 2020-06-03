@@ -45,16 +45,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
 
             public PragmaWarningCodeAction CloneForFixMultipleContext()
-            {
-                return new PragmaWarningCodeAction(_suppressionTargetInfo, _document, _diagnostic, Fixer, forFixMultipleContext: true);
-            }
+                => new PragmaWarningCodeAction(_suppressionTargetInfo, _document, _diagnostic, Fixer, forFixMultipleContext: true);
             protected override string DiagnosticIdForEquivalenceKey =>
                 _forFixMultipleContext ? string.Empty : _diagnostic.Id;
 
-            protected async override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                return await GetChangedDocumentAsync(includeStartTokenChange: true, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-            }
+            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+                => await GetChangedDocumentAsync(includeStartTokenChange: true, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             public async Task<Document> GetChangedDocumentAsync(bool includeStartTokenChange, bool includeEndTokenChange, CancellationToken cancellationToken)
             {
@@ -81,9 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             public SyntaxToken EndToken_TestOnly => _suppressionTargetInfo.EndToken;
 
             private SyntaxNode FormatNode(SyntaxNode node)
-            {
-                return Formatter.Format(node, _document.Project.Solution.Workspace);
-            }
+                => Formatter.Format(node, _document.Project.Solution.Workspace);
         }
     }
 }

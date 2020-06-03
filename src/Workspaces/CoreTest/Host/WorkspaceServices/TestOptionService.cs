@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,13 +16,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     internal static class TestOptionService
     {
-        public static OptionServiceFactory.OptionService GetService()
+        public static OptionServiceFactory.OptionService GetService(IOptionProvider? optionProvider = null)
         {
             var features = new Dictionary<string, object>();
             features.Add("Features", new List<string>(new[] { "Test Features" }));
             return new OptionServiceFactory.OptionService(new GlobalOptionService(new[]
                 {
-                    new Lazy<IOptionProvider, LanguageMetadata>(() => new TestOptionsProvider(), new LanguageMetadata(LanguageNames.CSharp))
+                    new Lazy<IOptionProvider, LanguageMetadata>(() => optionProvider ??= new TestOptionsProvider(), new LanguageMetadata(LanguageNames.CSharp))
                 },
                 Enumerable.Empty<Lazy<IOptionPersister>>()), workspaceServices: new AdhocWorkspace().Services);
         }

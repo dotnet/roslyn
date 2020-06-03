@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
         }
 
         public bool AllowOverType(IBraceCompletionSession session, CancellationToken cancellationToken)
-        {
-            return true;
-        }
+            => true;
 
         public bool CheckOpeningPoint(IBraceCompletionSession session, CancellationToken cancellationToken)
         {

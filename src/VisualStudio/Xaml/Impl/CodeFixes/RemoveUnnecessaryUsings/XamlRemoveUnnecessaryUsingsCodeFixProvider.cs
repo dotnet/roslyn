@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Xaml.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Xaml;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
     internal class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoveUnnecessaryUsingsCodeFixProvider()
         {
         }

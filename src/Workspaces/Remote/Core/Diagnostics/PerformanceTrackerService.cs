@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -40,12 +41,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         public event EventHandler SnapshotAdded;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PerformanceTrackerService() :
             this(DefaultMinLOFValue, DefaultAverageThreshold, DefaultStddevThreshold)
         {
         }
 
         // internal for testing
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         internal PerformanceTrackerService(double minLOFValue, double averageThreshold, double stddevThreshold)
         {
             _minLOFValue = minLOFValue;
@@ -111,9 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         }
 
         private void OnSnapshotAdded()
-        {
-            SnapshotAdded?.Invoke(this, EventArgs.Empty);
-        }
+            => SnapshotAdded?.Invoke(this, EventArgs.Empty);
 
         private static string SnapshotLogger(IEnumerable<AnalyzerPerformanceInfo> snapshots, int unitCount)
         {
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 _badAnalyzers.Sort(this);
             }
 
-            private double? TryGetLocalOutlierFactor(
+            private static double? TryGetLocalOutlierFactor(
                 List<List<double>> allDistances, List<List<int>> kNeighborIndices, List<double> kDistances, int analyzerIndex)
             {
                 var rowKNeighborsIndices = kNeighborIndices[analyzerIndex];
@@ -257,13 +258,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return (lrdb / rowKNeighborsIndices.Count) / lrda;
             }
 
-            private double GetReachabilityDistance(
+            private static double GetReachabilityDistance(
                 List<List<double>> allDistances, List<double> kDistances, int analyzerIndex1, int analyzerIndex2)
             {
                 return Math.Max(allDistances[analyzerIndex1][analyzerIndex2], kDistances[analyzerIndex2]);
             }
 
-            private double? TryGetLocalReachabilityDensity(
+            private static double? TryGetLocalReachabilityDensity(
                 List<List<double>> allDistances, List<List<int>> kNeighborIndices, List<double> kDistances, int analyzerIndex)
             {
                 var rowKNeighborsIndices = kNeighborIndices[analyzerIndex];

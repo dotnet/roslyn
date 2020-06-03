@@ -31,9 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         protected override EnvDTE.CodeElements GetParameters()
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public override EnvDTE.vsCMElement Kind
         {

@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.Host
             var languageServices = hostWorkspaceServices.GetLanguageServices(languageName);
 
 #if CODE_STYLE
-            // TODO: Uncomment the below once we enable language service detection in CodeStyle layer.
-            //languageServices = CodeStyleHostLanguageServices.GetRequiredMappedCodeStyleLanguageServices(languageServices);
+            languageServices = CodeStyleHostLanguageServices.GetRequiredMappedCodeStyleLanguageServices(languageServices);
 #endif
             return languageServices;
         }

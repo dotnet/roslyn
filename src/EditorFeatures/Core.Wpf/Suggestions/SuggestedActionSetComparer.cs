@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly TextSpan? _targetSpan;
 
         public SuggestedActionSetComparer(TextSpan? targetSpan)
-        {
-            _targetSpan = targetSpan;
-        }
+            => _targetSpan = targetSpan;
 
         private static int Distance(Span? maybeA, TextSpan? maybeB)
         {

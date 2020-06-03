@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        internal SyntaxNode Node
+        internal SyntaxNode? Node
         {
             get
             {
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (unchecked((uint)index < (uint)_count))
                         {
-                            return (TNode)node.GetNodeSlot(index << 1);
+                            return (TNode)node.GetRequiredNodeSlot(index << 1);
                         }
                     }
                 }
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis
                 if (unchecked((uint)index < (uint)_separatorCount))
                 {
                     index = (index << 1) + 1;
-                    var green = node.Green.GetSlot(index);
+                    var green = node.Green.GetRequiredSlot(index);
                     Debug.Assert(green.IsToken);
                     return new SyntaxToken(node.Parent, green, node.GetChildPosition(index), _list.index + index);
                 }
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis
             return this[0];
         }
 
-        public TNode FirstOrDefault()
+        public TNode? FirstOrDefault()
         {
             if (this.Any())
             {
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis
             return this[this.Count - 1];
         }
 
-        public TNode LastOrDefault()
+        public TNode? LastOrDefault()
         {
             if (this.Any())
             {
@@ -317,9 +319,9 @@ namespace Microsoft.CodeAnalysis
             return _list == other._list;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return (obj is SeparatedSyntaxList<TNode>) && Equals((SeparatedSyntaxList<TNode>)obj);
+            return (obj is SeparatedSyntaxList<TNode> list) && Equals(list);
         }
 
         public override int GetHashCode()
@@ -407,9 +409,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             // if item after last inserted node is a node, add separator
-            if (insertionIndex < nodesWithSeps.Count && nodesWithSeps[insertionIndex].IsNode)
+            if (insertionIndex < nodesWithSeps.Count && nodesWithSeps[insertionIndex] is { IsNode: true } nodeOrToken)
             {
                 var node = nodesWithSeps[insertionIndex].AsNode();
+                Debug.Assert(node is object);
                 nodesToInsertWithSeparators.Add(node.Green.CreateSeparator<TNode>(node)); // separator
             }
 
@@ -422,6 +425,7 @@ namespace Microsoft.CodeAnalysis
             // then it should stay associated with previous node
             foreach (var tr in separator.TrailingTrivia)
             {
+                Debug.Assert(tr.UnderlyingNode is object);
                 if (tr.UnderlyingNode.IsTriviaWithEndOfLine())
                 {
                     return true;

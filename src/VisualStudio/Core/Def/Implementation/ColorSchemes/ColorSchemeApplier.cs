@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         private readonly ForegroundColorDefaulter _colorDefaulter;
 
         private bool _isInitialized = false;
+        private bool _migrationAttempted = false;
         private bool _isDisposed = false;
 
         [ImportingConstructor]
@@ -75,31 +76,29 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 // We need to update the theme whenever the Editor Color Scheme setting changes or the VS Theme changes.
                 var settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
-                settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChanged;
+                settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
 
                 VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
 
-                // Try to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
-                _settings.MigrateToColorSchemeSetting(IsThemeCustomized());
+                // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
+                // We attempt to apply a color scheme when the Roslyn package is loaded. This is our chance to update the configuration registry
+                // with the Roslyn colors before they are seen by the user. This is important because the MEF exported Roslyn classification
+                // colors are only applicable to the Blue and Light VS themes.
 
-                QueueColorSchemeUpdate(themeChanged: true);
+                // When we update the colors we also flag that this is potentially a theme change, as settings could have synced over from a
+                // different VS instance and we may need to perform additional work to default colors that match our scheme.
+                UpdateColorScheme(themeChanged: true);
             }
         }
 
         private Task<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>> GetColorSchemeRegistryItemsAsync(CancellationToken arg)
-        {
-            return SpecializedTasks.FromResult(_colorSchemes.ToImmutableDictionary(kvp => kvp.Key, kvp => RegistryItemConverter.Convert(kvp.Value)));
-        }
+            => SpecializedTasks.FromResult(_colorSchemes.ToImmutableDictionary(kvp => kvp.Key, kvp => RegistryItemConverter.Convert(kvp.Value)));
 
         private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
-        {
-            QueueColorSchemeUpdate(themeChanged: true);
-        }
+            => QueueColorSchemeUpdate(themeChanged: true);
 
-        private async Task ColorSchemeChanged(object sender, PropertyChangedEventArgs args)
-        {
-            await QueueColorSchemeUpdate();
-        }
+        private async Task ColorSchemeChangedAsync(object sender, PropertyChangedEventArgs args)
+            => await QueueColorSchemeUpdate();
 
         private IVsTask QueueColorSchemeUpdate(bool themeChanged = false)
         {
@@ -112,10 +111,18 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         {
             AssertIsForeground();
 
-            // Simply return if we were queued to run during shutdown or the user is in High Contrast mode.
-            if (_isDisposed || SystemParameters.HighContrast)
+            // Simply return if we were queued to run during shutdown.
+            if (_isDisposed)
             {
                 return;
+            }
+
+            if (!_migrationAttempted)
+            {
+                _migrationAttempted = true;
+
+                // Try to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
+                _settings.MigrateToColorSchemeSetting(IsThemeCustomized());
             }
 
             if (themeChanged)
@@ -136,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         /// Returns true if the color scheme needs updating.
         /// </summary>
         /// <param name="colorScheme">The color scheme to update with.</param>
-        private bool TryGetUpdatedColorScheme([NotNullWhen(returnValue: true)]out SchemeName? colorScheme)
+        private bool TryGetUpdatedColorScheme([NotNullWhen(returnValue: true)] out SchemeName? colorScheme)
         {
             // The color scheme that is currently applied to the registry
             var appliedColorScheme = _settings.GetAppliedColorScheme();
@@ -158,9 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         }
 
         public bool IsSupportedTheme()
-        {
-            return IsSupportedTheme(_settings.GetThemeId());
-        }
+            => IsSupportedTheme(_settings.GetThemeId());
 
         public bool IsSupportedTheme(Guid themeId)
         {
@@ -170,9 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         }
 
         public bool IsThemeCustomized()
-        {
-            return !_colorDefaulter.AreClassificationsDefaultable(_settings.GetThemeId());
-        }
+            => !_colorDefaulter.AreClassificationsDefaultable(_settings.GetThemeId());
 
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]

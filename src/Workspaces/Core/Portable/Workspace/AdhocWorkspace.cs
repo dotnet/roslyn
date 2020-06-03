@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -33,17 +32,16 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        public override bool CanOpenDocuments =>
-                // enables simulation of having documents open.
-                true;
+        /// <summary>
+        /// Returns true, signifiying that you can call the open and close document APIs to add the document into the open document list.
+        /// </summary>
+        public override bool CanOpenDocuments => true;
 
         /// <summary>
         /// Clears all projects and documents from the workspace.
         /// </summary>
         public new void ClearSolution()
-        {
-            base.ClearSolution();
-        }
+            => base.ClearSolution();
 
         /// <summary>
         /// Adds an entire solution to the workspace, replacing any existing solution.

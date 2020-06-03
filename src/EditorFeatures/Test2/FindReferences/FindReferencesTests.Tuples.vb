@@ -50,7 +50,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -103,7 +102,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -134,7 +132,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
         <Document><![CDATA[
@@ -176,7 +173,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -203,7 +199,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -231,7 +226,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -258,7 +252,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -285,7 +278,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -313,7 +305,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -341,8 +332,45 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(41598, "https://github.com/dotnet/roslyn/issues/41598")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTuplesAcrossCoreAndStandard1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp30="true">
+        <Document><![CDATA[
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+
+    public [|ValueTuple|]<int, int> XXX() => default;
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferencesNetStandard20="true">
+        <Document><![CDATA[
+using System;
+
+class Program
+{
+    static void Test()
+    {
+        $$var a = (1, 1);
+    }
+}
+]]>
         </Document>
     </Project>
 </Workspace>

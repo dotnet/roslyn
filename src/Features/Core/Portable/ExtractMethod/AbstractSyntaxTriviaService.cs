@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         private const int TriviaLocationsCount = 4;
 
-        private readonly ISyntaxFactsService _syntaxFactsService;
+        private readonly ISyntaxFacts _syntaxFacts;
         private readonly int _endOfLineKind;
 
-        protected AbstractSyntaxTriviaService(ISyntaxFactsService syntaxFactsService, int endOfLineKind)
+        protected AbstractSyntaxTriviaService(ISyntaxFacts syntaxFacts, int endOfLineKind)
         {
-            _syntaxFactsService = syntaxFactsService;
+            _syntaxFacts = syntaxFacts;
             _endOfLineKind = endOfLineKind;
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return CreateResult(rootWithAnnotation, annotations, triviaList);
         }
 
-        private SyntaxNode ReplaceTokens(
+        private static SyntaxNode ReplaceTokens(
             SyntaxNode root,
             IEnumerable<SyntaxToken> oldTokens,
             Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return new Result(root, _endOfLineKind, annotations, triviaList);
         }
 
-        private Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
+        private static Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
             Dictionary<TriviaLocation, SyntaxToken> tokens,
             Dictionary<TriviaLocation, SyntaxAnnotation> annotations)
         {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return map;
         }
 
-        private Dictionary<TriviaLocation, IEnumerable<SyntaxTrivia>> GetTriviaAtEdges(Dictionary<TriviaLocation, SyntaxToken> tokens, TextSpan textSpan)
+        private static Dictionary<TriviaLocation, IEnumerable<SyntaxTrivia>> GetTriviaAtEdges(Dictionary<TriviaLocation, SyntaxToken> tokens, TextSpan textSpan)
         {
             var triviaAtBeginning = SplitTrivia(tokens[TriviaLocation.BeforeBeginningOfSpan], tokens[TriviaLocation.AfterBeginningOfSpan], t => t.FullSpan.End <= textSpan.Start);
             var triviaAtEnd = SplitTrivia(tokens[TriviaLocation.BeforeEndOfSpan], tokens[TriviaLocation.AfterEndOfSpan], t => t.FullSpan.Start < textSpan.End);
@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         private Dictionary<TriviaLocation, SyntaxToken> GetTokensAtEdges(SyntaxNode root, TextSpan textSpan)
         {
             var tokens = new Dictionary<TriviaLocation, SyntaxToken>();
-            tokens[TriviaLocation.AfterBeginningOfSpan] = _syntaxFactsService.FindTokenOnRightOfPosition(root, textSpan.Start, includeSkipped: false);
+            tokens[TriviaLocation.AfterBeginningOfSpan] = _syntaxFacts.FindTokenOnRightOfPosition(root, textSpan.Start, includeSkipped: false);
             tokens[TriviaLocation.BeforeBeginningOfSpan] = tokens[TriviaLocation.AfterBeginningOfSpan].GetPreviousToken(includeZeroWidth: true);
-            tokens[TriviaLocation.BeforeEndOfSpan] = _syntaxFactsService.FindTokenOnLeftOfPosition(root, textSpan.End, includeSkipped: false);
+            tokens[TriviaLocation.BeforeEndOfSpan] = _syntaxFacts.FindTokenOnLeftOfPosition(root, textSpan.End, includeSkipped: false);
             tokens[TriviaLocation.AfterEndOfSpan] = tokens[TriviaLocation.BeforeEndOfSpan].GetNextToken(includeZeroWidth: true);
             return tokens;
         }

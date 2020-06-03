@@ -232,7 +232,8 @@ public static class Class
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(35949, "https://github.com/dotnet/roslyn/issues/35949")]
+        [WorkItem(35949, "https://github.com/dotnet/roslyn/issues/35949")]
+        [ConditionalFact(typeof(IsRelease))]
         public void NotNull_Complexity()
         {
             var source = @"
@@ -285,7 +286,7 @@ static class Ext
 
         [ConditionalFactAttribute(typeof(IsRelease))]
         [WorkItem(40495, "https://github.com/dotnet/roslyn/issues/40495")]
-        public void NestedLambdas()
+        public void NestedLambdas_01()
         {
             var source =
 @"#nullable enable
@@ -301,6 +302,45 @@ class Program
             Enumerable.Range(0, 1).Sum(e =>
             Enumerable.Range(0, 1).Sum(f =>
             Enumerable.Range(0, 1).Count(g => true)))))));
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        // Test should complete in several seconds if UnboundLambda.ReallyBind
+        // uses results from _returnInferenceCache.
+        [ConditionalFactAttribute(typeof(IsRelease))]
+        [WorkItem(1083969, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1083969")]
+        public void NestedLambdas_02()
+        {
+            var source =
+@"using System.Collections.Generic;
+using System.Linq;
+class Program
+{
+    static void F(IEnumerable<int[]> x)
+    {
+        x.GroupBy(y => y[1]).SelectMany(x =>
+        x.GroupBy(y => y[2]).SelectMany(x =>
+        x.GroupBy(y => y[3]).SelectMany(x =>
+        x.GroupBy(y => y[4]).SelectMany(x =>
+        x.GroupBy(y => y[5]).SelectMany(x =>
+        x.GroupBy(y => y[6]).SelectMany(x =>
+        x.GroupBy(y => y[7]).SelectMany(x =>
+        x.GroupBy(y => y[8]).SelectMany(x =>
+        x.GroupBy(y => y[9]).SelectMany(x =>
+        x.GroupBy(y => y[0]).SelectMany(x =>
+        x.GroupBy(y => y[1]).SelectMany(x =>
+        x.GroupBy(y => y[2]).SelectMany(x =>
+        x.GroupBy(y => y[3]).SelectMany(x =>
+        x.GroupBy(y => y[4]).SelectMany(x =>
+        x.GroupBy(y => y[5]).SelectMany(x =>
+        x.GroupBy(y => y[6]).SelectMany(x =>
+        x.GroupBy(y => y[7]).SelectMany(x =>
+        x.GroupBy(y => y[8]).SelectMany(x =>
+        x.GroupBy(y => y[9]).SelectMany(x =>
+        x.GroupBy(y => y[0]).Select(x => x.Average(z => z[0])))))))))))))))))))));
     }
 }";
             var comp = CreateCompilation(source);

@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract class AbstractSemanticFactsService
     {
-        protected abstract ISyntaxFactsService SyntaxFactsService { get; }
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
+        protected abstract SyntaxToken ToIdentifierToken(string identifier);
 
         public SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
@@ -56,10 +57,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             string baseName, Func<ISymbol, bool> filter,
             IEnumerable<string> usedNames, CancellationToken cancellationToken)
         {
-            var syntaxFacts = this.SyntaxFactsService;
-
             var container = containerOpt ?? location.AncestorsAndSelf().FirstOrDefault(
-                a => syntaxFacts.IsExecutableBlock(a) || syntaxFacts.IsMethodBody(a));
+                a => SyntaxFacts.IsExecutableBlock(a) || SyntaxFacts.IsMethodBody(a));
 
             var candidates = GetCollidableSymbols(semanticModel, location, container, cancellationToken);
             var filteredCandidates = filter != null ? candidates.Where(filter) : candidates;
@@ -75,11 +74,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected virtual IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode container, CancellationToken cancellationToken)
             => semanticModel.LookupSymbols(location.SpanStart).Concat(semanticModel.GetExistingSymbols(container, cancellationToken));
 
-        private SyntaxToken GenerateUniqueName(string baseName, IEnumerable<string> usedNames)
+        public SyntaxToken GenerateUniqueName(string baseName, IEnumerable<string> usedNames)
         {
-            return this.SyntaxFactsService.ToIdentifierToken(
+            return this.ToIdentifierToken(
                 NameGenerator.EnsureUniqueness(
-                    baseName, usedNames, this.SyntaxFactsService.IsCaseSensitive));
+                    baseName, usedNames, this.SyntaxFacts.IsCaseSensitive));
         }
     }
 }

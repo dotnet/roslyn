@@ -2,19 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Microsoft.VisualStudio.Shell;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
@@ -29,22 +31,20 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
 
         public AbstractGoToDefinitionWithFindUsagesServiceHandler(IMetadataAsSourceFileService metadataAsSourceService)
-        {
-            this._metadataAsSourceService = metadataAsSourceService;
-        }
+            => this._metadataAsSourceService = metadataAsSourceService;
 
         public async Task<object> HandleAsync(LSP.TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             var solution = requestContext.Context;
 
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = solution.GetDocument(request.TextDocument);
             if (document == null)
             {
                 return Array.Empty<LSP.Location>();
             }
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-            var locations = await GetDefinitionsWithFindUsagesService(document, position, cancellationToken).ConfigureAwait(false);
+            var locations = await GetDefinitionsWithFindUsagesServiceAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             // No definition found - see if we can get metadata as source but that's only applicable for C#\VB.
             if ((locations.Count == 0) && document.SupportsSemanticModel && this._metadataAsSourceService != null)
@@ -70,9 +70,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         ///  Using the find usages service is more expensive than using the definitions service because a lot of unnecessary information is computed. However,
         ///  TypeScript doesn't provide an <see cref="IGoToDefinitionService"/> implementation that will return definitions so we must use <see cref="IFindUsagesService"/>.
         /// </summary>
-        private async Task<List<LSP.Location>> GetDefinitionsWithFindUsagesService(Document document, int pos, CancellationToken cancellationToken)
+        private async Task<List<LSP.Location>> GetDefinitionsWithFindUsagesServiceAsync(Document document, int pos, CancellationToken cancellationToken)
         {
-            var findUsagesService = document.Project.LanguageServices.GetService<IFindUsagesService>();
+            var findUsagesService = document.Project.LanguageServices.GetRequiredService<IFindUsagesService>();
 
             var context = new SimpleFindUsagesContext(cancellationToken);
 

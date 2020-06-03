@@ -223,6 +223,43 @@
       <summary>Creates a PointerTypeSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="FunctionPointerTypeSyntax" Base="TypeSyntax">
+    <Kind Name="FunctionPointerType"/>
+    <Field Name="DelegateKeyword" Type="SyntaxToken">
+      <Kind Name="DelegateKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the delegate keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="AsteriskToken" Type="SyntaxToken">
+      <Kind Name="AsteriskToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the asterisk.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CallingConvention" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>SyntaxToken representing the optional calling convention.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="LessThanToken" Type="SyntaxToken">
+      <Kind Name="LessThanToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the less than token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;ParameterSyntax&gt;" MinCount="1">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of ParameterSyntaxes representing the list of parameters and return type.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="GreaterThanToken" Type="SyntaxToken">
+      <Kind Name="GreaterThanToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the greater than token.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
   <Node Name="NullableTypeSyntax" Base="TypeSyntax">
     <Kind Name="NullableType"/>
     <Field Name="ElementType" Type="TypeSyntax">
@@ -314,7 +351,8 @@
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>
   <!-- Expressions -->
-  <AbstractNode Name="ExpressionSyntax" Base="CSharpSyntaxNode">
+  <AbstractNode Name="ExpressionOrPatternSyntax" Base="CSharpSyntaxNode" />
+  <AbstractNode Name="ExpressionSyntax" Base="ExpressionOrPatternSyntax">
     <TypeComment>
       <summary>Provides the base class from which the classes that represent expression syntax nodes are derived. This is an abstract class.</summary>
     </TypeComment>
@@ -1429,9 +1467,52 @@
       <summary>Creates an InitializerExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="ObjectCreationExpressionSyntax" Base="ExpressionSyntax">
+  <AbstractNode Name="BaseObjectCreationExpressionSyntax" Base="ExpressionSyntax">
+      <Field Name="NewKeyword" Type="SyntaxToken">
+          <Kind Name="NewKeyword"/>
+          <PropertyComment>
+              <summary>SyntaxToken representing the new keyword.</summary>
+          </PropertyComment>
+      </Field>
+      <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="true">
+          <PropertyComment>
+              <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
+          </PropertyComment>
+      </Field>
+      <Field Name="Initializer" Type="InitializerExpressionSyntax" Optional="true">
+          <PropertyComment>
+              <summary>InitializerExpressionSyntax representing the initializer expression for the object being created.</summary>
+          </PropertyComment>
+      </Field>
+  </AbstractNode>
+  <Node Name="ImplicitObjectCreationExpressionSyntax" Base="BaseObjectCreationExpressionSyntax">
+      <Kind Name="ImplicitObjectCreationExpression"/>
+      <Field Name="NewKeyword" Type="SyntaxToken" Override="true">
+          <Kind Name="NewKeyword"/>
+          <PropertyComment>
+              <summary>SyntaxToken representing the new keyword.</summary>
+          </PropertyComment>
+      </Field>
+      <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="false" Override="true">
+          <PropertyComment>
+              <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
+          </PropertyComment>
+      </Field>
+      <Field Name="Initializer" Type="InitializerExpressionSyntax" Optional="true" Override="true">
+          <PropertyComment>
+              <summary>InitializerExpressionSyntax representing the initializer expression for the object being created.</summary>
+          </PropertyComment>
+      </Field>
+      <TypeComment>
+          <summary>Class which represents the syntax node for implicit object creation expression.</summary>
+      </TypeComment>
+      <FactoryComment>
+          <summary>Creates an ImplicitObjectCreationExpressionSyntax node.</summary>
+      </FactoryComment>
+  </Node>
+  <Node Name="ObjectCreationExpressionSyntax" Base="BaseObjectCreationExpressionSyntax">
     <Kind Name="ObjectCreationExpression"/>
-    <Field Name="NewKeyword" Type="SyntaxToken">
+    <Field Name="NewKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="NewKeyword"/>
       <PropertyComment>
         <summary>SyntaxToken representing the new keyword.</summary>
@@ -1442,12 +1523,12 @@
         <summary>TypeSyntax representing the type of the object being created.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="true">
+    <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="true" Override="true">
       <PropertyComment>
         <summary>ArgumentListSyntax representing the list of arguments passed as part of the object creation expression.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Initializer" Type="InitializerExpressionSyntax" Optional="true">
+    <Field Name="Initializer" Type="InitializerExpressionSyntax" Optional="true" Override="true">
       <PropertyComment>
         <summary>InitializerExpressionSyntax representing the initializer expression for the object being created.</summary>
       </PropertyComment>
@@ -1838,7 +1919,7 @@
     </Field>
     <Field Name="Condition" Type="ExpressionSyntax"/>
   </Node>
-  <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
+  <AbstractNode Name="PatternSyntax" Base="ExpressionOrPatternSyntax" />
   <Node Name="DiscardPatternSyntax" Base="PatternSyntax">
     <Kind Name="DiscardPattern" />
     <Field Name="UnderscoreToken" Type="SyntaxToken">
@@ -1902,6 +1983,58 @@
         <summary>ExpressionSyntax node representing the constant expression.</summary>
       </PropertyComment>
     </Field>
+  </Node>
+
+  <!-- Pattern forms added for C# 9.0 -->
+  <Node Name="ParenthesizedPatternSyntax" Base="PatternSyntax">
+    <Kind Name="ParenthesizedPattern"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" />
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="RelationalPatternSyntax" Base="PatternSyntax">
+    <Kind Name="RelationalPattern"/>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="EqualsEqualsToken"/>
+      <Kind Name="ExclamationEqualsToken"/>
+      <Kind Name="LessThanToken"/>
+      <Kind Name="LessThanEqualsToken"/>
+      <Kind Name="GreaterThanToken"/>
+      <Kind Name="GreaterThanEqualsToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the operator of the relational pattern.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" />
+  </Node>
+  <Node Name="TypePatternSyntax" Base="PatternSyntax">
+    <Kind Name="TypePattern"/>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>The type for the type pattern.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="BinaryPatternSyntax" Base="PatternSyntax">
+    <Kind Name="OrPattern"/>
+    <Kind Name="AndPattern"/>
+    <Field Name="Left" Type="PatternSyntax" />
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="OrKeyword"/>
+      <Kind Name="AndKeyword"/>
+    </Field>
+    <Field Name="Right" Type="PatternSyntax" />
+  </Node>
+  <Node Name="UnaryPatternSyntax" Base="PatternSyntax">
+    <Kind Name="NotPattern"/>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="NotKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" />
   </Node>
 
   <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />

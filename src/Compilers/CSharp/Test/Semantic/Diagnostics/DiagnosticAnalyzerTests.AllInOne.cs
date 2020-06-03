@@ -27,7 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
 
             // Add nodes that are not yet in AllInOneCSharpCode to this list.
-            var missingSyntaxKinds = new HashSet<SyntaxKind>();
+            var missingSyntaxKinds = new HashSet<SyntaxKind>()
+            {
+                // PROTOYPE(func-ptr): Remove
+                SyntaxKind.FunctionPointerType
+            };
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
@@ -107,21 +111,6 @@ public class C
             var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
             compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAnalyzerOptions();
-        }
-
-        private sealed class TestAdditionalText : AdditionalText
-        {
-            private readonly SourceText _text;
-
-            public TestAdditionalText(string path, SourceText text)
-            {
-                this.Path = path;
-                _text = text;
-            }
-
-            public override string Path { get; }
-
-            public override SourceText GetText(CancellationToken cancellationToken = default(CancellationToken)) => _text;
         }
     }
 }

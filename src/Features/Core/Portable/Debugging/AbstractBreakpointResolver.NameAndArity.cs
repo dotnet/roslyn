@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Debugging
 
             public NameAndArity(string name, int arity)
             {
-                this.Name = name;
-                this.Arity = arity;
+                Name = name;
+                Arity = arity;
             }
         }
     }

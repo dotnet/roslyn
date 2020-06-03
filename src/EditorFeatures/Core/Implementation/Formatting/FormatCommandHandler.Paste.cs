@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
     internal partial class FormatCommandHandler
     {
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {

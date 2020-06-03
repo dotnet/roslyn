@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -13,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Editing
     internal class GenerationOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GenerationOptionsProvider()
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            GenerationOptions.PlaceSystemNamespaceFirst);
+        public ImmutableArray<IOption> Options { get; } = GenerationOptions.AllOptions.As<IOption>();
     }
 }

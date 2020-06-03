@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.AddAnonymousTypeMemberName;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
         private const string CS0746 = nameof(CS0746); // Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpAddAnonymousTypeMemberNameCodeFixProvider()
         {
         }

@@ -90,9 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             private void RaiseChanged(TaggerDelay delay)
-            {
-                this.Changed?.Invoke(this, new TaggerEventArgs(delay));
-            }
+                => this.Changed?.Invoke(this, new TaggerEventArgs(delay));
         }
     }
 }

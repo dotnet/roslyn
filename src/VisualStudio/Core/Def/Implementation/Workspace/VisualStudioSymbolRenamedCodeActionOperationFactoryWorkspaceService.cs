@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioSymbolRenamedCodeActionOperationFactoryWorkspaceService(
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices)
         {

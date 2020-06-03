@@ -109,7 +109,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                 nodes = builder.ToImmutable();
             }
 
-
             return new NavInfoNodeEnum(nodes);
         }
 
@@ -135,9 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         }
 
         public void GetPreferredLanguage(out uint pLanguage)
-        {
-            pLanguage = (uint)_factory.LibraryService.PreferredLanguage;
-        }
+            => pLanguage = (uint)_factory.LibraryService.PreferredLanguage;
 
         public int GetSymbolType(out uint pdwType)
         {

@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.MakeMethodAsynchronous
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -24,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
         Private Shared ReadOnly s_asyncToken As SyntaxToken = SyntaxFactory.Token(SyntaxKind.AsyncKeyword)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -69,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             End If
         End Function
 
-        Private Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTypes As KnownTypes) As SyntaxNode
+        Private Shared Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTypes As KnownTypes) As SyntaxNode
 
             Dim functionStatement = node.SubOrFunctionStatement
             Dim newFunctionStatement = AddAsyncKeyword(functionStatement)
@@ -84,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             Return node.WithSubOrFunctionStatement(newFunctionStatement)
         End Function
 
-        Private Function FixSubBlock(
+        Private Shared Function FixSubBlock(
                 keepVoid As Boolean, node As MethodBlockSyntax, taskType As INamedTypeSymbol) As SyntaxNode
 
             If keepVoid Then
@@ -130,12 +132,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             Return subOrFunctionStatement.WithModifiers(newModifiers)
         End Function
 
-        Private Function FixMultiLineLambdaExpression(node As MultiLineLambdaExpressionSyntax) As SyntaxNode
+        Private Shared Function FixMultiLineLambdaExpression(node As MultiLineLambdaExpressionSyntax) As SyntaxNode
             Dim header As LambdaHeaderSyntax = GetNewHeader(node)
             Return node.WithSubOrFunctionHeader(header).WithLeadingTrivia(node.GetLeadingTrivia())
         End Function
 
-        Private Function FixSingleLineLambdaExpression(node As SingleLineLambdaExpressionSyntax) As SingleLineLambdaExpressionSyntax
+        Private Shared Function FixSingleLineLambdaExpression(node As SingleLineLambdaExpressionSyntax) As SingleLineLambdaExpressionSyntax
             Dim header As LambdaHeaderSyntax = GetNewHeader(node)
             Return node.WithSubOrFunctionHeader(header).WithLeadingTrivia(node.GetLeadingTrivia())
         End Function

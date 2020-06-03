@@ -1334,12 +1334,12 @@ class Class : System.IDisposable
     // (17,21): error CS0136: A local or parameter named 'name1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //                 int name1 = 2;  // 0136 on name1 
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name1").WithArguments("name1").WithLocation(17, 21),
-    // (20,20): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-    //         using (var name2 = new Class()) // 0136 on name2. 
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(20, 20),
     // (17,21): warning CS0219: The variable 'name1' is assigned but its value is never used
     //                 int name1 = 2;  // 0136 on name1 
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "name1").WithArguments("name1").WithLocation(17, 21),
+    // (20,20): error CS0136: A local or parameter named 'name2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         using (var name2 = new Class()) // 0136 on name2. 
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "name2").WithArguments("name2").WithLocation(20, 20),
     // (22,17): warning CS0219: The variable 'name1' is assigned but its value is never used
     //             int name1 = 2;
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "name1").WithArguments("name1").WithLocation(22, 17),

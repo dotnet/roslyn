@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -15,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private readonly AnalyzersCommandHandler _analyzerCommandHandler;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AnalyzerNodeSetup(AnalyzerItemsTracker analyzerTracker, AnalyzersCommandHandler analyzerCommandHandler)
         {
             _analyzerTracker = analyzerTracker;

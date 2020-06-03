@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
-    public class FormattingEngineTests_Venus : FormattingEngineTestBase
+    public class FormattingEngineTests_Venus : CSharpFormattingEngineTestBase
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
         public async Task SimpleOneLineNugget()
