@@ -4744,5 +4744,19 @@ class C
 
             await TestInRegularAndScript1Async(code, expected);
         }
+
+        [WorkItem(44260, "https://github.com/dotnet/roslyn/issues/44260")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TopLevelStatement_ArgumentInInvocation()
+        {
+            // ExtractLocalFunction currently disabled in the presence of top-level statements
+            // https://github.com/dotnet/roslyn/issues/44260
+
+            var code = @"
+System.Console.WriteLine([|""string""|]);
+";
+            await TestExactActionSetOfferedAsync(code, new[] { FeaturesResources.Extract_method },
+                new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)));
+        }
     }
 }

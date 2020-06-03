@@ -385,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: position,
                 sortText: symbolText,
+                filterText: insertionText,
                 properties: options,
                 rules: GetRules(insertionText));
         }

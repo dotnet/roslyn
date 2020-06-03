@@ -1058,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!hasErrors)
                     {
-                        Error(localDiagnostics, ErrorCode.ERR_BadFixedInitType, declarator);
+                        Error(localDiagnostics, declTypeOpt.Type.IsFunctionPointer() ? ErrorCode.ERR_CannotUseFunctionPointerAsFixedLocal : ErrorCode.ERR_BadFixedInitType, declarator);
                         hasErrors = true;
                     }
                 }
@@ -1734,6 +1734,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatements.Add(boundStatement);
             }
 
+            return FinishBindBlockParts(node, boundStatements.ToImmutableAndFree(), diagnostics);
+        }
+
+        private BoundBlock FinishBindBlockParts(CSharpSyntaxNode node, ImmutableArray<BoundStatement> boundStatements, DiagnosticBag diagnostics)
+        {
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
 
             if (IsDirectlyInIterator)
@@ -1753,7 +1758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 locals,
                 GetDeclaredLocalFunctionsForScope(node),
-                boundStatements.ToImmutableAndFree());
+                boundStatements);
         }
 
         internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, DiagnosticBag diagnostics, bool isDefaultParameter = false, bool isRefAssignment = false)
@@ -2138,32 +2143,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.MethodGroup:
                     {
-                        var methodGroup = (BoundMethodGroup)operand;
-                        if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
-                        {
-                            var nodeForSquiggle = syntax;
-                            while (nodeForSquiggle.Kind() == SyntaxKind.ParenthesizedExpression)
-                            {
-                                nodeForSquiggle = ((ParenthesizedExpressionSyntax)nodeForSquiggle).Expression;
-                            }
-
-                            if (nodeForSquiggle.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForSquiggle.Kind() == SyntaxKind.PointerMemberAccessExpression)
-                            {
-                                nodeForSquiggle = ((MemberAccessExpressionSyntax)nodeForSquiggle).Name;
-                            }
-
-                            var location = nodeForSquiggle.Location;
-
-                            if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, targetType, location))
-                            {
-                                return;
-                            }
-
-                            Error(diagnostics,
-                                targetType.IsDelegateType() ? ErrorCode.ERR_MethDelegateMismatch : ErrorCode.ERR_MethGrpToNonDel,
-                                location, methodGroup.Name, targetType);
-                        }
-
+                        reportMethodGroupErrors((BoundMethodGroup)operand, fromAddressOf: false);
+                        return;
+                    }
+                case BoundKind.UnconvertedAddressOfOperator:
+                    {
+                        reportMethodGroupErrors(((BoundUnconvertedAddressOfOperator)operand).Operand, fromAddressOf: true);
                         return;
                     }
                 case BoundKind.Literal:
@@ -2202,6 +2187,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(reportedError);
                         return;
                     }
+
+                case BoundKind.AddressOfOperator when targetType.IsFunctionPointer():
+                    {
+                        Error(diagnostics, ErrorCode.ERR_InvalidAddrOp, ((BoundAddressOfOperator)operand).Operand.Syntax);
+                        return;
+                    }
                 case BoundKind.UnconvertedConditionalOperator:
                     {
                         var conditionalOperator = (BoundUnconvertedConditionalOperator)operand;
@@ -2232,6 +2223,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(operand.HasAnyErrors && operand.Kind != BoundKind.UnboundLambda, "Missing a case in implicit conversion error reporting");
+
+            void reportMethodGroupErrors(BoundMethodGroup methodGroup, bool fromAddressOf)
+            {
+                if (!Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
+                {
+                    var nodeForError = syntax;
+                    while (nodeForError.Kind() == SyntaxKind.ParenthesizedExpression)
+                    {
+                        nodeForError = ((ParenthesizedExpressionSyntax)nodeForError).Expression;
+                    }
+
+                    if (nodeForError.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForError.Kind() == SyntaxKind.PointerMemberAccessExpression)
+                    {
+                        nodeForError = ((MemberAccessExpressionSyntax)nodeForError).Name;
+                    }
+
+                    var location = nodeForError.Location;
+
+                    if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, targetType, location))
+                    {
+                        return;
+                    }
+
+                    ErrorCode errorCode;
+
+                    switch (targetType.TypeKind)
+                    {
+                        case TypeKind.FunctionPointer when fromAddressOf:
+                            errorCode = ErrorCode.ERR_MethFuncPtrMismatch;
+                            break;
+                        case TypeKind.FunctionPointer:
+                            Error(diagnostics, ErrorCode.ERR_MissingAddressOf, location);
+                            return;
+                        case TypeKind.Delegate when fromAddressOf:
+                            errorCode = ErrorCode.ERR_CannotConvertAddressOfToDelegate;
+                            break;
+                        case TypeKind.Delegate:
+                            errorCode = ErrorCode.ERR_MethDelegateMismatch;
+                            break;
+                        default:
+                            errorCode = fromAddressOf ? ErrorCode.ERR_AddressOfToNonFunctionPointer : ErrorCode.ERR_MethGrpToNonDel;
+                            break;
+                    }
+
+                    Error(diagnostics, errorCode, location, methodGroup.Name, targetType);
+                }
+            }
         }
 
         private void GenerateImplicitConversionErrorsForTupleLiteralArguments(
@@ -3260,9 +3298,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ArrowExpressionClauseSyntax arrowExpression:
                     return BindExpressionBodyAsBlock(arrowExpression, diagnostics);
 
+                case CompilationUnitSyntax compilationUnit:
+                    return BindSimpleProgram(compilationUnit, diagnostics);
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
+        }
+
+        private BoundNode BindSimpleProgram(CompilationUnitSyntax compilationUnit, DiagnosticBag diagnostics)
+        {
+            var simpleProgram = (SynthesizedSimpleProgramEntryPointSymbol)ContainingMemberOrLambda;
+
+            return GetBinder(compilationUnit).BindSimpleProgramCompilationUnit(compilationUnit, simpleProgram, diagnostics);
+        }
+
+        private BoundNode BindSimpleProgramCompilationUnit(CompilationUnitSyntax compilationUnit, SynthesizedSimpleProgramEntryPointSymbol simpleProgram, DiagnosticBag diagnostics)
+        {
+            ArrayBuilder<BoundStatement> boundStatements = ArrayBuilder<BoundStatement>.GetInstance();
+            foreach (var statement in compilationUnit.Members)
+            {
+                if (statement is GlobalStatementSyntax topLevelStatement)
+                {
+                    var boundStatement = BindStatement(topLevelStatement.Statement, diagnostics);
+                    boundStatements.Add(boundStatement);
+                }
+            }
+
+            return new BoundNonConstructorMethodBody(compilationUnit,
+                                                     FinishBindBlockParts(compilationUnit, boundStatements.ToImmutableAndFree(), diagnostics).MakeCompilerGenerated(),
+                                                     expressionBody: null);
         }
 
         private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, DiagnosticBag diagnostics)

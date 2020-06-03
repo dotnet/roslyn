@@ -5501,5 +5501,41 @@ class C
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(44398, "https://github.com/dotnet/roslyn/issues/44398")]
+        public void MismatchedExpressionPattern()
+        {
+            var source =
+@"class C
+{
+    static void M(int a)
+    {
+        if (a is a is > 0 and < 500) { }
+        if (true is < 0) { }
+        if (true is 0) { }
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (5,18): error CS0150: A constant value is expected
+                //         if (a is a is > 0 and < 500) { }
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "a").WithLocation(5, 18),
+                // (5,25): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         if (a is a is > 0 and < 500) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(5, 25),
+                // (5,33): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         if (a is a is > 0 and < 500) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "500").WithArguments("int", "bool").WithLocation(5, 33),
+                // (6,21): error CS8781: Relational patterns may not be used for a value of type 'bool'.
+                //         if (true is < 0) { }
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForRelationalPattern, "< 0").WithArguments("bool").WithLocation(6, 21),
+                // (6,23): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         if (true is < 0) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(6, 23),
+                // (7,21): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         if (true is 0) { }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "bool").WithLocation(7, 21)
+                );
+        }
     }
 }

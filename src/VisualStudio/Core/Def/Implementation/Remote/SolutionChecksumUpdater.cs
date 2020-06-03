@@ -26,13 +26,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         // hold last async token
         private IAsyncToken _lastToken;
 
-        public SolutionChecksumUpdater(Workspace workspace, IAsynchronousOperationListener listener, CancellationToken shutdownToken)
-            : base(listener,
+        public SolutionChecksumUpdater(Workspace workspace, IAsynchronousOperationListenerProvider listenerProvider, CancellationToken shutdownToken)
+            : base(listenerProvider.GetListener(FeatureAttribute.SolutionChecksumUpdater),
                    workspace.Services.GetService<IGlobalOperationNotificationService>(),
                    workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
         {
             _workspace = workspace;
-            _textChangeQueue = new TaskQueue(listener, TaskScheduler.Default);
+            _textChangeQueue = new TaskQueue(Listener, TaskScheduler.Default);
 
             _event = new SemaphoreSlim(initialCount: 0);
             _gate = new object();
@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                _ = await client.TryRunRemoteAsync(
+                await client.RunRemoteAsync(
                     WellKnownServiceHubService.RemoteHost,
                     nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                     solution,
@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 var state = await oldDocument.State.GetStateChecksumsAsync(CancellationToken).ConfigureAwait(false);
 
-                _ = await client.TryRunRemoteAsync(
+                await client.RunRemoteAsync(
                     WellKnownServiceHubService.RemoteHost,
                     nameof(IRemoteHostService.SynchronizeTextAsync),
                     solution: null,

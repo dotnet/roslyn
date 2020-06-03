@@ -4979,6 +4979,9 @@
   <data name="ThereAreNoPointerTypesInVB" xml:space="preserve">
     <value>There are no pointer types in VB.</value>
   </data>
+  <data name="ThereAreNoFunctionPointerTypesInVB" xml:space="preserve">
+    <value>There are no function pointer types in VB.</value>
+  </data>
   <data name="ThereIsNoDynamicTypeInVB" xml:space="preserve">
     <value>There is no dynamic type in VB.</value>
   </data>
