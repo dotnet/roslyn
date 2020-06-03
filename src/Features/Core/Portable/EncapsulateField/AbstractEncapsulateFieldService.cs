@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 var compilation = semanticModel.Compilation;
 
                 // We couldn't resolve this field. skip it
-                if (!(field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol is IFieldSymbol currentField))
+                if (!(field.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol is IFieldSymbol currentField))
                     continue;
 
                 var nextSolution = await EncapsulateFieldAsync(document, currentField, updateReferences, cancellationToken).ConfigureAwait(false);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
-            field = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
+            field = field.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
 
             // We couldn't resolve field after annotating its declaration. Bail
             if (field == null)
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     document = solution.GetDocument(document.Id);
                     var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                    field = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
+                    field = field.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
                     constructorLocations = GetConstructorLocations(field.ContainingType);
                 }
 

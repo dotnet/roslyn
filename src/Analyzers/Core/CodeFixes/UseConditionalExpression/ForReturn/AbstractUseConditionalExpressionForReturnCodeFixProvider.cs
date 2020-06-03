@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var ifStatement = (TIfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement)!;
+            var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement, cancellationToken)!;
             var containingSymbol = semanticModel.GetEnclosingSymbol(ifStatement.SpanStart, cancellationToken);
 
             if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
