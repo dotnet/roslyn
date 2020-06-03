@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             // assert and remove logo:
             var output = SplitLines(await ReadOutputToEnd());
-            var errorOutput = await ReadOutputToEnd();
+            var errorOutput = await ReadErrorOutputToEnd();
 
             Assert.Equal("", errorOutput);
             Assert.Equal(2, output.Length);
@@ -332,7 +332,7 @@ System.Console.WriteLine(""terminate!"");
 
 while(true) {}
 ");
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             Assert.Equal("", error);
 
             Assert.True(mayTerminate.WaitOne());
@@ -363,8 +363,6 @@ while(true) {}
             mayTerminate.WaitOne();
 
             await RestartHost();
-
-            await _host.ExecuteFileAsync(file);
 
             //(miziga) await Execute had to be called before output initialized in order to pass
             var execution = await Execute(@"1+1");
@@ -417,7 +415,7 @@ WriteLine(5);
             var output = await ReadOutputToEnd();
             Assert.True(task.Success);
             Assert.Equal("5", output.Trim());
-            //(miziga) await Execute had to be called before output initialized in order to pass
+
             await Execute("Goo(2)");
             output = await ReadOutputToEnd();
             Assert.Equal("2", output.Trim());
@@ -517,21 +515,21 @@ WriteLine(5);
             // V3.5 unifies with the current Framework version:
             var result = await LoadReference("System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
             var output = await ReadOutputToEnd();
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             Assert.Equal("", error.Trim());
             Assert.Equal("", output.Trim());
             Assert.True(result);
 
             result = await LoadReference("System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
             output = await ReadOutputToEnd();
-            error = await ReadOutputToEnd();
+            error = await ReadErrorOutputToEnd();
             Assert.Equal("", error.Trim());
             Assert.Equal("", output.Trim());
             Assert.True(result);
 
             result = await LoadReference("System.Core");
             output = await ReadOutputToEnd();
-            error = await ReadOutputToEnd();
+            error = await ReadErrorOutputToEnd();
             Assert.Equal("", error.Trim());
             Assert.Equal("", output.Trim());
             Assert.True(result);
@@ -542,14 +540,14 @@ WriteLine(5);
         {
             var result = await LoadReference("System.Core");
             var output = await ReadOutputToEnd();
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             Assert.Equal("", error.Trim());
             Assert.Equal("", output.Trim());
             Assert.True(result);
 
             result = await LoadReference("System.Core.dll");
             output = await ReadOutputToEnd();
-            error = await ReadOutputToEnd();
+            error = await ReadErrorOutputToEnd();
             Assert.Equal("", error.Trim());
             Assert.Equal("", output.Trim());
             Assert.True(result);
@@ -576,7 +574,7 @@ WriteLine(5);
             // we can still run code:
             var result = await Execute("new C()");
             output = await ReadOutputToEnd();
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             Assert.Equal("", error.Trim());
             Assert.Equal("C { }", output.Trim());
             Assert.True(result);
@@ -638,7 +636,7 @@ WriteLine(5);
             Assert.True(await Execute("Program.Main()"));
 
             var output = await ReadOutputToEnd();
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             Assert.Equal("", error.Trim());
             Assert.Equal("1", output.Trim());
         }
@@ -666,7 +664,7 @@ WriteLine(5);
             Assert.True(await Execute("Program.Main()"));
 
             var output = await ReadOutputToEnd();
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             Assert.Equal("", error.Trim());
             Assert.Equal("2", output.Trim());
         }
@@ -685,7 +683,7 @@ WriteLine(5);
             await Execute("new C().M()");
 
             var output = await ReadOutputToEnd();
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             Assert.Equal("", error.Trim());
             Assert.Equal("1", output.Trim());
         }
@@ -721,7 +719,7 @@ new D().Y
             // In future we can let it load and improve error reporting around type conversions.
 
             var output = await ReadOutputToEnd();
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             Assert.Equal("", error.Trim());
             Assert.Equal(
 @"1
@@ -755,7 +753,7 @@ new D().Y
             // In future we can let it load and let the compiler report the error CS1704: "An assembly with the same simple name 'C' has already been imported".
 
             var output = await ReadOutputToEnd();
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             Assert.Equal(
 @"(2,1): error CS1704: An assembly with the same simple name 'C' has already been imported. Try removing one of the references (e.g. '" + file1.Path + @"') or sign them to enable side-by-side.
 (1,5): error CS0246: The type or namespace name 'C1' could not be found (are you missing a using directive or an assembly reference?)
@@ -791,7 +789,7 @@ new D().Y
             // In future we can let it load and improve error reporting around type conversions.
 
             var output = await ReadOutputToEnd();
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             Assert.Equal("TODO: error", error.Trim());
             Assert.Equal("", output.Trim());
         }
@@ -893,15 +891,14 @@ new D().Y
 $@"#r ""{assemblyName}.dll""
 typeof(C).Assembly.GetName()");
 
-            //(miziga) error and output calls and assignments not switched just which variables are put in assertions, had to switch which one received splitlines based on assertions
-            var error = SplitLines(await ReadOutputToEnd());
-            var output = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
+            var output = SplitLines(await ReadOutputToEnd());
 
-            Assert.Equal("", output); // "output" is actually the error
+            Assert.Equal("", error);
 
-            Assert.Equal(2, error.Length); // "error" is actually the output
-            Assert.Equal($"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }", error[0]);
-            Assert.Equal($"[{assemblyName}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", error[1]);
+            Assert.Equal(2, output.Length);
+            Assert.Equal($"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }", output[0]);
+            Assert.Equal($"[{assemblyName}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", output[1]);
         }
 
         [Fact]
@@ -950,16 +947,15 @@ p = new Process();
 Console.Write(""OK"")
 ");
 
-            //(miziga) order in which error and output were called and assignments to names not switched, just which variables are put in the assertions
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             var output = await ReadOutputToEnd();
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("", output); // "output" is error
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) } 
 OK
-", error); // "error" is output
+", output);
         }
 
         [Fact]
@@ -980,12 +976,13 @@ OK
 
             await Execute("new Process()");
 
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
+            var output = await ReadOutputToEnd();
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
 {initFile.Path}(1,3): error CS1002: { CSharpResources.ERR_SemicolonExpected }
 ", error);
 
-            var output = await ReadOutputToEnd();
+
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
 { string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
 [System.Diagnostics.Process]
@@ -1006,17 +1003,15 @@ c
 ");
             await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture));
 
-            //(miziga) order in which error and output were called and assignments to names not switched, just which variables are put in the assertions
-            var error = await ReadOutputToEnd();
-            var output = await ReadOutputToEnd();
-            Assert.Equal("", output); // "output" is actually error
+            var error = await ReadErrorOutputToEnd();
+            Assert.Equal("", error);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
 ""a""
 ""b""
 ""c""
-", error); // "error" is actually output 
+", await ReadOutputToEnd());
         }
 
         [Fact]
@@ -1040,10 +1035,9 @@ WriteLine(new Complex(2, 6).Real);
         [Fact]
         public async Task Script_NoHostNamespaces()
         {
-            // (miziga) still failing 
-            // (miziga) await Execute should be called before error and output can be called 
             await Execute("nameof(Microsoft.Missing)");
-            var error = await ReadOutputToEnd();
+
+            var error = await ReadErrorOutputToEnd();
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
 (1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }",
     error);
@@ -1065,12 +1059,11 @@ WriteLine(new Complex(2, 6).Real);
 new System.Windows.Window();
 System.Console.WriteLine(""OK"");
 ");
-            //(miziga) order in which error and output were called and assignments to names not switched, just which variables are put in the assertions
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             var output = await ReadOutputToEnd();
-            Assert.Equal("", output); // "output" ended up being the error
+            Assert.Equal("", error);
 
-            Assert.Equal("OK\r\n", error); // "error" ended up being the output
+            Assert.Equal("OK\r\n", output);
         }
 
         /// <summary>
@@ -1103,12 +1096,11 @@ using System.Threading.Tasks;");
 new object[] { new Class1(), new Class2(), new Class3() }
 ");
 
-            //(miziga) error was output and output was error, variable initialization kept the same but switched variables in assertion statements 
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             var output = await ReadOutputToEnd();
-            Assert.Equal("", output);
+            Assert.Equal("", error);
 
-            Assert.Equal("object[3] { Class1 { }, Class2 { }, Class3 { } }\r\n", error);
+            Assert.Equal("object[3] { Class1 { }, Class2 { }, Class3 { } }\r\n", output);
         }
 
         [Fact]
@@ -1150,13 +1142,12 @@ new object[] { new Class1(), new Class2(), new Class3() }
 
             await _host.ExecuteAsync(@"typeof(Metadata.ICSProp)");
 
-            //(miziga) order in which error and output were called and assignments to names not switched, just which variables are put in the assertions
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             output = await ReadOutputToEnd();
-            Assert.Equal("", output); //output is actually "var error" 
+            Assert.Equal("", error);
 
 
-            Assert.Equal("[Metadata.ICSProp]\r\n", error); //error is actually "output"
+            Assert.Equal("[Metadata.ICSProp]\r\n", output);
         }
 
         [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
@@ -1181,12 +1172,10 @@ new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             await Execute("C c;");
             await Execute("c = new C()");
 
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
             var output = await ReadOutputToEnd();
-            //(miziga) order in which error and output were called and assignments to names not switched, just which variables are put in the assertions
-            Assert.Equal("", output);
-            
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("C { P=null }", error);
+            Assert.Equal("", error);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("C { P=null }", output);
         }
 
         [Fact, WorkItem(7280, "https://github.com/dotnet/roslyn/issues/7280")]
@@ -1200,7 +1189,7 @@ using System.Threading.Tasks;
 Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).ContinueWith(t => t.Result).Result)");
 
             var output = await ReadOutputToEnd();
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
 
             Assert.Equal("42", output);
             Assert.Empty(error);
@@ -1209,11 +1198,10 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
         [Fact]
         public async Task Exception()
         {
-            // (miziga) still failing
             await Execute(@"throw new System.Exception();");
 
             var output = await ReadOutputToEnd();
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
 
             Assert.Equal("", output);
             Assert.DoesNotContain("Unexpected", error, StringComparison.OrdinalIgnoreCase);
@@ -1223,13 +1211,12 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
         [Fact, WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException()
         {
-            // (miziga) still failing
             await Execute(@"int i = 100;");
             await Execute(@"int j = 20; throw new System.Exception(""Bang!""); int k = 3;");
             await Execute(@"i + j + k");
 
             var output = await ReadOutputToEnd();
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("120", output);
             AssertEx.AssertEqualToleratingWhitespaceDifferences("System.Exception: Bang!", error);
@@ -1245,7 +1232,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             await _host.ExecuteAsync(@"System.IntPtr.Size");
 
             var output = await ReadOutputToEnd();
-            var error = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("4\r\n8\r\n4\r\n", output);
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);

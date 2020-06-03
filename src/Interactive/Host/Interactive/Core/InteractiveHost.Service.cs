@@ -443,6 +443,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         // remove references and imports from the options, they have been applied and will be inherited from now on:
                         state = state.WithOptions(state.ScriptOptions.RemoveImportsAndReferences());
 
+                        // (miziga) by assigning a newScriptState, all previous exceptions in state are replaced 
                         var newScriptState = await ExecuteOnUIThreadAsync(script, state.ScriptState, displayResult: true).ConfigureAwait(false);
                         state = state.WithScriptState(newScriptState);
                     }
