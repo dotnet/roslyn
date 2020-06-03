@@ -37,7 +37,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
                 var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
                 var variableSymbol = semanticModel.GetDeclaredSymbol(variable, context.CancellationToken);
-                if (variableSymbol == null)
+                if (variableSymbol == null || variableSymbol.Name.Length <= CSharpAvoidOptSuffixForNullableEnableCode.OptSuffix.Length)
                 {
                     continue;
                 }

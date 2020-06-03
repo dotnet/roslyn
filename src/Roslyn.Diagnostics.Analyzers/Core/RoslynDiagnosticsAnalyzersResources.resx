@@ -330,13 +330,13 @@
   <data name="ExposeMemberForTestingTitle" xml:space="preserve">
     <value>Expose member for testing</value>
   </data>
-  <data name="AvoidOptSuffixForNullableEnableCodeRuleIdDescription" xml:space="preserve">
+  <data name="AvoidOptSuffixForNullableEnableCodeDescription" xml:space="preserve">
     <value>Avoid the 'Opt' suffix in a nullable-enabled code.</value>
   </data>
-  <data name="AvoidOptSuffixForNullableEnableCodeRuleIdMessage" xml:space="preserve">
+  <data name="AvoidOptSuffixForNullableEnableCodeMessage" xml:space="preserve">
     <value>Avoid the 'Opt' suffix in a nullable-enabled code</value>
   </data>
-  <data name="AvoidOptSuffixForNullableEnableCodeRuleIdTitle" xml:space="preserve">
+  <data name="AvoidOptSuffixForNullableEnableCodeTitle" xml:space="preserve">
     <value>Avoid the 'Opt' suffix</value>
   </data>
   <data name="BracePlacementMessage" xml:space="preserve">

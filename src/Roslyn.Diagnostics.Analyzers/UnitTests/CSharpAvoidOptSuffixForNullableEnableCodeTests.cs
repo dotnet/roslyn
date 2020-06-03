@@ -199,7 +199,7 @@ public class Class1
             }.RunAsync();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/3707")]
         public async Task RS0046_CSharp8_VariableWithoutOptAlreadyExists_DiagnosticButNoCodeFix()
         {
             await new VerifyCS.Test
@@ -224,7 +224,7 @@ public class Class1
 {
     private Class1? [|_instanceOpt|], _instance;
 
-    public void Method1(string? s, string? {|CS0100:s|})
+    public void Method1(string? [|sOpt|], string? s)
     {
         string? [|localOpt|], local;
     }
