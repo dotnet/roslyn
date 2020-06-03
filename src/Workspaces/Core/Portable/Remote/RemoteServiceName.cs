@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Remote
         internal const string IntelliCodeServiceName = "pythia";
         internal const string RazorServiceName = "razorLanguageService";
         internal const string UnitTestingAnalysisServiceName = "UnitTestingAnalysis";
-        internal const string LiveUnitTestingServiceName = "UnitTestingSourceLookup";
-        internal const string TestSourceLocationLookupServiceName = "LiveUnitTestingBuild";
+        internal const string LiveUnitTestingBuildServiceName = "LiveUnitTestingBuild";
+        internal const string UnitTestingSourceLookupServiceName = "UnitTestingSourceLookup";
 
         public readonly WellKnownServiceHubService WellKnownService;
         public readonly string? CustomServiceName;
@@ -71,10 +71,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 (WellKnownServiceHubService.Razor, true) => RazorServiceName + Suffix64,
                 (WellKnownServiceHubService.UnitTestingAnalysisService, false) => UnitTestingAnalysisServiceName,
                 (WellKnownServiceHubService.UnitTestingAnalysisService, true) => UnitTestingAnalysisServiceName + Suffix64,
-                (WellKnownServiceHubService.LiveUnitTestingService, false) => LiveUnitTestingServiceName,
-                (WellKnownServiceHubService.LiveUnitTestingService, true) => LiveUnitTestingServiceName + Suffix64,
-                (WellKnownServiceHubService.TestSourceLocationLookupService, false) => TestSourceLocationLookupServiceName,
-                (WellKnownServiceHubService.TestSourceLocationLookupService, true) => TestSourceLocationLookupServiceName + Suffix64,
+                (WellKnownServiceHubService.LiveUnitTestingBuildService, false) => LiveUnitTestingBuildServiceName,
+                (WellKnownServiceHubService.LiveUnitTestingBuildService, true) => LiveUnitTestingBuildServiceName + Suffix64,
+                (WellKnownServiceHubService.UnitTestingSourceLookupService, false) => UnitTestingSourceLookupServiceName,
+                (WellKnownServiceHubService.UnitTestingSourceLookupService, true) => UnitTestingSourceLookupServiceName + Suffix64,
 
                 _ => throw ExceptionUtilities.UnexpectedValue(WellKnownService),
             };
