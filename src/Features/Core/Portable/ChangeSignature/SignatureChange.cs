@@ -82,17 +82,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     ChangeSignatureLogger.LogAddedParameterTypeBinds();
                 }
 
-                if (addedParameter.IsCallsiteTodo)
+                if (addedParameter.CallSiteKind == CallSiteKind.Todo)
                 {
                     ChangeSignatureLogger.LogAddedParameter_ValueTODO();
                 }
-                else if (addedParameter.IsCallsiteOmitted)
+                else if (addedParameter.CallSiteKind == CallSiteKind.Omitted)
                 {
                     ChangeSignatureLogger.LogAddedParameter_ValueOmitted();
                 }
                 else
                 {
-                    if (addedParameter.UseNamedArguments)
+                    if (addedParameter.CallSiteKind == CallSiteKind.ValueWithName)
                     {
                         ChangeSignatureLogger.LogAddedParameter_ValueExplicitNamed();
                     }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var originalListWithoutRemovedOrAdded = originalListOfParameters.Where(p => updatedListOfParameters.Contains(p)).ToImmutableArray();
             var updatedListWithoutRemovedOrAdded = updatedListOfParameters.Where(p => originalListOfParameters.Contains(p)).ToImmutableArray();
 
-            for (int i = 0; i < originalListWithoutRemovedOrAdded.Length; i++)
+            for (var i = 0; i < originalListWithoutRemovedOrAdded.Length; i++)
             {
                 if (originalListWithoutRemovedOrAdded[i] != updatedListWithoutRemovedOrAdded[i])
                 {

@@ -423,7 +423,7 @@ function TestUsingOptimizedRunner() {
     if ($testVsi) {
       $args += " -timeout:110"
     } else {
-      $args += " -timeout:75"
+      $args += " -timeout:90"
     }
   }
 

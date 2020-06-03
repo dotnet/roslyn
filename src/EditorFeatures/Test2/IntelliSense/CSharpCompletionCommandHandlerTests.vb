@@ -74,10 +74,56 @@ namespace N$$.P
                                 <Document>$$</Document>,
                                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.SendTypeChars("us")
+                state.SendTypeChars("usi")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("using", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(44459, "https://github.com/dotnet/roslyn/issues/44459")>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/44459"), CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSelectUsingOverUshort(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+$$
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                ' 'us' should select 'using' instead of 'ushort' (even though 'ushort' sorts higher in the list textually).
+                state.SendTypeChars("us")
+                Await state.AssertSelectedCompletionItem(displayText:="using", isHardSelected:=True)
+                Await state.AssertCompletionItemsContain("ushort", "")
+
+                ' even after 'ushort' is selected, deleting the 'h' should still take us back to 'using'.
+                state.SendTypeChars("h")
+                Await state.AssertSelectedCompletionItem(displayText:="ushort", isHardSelected:=True)
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem(displayText:="using", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WorkItem(44459, "https://github.com/dotnet/roslyn/issues/44459")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSelectUshortOverUsingOnceInMRU(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+$$
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("ush")
+                Await state.AssertCompletionItemsContain("ushort", "")
+                state.SendTab()
+                Assert.Contains("ushort", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+
+                state.SendDeleteWordToLeft()
+
+                ' 'ushort' should be in the MRU now. so typing 'us' should select it instead of 'using'.
+                state.SendTypeChars("us")
+                Await state.AssertSelectedCompletionItem(displayText:="ushort", isHardSelected:=True)
             End Using
         End Function
 
@@ -7070,6 +7116,221 @@ class C
                 ' nuint should be in the mru now.  so typing 'nu' should select it instead of null.
                 state.SendTypeChars("nu")
                 Await state.AssertSelectedCompletionItem(displayText:="nuint", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLambdaParameterInferenceInJoin1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    public class Book
+    {
+        public int Id { get; set; }
+        public int OwnerId { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Nickname { get; set; }
+    }
+
+    static void Main()
+    {
+        var books = new List&lt;Book&gt;();
+        var persons = new List&lt;Person&gt;();
+
+        var join = persons.Join(books, person => person.Id, book => book.$$, (person, book) => new
+        {
+            person.Id,
+            person.Nickname,
+            book.Name
+        });
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("OwnerId", "")
+            End Using
+        End Function
+
+        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLambdaParameterInferenceInJoin2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    public class Book
+    {
+        public int Id { get; set; }
+        public int OwnerId { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Nickname { get; set; }
+    }
+
+    static void Main()
+    {
+        var books = new List&lt;Book&gt;();
+        var persons = new List&lt;Person&gt;();
+
+        var join = persons.Join(books, person => person.Id, book => book.OwnerId, (person, book) => new
+        {
+            person.Id,
+            person.Nickname,
+            book.$$
+        });
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("Name", "")
+            End Using
+        End Function
+
+        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLambdaParameterInferenceInGroupJoin1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    public class Book
+    {
+        public int Id { get; set; }
+        public int OwnerId { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Nickname { get; set; }
+    }
+
+    static void Main()
+    {
+        var books = new List&lt;Book&gt;();
+        var persons = new List&lt;Person&gt;();
+
+        var join = persons.GroupJoin(books, person => person.Id, book => book.$$, (person, books1) => new
+        {
+            person.Id,
+            person.Nickname,
+            books1.Select(s => s.Name)
+        });
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("OwnerId", "")
+            End Using
+        End Function
+
+        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLambdaParameterInferenceInGroupJoin2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    public class Book
+    {
+        public int Id { get; set; }
+        public int OwnerId { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Nickname { get; set; }
+    }
+
+    static void Main()
+    {
+        var books = new List&lt;Book&gt;();
+        var persons = new List&lt;Person&gt;();
+
+        var join = persons.GroupJoin(books, person => person.Id, book => book.OwnerId, (person, books1) => new
+        {
+            person.Id,
+            person.Nickname,
+            books1.$$
+        });
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("Select", "<>")
+            End Using
+        End Function
+
+        <WorkItem(944031, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/944031")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLambdaParameterInferenceInGroupJoin3(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    public class Book
+    {
+        public int Id { get; set; }
+        public int OwnerId { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class Person
+    {
+        public int Id { get; set; }
+        public string Nickname { get; set; }
+    }
+
+    static void Main()
+    {
+        var books = new List&lt;Book&gt;();
+        var persons = new List&lt;Person&gt;();
+
+        var join = persons.GroupJoin(books, person => person.Id, book => book.OwnerId, (person, books1) => new
+        {
+            person.Id,
+            person.Nickname,
+            books1.Select(s => s.$$)
+        });
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("Name", "")
             End Using
         End Function
 

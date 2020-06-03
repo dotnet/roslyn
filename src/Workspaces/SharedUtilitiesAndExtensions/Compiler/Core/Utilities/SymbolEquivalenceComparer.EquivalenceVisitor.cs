@@ -141,6 +141,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     SymbolKind.RangeVariable => RangeVariablesAreEquivalent((IRangeVariableSymbol)x, (IRangeVariableSymbol)y),
                     SymbolKind.TypeParameter => TypeParametersAreEquivalent((ITypeParameterSymbol)x, (ITypeParameterSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Preprocessing => PreprocessingSymbolsAreEquivalent((IPreprocessingSymbol)x, (IPreprocessingSymbol)y),
+                    SymbolKindEx.FunctionPointer =>
+#if !CODE_STYLE
+                        FunctionPointerTypesAreEquivalent((IFunctionPointerTypeSymbol)x, (IFunctionPointerTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
+#else
+                        false,
+#endif
                     _ => false,
                 };
             }
@@ -174,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private static bool LocalsAreEquivalent(ILocalSymbol x, ILocalSymbol y)
                 => HaveSameLocation(x, y);
 
-            private bool MethodsAreEquivalent(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool MethodsAreEquivalent(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies, bool considerReturnRefKinds = false)
             {
                 if (!AreCompatibleMethodKinds(x.MethodKind, y.MethodKind))
                 {
@@ -234,6 +240,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
 
                     if (!ReturnTypesAreEquivalent(x, y, equivalentTypesWithDifferingAssemblies))
+                    {
+                        return false;
+                    }
+
+                    if (considerReturnRefKinds && !AreRefKindsEquivalent(x.RefKind, y.RefKind, distinguishRefFromOut: false))
                     {
                         return false;
                     }
@@ -536,6 +547,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
                     AreEquivalent(x.PointedAtType, y.PointedAtType, equivalentTypesWithDifferingAssemblies);
             }
+
+#if !CODE_STYLE
+            private bool FunctionPointerTypesAreEquivalent(IFunctionPointerTypeSymbol x, IFunctionPointerTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+                => MethodsAreEquivalent(x.Signature, y.Signature, equivalentTypesWithDifferingAssemblies);
+#endif
 
             private bool PropertiesAreEquivalent(IPropertySymbol x, IPropertySymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {

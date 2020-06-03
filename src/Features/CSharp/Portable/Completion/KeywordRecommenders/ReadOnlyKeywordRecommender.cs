@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         private static bool IsRefReadOnlyContext(CSharpSyntaxContext context)
             => context.TargetToken.IsKind(SyntaxKind.RefKeyword) &&
-               context.TargetToken.Parent.IsKind(SyntaxKind.RefType);
+               (context.TargetToken.Parent.IsKind(SyntaxKind.RefType) ||
+                (context.TargetToken.Parent.IsKind(SyntaxKind.Parameter) && context.IsFunctionPointerTypeArgumentContext));
 
         private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {

@@ -11,12 +11,13 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// Create new <see cref="RemoteHostClient"/>.
-    /// 
-    /// <see cref="IRemoteHostClientFactory"/> will use this to create new <see cref="RemoteHostClient"/> 
+    /// Returns a <see cref="RemoteHostClient"/> that a user can use to communicate with a remote host (i.e. ServiceHub) 
     /// </summary>
-    internal interface IRemoteHostClientFactory : IWorkspaceService
+    internal interface IRemoteHostClientProvider : IWorkspaceService
     {
-        Task<RemoteHostClient?> CreateAsync(HostWorkspaceServices services, CancellationToken cancellationToken);
+        /// <summary>
+        /// Get <see cref="RemoteHostClient"/> to current RemoteHost
+        /// </summary>
+        Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken);
     }
 }
