@@ -272,8 +272,7 @@ void goo()
 
             await _host.ExecuteAsync(MethodWithInfiniteLoop + "\r\nfoo()");
 
-            var execution = await Execute(@"1+1");
-            var output = await ReadOutputToEnd();
+            var execution = await Execute(@"1+1");            var output = await ReadOutputToEnd();
             Assert.True(execution);
             Assert.Equal("2\r\n", output);
         }
@@ -340,9 +339,9 @@ while(true) {}
 
             await RestartHost();
 
-            var execution = await Execute(@"1+1");            var output = await ReadOutputToEnd();
-            Assert.True(execution);
-            Assert.Equal("2\r\n", output);
+            var execution = await Execute(@"1+1");
+            var output = await ReadOutputToEnd();
+            Assert.True(execution);            Assert.Equal("2\r\n", output);
         }
         [Fact]
         public async Task AsyncExecuteFile_SourceKind()
@@ -388,14 +387,15 @@ WriteLine(5);
             var output = await ReadOutputToEnd();
             Assert.True(task.Success);
             Assert.Equal("5", output.Trim());
-            await Execute("Goo(2)");
+            output = await ReadOutputToEnd();            await Execute("new C().Goo(3)");
             output = await ReadOutputToEnd();
-            Execute("Goo(2)");            Assert.Equal("2", output.Trim());
-            await Execute("new C().Goo(3)");
+            Execute("Goo(2)");
+            Assert.Equal("2", output.Trim());
+            await Execute("new C().Goo(3)");            await Execute("new C().field");
             output = await ReadOutputToEnd();
-            Execute("new C().Goo(3)");            Assert.Equal("3", output.Trim());
-            await Execute("new C().field");
-            output = await ReadOutputToEnd();
+            Execute("new C().Goo(3)");
+            Assert.Equal("3", output.Trim());
+            await Execute("new C().field");            output = await ReadOutputToEnd();
             Execute("new C().field");            Assert.Equal("4", output.Trim());
         }
         [Fact]
@@ -842,11 +842,9 @@ typeof(C).Assembly.GetName()");
 
             var error = await ReadErrorOutputToEnd();
             var output = SplitLines(await ReadOutputToEnd());
-            Assert.Equal("", error);
-            Assert.Equal(2, output.Length);
+            Assert.Equal("", error);            Assert.Equal(2, output.Length);
             Assert.Equal($"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }", output[0]);
-            Assert.Equal($"[{assemblyName}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", output[1]);
-        }
+            Assert.Equal($"[{assemblyName}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", output[1]);        }
 
         [Fact]
         public async Task DefaultUsings()
@@ -895,17 +893,17 @@ Console.Write(""OK"")
 ");
 
             var error = await ReadErrorOutputToEnd();
-            var output = await ReadOutputToEnd();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
+            var output = await ReadOutputToEnd();            var output = await ReadOutputToEnd();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) } 
 OK
-", output);
+", error); // "error" is output
         }
 
         [Fact]
         public async Task InitialScript_Error()
         {
+            // (miziga) still failing 
             var initFile = Temp.CreateFile(extension: ".csx").WriteAllText("1 1");
 
             var rspFile = Temp.CreateFile();
@@ -946,9 +944,8 @@ c
 ");
             await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture));
 
-            var error = await ReadErrorOutputToEnd();
-            Assert.Equal("", error);
-            var output = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();            var output = await ReadOutputToEnd();
+            Assert.Equal("", output); // "output" is actually error
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"{ string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
 ""a""
@@ -978,8 +975,7 @@ WriteLine(new Complex(2, 6).Real);
         [Fact]
         public async Task Script_NoHostNamespaces()
         {
-            await Execute("nameof(Microsoft.Missing)");
-
+            var error = await ReadOutputToEnd();
             var error = await ReadErrorOutputToEnd();
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"(1,8): error CS0234: { string.Format(CSharpResources.ERR_DottedTypeNameNotFoundInNS, "Missing", "Microsoft") }",
     error);
@@ -1002,10 +998,9 @@ System.Console.WriteLine(""OK"");
 ");
             var error = await ReadErrorOutputToEnd();
             var output = await ReadOutputToEnd();            Assert.Equal("", error);
-
             var output = ReadOutputToEnd();
-            Assert.Equal("OK\r\n", output);        }
-
+            Assert.Equal("OK\r\n", output);
+        }
         /// <summary>
         /// Execution of expressions should be
         /// sequential, even await expressions.
@@ -1036,11 +1031,11 @@ new object[] { new Class1(), new Class2(), new Class3() }
 ");
 
             var error = await ReadErrorOutputToEnd();
-            var output = await ReadOutputToEnd();            Assert.Equal("", error);
-
+            var output = await ReadOutputToEnd();
+            Assert.Equal("", error);
             var output = ReadOutputToEnd();
-            Assert.Equal("object[3] { Class1 { }, Class2 { }, Class3 { } }\r\n", output);        }
-
+            Assert.Equal("object[3] { Class1 { }, Class2 { }, Class3 { } }\r\n", output);
+        }
         [Fact]
         public async Task SearchPaths1()
         {
@@ -1078,11 +1073,11 @@ new object[] { new Class1(), new Class2(), new Class3() }
             await _host.ExecuteAsync(@"typeof(Metadata.ICSProp)");
 
             var error = await ReadErrorOutputToEnd();
-            output = await ReadOutputToEnd();            Assert.Equal("", error);
-
+            output = await ReadOutputToEnd();
+            Assert.Equal("", error);
             output = ReadOutputToEnd();
-            Assert.Equal("[Metadata.ICSProp]\r\n", output);        }
-
+            Assert.Equal("[Metadata.ICSProp]\r\n", output);
+        }
         [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
         public async Task MissingReferencesReuse()
         {
@@ -1108,9 +1103,8 @@ new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             var error = await ReadErrorOutputToEnd();
             var output = await ReadOutputToEnd();            Assert.Equal("", error);
             var output = ReadOutputToEnd();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("C { P=null }", output);        }
-
-        [Fact, WorkItem(7280, "https://github.com/dotnet/roslyn/issues/7280")]
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("C { P=null }", output);
+        }        [Fact, WorkItem(7280, "https://github.com/dotnet/roslyn/issues/7280")]
         public async Task AsyncContinueOnDifferentThread()
         {
             await Execute(@"
@@ -1128,6 +1122,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
         [Fact]
         public async Task Exception()
         {
+            // (miziga) still failing
             await Execute(@"throw new System.Exception();");
 
             var output = await ReadOutputToEnd();
@@ -1139,6 +1134,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
         [Fact, WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException()
         {
+            // (miziga) still failing
             await Execute(@"int i = 100;");
             await Execute(@"int j = 20; throw new System.Exception(""Bang!""); int k = 3;");
             await Execute(@"i + j + k");
