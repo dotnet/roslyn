@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Utilities\WorkItemAttribute.cs" Link="WorkItemAttribute.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\VisualStudio.Roslyn.SDK\Roslyn.SDK\Roslyn.SDK.csproj" />
+  </ItemGroup>
+</Project>

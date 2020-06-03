@@ -5,6 +5,10 @@
     <RootNamespace></RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Roslyn.SDK.UnitTests" />
+  </ItemGroup>
+
   <!-- Package References -->
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersionVS2019)" />
