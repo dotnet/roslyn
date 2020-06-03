@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -115,6 +116,38 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
             }
 
             result.Add(new ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol));
+        }
+
+        protected static bool IsStaticSymbol(ISymbol? symbol)
+        {
+            if (symbol is null || !symbol.IsStatic)
+            {
+                return false;
+            }
+
+            if (symbol.IsEnumMember())
+            {
+                // EnumMembers are not classified as static since there is no
+                // instance equivalent of the concept and they have their own
+                // classification type.
+                return false;
+            }
+
+            if (symbol.IsNamespace())
+            {
+                // Namespace names are not classified as static since there is no
+                // instance equivalent of the concept and they have their own
+                // classification type.
+                return false;
+            }
+
+            if (symbol.IsLocalFunction())
+            {
+                // Local function names are not classified as static since the
+                // the symbol returning true for IsStatic is an implementation detail.
+                return false;
+            }
+            return true;
         }
     }
 }
