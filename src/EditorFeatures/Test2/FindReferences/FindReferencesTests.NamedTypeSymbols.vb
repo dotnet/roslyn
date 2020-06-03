@@ -2174,7 +2174,6 @@ public class D { }
         }]]>
         </Document>
     </Project>
-
     <Project Language="C#" AssemblyName="ClassLibrary2" CommonReferences="true">
         <ProjectReference>ClassLibrary1</ProjectReference>
         <Document><![CDATA[
