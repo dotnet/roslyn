@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Remote
         internal const string Prefix = "roslyn";
         internal const string IntelliCodeServiceName = "pythia";
         internal const string RazorServiceName = "razorLanguageService";
-        internal const string UnitTestingAnalysisServiceName = "remoteAnalysisService";
-        internal const string LiveUnitTestingServiceName = "remoteBuildService";
-        internal const string TestSourceLocationLookupServiceName = "remoteTestSourceLocationLookupService";
+        internal const string UnitTestingAnalysisServiceName = "unitTestAnalysis";
+        internal const string LiveUnitTestingServiceName = "liveUnitTestIncrementalBuild";
+        internal const string TestSourceLocationLookupServiceName = "unitTestSourceLookup";
 
         public readonly WellKnownServiceHubService WellKnownService;
         public readonly string? CustomServiceName;
