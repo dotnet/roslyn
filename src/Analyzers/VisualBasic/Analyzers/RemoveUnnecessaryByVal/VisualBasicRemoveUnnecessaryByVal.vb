@@ -33,21 +33,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
         Protected Overrides Sub InitializeWorker(ByVal context As AnalysisContext)
             context.RegisterSyntaxNodeAction(
             Sub(syntaxContext As SyntaxNodeAnalysisContext)
-                Dim location = GetByValLocation(CType(syntaxContext.Node, ParameterSyntax).Modifiers)
-                If location IsNot Nothing Then
-                    syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
-                        s_descriptor, location, ReportDiagnostic.Hidden, additionalLocations:=Nothing, properties:=Nothing))
-                End If
+                Dim modifiers = CType(syntaxContext.Node, ParameterSyntax).Modifiers
+                For Each modifier In modifiers
+                    If modifier.IsKind(SyntaxKind.ByValKeyword) Then
+                        syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                                s_descriptor, modifier.GetLocation(), ReportDiagnostic.Hidden, additionalLocations:=Nothing, properties:=Nothing))
+                    End If
+                Next
+
             End Sub, SyntaxKind.Parameter)
         End Sub
-
-        Private Function GetByValLocation(modifiers As SyntaxTokenList) As Location
-            For Each modifier In modifiers
-                If modifier.IsKind(SyntaxKind.ByValKeyword) Then
-                    Return modifier.GetLocation()
-                End If
-            Next
-            Return Nothing
-        End Function
     End Class
 End Namespace
