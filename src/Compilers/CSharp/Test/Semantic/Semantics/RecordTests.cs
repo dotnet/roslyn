@@ -250,6 +250,7 @@ data class C(int X, int Y)
             var expectedMembers = new[]
             {
                 "C C.Clone()",
+                "C..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 C.<X>k__BackingField",
                 "System.Int32 C.X.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.X.init",
@@ -266,7 +267,6 @@ data class C(int X, int Y)
                 "System.Boolean C.Equals(System.Object? )",
                 "System.Int32 C.GetHashCode()",
                 "C..ctor(C )",
-                "C..ctor(System.Int32 X, System.Int32 Y)",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -2480,7 +2480,7 @@ data class B(object P1, object P2, object P3, object P4, object P5, object P6) :
 }
 public data class B(object Q) : A
 {
-    public B() { }
+    public B() : this(null) { }
 }
 data class C1(object P, object Q) : B
 {
@@ -2647,6 +2647,7 @@ data class C(int X, int Y, int Z) : B
             var expectedMembers = new[]
             {
                 "C C.Clone()",
+                "C..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 C.X { get; }",
                 "System.Int32 C.X.get",
                 "System.Int32 C.<Y>k__BackingField",
@@ -2656,7 +2657,6 @@ data class C(int X, int Y, int Z) : B
                 "System.Boolean C.Equals(System.Object? )",
                 "System.Int32 C.GetHashCode()",
                 "C..ctor(C )",
-                "C..ctor(System.Int32 X, System.Int32 Y)",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -2771,7 +2771,7 @@ data class B(object X, object Y) : A
             var source =
 @"data class A(object X, object Y)
 {
-    internal A() { }
+    internal A() : this(null, null) { }
 }
 data class B(object X, object Y) : A
 {
@@ -3361,6 +3361,7 @@ data class C(object P)
             var expectedMembers = new[]
             {
                 "B B.Clone()",
+                "B..ctor(System.Object P, System.Object Q)",
                 "System.Object B.<P>k__BackingField",
                 "System.Object B.P.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.P.init",
@@ -3373,13 +3374,13 @@ data class C(object P)
                 "System.Boolean B.Equals(System.Object? )",
                 "System.Int32 B.GetHashCode()",
                 "B..ctor(B )",
-                "B..ctor(System.Object P, System.Object Q)"
             };
             AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings());
 
             expectedMembers = new[]
             {
                 "C C.Clone()",
+                "C..ctor(System.Object P)",
                 "System.Object C.<P>k__BackingField",
                 "System.Object C.P.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.P.init",
@@ -3390,7 +3391,6 @@ data class C(object P)
                 "System.Boolean C.Equals(System.Object? )",
                 "System.Int32 C.GetHashCode()",
                 "C..ctor(C )",
-                "C..ctor(System.Object P)"
             };
             AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings());
         }
