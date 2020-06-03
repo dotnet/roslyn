@@ -14,7 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
         Inherits AbstractCodeStyleDiagnosticAnalyzer
 
         Friend Const DiagnosticFixableId As String = IDEDiagnosticIds.RemoveUnnecessaryByValDiagnosticId
-        Private Shared ReadOnly s_descriptor As DiagnosticDescriptor = New DiagnosticDescriptor(id:=DiagnosticFixableId,
+        Private Shared ReadOnly s_descriptor As DiagnosticDescriptor = New DiagnosticDescriptor(
+            id:=DiagnosticFixableId,
             title:="",
             messageFormat:="",
             category:="",
@@ -30,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
             MyBase.New(s_descriptor.Id, s_descriptor.Title, s_descriptor.MessageFormat)
         End Sub
 
-        Protected Overrides Sub InitializeWorker(context As AnalysisContext)
+        Protected Overrides Sub InitializeWorker(ByVal context As AnalysisContext)
             context.EnableConcurrentExecution()
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze Or GeneratedCodeAnalysisFlags.ReportDiagnostics)
 
@@ -39,14 +40,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
                 Dim location = GetByValLocation(CType(syntaxContext.Node, ParameterSyntax).Modifiers)
                 If location IsNot Nothing Then
                     syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
-                                               s_descriptor, location, ReportDiagnostic.Hidden, Nothing, Nothing))
+                                               s_descriptor, location, ReportDiagnostic.Hidden, additionalLocations:=Nothing, properties:=Nothing))
                 End If
             End Sub, SyntaxKind.Parameter)
         End Sub
 
         Private Function GetByValLocation(modifiers As SyntaxTokenList) As Location
             For Each modifier In modifiers
-                If modifier.IsKind(SyntaxKind.ByValKeyword) Then Return modifier.GetLocation()
+                If modifier.IsKind(SyntaxKind.ByValKeyword) Then
+                    Return modifier.GetLocation()
+                End If
             Next
             Return Nothing
         End Function
