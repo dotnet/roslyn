@@ -2933,11 +2933,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // PROTOTYPE: need to check base members as well
             var memberSignatures = s_duplicateMemberSignatureDictionary.Allocate();
             foreach (var member in members)
             {
-                memberSignatures.Add(member, member);
+                if (!memberSignatures.ContainsKey(member))
+                {
+                    memberSignatures.Add(member, member);
+                }
             }
 
             // Positional record
@@ -3006,7 +3008,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (ParameterSymbol param in recordParameters)
                 {
                     var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
-                    if (!memberSignatures.ContainsKey(property))
+                    if (!memberSignatures.ContainsKey(property) &&
+                        !hidesInheritedMember(property, this))
                     {
                         members.Add(property);
                         members.Add(property.GetMethod);
@@ -3016,12 +3019,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            static bool hidesInheritedMember(Symbol symbol, NamedTypeSymbol type)
+            {
+                while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
+                {
+                    OverriddenOrHiddenMembersHelpers.FindOverriddenOrHiddenMembersInType(
+                        symbol,
+                        memberIsFromSomeCompilation: true,
+                        memberContainingType: symbol.ContainingType,
+                        currType: type,
+                        out var bestMatch,
+                        out bool hasSameKindNonMatch,
+                        out var hiddenBuilder);
+                    if (hiddenBuilder is object)
+                    {
+                        hiddenBuilder.Free();
+                        return true;
+                    }
+                    if (bestMatch is object)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
             void addObjectEquals(MethodSymbol thisEquals)
             {
                 var objEquals = new SynthesizedRecordObjEquals(this, thisEquals);
                 if (!memberSignatures.ContainsKey(objEquals))
                 {
-                    // PROTOTYPE: Don't add if the overridden method is sealed
+                    // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
                     members.Add(objEquals);
                 }
             }
@@ -3031,7 +3059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var hashCode = new SynthesizedRecordGetHashCode(this);
                 if (!memberSignatures.ContainsKey(hashCode))
                 {
-                    // PROTOTYPE: Don't add if the overridden method is sealed
+                    // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
                     members.Add(hashCode);
                 }
             }
