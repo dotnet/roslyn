@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
     {
         private readonly ITestOutputHelper _output;
         public CoreFormatterTestsBase(ITestOutputHelper output)
-        {
-            this._output = output;
-        }
+            => this._output = output;
 
         protected abstract string GetLanguageName();
         protected abstract SyntaxNode ParseCompilationUnit(string expected);
