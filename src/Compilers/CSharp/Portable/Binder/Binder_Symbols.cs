@@ -461,8 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // This is invalid syntax for a type.  This arises when a constant pattern that fails to bind
                         // is attempted to be bound as a type pattern.
-                        diagnostics.Add(ErrorCode.ERR_TypeExpected, syntax.GetLocation());
-                        return TypeWithAnnotations.Create(CreateErrorType());
+                        return createErrorType();
                     }
             }
 
@@ -544,6 +543,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return TypeWithAnnotations.Create(new PointerTypeSymbol(elementType));
+            }
+
+            NamespaceOrTypeOrAliasSymbolWithAnnotations createErrorType()
+            {
+                diagnostics.Add(ErrorCode.ERR_TypeExpected, syntax.GetLocation());
+                return TypeWithAnnotations.Create(CreateErrorType());
             }
         }
 
