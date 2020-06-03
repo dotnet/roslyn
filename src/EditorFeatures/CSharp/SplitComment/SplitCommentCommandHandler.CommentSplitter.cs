@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                 _cancellationToken = cancellationToken;
             }
 
-            public static CommentSplitter Create(
+            public static CommentSplitter TryCreate(
                 Document document, int position,
                 SyntaxNode root, SourceText sourceText,
                 bool useTabs, int tabSize, IndentStyle indentStyle,
