@@ -12238,8 +12238,8 @@ class C
 
             ValidateEmbeddedSources_Portable(new Dictionary<string, string>
             {
-                { Path.Combine(dir.Path, $"{generator1Prefix}_{source1Name}"), source1},
-                { Path.Combine(dir.Path, $"{generator2Prefix}_{source2Name}"), source2},
+                { $"{dir.Path}{Path.DirectorySeparatorChar}{generator1Prefix}_{source1Name}", source1},
+                { $"{dir.Path}{Path.DirectorySeparatorChar}{generator2Prefix}_{source2Name}", source2},
             }, dir, true);
 
             // Clean up temp files
