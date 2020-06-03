@@ -50,6 +50,7 @@ data class C(int x, int y)
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 x, out System.Int32 y)",
                     "void System.Object.Finalize()"),
                 s_pop
             );
@@ -81,6 +82,7 @@ data `class C`<T`>(int x, T t = default(T));";
                     "System.Int32 C<T>.GetHashCode()",
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
+                    "void C<T>.Deconstruct(out System.Int32 x, out T t)",
                     "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
                     "System.Type System.Object.GetType()"),

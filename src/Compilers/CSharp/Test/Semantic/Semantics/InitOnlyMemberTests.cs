@@ -2178,6 +2178,7 @@ public data class C(int i)
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.i.init",
                 "System.Int32 C.i { get; init; }",
                 "void C.M()",
+                "void C.Deconstruct(out System.Int32 i)",
                 "System.Boolean C.Equals(C? )",
                 "System.Boolean C.Equals(System.Object? )",
                 "System.Int32 C.GetHashCode()",
