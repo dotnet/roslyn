@@ -2555,6 +2555,7 @@ class Program
             AssertEx.Equal(new string[0], actualMembers);
         }
 
+        [WorkItem(44785, "https://github.com/dotnet/roslyn/issues/44785")]
         [Fact]
         public void Inheritance_07()
         {
@@ -2580,6 +2581,7 @@ data class B2(int X, int Y) : A
             AssertEx.Equal(new string[0], GetProperties(comp, "B2").ToTestDisplayStrings());
         }
 
+        [WorkItem(44785, "https://github.com/dotnet/roslyn/issues/44785")]
         [Fact]
         public void Inheritance_08()
         {
@@ -2621,6 +2623,23 @@ data class C(int X, int Y, int Z) : B
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "C C.Clone()",
+                "System.Int32 C.X { get; }",
+                "System.Int32 C.X.get",
+                "System.Int32 C.<Y>k__BackingField",
+                "System.Int32 C.Y { get; }",
+                "System.Int32 C.Y.get",
+                "System.Boolean C.Equals(C? )",
+                "System.Boolean C.Equals(System.Object? )",
+                "System.Int32 C.GetHashCode()",
+                "C..ctor(C )",
+                "C..ctor(System.Int32 X, System.Int32 Y)",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
