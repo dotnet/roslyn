@@ -4,10 +4,12 @@
     "projects": [
       "src\\Analyzers\\CSharp\\Analyzers\\CSharpAnalyzers.shproj",
       "src\\Analyzers\\CSharp\\CodeFixes\\CSharpCodeFixes.shproj",
+      "src\\Analyzers\\CSharp\\Tests\\CSharpAnalyzers.UnitTests.shproj",
       "src\\Analyzers\\Core\\Analyzers\\Analyzers.shproj",
       "src\\Analyzers\\Core\\CodeFixes\\CodeFixes.shproj",
       "src\\Analyzers\\VisualBasic\\Analyzers\\VisualBasicAnalyzers.shproj",
       "src\\Analyzers\\VisualBasic\\CodeFixes\\VisualBasicCodeFixes.shproj",
+      "src\\Analyzers\\VisualBasic\\Tests\\VisualBasicAnalyzers.UnitTests.shproj",
       "src\\CodeStyle\\CSharp\\Analyzers\\Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj",
       "src\\CodeStyle\\CSharp\\CodeFixes\\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.csproj",
       "src\\CodeStyle\\Core\\Analyzers\\Microsoft.CodeAnalysis.CodeStyle.csproj",
