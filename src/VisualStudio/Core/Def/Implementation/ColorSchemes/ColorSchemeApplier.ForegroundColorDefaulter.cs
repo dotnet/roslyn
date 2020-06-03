@@ -69,7 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     [ClassificationTypeNames.Operator] = LightThemeOperator,
                 }.ToImmutableDictionary();
 
-
             // The High Contrast theme is not included because we do not want to make changes when the user is in High Contrast mode.
 
             private IVsFontAndColorStorage? _fontAndColorStorage;

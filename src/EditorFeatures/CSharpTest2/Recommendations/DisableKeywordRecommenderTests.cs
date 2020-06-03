@@ -26,7 +26,6 @@ $$
 ");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAtRoot_Interactive()
         {

@@ -461,7 +461,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
 
-
                     result.AssertLabeledSpansAre("stmt1", "Call Global.M.Bar(""1"")", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
             End Sub
@@ -498,7 +497,6 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
 
-
                     result.AssertLabeledSpansAre("stmt1", "CC.Bar(Of Integer)(1)", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
             End Sub
@@ -533,7 +531,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="F")
 
-
                     result.AssertLabeledSpansAre("stmt1", "Dim y = F(Of Integer)(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -565,7 +562,6 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="F")
-
 
                     result.AssertLabeledSpansAre("stmt1", "F(Of Integer)(Function(a) a)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -601,7 +597,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="Bar")
 
-
                     result.AssertLabeledSpansAre("stmt1", "C.Bar(Of Integer)(1)", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
             End Sub
@@ -629,7 +624,6 @@ End Module
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
 
-
                     result.AssertLabeledSpansAre("stmt1", "Goo(Of String)(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -656,7 +650,6 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
-
 
                     result.AssertLabeledSpansAre("stmt1", "Goo(Of T)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -692,7 +685,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="Bar")
 
-
                     result.AssertLabeledSpansAre("stmt1", "Call Global.M.Bar(Of Integer)(1)", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
             End Sub
@@ -719,7 +711,6 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
-
 
                     result.AssertLabeledSpansAre("stmt1", "Goo(Of C(Of Integer))(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -750,7 +741,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
 
-
                     result.AssertLabeledSpansAre("stmt1", "Goo(Of D(Of Integer))(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -777,7 +767,6 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
-
 
                     result.AssertLabeledSpansAre("stmt1", "Goo(Of Object)(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -807,7 +796,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
 
-
                     result.AssertLabeledSpansAre("stmt1", "Goo(Of Integer())(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -835,7 +823,6 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
-
 
                     result.AssertLabeledSpansAre("stmt1", "Goo(Of Integer(,))(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -866,7 +853,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
 
-
                     result.AssertLabeledSpansAre("stmt1", "Method(Goo(Of Integer)(1))", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -896,7 +882,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
 
-
                     result.AssertLabeledSpansAre("stmt1", "Dim x As New C(Goo(Of Integer)(1))", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -923,7 +908,6 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
-
 
                     result.AssertLabeledSpansAre("stmt1", "x.Goo(Of Integer)(1)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -952,7 +936,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
 
-
                     result.AssertLabeledSpansAre("stmt1", "Dim x = New GooDel(Of String)(AddressOf Goo(Of String))", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -980,7 +963,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
 
-
                     result.AssertLabeledSpansAre("stmt1", "Dim x = New GooDel(AddressOf Goo(Of String))", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -1007,7 +989,6 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
-
 
                     result.AssertLabeledSpansAre("stmt1", "Goo(Of Integer(), C)(x, New C())", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -1045,7 +1026,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
 
-
                     result.AssertLabeledSpansAre("stmt1", "MyBase.Goo(x)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -1068,7 +1048,6 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="goo")
-
 
                     result.AssertLabeledSpansAre("stmt1", "Me.goo = goo", RelatedLocationType.NoConflict)
                     result.AssertLabeledSpansAre("stmt2", "Me.goo = goo", RelatedLocationType.ResolvedNonReferenceConflict)
@@ -1142,7 +1121,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="goo")
 
-
                     result.AssertLabeledSpansAre("stmt1", "GooClass.goo = goo", RelatedLocationType.NoConflict)
                     result.AssertLabeledSpansAre("stmt2", "GooClass.goo = goo", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -1165,7 +1143,6 @@ End Module
                                </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="goo")
-
 
                     result.AssertLabeledSpansAre("stmt1", "GooModule.goo = goo", RelatedLocationType.NoConflict)
                     result.AssertLabeledSpansAre("stmt2", "GooModule.goo = goo", RelatedLocationType.ResolvedNonReferenceConflict)
@@ -1198,7 +1175,6 @@ End Module
                         </Project>
                     </Workspace>, host:=host, renameTo:="B")
 
-
                     result.AssertLabeledSpansAre("Resolve", "X.B", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
             End Sub
@@ -1228,7 +1204,6 @@ End Module
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="A")
-
 
                     result.AssertLabeledSpansAre("Resolve", "X.A", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -1339,7 +1314,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="[true]")
 
-
                 End Using
             End Sub
 
@@ -1371,7 +1345,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="C")
 
-
                     result.AssertLabeledSpansAre("stmt1", "Dim x As A(Of Integer).B", type:=RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -1393,7 +1366,6 @@ End Module
                         </Project>
                     </Workspace>, host:=host, renameTo:="BarBaz")
 
-
                     result.AssertLabeledSpansAre("stmt1", "BarBaz", RelatedLocationType.NoConflict)
                 End Using
             End Sub
@@ -1414,7 +1386,6 @@ End Module
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="BarBaz")
-
 
                     result.AssertLabeledSpansAre("stmt1", "BarBaz", RelatedLocationType.NoConflict)
                 End Using
@@ -1446,7 +1417,6 @@ End Namespace
                         </Project>
                     </Workspace>, host:=host, renameTo:="A")
 
-
                     result.AssertLabeledSpansAre("Replacement", "N.X.A", type:=RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -1476,7 +1446,6 @@ End Namespace
                             ]]></Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="B")
-
 
                     result.AssertLabeledSpansAre("Replacement", "N.X.B")
                     result.AssertLabeledSpansAre("Resolved", type:=RelatedLocationType.ResolvedReferenceConflict)
@@ -1511,7 +1480,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="Bar")
 
-
                     result.AssertLabeledSpansAre("stmt1", "X.Bar = 1", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
             End Sub
@@ -1533,7 +1501,6 @@ End Module
                             ]]></Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Bar")
-
 
                     result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
                 End Using
@@ -1586,7 +1553,6 @@ End Structure
                         </Project>
                     </Workspace>, host:=host, renameTo:="Baz")
 
-
                 End Using
             End Sub
 
@@ -1612,7 +1578,6 @@ End Structure
                         </Project>
                     </Workspace>, host:=host, renameTo:="Baz")
 
-
                 End Using
             End Sub
 
@@ -1634,7 +1599,6 @@ Public Class [|$$SomethingAttribute|]
 End Class]]></Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="SpecialAttribute")
-
 
                     result.AssertLabeledSpansAre("Special", "Special", type:=RelatedLocationType.NoConflict)
                 End Using
@@ -1686,7 +1650,6 @@ End Module
                         </Project>
                     </Workspace>, host:=host, renameTo:="NewMethod1")
 
-
                     result.AssertLabeledSpansAre("stmt1", "NewMethod1", RelatedLocationType.NoConflict)
                 End Using
             End Sub
@@ -1709,7 +1672,6 @@ End Module
                            </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="barbaz")
-
 
                     result.AssertLabeledSpansAre("stmt1", "barbaz", RelatedLocationType.NoConflict)
                     result.AssertLabeledSpansAre("stmt2", "barbaz", RelatedLocationType.NoConflict)
@@ -1738,7 +1700,6 @@ End Module
                         </Project>
                     </Workspace>, host:=host, renameTo:="goo")
 
-
                     result.AssertLabeledSpansAre("stmt1", "goo", type:=RelatedLocationType.NoConflict)
                     result.AssertLabeledSpansAre("stmt1_2", type:=RelatedLocationType.UnresolvedConflict)
                     result.AssertLabeledSpansAre("stmt2", type:=RelatedLocationType.UnresolvedConflict)
@@ -1760,7 +1721,6 @@ End Class
                            </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="barbaz")
-
 
                 End Using
             End Sub
@@ -1807,7 +1767,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="A")
 
-
                     result.AssertLabeledSpansAre("Resolve", "Global.A", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -1830,7 +1789,6 @@ End Module
                         </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Bar")
-
 
                     result.AssertLabeledSpansAre("stmt1", "ReDim [Preserve].Bar(0)", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
@@ -1858,7 +1816,6 @@ End Module
                         </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="X")
-
 
                     result.AssertLabeledSpansAre("Resolve", "M.X", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -1959,7 +1916,6 @@ class C : I
                         </Project>
                     </Workspace>, host:=host, renameTo:="Y")
 
-
                 End Using
             End Sub
 
@@ -1986,7 +1942,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
 
-
                 End Using
             End Sub
 
@@ -2011,7 +1966,6 @@ End Namespace
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="B")
-
 
                     result.AssertLabeledSpansAre("Resolve", "X.B", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
@@ -2058,7 +2012,6 @@ End Module
                         </Project>
                     </Workspace>, host:=host, renameTo:="Attribute")
 
-
                     result.AssertLabeledSpansAre("Resolve1", "System.Attribute", RelatedLocationType.ResolvedNonReferenceConflict)
                     result.AssertLabeledSpansAre("Resolve2", "Attribute", RelatedLocationType.NoConflict)
                 End Using
@@ -2083,7 +2036,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="Baz")
 
-
                 End Using
             End Sub
 
@@ -2104,7 +2056,6 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="RemAttribute")
-
 
                     result.AssertLabeledSpansAre("escaped", "[Rem]", RelatedLocationType.NoConflict)
                 End Using
@@ -2127,7 +2078,6 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Attribute")
-
 
                     result.AssertLabeledSpansAre("unreduced", "Attribute", RelatedLocationType.NoConflict)
                     result.AssertLabeledSpansAre("resolved", "System.Attribute", RelatedLocationType.ResolvedNonReferenceConflict)
@@ -2158,7 +2108,6 @@ End Namespace
                         </Project>
                     </Workspace>, host:=host, renameTo:="BAttribute")
 
-
                     result.AssertLabeledSpansAre("resolved", "X.B", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -2187,7 +2136,6 @@ End Namespace
                         </Project>
                     </Workspace>, host:=host, renameTo:="BATTRIBUTE")
 
-
                     result.AssertLabeledSpansAre("resolved", "X.B", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -2215,7 +2163,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="GOOATTRIBUTE")
 
-
                     result.AssertLabeledSpansAre("resolved", "M.Goo", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -2237,7 +2184,6 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="ATTRIBUTE")
-
 
                     result.AssertLabeledSpansAre("resolved", "System.Attribute", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -2268,7 +2214,6 @@ End Namespace
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
-
 
                     result.AssertLabeledSpansAre("resolved", "N.X.Goo()", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -2302,7 +2247,6 @@ End Namespace
                              </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="C")
-
 
                     result.AssertLabeledSpansAre("resolved", "X.C", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -2402,7 +2346,6 @@ End Namespace
                         </Project>
                     </Workspace>, host:=host, renameTo:="C")
 
-
                     result.AssertLabeledSpansAre("Resolve", "M.C.Goo()", RelatedLocationType.ResolvedNonReferenceConflict)
                     result.AssertLabeledSpansAre("Stmt1", "C", RelatedLocationType.NoConflict)
 
@@ -2440,7 +2383,6 @@ End Module
                         </Project>
                     </Workspace>, host:=host, renameTo:="Goo")
 
-
                     result.AssertLabeledSpansAre("Resolve1", "N.M.K.Goo()", RelatedLocationType.ResolvedNonReferenceConflict)
                     result.AssertLabeledSpansAre("Resolve2", "N.M.L.Goo()", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
@@ -2472,7 +2414,6 @@ End Namespace                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="M")
 
-
                     result.AssertLabeledSpansAre("Resolve", "Global.M", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -2502,7 +2443,6 @@ End Namespace
                              </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="x")
-
 
                     result.AssertLabeledSpansAre("Resolve", "N.M.x", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -2554,7 +2494,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="Goo")
 
-
                     result.AssertLabeledSpansAre("resolved", "Outer(Sub(y As String) Inner(Sub(x) x.Ex(), y), 0)", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -2582,7 +2521,6 @@ End Namespace
                     </Project>
                 </Workspace>, host:=host, renameTo:="NN")
 
-
                     result.AssertLabeledSpansAre("resolve1", "Global.NN.C", RelatedLocationType.ResolvedNonReferenceConflict)
                     result.AssertLabeledSpansAre("resolve2", "Global.NN", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -2609,7 +2547,6 @@ End Namespace
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="N")
-
 
                     result.AssertLabeledSpansAre("resolve", "Global.N", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
@@ -2639,7 +2576,6 @@ End Module
                         </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Bar")
-
 
                     result.AssertLabeledSpansAre("resolve", "E.Bar(E.Bar(Me,1),2)", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
@@ -2675,7 +2611,6 @@ End Class
                         </Project>
                     </Workspace>, host:=host, renameTo:="F")
 
-
                     result.AssertLabeledSpansAre("Resolve", "N", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
@@ -2706,7 +2641,6 @@ End Class
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="D")
-
 
                     result.AssertLabeledSpansAre("Resolve", "A.D", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using

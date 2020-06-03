@@ -85,7 +85,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             project3.Dispose();
         }
 
-
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RemoveProjectConvertsProjectReferencesBack()
