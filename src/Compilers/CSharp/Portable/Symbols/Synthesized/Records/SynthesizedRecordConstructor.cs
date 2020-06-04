@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (RecordDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
-        protected override ParameterListSyntax? GetParameterList() => GetSyntax().ParameterList;
+        protected override ParameterListSyntax GetParameterList() => GetSyntax().ParameterList!;
 
         protected override CSharpSyntaxNode? GetInitializer()
         {

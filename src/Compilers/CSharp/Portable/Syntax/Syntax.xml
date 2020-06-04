@@ -3246,7 +3246,7 @@
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
-  <Node Name="StructDeclarationSyntax" Base="TypeDeclarationSyntax" SkipConvenienceFactories="true">
+  <Node Name="StructDeclarationSyntax" Base="TypeDeclarationSyntax">
     <TypeComment>
       <summary>Struct type declaration syntax.</summary>
     </TypeComment>

@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(
                 syntax.IsKind(SyntaxKind.ConstructorDeclaration) ||
-                syntax.IsKind(SyntaxKind.ClassDeclaration) ||
-                syntax.IsKind(SyntaxKind.StructDeclaration) ||
                 syntax.IsKind(SyntaxKind.RecordDeclaration));
         }
 
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        protected abstract ParameterListSyntax? GetParameterList();
+        protected abstract ParameterListSyntax GetParameterList();
 #nullable restore
 
         internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
