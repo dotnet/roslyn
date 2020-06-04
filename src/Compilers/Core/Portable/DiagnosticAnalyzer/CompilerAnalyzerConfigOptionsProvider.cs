@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal sealed partial class CompilerAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+    internal sealed class CompilerAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
     {
         private readonly ImmutableDictionary<object, AnalyzerConfigOptions> _treeDict;
 
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             = new CompilerAnalyzerConfigOptionsProvider(
                 ImmutableDictionary<object, AnalyzerConfigOptions>.Empty);
 
-        public CompilerAnalyzerConfigOptionsProvider(
+        private CompilerAnalyzerConfigOptionsProvider(
             ImmutableDictionary<object, AnalyzerConfigOptions> treeDict)
         {
             _treeDict = treeDict;
@@ -27,5 +27,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
             => _treeDict.TryGetValue(textFile, out var options) ? options : CompilerAnalyzerConfigOptions.Empty;
+
+        internal CompilerAnalyzerConfigOptionsProvider WithTreeOptions(ImmutableDictionary<object, AnalyzerConfigOptions> treeDict)
+        {
+            return new CompilerAnalyzerConfigOptionsProvider(_treeDict.AddRange(treeDict));
+        }
     }
 }
