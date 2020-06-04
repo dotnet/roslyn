@@ -217,14 +217,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _fileChangeWatcher.EnqueueWork(
                     async service =>
                     {
-                        // Since we put all of our work in a queue, we know that if we had tried to advise file or directory changes,
-                        // it must have happened before now
+                        // This cleanup code all runs in the single queue that we push usages of the file change service into.
+                        // Therefore, we know that any advise operations we had done have ran in that queue by now. Since this is also
+                        // running after dispose, we don't need to take any locks at this point, since we're taking the general policy
+                        // that any use of the type after it's been disposed is simply undefined behavior.
+
+                        // We don't use IAsyncDisposable here simply because we don't ever want to block on the queue if we're
+                        // able to avoid it, since that would potentially cause a stall or UI delay on shutting down.
+
                         foreach (var cookie in _directoryWatchCookies)
                         {
                             await service.UnadviseDirChangeAsync(cookie).ConfigureAwait(false);
                         }
 
-                        // Since this runs after disposed. so no lock is needed for _activeFileWatchingTokens
+                        // Since this runs after disposal, no lock is needed for _activeFileWatchingTokens
                         foreach (var token in _activeFileWatchingTokens)
                         {
                             await UnsubscribeFileChangeEventsAsync(service, token).ConfigureAwait(false);
