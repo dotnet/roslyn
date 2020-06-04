@@ -2993,10 +2993,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var binder = binderFactory.GetBinder(paramList);
 
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
-                var (properties, shouldAddDeconstructor) = addProperties(ctor.Parameters);
-                if (shouldAddDeconstructor)
+                var existingOrAddedMembers = addProperties(ctor.Parameters);
+                if (existingOrAddedMembers.Length == ctor.Parameters.Length)
                 {
-                    addDeconstructor(properties);
+                    addDeconstructor(ctor.Parameters, existingOrAddedMembers);
                 }
             }
 
@@ -3026,9 +3026,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ctor;
             }
 
-            void addDeconstructor(ImmutableArray<SynthesizedRecordPropertySymbol> properties)
+            void addDeconstructor(ImmutableArray<ParameterSymbol> parameters, ImmutableArray<Symbol> properties)
             {
-                var ctor = new SynthesizedRecordDeconstructor(this, properties);
+                var ctor = new SynthesizedRecordDeconstructor(this, parameters, properties);
                 if (!memberSignatures.ContainsKey(ctor))
                 {
                     members.Add(ctor);
@@ -3053,18 +3053,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            (ImmutableArray<SynthesizedRecordPropertySymbol> properties, bool shouldAddDeconstructor) addProperties(ImmutableArray<ParameterSymbol> recordParameters)
+            ImmutableArray<Symbol> addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
-                var properties = ArrayBuilder<SynthesizedRecordPropertySymbol>.GetInstance(recordParameters.Length);
-                var shouldAddDeconstructor = true;
+                var existingOrAddedMembers = ArrayBuilder<Symbol>.GetInstance(recordParameters.Length);
                 int addedCount = 0;
                 foreach (ParameterSymbol param in recordParameters)
                 {
                     var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
-                    if (!memberSignatures.ContainsKey(property) &&
-                        !hidesInheritedMember(property, this))
+                    _ = memberSignatures.TryGetValue(property, out var existingMember);
+                    existingMember ??= getHiddenInheritedMember(property, this);
+                    if (existingMember is null)
                     {
-                        properties.Add(property);
+                        existingOrAddedMembers.Add(property);
                         members.Add(property);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
@@ -3073,12 +3073,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         builder.InstanceInitializersForRecordDeclarationWithParameters.Insert(addedCount, new FieldOrPropertyInitializer.Builder(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
                     }
-                    else
+                    else if (existingMember.Kind switch { SymbolKind.Property => true, SymbolKind.Field => true, _ => false })
                     {
                         // There already exists a member corresponding to the candidate synthesized property.
-                        // The property has no compiler-known connection to the positional parameter,
-                        // so we don't want to generate a deconstructor in this case.
-                        shouldAddDeconstructor = false;
+                        // The deconstructor is specified to simply assign from this property to the corresponding out parameter.
+                        existingOrAddedMembers.Add(existingMember);
                     }
                 }
 
@@ -3090,10 +3089,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(builder.InstanceInitializersForRecordDeclarationWithParameters[addedCount - 1].Syntax.SpanStart < builder.InstanceInitializersForRecordDeclarationWithParameters[addedCount].Syntax.SpanStart);
                 }
 #endif
-                return (properties.ToImmutableAndFree(), shouldAddDeconstructor);
+                return existingOrAddedMembers.ToImmutableAndFree();
             }
 
-            static bool hidesInheritedMember(Symbol symbol, NamedTypeSymbol type)
+            static Symbol? getHiddenInheritedMember(Symbol symbol, NamedTypeSymbol type)
             {
                 while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
                 {
@@ -3107,15 +3106,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         out var hiddenBuilder);
                     if (hiddenBuilder is object)
                     {
+                        var result = hiddenBuilder[0];
                         hiddenBuilder.Free();
-                        return true;
+                        return result;
                     }
                     if (bestMatch is object)
                     {
-                        return true;
+                        return bestMatch;
                     }
                 }
-                return false;
+                return null;
             }
 
             void addObjectEquals(MethodSymbol thisEquals)

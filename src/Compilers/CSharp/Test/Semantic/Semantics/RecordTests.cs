@@ -2654,6 +2654,7 @@ data class C(int X, int Y, int Z) : B
                 "System.Int32 C.<Y>k__BackingField",
                 "System.Int32 C.Y { get; }",
                 "System.Int32 C.Y.get",
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
                 "System.Boolean C.Equals(C? )",
                 "System.Boolean C.Equals(System.Object? )",
                 "System.Int32 C.GetHashCode()",
@@ -2925,17 +2926,17 @@ data class B(int X, int Y)
 
             verifier.VerifyIL("B.Deconstruct", @"
 {
-  // Code size       17 (0x11)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""int B.<X>k__BackingField""
-  IL_0007:  stind.i4
-  IL_0008:  ldarg.2
-  IL_0009:  ldarg.0
-  IL_000a:  ldfld      ""int B.<Y>k__BackingField""
-  IL_000f:  stind.i4
-  IL_0010:  ret
+    // Code size       17 (0x11)
+    .maxstack  2
+    IL_0000:  ldarg.1
+    IL_0001:  ldarg.0
+    IL_0002:  call       ""int B.X.get""
+    IL_0007:  stind.i4
+    IL_0008:  ldarg.2
+    IL_0009:  ldarg.0
+    IL_000a:  call       ""int B.Y.get""
+    IL_000f:  stind.i4
+    IL_0010:  ret
 }");
 
             var deconstruct = ((CSharpCompilation)verifier.Compilation).GetMember<MethodSymbol>("B.Deconstruct");
@@ -2987,32 +2988,32 @@ data class C(B B, int Z)
 
             verifier.VerifyIL("B.Deconstruct", @"
 {
-  // Code size       17 (0x11)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""int B.<X>k__BackingField""
-  IL_0007:  stind.i4
-  IL_0008:  ldarg.2
-  IL_0009:  ldarg.0
-  IL_000a:  ldfld      ""int B.<Y>k__BackingField""
-  IL_000f:  stind.i4
-  IL_0010:  ret
+    // Code size       17 (0x11)
+    .maxstack  2
+    IL_0000:  ldarg.1
+    IL_0001:  ldarg.0
+    IL_0002:  call       ""int B.X.get""
+    IL_0007:  stind.i4
+    IL_0008:  ldarg.2
+    IL_0009:  ldarg.0
+    IL_000a:  call       ""int B.Y.get""
+    IL_000f:  stind.i4
+    IL_0010:  ret
 }");
 
             verifier.VerifyIL("C.Deconstruct", @"
 {
-  // Code size       17 (0x11)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""B C.<B>k__BackingField""
-  IL_0007:  stind.ref
-  IL_0008:  ldarg.2
-  IL_0009:  ldarg.0
-  IL_000a:  ldfld      ""int C.<Z>k__BackingField""
-  IL_000f:  stind.i4
-  IL_0010:  ret
+    // Code size       17 (0x11)
+    .maxstack  2
+    IL_0000:  ldarg.1
+    IL_0001:  ldarg.0
+    IL_0002:  call       ""B C.B.get""
+    IL_0007:  stind.ref
+    IL_0008:  ldarg.2
+    IL_0009:  ldarg.0
+    IL_000a:  call       ""int C.Z.get""
+    IL_000f:  stind.i4
+    IL_0010:  ret
 }");
         }
 
@@ -3024,7 +3025,40 @@ data class C(B B, int Z)
 
 data class B(int X, int Y)
 {
-    public int X { get; init; }
+    public int X => 3;
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new B(1, 2));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "32");
+            verifier.VerifyDiagnostics();
+
+            var bClass = ((CSharpCompilation)verifier.Compilation).GetMember<NamedTypeSymbol>("B");
+            var deconstruct = bClass.GetMember("Deconstruct");
+            Assert.NotNull(deconstruct);
+        }
+
+        [Fact]
+        public void Deconstruct_MethodCollision_01()
+        {
+            var source = @"
+data class B(int X, int Y)
+{
+    public int X() => 3;
 
     static void M(B b)
     {
@@ -3034,20 +3068,203 @@ data class B(int X, int Y)
                 break;
         }
     }
+
+    static void Main()
+    {
+        M(new B(1, 2));
+    }
 }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,19): error CS1061: 'B' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
-                //             case B(int x, int y):
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int x, int y)").WithArguments("B", "Deconstruct").WithLocation(11, 19),
-                // (11,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'B', with 2 out parameters and a void return type.
-                //             case B(int x, int y):
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("B", "2").WithLocation(11, 19));
+                // (2,18): error CS0102: The type 'B' already contains a definition for 'X'
+                // data class B(int X, int Y)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("B", "X").WithLocation(2, 18));
 
             var bClass = comp.GetMember<NamedTypeSymbol>("B");
             var deconstruct = bClass.GetMember("Deconstruct");
+            Assert.NotNull(deconstruct);
+        }
+
+        [Fact]
+        public void Deconstruct_MethodCollision_02()
+        {
+            var source = @"
+data class B
+{
+    public int X() => 3;
+}
+
+data class C(int X, int Y) : B
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y):
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(1, 2));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (13,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                    //             case C(int x, int y):
+                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int x, int y)").WithArguments("C", "Deconstruct").WithLocation(13, 19),
+                    // (13,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                    //             case C(int x, int y):
+                    Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("C", "2").WithLocation(13, 19));
+
+            var cClass = comp.GetMember<NamedTypeSymbol>("C");
+            var deconstruct = cClass.GetMember("Deconstruct");
             Assert.Null(deconstruct);
+        }
+
+        [Fact]
+        public void Deconstruct_MethodCollision_03()
+        {
+            var source = @"
+using System;
+
+data class B
+{
+    public int X() => 3;
+}
+
+data class C(int X, int Y) : B
+{
+    public new int X { get; }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(1, 2));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "02");
+            verifier.VerifyDiagnostics();
+
+            var cClass = ((CSharpCompilation)verifier.Compilation).GetMember<NamedTypeSymbol>("C");
+            var deconstruct = cClass.GetMember("Deconstruct");
+            Assert.NotNull(deconstruct);
+        }
+
+        [Fact]
+        public void Deconstruct_MethodCollision_04()
+        {
+            var source = @"
+data class C(int X, int Y)
+{
+    public int X(int arg) => 3;
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y):
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(1, 2));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,18): error CS0102: The type 'C' already contains a definition for 'X'
+                // data class C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(2, 18));
+
+            var cClass = comp.GetMember<NamedTypeSymbol>("C");
+            var deconstruct = cClass.GetMember("Deconstruct");
+            Assert.NotNull(deconstruct);
+        }
+
+        [Fact]
+        public void Deconstruct_Empty()
+        {
+            var source = @"
+data class C
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C():
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C());
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //             case C():
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19),
+                // (8,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
+                //             case C():
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
+
+            var cClass = comp.GetMember<NamedTypeSymbol>("C");
+            var deconstruct = cClass.GetMember("Deconstruct");
+            Assert.Null(deconstruct);
+        }
+
+        [Fact]
+        public void Deconstruct_Empty_WithParameterList()
+        {
+            var source = @"
+data class C()
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C():
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C());
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,13): error CS8850: A positional record must have both a 'data' modifier and non-empty parameter list
+                // data class C()
+                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 13));
+
+            var cClass = comp.GetMember<NamedTypeSymbol>("C");
+            var deconstruct = cClass.GetMember("Deconstruct");
+            Assert.NotNull(deconstruct);
         }
 
         [Fact]
@@ -3433,6 +3650,7 @@ data class C(object P)
                 "System.Object B.P4 { get; init; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+            CompileAndVerify(comp);
         }
 
         [Fact]
