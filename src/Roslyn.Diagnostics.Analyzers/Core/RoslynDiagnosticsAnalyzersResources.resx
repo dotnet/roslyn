@@ -357,7 +357,7 @@
   <data name="Place_statement_on_following_line" xml:space="preserve">
     <value>Place statement on following line</value>
   </data>
-  <data name="AvoidOptSuffixForNullableEnableCodeRuleIdTitleCodeFixTitle" xml:space="preserve">
+  <data name="AvoidOptSuffixForNullableEnableCodeCodeFixTitle" xml:space="preserve">
     <value>Remove the 'Opt' suffix</value>
   </data>
 </root>

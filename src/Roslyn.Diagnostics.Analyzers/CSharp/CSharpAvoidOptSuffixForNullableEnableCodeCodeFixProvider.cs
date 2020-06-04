@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Rename;
 using Roslyn.Diagnostics.Analyzers;
@@ -24,7 +23,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var title = RoslynDiagnosticsAnalyzersResources.AvoidOptSuffixForNullableEnableCodeRuleIdTitleCodeFixTitle;
+            var title = RoslynDiagnosticsAnalyzersResources.AvoidOptSuffixForNullableEnableCodeCodeFixTitle;
 
             foreach (var diagnostic in context.Diagnostics)
             {
@@ -48,7 +47,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                 if (semanticModel.LookupSymbols(diagnostic.Location.SourceSpan.Start, variableSymbol.ContainingType, newName).IsEmpty)
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(
+                        CodeAction.Create(
                             title,
                             cancellationToken => RemoveOptSuffixOnVariableAsync(context.Document, variableSymbol, newName, cancellationToken),
                             equivalenceKey: title),
@@ -60,14 +59,5 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
         private static async Task<Solution> RemoveOptSuffixOnVariableAsync(Document document, ISymbol variableSymbol, string newName, CancellationToken cancellationToken)
             => await Renamer.RenameSymbolAsync(document.Project.Solution, variableSymbol, newName, document.Project.Solution.Options, cancellationToken)
                 .ConfigureAwait(false);
-
-        // Needed for Telemetry (https://github.com/dotnet/roslyn/issues/4919)
-        private class MyCodeAction : SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
-                : base(title, createChangedSolution, equivalenceKey)
-            {
-            }
-        }
     }
 }
