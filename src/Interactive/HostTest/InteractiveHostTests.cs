@@ -291,7 +291,6 @@ void goo()
 
             await _host.ExecuteAsync(MethodWithInfiniteLoop + "\r\nfoo()");
 
-            //(miziga) await Execute had to be called before output initialized in order to pass
             var execution = await Execute(@"1+1");
             var output = await ReadOutputToEnd();
             Assert.True(execution);
@@ -364,7 +363,6 @@ while(true) {}
 
             await RestartHost();
 
-            //(miziga) await Execute had to be called before output initialized in order to pass
             var execution = await Execute(@"1+1");
             var output = await ReadOutputToEnd();
             Assert.True(execution);
@@ -961,7 +959,6 @@ OK
         [Fact]
         public async Task InitialScript_Error()
         {
-            // (miziga) still failing 
             var initFile = Temp.CreateFile(extension: ".csx").WriteAllText("1 1");
 
             var rspFile = Temp.CreateFile();

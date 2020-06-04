@@ -10,8 +10,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
-using System.Runtime.Remoting;
-using System.Runtime.Serialization.Formatters;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -111,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var remoteServerPort = "InteractiveHostChannel-" + Guid.NewGuid();
 
                 var processInfo = new ProcessStartInfo(hostPath);
-                string pipeName = GenerateUniqueChannelLocalName();
+                var pipeName = GenerateUniqueChannelLocalName();
                 processInfo.Arguments = pipeName + " " + currentProcessId;
                 processInfo.WorkingDirectory = _initialWorkingDirectory;
                 processInfo.CreateNoWindow = true;
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 var clientStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-                JsonRpc jsonRpc; // = JsonRpc.Attach(clientStream);
+                JsonRpc jsonRpc;
 
                 try
                 {
