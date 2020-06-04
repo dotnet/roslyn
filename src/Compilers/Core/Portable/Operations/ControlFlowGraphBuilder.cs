@@ -6991,7 +6991,7 @@ oneMoreTime:
             IOperation cloned = operation.CloneMethod is null
                 ? MakeInvalidOperation(visitedInstance.Type, visitedInstance)
                 : new InvocationOperation(operation.CloneMethod, visitedInstance,
-                    isVirtual: false, arguments: ImmutableArray<IArgumentOperation>.Empty,
+                    isVirtual: true, arguments: ImmutableArray<IArgumentOperation>.Empty,
                     semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, isImplicit: true);
 
             return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, cloned));

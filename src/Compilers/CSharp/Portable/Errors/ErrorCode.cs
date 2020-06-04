@@ -1827,11 +1827,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadInitAccessor = 8856,
         ERR_InvalidWithReceiverType = 8857,
         ERR_NoSingleCloneMethod = 8858,
-        ERR_ContainingTypeMustDeriveFromWithReturnType = 8859,
-        ERR_WithMemberIsNotRecordProperty = 8860,
         ERR_UnexpectedArgumentList = 8861,
         ERR_UnexpectedOrMissingConstructorInitializerInRecord = 8862,
         ERR_MultipleRecordParameterLists = 8863,
+        ERR_BadRecordBase = 8864,
+        ERR_BadInheritanceFromRecord = 8865,
 
         #endregion
 

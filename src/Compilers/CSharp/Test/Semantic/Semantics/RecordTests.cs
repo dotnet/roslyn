@@ -294,7 +294,7 @@ record C(int X, int Y)
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "C C.Clone()",
+                "C C.<>Clone()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Int32 X, System.Int32 Y)",
@@ -391,12 +391,6 @@ record C1(object O1)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (1,1): warning CS1717: Assignment made to same variable; did you mean to assign something else?
-                // record C(object P)
-                Diagnostic(ErrorCode.WRN_AssignmentToSelf, @"record C(object P)
-{
-    const int P = 4;
-}").WithLocation(1, 1),
                 // (1,17): error CS0102: The type 'C' already contains a definition for 'P'
                 // record C(object P)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(1, 17));
@@ -691,7 +685,7 @@ Block[B0] - Entry
                   Left: 
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                   Right: 
-                    IInvocationOperation ( C C.Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { }')
+                    IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { }')
                       Instance Receiver: 
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
@@ -704,7 +698,8 @@ Block[B2] - Exit
 ");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr4()
         {
             var src = @"
@@ -730,12 +725,11 @@ record C(int X) : B
         public void WithExpr6()
         {
             var src = @"
-class B
+record B
 {
     public int X { get; init; }
-    public B Clone() => null;
 }
-class C : B
+record C : B
 {
     public static void Main()
     {
@@ -744,23 +738,19 @@ class C : B
     }
 }";
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (12,13): error CS0266: Cannot implicitly convert type 'B' to 'C'. An explicit conversion exists (are you missing a cast?)
-                //         c = c with { };
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c with { }").WithArguments("B", "C").WithLocation(12, 13)
-            );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
         public void WithExpr7()
         {
             var src = @"
-class B
+record B
 {
     public int X { get; }
     public virtual B Clone() => null;
 }
-class C : B
+record C : B
 {
     public new int X { get; init; }
     public static void Main()
@@ -770,16 +760,12 @@ class C : B
         b = b with { X = 0 };
         var b2 = c with { X = 0 };
     }
-    public override B Clone() => null;
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (14,22): error CS0200: Property or indexer 'B.X' cannot be assigned to -- it is read only
                 //         b = b with { X = 0 };
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "X").WithArguments("B.X").WithLocation(14, 22),
-                // (15,27): error CS0200: Property or indexer 'B.X' cannot be assigned to -- it is read only
-                //         var b2 = c with { X = 0 };
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "X").WithArguments("B.X").WithLocation(15, 27)
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "X").WithArguments("B.X").WithLocation(14, 22)
             );
         }
 
@@ -787,22 +773,20 @@ class C : B
         public void WithExpr8()
         {
             var src = @"
-class B
+record B
 {
     public int X { get; }
-    public virtual B Clone() => null;
 }
-record C(int X) : B
+record C : B
 {
     public string Y { get; }
     public static void Main()
     {
-        var c = new C(0);
+        var c = new C();
         B b = c;
         b = b with { };
         b = c with { };
     }
-    public override B Clone() => null;
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
@@ -823,9 +807,6 @@ record C(int X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (8,13): error CS8804: The type of the 'with' expression receiver, 'C', does not derive from the return type of the 'Clone' method, 'string'.
-                //         c = c with { };
-                Diagnostic(ErrorCode.ERR_ContainingTypeMustDeriveFromWithReturnType, "c").WithArguments("C", "string").WithLocation(8, 13)
             );
         }
 
@@ -877,7 +858,7 @@ record C(int X)
   IL_0006:  dup
   IL_0007:  callvirt   ""int C.X.get""
   IL_000c:  call       ""void System.Console.WriteLine(int)""
-  IL_0011:  callvirt   ""C C.Clone()""
+  IL_0011:  callvirt   ""C C.<>Clone()""
   IL_0016:  dup
   IL_0017:  ldc.i4.5
   IL_0018:  callvirt   ""void C.X.init""
@@ -915,7 +896,7 @@ record C(int X, int Y)
   IL_0002:  newobj     ""C..ctor(int, int)""
   IL_0007:  dup
   IL_0008:  call       ""void System.Console.WriteLine(object)""
-  IL_000d:  callvirt   ""C C.Clone()""
+  IL_000d:  callvirt   ""C C.<>Clone()""
   IL_0012:  dup
   IL_0013:  ldc.i4.5
   IL_0014:  callvirt   ""void C.X.init""
@@ -955,13 +936,13 @@ record C(int X, int Y)
   IL_0002:  newobj     ""C..ctor(int, int)""
   IL_0007:  dup
   IL_0008:  call       ""void System.Console.WriteLine(object)""
-  IL_000d:  callvirt   ""C C.Clone()""
+  IL_000d:  callvirt   ""C C.<>Clone()""
   IL_0012:  dup
   IL_0013:  ldc.i4.5
   IL_0014:  callvirt   ""void C.X.init""
   IL_0019:  dup
   IL_001a:  call       ""void System.Console.WriteLine(object)""
-  IL_001f:  callvirt   ""C C.Clone()""
+  IL_001f:  callvirt   ""C C.<>Clone()""
   IL_0024:  dup
   IL_0025:  ldc.i4.2
   IL_0026:  callvirt   ""void C.Y.init""
@@ -1012,11 +993,12 @@ record C(int X, int Y)
             );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr17()
         {
             var src = @"
-class B
+record B
 {
     public int X { get; }
     private B Clone() => null;
@@ -1037,7 +1019,8 @@ record C(int X) : B
             );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr18()
         {
             var src = @"
@@ -1092,10 +1075,9 @@ record C(int X)
         {
             var src = @"
 using System;
-class C
+record C
 {
     public event Action X;
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C();
@@ -1105,9 +1087,6 @@ class C
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (5,25): warning CS0067: The event 'C.X' is never used
-                //     public event Action X;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "X").WithArguments("C.X").WithLocation(5, 25)
             );
         }
 
@@ -1115,12 +1094,11 @@ class C
         public void WithExpr21()
         {
             var src = @"
-class B
+record B
 {
     public class X { }
-    public B Clone() => null;
 }
-record C(int X)
+class C
 {
     public static void Main()
     {
@@ -1130,12 +1108,12 @@ record C(int X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,22): error CS0572: 'X': cannot reference a type through an expression; try 'B.X' instead
+                // (11,22): error CS0572: 'X': cannot reference a type through an expression; try 'B.X' instead
                 //         b = b with { X = 0 };
-                Diagnostic(ErrorCode.ERR_BadTypeReference, "X").WithArguments("X", "B.X").WithLocation(12, 22),
-                // (12,22): error CS1913: Member 'X' cannot be initialized. It is not a field or property.
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "X").WithArguments("X", "B.X").WithLocation(11, 22),
+                // (11,22): error CS1913: Member 'X' cannot be initialized. It is not a field or property.
                 //         b = b with { X = 0 };
-                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "X").WithArguments("X").WithLocation(12, 22)
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "X").WithArguments("X").WithLocation(11, 22)
             );
         }
 
@@ -1143,12 +1121,11 @@ record C(int X)
         public void WithExpr22()
         {
             var src = @"
-class B
+record B
 {
     public int X = 0;
-    public B Clone() => null;
 }
-record C(int X)
+class C
 {
     public static void Main()
     {
@@ -1179,6 +1156,9 @@ record C(int X)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (12,13): error CS8858: The receiver type 'B' is not a valid record type.
+                //         b = b with { Y = 2 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "b").WithArguments("B").WithLocation(12, 13),
                 // (12,22): error CS0117: 'B' does not contain a definition for 'Y'
                 //         b = b with { Y = 2 };
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Y").WithArguments("B", "Y").WithLocation(12, 22)
@@ -1236,10 +1216,9 @@ record C(int X)
         public void WithExprPropertyInaccessibleSet()
         {
             var src = @"
-class C
+record C
 {
     public int X { get; private set; }
-    public C Clone() => null;
 }
 class D
 {
@@ -1251,9 +1230,9 @@ class D
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (12,22): error CS0272: The property or indexer 'C.X' cannot be used in this context because the set accessor is inaccessible
+                // (11,22): error CS0272: The property or indexer 'C.X' cannot be used in this context because the set accessor is inaccessible
                 //         c = c with { X = 0 };
-                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "X").WithArguments("C.X").WithLocation(12, 22)
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "X").WithArguments("C.X").WithLocation(11, 22)
             );
         }
 
@@ -1289,7 +1268,7 @@ X");
   IL_0001:  ldc.i4.1
   IL_0002:  ldc.i4.2
   IL_0003:  newobj     ""C..ctor(int, int, int)""
-  IL_0008:  callvirt   ""C C.Clone()""
+  IL_0008:  callvirt   ""C C.<>Clone()""
   IL_000d:  dup
   IL_000e:  ldstr      ""Y""
   IL_0013:  call       ""int C.W(string)""
@@ -1312,7 +1291,7 @@ X");
 IWithExpressionOperation (OperationKind.WithExpression, Type: C) (Syntax: 'c with { Y  ...  = W(""X"") }')
   Value:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.Clone()
+  CloneMethod: C C.<>Clone()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ Y = W(""Y"" ...  = W(""X"") }')
       Initializers(2):
@@ -1392,7 +1371,7 @@ Block[B0] - Entry
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
                   Value: 
-                    IInvocationOperation ( C C.Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
+                    IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
                       Instance Receiver: 
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
@@ -1463,7 +1442,7 @@ record C(long X)
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i8
   IL_0002:  newobj     ""C..ctor(long)""
-  IL_0007:  callvirt   ""C C.Clone()""
+  IL_0007:  callvirt   ""C C.<>Clone()""
   IL_000c:  dup
   IL_000d:  ldc.i4.s   11
   IL_000f:  conv.i8
@@ -1516,7 +1495,7 @@ conversion
   IL_0007:  ldloca.s   V_0
   IL_0009:  ldc.i4.s   11
   IL_000b:  call       ""S..ctor(int)""
-  IL_0010:  callvirt   ""C C.Clone()""
+  IL_0010:  callvirt   ""C C.<>Clone()""
   IL_0015:  dup
   IL_0016:  ldloc.0
   IL_0017:  call       ""long S.op_Implicit(S)""
@@ -1627,11 +1606,10 @@ struct S
         return s._i;
     }
 }
-class C
+record C
 {
     private readonly long _x;
     public long X { get => _x; init { Console.WriteLine(""set""); _x = value; } }
-    public C Clone() => new C();
     public static void Main()
     {
         var c = new C();
@@ -1652,7 +1630,7 @@ set
   IL_0005:  ldloca.s   V_0
   IL_0007:  ldc.i4.s   11
   IL_0009:  call       ""S..ctor(int)""
-  IL_000e:  callvirt   ""C C.Clone()""
+  IL_000e:  callvirt   ""C C.<>Clone()""
   IL_0013:  dup
   IL_0014:  ldloc.0
   IL_0015:  call       ""int S.op_Implicit(S)""
@@ -1668,10 +1646,9 @@ set
         public void WithExprStaticProperty()
         {
             var src = @"
-class C
+record C
 {
-    public static int X { get; }
-    public C Clone() => null;
+    public static int X { get; set; }
     public static void Main()
     {
         var c = new C();
@@ -1681,9 +1658,9 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (10,22): error CS0176: Member 'C.X' cannot be accessed with an instance reference; qualify it with a type name instead
+                // (9,22): error CS0176: Member 'C.X' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "X").WithArguments("C.X").WithLocation(10, 22)
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "X").WithArguments("C.X").WithLocation(9, 22)
             );
         }
 
@@ -1691,10 +1668,9 @@ class C
         public void WithExprMethodAsArgument()
         {
             var src = @"
-class C
+record C
 {
     public int X() => 0;
-    public C Clone() => null;
     public static void Main()
     {
         var c = new C();
@@ -1704,9 +1680,9 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (10,22): error CS1913: Member 'X' cannot be initialized. It is not a field or property.
+                // (9,22): error CS1913: Member 'X' cannot be initialized. It is not a field or property.
                 //         c = c with { X = 11 };
-                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "X").WithArguments("X").WithLocation(10, 22)
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "X").WithArguments("X").WithLocation(9, 22)
             );
         }
 
@@ -1736,7 +1712,8 @@ class C
             );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExprStaticWithMethod2()
         {
             var src = @"
@@ -1770,9 +1747,8 @@ class C : B
         public void WithExprBadMemberBadType()
         {
             var src = @"
-class C
+record C
 {
-    public C Clone() => null;
     public int X { get; init; }
     public static void Main()
     {
@@ -1782,13 +1758,14 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (9,26): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                // (8,26): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         c = c with { X = "a" };
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""a""").WithArguments("string", "int").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""a""").WithArguments("string", "int").WithLocation(8, 26)
             );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExprCloneReturnDifferent()
         {
             var src = @"
@@ -1839,7 +1816,7 @@ record C(int X, string Y)
 IWithExpressionOperation (OperationKind.WithExpression, Type: C) (Syntax: 'c with { X = 2 }')
   Value:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.Clone()
+  CloneMethod: C C.<>Clone()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ X = 2 }')
       Initializers(1):
@@ -1893,7 +1870,7 @@ Block[B0] - Entry
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c with { X = 2 }')
                   Value: 
-                    IInvocationOperation ( C C.Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { X = 2 }')
+                    IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { X = 2 }')
                       Instance Receiver: 
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
@@ -2067,7 +2044,7 @@ record C(int X, int Y)
 IWithExpressionOperation (OperationKind.WithExpression, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
   Value:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.Clone()
+  CloneMethod: C C.<>Clone()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ 5 }')
       Initializers(1):
@@ -2080,7 +2057,7 @@ IWithExpressionOperation (OperationKind.WithExpression, Type: C, IsInvalid) (Syn
 IWithExpressionOperation (OperationKind.WithExpression, Type: C, IsInvalid) (Syntax: 'c with { ')
   Value:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-  CloneMethod: C C.Clone()
+  CloneMethod: C C.<>Clone()
   Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ ')
       Initializers(0)");
@@ -2360,12 +2337,10 @@ record B(string? X, string? Y)
         {
             var src = @"
 #nullable enable
-class B
+record B
 {
     public string? X { get; init; }
     public string? Y { get; init; }
-
-    public B Clone() => new B { X = X, Y = Y };
 
     static void M1(bool flag)
     {
@@ -2384,9 +2359,10 @@ class B
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (16,13): warning CS8602: Dereference of a possibly null reference.
+                // (14,13): warning CS8602: Dereference of a possibly null reference.
                 //             b.Y.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(16, 13));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(14, 13)
+            );
         }
 
         [Fact, WorkItem(44691, "https://github.com/dotnet/roslyn/issues/44691")]
@@ -2519,7 +2495,7 @@ record B(string X, string Y)
             var src = @"
 #nullable enable
 
-class A
+record A
 {
     public string? Y { get; init; }
     public string? Z { get; init; }
@@ -2527,25 +2503,23 @@ class A
 
 record B(string? X) : A
 {
-    public A Clone() => new B(X) { Y = Y, Z = Z };
     public new string Z { get; init; } = ""zed"";
 
     static void M1(B b1)
     {
         b1.Z.ToString();
         (b1 with { Y = ""hello"" }).Y.ToString();
-        (b1 with { Y = ""hello"" }).Z.ToString(); // 1
+        (b1 with { Y = ""hello"" }).Z.ToString();
     }
 }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (19,9): warning CS8602: Dereference of a possibly null reference.
-                //         (b1 with { Y = "hello" }).Z.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @"(b1 with { Y = ""hello"" }).Z").WithLocation(19, 9));
+            );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr_NullableAnalysis_NullableClone()
         {
             var src = @"
@@ -2572,7 +2546,8 @@ record B(string? X)
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ X = null }").WithLocation(11, 18));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr_NullableAnalysis_MaybeNullClone()
         {
             var src = @"
@@ -2602,7 +2577,8 @@ record B(string? X)
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ X = null }").WithLocation(14, 18));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr_NullableAnalysis_NotNullClone()
         {
             var src = @"
@@ -2626,7 +2602,8 @@ record B(string? X)
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
         public void WithExpr_NullableAnalysis_NullableClone_NoInitializers()
         {
             var src = @"
@@ -2651,29 +2628,32 @@ record B(string? X)
         }
 
         [Fact]
-        public void WithExprNotRecord()
+        public void WithExprNominalRecord()
         {
             var src = @"
 using System;
-class C
+record C
 {
     public int X { get; set; }
     public string Y { get; init; }
     public long Z;
     public event Action E;
-
-    public C Clone() => new C {
-            X = this.X,
-            Y = this.Y,
-            Z = this.Z,
-            E = this.E,
-    };
+    
+    public C() { }
+    public C(C other)
+    {
+        X = other.X;
+        Y = other.Y;
+        Z = other.Z;
+        E = other.E;
+    }
 
     public static void Main()
     {
         var c = new C() { X = 1, Y = ""2"", Z = 3, E = () => { } };
         var c2 = c with {};
         Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(ReferenceEquals(c, c2));
         Console.WriteLine(c2.X);
         Console.WriteLine(c2.Y);
         Console.WriteLine(c2.Z);
@@ -2686,6 +2666,7 @@ class C
     }
 }";
             var verifier = CompileAndVerify(src, expectedOutput: @"
+True
 False
 1
 2
@@ -2698,20 +2679,22 @@ True
         }
 
         [Fact]
-        public void WithExprNotRecord2()
+        public void WithExprNominalRecord2()
         {
             var comp1 = CreateCompilation(@"
-public class C
+public record C
 {
     public int X { get; set; }
     public string Y { get; init; }
     public long Z;
-
-    public C Clone() => new C {
-            X = this.X,
-            Y = this.Y,
-            Z = this.Z,
-    };
+    
+    public C() { }
+    public C(C other)
+    {
+        X = other.X;
+        Y = other.Y;
+        Z = other.Z;
+    }
 }");
             comp1.VerifyDiagnostics();
 
@@ -2731,7 +2714,7 @@ class D
   // Code size       33 (0x21)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  callvirt   ""C C.Clone()""
+  IL_0001:  callvirt   ""C C.<>Clone()""
   IL_0006:  dup
   IL_0007:  ldc.i4.5
   IL_0008:  callvirt   ""void C.X.set""
@@ -2783,7 +2766,7 @@ record C(int Y)
   IL_000f:  callvirt   ""ref int C.X.get""
   IL_0014:  ldind.i4
   IL_0015:  call       ""void System.Console.WriteLine(int)""
-  IL_001a:  callvirt   ""C C.Clone()""
+  IL_001a:  callvirt   ""C C.<>Clone()""
   IL_001f:  dup
   IL_0020:  callvirt   ""ref int C.X.get""
   IL_0025:  ldc.i4.1
@@ -2861,7 +2844,7 @@ record C(int X)
         public void Inheritance_01()
         {
             var source =
-@"class A
+@"record A
 {
     internal A() { }
     public object P1 { get; set; }
@@ -2890,7 +2873,7 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
         public void Inheritance_02()
         {
             var source =
-@"class A
+@"record A
 {
     internal A() { }
     private protected object P1 { get; set; }
@@ -2912,7 +2895,7 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
         public void Inheritance_03(bool useCompilationReference)
         {
             var sourceA =
-@"public class A
+@"public record A
 {
     public A() { }
     internal object P { get; set; }
@@ -2942,7 +2925,7 @@ record C1(object P, object Q) : B
         public void Inheritance_04()
         {
             var source =
-@"class A
+@"record A
 {
     internal A() { }
     public object P1 { get { return null; } set { } }
@@ -2966,7 +2949,7 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6, objec
         public void Inheritance_05()
         {
             var source =
-@"class A
+@"record A
 {
     internal A() { }
     public object P1 { get; set; }
@@ -2985,7 +2968,7 @@ record B(int P1, object P2) : A
         public void Inheritance_06()
         {
             var source =
-@"class A
+@"record A
 {
     internal int X { get; set; }
     internal int Y { set { } }
@@ -3018,7 +3001,7 @@ class Program
         public void Inheritance_07()
         {
             var source =
-@"abstract class A
+@"abstract record A
 {
     public abstract int X { get; }
     public virtual int Y { get; }
@@ -3044,13 +3027,13 @@ record B2(int X, int Y) : A
         public void Inheritance_08()
         {
             var source =
-@"abstract class A
+@"abstract record A
 {
     public abstract int X { get; }
     public virtual int Y { get; }
     public virtual int Z { get; }
 }
-abstract class B : A
+abstract record B : A
 {
     public override abstract int Y { get; }
 }
@@ -3085,7 +3068,7 @@ record C(int X, int Y, int Z) : B
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "C C.Clone()",
+                "C C.<>Clone()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Int32 X, System.Int32 Y)",
@@ -3162,7 +3145,7 @@ record C(object X, object Y) : IA, IB
         public void Inheritance_12()
         {
             var source =
-@"class A
+@"record A
 {
     public object X { get; }
     public object Y { get; }
@@ -3225,14 +3208,14 @@ record B(object X, object Y) : A
         public void Inheritance_14()
         {
             var source =
-@"class A
+@"record A
 {
     public object P1 { get; }
     public object P2 { get; }
     public object P3 { get; }
     public object P4 { get; }
 }
-class B : A
+record B : A
 {
     public new int P1 { get; }
     public new int P2 { get; }
@@ -3271,7 +3254,7 @@ record C(object P1, int P2, object P3, int P4) : B
         public void Inheritance_16()
         {
             var source =
-@"class A
+@"record A
 {
     public int P1 { get; }
     public int P2 { get; }
@@ -3299,7 +3282,7 @@ record B(object P1, int P2, object P3, int P4) : A
         public void Inheritance_17()
         {
             var source =
-@"class A
+@"record A
 {
     public object P1 { get; }
     public object P2 { get; }
@@ -3337,17 +3320,7 @@ record B(object P1, int P2, object P3, int P4) : A
     public ref object P5 => throw null;
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (1,1): warning CS1717: Assignment made to same variable; did you mean to assign something else?
-                // record C(object P1, object P2, object P3, object P4, object P5)
-                Diagnostic(ErrorCode.WRN_AssignmentToSelf, @"record C(object P1, object P2, object P3, object P4, object P5)
-{
-    public object P1 { get { return null; } set { } }
-    public object P2 { get; }
-    public object P3 { set { } }
-    public static object P4 { get; set; }
-    public ref object P5 => throw null;
-}").WithLocation(1, 1));
+            comp.VerifyDiagnostics();
 
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -3368,7 +3341,7 @@ record B(object P1, int P2, object P3, int P4) : A
             var source =
 @"#pragma warning disable 8618
 #nullable enable
-class A
+record A
 {
     internal A() { }
     public object P1 { get; }
@@ -3430,12 +3403,12 @@ record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X
         public void Inheritance_21(bool useCompilationReference)
         {
             var sourceA =
-@"public class A
+@"public record A
 {
     public object P1 { get; }
     internal object P2 { get; }
 }
-public class B : A
+public record B : A
 {
     internal new object P1 { get; }
     public new object P2 { get; }
@@ -3495,12 +3468,12 @@ class Program
         public void Inheritance_22()
         {
             var source =
-@"class A
+@"record A
 {
     public ref object P1 => throw null;
     public object P2 => throw null;
 }
-class B : A
+record B : A
 {
     public new object P1 => throw null;
     public new ref object P2 => throw null;
@@ -3518,12 +3491,12 @@ record C(object P1, object P2) : B
         public void Inheritance_23()
         {
             var source =
-@"class A
+@"record A
 {
     public static object P1 { get; }
     public object P2 { get; }
 }
-class B : A
+record B : A
 {
     public new object P1 { get; }
     public new static object P2 { get; }
@@ -3541,7 +3514,7 @@ record C(object P1, object P2) : B
         public void Inheritance_24()
         {
             var source =
-@"class A
+@"record A
 {
     public object get_P() => null;
     public object set_Q() => null;
@@ -3562,7 +3535,7 @@ record C(object P)
 
             var expectedMembers = new[]
             {
-                "B B.Clone()",
+                "A B.<>Clone()",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Object P, System.Object Q)",
@@ -3576,6 +3549,7 @@ record C(object P)
                 "System.Object B.Q { get; init; }",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? )",
+                "System.Boolean B.Equals(A? )",
                 "System.Boolean B.Equals(B? )",
                 "B..ctor(B )",
             };
@@ -3583,7 +3557,7 @@ record C(object P)
 
             expectedMembers = new[]
             {
-                "C C.Clone()",
+                "C C.<>Clone()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Object P)",
@@ -3605,7 +3579,7 @@ record C(object P)
         public void Inheritance_25()
         {
             var sourceA =
-@"public class A
+@"public record A
 {
     public class P1 { }
     internal object P2 = 2;
@@ -3644,7 +3618,7 @@ record C(object P)
         public void Inheritance_26()
         {
             var sourceA =
-@"public class A
+@"public record A
 {
     internal const int P = 4;
 }";
@@ -3667,7 +3641,7 @@ record C(object P)
         public void Inheritance_27()
         {
             var source =
-@"class A
+@"record A
 {
     public object P { get; }
     public object Q { get; set; }
@@ -3695,7 +3669,7 @@ record B(object get_P, object set_Q) : A
 {
     object P { get; }
 }
-class A : I
+record A : I
 {
     object I.P => null;
 }
@@ -3743,7 +3717,11 @@ End Class
     object P { get; }
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            compB.VerifyDiagnostics();
+            compB.VerifyDiagnostics(
+                // (1,32): error CS8864: Records may only inherit from object or another record
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
+            );
 
             var actualMembers = GetProperties(compB, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -3795,7 +3773,11 @@ End Class
 {
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            compB.VerifyDiagnostics();
+            compB.VerifyDiagnostics(
+                // (1,32): error CS8864: Records may only inherit from object or another record
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
+            );
 
             var actualMembers = GetProperties(compB, "B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
@@ -3858,7 +3840,11 @@ End Class
 {
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            compB.VerifyDiagnostics();
+            compB.VerifyDiagnostics(
+                // (1,42): error CS8864: Records may only inherit from object or another record
+                // record C(object P, object Q, object R) : B
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(1, 42)
+            );
 
             var actualMembers = GetProperties(compB, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -3873,7 +3859,7 @@ End Class
         public void Overrides_01()
         {
             var source =
-@"class A
+@"record A
 {
     public sealed override bool Equals(object other) => false;
     public sealed override int GetHashCode() => 0;
@@ -3894,7 +3880,7 @@ record B(int X, int Y) : A
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "B B.Clone()",
+                "A B.<>Clone()",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Int32 X, System.Int32 Y)",
@@ -3908,6 +3894,7 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y { get; init; }",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? )",
+                "System.Boolean B.Equals(A? )",
                 "System.Boolean B.Equals(B? )",
                 "B..ctor(B )",
             };
@@ -3918,7 +3905,7 @@ record B(int X, int Y) : A
         public void Overrides_02()
         {
             var source =
-@"abstract class A
+@"abstract record A
 {
     public abstract override bool Equals(object other);
     public abstract override int GetHashCode();
@@ -3936,7 +3923,7 @@ record B(int X, int Y) : A
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "B B.Clone()",
+                "A B.<>Clone()",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Int32 X, System.Int32 Y)",
@@ -3950,6 +3937,7 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y { get; init; }",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? )",
+                "System.Boolean B.Equals(A? )",
                 "System.Boolean B.Equals(B? )",
                 "B..ctor(B )",
             };
@@ -4020,7 +4008,7 @@ record B(int X, int Y) : A
         public void DuplicateProperty_03()
         {
             var src =
-@"class A
+@"record A
 {
     public object P { get; }
     public object P { get; }
@@ -4070,6 +4058,175 @@ True
 True
 False
 1 2 3");
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void WithExprReference(bool emitRef)
+        {
+            var src = @"
+public record C
+{
+    public int X { get; init; }
+}
+public record D(int Y) : C;";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            var src2 = @"
+using System;
+class E
+{
+    public static void Main()
+    {
+        var c = new C() { X = 1 };
+        var c2 = c with { X = 2 };
+        Console.WriteLine(c.X);
+        Console.WriteLine(c2.X);
+
+        var d = new D(2) { X = 1 };
+        var d2 = d with { X = 2, Y = 3 };
+        Console.WriteLine(d.X + "" "" + d.Y);
+        Console.WriteLine(d2.X + "" ""  + d2.Y);
+
+        C c3 = d;
+        C c4 = d2;
+        c3 = c3 with { X = 3 };
+        c4 = c4 with { X = 4 };
+
+        d = (D)c3;
+        d2 = (D)c4;
+        Console.WriteLine(d.X + "" "" + d.Y);
+        Console.WriteLine(d2.X + "" ""  + d2.Y);
+    }
+}";
+            var verifier = CompileAndVerify(src2,
+                references: new[] { emitRef ? comp.EmitToImageReference() : comp.ToMetadataReference() },
+                expectedOutput: @"
+1
+2
+1 2
+2 3
+3 2
+4 3");
+            verifier.VerifyIL("E.Main", @"
+{
+  // Code size      318 (0x13e)
+  .maxstack  3
+  .locals init (C V_0, //c
+                D V_1, //d
+                D V_2, //d2
+                C V_3, //c3
+                C V_4, //c4
+                int V_5)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldc.i4.1
+  IL_0007:  callvirt   ""void C.X.init""
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  callvirt   ""C C.<>Clone()""
+  IL_0013:  dup
+  IL_0014:  ldc.i4.2
+  IL_0015:  callvirt   ""void C.X.init""
+  IL_001a:  ldloc.0
+  IL_001b:  callvirt   ""int C.X.get""
+  IL_0020:  call       ""void System.Console.WriteLine(int)""
+  IL_0025:  callvirt   ""int C.X.get""
+  IL_002a:  call       ""void System.Console.WriteLine(int)""
+  IL_002f:  ldc.i4.2
+  IL_0030:  newobj     ""D..ctor(int)""
+  IL_0035:  dup
+  IL_0036:  ldc.i4.1
+  IL_0037:  callvirt   ""void C.X.init""
+  IL_003c:  stloc.1
+  IL_003d:  ldloc.1
+  IL_003e:  callvirt   ""C C.<>Clone()""
+  IL_0043:  castclass  ""D""
+  IL_0048:  dup
+  IL_0049:  ldc.i4.2
+  IL_004a:  callvirt   ""void C.X.init""
+  IL_004f:  dup
+  IL_0050:  ldc.i4.3
+  IL_0051:  callvirt   ""void D.Y.init""
+  IL_0056:  stloc.2
+  IL_0057:  ldloc.1
+  IL_0058:  callvirt   ""int C.X.get""
+  IL_005d:  stloc.s    V_5
+  IL_005f:  ldloca.s   V_5
+  IL_0061:  call       ""string int.ToString()""
+  IL_0066:  ldstr      "" ""
+  IL_006b:  ldloc.1
+  IL_006c:  callvirt   ""int D.Y.get""
+  IL_0071:  stloc.s    V_5
+  IL_0073:  ldloca.s   V_5
+  IL_0075:  call       ""string int.ToString()""
+  IL_007a:  call       ""string string.Concat(string, string, string)""
+  IL_007f:  call       ""void System.Console.WriteLine(string)""
+  IL_0084:  ldloc.2
+  IL_0085:  callvirt   ""int C.X.get""
+  IL_008a:  stloc.s    V_5
+  IL_008c:  ldloca.s   V_5
+  IL_008e:  call       ""string int.ToString()""
+  IL_0093:  ldstr      "" ""
+  IL_0098:  ldloc.2
+  IL_0099:  callvirt   ""int D.Y.get""
+  IL_009e:  stloc.s    V_5
+  IL_00a0:  ldloca.s   V_5
+  IL_00a2:  call       ""string int.ToString()""
+  IL_00a7:  call       ""string string.Concat(string, string, string)""
+  IL_00ac:  call       ""void System.Console.WriteLine(string)""
+  IL_00b1:  ldloc.1
+  IL_00b2:  stloc.3
+  IL_00b3:  ldloc.2
+  IL_00b4:  stloc.s    V_4
+  IL_00b6:  ldloc.3
+  IL_00b7:  callvirt   ""C C.<>Clone()""
+  IL_00bc:  dup
+  IL_00bd:  ldc.i4.3
+  IL_00be:  callvirt   ""void C.X.init""
+  IL_00c3:  stloc.3
+  IL_00c4:  ldloc.s    V_4
+  IL_00c6:  callvirt   ""C C.<>Clone()""
+  IL_00cb:  dup
+  IL_00cc:  ldc.i4.4
+  IL_00cd:  callvirt   ""void C.X.init""
+  IL_00d2:  stloc.s    V_4
+  IL_00d4:  ldloc.3
+  IL_00d5:  castclass  ""D""
+  IL_00da:  stloc.1
+  IL_00db:  ldloc.s    V_4
+  IL_00dd:  castclass  ""D""
+  IL_00e2:  stloc.2
+  IL_00e3:  ldloc.1
+  IL_00e4:  callvirt   ""int C.X.get""
+  IL_00e9:  stloc.s    V_5
+  IL_00eb:  ldloca.s   V_5
+  IL_00ed:  call       ""string int.ToString()""
+  IL_00f2:  ldstr      "" ""
+  IL_00f7:  ldloc.1
+  IL_00f8:  callvirt   ""int D.Y.get""
+  IL_00fd:  stloc.s    V_5
+  IL_00ff:  ldloca.s   V_5
+  IL_0101:  call       ""string int.ToString()""
+  IL_0106:  call       ""string string.Concat(string, string, string)""
+  IL_010b:  call       ""void System.Console.WriteLine(string)""
+  IL_0110:  ldloc.2
+  IL_0111:  callvirt   ""int C.X.get""
+  IL_0116:  stloc.s    V_5
+  IL_0118:  ldloca.s   V_5
+  IL_011a:  call       ""string int.ToString()""
+  IL_011f:  ldstr      "" ""
+  IL_0124:  ldloc.2
+  IL_0125:  callvirt   ""int D.Y.get""
+  IL_012a:  stloc.s    V_5
+  IL_012c:  ldloca.s   V_5
+  IL_012e:  call       ""string int.ToString()""
+  IL_0133:  call       ""string string.Concat(string, string, string)""
+  IL_0138:  call       ""void System.Console.WriteLine(string)""
+  IL_013d:  ret
+}");
         }
 
         private static ImmutableArray<Symbol> GetProperties(CSharpCompilation comp, string typeName)
@@ -4843,18 +5000,7 @@ class Program
         WriteLine(y.Equals(y));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            // https://github.com/dotnet/roslyn/issues/44879: Copy constructor copies static field.
-            comp.VerifyDiagnostics(
-                // (2,1): warning CS1717: Assignment made to same variable; did you mean to assign something else?
-                // record C
-                Diagnostic(ErrorCode.WRN_AssignmentToSelf, @"record C
-{
-    private static int _nextId = 0;
-    private int _id;
-    public C() { _id = _nextId++; }
-}").WithLocation(2, 1));
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            var verifier = CompileAndVerify(source, expectedOutput:
 @"True
 False
 True");
@@ -5037,9 +5183,16 @@ True");
         public void Equality_06()
         {
             var source =
-@"using static System.Console;
+@"
+using System;
+using static System.Console;
 record A;
-class B : A { }
+record B : A
+{
+    protected override Type EqualityContract => typeof(A);
+    public override bool Equals(A a) => base.Equals(a);
+    public virtual bool Equals(B b) => base.Equals((A)b);
+}
 record C : B;
 class Program
 {
@@ -5107,7 +5260,7 @@ True");
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool A.Equals(A)""
+  IL_0002:  call       ""bool B.Equals(B)""
   IL_0007:  ret
 }");
         }
@@ -5256,17 +5409,22 @@ True");
         public void Equality_08()
         {
             var source =
-@"using static System.Console;
+@"
+using System;
+using static System.Console;
 record A(int X)
 {
     internal A() : this(0) { } // Use record base call syntax instead
     internal int X { get; set; } // Use record base call syntax instead
 }
-class B : A
+record B : A
 {
     internal B() { } // Use record base call syntax instead
     internal B(int X, int Y) : base(X) { this.Y = Y; }
     internal int Y { get; set; }
+    protected override Type EqualityContract => typeof(A);
+    public override bool Equals(A a) => base.Equals(a);
+    public virtual bool Equals(B b) => base.Equals((A)b);
 }
 record C(int X, int Y, int Z) : B
 {
@@ -5304,10 +5462,8 @@ class Program
         WriteLine(NewC(1, 2, 3).Equals((A)NewC(1, 2, 3)));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics();
             // https://github.com/dotnet/roslyn/issues/44895: C.Equals() should compare B.Y.
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            var verifier = CompileAndVerify(source, expectedOutput:
 @"True
 True
 False
@@ -5368,7 +5524,7 @@ True");
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool A.Equals(A)""
+  IL_0002:  call       ""bool B.Equals(B)""
   IL_0007:  brfalse.s  IL_0020
   IL_0009:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
   IL_000e:  ldarg.0
@@ -5547,73 +5703,6 @@ True");
 }");
         }
 
-        [WorkItem(44895, "https://github.com/dotnet/roslyn/issues/44895")]
-        [Fact]
-        public void Equality_10()
-        {
-            var source =
-@"using static System.Console;
-abstract class A
-{
-    internal virtual int P { get; set; }
-    internal abstract int Q { get; set; }
-}
-record B(int P, int Q) : A
-{
-    internal B() : this(0, 0) { } // Use record base call syntax instead
-    internal override int Q { get; set; }
-}
-class C1 : B
-{
-    internal C1(int p, int q) { P = p; Q = q; }
-    internal override int P { get; set; }
-}
-class C2 : B
-{
-    internal C2(int p, int q) { P = p; Q = q; }
-    internal override int Q { get; set; }
-}
-class Program
-{
-    static void Main()
-    {
-        WriteLine(new C1(1, 0).Equals(new C2(0, 0)));
-        WriteLine(new C1(0, 2).Equals(new C2(0, 0)));
-        WriteLine(new C1(0, 0).Equals(new C2(3, 0)));
-        WriteLine(new C1(0, 0).Equals(new C2(0, 4)));
-    }
-}";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics();
-            // https://github.com/dotnet/roslyn/issues/44895: B.Equals() should compare A.P and report False for new C1(0, 0).Equals(new C2(3, 0)).
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"True
-False
-True
-True");
-            verifier.VerifyIL("B.Equals(B)",
-@"{
-  // Code size       42 (0x2a)
-  .maxstack  3
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0028
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type B.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type B.EqualityContract.get""
-  IL_000f:  bne.un.s   IL_0028
-  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0016:  ldarg.0
-  IL_0017:  ldfld      ""int B.<Q>k__BackingField""
-  IL_001c:  ldarg.1
-  IL_001d:  ldfld      ""int B.<Q>k__BackingField""
-  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0027:  ret
-  IL_0028:  ldc.i4.0
-  IL_0029:  ret
-}");
-        }
-
         [Fact]
         public void Equality_11()
         {
@@ -5718,7 +5807,7 @@ record C : B;
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "B B.Clone()",
+                "A B.<>Clone()",
                 "System.Type B.EqualityContract { get; }",
                 "System.Type B.EqualityContract.get",
                 "System.Int32 B.GetHashCode()",
@@ -5737,16 +5826,19 @@ record C : B;
             var source =
 @"using System;
 record A;
-class B1 : A
+record B1 : A
 {
     public B1(int p) { P = p; }
     public int P { get; set;  }
+    protected override Type EqualityContract => typeof(A);
+    public virtual bool Equals(B1 o) => base.Equals((A)o);
 }
-class B2 : A
+record B2 : A
 {
     public B2(int p) { P = p; }
     public int P { get; set;  }
     protected override Type EqualityContract => typeof(B2);
+    public virtual bool Equals(B2 o) => base.Equals((A)o);
 }
 class Program
 {
@@ -5757,9 +5849,7 @@ class Program
         Console.WriteLine(new B2(1).Equals(new B2(2)));
     }
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"True
 False
 True");
@@ -5771,17 +5861,21 @@ True");
             var source =
 @"using System;
 record A;
-class B1 : A
+record B1 : A
 {
     public B1(int p) { P = p; }
     public int P { get; set;  }
     protected override Type EqualityContract => typeof(string);
+    public override bool Equals(A a) => base.Equals(a);
+    public virtual bool Equals(B1 b) => base.Equals((A)b);
 }
-class B2 : A
+record B2 : A
 {
     public B2(int p) { P = p; }
     public int P { get; set;  }
     protected override Type EqualityContract => typeof(string);
+    public override bool Equals(A a) => base.Equals(a);
+    public virtual bool Equals(B2 b) => base.Equals((A)b);
 }
 class Program
 {
@@ -5843,7 +5937,7 @@ True");
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B1").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "B1 B1.Clone()",
+                "A B1.<>Clone()",
                 "System.Type B1.EqualityContract.get",
                 "System.Type B1.EqualityContract { get; }",
                 "B1..ctor(System.Int32 P)",
