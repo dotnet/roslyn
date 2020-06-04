@@ -415,7 +415,8 @@ namespace Microsoft.CodeAnalysis.InvertIf
             TIfStatementSyntax ifNode,
             SyntaxNode condition,
             TEmbeddedStatement trueStatement,
-            TEmbeddedStatement falseStatementOpt = default);
+            TEmbeddedStatement falseStatementOpt = default,
+            bool shouldAddElasicTrivia = false);
 
         protected abstract SyntaxNode WithStatements(
             SyntaxNode node,
@@ -477,9 +478,12 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
                         var ifBody = GetIfBody(ifNode);
 
+                        var shouldAddElasicTrivia = ShouldAddElasicTrivia(statementsAfterIf);
+
                         var updatedIf = UpdateIf(
                             text,
                             ifNode: ifNode,
+                            shouldAddElasicTrivia: shouldAddElasicTrivia,
                             condition: negatedExpression,
                             trueStatement: AsEmbeddedStatement(statementsAfterIf, original: ifBody));
 
@@ -594,6 +598,8 @@ namespace Microsoft.CodeAnalysis.InvertIf
                     throw ExceptionUtilities.UnexpectedValue(invertIfStyle);
             }
         }
+
+        protected abstract bool ShouldAddElasicTrivia(IEnumerable<TStatementSyntax> statementsAfterIf);
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {

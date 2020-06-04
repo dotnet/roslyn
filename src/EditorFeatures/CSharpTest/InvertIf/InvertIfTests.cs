@@ -1035,5 +1035,36 @@ class C
 @"class C { void M(object o) { [||]if (o is C) { a(); } else { } } }",
 @"class C { void M(object o) { if (!(o is C)) { } else { a(); } } }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(42715, "https://github.com/dotnet/roslyn/issues/42715")]
+        public async Task TestNewLineIsPreserved()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(object o)
+    {
+        [||]if (o == o)
+        {
+            return 0;
+        } 
+
+         return -1;
+    }
+}",
+@"class C
+{
+    int M(object o)
+    {
+        if (o != o)
+        {
+            return -1;
+        }
+
+        return 0;
+    }
+}");
+        }
     }
 }

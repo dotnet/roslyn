@@ -8,9 +8,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.InvertIf;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -172,7 +174,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             IfStatementSyntax ifNode,
             SyntaxNode condition,
             StatementSyntax trueStatement,
-            StatementSyntax falseStatementOpt = null)
+            StatementSyntax falseStatementOpt = null,
+            bool shouldAddElasticTrivia = false)
         {
             var isSingleLine = sourceText.AreOnSameLine(ifNode.GetFirstToken(), ifNode.GetLastToken());
             if (isSingleLine && falseStatementOpt != null)
@@ -200,6 +203,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
                     : SyntaxFactory.ElseClause(falseStatementOpt);
 
                 updatedIf = updatedIf.WithElse(elseClause);
+            }
+            else if (!isSingleLine && shouldAddElasticTrivia)
+            {
+                updatedIf = updatedIf.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
             }
 
             // If this is multiline, format things after we swap around the if/else.  Because 
@@ -255,5 +262,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
                 return true;
             }
         }
+
+        protected override bool ShouldAddElasicTrivia(IEnumerable<StatementSyntax> statementsAfterIf)
+            => CSharpSyntaxFacts.Instance.IsEndOfLineTrivia(statementsAfterIf.First().GetLeadingTrivia().First());
     }
 }

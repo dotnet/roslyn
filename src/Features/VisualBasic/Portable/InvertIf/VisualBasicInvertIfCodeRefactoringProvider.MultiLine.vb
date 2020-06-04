@@ -38,12 +38,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
             Return ifNode.ElseBlock.Statements
         End Function
 
+        Protected Overrides Function ShouldAddElasicTrivia(statementsAfterIf As IEnumerable(Of StatementSyntax)) As Boolean
+            Return False
+        End Function
+
         Protected Overrides Function UpdateIf(
                 sourceText As SourceText,
                 ifNode As MultiLineIfBlockSyntax,
                 condition As SyntaxNode,
                 trueStatement As SyntaxList(Of StatementSyntax),
-                Optional falseStatementOpt As SyntaxList(Of StatementSyntax) = Nothing) As MultiLineIfBlockSyntax
+                Optional falseStatementOpt As SyntaxList(Of StatementSyntax) = Nothing,
+                Optional shouldAddElasticTrivia As Boolean = False) As MultiLineIfBlockSyntax
 
             Dim updatedIf = ifNode _
                 .WithIfStatement(ifNode.IfStatement.WithCondition(DirectCast(condition, ExpressionSyntax))) _

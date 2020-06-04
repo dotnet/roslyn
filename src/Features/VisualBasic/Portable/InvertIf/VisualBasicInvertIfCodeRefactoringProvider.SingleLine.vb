@@ -5,6 +5,7 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -45,7 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
                 ifNode As SingleLineIfStatementSyntax,
                 condition As SyntaxNode,
                 trueStatements As SyntaxList(Of StatementSyntax),
-                Optional falseStatements As SyntaxList(Of StatementSyntax) = Nothing) As SingleLineIfStatementSyntax
+                Optional falseStatements As SyntaxList(Of StatementSyntax) = Nothing,
+                Optional shouldAddElasicTrivia As Boolean = False) As SingleLineIfStatementSyntax
 
             Dim isSingleLine = sourceText.AreOnSameLine(ifNode.GetFirstToken(), ifNode.GetLastToken())
             If isSingleLine AndAlso falseStatements.Count > 0 Then
@@ -77,7 +79,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
                 updatedIf = updatedIf.WithElseClause(elseClause)
             End If
 
-            Return updatedIf
+            Return updatedIf.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed) _
+                            .WithAdditionalAnnotations(Formatter.Annotation)
+        End Function
+
+        Protected Overrides Function ShouldAddElasicTrivia(statementsAfterIf As IEnumerable(Of StatementSyntax)) As Boolean
+            Return False
         End Function
     End Class
 End Namespace
