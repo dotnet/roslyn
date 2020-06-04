@@ -169,7 +169,14 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterRootAttribute()
         {
-            await VerifyAbsenceAsync(@"[goo]
+            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"[goo]
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRootAttribute_Interactive()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"[goo]
 $$");
         }
 

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // searches for these, then we should find usages of 'lock(goo)' or 'synclock(goo)'
             // since they implicitly call those methods.
 
-            var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
+            var ordinaryDocuments = await FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
             var forEachDocuments = IsForEachMethod(methodSymbol)
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;

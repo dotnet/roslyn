@@ -1022,6 +1022,58 @@ C<T, U, V>
             }
         }
 
+        [Fact]
+        public void FunctionPointersWithNativeIntegerTypes()
+        {
+            var comp = CompileAndVerify(@"
+unsafe class C
+{
+    public delegate*<nint, nint, nint> F1;
+    public delegate*<System.IntPtr, System.IntPtr, nint> F2;
+    public delegate*<nint, System.IntPtr, System.IntPtr> F3;
+    public delegate*<System.IntPtr, nint, System.IntPtr> F4;
+    public delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, nint> F5;
+    public delegate*<nint, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>> F6;
+    public delegate*<delegate*<System.IntPtr, System.IntPtr, nint>, System.IntPtr> F7;
+    public delegate*<System.IntPtr, delegate*<System.IntPtr, nint, System.IntPtr>> F8;
+}
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview, symbolValidator: symbolValidator);
+
+            static void symbolValidator(ModuleSymbol module)
+            {
+                var expectedAttributes = @"
+C
+    [NativeInteger({ False, True, True, True })] delegate*<System.IntPtr, System.IntPtr, System.IntPtr> F1
+    [NativeInteger({ False, True, False, False })] delegate*<System.IntPtr, System.IntPtr, System.IntPtr> F2
+    [NativeInteger({ False, False, True, False })] delegate*<System.IntPtr, System.IntPtr, System.IntPtr> F3
+    [NativeInteger({ False, False, False, True })] delegate*<System.IntPtr, System.IntPtr, System.IntPtr> F4
+    [NativeInteger({ False, True, False, False, False, False })] delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, System.IntPtr> F5
+    [NativeInteger({ False, False, False, False, False, True })] delegate*<System.IntPtr, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>> F6
+    [NativeInteger({ False, False, False, True, False, False })] delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, System.IntPtr> F7
+    [NativeInteger({ False, False, False, False, True, False })] delegate*<System.IntPtr, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>> F8
+";
+
+                AssertNativeIntegerAttributes(module, expectedAttributes);
+                var c = module.GlobalNamespace.GetTypeMember("C");
+
+                assert("delegate*<nint, nint, nint>", "F1");
+                assert("delegate*<System.IntPtr, System.IntPtr, nint>", "F2");
+                assert("delegate*<nint, System.IntPtr, System.IntPtr>", "F3");
+                assert("delegate*<System.IntPtr, nint, System.IntPtr>", "F4");
+                assert("delegate*<delegate*<System.IntPtr, System.IntPtr, System.IntPtr>, nint>", "F5");
+                assert("delegate*<nint, delegate*<System.IntPtr, System.IntPtr, System.IntPtr>>", "F6");
+                assert("delegate*<delegate*<System.IntPtr, System.IntPtr, nint>, System.IntPtr>", "F7");
+                assert("delegate*<System.IntPtr, delegate*<System.IntPtr, nint, System.IntPtr>>", "F8");
+
+                void assert(string expectedType, string fieldName)
+                {
+                    var field = c.GetField(fieldName);
+                    FunctionPointerUtilities.CommonVerifyFunctionPointer((FunctionPointerTypeSymbol)field.Type);
+                    Assert.Equal(expectedType, c.GetField(fieldName).Type.ToTestDisplayString());
+                }
+            }
+        }
+
         private static TypeDefinition GetTypeDefinitionByName(MetadataReader reader, string name)
         {
             return reader.GetTypeDefinition(reader.TypeDefinitions.Single(h => reader.StringComparer.Equals(reader.GetTypeDefinition(h).Name, name)));

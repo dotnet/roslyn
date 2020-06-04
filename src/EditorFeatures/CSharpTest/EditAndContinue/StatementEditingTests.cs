@@ -2616,7 +2616,6 @@ class C
                 );
         }
 
-
         [Fact]
         public void Lambdas_Update_CeaseCapture_This()
         {
@@ -9766,7 +9765,8 @@ int G1(int[] p) { return p[2]; }
                 "Update [y = (3, 4)]@56 -> [y2 = (3, 4)]@96");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423")]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TupleElementName()
         {
             var src1 = @"(int a, int b) F();";

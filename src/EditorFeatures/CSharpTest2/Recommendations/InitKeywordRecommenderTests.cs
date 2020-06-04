@@ -128,7 +128,6 @@ $$");
    int Goo { get { } $$");
         }
 
-
         [Fact]
         public async Task TestAfterSetAccessorBlock()
         {

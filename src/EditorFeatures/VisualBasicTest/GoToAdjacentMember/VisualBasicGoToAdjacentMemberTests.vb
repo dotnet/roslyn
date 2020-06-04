@@ -195,7 +195,6 @@ End Class"
             Throw New System.NotImplementedException()
         End Operator
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
         <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function StopsAtField() As Task

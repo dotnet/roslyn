@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             CSharpSyntaxNode syntax,
             MethodKind methodKind,
-            DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), ImmutableArray.Create(location))
+            DiagnosticBag diagnostics)
+            : base(containingType, syntax.GetReference(), ImmutableArray.Create(location), SyntaxFacts.HasYieldOperations(syntax))
         {
             Debug.Assert(syntax.IsKind(SyntaxKind.ConstructorDeclaration) || syntax.IsKind(SyntaxKind.ClassDeclaration) || syntax.IsKind(SyntaxKind.StructDeclaration));
         }

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (ushort)(value + 1);
             }
 
-            ushort INumericTC<ushort>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt16Value;
+            ushort INumericTC<ushort>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (ushort)0 : constantValue.UInt16Value;
 
             ConstantValue INumericTC<ushort>.ToConstantValue(ushort value) => ConstantValue.Create(value);
 

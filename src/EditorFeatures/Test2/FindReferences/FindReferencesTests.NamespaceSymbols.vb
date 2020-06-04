@@ -402,5 +402,84 @@ namespace var { }
 </Workspace>
             Await TestAPI(input, host)
         End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestNamespaceReferenceInGlobalSuppression(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~N:[|N|]")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~T:[|N|].C")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:[|N|].C.M")]
+
+        namespace {|Definition:[|$$N|]|}
+        {
+            class C
+            {
+                void M()
+                {
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestNamespaceReferenceInGlobalSuppression_OuterNamespace(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~N:[|N1|]")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~N:[|N1|].N2")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~T:[|N1|].N2.C")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:[|N1|].N2.C.M")]
+
+        namespace {|Definition:[|$$N1|]|}.N2
+        {
+            class C
+            {
+                void M()
+                {
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestNamespaceReferenceInGlobalSuppression_InnerNamespace(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~N:N1.[|N2|]")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~T:N1.[|N2|].C")]
+        [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "RuleId", Scope = "member", Target = "~M:N1.[|N2|].C.M")]
+
+        namespace N1.{|Definition:[|$$N2|]|}
+        {
+            class C
+            {
+                void M()
+                {
+                }
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
     End Class
 End Namespace

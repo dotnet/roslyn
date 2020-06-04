@@ -154,7 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-
         private static bool TryGetExpressionBody(
             BasePropertyDeclarationSyntax baseProperty, ParseOptions options, ExpressionBodyPreference preference,
             out ArrowExpressionClauseSyntax arrowExpression, out SyntaxToken semicolonToken)

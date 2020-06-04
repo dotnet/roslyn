@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _values.All(relation, value);
             }
 
-            bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => All(relation, value.Int32Value);
+            bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || All(relation, value.Int32Value);
 
             public bool Any(BinaryOperatorKind relation, int value)
             {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _values.Any(relation, value);
             }
 
-            bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => Any(relation, value.Int32Value);
+            bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || Any(relation, value.Int32Value);
 
             public IValueSet<int> Complement()
             {

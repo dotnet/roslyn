@@ -82,6 +82,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(44629, "https://github.com/dotnet/roslyn/issues/44629")]
+        public async Task TestStackAlloc()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        var span = $$(stackalloc byte[8]);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestArithmeticRequiredForClarity2()
         {
             await TestInRegularAndScript1Async(

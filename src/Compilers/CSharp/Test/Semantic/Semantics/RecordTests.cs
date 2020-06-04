@@ -4104,6 +4104,8 @@ data partial class C(int X, int Y)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // error CS8805: Program using top-level statements must be an executable.
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
                 // (3,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
                 // data partial class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(3, 1),
@@ -4113,9 +4115,12 @@ data partial class C(int X, int Y)
                 // (3,6): error CS1002: ; expected
                 // data partial class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(3, 6),
-                // (3,21): error CS8850: Records must have both a 'data' modifier and non-empty parameter list
+                // (3,21): error CS8850: A positional record must have both a 'data' modifier and non-empty parameter list
                 // data partial class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "(int X, int Y)").WithLocation(3, 21),
+                // (13,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // data partial class C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "data ").WithLocation(13, 1),
                 // (13,1): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
                 // data partial class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(13, 1),
@@ -4124,10 +4129,7 @@ data partial class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(13, 6),
                 // (13,6): error CS1002: ; expected
                 // data partial class C(int X, int Y)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(13, 6),
-                // (13,6): error CS0102: The type '<invalid-global-code>' already contains a definition for ''
-                // data partial class C(int X, int Y)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("<invalid-global-code>", "").WithLocation(13, 6)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(13, 6)
                 );
 
             Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));

@@ -50,7 +50,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="If")
 
-
                 result.AssertLabeledSpecialSpansAre("Escape", "[If]", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt1", "If", RelatedLocationType.NoConflict)
             End Using
@@ -104,7 +103,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="Assembly")
 
-
                 result.AssertLabeledSpecialSpansAre("Escape", "[Assembly]", RelatedLocationType.NoConflict)
             End Using
         End Sub
@@ -130,7 +128,6 @@ End Module
                                ]]></Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Module")
-
 
                 result.AssertLabeledSpecialSpansAre("Escape", "[Module]", RelatedLocationType.NoConflict)
             End Using
@@ -181,7 +178,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="Rem")
 
-
                 result.AssertLabeledSpecialSpansAre("Escape", "[Rem]", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("stmt1", "[Rem]", RelatedLocationType.NoConflict)
             End Using
@@ -209,7 +205,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="Mid")
 
-
                 result.AssertLabeledSpecialSpansAre("stmt1", "[Mid]", RelatedLocationType.NoConflict)
             End Using
         End Sub
@@ -235,7 +230,6 @@ End Module
                                    </Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="mId")
-
 
                 result.AssertLabeledSpecialSpansAre("stmt1", "[mId]", RelatedLocationType.NoConflict)
             End Using
@@ -522,7 +516,6 @@ End Module
                     </Project>
                 </Workspace>, host:=host, renameTo:="Group")
 
-
                 result.AssertLabeledSpecialSpansAre("escaped", "[Group]", RelatedLocationType.NoConflict)
             End Using
         End Sub
@@ -545,7 +538,6 @@ End Module
                                ]]></Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="Mid")
-
 
                 result.AssertLabeledSpecialSpansAre("stmt1", "[Mid]", RelatedLocationType.NoConflict)
             End Using

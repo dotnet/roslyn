@@ -108,6 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         protected override TDeclarationNode AddMethod<TDeclarationNode>(TDeclarationNode destination, IMethodSymbol method, CodeGenerationOptions options, IList<bool> availableIndices)
         {
+            // https://github.com/dotnet/roslyn/issues/44425: Add handling for top level statements
+            if (destination is GlobalStatementSyntax)
+            {
+                return destination;
+            }
+
             CheckDeclarationNode<TypeDeclarationSyntax, CompilationUnitSyntax, NamespaceDeclarationSyntax>(destination);
 
             options = options.With(options: options.Options ?? Workspace.Options);

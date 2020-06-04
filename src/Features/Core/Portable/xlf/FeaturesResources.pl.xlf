@@ -160,6 +160,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Capture number cannot be zero</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterInferValue">
+        <source>&lt;infer&gt;</source>
+        <target state="new">&lt;infer&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
         <source>TODO</source>
         <target state="new">TODO</target>
