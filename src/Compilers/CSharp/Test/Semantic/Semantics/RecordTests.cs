@@ -2928,7 +2928,7 @@ record B(object P1, int P2, object P3, int P4) : A
             var source =
 @"using System;
 
-data class B(int X, int Y)
+record B(int X, int Y)
 {
     public static void Main()
     {
@@ -2985,9 +2985,9 @@ data class B(int X, int Y)
             var source =
 @"using System;
 
-data class B(int X, int Y);
+record B(int X, int Y);
 
-data class C(B B, int Z)
+record C(B B, int Z)
 {
     public static void Main()
     {
@@ -3048,7 +3048,7 @@ data class C(B B, int Z)
             var source =
 @"using System;
 
-data class B(int X, int Y)
+record B(int X, int Y)
 {
     public int X => 3;
 
@@ -3081,7 +3081,7 @@ data class B(int X, int Y)
         public void Deconstruct_MethodCollision_01()
         {
             var source = @"
-data class B(int X, int Y)
+record B(int X, int Y)
 {
     public int X() => 3;
 
@@ -3102,9 +3102,9 @@ data class B(int X, int Y)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,18): error CS0102: The type 'B' already contains a definition for 'X'
-                // data class B(int X, int Y)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("B", "X").WithLocation(2, 18));
+                // (2,14): error CS0102: The type 'B' already contains a definition for 'X'
+                // record B(int X, int Y)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("B", "X").WithLocation(2, 14));
 
             var bClass = comp.GetMember<NamedTypeSymbol>("B");
             var deconstruct = bClass.GetMember("Deconstruct");
@@ -3115,12 +3115,12 @@ data class B(int X, int Y)
         public void Deconstruct_MethodCollision_02()
         {
             var source = @"
-data class B
+record B
 {
     public int X() => 3;
 }
 
-data class C(int X, int Y) : B
+record C(int X, int Y) : B
 {
     static void M(C c)
     {
@@ -3157,12 +3157,12 @@ data class C(int X, int Y) : B
             var source = @"
 using System;
 
-data class B
+record B
 {
     public int X() => 3;
 }
 
-data class C(int X, int Y) : B
+record C(int X, int Y) : B
 {
     public new int X { get; }
 
@@ -3195,7 +3195,7 @@ data class C(int X, int Y) : B
         public void Deconstruct_MethodCollision_04()
         {
             var source = @"
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public int X(int arg) => 3;
 
@@ -3216,9 +3216,9 @@ data class C(int X, int Y)
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,18): error CS0102: The type 'C' already contains a definition for 'X'
-                // data class C(int X, int Y)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(2, 18));
+                // (2,14): error CS0102: The type 'C' already contains a definition for 'X'
+                // record C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(2, 14));
 
             var cClass = comp.GetMember<NamedTypeSymbol>("C");
             var deconstruct = cClass.GetMember("Deconstruct");
@@ -3229,7 +3229,7 @@ data class C(int X, int Y)
         public void Deconstruct_Empty()
         {
             var source = @"
-data class C
+record C
 {
     static void M(C c)
     {
@@ -3264,7 +3264,7 @@ data class C
         public void Deconstruct_Empty_WithParameterList()
         {
             var source = @"
-data class C()
+record C()
 {
     static void M(C c)
     {
@@ -3283,9 +3283,9 @@ data class C()
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,13): error CS8850: A positional record must have both a 'data' modifier and non-empty parameter list
-                // data class C()
-                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 13));
+                // (2,9): error CS8850: A positional record must have both a 'data' modifier and non-empty parameter list
+                // record C()
+                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 9));
 
             var cClass = comp.GetMember<NamedTypeSymbol>("C");
             var deconstruct = cClass.GetMember("Deconstruct");
@@ -3298,7 +3298,7 @@ data class C()
             var source =
 @"using System;
 
-data class B(int X, int Y)
+record B(int X, int Y)
 {
     public void Deconstruct(out int X, out int Y)
     {
@@ -3333,7 +3333,7 @@ data class B(int X, int Y)
             var source =
 @"using System;
 
-data class B(int X, int Y)
+record B(int X, int Y)
 {
     public void Deconstruct(out int Z)
     {
