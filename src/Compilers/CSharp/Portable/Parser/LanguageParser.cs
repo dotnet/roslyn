@@ -1509,47 +1509,50 @@ tryAgain:
                 }
 
                 var semicolon = TryEatToken(SyntaxKind.SemicolonToken);
+                var modifiersList = (SyntaxList<SyntaxToken>)modifiers.ToList();
+                var membersList = (SyntaxList<MemberDeclarationSyntax>)members;
+                var constraintsList = (SyntaxList<TypeParameterConstraintClauseSyntax>)constraints;
                 switch (classOrStructOrInterface.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
                         return _syntaxFactory.ClassDeclaration(
                             attributes,
-                            modifiers.ToList(),
+                            modifiersList,
                             classOrStructOrInterface,
                             name,
                             typeParameters,
                             baseList,
-                            constraints,
+                            constraintsList,
                             openBrace,
-                            members,
+                            membersList,
                             closeBrace,
                             semicolon);
 
                     case SyntaxKind.StructKeyword:
                         return _syntaxFactory.StructDeclaration(
                             attributes,
-                            modifiers.ToList(),
+                            modifiersList,
                             classOrStructOrInterface,
                             name,
                             typeParameters,
                             baseList,
-                            constraints,
+                            constraintsList,
                             openBrace,
-                            members,
+                            membersList,
                             closeBrace,
                             semicolon);
 
                     case SyntaxKind.InterfaceKeyword:
                         return _syntaxFactory.InterfaceDeclaration(
                             attributes,
-                            modifiers.ToList(),
+                            modifiersList,
                             classOrStructOrInterface,
                             name,
                             typeParameters,
                             baseList,
-                            constraints,
+                            constraintsList,
                             openBrace,
-                            members,
+                            membersList,
                             closeBrace,
                             semicolon);
 
