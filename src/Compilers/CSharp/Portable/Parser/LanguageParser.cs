@@ -1452,9 +1452,7 @@ tryAgain:
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            bool isRecord = keyword.Kind == SyntaxKind.RecordKeyword;
-
-            var paramList = isRecord && CurrentToken.Kind == SyntaxKind.OpenParenToken
+            var paramList = keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? ParseParenthesizedParameterList() : null;
 
             var baseList = this.ParseBaseList(keyword, paramList is object);
@@ -1475,7 +1473,7 @@ tryAgain:
                 SyntaxToken semicolon;
                 SyntaxToken? openBrace;
                 SyntaxToken? closeBrace;
-                if (!isRecord || CurrentToken.Kind != SyntaxKind.SemicolonToken)
+                if (!(keyword.Kind == SyntaxKind.RecordKeyword) || CurrentToken.Kind != SyntaxKind.SemicolonToken)
                 {
                     openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
