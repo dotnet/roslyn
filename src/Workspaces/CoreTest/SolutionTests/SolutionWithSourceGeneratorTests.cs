@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.NotSame(originalCompilation, newCompilation);
             var generatedTree = Assert.Single(newCompilation.SyntaxTrees);
-            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.SolutionWithSourceGeneratorTests+AdditionalFileAddedGenerator_Test.generated.cs", Path.GetFileName(generatedTree.FilePath));
+            Assert.Equal($"{typeof(AdditionalFileAddedGenerator).Module.ModuleVersionId}_{typeof(AdditionalFileAddedGenerator).FullName}_Test.generated.cs", Path.GetFileName(generatedTree.FilePath));
         }
 
         [Theory]

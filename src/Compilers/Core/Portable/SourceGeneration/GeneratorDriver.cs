@@ -272,7 +272,8 @@ namespace Microsoft.CodeAnalysis
         private ImmutableDictionary<GeneratedSourceText, SyntaxTree> ParseAdditionalSources(ISourceGenerator generator, ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
         {
             var trees = PooledDictionary<GeneratedSourceText, SyntaxTree>.GetInstance();
-            var prefix = generator.GetType().FullName;
+            var type = generator.GetType();
+            var prefix = $"{type.Module.ModuleVersionId}_{type.FullName}";
             foreach (var source in generatedSources)
             {
                 trees.Add(source, ParseGeneratedSourceText(source, $"{prefix}_{source.HintName}", cancellationToken));

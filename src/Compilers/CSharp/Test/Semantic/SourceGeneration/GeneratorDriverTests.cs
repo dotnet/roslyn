@@ -688,8 +688,8 @@ class C { }
 
             var filePaths = outputCompilation.SyntaxTrees.Skip(1).Select(t => t.FilePath).ToArray();
             Assert.Equal(new[] {
-                "Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration.SingleFileTestGenerator_source.cs",
-                "Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration.SingleFileTestGenerator2_source.cs"
+                $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}_source.cs",
+                $"{generator2.GetType().Module.ModuleVersionId}_{generator2.GetType().FullName}_source.cs"
             }, filePaths);
         }
     }
