@@ -3,17 +3,20 @@
 using EnvDTE;
 using VSLangProj;
 
-public class RoslynSDKTestTemplateWizard : RoslynSDKChildTemplateWizard
+public class RoslynSDKCodeFixTemplateWizard : RoslynSDKChildTemplateWizard
 {
+    public static Project Project { get; private set; }
+
     public override void OnProjectFinishedGenerating(Project project)
     {
+        Project = project;
+
         // There is no good way for the test project to reference the main project, so we will use the wizard.
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
         if (project.Object is VSProject vsProject)
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
         {
-            _ = vsProject.References.AddProject(RoslynSDKAnalyzerTemplateWizard.Project);
-            _ = vsProject.References.AddProject(RoslynSDKCodeFixTemplateWizard.Project);
+            var referenceProject = vsProject.References.AddProject(RoslynSDKAnalyzerTemplateWizard.Project);
         }
     }
 }

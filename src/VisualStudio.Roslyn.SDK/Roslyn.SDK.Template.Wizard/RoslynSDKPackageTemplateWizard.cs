@@ -3,7 +3,7 @@
 using EnvDTE;
 using VSLangProj;
 
-public class RoslynSDKTestTemplateWizard : RoslynSDKChildTemplateWizard
+public class RoslynSDKPackageTemplateWizard : RoslynSDKChildTemplateWizard
 {
     public override void OnProjectFinishedGenerating(Project project)
     {

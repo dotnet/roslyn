@@ -3,28 +3,27 @@
             Type="Project"
             xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
   <TemplateData>
-    <Name>DiagnosticAnalyzer</Name>
+    <Name>Package</Name>
     <Description>&lt;No description available&gt;</Description>
     <Icon></Icon>
-    <ProjectType>VisualBasic</ProjectType>
+    <ProjectType>CSharp</ProjectType>
     <RequiredFrameworkVersion>2.0</RequiredFrameworkVersion>
-    <SortOrder>1000</SortOrder>
+    <SortOrder>952</SortOrder>
     <TemplateID>bb967cab-2ca5-4dac-8809-65b2b28a6350</TemplateID>
     <CreateNewFolder>true</CreateNewFolder>
     <CreateInPlace>true</CreateInPlace>
-    <DefaultName>DiagnosticAnalyzer</DefaultName>
+    <DefaultName>Package</DefaultName>
     <ProvideDefaultName>true</ProvideDefaultName>
     <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
   </TemplateData>
   <TemplateContent>
-    <Project TargetFileName="$projectname$.vbproj" File="Diagnostic.vbproj" ReplaceParameters="true">
-      <ProjectItem ReplaceParameters="true" TargetFileName="$saferootidentifiername$Analyzer.vb" OpenInEditor="true" OpenOrder="20">DiagnosticAnalyzer.vb</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="My Project\Resources.resx">Resources.resx</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="My Project\Resources.Designer.vb">Resources.Designer.vb</ProjectItem>
+    <Project TargetFileName="$projectname$.csproj" File="Package.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="tools\install.ps1">install.ps1</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="tools\uninstall.ps1">uninstall.ps1</ProjectItem>
     </Project>
   </TemplateContent>
   <WizardExtension>
     <Assembly>Roslyn.SDK.Template.Wizard, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
-    <FullClassName>RoslynSDKAnalyzerTemplateWizard</FullClassName>
+    <FullClassName>RoslynSDKPackageTemplateWizard</FullClassName>
   </WizardExtension>
 </VSTemplate>

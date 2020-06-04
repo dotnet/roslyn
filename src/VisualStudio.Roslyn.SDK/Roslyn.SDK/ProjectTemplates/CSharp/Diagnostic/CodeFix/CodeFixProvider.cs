@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -18,8 +18,6 @@ namespace $saferootprojectname$
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof($saferootidentifiername$CodeFixProvider)), Shared]
     public class $saferootidentifiername$CodeFixProvider : CodeFixProvider
     {
-        private const string title = "Make uppercase";
-
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create($saferootidentifiername$Analyzer.DiagnosticId); }
@@ -45,9 +43,9 @@ namespace $saferootprojectname$
             // Register a code action that will invoke the fix.
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title: title,
+                    title: CodeFixResources.CodeFixTitle,
                     createChangedSolution: c => MakeUppercaseAsync(context.Document, declaration, c), 
-                    equivalenceKey: title),
+                    equivalenceKey: nameof(CodeFixResources.CodeFixTitle)),
                 diagnostic);
         }
 
