@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
                 context.Diagnostics)
         End Function
 
-        Private Async Function RemoveByVal(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function RemoveByVal(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
             Dim editor = Await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(False)
             editor.RemoveNode(node)
             Return editor.GetChangedDocument()
