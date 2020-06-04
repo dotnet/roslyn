@@ -125,7 +125,6 @@ public class Derived : Base<string?>
     either a type syntax or a record declaration as choosing the record declaration. The following examples will now be record declarations:
 
     ```C#
-    record R1() { }
     abstract class C
     {
         record R2() { }
