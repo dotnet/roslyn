@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis
 
             // see if any generators accept this particular edit
             var stateBuilder = PooledDictionary<ISourceGenerator, GeneratorState>.GetInstance();
-            for(int i = 0; i < initialState.Generators.Length; i++)
+            for (int i = 0; i < initialState.Generators.Length; i++)
             {
                 var generator = initialState.Generators[i];
                 var generatorState = initialState.GeneratorStates[i];

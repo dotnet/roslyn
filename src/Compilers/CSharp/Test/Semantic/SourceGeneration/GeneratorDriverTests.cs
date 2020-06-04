@@ -266,7 +266,7 @@ class C { }
             Assert.Single(outputCompilation.SyntaxTrees);
 
             // create an edit
-            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file2.cs", ""));
+            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file2.cs", ""));
             driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
 
             // now try apply edits (which will fail)
@@ -297,7 +297,7 @@ class C { }
             Assert.Single(outputCompilation.SyntaxTrees);
 
             // create an edit
-            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file1.cs", ""));
+            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file1.cs", ""));
             driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
 
             // now try apply edits
@@ -322,14 +322,14 @@ class C { }
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions,
                                                                generators: ImmutableArray.Create<ISourceGenerator>(testGenerator),
-                                                               additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("c:\\a\\file1.cs", "")));
+                                                               additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("a\\file1.cs", "")));
 
             // run initial generation pass
             driver = driver.RunFullGeneration(compilation, out var outputCompilation, out _);
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
 
             // create an edit
-            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file2.cs", ""));
+            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file2.cs", ""));
             driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
 
             // now try apply edits
@@ -342,9 +342,9 @@ class C { }
             Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
 
             // lets add multiple edits   
-            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file3.cs", "")),
-                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file4.cs", "")),
-                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file5.cs", ""))));
+            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file3.cs", "")),
+                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file4.cs", "")),
+                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file5.cs", ""))));
             // now try apply edits
             driver = driver.TryApplyEdits(compilation, out editedCompilation, out succeeded);
             Assert.True(succeeded);
@@ -364,11 +364,11 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
-            var text = new InMemoryAdditionalText("c:\\a\\file1.cs", "");
+            var text = new InMemoryAdditionalText("a\\file1.cs", "");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions,
                                                                generators: ImmutableArray.Create<ISourceGenerator>(testGenerator),
-                                                               additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("c:\\a\\file1.cs", "")));
+                                                               additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("a\\file1.cs", "")));
 
             driver = driver.RunFullGeneration(compilation, out var outputCompilation, out _);
 
@@ -384,7 +384,7 @@ class C { }
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
 
             // create an edit
-            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file2.cs", ""));
+            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file2.cs", ""));
             driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
 
             // now try apply edits
@@ -410,19 +410,19 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
-            var text = new InMemoryAdditionalText("c:\\a\\file1.cs", "");
+            var text = new InMemoryAdditionalText("a\\file1.cs", "");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions,
                                                                generators: ImmutableArray.Create<ISourceGenerator>(testGenerator),
-                                                               additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("c:\\a\\file1.cs", "")));
+                                                               additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("a\\file1.cs", "")));
 
             driver.RunFullGeneration(compilation, out var outputCompilation, out _);
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
 
             // add multiple edits   
-            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file2.cs", "")),
-                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file3.cs", "")),
-                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file4.cs", ""))));
+            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file2.cs", "")),
+                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file3.cs", "")),
+                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file4.cs", ""))));
 
             // but just do a full generation (don't try apply)
             driver.RunFullGeneration(compilation, out outputCompilation, out _);
