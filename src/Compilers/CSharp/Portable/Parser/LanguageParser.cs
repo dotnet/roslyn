@@ -9690,7 +9690,7 @@ tryAgain:
                 case SyntaxKind.IsPatternExpression:
                     return Precedence.Relational;
                 case SyntaxKind.SwitchExpression:
-                // PROTOTYPE: Is this the right precedence?
+                // https://github.com/dotnet/roslyn/issues/44675 Is this the right precedence?
                 case SyntaxKind.WithExpression:
                     return Precedence.Switch;
                 case SyntaxKind.LeftShiftExpression:
