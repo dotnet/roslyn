@@ -1037,5 +1037,39 @@ partial record C(int X)
 
             Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
         }
+
+        [Fact]
+        public void PartialTypes_03()
+        {
+            var src = @"
+using System;
+partial record C
+{
+    public int X = 1;
+}
+partial record C(int Y);
+partial record C
+{
+    public int Z { get; } = 2;
+}";
+            var verifier = CompileAndVerify(src);
+            verifier.VerifyIL("C..ctor(int)", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int C.X""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""int C.<Y>k__BackingField""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.2
+  IL_0010:  stfld      ""int C.<Z>k__BackingField""
+  IL_0015:  ldarg.0
+  IL_0016:  call       ""object..ctor()""
+  IL_001b:  ret
+}");
+        }
     }
 }
