@@ -12,7 +12,8 @@ public class RoslynSDKTestTemplateWizard : RoslynSDKChildTemplateWizard
         if (project.Object is VSProject vsProject)
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
         {
-            var referenceProject = vsProject.References.AddProject(RoslynSDKAnalyzerTemplateWizard.Project);
+            _ = vsProject.References.AddProject(RoslynSDKAnalyzerTemplateWizard.Project);
+            _ = vsProject.References.AddProject(RoslynSDKCodeFixTemplateWizard.Project);
         }
     }
 }

@@ -17,8 +17,6 @@ Imports Microsoft.CodeAnalysis.Text
 Public Class $saferootidentifiername$CodeFixProvider
     Inherits CodeFixProvider
 
-    Private Const title As String = "Make uppercase"
-
     Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
         Get
             Return ImmutableArray.Create($saferootidentifiername$Analyzer.DiagnosticId)
@@ -44,9 +42,9 @@ Public Class $saferootidentifiername$CodeFixProvider
         ' Register a code action that will invoke the fix.
         context.RegisterCodeFix(
             CodeAction.Create(
-                title:=title,
+                title:=My.Resources.CodeFixTitle,
                 createChangedSolution:=Function(c) MakeUppercaseAsync(context.Document, declaration, c),
-                equivalenceKey:=title),
+                equivalenceKey:=NameOf(My.Resources.CodeFixTitle)),
             diagnostic)
     End Function
 

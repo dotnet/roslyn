@@ -19,7 +19,6 @@
   <TemplateContent>
     <Project TargetFileName="$projectname$.csproj" File="DiagnosticAnalyzer.csproj" ReplaceParameters="true">
       <ProjectItem ReplaceParameters="true" TargetFileName="$saferootidentifiername$Analyzer.cs" OpenInEditor="true" OpenOrder="2">DiagnosticAnalyzer.cs</ProjectItem>
-      <ProjectItem ReplaceParameters="true" TargetFileName="$saferootidentifiername$CodeFixProvider.cs" OpenInEditor="true" OpenOrder="3" >CodeFixProvider.cs</ProjectItem>
       <ProjectItem ReplaceParameters="true" TargetFileName="Resources.resx">Resources.resx</ProjectItem>
       <ProjectItem ReplaceParameters="true" TargetFileName="Resources.Designer.cs">Resources.Designer.cs</ProjectItem>
     </Project>

@@ -31,6 +31,9 @@
       <ProjectTemplateLink ProjectName="$safeprojectname$">
         ProjectTemplates\CSharp\Diagnostic\Analyzer\DiagnosticAnalyzer.vstemplate
       </ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$safeprojectname$.CodeFixes">
+        ProjectTemplates\CSharp\Diagnostic\CodeFix\CodeFixProvider.vstemplate
+      </ProjectTemplateLink>
       <ProjectTemplateLink ProjectName="$safeprojectname$.Package">
         ProjectTemplates\CSharp\Diagnostic\Package\Package.vstemplate
       </ProjectTemplateLink>
