@@ -8,6 +8,9 @@ namespace Microsoft.Cci
     /// Names for compilation options that get embedded as debug information
     /// in the PDB as key-value pairs.
     /// </summary>
+    /// <remarks>
+    /// REMOVAL OR CHANGES TO EXISTING VALUES IS CONSIDERED A BREAKING CHANGE FOR PDB FORMAT
+    /// </remarks>
     internal static class CompilationOptionNames
     {
         public const string CompilerVersion = "compiler-version";

@@ -8,11 +8,8 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
-Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.PDB
 
 Public Class VisualBasicDeterministicBuildCompilationTests
     Inherits BasicTestBase
