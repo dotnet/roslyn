@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -40,7 +41,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                System.Collections.Generic.IEnumerable<SyntaxNode> expressionsToAnalyze = context.Node.DescendantNodes().Where(n => ShouldAnalyzeExpression(n, context.SemanticModel));
+                System.Collections.Generic.IEnumerable<SyntaxNode> expressionsToAnalyze = context.Node.DescendantNodes().Where(n => ShouldAnalyzeExpression(n, context.SemanticModel, context.CancellationToken));
 
                 foreach (SyntaxNode expression in expressionsToAnalyze)
                 {
@@ -59,13 +60,13 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                 }
             }
 
-            private bool ShouldAnalyzeExpression(SyntaxNode expression, SemanticModel semanticModel)
+            private bool ShouldAnalyzeExpression(SyntaxNode expression, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 switch (expression.Kind())
                 {
                     case SyntaxKind.ArrayCreationExpression:
                     case SyntaxKind.ImplicitArrayCreationExpression:
-                        return ShouldAnalyzeArrayCreationExpression(expression, semanticModel);
+                        return ShouldAnalyzeArrayCreationExpression(expression, semanticModel, cancellationToken);
                     case SyntaxKind.SimpleMemberAccessExpression:
                         return true;
                     default:
