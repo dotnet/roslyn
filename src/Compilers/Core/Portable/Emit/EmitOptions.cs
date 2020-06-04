@@ -177,6 +177,40 @@ namespace Microsoft.CodeAnalysis.Emit
         {
         }
 
+        // 3.7 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        public EmitOptions(
+           bool metadataOnly,
+           DebugInformationFormat debugInformationFormat,
+           string? pdbFilePath,
+           string? outputNameOverride,
+           int fileAlignment,
+           ulong baseAddress,
+           bool highEntropyVirtualAddressSpace,
+           SubsystemVersion subsystemVersion,
+           string? runtimeMetadataVersion,
+           bool tolerateErrors,
+           bool includePrivateMembers,
+           ImmutableArray<InstrumentationKind> instrumentationKinds,
+           HashAlgorithmName? pdbChecksumAlgorithm)
+            : this(
+                  metadataOnly,
+                  debugInformationFormat,
+                  pdbFilePath,
+                  outputNameOverride,
+                  fileAlignment,
+                  baseAddress,
+                  highEntropyVirtualAddressSpace,
+                  subsystemVersion,
+                  runtimeMetadataVersion,
+                  tolerateErrors,
+                  includePrivateMembers,
+                  instrumentationKinds,
+                  pdbChecksumAlgorithm,
+                  defaultSourceFileEncoding: null,
+                  fallbackSourceFileEncoding: null)
+        {
+        }
+
         public EmitOptions(
             bool metadataOnly = false,
             DebugInformationFormat debugInformationFormat = 0,

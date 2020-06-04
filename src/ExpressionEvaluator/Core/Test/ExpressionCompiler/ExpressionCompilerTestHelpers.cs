@@ -844,8 +844,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                         isDeterministic: false,
                         emitTestCoverageData: false,
                         privateKeyOpt: null,
-                        cancellationToken: default(CancellationToken),
-                        defaultSourceFileEncoding: null);
+                        cancellationToken: default(CancellationToken));
 
                     peBytes = peStream.ToImmutable();
                     pdbBytes = pdbStream.ToImmutable();
