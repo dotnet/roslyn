@@ -1186,7 +1186,6 @@ class C
                 Class("C"));
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TypesOfClassMembers()
         {

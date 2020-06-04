@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             // If everything classifies the same way, then just pick that classification.
             using var _ = PooledHashSet<ClassifiedSpan>.GetInstance(out var set);
             var isStatic = false;
+
+
             foreach (var symbol in symbolInfo.CandidateSymbols)
             {
                 if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))

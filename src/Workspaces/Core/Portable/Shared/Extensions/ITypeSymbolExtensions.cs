@@ -139,7 +139,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return builder.ToImmutable();
         }
 
-
         public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, Workspace workspace)
             => constructedInterfaceMember switch
             {

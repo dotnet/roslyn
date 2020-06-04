@@ -48,12 +48,10 @@ namespace Microsoft.CodeAnalysis
                     return 14;
                 case SymbolKind.TypeParameter:
                     return 15;
-                case SymbolKind.PointerType:
-                    return 16;
                 case SymbolKind.DynamicType:
-                    return 17;
+                    return 16;
                 case SymbolKind.Preprocessing:
-                    return 18;
+                    return 17;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

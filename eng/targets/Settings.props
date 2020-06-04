@@ -19,7 +19,7 @@
     <RoslynPortableTargetFrameworks>netcoreapp3.1;net472</RoslynPortableTargetFrameworks>
     <UseSharedCompilation>true</UseSharedCompilation>
 
-    <Features>strict, IOperation</Features>
+    <Features>strict</Features>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GenerateFullPaths>true</GenerateFullPaths>

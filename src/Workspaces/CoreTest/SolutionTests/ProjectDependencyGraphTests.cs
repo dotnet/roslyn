@@ -260,7 +260,6 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTransitiveReferences(solution, "A", new string[] { "B" });
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTransitiveReferencesWithMultipleReferences()
         {

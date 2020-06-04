@@ -185,7 +185,6 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Parameter3()
         {
@@ -703,7 +702,6 @@ class Test
 ";
             await VerifyItemExistsAsync(markup, "test");
         }
-
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

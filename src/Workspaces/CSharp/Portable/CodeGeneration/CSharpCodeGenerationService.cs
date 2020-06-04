@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 // This is a VB event that declares its own type.  i.e. "Public Event E(x As Object)"
                 // We also have to generate "public void delegate EEventHandler(object x)"
                 var compilation = await newDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var newDestinationSymbol = destination.GetSymbolKey().Resolve(compilation).Symbol;
+                var newDestinationSymbol = destination.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol;
 
                 if (newDestinationSymbol?.ContainingType != null)
                 {
@@ -108,6 +108,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         protected override TDeclarationNode AddMethod<TDeclarationNode>(TDeclarationNode destination, IMethodSymbol method, CodeGenerationOptions options, IList<bool> availableIndices)
         {
+            // https://github.com/dotnet/roslyn/issues/44425: Add handling for top level statements
+            if (destination is GlobalStatementSyntax)
+            {
+                return destination;
+            }
+
             CheckDeclarationNode<TypeDeclarationSyntax, CompilationUnitSyntax, NamespaceDeclarationSyntax>(destination);
 
             options = options.With(options: options.Options ?? Workspace.Options);

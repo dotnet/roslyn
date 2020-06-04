@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 {

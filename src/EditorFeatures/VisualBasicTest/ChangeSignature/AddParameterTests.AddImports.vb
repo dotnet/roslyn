@@ -21,7 +21,7 @@ Class C
 End Class
 ]]></Text>.NormalizedValue()
 
-            Dim permutation = {New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Dictionary<ConsoleColor, Task<AsyncOperation>>", "test", "TODO"), "System.Collections.Generic.Dictionary(Of System.ConsoleColor, System.Threading.Tasks.Task(Of System.ComponentModel.AsyncOperation))")}
+            Dim permutation = {New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Dictionary<ConsoleColor, Task<AsyncOperation>>", "test", CallSiteKind.Todo), "System.Collections.Generic.Dictionary(Of System.ConsoleColor, System.Threading.Tasks.Task(Of System.ComponentModel.AsyncOperation))")}
 
             Dim updatedCode = <Text><![CDATA[
 Imports System

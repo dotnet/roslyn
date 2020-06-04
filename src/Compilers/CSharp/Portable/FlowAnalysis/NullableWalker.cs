@@ -752,7 +752,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
-            var binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
+            var binder = method is SynthesizedSimpleProgramEntryPointSymbol entryPoint ?
+                             entryPoint.GetBodyBinder(ignoreAccessibility: false) :
+                             compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             var conversions = binder.Conversions;
             Analyze(compilation,
                 method,
@@ -5931,30 +5933,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void ReportNullabilityMismatchWithTargetDelegate(Location location, NamedTypeSymbol delegateType, MethodSymbol method, bool invokedAsExtensionMethod)
+        private void ReportNullabilityMismatchWithTargetDelegate(Location location, TypeSymbol targetType, MethodSymbol targetInvokeMethod, MethodSymbol sourceInvokeMethod, bool invokedAsExtensionMethod)
         {
-            Debug.Assert((object)method != null);
-            Debug.Assert(method.MethodKind != MethodKind.LambdaMethod);
+            Debug.Assert((object)sourceInvokeMethod != null);
+            Debug.Assert(sourceInvokeMethod.MethodKind != MethodKind.LambdaMethod);
 
-            MethodSymbol invoke = delegateType?.DelegateInvokeMethod;
-            if (invoke is null)
+            if (targetInvokeMethod is null)
             {
                 return;
             }
 
-            if (IsNullabilityMismatch(method.ReturnTypeWithAnnotations, invoke.ReturnTypeWithAnnotations, requireIdentity: false))
+            if (IsNullabilityMismatch(sourceInvokeMethod.ReturnTypeWithAnnotations, targetInvokeMethod.ReturnTypeWithAnnotations, requireIdentity: false))
             {
                 ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, location,
-                    new FormattedSymbol(method, SymbolDisplayFormat.MinimallyQualifiedFormat),
-                    delegateType);
+                    new FormattedSymbol(sourceInvokeMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                    targetType);
             }
 
             int methodOffset = invokedAsExtensionMethod ? 1 : 0;
-            int count = Math.Min(invoke.ParameterCount, method.ParameterCount - methodOffset);
+            int count = Math.Min(targetInvokeMethod.ParameterCount, sourceInvokeMethod.ParameterCount - methodOffset);
             for (int i = 0; i < count; i++)
             {
-                var invokeParameter = invoke.Parameters[i];
-                var methodParameter = method.Parameters[i + methodOffset];
+                var invokeParameter = targetInvokeMethod.Parameters[i];
+                var methodParameter = sourceInvokeMethod.Parameters[i + methodOffset];
 
                 var sourceParameter = invokeParameter;
                 var destinationParameter = methodParameter;
@@ -5971,7 +5972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
                         GetParameterAsDiagnosticArgument(methodParameter),
                         GetContainingSymbolAsDiagnosticArgument(methodParameter),
-                        delegateType);
+                        targetType);
                 }
             }
         }
@@ -6094,7 +6095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.MethodGroup:
                     {
                         var group = conversionOperand as BoundMethodGroup;
-                        var delegateType = targetType.GetDelegateType();
+                        var (invokeSignature, parameters) = getDelegateOrFunctionPointerInfo(targetType);
                         var method = conversion.Method;
                         if (group != null)
                         {
@@ -6102,15 +6103,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 VisitLocalFunctionUse(localFunc);
                             }
-                            method = CheckMethodGroupReceiverNullability(group, delegateType, method, conversion.IsExtensionMethod);
+                            method = CheckMethodGroupReceiverNullability(group, parameters, method, conversion.IsExtensionMethod);
                         }
                         if (reportRemainingWarnings)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, delegateType, method, conversion.IsExtensionMethod);
+                            ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, targetType, invokeSignature, method, conversion.IsExtensionMethod);
                         }
                     }
                     resultState = NullableFlowState.NotNull;
                     break;
+
+                    static (MethodSymbol invokeSignature, ImmutableArray<ParameterSymbol>) getDelegateOrFunctionPointerInfo(TypeSymbol targetType)
+                        => targetType switch
+                        {
+                            NamedTypeSymbol { TypeKind: TypeKind.Delegate, DelegateInvokeMethod: { Parameters: { } parameters } signature } => (signature, parameters),
+                            FunctionPointerTypeSymbol { Signature: { Parameters: { } parameters } signature } => (signature, parameters),
+                            _ => throw ExceptionUtilities.UnexpectedValue(targetType)
+                        };
 
                 case ConversionKind.AnonymousFunction:
                     if (conversionOperand is BoundLambda lambda)
@@ -6666,10 +6675,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var method = node.MethodOpt;
                         if (method is object)
                         {
-                            method = CheckMethodGroupReceiverNullability(group, delegateType, method, node.IsExtensionMethod);
+                            method = CheckMethodGroupReceiverNullability(group, delegateType.DelegateInvokeMethod.Parameters, method, node.IsExtensionMethod);
                             if (!group.IsSuppressed)
                             {
-                                ReportNullabilityMismatchWithTargetDelegate(group.Syntax.Location, delegateType, method, node.IsExtensionMethod);
+                                ReportNullabilityMismatchWithTargetDelegate(group.Syntax.Location, delegateType, delegateType.DelegateInvokeMethod, method, node.IsExtensionMethod);
                             }
                         }
                         SetAnalyzedNullability(group, default);
@@ -6692,7 +6701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportNullableAssignmentIfNecessary(arg, argTypeWithAnnotations, argState, useLegacyWarnings: false);
                         if (!arg.IsSuppressed)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(arg.Syntax.Location, delegateType, argType.DelegateInvokeMethod(), invokedAsExtensionMethod: false);
+                            ReportNullabilityMismatchWithTargetDelegate(arg.Syntax.Location, delegateType, delegateType.DelegateInvokeMethod, argType.DelegateInvokeMethod(), invokedAsExtensionMethod: false);
                         }
 
                         // Delegate creation will throw an exception if the argument is null
@@ -6747,7 +6756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodGroupReceiverMapOpt[receiver] = type;
         }
 
-        private MethodSymbol CheckMethodGroupReceiverNullability(BoundMethodGroup group, NamedTypeSymbol delegateType, MethodSymbol method, bool invokedAsExtensionMethod)
+        private MethodSymbol CheckMethodGroupReceiverNullability(BoundMethodGroup group, ImmutableArray<ParameterSymbol> parameters, MethodSymbol method, bool invokedAsExtensionMethod)
         {
             var receiverOpt = group.ReceiverOpt;
             if (TryGetMethodGroupReceiverNullability(receiverOpt, out TypeWithState receiverType))
@@ -6767,7 +6776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Create placeholders for the arguments. (See Conversions.GetDelegateArguments()
                     // which is used for that purpose in initial binding.)
-                    foreach (var parameter in delegateType.DelegateInvokeMethod.Parameters)
+                    foreach (var parameter in parameters)
                     {
                         var parameterType = parameter.TypeWithAnnotations;
                         arguments.Add(new BoundExpressionWithNullability(syntax, new BoundParameter(syntax, parameter), parameterType.NullableAnnotation, parameterType.Type));
@@ -8603,7 +8612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
         {
             var result = base.VisitStackAllocArrayCreation(node);
-            Debug.Assert(node.Type is null || node.Type.IsErrorType() || node.Type.IsPointerType() || node.Type.IsRefLikeType);
+            Debug.Assert(node.Type is null || node.Type.IsErrorType() || node.Type.IsRefLikeType);
             SetNotNullResult(node);
             return result;
         }
@@ -8870,6 +8879,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Visit(node.AwaitableInstancePlaceholder);
             Visit(node.GetAwaiter);
+            return null;
+        }
+
+        public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+        {
+            _ = Visit(node.InvokedExpression);
+            Debug.Assert(ResultType is TypeWithState { Type: FunctionPointerTypeSymbol { }, State: NullableFlowState.NotNull });
+            _ = VisitArguments(
+                node,
+                node.Arguments,
+                node.ArgumentRefKindsOpt,
+                node.FunctionPointer.Signature,
+                argsToParamsOpt: default,
+                expanded: false,
+                invokedAsExtensionMethod: false);
+
+            var returnTypeWithAnnotations = node.FunctionPointer.Signature.ReturnTypeWithAnnotations;
+            SetResult(node, returnTypeWithAnnotations.ToTypeWithState(), returnTypeWithAnnotations);
+
             return null;
         }
 

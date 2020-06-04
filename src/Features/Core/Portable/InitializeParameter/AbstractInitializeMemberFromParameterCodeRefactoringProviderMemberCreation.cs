@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 IBlockOperation? currentBlockStatementOpt = null;
                 if (blockStatementOpt != null)
                 {
-                    currentBlockStatementOpt = (IBlockOperation?)currentSemanticModel.GetOperation(currentRoot.GetCurrentNode(blockStatementOpt.Syntax));
+                    currentBlockStatementOpt = (IBlockOperation?)currentSemanticModel.GetOperation(currentRoot.GetCurrentNode(blockStatementOpt.Syntax), cancellationToken);
                     if (currentBlockStatementOpt == null)
                         continue;
                 }

@@ -238,6 +238,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsOnTypeHeader(this ISyntaxFacts syntaxFacts, SyntaxNode root, int position, out SyntaxNode typeDeclaration)
             => syntaxFacts.IsOnTypeHeader(root, position, fullHeader: false, out typeDeclaration);
 
+        /// <summary>
+        /// Gets the statement container node for the statement <paramref name="node"/>.
+        /// </summary>
+        /// <param name="syntaxFacts">The <see cref="ISyntaxFacts"/> implementation.</param>
+        /// <param name="node">The statement.</param>
+        /// <returns>The statement container for <paramref name="node"/>.</returns>
+        public static SyntaxNode? GetStatementContainer(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            for (var current = node; current is object; current = current.Parent)
+            {
+                if (syntaxFacts.IsStatementContainer(current.Parent))
+                {
+                    return current.Parent;
+                }
+            }
+
+            return null;
+        }
+
         #region ISyntaxKinds forwarding methods
 
         #region trivia
@@ -371,6 +390,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsTupleExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TupleExpression;
+
+        public static bool ContainsGlobalStatement(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+            => node.ChildNodes().Any(c => c.RawKind == syntaxFacts.SyntaxKinds.GlobalStatement);
 
         #endregion
 

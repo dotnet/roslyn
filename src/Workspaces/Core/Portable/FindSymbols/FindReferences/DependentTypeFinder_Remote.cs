@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                     if (client != null)
                     {
-                        var result = await client.TryRunRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                        var result = await client.RunRemoteAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
                             WellKnownServiceHubService.CodeAnalysis,
                             remoteFunctionName,
                             solution,
@@ -45,10 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             null,
                             cancellationToken).ConfigureAwait(false);
 
-                        if (result.HasValue)
-                        {
-                            return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
-                        }
+                        return await RehydrateAsync(solution, result, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

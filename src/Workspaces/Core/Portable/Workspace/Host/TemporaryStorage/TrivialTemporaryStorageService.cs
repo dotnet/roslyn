@@ -67,7 +67,11 @@ namespace Microsoft.CodeAnalysis
             public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
+#if NETCOREAPP
+                await stream.CopyToAsync(newStream, cancellationToken).ConfigureAwait(false);
+# else
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
+#endif
                 _stream = newStream;
             }
         }

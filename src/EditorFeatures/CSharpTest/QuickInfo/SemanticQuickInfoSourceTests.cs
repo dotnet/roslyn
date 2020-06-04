@@ -1345,7 +1345,7 @@ class AsyncExample2
         result = await lambda();
     }
 }";
-            await TestAsync(markup, MainDescription($"({CSharpFeaturesResources.awaitable}) {string.Format(FeaturesResources.Awaited_task_returns_0, "class System.Threading.Tasks.Task<TResult>")}"),
+            await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, $"({CSharpFeaturesResources.awaitable}) class System.Threading.Tasks.Task<TResult>")),
                          TypeParameterMap($"\r\nTResult {FeaturesResources.is_} int"));
         }
 
@@ -5230,7 +5230,7 @@ class Program
         awa$$it M();
     }
 }";
-            await TestAsync(markup, MainDescription("int[]"));
+            await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "int[]")));
         }
 
         [WorkItem(1114300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114300")]
@@ -5247,7 +5247,7 @@ class Program
         awa$$it M();
     }
 }";
-            await TestAsync(markup, MainDescription("dynamic"));
+            await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "dynamic")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -6416,7 +6416,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.parameter}) string? s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6434,7 +6434,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.parameter}) string? s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6453,7 +6453,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.field}) string? X.s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6473,7 +6473,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.field}) string? X.s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6492,7 +6492,7 @@ class X
     }
 }",
                 MainDescription("string? X.S { get; set; }"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "S")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "S")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6512,7 +6512,7 @@ class X
     }
 }",
                 MainDescription("string? X.S { get; set; }"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "S")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "S")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6536,7 +6536,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) string? s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6560,7 +6560,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) string? s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6580,7 +6580,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) string? s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_may_be_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6600,7 +6600,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) string? s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6658,7 +6658,7 @@ class X
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) string s"),
-                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+                NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

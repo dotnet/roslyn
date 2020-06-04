@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             foreach (var diagnostic in diagnostics)
             {
                 var loc = diagnostic.AdditionalLocations[0];
-                var interpolation = semanticModel.GetOperation(loc.FindNode(getInnermostNodeForTie: true, cancellationToken)) as IInterpolationOperation;
+                var interpolation = semanticModel.GetOperation(loc.FindNode(getInnermostNodeForTie: true, cancellationToken), cancellationToken) as IInterpolationOperation;
                 if (interpolation?.Syntax is TInterpolationSyntax interpolationSyntax &&
                     interpolationSyntax.Parent is TInterpolatedStringExpressionSyntax interpolatedString)
                 {
