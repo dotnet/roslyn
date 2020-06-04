@@ -79,7 +79,7 @@ class C
             {
                 N(SyntaxKind.RecordDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.ParameterList);
                     {
@@ -166,7 +166,7 @@ class C
             {
                 N(SyntaxKind.RecordDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.ParameterList);
                     {
@@ -207,7 +207,7 @@ class C
             {
                 N(SyntaxKind.RecordDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -226,7 +226,7 @@ class C
             {
                 N(SyntaxKind.RecordDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.FieldDeclaration);
@@ -255,7 +255,7 @@ class C
         [Fact]
         public void RecordParsing05()
         {
-            var tree = ParseTree("record Point;", options: null);
+            var tree = ParseTree("record Point;", options: TestOptions.Regular8);
             tree.GetDiagnostics().Verify(
                 // (1,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record Point;
@@ -337,6 +337,75 @@ class C
                 // interface P(int x, int y);
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(1, 12)
             );
+        }
+
+        [Fact]
+        public void RecordParsingAmbiguities()
+        {
+            var text = @"
+record R1() { return null; }
+abstract record D
+{
+    record R2() { return null; }
+    abstract record R3();
+}";
+            UsingTree(text,
+                // (2,15): error CS1519: Invalid token 'return' in class, struct, or interface member declaration
+                // record R1() { return null; }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "return").WithArguments("return").WithLocation(2, 15),
+                // (5,19): error CS1519: Invalid token 'return' in class, struct, or interface member declaration
+                //     record R2() { return null; }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "return").WithArguments("return").WithLocation(5, 19));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "R1");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.AbstractKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "D");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.RecordDeclaration);
+                    {
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.IdentifierToken, "R2");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.RecordDeclaration);
+                    {
+                        N(SyntaxKind.AbstractKeyword);
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.IdentifierToken, "R3");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -1399,7 +1468,7 @@ class C(int X, int Y)
             {
                 N(SyntaxKind.RecordDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     if (withParameters)
                     {
@@ -1502,7 +1571,7 @@ class C(int X, int Y)
             {
                 N(SyntaxKind.RecordDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.ParameterList);
                     {

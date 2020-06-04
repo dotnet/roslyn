@@ -1444,14 +1444,14 @@ tryAgain:
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
 
-            var keyword = this.EatToken();
+            var keyword = ConvertToKeyword(this.EatToken());
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            bool isRecord = keyword.ContextualKind == SyntaxKind.RecordKeyword;
+            bool isRecord = keyword.Kind == SyntaxKind.RecordKeyword;
 
             var paramList = isRecord && CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? ParseParenthesizedParameterList() : null;
@@ -1598,24 +1598,20 @@ tryAgain:
                             closeBrace,
                             semicolon);
 
-                    case SyntaxKind.IdentifierToken:
-                        if (isRecord)
-                        {
-                            return _syntaxFactory.RecordDeclaration(
-                                attributes,
-                                modifiers.ToList(),
-                                keyword,
-                                name,
-                                typeParameters,
-                                paramList,
-                                baseList,
-                                constraints,
-                                openBrace,
-                                members,
-                                closeBrace,
-                                semicolon);
-                        }
-                        goto default;
+                    case SyntaxKind.RecordKeyword:
+                        return _syntaxFactory.RecordDeclaration(
+                            attributes,
+                            modifiers.ToList(),
+                            keyword,
+                            name,
+                            typeParameters,
+                            paramList,
+                            baseList,
+                            constraints,
+                            openBrace,
+                            members,
+                            closeBrace,
+                            semicolon);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(keyword.Kind);
@@ -1748,7 +1744,7 @@ tryAgain:
                 {
                     argumentList = this.ParseParenthesizedArgumentList();
 
-                    if (typeKeyword.ContextualKind != SyntaxKind.RecordKeyword || !haveParameters)
+                    if (typeKeyword.Kind != SyntaxKind.RecordKeyword || !haveParameters)
                     {
                         argumentList = this.AddErrorToFirstToken(argumentList, ErrorCode.ERR_UnexpectedArgumentList);
                     }
@@ -2693,15 +2689,7 @@ parse_member_name:;
                     MemberDeclarationSyntax result;
                     if (IsMisplacedModifier(modifiers, attributes, type, out result))
                     {
-                        var misplacedModifier = this.CurrentToken;
-                        type = this.AddError(
-                            type,
-                            type.FullWidth + misplacedModifier.GetLeadingTriviaWidth(),
-                            misplacedModifier.Width,
-                            ErrorCode.ERR_BadModifierLocation,
-                            misplacedModifier.Text);
-
-                        return _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type);
+                        return result;
                     }
 
 parse_member_name:;
