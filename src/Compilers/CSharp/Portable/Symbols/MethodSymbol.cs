@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If the member is in an assembly with unified references,
             // we check if its definition depends on a type from a unified reference.
-            if (this.ContainingModule.HasUnifiedReferences)
+            if (this.ContainingModule?.HasUnifiedReferences == true)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
 
@@ -958,11 +958,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal bool IsIterator
+        internal virtual bool IsIterator
         {
             get
             {
-                return !IteratorElementTypeWithAnnotations.IsDefault;
+                return false;
             }
         }
 

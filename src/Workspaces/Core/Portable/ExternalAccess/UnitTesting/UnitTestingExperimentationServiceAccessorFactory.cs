@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
+    [Obsolete]
     [ExportWorkspaceServiceFactory(typeof(IUnitTestingExperimentationServiceAccessor))]
     [Shared]
     internal class UnitTestingExperimentationServiceAccessorFactory : IWorkspaceServiceFactory

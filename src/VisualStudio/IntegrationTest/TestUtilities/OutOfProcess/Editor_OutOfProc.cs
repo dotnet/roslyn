@@ -65,6 +65,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public ImmutableArray<TextSpan> GetTagSpans(string tagId)
         {
+            if (tagId == _instance.InlineRenameDialog.ValidRenameTag)
+            {
+                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Rename);
+            }
+
             var tagInfo = _editorInProc.GetTagSpans(tagId).ToList();
 
             // The spans are returned in an array:

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,9 +39,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
+            // Just report this back as there being no more comments for this document.
             return _endPoint.InvokeAsync(
-                nameof(ITodoCommentsListener.OnDocumentRemovedAsync),
-                new object[] { documentId },
+                nameof(ITodoCommentsListener.ReportTodoCommentDataAsync),
+                new object[] { documentId, Array.Empty<TodoCommentData>() },
                 cancellationToken);
         }
 
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task ConvertAsync(
+        private static async Task ConvertAsync(
             Document document,
             ImmutableArray<TodoComment> todoComments,
             ArrayBuilder<TodoCommentData> converted,

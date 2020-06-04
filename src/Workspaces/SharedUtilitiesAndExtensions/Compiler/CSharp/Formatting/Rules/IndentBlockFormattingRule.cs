@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddTypeParameterConstraintClauseOperation(list, node);
         }
 
-        private void AddTypeParameterConstraintClauseOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        private static void AddTypeParameterConstraintClauseOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             if (node is TypeParameterConstraintClauseSyntax { Parent: { } declaringNode })
             {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        private static void AddAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             switch (node)
             {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void SetAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode baseNode, SyntaxNode body)
+        private static void SetAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode baseNode, SyntaxNode body)
         {
             var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
 
@@ -229,13 +229,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddIndentBlockOperation(list, bracePair.openBrace.GetNextToken(includeZeroWidth: true), bracePair.closeBrace.GetPreviousToken(includeZeroWidth: true));
         }
 
-        private void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
+        private static void AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(List<IndentBlockOperation> list, (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
         {
             var option = IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine;
             SetAlignmentBlockOperation(list, bracePair.openBrace, bracePair.openBrace.GetNextToken(includeZeroWidth: true), bracePair.closeBrace, option);
         }
 
-        private void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             // increase indentation - embedded statement cases
             if (node is IfStatementSyntax ifStatement && ifStatement.Statement != null && !(ifStatement.Statement is BlockSyntax))
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, StatementSyntax statement)
+        private static void AddEmbeddedStatementsIndentationOperation(List<IndentBlockOperation> list, StatementSyntax statement)
         {
             var firstToken = statement.GetFirstToken(includeZeroWidth: true);
             var lastToken = statement.GetLastToken(includeZeroWidth: true);

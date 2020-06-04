@@ -505,7 +505,6 @@ $$class RenameRocks
             VisualStudio.SolutionExplorer.AddFile(project2, "Class2.cs", @"");
             VisualStudio.SolutionExplorer.OpenFile(project2, "Class2.cs");
 
-
             VisualStudio.Editor.SetText(@"
 public class Class2 { static void Main(string [] args) { } }");
 

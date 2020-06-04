@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
                 GeneratorSyntaxWalker walker = new GeneratorSyntaxWalker(receivers.Values.ToImmutableArray());
                 foreach (var syntaxTree in compilation.SyntaxTrees)
                 {
-                    walker.Visit(syntaxTree.GetRoot());
+                    walker.Visit(syntaxTree.GetRoot(cancellationToken));
                 }
             }
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
             var state = _state;
             foreach (var edit in _state.Edits)
             {
-                state = ApplyPartialEdit(state, edit);
+                state = ApplyPartialEdit(state, edit, cancellationToken);
                 if (state.EditsFailed)
                 {
                     outputCompilation = compilation;

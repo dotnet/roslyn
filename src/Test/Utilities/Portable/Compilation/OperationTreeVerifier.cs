@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString(", IsImplicit");
             }
 
-
             LogString(")");
 
             // Syntax

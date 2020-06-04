@@ -18,6 +18,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -7176,8 +7177,12 @@ public class C
 a.cs(1,7): error CS1001: Identifier expected
 a.cs(1,7): error CS1514: { expected
 a.cs(1,7): error CS1513: } expected
-a.cs(1,7): error CS1022: Type or namespace definition, or end-of-file expected
-a.cs(1,10): error CS1022: Type or namespace definition, or end-of-file expected".Trim(),
+a.cs(1,7): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+a.cs(1,7): error CS8803: Top-level statements must precede namespace and type declarations.
+a.cs(1,7): error CS1525: Invalid expression term '??'
+a.cs(1,9): error CS1525: Invalid expression term '{'
+a.cs(1,9): error CS1002: ; expected
+".Trim(),
                 Regex.Replace(output, "^.*a.cs", "a.cs", RegexOptions.Multiline).Trim());
 
             CleanupAllGeneratedFiles(file.Path);
@@ -9608,6 +9613,7 @@ public class Program
                                            int expectedWarningCount = 0,
                                            int expectedErrorCount = 0,
                                            bool errorlog = false,
+                                           IEnumerable<ISourceGenerator> generators = null,
                                            params DiagnosticAnalyzer[] analyzers)
         {
             var args = new[] {
@@ -9629,7 +9635,7 @@ public class Program
                 args = args.Append(additionalFlags);
             }
 
-            var csc = CreateCSharpCompiler(null, sourceDir.Path, args, analyzers: analyzers.ToImmutableArrayOrEmpty());
+            var csc = CreateCSharpCompiler(null, sourceDir.Path, args, analyzers: analyzers.ToImmutableArrayOrEmpty(), generators: generators.ToImmutableArrayOrEmpty());
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
             var output = outWriter.ToString();
@@ -12188,6 +12194,24 @@ generated_code = auto");
             }
         }
 
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44087")]
+        public void SourceGeneratorsAndAnalyzerConfig()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+key = value");
+
+            var generator = new SimpleGenerator("public class D {}");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: new HiddenDiagnosticAnalyzer());
+        }
+
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private sealed class FieldAnalyzer : DiagnosticAnalyzer
         {
@@ -12233,6 +12257,80 @@ generated_code = auto");
             var output = outWriter.ToString();
             Assert.Empty(output);
             CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
+        public void GlobalAnalyzerConfigsAllowedInSameDir()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+    int _f;
+}");
+            var configText = @"
+is_global = true
+";
+
+            var analyzerConfig1 = dir.CreateFile("analyzerconfig1").WriteAllText(configText);
+            var analyzerConfig2 = dir.CreateFile("analyzerconfig2").WriteAllText(configText);
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig1.Path,
+                "/analyzerconfig:" + analyzerConfig2.Path,
+                src.Path
+            });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+        }
+
+        [Fact]
+        public void GlobalAnalyzerConfigMultipleSetKeys()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var analyzerConfigFile = dir.CreateFile(".globalconfig");
+            var analyzerConfig = analyzerConfigFile.WriteAllText(@"
+is_global = true
+option1 = abc");
+
+            var analyzerConfigFile2 = dir.CreateFile(".globalconfig2");
+            var analyzerConfig2 = analyzerConfigFile2.WriteAllText(@"
+is_global = true
+option1 = def");
+
+            var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+
+            // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'Global Section'. It has been unset. Key was set by the following files: ...
+            Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
+            Assert.Contains("'option1'", output, StringComparison.Ordinal);
+            Assert.Contains("'Global Section'", output, StringComparison.Ordinal);
+
+
+            analyzerConfig = analyzerConfigFile.WriteAllText(@"
+is_global = true
+[file.cs]
+option1 = abc");
+
+            analyzerConfig2 = analyzerConfigFile2.WriteAllText(@"
+is_global = true
+[file.cs]
+option1 = def");
+
+            output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
+
+            // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'file.cs'. It has been unset. Key was set by the following files: ...
+            Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
+            Assert.Contains("'option1'", output, StringComparison.Ordinal);
+            Assert.Contains("'file.cs'", output, StringComparison.Ordinal);
         }
     }
 
@@ -12350,6 +12448,37 @@ generated_code = auto");
                 },
                 SyntaxKind.PragmaWarningDirectiveTrivia
                 );
+        }
+    }
+
+    [Generator]
+    internal class SimpleGenerator : ISourceGenerator
+    {
+        private readonly string _sourceToAdd;
+
+        /// <remarks>
+        /// Required for reflection based tests
+        /// </remarks>
+        public SimpleGenerator()
+        {
+            _sourceToAdd = string.Empty;
+        }
+
+        public SimpleGenerator(string sourceToAdd)
+        {
+            _sourceToAdd = sourceToAdd;
+        }
+
+        public void Execute(SourceGeneratorContext context)
+        {
+            if (!string.IsNullOrWhiteSpace(_sourceToAdd))
+            {
+                context.AddSource("addedSource.cs", SourceText.From(_sourceToAdd, Encoding.UTF8));
+            }
+        }
+
+        public void Initialize(InitializationContext context)
+        {
         }
     }
 }

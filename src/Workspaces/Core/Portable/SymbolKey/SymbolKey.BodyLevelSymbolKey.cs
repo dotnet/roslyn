@@ -2,8 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -11,128 +18,157 @@ namespace Microsoft.CodeAnalysis
     {
         private static class BodyLevelSymbolKey
         {
-            public static void Create(ISymbol symbol, SymbolKeyWriter visitor)
-            {
-                var containingSymbol = symbol.ContainingSymbol;
-
-                while (containingSymbol.DeclaringSyntaxReferences.IsDefaultOrEmpty)
+            public static bool IsBodyLevelSymbol(ISymbol symbol)
+                => symbol switch
                 {
-                    containingSymbol = containingSymbol.ContainingSymbol;
+                    ILabelSymbol _ => true,
+                    IRangeVariableSymbol _ => true,
+                    ILocalSymbol _ => true,
+                    IMethodSymbol { MethodKind: MethodKind.LocalFunction } _ => true,
+                    _ => false,
+                };
+
+            public static ImmutableArray<Location> GetBodyLevelSourceLocations(ISymbol symbol, CancellationToken cancellationToken)
+            {
+                Contract.ThrowIfFalse(IsBodyLevelSymbol(symbol));
+                Contract.ThrowIfTrue(symbol.DeclaringSyntaxReferences.IsEmpty && symbol.Locations.IsEmpty);
+
+                using var _ = ArrayBuilder<Location>.GetInstance(out var result);
+
+                foreach (var location in symbol.Locations)
+                {
+                    if (location.IsInSource)
+                        result.Add(location);
                 }
 
-                var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
+                foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
+                    result.Add(syntaxRef.GetSyntax(cancellationToken).GetLocation());
+
+                return result.ToImmutable();
+            }
+
+            public static void Create(ISymbol symbol, SymbolKeyWriter visitor)
+            {
+                // Store the body level symbol in two forms.  The first, a highly precise form that should find explicit
+                // symbols for the case of resolving a symbol key back in the *same* solution snapshot it was created
+                // from. The second, in a more query-oriented form that can allow the symbol to be found in some cases
+                // even if the solution changed (which is a supported use case for SymbolKey).
+                //
+                // The first way just stores the location of the symbol, which we can then validate during resolution
+                // maps back to the same symbol kind/name.  
+                //
+                // The second determines the sequence of symbols of the same kind and same name in the file and keeps
+                // track of our index in that sequence.  That way, if trivial edits happen, or symbols with different
+                // names/types are added/removed, we can still find what is likely to be this symbol after the edit.
+
                 var kind = symbol.Kind;
                 var localName = symbol.Name;
 
-                // Use two mechanisms to try to find the symbol across compilations. First, we use a whitespace
-                // insensitive system where we keep track of the list of all locals in the container and we just store
-                // our index in it.
-                //
-                // The above works for cases where the symbol has a real declaration and can be found by walking the
-                // declarations of the container.  However, not all symbols can be found that way.  For example, error
-                // locals in VB can't be found using GetDeclaredSymbol.  For those, we store the actual local span and
-                // use GetSymbolInfo to find it.
-                var ordinal = GetOrdinal();
-
                 visitor.WriteString(localName);
-                visitor.WriteSymbolKey(containingSymbol);
-                visitor.WriteInteger(ordinal);
-                visitor.WriteLocation(symbol.Locations[0]);
                 visitor.WriteInteger((int)kind);
+
+                // write out the locations for precision
+                Contract.ThrowIfTrue(symbol.DeclaringSyntaxReferences.IsEmpty && symbol.Locations.IsEmpty);
+
+                var locations = GetBodyLevelSourceLocations(symbol, visitor.CancellationToken);
+
+                Contract.ThrowIfFalse(locations.All(loc => loc.IsInSource));
+                visitor.WriteLocationArray(locations.Distinct());
+
+                // and the ordinal for resilience
+                visitor.WriteInteger(GetOrdinal());
 
                 return;
 
                 int GetOrdinal()
                 {
-                    foreach (var possibleSymbol in EnumerateSymbols(compilation, containingSymbol, kind, localName, visitor.CancellationToken))
+                    var syntaxTree = locations[0].SourceTree;
+                    var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
+
+                    // Ensure that the tree we're looking at is actually in this compilation.  It may not be in the
+                    // compilation in the case of work done with a speculative model.
+                    if (TryGetSemanticModel(compilation, syntaxTree, out var semanticModel))
                     {
-                        if (possibleSymbol.symbol.Equals(symbol))
-                            return possibleSymbol.ordinal;
+                        foreach (var possibleSymbol in EnumerateSymbols(semanticModel, kind, localName, visitor.CancellationToken))
+                        {
+                            if (possibleSymbol.symbol.Equals(symbol))
+                                return possibleSymbol.ordinal;
+                        }
                     }
 
                     return int.MaxValue;
                 }
             }
 
+            private static bool TryGetSemanticModel(
+                Compilation compilation, SyntaxTree? syntaxTree,
+                [NotNullWhen(true)] out SemanticModel? semanticModel)
+            {
+                // Ensure that the tree we're looking at is actually in this compilation.  It may not be in the
+                // compilation in the case of work done with a speculative model.
+                if (syntaxTree != null && Contains(compilation.SyntaxTrees, syntaxTree))
+                {
+                    semanticModel = compilation.GetSemanticModel(syntaxTree);
+                    return true;
+                }
+
+                semanticModel = null;
+                return false;
+            }
+
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var cancellationToken = reader.CancellationToken;
 
-                var localName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
-                var ordinal = reader.ReadInteger();
-                var location = reader.ReadLocation();
+                var name = reader.ReadString();
                 var kind = (SymbolKind)reader.ReadInteger();
+                var locations = reader.ReadLocationArray();
+                var ordinal = reader.ReadInteger();
 
-                var containingSymbol = containingSymbolResolution.Symbol;
-                if (containingSymbol != null)
+                // First check if we can recover the symbol just through the original location.
+                foreach (var loc in locations)
                 {
-                    if (ordinal != int.MaxValue)
+                    var resolutionOpt = reader.ResolveLocation(loc);
+                    if (resolutionOpt.HasValue)
                     {
-                        foreach (var symbol in EnumerateSymbols(reader.Compilation, containingSymbol, kind, localName, cancellationToken))
+                        var resolution = resolutionOpt.Value;
+                        var symbol = resolution.GetAnySymbol();
+                        if (symbol?.Kind == kind &&
+                            SymbolKey.Equals(reader.Compilation, name, symbol.Name))
                         {
-                            if (symbol.ordinal == ordinal)
-                                return new SymbolKeyResolution(symbol.symbol);
+                            return resolution;
                         }
-                    }
-                    else
-                    {
-                        var resolution = reader.ResolveLocation(location);
-                        if (resolution != null)
-                            return resolution.Value;
                     }
                 }
 
-                return new SymbolKeyResolution();
+                // Couldn't recover.  See if we can still find a match across the textual drift.
+                if (ordinal != int.MaxValue &&
+                    TryGetSemanticModel(reader.Compilation, locations[0].SourceTree, out var semanticModel))
+                {
+                    foreach (var symbol in EnumerateSymbols(semanticModel, kind, name, cancellationToken))
+                    {
+                        if (symbol.ordinal == ordinal)
+                            return new SymbolKeyResolution(symbol.symbol);
+                    }
+                }
+
+                return default;
             }
 
             private static IEnumerable<(ISymbol symbol, int ordinal)> EnumerateSymbols(
-                Compilation compilation, ISymbol containingSymbol,
-                SymbolKind kind, string localName,
-                CancellationToken cancellationToken)
+                SemanticModel semanticModel, SymbolKind kind, string localName, CancellationToken cancellationToken)
             {
                 var ordinal = 0;
+                var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 
-                foreach (var declaringLocation in containingSymbol.DeclaringSyntaxReferences)
+                foreach (var node in root.DescendantNodes())
                 {
-                    // This operation can potentially fail. If containingSymbol came from 
-                    // a SpeculativeSemanticModel, containingSymbol.ContainingAssembly.Compilation
-                    // may not have been rebuilt to reflect the trees used by the 
-                    // SpeculativeSemanticModel to produce containingSymbol. In that case,
-                    // asking the ContainingAssembly's compilation for a SemanticModel based
-                    // on trees for containingSymbol with throw an ArgumentException.
-                    // Unfortunately, the best way to avoid this (currently) is to see if
-                    // we're asking for a model for a tree that's part of the compilation.
-                    // (There's no way to get back to a SemanticModel from a symbol).
+                    var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
 
-                    // TODO (rchande): It might be better to call compilation.GetSemanticModel
-                    // and catch the ArgumentException. The compilation internally has a 
-                    // Dictionary<SyntaxTree, ...> that it uses to check if the SyntaxTree
-                    // is applicable wheras the public interface requires us to enumerate
-                    // the entire IEnumerable of trees in the Compilation.
-                    if (!Contains(compilation.SyntaxTrees, declaringLocation.SyntaxTree))
+                    if (symbol?.Kind == kind &&
+                        SymbolKey.Equals(semanticModel.Compilation, symbol.Name, localName))
                     {
-                        continue;
-                    }
-
-                    var node = declaringLocation.GetSyntax(cancellationToken);
-                    if (node.Language == LanguageNames.VisualBasic)
-                    {
-                        node = node.Parent;
-                    }
-
-                    var semanticModel = compilation.GetSemanticModel(node.SyntaxTree);
-
-                    foreach (var token in node.DescendantNodes())
-                    {
-                        var symbol = semanticModel.GetDeclaredSymbol(token, cancellationToken);
-
-                        if (symbol != null &&
-                            symbol.Kind == kind &&
-                            SymbolKey.Equals(compilation, symbol.Name, localName))
-                        {
-                            yield return (symbol, ordinal++);
-                        }
+                        yield return (symbol, ordinal++);
                     }
                 }
             }

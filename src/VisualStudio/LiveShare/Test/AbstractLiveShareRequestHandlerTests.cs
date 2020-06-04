@@ -24,35 +24,23 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
     {
         private class MockHostProtocolConverter : IHostProtocolConverter
         {
-            public Uri FromProtocolUri(Uri uri)
-            {
-                return uri;
-            }
+            private readonly Func<Uri, Uri> _uriConversionFunction;
 
-            public bool IsContainedInRootFolders(Uri uriToCheck)
-            {
-                return true;
-            }
+            public MockHostProtocolConverter() => _uriConversionFunction = uri => { return uri; };
 
-            public bool IsKnownWorkspaceFile(Uri uriToCheck)
-            {
-                throw new NotImplementedException();
-            }
+            public MockHostProtocolConverter(Func<Uri, Uri> uriConversionFunction) => _uriConversionFunction = uriConversionFunction;
 
-            public Task RegisterExternalFilesAsync(Uri[] filePaths)
-            {
-                return Task.CompletedTask;
-            }
+            public Uri FromProtocolUri(Uri uri) => _uriConversionFunction(uri);
 
-            public Uri ToProtocolUri(Uri uri)
-            {
-                return uri;
-            }
+            public bool IsContainedInRootFolders(Uri uriToCheck) => true;
 
-            public bool TryGetExternalUris(string exernalUri, out Uri uri)
-            {
-                throw new NotImplementedException();
-            }
+            public bool IsKnownWorkspaceFile(Uri uriToCheck) => throw new NotImplementedException();
+
+            public Task RegisterExternalFilesAsync(Uri[] filePaths) => Task.CompletedTask;
+
+            public Uri ToProtocolUri(Uri uri) => uri;
+
+            public bool TryGetExternalUris(string exernalUri, out Uri uri) => throw new NotImplementedException();
         }
 
         protected override ExportProvider GetExportProvider()
@@ -75,17 +63,31 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             return exportProviderFactory.CreateExportProvider();
         }
 
-        protected static async Task<ResponseType> TestHandleAsync<RequestType, ResponseType>(Solution solution, RequestType request)
+        protected static async Task<ResponseType> TestHandleAsync<RequestType, ResponseType>(Solution solution, RequestType request, string methodName)
         {
             var requestContext = new RequestContext<Solution>(solution, new MockHostProtocolConverter(), JObject.FromObject(new ClientCapabilities()));
-            return await GetHandler<RequestType, ResponseType>(solution).HandleAsync(request, requestContext, CancellationToken.None);
+            return await GetHandler<RequestType, ResponseType>(solution, methodName).HandleAsync(request, requestContext, CancellationToken.None);
         }
 
-        protected static ILspRequestHandler<RequestType, ResponseType, Solution> GetHandler<RequestType, ResponseType>(Solution solution)
+        protected static async Task<ResponseType> TestHandleAsync<RequestType, ResponseType>(Solution solution, RequestType request, string methodName, Func<Uri, Uri> uriMappingFunc)
+        {
+            var requestContext = new RequestContext<Solution>(solution, new MockHostProtocolConverter(uriMappingFunc), JObject.FromObject(new ClientCapabilities()));
+            return await GetHandler<RequestType, ResponseType>(solution, methodName).HandleAsync(request, requestContext, CancellationToken.None);
+        }
+
+        protected static ILspRequestHandler<RequestType, ResponseType, Solution> GetHandler<RequestType, ResponseType>(Solution solution, string methodName)
         {
             var workspace = (TestWorkspace)solution.Workspace;
             var handlers = workspace.ExportProvider.GetExportedValues<ILspRequestHandler>(LiveShareConstants.RoslynContractName);
-            return (ILspRequestHandler<RequestType, ResponseType, Solution>)handlers.Single(handler => handler is ILspRequestHandler<RequestType, ResponseType, Solution>);
+            return (ILspRequestHandler<RequestType, ResponseType, Solution>)handlers.Single(handler => handler is ILspRequestHandler<RequestType, ResponseType, Solution> && IsMatchingMethod(handler, methodName));
+
+            // Since request handlers can have the same input and output types (especially with object), we need to also
+            // check that the LSP method the handler is exported for matches the one we're requesting.
+            static bool IsMatchingMethod(ILspRequestHandler handler, string methodName)
+            {
+                var attribute = (ExportLspRequestHandlerAttribute)Attribute.GetCustomAttribute(handler.GetType(), typeof(ExportLspRequestHandlerAttribute));
+                return attribute?.MethodName == methodName;
+            }
         }
     }
 }

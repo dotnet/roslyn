@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(accessibleSymbols.Select(s =>
-                Convert(s, lessThanToken, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
+                Convert(s, lessThanToken, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null);
         }
 
@@ -162,13 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return SignatureHelpUtilities.GetSignatureHelpSpan(((GenericNameSyntax)lessThanToken.Parent.Parent).TypeArgumentList);
         }
 
-        private SignatureHelpItem Convert(
+        private static SignatureHelpItem Convert(
             ISymbol symbol,
             SyntaxToken lessThanToken,
             SemanticModel semanticModel,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
-            CancellationToken cancellationToken)
+            IDocumentationCommentFormattingService documentationCommentFormattingService)
         {
             var position = lessThanToken.SpanStart;
 
@@ -182,8 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     symbol.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                     GetPreambleParts(namedType, semanticModel, position),
                     GetSeparatorParts(),
-                    GetPostambleParts(namedType),
-                    namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                    GetPostambleParts(),
+                    namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
             }
             else
             {
@@ -196,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     GetPreambleParts(method, semanticModel, position),
                     GetSeparatorParts(),
                     GetPostambleParts(method, semanticModel, position),
-                    method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
+                    method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
             }
 
             return item;
@@ -206,26 +205,24 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(
                 SymbolDisplayFormat.MinimallyQualifiedFormat.GenericsOptions | SymbolDisplayGenericsOptions.IncludeVariance);
 
-        private SignatureHelpSymbolParameter Convert(
+        private static SignatureHelpSymbolParameter Convert(
             ITypeParameterSymbol parameter,
             SemanticModel semanticModel,
             int position,
-            IDocumentationCommentFormattingService formatter,
-            CancellationToken cancellationToken)
+            IDocumentationCommentFormattingService formatter)
         {
             return new SignatureHelpSymbolParameter(
                 parameter.Name,
                 isOptional: false,
                 documentationFactory: parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),
                 displayParts: parameter.ToMinimalDisplayParts(semanticModel, position, s_minimallyQualifiedFormat),
-                selectedDisplayParts: GetSelectedDisplayParts(parameter, semanticModel, position, cancellationToken));
+                selectedDisplayParts: GetSelectedDisplayParts(parameter, semanticModel, position));
         }
 
-        private IList<SymbolDisplayPart> GetSelectedDisplayParts(
+        private static IList<SymbolDisplayPart> GetSelectedDisplayParts(
             ITypeParameterSymbol typeParam,
             SemanticModel semanticModel,
-            int position,
-            CancellationToken cancellationToken)
+            int position)
         {
             var parts = new List<SymbolDisplayPart>();
 

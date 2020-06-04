@@ -1114,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         ///     while (IsMakingProgress(ref tokenProgress))
         /// It should be used as a guardrail, not as a crutch, so it asserts if no progress was made.
         /// </summary>
-        protected bool IsMakingProgress(ref int lastTokenPosition)
+        protected bool IsMakingProgress(ref int lastTokenPosition, bool assertIfFalse = true)
         {
             var pos = CurrentTokenPosition;
             if (pos > lastTokenPosition)
@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
             }
 
-            Debug.Assert(false);
+            Debug.Assert(!assertIfFalse);
             return false;
         }
 

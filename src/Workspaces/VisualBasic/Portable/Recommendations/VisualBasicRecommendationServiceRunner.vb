@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Return symbols.WhereAsArray(Function(s) FilterEventsAndGeneratedSymbols(Nothing, s))
         End Function
 
-        Private Function IsInEligibleDelegate(s As ISymbol) As Boolean
+        Private Shared Function IsInEligibleDelegate(s As ISymbol) As Boolean
             If s.IsDelegateType() Then
                 Dim typeSymbol = DirectCast(s, ITypeSymbol)
                 Return typeSymbol.SpecialType <> SpecialType.System_Delegate

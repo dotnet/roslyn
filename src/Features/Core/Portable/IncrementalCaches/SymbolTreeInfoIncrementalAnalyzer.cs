@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataIdToInfo = metadataIdToInfo;
             }
 
-            private bool SupportAnalysis(Project project)
+            private static bool SupportAnalysis(Project project)
                 => project.SupportsCompilation;
 
             public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)

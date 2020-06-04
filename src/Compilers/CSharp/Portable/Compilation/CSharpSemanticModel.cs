@@ -2104,6 +2104,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                     }
                 }
+                else if (boundExpr is BoundConversion { ConversionKind: ConversionKind.MethodGroup, Conversion: var exprConversion, Type: { TypeKind: TypeKind.FunctionPointer }, SymbolOpt: var symbol })
+                {
+                    // Because the method group is a separate syntax node from the &, the lowest bound node here is the BoundConversion. However,
+                    // the conversion represents an implicit method group conversion from a typeless method group to a function pointer type, so
+                    // we should reflect that in the types and conversion we return.
+                    convertedType = type;
+                    convertedNullability = nullability;
+                    conversion = exprConversion;
+                    type = null;
+                    nullability = new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.NotNull);
+                }
                 else
                 {
                     convertedType = type;
@@ -2728,6 +2739,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Given a compilation unit syntax, get the corresponding Simple Program entry point symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The compilation unit that declares the entry point member.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract IMethodSymbol GetDeclaredSymbol(CompilationUnitSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
         /// the declaration assembly.
         /// </summary>
@@ -3222,6 +3241,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
+
+                case BoundKind.FunctionPointerInvocation:
+                    {
+                        var invocation = (BoundFunctionPointerInvocation)boundNode;
+                        symbols = ImmutableArray.Create<Symbol>(invocation.FunctionPointer);
+                        resultKind = invocation.ResultKind;
+                        break;
+                    }
+
+                case BoundKind.UnconvertedAddressOfOperator:
+                    {
+                        // We try to match the results given for a similar piece of syntax here: bad invocations.
+                        // A BoundUnconvertedAddressOfOperator represents this syntax: &M
+                        // Similarly, a BoundCall for a bad invocation represents this syntax: M(args)
+                        // Calling GetSymbolInfo on the syntax will return an array of candidate symbols that were
+                        // looked up, but calling GetMemberGroup will return an empty array. So, we ignore the member
+                        // group result in the call below.
+                        symbols = GetMethodGroupSemanticSymbols(
+                            ((BoundUnconvertedAddressOfOperator)boundNode).Operand,
+                            boundNodeForSyntacticParent, binderOpt, out resultKind, out isDynamic, methodGroup: out _);
+                        break;
+                    }
 
                 case BoundKind.IndexerAccess:
                     {
@@ -4877,6 +4918,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((JoinIntoClauseSyntax)node, cancellationToken);
                 case SyntaxKind.QueryContinuation:
                     return this.GetDeclaredSymbol((QueryContinuationSyntax)node, cancellationToken);
+                case SyntaxKind.CompilationUnit:
+                    return this.GetDeclaredSymbol((CompilationUnitSyntax)node, cancellationToken);
             }
 
             return null;
@@ -4894,7 +4937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (declarationSyntax.Parent is TupleTypeSyntax tupleTypeSyntax)
             {
-                return (GetSymbolInfo(tupleTypeSyntax).Symbol.GetSymbol() as NamedTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(declarationSyntax)).GetPublicSymbol();
+                return (GetSymbolInfo(tupleTypeSyntax, cancellationToken).Symbol.GetSymbol() as NamedTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(declarationSyntax)).GetPublicSymbol();
             }
 
             return null;
@@ -4923,9 +4966,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpDeclarationComputer.ComputeDeclarationsInSpan(this, span, getSymbol, builder, cancellationToken);
         }
 
-        internal override void ComputeDeclarationsInNode(SyntaxNode node, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null)
+        internal override void ComputeDeclarationsInNode(SyntaxNode node, ISymbol associatedSymbol, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null)
         {
-            CSharpDeclarationComputer.ComputeDeclarationsInNode(this, node, getSymbol, builder, cancellationToken, levelsToCompute);
+            CSharpDeclarationComputer.ComputeDeclarationsInNode(this, associatedSymbol, node, getSymbol, builder, cancellationToken, levelsToCompute);
+        }
+
+        internal override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
+        {
+            if (declaredNode is CompilationUnitSyntax unit && SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
+            {
+                switch (declaredSymbol.Kind)
+                {
+                    case SymbolKind.Namespace:
+                        Debug.Assert(((INamespaceSymbol)declaredSymbol).IsGlobalNamespace);
+                        // Do not include top level global statements into a global namespace
+                        return (node) => node.Kind() != SyntaxKind.GlobalStatement || node.Parent != unit;
+
+                    case SymbolKind.Method:
+                        Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint);
+                        // Include only global statements at the top level
+                        return (node) => node.Parent != unit || node.Kind() == SyntaxKind.GlobalStatement;
+
+                    case SymbolKind.NamedType:
+                        Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint.ContainingSymbol);
+                        return (node) => false;
+
+                    default:
+                        ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
+                        break;
+                }
+            }
+
+            return base.GetSyntaxNodesToAnalyzeFilter(declaredNode, declaredSymbol);
         }
 
         protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)

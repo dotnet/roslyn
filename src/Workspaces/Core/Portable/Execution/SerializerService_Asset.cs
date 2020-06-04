@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteBoolean(reference.EmbedInteropTypes);
         }
 
-        private ProjectReference DeserializeProjectReference(ObjectReader reader, CancellationToken cancellationToken)
+        private static ProjectReference DeserializeProjectReference(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

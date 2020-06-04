@@ -47,8 +47,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.Verify.CurrentLineText("using$$", assertCaretPosition: true);
         }
 
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/43627")]
-        [CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SpeculativeTInList(bool showCompletionInArgumentLists)
         {
             SetUpEditor(@"
@@ -105,8 +104,7 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CurrentLineText("NavigateTo.Search$$", assertCaretPosition: true);
         }
 
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/43627")]
-        [CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpace(bool showCompletionInArgumentLists)
         {
             VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
@@ -156,15 +154,14 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CurrentLineText("System.Console.writeline();$$", assertCaretPosition: true);
         }
 
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/43627")]
-        [CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpaceOption(bool showCompletionInArgumentLists)
         {
             VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SetUseSuggestionMode(false);
 
-            VisualStudio.Editor.SendKeys("nam");
+            VisualStudio.Editor.SendKeys("names");
             Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.Editor.SendKeys(" Goo");

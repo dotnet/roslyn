@@ -149,6 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddPunctuation(SyntaxKind.AsteriskToken);
         }
 
+        public override void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+        {
+            VisitMethod(symbol.Signature);
+        }
+
         public override void VisitTypeParameter(ITypeParameterSymbol symbol)
         {
             if (this.isFirstSymbolVisited)

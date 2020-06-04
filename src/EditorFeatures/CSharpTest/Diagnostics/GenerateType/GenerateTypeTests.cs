@@ -107,7 +107,6 @@ public class Employee
 index: 1);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestGenerateClassFromConstructorConstraint()
         {
@@ -3365,8 +3364,7 @@ expectedDocumentName: "Bar.cs");
     {
         [|Bar|] b;
     }
-}",
-index: 1);
+}");
         }
 
         [WorkItem(539674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539674")]
@@ -3997,10 +3995,14 @@ class A
 
         [WorkItem(540766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540766")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestMissingOnInvalidGlobalCode()
+        public async Task TestOnInvalidGlobalCode()
         {
-            await TestMissingAsync(
-@"[|a|] test ");
+            await TestInRegularAndScriptAsync(
+@"[|a|] test ",
+@"[|a|] test internal class a
+{
+}",
+index: 1);
         }
 
         [WorkItem(539985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539985")]

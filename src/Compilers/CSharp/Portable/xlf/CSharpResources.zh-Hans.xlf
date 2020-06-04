@@ -17,6 +17,16 @@
         <target state="translated">“{0}”: 抽象事件不可使用事件访问器语法</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AddressOfMethodGroupInExpressionTree">
+        <source>'&amp;' on method groups cannot be used in expression trees</source>
+        <target state="new">'&amp;' on method groups cannot be used in expression trees</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AddressOfToNonFunctionPointer">
+        <source>Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</source>
+        <target state="new">Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
         <target state="translated">若要对内插逐字字符串使用 "@$" 而不是 "$@"，请使用语言版本 {0} 或更高版本。</target>
@@ -29,7 +39,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
         <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
-        <target state="translated">运算符“{0}”不能应用于“默认值”和类型为“{1}”的操作数，因为它是一个类型参数，而系统不知道该参数是引用类型</target>
+        <target state="translated">运算符“{0}”不能应用于 "default" 和类型为“{1}”的操作数，因为它是一个类型参数，而系统不知道该参数是引用类型</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -77,6 +87,16 @@
         <target state="translated">无法在异步 foreach 中使用动态类型集合</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadFuncPointerArgCount">
+        <source>Function pointer '{0}' does not take {1} arguments</source>
+        <target state="new">Function pointer '{0}' does not take {1} arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadFuncPointerParamModifier">
+        <source>'{0}' cannot be used as a modifier on a function pointer parameter.</source>
+        <target state="new">'{0}' cannot be used as a modifier on a function pointer parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
         <target state="translated">/nullable 的选项“{0}”无效；必须为“禁用”、“启用”、“警告”或“注释”</target>
@@ -102,6 +122,21 @@
         <target state="translated">命令行语法错误:“{0}”不是“{1}”选项的有效值。值的格式必须为 "{2}"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
+        <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
+        <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotUseFunctionPointerAsFixedLocal">
+        <source>The type of a local declared in a fixed statement cannot be a function pointer type.</source>
+        <target state="new">The type of a local declared in a fixed statement cannot be a function pointer type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotUseReducedExtensionMethodInAddressOf">
+        <source>Cannot use an extension method with a receiver as the target of a '&amp;' operator.</source>
+        <target state="new">Cannot use an extension method with a receiver as the target of a '&amp;' operator.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist 不能有 "in" 或 "out" 传递的参数</target>
@@ -114,7 +149,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
-        <target state="new">Local function '{0}' must be 'static' in order to use the Conditional attribute</target>
+        <target state="translated">本地函数“{0}”必须为 "static" 才能使用 "Conditional" 特性</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
@@ -150,6 +185,11 @@
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">在 switch 语句中，不允许将放弃模式作为大小写标签。对于放弃模式，使用 "case var _:"；对于名为 "_" 的常量，使用 "case @_:"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DupReturnTypeMod">
+        <source>A return type can only have one '{0}' modifier.</source>
+        <target state="new">A return type can only have one '{0}' modifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateExplicitImpl">
@@ -194,17 +234,17 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
-        <target state="new">An expression tree may not contain a from-end index ('^') expression.</target>
+        <target state="translated">表达式树不能包含 from-end 索引("^")表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <target state="translated">表达式树不能包含模式 System.Index 或 System.Range 索引器访问</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
         <source>An expression tree may not contain a range ('..') expression.</source>
-        <target state="new">An expression tree may not contain a range ('..') expression.</target>
+        <target state="translated">表达式树不能包含范围("..")表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
@@ -252,6 +292,16 @@
         <target state="translated">“{0}”不包含“{1}”的公共实例定义，因此 foreach 语句不能作用于“{0}”类型的变量。是否希望使用 "await foreach" 而非 "foreach"?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FuncPtrMethMustBeStatic">
+        <source>Cannot create a function pointer for '{0}' because it is not a static method</source>
+        <target state="new">Cannot create a function pointer for '{0}' because it is not a static method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FuncPtrRefMismatch">
+        <source>Ref mismatch between '{0}' and function pointer '{1}'</source>
+        <target state="new">Ref mismatch between '{0}' and function pointer '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">goto 无法跳转到同一块中 using 声明之前的某个位置。</target>
@@ -292,6 +342,16 @@
         <target state="translated">C# 编译器中出现内部错误。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
+        <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
+        <target state="new">'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidFunctionPointerCallingConvention">
+        <source>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</source>
+        <target state="new">'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">无效的哈希算法名称:“{0}”</target>
@@ -327,6 +387,16 @@
         <target state="translated">具有迭代器块的方法“{0}”必须是“异步的”，这样才能返回“{1}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MethFuncPtrMismatch">
+        <source>No overload for '{0}' matches function pointer '{1}'</source>
+        <target state="new">No overload for '{0}' matches function pointer '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingAddressOf">
+        <source>Cannot convert method group to function pointer (Are you missing a '&amp;'?)</source>
+        <target state="new">Cannot convert method group to function pointer (Are you missing a '&amp;'?)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">模式缺失</target>
@@ -359,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
-        <target state="new">Output directory could not be determined</target>
+        <target state="translated">无法确定输出目录</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -402,9 +472,39 @@
         <target state="translated">方法 "{0}" 为类型参数 "{1}" 指定了 "struct" 约束，但重写的或显式实现的方法 "{3}" 的相应类型参数 "{2}" 不是不可为 null 的值类型。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodAccessibilityDifference">
+        <source>Both partial method declarations must have identical accessibility modifiers.</source>
+        <target state="new">Both partial method declarations must have identical accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodExtendedModDifference">
+        <source>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
+        <target state="new">Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="translated">两个分部方法声明必须都是只读声明，或者两者都不能是只读声明</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithAccessibilityModsMustHaveImplementation">
+        <source>Partial method '{0}' must have an implementation part because it has accessibility modifiers.</source>
+        <target state="new">Partial method '{0}' must have an implementation part because it has accessibility modifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithExtendedModMustHaveAccessMods">
+        <source>Partial method '{0}' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.</source>
+        <target state="new">Partial method '{0}' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods">
+        <source>Partial method '{0}' must have accessibility modifiers because it has a non-void return type.</source>
+        <target state="new">Partial method '{0}' must have accessibility modifiers because it has a non-void return type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMethodWithOutParamMustHaveAccessMods">
+        <source>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</source>
+        <target state="new">Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -467,6 +567,26 @@
         <target state="translated">目标运行时不支持对接口的成员使用 "protected"、"protected internal" 或 "private protected" 辅助功能。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramDisallowsMainType">
+        <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
+        <target state="new">Cannot specify /main if there is a compilation unit with top-level statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
+        <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
+        <target state="new">Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramMultipleUnitsWithTopLevelStatements">
+        <source>Only one compilation unit can have top-level statements.</source>
+        <target state="new">Only one compilation unit can have top-level statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramNotAnExecutable">
+        <source>Program using top-level statements must be an executable.</source>
+        <target state="new">Program using top-level statements must be an executable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">单元素解构模式需要一些其他语法来消除歧义。建议在关闭 paren ")" 之后添加放弃指示符 "_"。</target>
@@ -489,7 +609,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">已指定 stdin 参数 "-"，但尚未从标准输入流重定向输入。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -510,6 +630,11 @@
       <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
         <source>Parentheses are required around the switch governing expression.</source>
         <target state="translated">switch governing 表达式的周围需要括号。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
+        <source>Top-level statements must precede namespace and type declarations.</source>
+        <target state="new">Top-level statements must precede namespace and type declarations.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TripleDotNotAllowed">
@@ -557,6 +682,11 @@
         <target state="translated">类型“{2}”必须是不可为 null 值的类型，且包括任何嵌套级别的所有字段，才能用作泛型类型或方法“{0}”中的参数“{1}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCallingConvention">
+        <source>The calling convention of '{0}' is not supported by the language.</source>
+        <target state="new">The calling convention of '{0}' is not supported by the language.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForRelationalPattern">
         <source>Relational patterns may not be used for a value of type '{0}'.</source>
         <target state="new">Relational patterns may not be used for a value of type '{0}'.</target>
@@ -577,6 +707,11 @@
         <target state="translated">无法在含有 "in" 或 "out" 类型参数的接口中声明枚举、类和结构。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_WrongFuncPtrCallingConvention">
+        <source>Calling convention of '{0}' is not compatible with '{1}'.</source>
+        <target state="new">Calling convention of '{0}' is not compatible with '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongNumberOfSubpatterns">
         <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
         <target state="translated">匹配元组类型“{0}”需要“{1}”子模式，但存在“{2}”子模式。</target>
@@ -585,6 +720,11 @@
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
         <target state="translated">文件名“{0}”为空、包含无效字符、未使用绝对路径指定驱动器或太长</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_AddressOfMethodGroup">
+        <source>&amp;method group</source>
+        <target state="new">&amp;method group</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_CSCHelp">
@@ -741,7 +881,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Visual C# 编译器选项
 
                        - 输出文件 -
@@ -768,7 +908,7 @@
 -recurse:&lt;wildcard&gt;           根据通配符规范包括当前目录和
                               子目录中的所有
                               文件
--reference:&lt;alias&gt;=&lt;file&gt;     使用给定别名从指定程序集
+-reference:&lt;alias&gt;=&lt;file&gt;     使用给定别名从指定程序集文件
                               引用元数据(缩写: -r)
 -reference:&lt;file list&gt;        从指定程序集文件引用
                               元数据(缩写: -r)
@@ -785,7 +925,7 @@
 
                        - 资源 -
 -win32res:&lt;file&gt;              指定 Win32 资源文件(.res)
--win32icon:&lt;file&gt;             使用此图标输出
+-win32icon:&lt;file&gt;             将此图标用于输出
 -win32manifest:&lt;file&gt;         指定 Win32 清单文件(.xml)
 -nowin32manifest              不包括默认的 Win32 清单
 -resource:&lt;resinfo&gt;           嵌入指定资源(缩写: -res)
@@ -811,13 +951,14 @@
                        - 错误和警告 -
 -warnaserror[+|-]             将所有警告报告为错误
 -warnaserror[+|-]:&lt;warn list&gt;将特定警告报告为错误
+                              (对于所有为 Null 性警告，使用 "nullable")
 -warn:&lt;n&gt;                     设置警告级别(0-4)(缩写: -w)
 -nowarn:&lt;warn list&gt;           禁用特定警告消息
+                              (对于所有为 Null 性警告，使用 "nullable")\)
 -ruleset:&lt;file&gt;               指定禁用特定诊断的
                               规则集文件。
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              指定用于记录所有编译器
-                       和分析器诊断的
+                              指定用于记录所有编译器和分析器诊断的
                               文件。
                               sarif_version:{1|2|2.1} 默认为 1. 2 和 2.1
                               两者均表示 SARIF 版本 2.1.0。
@@ -831,12 +972,14 @@
                               写: -d)
 -langversion:?                显示允许使用的语言版本值
 -langversion:&lt;string&gt;         指定语言版本，例如
-                              `default` (最新主要版本)，或
-                              `latest` (最新版本，包括次要版本)，
+                              `latest` (最新版本，包括次要版本)、
+                              `default` (与 `latest` 相同)、
+                              `latestmajor` (最新版本，不包括次要版本),
+                              `preview` (最新版本，包括不受支持的预览版中的功能),
                               或者特定版本，如 `6` 或 `7.1`
 -nullable[+|-]                指定可为 null 的上下文选项 enable|disable。
--nullable:{enable|disable|warnings}
-                              指定可为 null 的上下文选项 enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              指定可为 null 的上下文选项 enable|disable|warnings|annotations.
 
                        - 安全性 -
 -delaysign[+|-]               仅使用强名称密钥的公共部分对程序集
@@ -877,8 +1020,7 @@
 -errorendlocation             输出每个错误的结束位置
                               行和列
 -preferreduilang              指定首选输出语言名称。
--nosdkpath                    禁止搜索标准库程序集
-                             的默认 SDK 路径。
+-nosdkpath                    禁止搜索标准库程序集的默认 SDK 路径。
 -nostdlib[+|-]                不引用标准库(mscorlib.dll)
 -subsystemversion:&lt;string&gt;    指定此程序集的子系统版本
 -lib:&lt;file list&gt;              指定要在其中搜索引用的附加
@@ -944,6 +1086,11 @@
         <target state="translated">成员初始值设定项和查询中的表达式变量声明</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtendedPartialMethods">
+        <source>extended partial methods</source>
+        <target state="new">extended partial methods</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
         <source>extensible fixed statement</source>
         <target state="translated">可扩展 fixed 语句</target>
@@ -951,7 +1098,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExternLocalFunctions">
         <source>extern local functions</source>
-        <target state="new">extern local functions</target>
+        <target state="translated">外部本地函数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureFunctionPointers">
+        <source>function pointers</source>
+        <target state="new">function pointers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
@@ -966,7 +1118,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLocalFunctionAttributes">
         <source>local function attributes</source>
-        <target state="new">local function attributes</target>
+        <target state="translated">本地函数特性</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaDiscardParameters">
@@ -976,7 +1128,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureMemberNotNull">
         <source>MemberNotNull attribute</source>
-        <target state="new">MemberNotNull attribute</target>
+        <target state="translated">MemberNotNull 特性</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1142,6 +1294,11 @@
       <trans-unit id="IDS_RELATEDWARNING">
         <source>(Location of symbol related to previous warning)</source>
         <target state="translated">(与前一个警告相关的符号位置)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_TopLevelStatements">
+        <source>top-level statements</source>
+        <target state="new">top-level statements</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">
@@ -1494,6 +1651,16 @@
         <target state="translated">类型变型</target>
         <note />
       </trans-unit>
+      <trans-unit id="NotSameNumberParameterTypesAndRefKinds">
+        <source>Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</source>
+        <target state="new">Given {0} parameter types and {1} parameter ref kinds. These arrays must have the same length.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OutIsNotValidForReturn">
+        <source>'RefKind.Out' is not a valid ref kind for a return type.</source>
+        <target state="new">'RefKind.Out' is not a valid ref kind for a return type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
         <source>SyntaxTree is not part of the compilation</source>
         <target state="translated">编译中不包含 SyntaxTree</target>
@@ -1536,12 +1703,12 @@
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch">
         <source>Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">方法“{0}”缺少 "[DoesNotReturn]" 注释，无法匹配已实现的或被替代的成员。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch_Title">
         <source>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">方法缺少 "[DoesNotReturn]" 注释，无法匹配已实现的或被替代的成员。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1556,22 +1723,22 @@
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">生成器“{0}”无法生成源。它不会影响输出，因此可能会造成编译错误。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
-        <target state="new">Generator failed to generate source.</target>
+        <target state="translated">生成器无法生成源。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">生成器“{0}”无法初始化。它不会影响输出，因此可能会造成编译错误。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
-        <target state="new">Generator failed to initialize.</target>
+        <target state="translated">生成器初始化失败。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1636,32 +1803,32 @@
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull">
         <source>Member '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">退出时，成员“{0}”必须具有非 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember">
         <source>Member '{0}' cannot be used in this attribute.</source>
-        <target state="new">Member '{0}' cannot be used in this attribute.</target>
+        <target state="translated">不能在此特性中使用成员“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember_Title">
         <source>Member cannot be used in this attribute.</source>
-        <target state="new">Member cannot be used in this attribute.</target>
+        <target state="translated">不能在此特性中使用此成员。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen">
         <source>Member '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting with '{1}'.</target>
+        <target state="translated">当使用“{1}”退出时，成员“{0}”必须具有非 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen_Title">
         <source>Member must have a non-null value when exiting in some condition.</source>
-        <target state="new">Member must have a non-null value when exiting in some condition.</target>
+        <target state="translated">在某些条件下退出时，成员必须具有非 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull_Title">
         <source>Member must have a non-null value when exiting.</source>
-        <target state="new">Member must have a non-null value when exiting.</target>
+        <target state="translated">退出时，成员必须具有非 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
@@ -1976,22 +2143,22 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="needs-review-translation">当使用 "{1}" 退出时，参数 "{0}" 可能不具有 null 值。</target>
+        <target state="translated">当使用 "{1}" 退出时，参数 "{0}" 必须具有非 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting in some condition.</source>
-        <target state="needs-review-translation">在某些条件下退出时，参数可能不具有 null 值。</target>
+        <target state="translated">在某些条件下退出时，参数必须具有非 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Parameter '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">退出时，参数 "{0}" 必须具有非 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting.</source>
-        <target state="new">Parameter must have a non-null value when exiting.</target>
+        <target state="translated">退出时，参数必须具有非 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
@@ -2036,62 +2203,62 @@
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">参数“{0}”类型中引用类型的为 Null 性与实现的成员“{1}”不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">参数类型中引用类型的为 Null 性与实现的成员不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</target>
+        <target state="translated">“{1}”的参数“{0}”类型中引用类型的为 Null 性与隐式实现的成员“{2}”不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">参数类型中引用类型的为 Null 性与隐式实现的成员不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride">
         <source>Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">参数“{0}”类型的为 Null 性与重写成员不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride_Title">
         <source>Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">参数类型的为 Null 性与重写成员不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation">
         <source>Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</target>
+        <target state="translated">返回类型中引用类型的为 Null 性与实现的成员“{0}”不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">返回类型中引用类型的为 Null 性与实现的成员不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">“{0}”的返回类型中引用类型的为 Null 性与隐式实现的成员“{1}”不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">返回类型中引用类型的为 Null 性与隐式实现的成员不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">返回类型的为 Null 性与重写成员不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">返回类型的为 Null 性与重写成员不匹配(可能是由于为 Null 性特性)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
@@ -4370,7 +4537,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
         <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
-        <target state="needs-review-translation">DllImport 特性不能应用于属于泛型类型或者包含在泛型类型中的方法。</target>
+        <target state="translated">DllImport 特性不能应用于属于泛型类型的方法，或者包含在泛型方法/类型中。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">
@@ -5004,18 +5171,13 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInvalidModifier">
-        <source>A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers</source>
-        <target state="translated">分部方法不能具有访问修饰符或 virtual、abstract、override、new、sealed 或 extern 修饰符</target>
+        <source>A partial method cannot have the 'abstract' modifier</source>
+        <target state="needs-review-translation">分部方法不能具有访问修饰符或 virtual、abstract、override、new、sealed 或 extern 修饰符</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
         <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
         <target state="translated">分部方法必须在分部类、分部结构或分布接口内声明</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
-        <source>A partial method cannot have out parameters</source>
-        <target state="translated">分部方法不能有 out 参数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodNotExplicit">
@@ -5076,11 +5238,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_PartialMethodInExpressionTree">
         <source>Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees</source>
         <target state="translated">不能在表达式树中使用只有定义声明的分部方法或已移除的条件方法</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodMustReturnVoid">
-        <source>Partial methods must have a void return type</source>
-        <target state="translated">分部方法必须具有 void 返回类型</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteOverridingNonObsolete">
@@ -6244,7 +6401,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
         <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">无法分配只读字段(除非在定义了该字段的类的构造函数中或在变量初始值设定项中)</target>
+        <target state="translated">无法分配到只读字段(除非在定义了该字段的类的构造函数中或在变量初始值设定项中)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -7873,13 +8030,13 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored">
-        <source>The entry point of the program is global script code; ignoring '{0}' entry point.</source>
-        <target state="translated">程序的入口点是全局脚本代码；正在忽略“{0}”入口点。</target>
+        <source>The entry point of the program is global code; ignoring '{0}' entry point.</source>
+        <target state="needs-review-translation">程序的入口点是全局脚本代码；正在忽略“{0}”入口点。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainIgnored_Title">
-        <source>The entry point of the program is global script code; ignoring entry point</source>
-        <target state="translated">程序的入口点是全局脚本代码；正在忽略入口点</target>
+        <source>The entry point of the program is global code; ignoring entry point</source>
+        <target state="needs-review-translation">程序的入口点是全局脚本代码；正在忽略入口点</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticInAsOrIs">
@@ -9857,7 +10014,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
         <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
-        <target state="needs-review-translation">'“{0}”是本地函数，因此始终必须具有一个主体。</target>
+        <target state="translated">本地函数“{0}”必须声明一个正文，因为它未标记为 "static extern"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

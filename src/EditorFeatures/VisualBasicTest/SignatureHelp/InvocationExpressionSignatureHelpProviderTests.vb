@@ -1785,7 +1785,6 @@ End Class
                                                 hideAdvancedMembers:=False)
         End Function
 
-
 #End Region
 
         <WorkItem(543038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543038")>

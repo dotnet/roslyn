@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 context.Diagnostics);
         }
 
-        private string GetSubItemName(SemanticModel semanticModel, int position, ITypeSymbol conversionType)
+        private static string GetSubItemName(SemanticModel semanticModel, int position, ITypeSymbol conversionType)
         {
             return string.Format(
                 FeaturesResources.Convert_type_to_0,
@@ -148,7 +148,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 {
                     continue;
                 }
-
 
                 validPotentialConversionTypes.Add(conversionTuple);
             }

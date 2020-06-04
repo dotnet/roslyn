@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private SourceText CreateSourceText(StringBuilder sb, int size)
+        private static SourceText CreateSourceText(StringBuilder sb, int size)
         {
             for (var i = sb.Length; i < size; i++)
             {
