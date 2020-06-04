@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal static bool OriginalSymbolsMatch(
             ISymbol searchSymbol,
-            ISymbol symbolToMatch,
+            ISymbol? symbolToMatch,
             Solution solution,
             Compilation? searchSymbolCompilation,
             Compilation? symbolToMatchCompilation)

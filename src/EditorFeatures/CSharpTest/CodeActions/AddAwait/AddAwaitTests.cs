@@ -330,7 +330,6 @@ class Program
 }");
         }
 
-
         [Fact]
         public async Task ChainedInvocation()
         {

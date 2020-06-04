@@ -75,6 +75,11 @@ namespace Microsoft.CodeAnalysis
             return _factory.MakePointerTypeSymbol(this.moduleSymbol, type, customModifiers);
         }
 
+        protected TypeSymbol MakeFunctionPointerTypeSymbol(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamInfos)
+        {
+            return _factory.MakeFunctionPointerTypeSymbol(callingConvention, retAndParamInfos);
+        }
+
         protected TypeSymbol GetSpecialType(SpecialType specialType)
         {
             return _factory.GetSpecialType(this.moduleSymbol, specialType);
@@ -98,6 +103,11 @@ namespace Microsoft.CodeAnalysis
         protected bool IsAcceptedInAttributeModifierType(TypeSymbol type)
         {
             return _factory.IsAcceptedInAttributeModifierType(type);
+        }
+
+        protected bool IsAcceptedOutAttributeModifierType(TypeSymbol type)
+        {
+            return _factory.IsAcceptedOutAttributeModifierType(type);
         }
 
         protected bool IsAcceptedUnmanagedTypeModifierType(TypeSymbol type)

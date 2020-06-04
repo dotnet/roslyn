@@ -33,6 +33,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public RecordParsingTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
+        public void FieldNamedData()
+        {
+            var text = @"
+class C
+{
+    int data;
+}";
+            UsingTree(text);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "data");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void RecordParsing01()
         {
             var text = "data class C(int X, int Y);";
@@ -231,18 +269,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var tree = ParseTree("interface P(int x, int y);", options: null);
             tree.GetDiagnostics().Verify(
-                // (1,12): error CS1514: { expected	
-                // interface P(int x, int y);	
+                // (1,12): error CS1514: { expected
+                // interface P(int x, int y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 12),
-                // (1,12): error CS1513: } expected	
-                // interface P(int x, int y);	
+                // (1,12): error CS1513: } expected
+                // interface P(int x, int y);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
-                // (1,25): error CS0116: A namespace cannot directly contain members such as fields or methods	
-                // interface P(int x, int y);	
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ")").WithLocation(1, 25),
-                // (1,26): error CS1022: Type or namespace definition, or end-of-file expected	
-                // interface P(int x, int y);	
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(1, 26)
+                // (1,12): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y);").WithArguments("top-level statements").WithLocation(1, 12),
+                // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
+                // interface P(int x, int y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(1, 12)
             );
         }
 
@@ -283,18 +321,18 @@ class C
                 // (5,15): error CS1597: Semicolon after method or accessor block is not valid
                 //     x with { };
                 Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(5, 15),
-                // (6,18): error CS1002: ; expected
+                // (6,5): error CS8803: Top-level statements must precede namespace and type declarations.
                 //     int x = with { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 18),
-                // (6,18): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "int x = with { ").WithLocation(6, 5),
+                // (6,18): error CS1003: Syntax error, ',' expected
                 //     int x = with { };
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(6, 18),
+                // (6,20): error CS1002: ; expected
+                //     int x = with { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 20),
                 // (6,20): error CS1022: Type or namespace definition, or end-of-file expected
                 //     int x = with { };
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 20),
-                // (6,21): error CS1022: Type or namespace definition, or end-of-file expected
-                //     int x = with { };
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(6, 21),
                 // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1)
@@ -331,60 +369,73 @@ class C
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IntKeyword);
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "x");
-                            N(SyntaxKind.EqualsValueClause);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.EqualsValueClause);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "with");
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "with");
+                                    }
                                 }
                             }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.EmptyStatement);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IntKeyword);
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "x");
-                            N(SyntaxKind.EqualsValueClause);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.WithExpression);
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.EqualsValueClause);
                                 {
-                                    N(SyntaxKind.NumericLiteralExpression);
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.WithExpression);
                                     {
-                                        N(SyntaxKind.NumericLiteralToken, "0");
-                                    }
-                                    N(SyntaxKind.WithKeyword);
-                                    N(SyntaxKind.WithInitializerExpression);
-                                    {
-                                        N(SyntaxKind.OpenBraceToken);
-                                        N(SyntaxKind.CloseBraceToken);
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                        N(SyntaxKind.WithKeyword);
+                                        N(SyntaxKind.WithInitializerExpression);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
                                     }
                                 }
                             }
                         }
+                        N(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1412,18 +1463,15 @@ class C
                 // (1,12): error CS1513: } expected
                 // interface C(int X, int Y) : B;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 12),
-                // (1,25): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,12): error CS8803: Top-level statements must precede namespace and type declarations.
                 // interface C(int X, int Y) : B;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ")").WithLocation(1, 25),
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y) ").WithLocation(1, 12),
+                // (1,27): error CS1002: ; expected
+                // interface C(int X, int Y) : B;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(1, 27),
                 // (1,27): error CS1022: Type or namespace definition, or end-of-file expected
                 // interface C(int X, int Y) : B;
-                Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 27),
-                // (1,29): error CS0116: A namespace cannot directly contain members such as fields or methods
-                // interface C(int X, int Y) : B;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "B").WithLocation(1, 29),
-                // (1,30): error CS1022: Type or namespace definition, or end-of-file expected
-                // interface C(int X, int Y) : B;
-                Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(1, 30)
+                Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(1, 27)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -1435,36 +1483,56 @@ class C
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.TupleType);
+                    N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.TupleElement);
+                        N(SyntaxKind.TupleExpression);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
                             {
-                                N(SyntaxKind.IntKeyword);
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                    }
+                                }
                             }
-                            N(SyntaxKind.IdentifierToken, "X");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.TupleElement);
-                        {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Argument);
                             {
-                                N(SyntaxKind.IntKeyword);
+                                N(SyntaxKind.DeclarationExpression);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Y");
+                                    }
+                                }
                             }
-                            N(SyntaxKind.IdentifierToken, "Y");
+                            N(SyntaxKind.CloseParenToken);
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "B");
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "B");
+                        }
+                        N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);

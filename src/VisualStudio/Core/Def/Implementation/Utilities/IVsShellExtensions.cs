@@ -10,8 +10,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
     internal static class IVsShellExtensions
     {
+        // tri-state: uninitialized (0), devenv is in command line mode (1), devenv is not in command line mode (-1)
         private static volatile int s_isInCommandLineMode;
 
+        /// <summary>
+        /// Returns true if devenv is invoked in command line mode for build, e.g. devenv /rebuild MySolution.sln
+        /// </summary>
         public static bool IsInCommandLineMode
         {
             get

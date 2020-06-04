@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void EmptyFile()
-            => VerifyFalse(@"$$");
+            => VerifyTrue(@"$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void UsingDirective()

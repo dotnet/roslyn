@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var missingSyntaxKinds = new HashSet<SyntaxKind>();
             // PROTOTYPE: Add to all in one
             missingSyntaxKinds.Add(SyntaxKind.WithExpression);
+            missingSyntaxKinds.Add(SyntaxKind.FunctionPointerType);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });

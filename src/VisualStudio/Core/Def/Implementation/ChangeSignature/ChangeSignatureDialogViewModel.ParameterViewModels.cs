@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 get
                 {
-                    return _addedParameter.UseNamedArguments
+                    return _addedParameter.CallSiteKind == CallSiteKind.ValueWithName
                         ? _addedParameter.Name + ": " + _addedParameter.CallSiteValue
                         : _addedParameter.CallSiteValue;
                 }

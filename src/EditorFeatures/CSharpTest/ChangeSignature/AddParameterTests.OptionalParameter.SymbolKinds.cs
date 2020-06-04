@@ -33,9 +33,9 @@ class D : B
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(0),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "x", isRequired: false, defaultValue: "10", callSiteValue: "100"),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "y", isRequired: false, defaultValue: "11", isCallsiteOmitted: true),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "z", isRequired: false, defaultValue: "12", callSiteValue: "102")};
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "x", CallSiteKind.Value, callSiteValue: "100", isRequired: false, defaultValue: "10"),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "y", CallSiteKind.Omitted, isRequired: false, defaultValue: "11"),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "z", CallSiteKind.Value, callSiteValue: "102", isRequired: false, defaultValue: "12")};
             var updatedCode = @"
 class B
 {
@@ -69,9 +69,9 @@ class B
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(0),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "x", isRequired: false, defaultValue: "10", callSiteValue: "100"),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "y", isRequired: false, defaultValue: "11", isCallsiteOmitted: true),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "z", isRequired: false, defaultValue: "12", callSiteValue: "102")};
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "x", CallSiteKind.Value, callSiteValue: "100", isRequired: false, defaultValue: "10"),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "y", CallSiteKind.Omitted, isRequired: false, defaultValue: "11"),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "z", CallSiteKind.Value, callSiteValue: "102", isRequired: false, defaultValue: "12")};
             var updatedCode = @"
 class B
 {
@@ -97,9 +97,9 @@ class MyAttribute : System.Attribute
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(0),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "x", isRequired: false, defaultValue: "10", callSiteValue: "100"),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "y", isRequired: false, defaultValue: "11", isCallsiteOmitted: true),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "z", isRequired: false, defaultValue: "12", callSiteValue: "102")};
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "x", CallSiteKind.Value, callSiteValue: "100", isRequired: false, defaultValue: "10"),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "y", CallSiteKind.Omitted, isRequired: false, defaultValue: "11"),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "z", CallSiteKind.Value, callSiteValue: "102", isRequired: false, defaultValue: "12")};
 
             // TODO: The = in the attribute is a bug. You cannot specify that the attribute should use : instead in the SyntaxGenerator
             // https://github.com/dotnet/roslyn/issues/43354

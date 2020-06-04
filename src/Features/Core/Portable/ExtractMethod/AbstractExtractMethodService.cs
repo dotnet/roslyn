@@ -4,7 +4,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -34,6 +36,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             if (!selectionResult.ContainsValidContext)
             {
                 return new FailedExtractMethodResult(selectionResult.Status);
+            }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            if (localFunction && syntaxFacts.ContainsGlobalStatement(root))
+            {
+                // ExtractLocalFunction doesn't yet support local functions in top-level statements
+                // https://github.com/dotnet/roslyn/issues/44260
+                return new FailedExtractMethodResult(OperationStatus.FailedWithUnknownReason);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
