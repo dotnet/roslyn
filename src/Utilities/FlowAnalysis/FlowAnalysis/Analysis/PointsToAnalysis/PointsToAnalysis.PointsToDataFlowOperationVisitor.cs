@@ -763,6 +763,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return VisitTypeCreationWithArgumentsAndInitializer(operation, argument, base.VisitAnonymousObjectCreation);
             }
 
+            public override PointsToAbstractValue VisitReDimClause(IReDimClauseOperation operation, object? argument)
+            {
+                return VisitTypeCreationWithArgumentsAndInitializer(operation, argument, base.VisitReDimClause);
+            }
+
             public override PointsToAbstractValue VisitTuple(ITupleOperation operation, object? argument)
             {
                 var type = operation.Type.GetUnderlyingValueTupleTypeOrThis();

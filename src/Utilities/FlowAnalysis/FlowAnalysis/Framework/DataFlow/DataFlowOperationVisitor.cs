@@ -3361,6 +3361,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 value;
         }
 
+        public override TAbstractAnalysisValue VisitReDimClause(IReDimClauseOperation operation, object? argument)
+        {
+            var value = base.VisitReDimClause(operation, argument);
+            if (PredicateAnalysis)
+            {
+                PerformPredicateAnalysis(operation);
+            }
+            return value;
+        }
+
         #region Overrides for lowered IOperations
 
         [ExcludeFromCodeCoverage]
