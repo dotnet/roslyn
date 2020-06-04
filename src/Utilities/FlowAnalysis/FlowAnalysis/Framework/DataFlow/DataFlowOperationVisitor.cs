@@ -1260,7 +1260,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 operation.Kind == OperationKind.Invocation ||
                 operation.Kind == OperationKind.Argument ||
                 operation.Kind == OperationKind.FlowCaptureReference ||
-                operation.Kind == OperationKind.IsPattern);
+                operation.Kind == OperationKind.IsPattern ||
+                operation.Kind == OperationKind.ReDimClause);
 
             if (FlowBranchConditionKind == ControlFlowConditionKind.None || !IsRootOfCondition())
             {
