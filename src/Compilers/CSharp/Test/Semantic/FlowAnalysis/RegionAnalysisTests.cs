@@ -2059,7 +2059,7 @@ public class MemberInitializerTest
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
 #nullable enable
 
-data class B(string? X)
+record B(string? X)
 {
     static void M1(B b1)
     {

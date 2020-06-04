@@ -16,37 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public SynthesizedRecordConstructor(
              SourceMemberContainerTypeSymbol containingType,
-             TypeDeclarationSyntax syntax,
+             RecordDeclarationSyntax syntax,
              DiagnosticBag diagnostics) :
-             base(containingType, GetParameterList(syntax).GetLocation(), syntax, MethodKind.Constructor, diagnostics)
+             base(containingType, syntax.ParameterList!.GetLocation(), syntax, MethodKind.Constructor, diagnostics)
         {
-            Debug.Assert(syntax.IsKind(SyntaxKind.ClassDeclaration) || syntax.IsKind(SyntaxKind.StructDeclaration));
             this.MakeFlags(MethodKind.Constructor, DeclarationModifiers.Public, returnsVoid: true, isExtensionMethod: false);
         }
 
-        internal TypeDeclarationSyntax GetSyntax()
+        internal RecordDeclarationSyntax GetSyntax()
         {
             Debug.Assert(syntaxReferenceOpt != null);
-            return (TypeDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+            return (RecordDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
-        protected override ParameterListSyntax GetParameterList()
-        {
-            return GetParameterList(GetSyntax());
-        }
-
-        private static ParameterListSyntax GetParameterList(TypeDeclarationSyntax syntax)
-        {
-            switch (syntax)
-            {
-                case ClassDeclarationSyntax classDecl:
-                    return classDecl.ParameterList!;
-                case StructDeclarationSyntax structDecl:
-                    return structDecl.ParameterList!;
-                default:
-                    throw ExceptionUtilities.Unreachable;
-            }
-        }
+        protected override ParameterListSyntax GetParameterList() => GetSyntax().ParameterList!;
 
         protected override CSharpSyntaxNode? GetInitializer()
         {

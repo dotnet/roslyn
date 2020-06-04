@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
             : base(containingType, syntax.GetReference(), ImmutableArray.Create(location), SyntaxFacts.HasYieldOperations(syntax))
         {
-            Debug.Assert(syntax.IsKind(SyntaxKind.ConstructorDeclaration) || syntax.IsKind(SyntaxKind.ClassDeclaration) || syntax.IsKind(SyntaxKind.StructDeclaration));
+            Debug.Assert(
+                syntax.IsKind(SyntaxKind.ConstructorDeclaration) ||
+                syntax.IsKind(SyntaxKind.RecordDeclaration));
         }
 
         protected sealed override void MethodChecks(DiagnosticBag diagnostics)
@@ -70,7 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         protected abstract ParameterListSyntax GetParameterList();
+#nullable restore
 
         internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {

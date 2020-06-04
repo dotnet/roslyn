@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void GeneratedConstructor()
         {
-            var comp = CreateCompilation(@"data class C(int x, string y);");
+            var comp = CreateCompilation(@"record C(int x, string y);");
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
             var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void GeneratedConstructorDefaultValues()
         {
-            var comp = CreateCompilation(@"data class C<T>(int x, T t = default);");
+            var comp = CreateCompilation(@"record C<T>(int x, T t = default);");
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
             Assert.Equal(1, c.Arity);
@@ -68,16 +67,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RecordExistingConstructor1()
         {
             var comp = CreateCompilation(@"
-data class C(int x, string y)
+record C(int x, string y)
 {
     public C(int a, string b)
     {
     }
 }");
             comp.VerifyDiagnostics(
-                // (2,13): error CS8762: There cannot be a primary constructor and a member constructor with the same parameter types.
-                // data class C(int x, string y)
-                Diagnostic(ErrorCode.ERR_DuplicateRecordConstructor, "(int x, string y)").WithLocation(2, 13)
+                // (2,9): error CS8851: There cannot be a primary constructor and a member constructor with the same parameter types.
+                // record C(int x, string y)
+                Diagnostic(ErrorCode.ERR_DuplicateRecordConstructor, "(int x, string y)").WithLocation(2, 9)
             );
             var c = comp.GlobalNamespace.GetTypeMember("C");
             var ctor = (MethodSymbol)c.GetMembers(".ctor")[0];
@@ -96,7 +95,7 @@ data class C(int x, string y)
         public void RecordExistingConstructor01()
         {
             var comp = CreateCompilation(@"
-data class C(int x, string y)
+record C(int x, string y)
 {
     public C(int a, int b) // overload
     {
@@ -143,7 +142,7 @@ data class C(int x, string y)
         [Fact]
         public void GeneratedProperties()
         {
-            var comp = CreateCompilation("data class C(int x, int y);");
+            var comp = CreateCompilation("record C(int x, int y);");
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
 
@@ -212,7 +211,7 @@ data class C(int x, string y)
         {
             CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public static void Main()
     {
@@ -229,7 +228,7 @@ data class C(int X, int Y)
         {
             CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public static void Main()
     {
@@ -247,7 +246,7 @@ True");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public static void Main()
     {
@@ -295,7 +294,7 @@ False");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public static void Main()
     {
@@ -347,7 +346,7 @@ False");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public static void Main()
     {
@@ -366,7 +365,7 @@ False");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int[] X, string Y)
+record C(int[] X, string Y)
 {
     public static void Main()
     {
@@ -386,7 +385,7 @@ True");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public int Z;
     public static void Main()
@@ -442,7 +441,7 @@ True");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public int Z { get; set; }
     public static void Main()
@@ -468,7 +467,7 @@ True");
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public static int Z;
     public static void Main()
@@ -518,7 +517,7 @@ True");
             var verifier = CompileAndVerify(@"
 using System;
 using System.Collections.Generic;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     static Dictionary<C, int> s_dict = new Dictionary<C, int>();
     public int Z { get => s_dict[this]; set => s_dict[this] = value; }
@@ -569,7 +568,7 @@ True");
             var verifier = CompileAndVerify(@"
 using System;
 using System.Collections.Generic;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     private event Action E;
     public static void Main()
@@ -623,7 +622,7 @@ True");
         [Fact]
         public void RecordClone1()
         {
-            var comp = CreateCompilation("data class C(int x, int y);");
+            var comp = CreateCompilation("record C(int x, int y);");
             comp.VerifyDiagnostics();
 
             var c = comp.GlobalNamespace.GetTypeMember("C");
@@ -668,7 +667,7 @@ True");
         public void RecordClone2_0()
         {
             var comp = CreateCompilation(@"
-data class C(int x, int y)
+record C(int x, int y)
 {
     public C(C other) : this(other.x, other.y) { }
 }");
@@ -714,7 +713,7 @@ data class C(int x, int y)
         public void RecordClone2_1()
         {
             var comp = CreateCompilation(@"
-data class C(int x, int y)
+record C(int x, int y)
 {
     public C(C other) { }
 }");
@@ -730,7 +729,7 @@ data class C(int x, int y)
         public void RecordClone2_2()
         {
             var comp = CreateCompilation(@"
-data class C(int x, int y)
+record C(int x, int y)
 {
     public C(C other) : base() { }
 }");
@@ -747,7 +746,7 @@ data class C(int x, int y)
         {
             var comp = CreateCompilation(@"
 using System;
-public data class C(int x, int y)
+public record C(int x, int y)
 {
     public event Action E;
     public int Z;
@@ -805,7 +804,7 @@ public data class C(int x, int y)
 ");
         }
 
-        [Fact]
+        [Fact(Skip = "record struct")]
         public void RecordClone4_0()
         {
             var comp = CreateCompilation(@"
@@ -838,7 +837,7 @@ public data struct S(int x, int y)
             Assert.True(ctor.Parameters[0].Type.Equals(s, TypeCompareKind.ConsiderEverything));
         }
 
-        [Fact]
+        [Fact(Skip = "record struct")]
         public void RecordClone4_1()
         {
             var comp = CreateCompilation(@"
@@ -866,7 +865,7 @@ public data struct S(int x, int y)
         {
             var verifier = CompileAndVerify(@"
 using System;
-data class C
+record C
 {
     private int X;
     private int Y { get; set; }
@@ -935,14 +934,14 @@ True");
         {
             var v1 = CompileAndVerify(@"
 using System;
-data class C(int X, string Y)
+record C(int X, string Y)
 {
     public event Action E;
 }
 ");
             var v2 = CompileAndVerify(@"
 using System;
-data class C
+record C
 {
     public int X { get; }
     public string Y { get; }
@@ -957,7 +956,7 @@ data class C
         {
             var comp = CreateCompilation(@"
 #nullable enable
-data class C
+record C
 {
     public int X { get; init; }
     public string Y { get; init; }
@@ -979,6 +978,176 @@ data class C
                 "C.C(C! )",
                 "C.C()",
             }, members.Select(m => m.ToTestDisplayString(includeNonNullable: true)));
+        }
+
+        [Fact]
+        public void PartialTypes_01()
+        {
+            var src = @"
+using System;
+partial record C(int X, int Y)
+{
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(c.X);
+        Console.WriteLine(c.Y);
+    }
+}
+
+partial record C(int X, int Y)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // partial record C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X, int Y)").WithLocation(13, 17)
+                );
+
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
+        }
+
+        [Fact]
+        public void PartialTypes_02()
+        {
+            var src = @"
+using System;
+partial record C(int X, int Y)
+{
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(c.X);
+        Console.WriteLine(c.Y);
+    }
+}
+
+partial record C(int X)
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS8863: Only a single record partial declaration may have a parameter list
+                // partial record C(int X)
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int X)").WithLocation(13, 17)
+                );
+
+            Assert.Equal(new[] { "C..ctor(System.Int32 X, System.Int32 Y)", "C..ctor(C )" }, comp.GetTypeByMetadataName("C")!.Constructors.Select(m => m.ToTestDisplayString()));
+        }
+
+        [Fact]
+        public void PartialTypes_03()
+        {
+            var src = @"
+using System;
+partial record C
+{
+    public int X = 1;
+}
+partial record C(int Y);
+partial record C
+{
+    public int Z { get; } = 2;
+}";
+            var verifier = CompileAndVerify(src);
+            verifier.VerifyIL("C..ctor(int)", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int C.X""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  stfld      ""int C.<Y>k__BackingField""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.2
+  IL_0010:  stfld      ""int C.<Z>k__BackingField""
+  IL_0015:  ldarg.0
+  IL_0016:  call       ""object..ctor()""
+  IL_001b:  ret
+}");
+        }
+
+        [Fact]
+        public void DataClassAndStruct()
+        {
+            var src = @"
+data class C1 { }
+data class C2(int X, int Y);
+data struct S1 { }
+data struct S2(int X, int Y);";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // error CS8805: Program using top-level statements must be an executable.
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // data class C1 { }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(2, 1),
+                // (3,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(3, 1),
+                // (3,14): error CS1514: { expected
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(3, 14),
+                // (3,14): error CS1513: } expected
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(3, 14),
+                // (3,14): error CS8803: Top-level statements must precede namespace and type declarations.
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(3, 14),
+                // (3,14): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(3, 14),
+                // (3,15): error CS8185: A declaration is not allowed in this context.
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(3, 15),
+                // (3,15): error CS0165: Use of unassigned local variable 'X'
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(3, 15),
+                // (3,22): error CS8185: A declaration is not allowed in this context.
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(3, 22),
+                // (3,22): error CS0165: Use of unassigned local variable 'Y'
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(3, 22),
+                // (4,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // data struct S1 { }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(4, 1),
+                // (5,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(5, 1),
+                // (5,15): error CS1514: { expected
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(5, 15),
+                // (5,15): error CS1513: } expected
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(5, 15),
+                // (5,15): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int X, int Y)").WithLocation(5, 15),
+                // (5,16): error CS8185: A declaration is not allowed in this context.
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int X").WithLocation(5, 16),
+                // (5,16): error CS0165: Use of unassigned local variable 'X'
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int X").WithArguments("X").WithLocation(5, 16),
+                // (5,20): error CS0128: A local variable or function named 'X' is already defined in this scope
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "X").WithArguments("X").WithLocation(5, 20),
+                // (5,23): error CS8185: A declaration is not allowed in this context.
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int Y").WithLocation(5, 23),
+                // (5,23): error CS0165: Use of unassigned local variable 'Y'
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(5, 23),
+                // (5,27): error CS0128: A local variable or function named 'Y' is already defined in this scope
+                // data struct S2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "Y").WithArguments("Y").WithLocation(5, 27)
+            );
         }
     }
 }

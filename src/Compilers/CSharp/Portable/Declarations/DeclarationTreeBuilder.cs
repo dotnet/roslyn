@@ -377,6 +377,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitTypeDeclaration(node, DeclarationKind.Interface);
         }
 
+        public override SingleNamespaceOrTypeDeclaration VisitRecordDeclaration(RecordDeclarationSyntax node)
+            => VisitTypeDeclaration(node, DeclarationKind.Record);
+
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
             SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any() ?
@@ -398,15 +401,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     ref declFlags);
 
             // A record with parameters at least has a primary constructor
-            if ((declFlags & SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers) == 0)
+            if (((declFlags & SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers) == 0) &&
+                node is RecordDeclarationSyntax { ParameterList: { } })
             {
-                switch (node)
-                {
-                    case ClassDeclarationSyntax { ParameterList: { } }:
-                    case StructDeclarationSyntax { ParameterList: { } }:
-                        declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
-                        break;
-                }
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
@@ -626,6 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
 
                 case SyntaxKind.DelegateDeclaration:

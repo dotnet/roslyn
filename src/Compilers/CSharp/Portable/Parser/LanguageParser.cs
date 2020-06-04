@@ -576,6 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.DelegateDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                         if (seen < NamespaceParts.TypesAndNamespaces)
                         {
                             seen = NamespaceParts.TypesAndNamespaces;
@@ -1179,22 +1180,7 @@ tryAgain:
                         break;
 
                     case DeclarationModifiers.Data:
-                        {
-                            // PROTOTYPE: doesn't allow for modifiers in-between. 
-                            var next = PeekToken(1);
-                            switch (next.Kind)
-                            {
-                                case SyntaxKind.StructKeyword:
-                                case SyntaxKind.ClassKeyword:
-                                    modTok = ConvertToKeyword(EatToken());
-                                    modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureRecords);
-                                    break;
-
-                                default:
-                                    return;
-                            }
-                        }
-                        break;
+                        return;
 
                     default:
                         modTok = this.EatToken();
@@ -1424,6 +1410,10 @@ tryAgain:
                 case SyntaxKind.EnumKeyword:
                     return this.ParseEnumDeclaration(attributes, modifiers);
 
+                case SyntaxKind.IdentifierToken:
+                    Debug.Assert(CurrentToken.ContextualKind == SyntaxKind.RecordKeyword);
+                    return ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this.CurrentToken.Kind);
             }
@@ -1449,25 +1439,23 @@ tryAgain:
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ClassKeyword ||
                 this.CurrentToken.Kind == SyntaxKind.StructKeyword ||
-                this.CurrentToken.Kind == SyntaxKind.InterfaceKeyword);
+                this.CurrentToken.Kind == SyntaxKind.InterfaceKeyword ||
+                CurrentToken.ContextualKind == SyntaxKind.RecordKeyword);
 
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
 
-            var classOrStructOrInterface = this.EatToken();
+            var keyword = ConvertToKeyword(this.EatToken());
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            bool isInterface = classOrStructOrInterface.Kind == SyntaxKind.InterfaceKeyword;
+            var paramList = keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
+                ? ParseParenthesizedParameterList() : null;
 
-            ParameterListSyntax? paramList = !isInterface && CurrentToken.Kind == SyntaxKind.OpenParenToken
-                ? CheckFeatureAvailability(ParseParenthesizedParameterList(), MessageID.IDS_FeatureRecords)
-                : null;
-
-            var baseList = this.ParseBaseList(classOrStructOrInterface, paramList is object);
+            var baseList = this.ParseBaseList(keyword, paramList is object);
             _termState = saveTerm;
 
             // Parse class body
@@ -1485,7 +1473,7 @@ tryAgain:
                 SyntaxToken semicolon;
                 SyntaxToken? openBrace;
                 SyntaxToken? closeBrace;
-                if (isInterface || CurrentToken.Kind != SyntaxKind.SemicolonToken)
+                if (!(keyword.Kind == SyntaxKind.RecordKeyword) || CurrentToken.Kind != SyntaxKind.SemicolonToken)
                 {
                     openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
@@ -1511,11 +1499,11 @@ tryAgain:
                                 var saveTerm2 = _termState;
                                 _termState |= TerminatorState.IsPossibleMemberStartOrStop;
 
-                                var memberOrStatement = this.ParseMemberDeclaration(classOrStructOrInterface.Kind);
-                                if (memberOrStatement != null)
+                                var member = this.ParseMemberDeclaration(keyword.Kind);
+                                if (member != null)
                                 {
                                     // statements are accepted here, a semantic error will be reported later
-                                    members.Add(memberOrStatement);
+                                    members.Add(member);
                                 }
                                 else
                                 {
@@ -1556,16 +1544,18 @@ tryAgain:
                     closeBrace = null;
                 }
 
-                switch (classOrStructOrInterface.Kind)
+                switch (keyword.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
+                        RoslynDebug.Assert(paramList is null);
+                        RoslynDebug.Assert(openBrace != null);
+                        RoslynDebug.Assert(closeBrace != null);
                         return _syntaxFactory.ClassDeclaration(
                             attributes,
                             modifiers.ToList(),
-                            classOrStructOrInterface,
+                            keyword,
                             name,
                             typeParameters,
-                            paramList,
                             baseList,
                             constraints,
                             openBrace,
@@ -1574,13 +1564,15 @@ tryAgain:
                             semicolon);
 
                     case SyntaxKind.StructKeyword:
+                        RoslynDebug.Assert(paramList is null);
+                        RoslynDebug.Assert(openBrace != null);
+                        RoslynDebug.Assert(closeBrace != null);
                         return _syntaxFactory.StructDeclaration(
                             attributes,
                             modifiers.ToList(),
-                            classOrStructOrInterface,
+                            keyword,
                             name,
                             typeParameters,
-                            paramList,
                             baseList,
                             constraints,
                             openBrace,
@@ -1595,7 +1587,7 @@ tryAgain:
                         return _syntaxFactory.InterfaceDeclaration(
                             attributes,
                             modifiers.ToList(),
-                            classOrStructOrInterface,
+                            keyword,
                             name,
                             typeParameters,
                             baseList,
@@ -1605,8 +1597,23 @@ tryAgain:
                             closeBrace,
                             semicolon);
 
+                    case SyntaxKind.RecordKeyword:
+                        return _syntaxFactory.RecordDeclaration(
+                            attributes,
+                            modifiers.ToList(),
+                            keyword,
+                            name,
+                            typeParameters,
+                            paramList,
+                            baseList,
+                            constraints,
+                            openBrace,
+                            members,
+                            closeBrace,
+                            semicolon);
+
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(classOrStructOrInterface.Kind);
+                        throw ExceptionUtilities.UnexpectedValue(keyword.Kind);
                 }
             }
             finally
@@ -1717,7 +1724,7 @@ tryAgain:
                 || this.IsCurrentTokenWhereOfConstraintClause();
         }
 
-        private BaseListSyntax ParseBaseList(SyntaxToken classOrStructOrInterfaceKeyword, bool haveParameters)
+        private BaseListSyntax ParseBaseList(SyntaxToken typeKeyword, bool haveParameters)
         {
             if (this.CurrentToken.Kind != SyntaxKind.ColonToken)
             {
@@ -1736,7 +1743,7 @@ tryAgain:
                 {
                     argumentList = this.ParseParenthesizedArgumentList();
 
-                    if (classOrStructOrInterfaceKeyword.Kind != SyntaxKind.ClassKeyword || !haveParameters)
+                    if (typeKeyword.Kind != SyntaxKind.RecordKeyword || !haveParameters)
                     {
                         argumentList = this.AddErrorToFirstToken(argumentList, ErrorCode.ERR_UnexpectedArgumentList);
                     }
@@ -1984,6 +1991,18 @@ tryAgain:
                 case SyntaxKind.InterfaceKeyword:
                 case SyntaxKind.StructKeyword:
                     return true;
+
+                case SyntaxKind.IdentifierToken:
+                    if (CurrentToken.ContextualKind == SyntaxKind.RecordKeyword)
+                    {
+                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
+                        // does not support a feature, but in this case we are effectively making a language breaking
+                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
+                        // older code that is not using C# 9 we conditionally parse based on langversion
+                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                    }
+                    return false;
+
                 default:
                     return false;
             }
@@ -2007,6 +2026,7 @@ tryAgain:
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     return true;
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.MethodDeclaration:
@@ -4533,6 +4553,7 @@ tryAgain:
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                         return ((CSharp.Syntax.TypeDeclarationSyntax)decl).Modifiers;
                     case SyntaxKind.DelegateDeclaration:
                         return ((CSharp.Syntax.DelegateDeclarationSyntax)decl).Modifiers;
