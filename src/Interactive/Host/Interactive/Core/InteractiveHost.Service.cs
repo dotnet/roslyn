@@ -15,10 +15,6 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Runtime.Remoting;
-using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Messaging;
-using System.Runtime.Serialization.Formatters;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -272,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         resetEvent.Wait();
                     }
 
-                    NamedPipeServerStream serverStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                    var serverStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
                     await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
                     var jsonRPC = JsonRpc.Attach(serverStream, new Service());
                     await jsonRPC.Completion.ConfigureAwait(false);
@@ -292,11 +288,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             internal static string ServiceName
             {
                 get { return typeof(Service).Name; }
-            }
-
-            private static string GenerateUniqueChannelLocalName()
-            {
-                return typeof(Service).FullName + Guid.NewGuid();
             }
 
             #endregion
@@ -443,7 +434,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                         // remove references and imports from the options, they have been applied and will be inherited from now on:
                         state = state.WithOptions(state.ScriptOptions.RemoveImportsAndReferences());
 
-                        // (miziga) by assigning a newScriptState, all previous exceptions in state are replaced 
                         var newScriptState = await ExecuteOnUIThreadAsync(script, state.ScriptState, displayResult: true).ConfigureAwait(false);
                         state = state.WithScriptState(newScriptState);
                     }
