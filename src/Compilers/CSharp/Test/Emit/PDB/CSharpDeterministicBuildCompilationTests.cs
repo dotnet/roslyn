@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var originalCompilation = CreateCompilation(
                 syntaxTrees,
                 references: metadataReferences.SelectAsArray(r => r.MetadataReference),
-                targetFramework: TargetFramework.NetStandard20,
                 options: compilationOptions);
 
             var peBlob = originalCompilation.EmitToArray(options: emitOptions);
