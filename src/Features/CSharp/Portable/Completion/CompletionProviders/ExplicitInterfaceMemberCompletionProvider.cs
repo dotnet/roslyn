@@ -20,9 +20,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    [ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp)]
+    [ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp), Shared]
     [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
-    [Shared]
     internal partial class ExplicitInterfaceMemberCompletionProvider : LSPCompletionProvider
     {
         private const string InsertionTextOnOpenParen = nameof(InsertionTextOnOpenParen);
@@ -106,20 +105,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 foreach (var member in members)
                 {
-                    if (member.IsAccessor() || member.Kind == SymbolKind.NamedType || !(member.IsAbstract || member.IsVirtual) ||
+                    if (member.IsAccessor() ||
+                        member.Kind == SymbolKind.NamedType ||
+                        !(member.IsAbstract || member.IsVirtual) ||
                         !semanticModel.IsAccessible(node.SpanStart, member))
                     {
                         continue;
                     }
 
-                    var displayText = member.ToMinimalDisplayString(
-                        semanticModel, namePosition, s_signatureDisplayFormat);
-                    var insertionText = displayText;
+                    var memberString = member.ToMinimalDisplayString(semanticModel, namePosition, s_signatureDisplayFormat);
+
+                    // Split the member string into two parts (generally the name, and the signature portion). We want
+                    // the split so that other features (like spell-checking), only look at the name portion.
+                    var (displayText, displayTextSuffix) = SplitMemberName(memberString);
 
                     var item = SymbolCompletionItem.CreateWithSymbolId(
                         displayText,
-                        displayTextSuffix: "",
-                        insertionText: insertionText,
+                        displayTextSuffix,
+                        insertionText: memberString,
                         symbols: ImmutableArray.Create(member),
                         contextPosition: position,
                         rules: CompletionItemRules.Default);
@@ -134,21 +137,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
+        private static (string text, string suffix) SplitMemberName(string memberString)
+        {
+            for (var i = 0; i < memberString.Length; i++)
+            {
+                if (!SyntaxFacts.IsIdentifierPartCharacter(memberString[i]))
+                    return (memberString[0..i], memberString[i..]);
+            }
+
+            return (memberString, "");
+        }
+
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         public override Task<TextChange?> GetTextChangeAsync(
             Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
-            if (ch == '(')
-            {
-                if (selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, out var insertionText))
-                {
-                    return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
-                }
-            }
+            var insertionText = ch == '(' && selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, out var value)
+                ? value
+                : SymbolCompletionItem.GetInsertionText(selectedItem);
 
-            return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, selectedItem.DisplayText));
+            return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
         }
     }
 }
