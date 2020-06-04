@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers
                 Return
             End If
 
-            Dim symbolInfo = context.SemanticModel.GetSymbolInfo(identifierName)
+            Dim symbolInfo = context.SemanticModel.GetSymbolInfo(identifierName, context.CancellationToken)
             If symbolInfo.Symbol Is Nothing Then
                 context.ReportDiagnostic(Diagnostic.Create(UpgradeMSBuildWorkspaceDiagnosticRule, identifierName.GetLocation()))
             End If
