@@ -1495,7 +1495,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         private static SyntaxToken FindTokenOnLeftOfNode(SyntaxNode node)
             => node.FindTokenOnLeftOfPosition(node.SpanStart);
 
-
         public static bool IsPossibleTupleOpenParenOrComma(this SyntaxToken possibleCommaOrParen)
         {
             if (!possibleCommaOrParen.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
@@ -2791,7 +2790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (expression.IsAnyLambdaOrAnonymousMethod())
                     return false;
 
-                var symbol = semanticModel.GetSymbolInfo(expression).GetAnySymbol();
+                var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
                 if (symbol is IMethodSymbol)
                     return false;
 

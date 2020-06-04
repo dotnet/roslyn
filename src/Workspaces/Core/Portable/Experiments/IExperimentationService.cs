@@ -37,9 +37,5 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string NativeEditorConfigSupport = "Roslyn.NativeEditorConfigSupport";
         public const string TriggerCompletionInArgumentLists = "Roslyn.TriggerCompletionInArgumentLists";
         public const string SQLiteInMemoryWriteCache = "Roslyn.SQLiteInMemoryWriteCache";
-
-        // Syntactic LSP experiment treatments.
-        public const string SyntacticExp_LiveShareTagger_Remote = "Roslyn.LspTagger";
-        public const string SyntacticExp_LiveShareTagger_TextMate = "Roslyn.TextMateTagger";
     }
 }

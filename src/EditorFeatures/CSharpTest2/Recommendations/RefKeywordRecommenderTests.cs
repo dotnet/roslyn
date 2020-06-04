@@ -408,7 +408,6 @@ $$");
             await VerifyKeywordAsync(text);
         }
 
-
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
         public async Task TestEmptyStatement(bool topLevelStatement)
