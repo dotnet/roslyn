@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor) = ImmutableArray.Create(s_descriptor)
 
         Public Sub New()
-            MyBase.New(s_descriptor.Id, s_descriptor.Title, s_descriptor.MessageFormat)
+            MyBase.New(s_descriptor.Id, s_descriptor.Title, s_descriptor.MessageFormat, configurable:=False)
         End Sub
 
         Protected Overrides Sub InitializeWorker(context As AnalysisContext)
