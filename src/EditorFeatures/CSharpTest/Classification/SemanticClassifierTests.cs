@@ -3922,7 +3922,7 @@ class X
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task StaticBoldingMethodNameNested()
+        public async Task StaticBoldingMethodNameNestedInNameof()
         {
             await TestAsync(
 @"class C
