@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -344,8 +345,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
             }
 
-            // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
-            if (kind != AnalysisKind.Syntax && analyzer.IsCompilerAnalyzer())
+            // If project is not loaded successfully then, we disable semantic errors for compiler analyzers
+            // We also need to disable analysis for IPragmaSuppressionAnalyzer if we cannot compute all reported diagnostics.
+            if (kind != AnalysisKind.Syntax &&
+                (analyzer.IsCompilerAnalyzer() || analyzer is IPragmaSuppressionsAnalyzer))
             {
                 var isEnabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -392,7 +395,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                     }
 
-                    diagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, span, singleAnalyzer, cancellationToken).ConfigureAwait(false);
+                    // We specially handle IPragmaSuppressionsAnalyzer by passing in the 'CompilationWithAnalyzers'
+                    // context to compute unnecessary pragma suppression diagnostics.
+                    // This is required because this analyzer relies on reported compiler + analyzer diagnostics
+                    // for unnecessary pragma analysis.
+                    if (analyzer is IPragmaSuppressionsAnalyzer suppressionsAnalyzer)
+                    {
+                        using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var builder);
+                        await suppressionsAnalyzer.AnalyzeAsync(model, span, compilationWithAnalyzers,
+                            analyzerInfoCache.GetDiagnosticDescriptors, IsCompilationEndAnalyzer, builder.Add, cancellationToken).ConfigureAwait(false);
+                        diagnostics = builder.ToImmutable();
+                    }
+                    else
+                    {
+                        diagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, span, singleAnalyzer, cancellationToken).ConfigureAwait(false);
+                    }
 
                     if (skippedAnalyzerInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out filteredIds))
                     {
@@ -404,6 +421,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+
+            // Local functions
+            bool IsCompilationEndAnalyzer(DiagnosticAnalyzer analyzer)
+            {
+                RoslynDebug.AssertNotNull(compilationWithAnalyzers);
+                return analyzerInfoCache.IsCompilationEndAnalyzer(analyzer, document.Project, compilationWithAnalyzers.Compilation) ?? true;
             }
         }
 
@@ -621,126 +645,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     yield return DiagnosticData.Create(diagnostic, document);
                 }
-            }
-        }
-
-        public static bool? IsCompilationEndAnalyzer(this DiagnosticAnalyzer analyzer, Project project, Compilation? compilation)
-        {
-            if (!project.SupportsCompilation)
-            {
-                return false;
-            }
-
-            Contract.ThrowIfNull(compilation);
-
-            try
-            {
-                // currently, this is only way to see whether analyzer has compilation end analysis or not.
-                // also, analyzer being compilation end analyzer or not is dynamic. so this can return different value based on
-                // given compilation or options.
-                //
-                // but for now, this is what we decided in design meeting until we decide how to deal with compilation end analyzer
-                // long term
-                var context = new CollectCompilationActionsContext(compilation, project.AnalyzerOptions);
-                analyzer.Initialize(context);
-
-                return context.IsCompilationEndAnalyzer;
-            }
-            catch
-            {
-                // analyzer.initialize can throw. when that happens, we will try again next time.
-                // we are not logging anything here since it will be logged by CompilationWithAnalyzer later
-                // in the error list
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Right now, there is no API compiler will tell us whether DiagnosticAnalyzer has compilation end analysis or not
-        /// 
-        /// </summary>
-        private class CollectCompilationActionsContext : AnalysisContext
-        {
-            private readonly Compilation _compilation;
-            private readonly AnalyzerOptions _analyzerOptions;
-
-            public CollectCompilationActionsContext(Compilation compilation, AnalyzerOptions analyzerOptions)
-            {
-                _compilation = compilation;
-                _analyzerOptions = analyzerOptions;
-            }
-
-            public bool IsCompilationEndAnalyzer { get; private set; } = false;
-
-            public override void RegisterCompilationAction(Action<CompilationAnalysisContext> action)
-            {
-                if (action == null)
-                {
-                    return;
-                }
-
-                IsCompilationEndAnalyzer = true;
-            }
-
-            public override void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action)
-            {
-                if (action == null)
-                {
-                    return;
-                }
-
-                var nestedContext = new CollectNestedCompilationContext(_compilation, _analyzerOptions, CancellationToken.None);
-                action(nestedContext);
-
-                IsCompilationEndAnalyzer |= nestedContext.IsCompilationEndAnalyzer;
-            }
-
-            #region not used
-            public override void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext> action) { }
-            public override void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) { }
-            public override void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action) { }
-            public override void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds) { }
-            public override void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) { }
-            public override void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action) { }
-            public override void ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags analysisMode) { }
-            public override void EnableConcurrentExecution() { }
-            public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds) { }
-            public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action) { }
-            public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action) { }
-            public override void RegisterSymbolStartAction(Action<SymbolStartAnalysisContext> action, SymbolKind symbolKind) { }
-            #endregion
-
-            private class CollectNestedCompilationContext : CompilationStartAnalysisContext
-            {
-                public bool IsCompilationEndAnalyzer { get; private set; } = false;
-
-                public CollectNestedCompilationContext(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
-                    : base(compilation, options, cancellationToken)
-                {
-                }
-
-                public override void RegisterCompilationEndAction(Action<CompilationAnalysisContext> action)
-                {
-                    if (action == null)
-                    {
-                        return;
-                    }
-
-                    IsCompilationEndAnalyzer = true;
-                }
-
-                #region not used
-                public override void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext> action) { }
-                public override void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) { }
-                public override void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action) { }
-                public override void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds) { }
-                public override void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) { }
-                public override void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action) { }
-                public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds) { }
-                public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action) { }
-                public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action) { }
-                public override void RegisterSymbolStartAction(Action<SymbolStartAnalysisContext> action, SymbolKind symbolKind) { }
-                #endregion
             }
         }
     }

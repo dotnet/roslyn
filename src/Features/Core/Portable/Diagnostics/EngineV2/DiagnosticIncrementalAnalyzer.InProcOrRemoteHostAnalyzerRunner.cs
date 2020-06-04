@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
-                CompilationWithAnalyzers compilation, Project project, RemoteHostClient? client, CancellationToken cancellationToken)
+                CompilationWithAnalyzers compilationWithAnalyzers, Project project, RemoteHostClient? client, CancellationToken cancellationToken)
             {
-                Debug.Assert(compilation.Analyzers.Length != 0);
+                Debug.Assert(compilationWithAnalyzers.Analyzers.Length != 0);
 
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
                 // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
-                var analysisResult = await compilation.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+                var (analysisResult, additionalDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(project, _analyzerInfoCache, cancellationToken).ConfigureAwait(false);
 
                 // if remote host is there, report performance data
                 var asyncToken = _asyncOperationListener.BeginAsyncOperation(nameof(AnalyzeInProcAsync));
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var skippedAnalyzersInfo = project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
 
                 // get compiler result builder map
-                var builderMap = analysisResult.ToResultBuilderMap(project, version, compilation.Compilation, compilation.Analyzers, skippedAnalyzersInfo, cancellationToken);
+                var builderMap = analysisResult.ToResultBuilderMap(additionalDiagnostics, project, version, compilationWithAnalyzers.Compilation, compilationWithAnalyzers.Analyzers, skippedAnalyzersInfo, cancellationToken);
 
                 return DiagnosticAnalysisResultMap.Create(
                     builderMap.ToImmutableDictionary(kv => kv.Key, kv => DiagnosticAnalysisResult.CreateFromBuilder(kv.Value)),
