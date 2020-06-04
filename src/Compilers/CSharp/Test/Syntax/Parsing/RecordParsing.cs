@@ -1314,7 +1314,7 @@ class C
         }
 
         [Fact]
-        public void InvalidBase()
+        public void BadParameterListAndBaseListOnClass()
         {
             var text = @$"
 class C(int X, int Y)
