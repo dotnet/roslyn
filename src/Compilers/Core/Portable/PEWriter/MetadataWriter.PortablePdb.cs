@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -16,7 +15,6 @@ using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.InternalUtilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
@@ -844,16 +842,16 @@ namespace Microsoft.Cci
             var builder = new BlobBuilder();
 
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
-            WriteValue("compiler-version", compilerVersion);
+            WriteValue(CompilationOptionNames.CompilerVersion, compilerVersion);
 
             if (module.EmitOptions.FallbackSourceFileEncoding != null)
             {
-                WriteValue("fallback-encoding", module.EmitOptions.FallbackSourceFileEncoding.WebName);
+                WriteValue(CompilationOptionNames.FallbackEncoding, module.EmitOptions.FallbackSourceFileEncoding.WebName);
             }
 
             if (module.EmitOptions.DefaultSourceFileEncoding != null)
             {
-                WriteValue("default-encoding", module.EmitOptions.DefaultSourceFileEncoding.WebName);
+                WriteValue(CompilationOptionNames.DefaultEncoding, module.EmitOptions.DefaultSourceFileEncoding.WebName);
             }
 
             int portabilityPolicy = 0;
@@ -863,16 +861,16 @@ namespace Microsoft.Cci
                 portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
             }
 
-            WriteValue("portability-policy", portabilityPolicy.ToString());
+            WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString());
 
             var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-            WriteValue("runtime-version", runtimeVersion);
+            WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
 
             var optimization = module.CommonCompilation.Options.OptimizationLevel == OptimizationLevel.Debug
                 ? (module.CommonCompilation.Options.DebugPlusMode ? "debug+" : "debug")
                 : "release";
 
-            WriteValue("optimization", optimization);
+            WriteValue(CompilationOptionNames.Optimization, optimization);
 
             module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
 
