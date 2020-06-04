@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             // Verify that intentional errors get validated by the test
             var errors = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_ERROR);
-            var expected = "(Compiler) Class1.cs(0, 12): error CS1002: ; expected";
+            var expected = "(Compiler) Class1.cs(1, 13): error CS1002: ; expected";
             new XUnitVerifier().EqualOrDiff(expected, string.Join(Environment.NewLine, errors));
             Assert.Equal(1, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
         }
@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Testing
 
             // Currently have two analyzer warnings in the template.
             var warnings = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_WARNING);
-            var expected = @"(Compiler) TestProjAnalyzer.cs(28, 56): warning RS1025: Configure generated code analysis
-(Compiler) TestProjAnalyzer.cs(28, 56): warning RS1026: Enable concurrent execution";
+            var expected = @"(Compiler) TestProjAnalyzer.cs(29, 57): warning RS1025: Configure generated code analysis
+(Compiler) TestProjAnalyzer.cs(29, 57): warning RS1026: Enable concurrent execution";
             new XUnitVerifier().EqualOrDiff(expected, string.Join(Environment.NewLine, warnings));
             Assert.Equal(2, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
         }
@@ -111,12 +111,14 @@ namespace Microsoft.CodeAnalysis.Testing
 
             await TestServices.ErrorList.ShowBuildErrorsAsync();
 
+            var errors = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_ERROR);
+            new XUnitVerifier().EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
             Assert.Equal(0, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR));
 
             // Currently have two analyzer warnings in the template.
             var warnings = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_WARNING);
-            var expected = @"(Compiler) TestProjAnalyzer.vb(31, 36): warning RS1025: Configure generated code analysis
-(Compiler) TestProjAnalyzer.vb(31, 36): warning RS1026: Enable concurrent execution";
+            var expected = @"(Compiler) TestProjAnalyzer.vb(32, 37): warning RS1025: Configure generated code analysis
+(Compiler) TestProjAnalyzer.vb(32, 37): warning RS1026: Enable concurrent execution";
             new XUnitVerifier().EqualOrDiff(expected, string.Join(Environment.NewLine, warnings));
             Assert.Equal(2, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_WARNING));
         }

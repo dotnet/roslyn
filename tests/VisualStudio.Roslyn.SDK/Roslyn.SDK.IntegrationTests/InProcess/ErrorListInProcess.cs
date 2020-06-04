@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
                     var unknown => unknown.ToString(),
                 };
 
-                var message = $"({source}) {document}({line}, {column}): {severity} {errorCode}: {text}";
+                var message = $"({source}) {document}({line + 1}, {column + 1}): {severity} {errorCode}: {text}";
                 list.Add(message);
             }
 
