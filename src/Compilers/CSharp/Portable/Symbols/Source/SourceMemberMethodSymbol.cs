@@ -879,8 +879,8 @@ done:
             bool isCovariantOverride = this.IsOverride && !this.OverriddenMethod.ReturnType.Equals(this.ReturnType, TypeCompareKind.AllIgnoreOptions);
             if (isCovariantOverride)
             {
-                // If present, we add RequireMethodImplToRemainInEffectAttribute to covariant overrides.
-                var attr = moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequireMethodImplToRemainInEffectAttribute__ctor, isOptionalUse: true);
+                // If present, we add PreserveBaseOverridesAttribute to covariant overrides.
+                var attr = moduleBuilder.Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor, isOptionalUse: true);
                 AddSynthesizedAttribute(ref attributes, attr);
             }
 
