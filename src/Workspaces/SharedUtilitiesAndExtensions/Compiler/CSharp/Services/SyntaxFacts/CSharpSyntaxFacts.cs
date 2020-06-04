@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
@@ -1753,6 +1754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             switch (declaration.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKindEx.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
