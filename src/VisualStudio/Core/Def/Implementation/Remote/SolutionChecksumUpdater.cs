@@ -143,7 +143,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
-
         private static void CancelAndDispose(CancellationTokenSource cancellationSource)
         {
             // cancel running tasks

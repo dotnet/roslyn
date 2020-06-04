@@ -306,7 +306,6 @@ class C
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestMultiNullableParameters()
         {

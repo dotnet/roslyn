@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (syntaxFacts.IsInvocationExpression(node.Parent))
                 node = node.Parent;
 
-            var operation = semanticModel.GetOperation(node);
+            var operation = semanticModel.GetOperation(node, cancellationToken);
             var instance = operation switch
             {
                 IMemberReferenceOperation memberReference => memberReference.Instance,

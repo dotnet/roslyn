@@ -165,12 +165,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
         Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
 
-        Friend Overrides Function GetDelegatingConstructor(state As State,
-                                                           document As SemanticDocument,
-                                                           argumentCount As Integer,
-                                                           namedType As INamedTypeSymbol,
-                                                           candidates As ISet(Of IMethodSymbol),
-                                                           cancellationToken As CancellationToken) As IMethodSymbol
+        Protected Overrides Function GetDelegatingConstructor(
+                state As State,
+                document As SemanticDocument,
+                argumentCount As Integer,
+                namedType As INamedTypeSymbol,
+                candidates As ISet(Of IMethodSymbol),
+                cancellationToken As CancellationToken) As IMethodSymbol
             Dim oldToken = state.Token
             Dim tokenKind = oldToken.Kind()
             Dim simpleName = DirectCast(oldToken.Parent, SimpleNameSyntax)

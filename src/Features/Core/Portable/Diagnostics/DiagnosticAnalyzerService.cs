@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             {
                                 await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
                                 onProjectAnalyzed(project);
-                            });
+                            }, cancellationToken);
                     }
 
                     await Task.WhenAll(tasks).ConfigureAwait(false);

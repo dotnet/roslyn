@@ -383,12 +383,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<INamedTypeSymbol> interfaces = default,
             SpecialType specialType = SpecialType.None,
             ImmutableArray<ISymbol> members = default,
-            NullableAnnotation nullableAnnotation = NullableAnnotation.None)
+            NullableAnnotation nullableAnnotation = NullableAnnotation.None,
+            IAssemblySymbol containingAssembly = null)
         {
             members = members.NullToEmpty();
 
             return new CodeGenerationNamedTypeSymbol(
-                null, attributes, accessibility, modifiers, typeKind, name,
+                containingAssembly, null, attributes, accessibility, modifiers, typeKind, name,
                 typeParameters, baseType, interfaces, specialType, nullableAnnotation,
                 members.WhereAsArray(m => !(m is INamedTypeSymbol)),
                 members.OfType<INamedTypeSymbol>().Select(n => n.ToCodeGenerationSymbol()).ToImmutableArray(),
@@ -421,6 +422,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 parameters: parameters);
 
             return new CodeGenerationNamedTypeSymbol(
+                containingAssembly: null,
                 containingType: null,
                 attributes: attributes,
                 declaredAccessibility: accessibility,

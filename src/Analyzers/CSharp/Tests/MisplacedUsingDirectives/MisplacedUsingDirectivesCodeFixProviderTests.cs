@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
         internal static readonly CodeStyleOption2<AddImportPlacement> OutsideNamespaceOption =
             new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.Error);
 
-
         protected const string ClassDefinition = @"public class TestClass
 {
 }";
@@ -255,7 +254,6 @@ namespace System
 
             return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
-
 
         /// <summary>
         /// Verifies that the code fix will move the using directives when they are present in both the compilation unit and namespace.
