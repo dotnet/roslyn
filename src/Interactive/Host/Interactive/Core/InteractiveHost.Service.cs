@@ -161,7 +161,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 Debug.Assert(cultureName != null);
                 Contract.ThrowIfFalse(_serviceState == null, "Service already initialized");
 
-
                 // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(
                     Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
