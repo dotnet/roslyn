@@ -156,7 +156,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             }*/
 
             public Task InitializeAsync(string replServiceProviderTypeName, string cultureName)
-            {                Debug.Assert(cultureName != null);
+            {
+                Debug.Assert(cultureName != null);
                 using (var resetEvent = new ManualResetEventSlim(false))
                 {
                     var uiThread = new Thread(() =>
@@ -170,8 +171,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     uiThread.IsBackground = true;
                     uiThread.Start();
                     resetEvent.Wait();
-                }
-                // TODO (tomat): we should share the copied files with the host
+                }                // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(                    Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
                     noShadowCopyDirectories: s_systemNoShadowCopyDirectories,
                     documentationCommentsCulture: new CultureInfo(cultureName));
