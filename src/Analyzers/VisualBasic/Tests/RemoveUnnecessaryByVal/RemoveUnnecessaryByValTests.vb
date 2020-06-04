@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryB
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
         Public Async Function TestRemoveByVal() As Task
-            TestInRegularAndScript1Async(
+            Await TestInRegularAndScript1Async(
 "Public Class Program
     Public Sub MySub([|ByVal|] arg As String)
     End Sub
@@ -34,7 +34,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
         Public Async Function TestRemoveByValLowerCase() As Task
-            TestInRegularAndScript1Async(
+            Await TestInRegularAndScript1Async(
 "Public Class Program
     Public Sub MySub([|byval|] arg As String)
     End Sub
