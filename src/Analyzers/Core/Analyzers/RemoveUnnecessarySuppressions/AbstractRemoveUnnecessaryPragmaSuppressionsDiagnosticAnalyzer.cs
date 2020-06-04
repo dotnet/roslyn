@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             {
                 var indexOfPragma = sortedPragmasWithIds.FindIndex(p => p.pragma == pragma);
                 var idsForPragma = sortedPragmasWithIds[indexOfPragma].ids;
-                bool isDisable = sortedPragmasWithIds[indexOfPragma].isDisable;
+                var isDisable = sortedPragmasWithIds[indexOfPragma].isDisable;
                 var incrementOrDecrement = isDisable ? 1 : -1;
                 var matchingPragmaStackCount = 0;
                 for (var i = indexOfPragma + incrementOrDecrement; i >= 0 && i < sortedPragmasWithIds.Count; i += incrementOrDecrement)
