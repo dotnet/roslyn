@@ -332,6 +332,11 @@
         <target state="translated">Argumente mit dem Modifizierer "in" können nicht in dynamisch gebundenen Ausdrücken verwendet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstancePropertyInitializerInInterface">
+        <source>Instance properties in interfaces cannot have initializers.</source>
+        <target state="new">Instance properties in interfaces cannot have initializers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
         <target state="translated">"{0}" kann den Schnittstellenmember "{1}" in Typ "{2}" nicht implementieren, weil er einen __arglist-Parameter umfasst.</target>

@@ -332,6 +332,11 @@
         <target state="translated">具有 'in' 修飾元的引數不可用於動態分派的運算式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstancePropertyInitializerInInterface">
+        <source>Instance properties in interfaces cannot have initializers.</source>
+        <target state="new">Instance properties in interfaces cannot have initializers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
         <target state="translated">因為介面成員 '{1}' 包含 __arglist 參數，所以 '{0}' 無法在類型 '{2}' 中實作此介面成員</target>

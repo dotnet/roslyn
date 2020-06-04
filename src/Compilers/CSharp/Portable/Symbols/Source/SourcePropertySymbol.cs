@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasInitializer)
             {
-                CheckInitializer(isAutoProperty, location, diagnostics);
+                CheckInitializer(isAutoProperty, containingType.IsInterface, IsStatic, location, diagnostics);
             }
 
             if (isAutoProperty || hasInitializer)
@@ -392,9 +392,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _explicitInterfaceImplementations =
-                (object)explicitlyImplementedProperty == null ?
-                    ImmutableArray<PropertySymbol>.Empty :
-                    ImmutableArray.Create(explicitlyImplementedProperty);
+                            (object)explicitlyImplementedProperty == null ?
+                                ImmutableArray<PropertySymbol>.Empty :
+                                ImmutableArray.Create(explicitlyImplementedProperty);
 
             // get-only auto property should not override settable properties
             if ((_propertyFlags & Flags.IsAutoProperty) != 0)
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CheckForBlockAndExpressionBody(
-                syntax.AccessorList, syntax.GetExpressionBodySyntax(), syntax, diagnostics);
+                            syntax.AccessorList, syntax.GetExpressionBodySyntax(), syntax, diagnostics);
         }
 
         private void CheckForFieldTargetedAttribute(BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
@@ -505,13 +505,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckInitializer(
             bool isAutoProperty,
+            bool isInterface,
+            bool isStatic,
             Location location,
             DiagnosticBag diagnostics)
         {
-            if (!isAutoProperty)
+            if (isInterface && !isStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, location, this);
+            }
+            else if (!isAutoProperty)
             {
                 diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, location, this);
+
             }
+
         }
 
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
