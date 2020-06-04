@@ -11,6 +11,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PEWriter;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.PDB;
@@ -33,19 +34,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             DeterministicBuildCompilationTestHelpers.AssertCommonOptions(emitOptions, originalOptions, compilation, pdbOptions);
 
             // See CSharpCompilation.SerializeForPdb to see options that are included
-            Assert.Equal(originalOptions.NullableContextOptions.ToString(), pdbOptions["nullable"]);
-            Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions["checked"]);
-            Assert.Equal(originalOptions.AllowUnsafe.ToString(), pdbOptions["unsafe"]);
-            Assert.Equal(langVersion, pdbOptions["language-version"]);
+            Assert.Equal(originalOptions.NullableContextOptions.ToString(), pdbOptions[CompilationOptionNames.Nullable]);
+            Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions[CompilationOptionNames.Checked]);
+            Assert.Equal(originalOptions.AllowUnsafe.ToString(), pdbOptions[CompilationOptionNames.Unsafe]);
+            Assert.Equal(langVersion, pdbOptions[CompilationOptionNames.LanguageVersion]);
 
             var firstSyntaxTree = compilation.SyntaxTrees.FirstOrDefault() as CSharpSyntaxTree;
             if (firstSyntaxTree is null || firstSyntaxTree.Options.PreprocessorSymbols.IsEmpty)
             {
-                Assert.False(pdbOptions.ContainsKey("define"));
+                Assert.False(pdbOptions.ContainsKey(CompilationOptionNames.Define));
             }
             else
             {
-                Assert.Equal(string.Join(",", firstSyntaxTree.Options.PreprocessorSymbolNames), pdbOptions["define"]);
+                Assert.Equal(string.Join(",", firstSyntaxTree.Options.PreprocessorSymbolNames), pdbOptions[CompilationOptionNames.Define]);
             }
         }
 

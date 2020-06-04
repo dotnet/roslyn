@@ -8,6 +8,7 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PEWriter
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -24,9 +25,9 @@ Public Class VisualBasicDeterministicBuildCompilationTests
         DeterministicBuildCompilationTestHelpers.AssertCommonOptions(emitOptions, originalOptions, compilation, pdbOptions)
 
         ' See VisualBasicCompilation.SerializeForPdb for options that are added
-        Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions("checked"))
-        Assert.Equal(originalOptions.OptionStrict.ToString(), pdbOptions("strict"))
-        Assert.Equal(originalOptions.ParseOptions.LanguageVersion.ToString(), pdbOptions("language-version"))
+        Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions(CompilationOptionNames.Checked))
+        Assert.Equal(originalOptions.OptionStrict.ToString(), pdbOptions(CompilationOptionNames.Strict))
+        Assert.Equal(originalOptions.ParseOptions.LanguageVersion.ToString(), pdbOptions(CompilationOptionNames.LanguageVersion))
 
 
         Dim preprocessorStrings = originalOptions.ParseOptions.PreprocessorSymbols.Select(Function(p)
@@ -36,7 +37,7 @@ Public Class VisualBasicDeterministicBuildCompilationTests
 
                                                                                               Return p.Key + "=" + p.Value.ToString()
                                                                                           End Function)
-        Assert.Equal(String.Join(",", preprocessorStrings), pdbOptions("define"))
+        Assert.Equal(String.Join(",", preprocessorStrings), pdbOptions(CompilationOptionNames.Define))
 
     End Sub
 

@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PEWriter;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -3488,21 +3489,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder)
         {
-            WriteValue("checked", Options.CheckOverflow.ToString());
-            WriteValue("nullable", Options.NullableContextOptions.ToString());
-            WriteValue("unsafe", Options.AllowUnsafe.ToString());
-            WriteValue("language-version", LanguageVersion.ToString());
-
-            var optimization = Options.OptimizationLevel == OptimizationLevel.Debug
-                ? (Options.DebugPlusMode ? "debug+" : "debug")
-                : "release";
-
-            WriteValue("optimization", optimization);
+            WriteValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
+            WriteValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
+            WriteValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
+            WriteValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToString());
 
             var preprocessorSymbols = GetPreprocessorSymbols();
             if (preprocessorSymbols.Any())
             {
-                WriteValue("define", string.Join(",", preprocessorSymbols));
+                WriteValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
             }
 
             void WriteValue(string key, string value)

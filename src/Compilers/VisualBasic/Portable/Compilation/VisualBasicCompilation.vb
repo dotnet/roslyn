@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.InternalUtilities
 Imports Microsoft.CodeAnalysis.Operations
+Imports Microsoft.CodeAnalysis.PEWriter
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
@@ -709,9 +710,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)
-            WriteValue(builder, "checked", Options.CheckOverflow.ToString())
-            WriteValue(builder, "language-version", LanguageVersion.ToString())
-            WriteValue(builder, "strict", Options.OptionStrict.ToString())
+            WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
+            WriteValue(builder, CompilationOptionNames.LanguageVersion, LanguageVersion.ToString())
+            WriteValue(builder, CompilationOptionNames.Strict, Options.OptionStrict.ToString())
 
             If Options.ParseOptions IsNot Nothing Then
                 Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
@@ -721,7 +722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                                                                               Return p.Key + "=" + p.Value.ToString()
                                                                                           End Function)
-                WriteValue(builder, "define", String.Join(",", preprocessorStrings))
+                WriteValue(builder, CompilationOptionNames.Define, String.Join(",", preprocessorStrings))
             End If
         End Sub
 

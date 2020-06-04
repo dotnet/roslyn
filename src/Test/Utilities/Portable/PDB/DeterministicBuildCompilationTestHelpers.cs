@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PEWriter;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -37,16 +38,13 @@ namespace Roslyn.Test.Utilities.PDB
         {
             if (emitOptions.FallbackSourceFileEncoding != null)
             {
-                Assert.Equal(emitOptions.FallbackSourceFileEncoding.WebName, pdbOptions["fallback-encoding"]);
+                Assert.Equal(emitOptions.FallbackSourceFileEncoding.WebName, pdbOptions[CompilationOptionNames.FallbackEncoding]);
             }
 
             if (emitOptions.DefaultSourceFileEncoding != null)
             {
-                Assert.Equal(emitOptions.DefaultSourceFileEncoding.WebName, pdbOptions["default-encoding"]);
+                Assert.Equal(emitOptions.DefaultSourceFileEncoding.WebName, pdbOptions[CompilationOptionNames.DefaultEncoding]);
             }
-
-            var runtimeInformationalVersionAttribute = (AssemblyInformationalVersionAttribute)typeof(object).Assembly.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false).Single();
-            Assert.Equal(runtimeInformationalVersionAttribute.InformationalVersion, pdbOptions["runtime-version"]);
 
             int portabilityPolicy = 0;
             if (compilationOptions.AssemblyIdentityComparer is DesktopAssemblyIdentityComparer identityComparer)
@@ -55,19 +53,19 @@ namespace Roslyn.Test.Utilities.PDB
                 portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
             }
 
-            Assert.Equal(portabilityPolicy.ToString(), pdbOptions["portability-policy"]);
+            Assert.Equal(portabilityPolicy.ToString(), pdbOptions[CompilationOptionNames.PortabilityPolicy]);
 
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-            Assert.Equal(compilerVersion.ToString(), pdbOptions["compiler-version"]);
+            Assert.Equal(compilerVersion.ToString(), pdbOptions[CompilationOptionNames.CompilerVersion]);
 
             var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-            Assert.Equal(runtimeVersion, pdbOptions["runtime-version"]);
+            Assert.Equal(runtimeVersion, pdbOptions[CompilationOptionNames.RuntimeVersion]);
 
             var optimization = compilationOptions.OptimizationLevel == OptimizationLevel.Debug
                 ? (compilationOptions.DebugPlusMode ? "debug+" : "debug")
                 : "release";
 
-            Assert.Equal(optimization, pdbOptions["optimization"]);
+            Assert.Equal(optimization, pdbOptions[CompilationOptionNames.Optimization]);
 
         }
 
