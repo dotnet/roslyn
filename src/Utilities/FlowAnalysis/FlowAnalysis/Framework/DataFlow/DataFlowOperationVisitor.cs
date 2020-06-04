@@ -1260,8 +1260,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 operation.Kind == OperationKind.Invocation ||
                 operation.Kind == OperationKind.Argument ||
                 operation.Kind == OperationKind.FlowCaptureReference ||
-                operation.Kind == OperationKind.IsPattern ||
-                operation.Kind == OperationKind.ReDimClause);
+                operation.Kind == OperationKind.IsPattern);
 
             if (FlowBranchConditionKind == ControlFlowConditionKind.None || !IsRootOfCondition())
             {
@@ -3360,16 +3359,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return TryGetTaskWrappedValue(pointsToValue, out var awaitedValue) ?
                 awaitedValue :
                 value;
-        }
-
-        public override TAbstractAnalysisValue VisitReDimClause(IReDimClauseOperation operation, object? argument)
-        {
-            var value = base.VisitReDimClause(operation, argument);
-            if (PredicateAnalysis)
-            {
-                PerformPredicateAnalysis(operation);
-            }
-            return value;
         }
 
         #region Overrides for lowered IOperations

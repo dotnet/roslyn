@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
@@ -766,13 +765,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             public override PointsToAbstractValue VisitReDimClause(IReDimClauseOperation operation, object? argument)
             {
-                var type = operation.Children.FirstOrDefault()?.Type;
-                if (type == null)
+                if (operation.Operand.Type == null)
                 {
                     return base.VisitReDimClause(operation, argument);
                 }
 
-                AbstractLocation location = AbstractLocation.CreateAllocationLocation(operation, type, DataFlowAnalysisContext);
+                AbstractLocation location = AbstractLocation.CreateAllocationLocation(operation, operation.Operand.Type, DataFlowAnalysisContext);
                 var pointsToAbstractValue = PointsToAbstractValue.Create(location, mayBeNull: false);
                 CacheAbstractValue(operation, pointsToAbstractValue);
 
