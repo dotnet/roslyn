@@ -261,10 +261,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Class:
                 case TypeKind.Submission:
                     allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
-                        | DeclarationModifiers.Unsafe | DeclarationModifiers.Data;
+                        | DeclarationModifiers.Unsafe;
                     break;
                 case TypeKind.Struct:
-                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Ref | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe | DeclarationModifiers.Data;
+                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Ref | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
                     break;
                 case TypeKind.Interface:
                     allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
@@ -2322,7 +2322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>> InstanceInitializers = ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>>.GetInstance();
             public readonly ArrayBuilder<SyntaxReference> IndexerDeclarations = ArrayBuilder<SyntaxReference>.GetInstance();
             public ParameterListSyntax? RecordConstructorParamList;
-            public TypeDeclarationSyntax? RecordDeclarationWithParameters;
+            public RecordDeclarationSyntax? RecordDeclarationWithParameters;
             public ArrayBuilder<FieldOrPropertyInitializer.Builder>? InstanceInitializersForRecordDeclarationWithParameters;
 
 
@@ -2410,7 +2410,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Struct:
                     CheckForStructBadInitializers(builder, diagnostics);
                     CheckForStructDefaultConstructors(builder.NonTypeNonIndexerMembers, isEnum: false, diagnostics: diagnostics);
-                    AddSynthesizedRecordMembersIfNecessary(builder, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
                     break;
 
@@ -2422,8 +2421,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Class:
                 case TypeKind.Interface:
                 case TypeKind.Submission:
-                    AddSynthesizedRecordMembersIfNecessary(builder, diagnostics);
                     // No additional checking required.
+                    AddSynthesizedRecordMembersIfNecessary(builder, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
                     break;
 
@@ -2486,17 +2485,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.ClassDeclaration:
-                        var classDecl = (ClassDeclarationSyntax)syntax;
-                        AddNonTypeMembers(builder, instanceInitializers: noteRecordParameters(classDecl, builder, classDecl.ParameterList), classDecl.Members, diagnostics);
-                        break;
-
                     case SyntaxKind.InterfaceDeclaration:
-                        AddNonTypeMembers(builder, instanceInitializers: null, ((InterfaceDeclarationSyntax)syntax).Members, diagnostics);
+                    case SyntaxKind.StructDeclaration:
+                        var typeDecl = (TypeDeclarationSyntax)syntax;
+                        AddNonTypeMembers(builder, instanceInitializers: null, typeDecl.Members, diagnostics);
                         break;
 
-                    case SyntaxKind.StructDeclaration:
-                        var structDecl = (StructDeclarationSyntax)syntax;
-                        AddNonTypeMembers(builder, instanceInitializers: noteRecordParameters(structDecl, builder, structDecl.ParameterList), structDecl.Members, diagnostics);
+                    case SyntaxKind.RecordDeclaration:
+                        var recordDecl = (RecordDeclarationSyntax)syntax;
+                        AddNonTypeMembers(builder,
+                            instanceInitializers: noteRecordParameters(recordDecl, builder, diagnostics),
+                            recordDecl.Members,
+                            diagnostics);
                         break;
 
                     default:
@@ -2504,8 +2504,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static ArrayBuilder<FieldOrPropertyInitializer.Builder>? noteRecordParameters(TypeDeclarationSyntax syntax, MembersAndInitializersBuilder builder, ParameterListSyntax? parameterList)
+            static ArrayBuilder<FieldOrPropertyInitializer.Builder>? noteRecordParameters(RecordDeclarationSyntax syntax, MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
             {
+                var parameterList = syntax.ParameterList;
                 if (parameterList is null)
                 {
                     return null;
@@ -2520,7 +2521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    // PROTOTYPE: Add error for multiple parameter lists
+                    diagnostics.Add(ErrorCode.ERR_MultipleRecordParameterLists, parameterList.Location);
                     return null;
                 }
             }
@@ -2950,23 +2951,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddSynthesizedRecordMembersIfNecessary(MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
         {
-            switch (declaration.Kind)
+            if (declaration.Kind != DeclarationKind.Record)
             {
-                case DeclarationKind.Class:
-                case DeclarationKind.Struct:
-                    break;
-
-                default:
-                    return;
+                return;
             }
 
             ParameterListSyntax? paramList = builder.RecordConstructorParamList;
-
-            if (paramList is null && !_declModifiers.HasFlag(DeclarationModifiers.Data))
-            {
-                // Not a record
-                return;
-            }
 
             var memberSignatures = s_duplicateMemberSignatureDictionary.Allocate();
             var members = builder.NonTypeNonIndexerMembers;
@@ -2986,7 +2976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // PROTOTYPE: The semantics of an empty parameter list have not been decided. Error
                 // for now
-                if (paramList.ParameterCount == 0 || !_declModifiers.HasFlag(DeclarationModifiers.Data))
+                if (paramList.ParameterCount == 0)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
                 }
@@ -3013,8 +3003,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return;
 
-            SynthesizedRecordConstructor addCtor(TypeDeclarationSyntax declWithParameters)
+            SynthesizedRecordConstructor addCtor(RecordDeclarationSyntax declWithParameters)
             {
+                Debug.Assert(declWithParameters.ParameterList is object);
                 var ctor = new SynthesizedRecordConstructor(this, declWithParameters, diagnostics);
                 if (!memberSignatures.ContainsKey(ctor))
                 {

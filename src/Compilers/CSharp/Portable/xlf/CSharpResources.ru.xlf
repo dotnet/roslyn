@@ -457,6 +457,11 @@
         <target state="translated">Атрибут [EnumeratorCancellation] невозможно использовать для нескольких параметров.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MultipleRecordParameterLists">
+        <source>Only a single record partial declaration may have a parameter list</source>
+        <target state="new">Only a single record partial declaration may have a parameter list</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Ограничение "new()" невозможно использовать вместе с ограничением "unmanaged"</target>
