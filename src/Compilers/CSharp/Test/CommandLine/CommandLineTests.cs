@@ -12207,7 +12207,8 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
-            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, "Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.SimpleGenerator_generatedSource.cs"), generatedSource } }, dir, true);
+            var generatorPrefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
+            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, $"{generatorPrefix}_generatedSource.cs"), generatedSource } }, dir, true);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -12231,9 +12232,8 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
 
-            var generator1Prefix = generator.GetType().FullName;
-            var generator2Prefix = generator2.GetType().FullName;
-
+            var generator1Prefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
+            var generator2Prefix = $"{generator2.GetType().Module.ModuleVersionId}_{generator2.GetType().FullName}";
 
             ValidateEmbeddedSources_Portable(new Dictionary<string, string>
             {
