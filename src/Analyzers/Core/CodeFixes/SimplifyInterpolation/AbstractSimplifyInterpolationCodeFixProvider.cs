@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             foreach (var diagnostic in diagnostics)
