@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.PDB;
 using Roslyn.Utilities;
+using TestResources.NetFX;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
@@ -54,7 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var originalCompilation = CreateCompilation(
                 syntaxTrees,
                 references: metadataReferences.SelectAsArray(r => r.MetadataReference),
-                options: compilationOptions);
+                options: compilationOptions,
+                // TFM needs to specified so the references are always the same, and not 
+                // dependent on the testrun environment 
+                targetFramework: TargetFramework.NetCoreApp30);
 
             var peBlob = originalCompilation.EmitToArray(options: emitOptions);
 
