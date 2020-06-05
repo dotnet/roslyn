@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             foreach (var definition in context.GetDefinitions())
             {
                 var text = definition.GetClassifiedText();
-                foreach (var sourceSpan in context.GetDefinitions().SelectMany(definition => definition.SourceSpans))
+                foreach (var sourceSpan in definition.SourceSpans)
                 {
                     if (clientCapabilities?.HasVisualStudioLspCapability() == true)
                     {
