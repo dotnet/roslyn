@@ -3072,9 +3072,9 @@ record B(int X, int Y)
             var verifier = CompileAndVerify(source, expectedOutput: "32");
             verifier.VerifyDiagnostics();
 
-            var bClass = ((CSharpCompilation)verifier.Compilation).GetMember<NamedTypeSymbol>("B");
-            var deconstruct = bClass.GetMember("Deconstruct");
-            Assert.NotNull(deconstruct);
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
         [Fact]
@@ -3106,9 +3106,9 @@ record B(int X, int Y)
                 // record B(int X, int Y)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("B", "X").WithLocation(2, 14));
 
-            var bClass = comp.GetMember<NamedTypeSymbol>("B");
-            var deconstruct = bClass.GetMember("Deconstruct");
-            Assert.NotNull(deconstruct);
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
         [Fact]
@@ -3146,9 +3146,7 @@ record C(int X, int Y) : B
                     //             case C(int x, int y):
                     Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("C", "2").WithLocation(13, 19));
 
-            var cClass = comp.GetMember<NamedTypeSymbol>("C");
-            var deconstruct = cClass.GetMember("Deconstruct");
-            Assert.Null(deconstruct);
+            Assert.Null(comp.GetMember("C.Deconstruct"));
         }
 
         [Fact]
@@ -3186,9 +3184,9 @@ record C(int X, int Y) : B
             var verifier = CompileAndVerify(source, expectedOutput: "02");
             verifier.VerifyDiagnostics();
 
-            var cClass = ((CSharpCompilation)verifier.Compilation).GetMember<NamedTypeSymbol>("C");
-            var deconstruct = cClass.GetMember("Deconstruct");
-            Assert.NotNull(deconstruct);
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                verifier.Compilation.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
         [Fact]
@@ -3220,9 +3218,9 @@ record C(int X, int Y)
                 // record C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(2, 14));
 
-            var cClass = comp.GetMember<NamedTypeSymbol>("C");
-            var deconstruct = cClass.GetMember("Deconstruct");
-            Assert.NotNull(deconstruct);
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
         [Fact]
@@ -3255,9 +3253,7 @@ record C
                 //             case C():
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
 
-            var cClass = comp.GetMember<NamedTypeSymbol>("C");
-            var deconstruct = cClass.GetMember("Deconstruct");
-            Assert.Null(deconstruct);
+            Assert.Null(comp.GetMember("C.Deconstruct"));
         }
 
         [Fact]
@@ -3287,9 +3283,9 @@ record C()
                 // record C()
                 Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 9));
 
-            var cClass = comp.GetMember<NamedTypeSymbol>("C");
-            var deconstruct = cClass.GetMember("Deconstruct");
-            Assert.NotNull(deconstruct);
+            Assert.Equal(
+                "void C.Deconstruct()",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
         [Fact]
