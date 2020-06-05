@@ -3072,7 +3072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         builder.InstanceInitializersForRecordDeclarationWithParameters.Insert(addedCount, new FieldOrPropertyInitializer.Builder(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
                     }
-                    else if (existingMember.Kind switch { SymbolKind.Property => true, SymbolKind.Field => true, _ => false })
+                    else if (!existingMember.IsStatic && existingMember.Kind switch { SymbolKind.Property => true, SymbolKind.Field => true, _ => false })
                     {
                         // There already exists a member corresponding to the candidate synthesized property.
                         // The deconstructor is specified to simply assign from this property to the corresponding out parameter.

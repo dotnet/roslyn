@@ -3374,6 +3374,44 @@ record B(int X, int Y)
         }
 
         [Fact]
+        public void Deconstruct_Static()
+        {
+            var source =
+@"#pragma warning disable CS1717 // TODO: Disabling temporarily until fix for static properties is merged
+using System;
+
+record B(int X, int Y)
+{
+    static int Y { get; }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1, 2));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,19): error CS1061: 'B' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
+                //             case B(int x, int y):
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int x, int y)").WithArguments("B", "Deconstruct").WithLocation(12, 19),
+                // (12,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'B', with 2 out parameters and a void return type.
+                //             case B(int x, int y):
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("B", "2").WithLocation(12, 19));
+        }
+
+        [Fact]
         public void Inheritance_18()
         {
             var source =
