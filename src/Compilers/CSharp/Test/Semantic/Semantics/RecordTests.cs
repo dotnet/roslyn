@@ -2055,6 +2055,7 @@ record C(int X, int Y)
             var tree = comp.SyntaxTrees[0];
             var root = tree.GetRoot();
             var model = comp.GetSemanticModel(tree);
+            VerifyClone(model);
 
             var withExpr1 = root.DescendantNodes().OfType<WithExpressionSyntax>().First();
             comp.VerifyOperationTree(withExpr1, @"
