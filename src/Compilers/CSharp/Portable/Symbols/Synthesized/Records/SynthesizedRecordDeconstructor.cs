@@ -148,10 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override DllImportData? GetDllImportData() => null;
 
-        internal override IEnumerable<SecurityAttribute> GetSecurityInformation()
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
+        internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => throw ExceptionUtilities.Unreachable;
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
     }
