@@ -929,6 +929,8 @@ namespace Microsoft.CodeAnalysis
                 var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
                 if (Arguments.AnalyzerConfigPaths.Length > 0)
                 {
+                    analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new CompilerAnalyzerConfigOptions(analyzerConfigSet.GetOptionsForSourcePath(string.Empty).AnalyzerOptions));
+
                     // TODO(https://github.com/dotnet/roslyn/issues/31916): The compiler currently doesn't support
                     // configuring diagnostic reporting on additional text files individually.
                     ImmutableArray<AnalyzerConfigOptionsResult> additionalFileAnalyzerOptions =
@@ -966,13 +968,13 @@ namespace Microsoft.CodeAnalysis
                     embeddedTexts = embeddedTexts.AddRange(generatedSyntaxTrees.Select(t => EmbeddedText.FromSource(t.FilePath, t.GetText())));
                 }
 
+                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
+                      additionalTextFiles, analyzerConfigProvider);
+
                 if (!analyzers.IsEmpty)
                 {
                     analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     analyzerExceptionDiagnostics = new DiagnosticBag();
-
-                    AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
-                        additionalTextFiles, analyzerConfigProvider);
 
                     // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
                     //  1. Always filter out 'Hidden' analyzer diagnostics in build.

@@ -293,6 +293,11 @@ namespace Microsoft.CodeAnalysis
             public WorkspaceAnalyzerConfigOptionsProvider(ProjectState projectState)
                 => _projectState = projectState;
 
+            public override AnalyzerConfigOptions GlobalOptions
+            {
+                get => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(string.Empty));
+            }
+
             public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
                 => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(tree.FilePath));
 
