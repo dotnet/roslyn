@@ -5176,7 +5176,7 @@ class C
         public async Task InlineIntoWithExpression()
         {
             await TestInRegularAndScriptAsync(@"
-data class Person(string Name)
+record Person(string Name)
 {
     void M(Person p)
     {
@@ -5192,7 +5192,7 @@ namespace System.Runtime.CompilerServices
     }
 }",
 @"
-data class Person(string Name)
+record Person(string Name)
 {
     void M(Person p)
     {

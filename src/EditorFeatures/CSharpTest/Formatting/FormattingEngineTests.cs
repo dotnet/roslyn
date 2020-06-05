@@ -2063,7 +2063,7 @@ class MyClass
         public async Task WithExpression()
         {
             var code = @"[|
-data class C(int Property)
+record C(int Property)
 {
     void M()
     {
@@ -2072,7 +2072,7 @@ data class C(int Property)
 }
 |]";
             var expected = @"
-data class C(int Property)
+record C(int Property)
 {
     void M()
     {
@@ -2089,7 +2089,7 @@ data class C(int Property)
         public async Task WithExpression_MultiLine()
         {
             var code = @"[|
-data class C(int Property, int Property2)
+record C(int Property, int Property2)
 {
     void M()
     {
@@ -2102,7 +2102,7 @@ Property2  =  2
 }
 |]";
             var expected = @"
-data class C(int Property, int Property2)
+record C(int Property, int Property2)
 {
     void M()
     {
@@ -2123,7 +2123,7 @@ data class C(int Property, int Property2)
         public async Task WithExpression_MultiLine_UserPositionedBraces()
         {
             var code = @"[|
-data class C(int Property, int Property2)
+record C(int Property, int Property2)
 {
     void M()
     {
@@ -2136,7 +2136,7 @@ data class C(int Property, int Property2)
 }
 |]";
             var expected = @"
-data class C(int Property, int Property2)
+record C(int Property, int Property2)
 {
     void M()
     {
