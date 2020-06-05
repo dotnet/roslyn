@@ -722,10 +722,11 @@ namespace Microsoft.CodeAnalysis
         /// <param name="input">The compilation before any source generation has occurred.</param>
         /// <param name="parseOptions">The <see cref="ParseOptions"/> to use when parsing any generated sources.</param>
         /// <param name="generators">The generators to run</param>
+        /// <param name="analyzerConfigOptionsProvider">A provider that returns analyzer config options</param>
         /// <param name="additionalTexts">Any additional texts that should be passed to the generators when run.</param>
         /// <param name="generatorDiagnostics">Any diagnostics that were produced during generation</param>
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
-        private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
+        private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
@@ -950,7 +951,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // At this point we have a compilation with nothing yet computed. 
                     // We pass it to the generators, which will realize any symbols they require. 
-                    compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, additionalTextFiles, diagnostics);
+                    compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
 
                     var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length);
                     if (Arguments.AnalyzerConfigPaths.Length > 0)

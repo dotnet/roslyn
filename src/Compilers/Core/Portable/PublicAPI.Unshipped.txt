@@ -32,6 +32,7 @@ Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation.OperatorKind.get -
 Microsoft.CodeAnalysis.Operations.IRelationalPatternOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ITypePatternOperation
 Microsoft.CodeAnalysis.Operations.ITypePatternOperation.MatchedType.get -> Microsoft.CodeAnalysis.ITypeSymbol
+Microsoft.CodeAnalysis.SourceGeneratorContext.AnalyzerConfigOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider
 Microsoft.CodeAnalysis.Operations.IWithOperation
 Microsoft.CodeAnalysis.Operations.IWithOperation.CloneMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Operations.IWithOperation.Initializer.get -> Microsoft.CodeAnalysis.Operations.IObjectOrCollectionInitializerOperation
