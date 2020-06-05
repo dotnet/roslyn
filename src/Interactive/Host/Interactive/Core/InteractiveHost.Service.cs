@@ -359,13 +359,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// </summary>
             public async Task<bool> AddReferenceAsync(string reference)
             {
-                Debug.Assert(reference != null);
                 var completionSource = new TaskCompletionSource<bool>();
                 lock (_lastTaskGuard)
                 {
-
-					_lastTask = AddReferenceAsync(_lastTask, completionSource, reference!);
-                }
+                    _lastTask = AddReferenceAsync(_lastTask, completionSource, reference);                }
                 return await completionSouce.Task.ConfigureAwait(false);            }
             private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, TaskCompletionSource<bool> completionSource, string reference)
             {
@@ -399,12 +396,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// </summary>
             public async Task<RemoteExecutionResult> ExecuteAsync(string text)
             {
-                Debug.Assert(text != null);
-
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = ExecuteAsync(completionSource, _lastTask, text!);
+                    _lastTask = ExecuteAsync(completionSource, _lastTask, text);
                 }
                 return await completionSource.Task.ConfigureAwait(false);
             }
@@ -457,13 +452,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// </summary>
             public async Task<RemoteExecutionResult> ExecuteFileAsync(string path)
             {
-                Debug.Assert(path != null);
-
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
 
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = ExecuteFileAsync(completionSource, _lastTask, path!);
+                    _lastTask = ExecuteFileAsync(completionSource, _lastTask, path);
                 }
                 return await completionSource.Task.ConfigureAwait(false);
             }
