@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     return ParseConstantPattern(op);
 
                 case IBinaryOperation { OperatorKind: NotEquals } op:
-                    return Not.Create(ParseConstantPattern(op));
+                    return Not.TryCreate(ParseConstantPattern(op));
 
                 case IBinaryOperation { OperatorKind: ConditionalOr, Syntax: BinaryExpressionSyntax syntax } op:
                     return ParseBinaryPattern(op, isDisjunctive: true, syntax.OperatorToken);
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     return ParseRelationalPattern(op);
 
                 case IUnaryOperation { OperatorKind: UnaryOperatorKind.Not } op:
-                    return Not.Create(ParsePattern(op.Operand));
+                    return Not.TryCreate(ParsePattern(op.Operand));
 
                 case IIsTypeOperation { Syntax: BinaryExpressionSyntax { Right: TypeSyntax type } } op:
                     return new Type(type, op.ValueOperand);
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             if (rightPattern is null)
                 return null;
 
-            return Binary.Create(leftPattern, rightPattern, isDisjunctive, token);
+            return Binary.TryCreate(leftPattern, rightPattern, isDisjunctive, token);
         }
 
         private static ConstantResult DetermineConstant(IBinaryOperation op)

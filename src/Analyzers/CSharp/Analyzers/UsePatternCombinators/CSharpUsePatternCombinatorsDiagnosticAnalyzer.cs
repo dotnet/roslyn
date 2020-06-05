@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         {
             var expression = (ExpressionSyntax)context.Node;
 
+            // Bail if this is not a topmost expression
+            // to avoid overlapping diagnostics.
             if (!IsTopmostExpression(expression))
                 return;
 

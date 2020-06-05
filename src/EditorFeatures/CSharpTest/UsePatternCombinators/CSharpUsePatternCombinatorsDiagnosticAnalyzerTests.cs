@@ -64,6 +64,7 @@ class C
     IEnumerable<bool> YieldReturn() { yield return EXPRESSION; }
     Func<object, bool> SimpleLambda() => o => EXPRESSION;
     Func<bool> ParenthesizedLambda() => () => EXPRESSION;
+    void LocalFunc() { bool LocalFunction() => EXPRESSION; }
     int i;
     int? nullable;
     object o;

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             => Target = target;
 
         /// <summary>
-        /// Represents a type-pattern, constructed from is-expression
+        /// Represents a type-pattern, constructed from an is-expression
         /// </summary>
         internal sealed class Type : AnalyzedPattern
         {
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             public readonly bool IsDisjunctive;
             public readonly SyntaxToken Token;
 
-            internal Binary(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern, bool isDisjunctive, SyntaxToken token, IOperation target) : base(target)
+            private Binary(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern, bool isDisjunctive, SyntaxToken token, IOperation target) : base(target)
             {
                 Left = leftPattern;
                 Right = rightPattern;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 Token = token;
             }
 
-            public static AnalyzedPattern? Create(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern, bool isDisjunctive, SyntaxToken token)
+            public static AnalyzedPattern? TryCreate(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern, bool isDisjunctive, SyntaxToken token)
             {
                 var target = leftPattern.Target;
                 if (!SyntaxFactory.AreEquivalent(target.Syntax, rightPattern.Target.Syntax))
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 };
             }
 
-            public static AnalyzedPattern? Create(AnalyzedPattern? pattern)
+            public static AnalyzedPattern? TryCreate(AnalyzedPattern? pattern)
             {
                 return pattern switch
                 {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     Not p => p.Pattern, // Avoid double negative
                     Relational p => new Relational(Negate(p.OperatorKind), p.Value, p.Target),
                     Binary { Left: Not left, Right: Not right } p // Apply demorgans's law
-                        => new Binary(left.Pattern, right.Pattern, !p.IsDisjunctive, p.Token, p.Target),
+                        => Binary.TryCreate(left.Pattern, right.Pattern, !p.IsDisjunctive, p.Token),
                     _ => new Not(pattern, pattern.Target)
                 };
             }
