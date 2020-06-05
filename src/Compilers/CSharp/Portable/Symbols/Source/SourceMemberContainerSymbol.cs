@@ -3119,7 +3119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
                 {
                     var members = type.GetMembers(SynthesizedRecordEqualityContractProperty.PropertyName);
-                    // PROTOTYPE: This ignores accessibility and instance/static.
+                    // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
                     if (members.FirstOrDefault(m => m is PropertySymbol property && property.ParameterCount == 0) is PropertySymbol property)
                     {
                         return property;
@@ -3131,8 +3131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PropertySymbol addEqualityContract()
             {
                 var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: getInheritedEqualityContract(this) is object);
-                // PROTOTYPE: Handle inherited member of unexpected member kind or unexpected
-                // property signature (distinct type, not virtual, sealed, etc.)
+                // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
                 if (!memberSignatures.ContainsKey(property))
                 {
                     members.Add(property);
@@ -3158,7 +3157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var member = equalityContract.ContainingType.GetMembers("Equals").FirstOrDefault(m =>
                     {
-                        // PROTOTYPE: This ignores accessibility and instance/static.
                         if (m is MethodSymbol method)
                         {
                             var parameters = method.Parameters;
@@ -3169,7 +3167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         return false;
                     });
-                    // PROTOTYPE: Test with missing or unexpected Equals(Base) methods on base type.
+                    // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
                     if (member is MethodSymbol method)
                     {
                         otherEqualsMethods.Add(method);
@@ -3188,8 +3186,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         equalityContract,
                         otherEqualsMethod: thisEquals,
                         memberOffset: members.Count);
-                    // PROTOTYPE: Test with explicit strongly-typed Equals(Base) methods on derived record type.
-                    members.Add(method);
+                    if (!memberSignatures.ContainsKey(method))
+                    {
+                        members.Add(method);
+                    }
                 }
             }
         }

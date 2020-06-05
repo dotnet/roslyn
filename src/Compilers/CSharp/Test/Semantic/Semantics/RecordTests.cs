@@ -4652,6 +4652,21 @@ record C : B;
                 // (6,8): error CS0239: 'C.EqualityContract': cannot override inherited member 'B.EqualityContract' because it is sealed
                 // record C : B;
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C").WithArguments("C.EqualityContract", "B.EqualityContract").WithLocation(6, 8));
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "B B.Clone()",
+                "System.Type B.EqualityContract { get; }",
+                "System.Type B.EqualityContract.get",
+                "System.Int32 B.GetHashCode()",
+                "System.Boolean B.Equals(System.Object? )",
+                "System.Boolean B.Equals(A? )",
+                "System.Boolean B.Equals(B? )",
+                "B..ctor(B )",
+                "B..ctor()",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -4721,6 +4736,66 @@ class Program
 @"True
 True
 True");
+        }
+
+        [Fact]
+        public void Equality_17()
+        {
+            var source =
+@"using static System.Console;
+record A;
+record B1(int P) : A
+{
+    public override bool Equals(A other) => false;
+}
+record B2(int P) : A
+{
+    public override bool Equals(A other) => true;
+}
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new B1(1).Equals(new B1(1)));
+        WriteLine(new B1(1).Equals(new B1(2)));
+        WriteLine(new B2(3).Equals(new B2(3)));
+        WriteLine(new B2(3).Equals(new B2(4)));
+        WriteLine(((A)new B1(1)).Equals(new B1(1)));
+        WriteLine(((A)new B1(1)).Equals(new B1(2)));
+        WriteLine(((A)new B2(3)).Equals(new B2(3)));
+        WriteLine(((A)new B2(3)).Equals(new B2(4)));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            // init-only is unverifiable
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"True
+False
+True
+False
+False
+False
+True
+True");
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B1").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "B1 B1.Clone()",
+                "System.Type B1.EqualityContract.get",
+                "System.Type B1.EqualityContract { get; }",
+                "B1..ctor(System.Int32 P)",
+                "System.Int32 B1.<P>k__BackingField",
+                "System.Int32 B1.P.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B1.P.init",
+                "System.Int32 B1.P { get; init; }",
+                "System.Boolean B1.Equals(A other)",
+                "System.Int32 B1.GetHashCode()",
+                "System.Boolean B1.Equals(System.Object? )",
+                "System.Boolean B1.Equals(B1? )",
+                "B1..ctor(B1 )",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
     }
 }
