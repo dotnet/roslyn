@@ -3779,7 +3779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Null for implicit, 
         /// BaseConstructorInitializerSyntax.ArgumentList, or 
         /// ThisConstructorInitializerSyntax.ArgumentList, or 
-        /// BaseClassWithArgumentsSyntax.ArgumentList for explicit.</param>
+        /// SimpleBaseTypeSyntax.ArgumentList for explicit.</param>
         /// <param name="constructor">Constructor containing the initializer.</param>
         /// <param name="diagnostics">Accumulates errors (e.g. unable to find constructor to invoke).</param>
         /// <returns>A bound expression for the constructor initializer call.</returns>
@@ -3864,7 +3864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol initializerType = containingType;
 
                 bool isBaseConstructorInitializer = initializerArgumentListOpt == null ||
-                                                    initializerArgumentListOpt.Parent.Kind() == SyntaxKind.BaseConstructorInitializer;
+                                                    initializerArgumentListOpt.Parent.Kind() != SyntaxKind.ThisConstructorInitializer;
 
                 if (isBaseConstructorInitializer)
                 {
@@ -3910,10 +3910,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(initializerArgumentListOpt.Parent.Kind() == SyntaxKind.ThisConstructorInitializer);
                 }
 
+                CSharpSyntaxNode nonNullSyntax;
+                Location errorLocation;
+
+                switch (initializerArgumentListOpt?.Parent)
+                {
+                    case ConstructorInitializerSyntax initializerSyntax:
+                        nonNullSyntax = initializerSyntax;
+                        errorLocation = initializerSyntax.ThisOrBaseKeyword.GetLocation();
+                        break;
+
+                    case SimpleBaseTypeSyntax baseWithArguments:
+                        Debug.Assert(baseWithArguments.Parent?.Parent is RecordDeclarationSyntax recordDecl && recordDecl.BaseList.Types.FirstOrDefault() == baseWithArguments);
+                        nonNullSyntax = initializerArgumentListOpt;
+                        errorLocation = initializerArgumentListOpt.GetLocation();
+                        break;
+
+                    default:
+                        // Note: use syntax node of constructor with initializer, not constructor invoked by initializer (i.e. methodResolutionResult).
+                        nonNullSyntax = constructor.GetNonNullSyntaxNode();
+                        errorLocation = constructor.Locations[0];
+                        break;
+                }
+
                 if (initializerArgumentListOpt != null && analyzedArguments.HasDynamicArgument)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor,
-                                    ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, errorLocation);
 
                     return new BoundBadExpression(
                             syntax: initializerArgumentListOpt.Parent,
@@ -3921,20 +3943,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType
                             childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments),
                             type: constructorReturnType);
-                }
-
-                CSharpSyntaxNode nonNullSyntax;
-                Location errorLocation;
-                if (initializerArgumentListOpt != null)
-                {
-                    nonNullSyntax = initializerArgumentListOpt.Parent;
-                    errorLocation = ((ConstructorInitializerSyntax)nonNullSyntax).ThisOrBaseKeyword.GetLocation();
-                }
-                else
-                {
-                    // Note: use syntax node of constructor with initializer, not constructor invoked by initializer (i.e. methodResolutionResult).
-                    nonNullSyntax = constructor.GetNonNullSyntaxNode();
-                    errorLocation = constructor.Locations[0];
                 }
 
                 BoundExpression receiver = ThisReference(nonNullSyntax, initializerType, wasCompilerGenerated: true);
@@ -3960,7 +3968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(initializerType.IsErrorType() ||
                             (initializerArgumentListOpt != null && initializerArgumentListOpt.Parent.Kind() == SyntaxKind.ThisConstructorInitializer));
                         diagnostics.Add(ErrorCode.ERR_RecursiveConstructorCall,
-                                        ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation(),
+                                        errorLocation,
                                         constructor);
 
                         hasErrors = true; // prevent recursive constructor from being emitted

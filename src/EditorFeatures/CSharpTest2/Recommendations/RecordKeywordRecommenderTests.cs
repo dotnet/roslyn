@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
-    public class DataKeywordRecommenderTests : KeywordRecommenderTests
+    public class RecordKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtRoot_Interactive()
@@ -195,6 +196,16 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInsideRecord()
+        {
+            // The recommender doesn't work in record in script
+            // Tracked by https://github.com/dotnet/roslyn/issues/44865
+            await VerifyWorkerAsync(
+@"record C {
+   $$", absent: false, options: TestOptions.RegularPreview);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPartial()
         {
             await VerifyKeywordAsync(
@@ -202,24 +213,10 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRef()
-        {
-            await VerifyKeywordAsync(
-@"ref $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterData()
+        public async Task TestAfterPublicRecord()
         {
             await VerifyAbsenceAsync(
-@"data $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterPublicData()
-        {
-            await VerifyAbsenceAsync(
-@"public data $$");
+@"public record $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -310,34 +307,34 @@ using Bar;"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClassTypeParameterConstraint()
+        public async Task TestAfterClassTypeParameterConstraint()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"class C<T> where T : $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClassTypeParameterConstraint2()
+        public async Task TestAfterClassTypeParameterConstraint2()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"class C<T>
     where T : $$
     where U : U");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterMethodTypeParameterConstraint()
+        public async Task TestAfterMethodTypeParameterConstraint()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"class C {
     void Goo<T>()
       where T : $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterMethodTypeParameterConstraint2()
+        public async Task TestAfterMethodTypeParameterConstraint2()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"class C {
     void Goo<T>()
       where T : $$

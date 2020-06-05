@@ -2321,7 +2321,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>> StaticInitializers = ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>>.GetInstance();
             public readonly ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>> InstanceInitializers = ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>>.GetInstance();
             public readonly ArrayBuilder<SyntaxReference> IndexerDeclarations = ArrayBuilder<SyntaxReference>.GetInstance();
-            public ParameterListSyntax? RecordConstructorParamList;
             public RecordDeclarationSyntax? RecordDeclarationWithParameters;
             public ArrayBuilder<FieldOrPropertyInitializer.Builder>? InstanceInitializersForRecordDeclarationWithParameters;
 
@@ -2512,9 +2511,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                if (builder.RecordConstructorParamList is null)
+                if (builder.RecordDeclarationWithParameters is null)
                 {
-                    builder.RecordConstructorParamList = parameterList;
                     builder.RecordDeclarationWithParameters = syntax;
                     builder.InstanceInitializersForRecordDeclarationWithParameters = new ArrayBuilder<FieldOrPropertyInitializer.Builder>();
                     return builder.InstanceInitializersForRecordDeclarationWithParameters;
@@ -2956,7 +2954,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            ParameterListSyntax? paramList = builder.RecordConstructorParamList;
+            ParameterListSyntax? paramList = builder.RecordDeclarationWithParameters?.ParameterList;
 
             var memberSignatures = s_duplicateMemberSignatureDictionary.Allocate();
             var members = builder.NonTypeNonIndexerMembers;

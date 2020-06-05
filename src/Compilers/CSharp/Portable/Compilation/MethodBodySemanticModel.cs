@@ -96,8 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.CompilationUnit:
-                    // When we are binding the root for a multi-unit simple program (for example to do a flow analysis),
-                    // here we are going to bind all units.
+                case SyntaxKind.RecordDeclaration:
                     return binder.BindMethodBody(node, diagnostics);
             }
 

@@ -827,7 +827,7 @@ public class Cls
             return nameRef;
         }
 
-        private static IEnumerable<IdentifierNameSyntax> GetReferences(SyntaxTree tree, string name)
+        internal static IEnumerable<IdentifierNameSyntax> GetReferences(SyntaxTree tree, string name)
         {
             return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == name);
         }
@@ -843,7 +843,7 @@ public class Cls
             return GetDeclarations(tree, name).Single();
         }
 
-        private static DeclarationExpressionSyntax GetOutVarDeclaration(SyntaxTree tree, string name)
+        internal static DeclarationExpressionSyntax GetOutVarDeclaration(SyntaxTree tree, string name)
         {
             return GetOutVarDeclarations(tree, name).Single();
         }
@@ -930,7 +930,7 @@ public class Cls
             VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: false, verifyDataFlow: false, expectedLocalKind: LocalDeclarationKind.DeclarationExpressionVariable, references: references);
         }
 
-        private static void VerifyModelForOutVar(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
+        internal static void VerifyModelForOutVar(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
             VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: false, verifyDataFlow: true, references: references);
         }
@@ -1166,7 +1166,7 @@ public class Cls
             Assert.True(model.LookupNames(reference.SpanStart).Contains(reference.Identifier.ValueText));
         }
 
-        private static void VerifyNotAnOutLocal(SemanticModel model, IdentifierNameSyntax reference)
+        internal static void VerifyNotAnOutLocal(SemanticModel model, IdentifierNameSyntax reference)
         {
             var symbol = model.GetSymbolInfo(reference).Symbol;
 
