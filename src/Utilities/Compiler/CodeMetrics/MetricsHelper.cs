@@ -109,11 +109,10 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     var loopCondition = leading ? LoopConditionForLeading : (Func<int, int, bool>)LoopConditionForTrailing;
                     var incrementOrDecrement = leading ? 1 : -1;
                     var count = 0;
-                    for (; loopCondition(index, triviaParts.Length); index += incrementOrDecrement, count++)
+                    while (loopCondition(index, triviaParts.Length) && string.IsNullOrWhiteSpace(triviaParts[index]))
                     {
-                        var trivia = triviaParts[index].Trim();
-                        if (trivia.Length != 0)
-                            break;
+                        index += incrementOrDecrement;
+                        count++;
                     }
 
                     return count;
