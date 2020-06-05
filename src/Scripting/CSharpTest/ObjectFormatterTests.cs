@@ -76,14 +76,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void AnonymousType()
         {
-            string anon = s_formatter.FormatObject(new { X = 1, Y = 2 });
+            var 
+            string result = s_formatter.FormatObject(new { X = 1, Y = 2 });
 
             // conditional statement for difference of old vs. new compilers
-            if (anon.StartsWith("\\"))
+            if (result.StartsWith("\\"))
             {
-                anon = anon.Substring(1);
+                result = result.Substring(1);
             }
-            Assert.Equal("{ X = 1, Y = 2 }", anon);
+            Assert.Equal("{ X = 1, Y = 2 }", result);
         }
         [Fact]
         public void ArrayOfInt32_NoMembers()
