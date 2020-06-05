@@ -616,7 +616,7 @@ public struct X1
         }
 
         [Fact]
-        public void StructInitializerAutoImplementedProps()
+        public void StructNonAutoPropertyInitializer()
         {
             var text = @"struct S
 {
