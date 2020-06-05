@@ -1261,15 +1261,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Binder GetFieldOrPropertyInitializerBinder(FieldSymbol symbol, Binder outer, EqualsValueClauseSyntax initializer)
         {
-            BinderFlags flags = BinderFlags.None;
-
             // NOTE: checking for a containing script class is sufficient, but the regular C# test is quick and easy.
-            if (this.IsRegularCSharp || !symbol.ContainingType.IsScriptClass)
-            {
-                flags |= BinderFlags.FieldInitializer;
-            }
-
-            outer = new LocalScopeBinder(outer).WithAdditionalFlagsAndContainingMemberOrLambda(flags, symbol);
+            outer = outer.GetFieldInitializerBinder(symbol, suppressBinderFlagsFieldInitializer: !this.IsRegularCSharp && symbol.ContainingType.IsScriptClass);
 
             if (initializer != null)
             {

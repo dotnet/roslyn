@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
         {
-            Debug.Assert(((RecordDeclarationSyntax)node).ParameterList is object);
+            Debug.Assert(node.ParameterList is object);
 
             if (node.BaseWithArguments is SimpleBaseTypeSyntax baseWithArguments)
             {

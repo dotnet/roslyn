@@ -106,15 +106,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
 
                                 Binder parentBinder = binderFactory.GetBinder(initializerNode);
-                                Debug.Assert((parentBinder.ContainingMemberOrLambda is TypeSymbol containing && TypeSymbol.Equals(containing, fieldSymbol.ContainingType, TypeCompareKind.ConsiderEverything2)) || //should be the binder for the type
-                                        fieldSymbol.ContainingType.IsImplicitClass); //however, we also allow fields in namespaces to help support script scenarios
 
                                 if (firstDebugImports == null)
                                 {
                                     firstDebugImports = parentBinder.ImportChain;
                                 }
 
-                                parentBinder = new LocalScopeBinder(parentBinder).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.FieldInitializer, fieldSymbol);
+                                parentBinder = parentBinder.GetFieldInitializerBinder(fieldSymbol);
 
                                 BoundFieldEqualsValue boundInitializer = BindFieldInitializer(parentBinder, fieldSymbol, initializerNode, diagnostics);
                                 boundInitializers.Add(boundInitializer);
@@ -143,6 +141,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        internal Binder GetFieldInitializerBinder(FieldSymbol fieldSymbol, bool suppressBinderFlagsFieldInitializer = false)
+        {
+            Debug.Assert((ContainingMemberOrLambda is TypeSymbol containing && TypeSymbol.Equals(containing, fieldSymbol.ContainingType, TypeCompareKind.ConsiderEverything2)) || //should be the binder for the type
+                    fieldSymbol.ContainingType.IsImplicitClass); //however, we also allow fields in namespaces to help support script scenarios
+
+            Binder binder = this;
+
+            if (!fieldSymbol.IsStatic && fieldSymbol.ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault() is SynthesizedRecordConstructor recordCtor)
+            {
+                binder = new InMethodBinder(recordCtor, binder);
+            }
+
+            return new LocalScopeBinder(binder).WithAdditionalFlagsAndContainingMemberOrLambda(suppressBinderFlagsFieldInitializer ? BinderFlags.None : BinderFlags.FieldInitializer, fieldSymbol);
         }
 
         /// <summary>

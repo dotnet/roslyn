@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -49,7 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var param = F.Parameter(Parameters[0]);
             foreach (var field in ContainingType.GetFieldsToEmit())
             {
-                statements.Add(F.Assignment(F.Field(F.This(), field), F.Field(param, field)));
+                if (!field.IsStatic)
+                {
+                    statements.Add(F.Assignment(F.Field(F.This(), field), F.Field(param, field)));
+                }
             }
         }
     }

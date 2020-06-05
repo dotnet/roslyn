@@ -341,15 +341,7 @@ record C1(object O1)
     public object O1 { get; } = O1;
     public object O2 { get; } = O1;
 }");
-            // PROTOTYPE: primary ctor parameters not currently in scope
-            comp.VerifyDiagnostics(
-                // (4,33): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C1.O1'
-                //     public object O1 { get; } = O1;
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "O1").WithArguments("C1.O1").WithLocation(4, 33),
-                // (5,33): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C1.O1'
-                //     public object O2 { get; } = O1;
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "O1").WithArguments("C1.O1").WithLocation(5, 33)
-            );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -389,15 +381,10 @@ record C1(object O1)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (1,1): warning CS1717: Assignment made to same variable; did you mean to assign something else?
-                // record C(object P)
-                Diagnostic(ErrorCode.WRN_AssignmentToSelf, @"record C(object P)
-{
-    const int P = 4;
-}").WithLocation(1, 1),
                 // (1,17): error CS0102: The type 'C' already contains a definition for 'P'
                 // record C(object P)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(1, 17));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(1, 17)
+                );
         }
 
         [Fact]
@@ -2936,17 +2923,7 @@ record B(object P1, int P2, object P3, int P4) : A
     public ref object P5 => throw null;
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (1,1): warning CS1717: Assignment made to same variable; did you mean to assign something else?
-                // record C(object P1, object P2, object P3, object P4, object P5)
-                Diagnostic(ErrorCode.WRN_AssignmentToSelf, @"record C(object P1, object P2, object P3, object P4, object P5)
-{
-    public object P1 { get { return null; } set { } }
-    public object P2 { get; }
-    public object P3 { set { } }
-    public static object P4 { get; set; }
-    public ref object P5 => throw null;
-}").WithLocation(1, 1));
+            comp.VerifyDiagnostics();
 
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -2958,6 +2935,22 @@ record B(object P1, int P2, object P3, int P4) : A
                 "ref System.Object C.P5 { get; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+
+            var verifier = CompileAndVerify(source);
+
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  ldfld      ""object C.<P2>k__BackingField""
+  IL_000d:  stfld      ""object C.<P2>k__BackingField""
+  IL_0012:  ret
+}
+");
         }
 
         [Fact]
@@ -4297,6 +4290,150 @@ interface C : Base(X)
             Assert.Same("<global namespace>", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Empty(model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void BaseArguments_15()
+        {
+            var src = @"
+using System;
+
+record Base
+{
+    public Base(int X, int Y)
+    {
+        Console.WriteLine(X);
+        Console.WriteLine(Y);
+    }
+
+    public Base() {}
+}
+
+partial record C
+{
+}
+
+partial record C(int X, int Y) : Base(X, Y)
+{
+    int Z = 123;
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(c.Z);
+    }
+}
+
+partial record C
+{
+}
+";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+1
+2
+123");
+            verifier.VerifyIL("C..ctor(int, int)", @"
+
+{
+  // Code size       31 (0x1f)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.<X>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      ""int C.<Y>k__BackingField""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.s   123
+  IL_0011:  stfld      ""int C.Z""
+  IL_0016:  ldarg.0
+  IL_0017:  ldarg.1
+  IL_0018:  ldarg.2
+  IL_0019:  call       ""Base..ctor(int, int)""
+  IL_001e:  ret
+}
+");
+
+            var comp = CreateCompilation(src);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").ElementAt(1);
+            Assert.Equal("Base(X, Y)", x.Parent!.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Same(symbol.ContainingSymbol, model.GetEnclosingSymbol(x.SpanStart));
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void Initializers_01()
+        {
+            var src = @"
+using System;
+
+record C(int X)
+{
+    int Z = X + 1;
+
+    public static void Main()
+    {
+        var c = new C(1);
+        Console.WriteLine(c.Z);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"2");
+
+            var comp = CreateCompilation(src);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void Initializers_02()
+        {
+            var src = @"
+record C(int X)
+{
+    static int Z = X + 1;
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,20): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.X'
+                //     static int Z = X + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "X").WithArguments("C.X").WithLocation(4, 20)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Property, symbol!.Kind);
+            Assert.Equal("System.Int32 C.X { get; init; }", symbol.ToTestDisplayString());
+            Assert.Equal("C", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
         }
     }
 }
