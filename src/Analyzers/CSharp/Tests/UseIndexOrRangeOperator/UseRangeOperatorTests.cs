@@ -479,5 +479,32 @@ class C
                 FixedCode = fixedSource,
             }.RunAsync();
         }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestWritableType()
+        {
+            var source =
+@"
+using System;
+struct S { 
+    public ref S Slice(int start, int length) => throw null; 
+    public int Length { get; } 
+    public S this[System.Range r] { get => default; } 
+}
+
+class C
+{
+    void Goo(S s)
+    {
+        s.Slice(1, s.Length - 2) = default;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = source,
+            }.RunAsync();
+        }
     }
 }

@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -128,6 +129,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 !infoCache.TryGetMemberInfo(targetMethod, out var memberInfo))
             {
                 return null;
+            }
+
+            // Need to check if the target method is read only, and if not, if it is being written to
+            if (invocation.TargetMethod.IsReadOnly == false && invocation.Parent != null)
+            {
+                if (invocation.Syntax.IsLeftSideOfAnyAssignExpression())
+                {
+                    return null;
+                }
             }
 
             // See if we have: (start, end - start).  Specifically where the start operation it the
