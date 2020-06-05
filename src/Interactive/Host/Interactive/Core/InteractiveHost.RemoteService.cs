@@ -34,14 +34,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             internal RemoteService(InteractiveHost host, Process process, int processId, JsonRpc jsonRpc)
             {
-                Debug.Assert(host != null);
-                Debug.Assert(process != null);
-                Debug.Assert(jsonRpc != null);
+                Process = process;
+                JsonRpc = jsonRpc;
 
-                Process = process!;
-                JsonRpc = jsonRpc!;
-
-                _host = host!;
+                _host = host;
                 _joinOutputWritingThreadsOnDisposal = _host._joinOutputWritingThreadsOnDisposal;
                 _processId = processId;
                 _processExitHandlerStatus = ProcessExitHandlerStatus.Uninitialized;
