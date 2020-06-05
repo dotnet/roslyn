@@ -269,7 +269,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (inputType.IsPointerType() && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
                 {
                     // before C# 8 we did not permit `pointer is null`
-                    diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, patternExpression.Location);
+                    diagnostics.Add(ErrorCode.ERR_LanguageVersionDoesNotSupportPointerTypeInPatternMatching,
+                        patternExpression.Location,
+                        MessageID.IDS_FeatureRecursivePatterns.Localize(),
+                        Compilation.LanguageVersion.ToDisplayString(),
+                        new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()));
                     hasErrors = true;
                 }
             }

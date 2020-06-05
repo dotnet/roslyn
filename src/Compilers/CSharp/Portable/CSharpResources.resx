@@ -5887,6 +5887,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PointerTypeInPatternMatching" xml:space="preserve">
     <value>Pattern-matching is not permitted for pointer types.</value>
   </data>
+  <data name="ERR_LanguageVersionDoesNotSupportPointerTypeInPatternMatching" xml:space="preserve">
+    <value>Pointers cannot be matched to null in C# {1}. Please use language version '{2}' or greater.</value>
+  </data>
   <data name="ERR_ArgumentNameInITuplePattern" xml:space="preserve">
     <value>Element names are not permitted when pattern-matching via 'System.Runtime.CompilerServices.ITuple'.</value>
   </data>
