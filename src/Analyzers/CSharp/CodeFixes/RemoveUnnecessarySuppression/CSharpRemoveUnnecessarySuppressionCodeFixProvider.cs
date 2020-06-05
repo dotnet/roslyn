@@ -23,7 +23,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal partial class CSharpRemoveUnnecessarySuppressionCodeFixProvider : CodeFixProvider
+    internal sealed partial class CSharpRemoveUnnecessarySuppressionCodeFixProvider : CodeFixProvider
     {
         public const string RemoveOperator = nameof(RemoveOperator);
         public const string NegateExpression = nameof(NegateExpression);
