@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override RefKind RefKind => RefKind.None;
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(
-            isNullableEnabled: true,
             ContainingType.DeclaringCompilation.GetSpecialType(SpecialType.System_Void));
 
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
