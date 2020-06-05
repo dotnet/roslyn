@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppression
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpRemoveUnnecessarySuppressionCodeFixProvider : CodeFixProvider
     {
-        private const string RemoveOperator = nameof(RemoveOperator);
-        private const string NegateExpression = nameof(NegateExpression);
+        public const string RemoveOperator = nameof(RemoveOperator);
+        public const string NegateExpression = nameof(NegateExpression);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
