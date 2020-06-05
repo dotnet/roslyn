@@ -132,6 +132,8 @@ class C
             }.RunAsync();
         }
 
+#if !CODE_STYLE
+
         [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestNegateWithIsExpression_CSharp9()
         {
@@ -163,6 +165,8 @@ class C
                 LanguageVersion = LanguageVersionExtensions.CSharp9,
             }.RunAsync();
         }
+
+#endif
 
         [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestNegateWithIsPattern_CSharp9()
