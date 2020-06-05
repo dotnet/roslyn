@@ -9,11 +9,11 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
+    [Obsolete]
     internal readonly struct UnitTestingRoslynServicesWrapper
     {
         private readonly SolutionService _solutionService;
 
-        [Obsolete]
         public UnitTestingRoslynServicesWrapper(UnitTestingPinnedSolutionInfoWrapper pinnedSolutionInfoWrapper, UnitTestingAssetStorageWrappper assetStorageWrappper)
             => _solutionService = new SolutionService(SolutionService.CreateAssetProvider(pinnedSolutionInfoWrapper.UnderlyingObject, assetStorageWrappper.UnderlyingObject));
 
