@@ -3027,7 +3027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addDeconstructor(ImmutableArray<ParameterSymbol> parameters, ImmutableArray<Symbol> properties)
             {
-                var ctor = new SynthesizedRecordDeconstructor(this, parameters, properties);
+                var ctor = new SynthesizedRecordDeconstructor(this, parameters, properties, memberOffset: members.Count);
                 if (!memberSignatures.ContainsKey(ctor))
                 {
                     members.Add(ctor);

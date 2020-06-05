@@ -16,13 +16,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedRecordDeconstructor : SynthesizedInstanceMethodSymbol
     {
+        private readonly int _memberOffset;
         private readonly ImmutableArray<Symbol> _members;
 
         public SynthesizedRecordDeconstructor(
             SourceMemberContainerTypeSymbol containingType,
             ImmutableArray<ParameterSymbol> ctorParameters,
-            ImmutableArray<Symbol> members)
+            ImmutableArray<Symbol> members,
+            int memberOffset)
         {
+            _memberOffset = memberOffset;
             _members = members;
             ContainingType = containingType;
             Parameters = ctorParameters.SelectAsArray(
@@ -108,12 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtern => false;
 
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            // We need a separate sort key because struct records will have two synthesized
-            // constructors: the record constructor, and the parameterless constructor
-            return LexicalSortKey.SynthesizedRecordDeconstructor;
-        }
+        internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
         internal override bool SynthesizesLoweredBoundBody => true;
 
