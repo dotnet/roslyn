@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMemberMethodSymbol sourceConstructor = constructor as SourceMemberMethodSymbol;
-            Debug.Assert(sourceConstructor?.SyntaxNode is TypeDeclarationSyntax || ((ConstructorDeclarationSyntax)sourceConstructor?.SyntaxNode)?.Initializer == null);
+            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax || ((ConstructorDeclarationSyntax)sourceConstructor?.SyntaxNode)?.Initializer == null);
 
             // The common case is that the type inherits directly from object.
             // Also, we might be trying to generate a constructor for an entirely compiler-generated class such
@@ -1884,7 +1884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         outerBinder = binderFactory.GetBinder(ctorDecl.ParameterList);
                         break;
 
-                    case TypeDeclarationSyntax recordDecl:
+                    case RecordDeclarationSyntax recordDecl:
                         outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
                         break;
 

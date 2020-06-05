@@ -3265,8 +3265,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (syntax)
             {
-                case TypeDeclarationSyntax recordDecl:
-                    return BindRecordConstructorBody(recordDecl);
+                case RecordDeclarationSyntax recordDecl:
+                    return BindRecordConstructorBody(recordDecl, diagnostics);
 
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
@@ -3314,13 +3314,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      expressionBody: null);
         }
 
-        private BoundNode BindRecordConstructorBody(TypeDeclarationSyntax recordDecl)
+        private BoundNode BindRecordConstructorBody(RecordDeclarationSyntax recordDecl, DiagnosticBag diagnostics)
         {
+            Debug.Assert(recordDecl.ParameterList is object);
+
+            Binder bodyBinder = this.GetBinder(recordDecl);
+            Debug.Assert(bodyBinder != null);
+
+            BoundExpressionStatement initializer = null;
+            if (recordDecl.BaseWithArguments is SimpleBaseTypeSyntax baseWithArguments)
+            {
+                initializer = bodyBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
+            }
+
             return new BoundConstructorMethodBody(recordDecl,
-                                                  locals: ImmutableArray<LocalSymbol>.Empty,
-                                                  initializer: null,
+                                                  bodyBinder.GetDeclaredLocalsForScope(recordDecl),
+                                                  initializer,
                                                   blockBody: new BoundBlock(recordDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
                                                   expressionBody: null);
+        }
+
+        internal BoundExpressionStatement BindConstructorInitializer(SimpleBaseTypeSyntax initializer, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(initializer.Parent?.Parent is RecordDeclarationSyntax recordDecl && recordDecl.ParameterList is object && recordDecl.BaseWithArguments == initializer);
+
+            BoundExpression initializerInvocation = GetBinder(initializer).BindConstructorInitializer(initializer.ArgumentList, (MethodSymbol)this.ContainingMember(), diagnostics);
+            var constructorInitializer = new BoundExpressionStatement(initializer, initializerInvocation);
+            Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
+            return constructorInitializer;
         }
 
         private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, DiagnosticBag diagnostics)
