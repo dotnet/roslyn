@@ -7,6 +7,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -74,25 +76,28 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppression
             foreach (var diagnostic in diagnostics)
             {
                 var node = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-                var left = node switch
+                Debug.Assert(node.IsKind(SyntaxKind.IsExpression) || node.IsKind(SyntaxKind.IsPatternExpression));
+
+                // Negate the result if requested.
+                var updatedNode = negate
+                    ? generator.Negate(generatorInternal, node, semanticModel, cancellationToken)
+                    : node;
+
+                var isNode = updatedNode.DescendantNodesAndSelf().First(
+                    n => n.IsKind(SyntaxKind.IsExpression) || n.IsKind(SyntaxKind.IsPatternExpression));
+                var left = isNode switch
                 {
                     BinaryExpressionSyntax binary => binary.Left,
                     IsPatternExpressionSyntax isPattern => isPattern.Expression,
                     _ => throw ExceptionUtilities.UnexpectedValue(node),
                 };
 
-                var suppression = (PostfixUnaryExpressionSyntax)left;
-
                 // Remove the suppression operator.
-                var newNode = node.ReplaceNode(
-                    left, suppression.Operand.WithAppendedTrailingTrivia(suppression.OperatorToken.GetAllTrivia()));
+                var suppression = (PostfixUnaryExpressionSyntax)left;
+                var withoutSuppression = suppression.Operand.WithAppendedTrailingTrivia(suppression.OperatorToken.GetAllTrivia());
+                var isWithoutSuppression = updatedNode.ReplaceNode(suppression, withoutSuppression);
 
-                // Negate the result if requested.
-                var final = negate
-                    ? generator.Negate(generatorInternal, newNode, semanticModel, cancellationToken)
-                    : newNode;
-
-                editor.ReplaceNode(node, final);
+                editor.ReplaceNode(node, isWithoutSuppression);
             }
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
