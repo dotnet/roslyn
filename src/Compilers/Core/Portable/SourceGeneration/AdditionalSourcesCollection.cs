@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ArrayBuilder<GeneratedSourceText> _sourcesAdded;
 
-        private readonly StringComparer _hintNameComparer = StringComparer.OrdinalIgnoreCase;
+        private const StringComparison _hintNameComparison = StringComparison.OrdinalIgnoreCase;
+
+        private static readonly StringComparer s_hintNameComparer = StringComparer.OrdinalIgnoreCase;
 
         internal AdditionalSourcesCollection()
         {
@@ -72,9 +74,9 @@ namespace Microsoft.CodeAnalysis
             hintName = AppendExtensionIfRequired(hintName);
             for (int i = 0; i < _sourcesAdded.Count; i++)
             {
-                if (_hintNameComparer.Equals(_sourcesAdded[i].HintName, hintName))
+                if (s_hintNameComparer.Equals(_sourcesAdded[i].HintName, hintName))
                 {
-                    _sourcesAdded.Remove(_sourcesAdded[i]);
+                    _sourcesAdded.RemoveAt(i);
                     return;
                 }
             }
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             hintName = AppendExtensionIfRequired(hintName);
             for (int i = 0; i < _sourcesAdded.Count; i++)
             {
-                if (_hintNameComparer.Equals(_sourcesAdded[i].HintName, hintName))
+                if (s_hintNameComparer.Equals(_sourcesAdded[i].HintName, hintName))
                 {
                     return true;
                 }
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis
 
         private static string AppendExtensionIfRequired(string hintName)
         {
-            if (!Path.GetExtension(hintName).Equals(".cs", StringComparison.OrdinalIgnoreCase))
+            if (!hintName.EndsWith(".cs", _hintNameComparison))
             {
                 hintName = string.Concat(hintName, ".cs");
             }
