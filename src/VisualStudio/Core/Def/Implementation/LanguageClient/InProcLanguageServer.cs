@@ -100,7 +100,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
-        public object? Shutdown(CancellationToken _) => null;
+        public Task ShutdownAsync(CancellationToken _)
+        {
+            _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
+
+            return Task.CompletedTask;
+        }
+
+        [JsonRpcMethod(Methods.ExitName)]
+        public Task ExitAsync(CancellationToken _)
+        {
+            try
+            {
+                if (!_jsonRpc.IsDisposed)
+                {
+                    _jsonRpc.Dispose();
+                }
+            }
+            catch (Exception)
+            {
+                // Swallow exceptions thrown by disposing our JsonRpc object. Disconnected events can potentially throw their own exceptions so
+                // we purposefully ignore all of those exceptions in an effort to shutdown gracefully.
+            }
+
+            return Task.CompletedTask;
+        }
 
         [JsonRpcMethod(Methods.ExitName)]
         public void Exit()
