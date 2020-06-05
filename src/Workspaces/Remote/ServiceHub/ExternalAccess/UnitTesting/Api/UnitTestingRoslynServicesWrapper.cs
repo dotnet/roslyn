@@ -17,9 +17,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public UnitTestingRoslynServicesWrapper(UnitTestingPinnedSolutionInfoWrapper pinnedSolutionInfoWrapper, UnitTestingAssetStorageWrappper assetStorageWrappper)
             => _solutionService = new SolutionService(SolutionService.CreateAssetProvider(pinnedSolutionInfoWrapper.UnderlyingObject, assetStorageWrappper.UnderlyingObject));
 
-        public UnitTestingRoslynServicesWrapper(UnitTestingPinnedSolutionInfoWrapper pinnedSolutionInfoWrapper, UnitTestingAssetStorageWrapper assetStorageWrapper)
-            => _solutionService = new SolutionService(SolutionService.CreateAssetProvider(pinnedSolutionInfoWrapper.UnderlyingObject, assetStorageWrapper.UnderlyingObject));
-
         public Task<Solution> GetSolutionAsync(UnitTestingPinnedSolutionInfoWrapper pinnedSolutionInfoWrapper, CancellationToken cancellationToken)
             => _solutionService.GetSolutionAsync(pinnedSolutionInfoWrapper.UnderlyingObject.SolutionChecksum, cancellationToken);
     }
