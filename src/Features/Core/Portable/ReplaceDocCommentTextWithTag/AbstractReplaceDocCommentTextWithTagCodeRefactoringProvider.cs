@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
 
             for (var node = token.Parent; node != null; node = node.Parent)
             {
-                if (semanticModel.GetDeclaredSymbol(node) is ISymbol declaration)
+                if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is ISymbol declaration)
                 {
                     return declaration;
                 }

@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfFalse(_startedListening);
 
             // if this end-point is already disconnected do not log more errors:
-            bool logError = _disconnectedReason == null;
+            var logError = _disconnectedReason == null;
 
             try
             {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfFalse(_startedListening);
 
             // if this end-point is already disconnected do not log more errors:
-            bool logError = _disconnectedReason == null;
+            var logError = _disconnectedReason == null;
 
             try
             {
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfFalse(_startedListening);
 
             // if this end-point is already disconnected do not log more errors:
-            bool logError = _disconnectedReason == null;
+            var logError = _disconnectedReason == null;
 
             using var linkedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var pipe = new NamedPipeClientStream(serverName: ".", pipeName, PipeDirection.Out);
 
-                bool success = false;
+                var success = false;
                 try
                 {
                     await ConnectPipeAsync(pipe, cancellationToken).ConfigureAwait(false);

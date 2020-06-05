@@ -296,4 +296,3 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     End Class
 End Namespace
 
-

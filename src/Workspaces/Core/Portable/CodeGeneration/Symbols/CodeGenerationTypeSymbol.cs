@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public SpecialType SpecialType { get; protected set; }
 
         protected CodeGenerationTypeSymbol(
+            IAssemblySymbol containingAssembly,
             INamedTypeSymbol containingType,
             ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name,
             SpecialType specialType,
             NullableAnnotation nullableAnnotation)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.SpecialType = specialType;
             this.NullableAnnotation = nullableAnnotation;

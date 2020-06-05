@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var trackedRoot = root.TrackNodes(nodesToTrack);
             var currentDocument = document.WithSyntaxRoot(trackedRoot);
 
-            for (int i = 0; i < parameters.Length; i++)
+            for (var i = 0; i < parameters.Length; i++)
             {
                 var parameter = parameters[i];
                 var fieldOrProperty = fieldsOrProperties[i];
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 IBlockOperation? currentBlockStatementOpt = null;
                 if (blockStatementOpt != null)
                 {
-                    currentBlockStatementOpt = (IBlockOperation?)currentSemanticModel.GetOperation(currentRoot.GetCurrentNode(blockStatementOpt.Syntax));
+                    currentBlockStatementOpt = (IBlockOperation?)currentSemanticModel.GetOperation(currentRoot.GetCurrentNode(blockStatementOpt.Syntax), cancellationToken);
                     if (currentBlockStatementOpt == null)
                         continue;
                 }

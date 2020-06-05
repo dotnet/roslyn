@@ -111,11 +111,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // initialize things on UI thread
             await InitializeOnUIAsync().ConfigureAwait(false);
 
-            // this might get called before solution is fully loaded and before file is opened. 
-            // we delay our OOP start until then, but user might do vsstart before that. so we make sure we start OOP if 
-            // it is not running yet. multiple start is no-op
-            ((RemoteHostClientServiceFactory.RemoteHostClientService)_services.GetService<IRemoteHostClientService>()).Enable();
-
             // wait until remote host is available before let platform know that they can activate our LSP
             var client = await RemoteHostClient.TryGetClientAsync(_services, CancellationToken.None).ConfigureAwait(false);
             if (client == null)

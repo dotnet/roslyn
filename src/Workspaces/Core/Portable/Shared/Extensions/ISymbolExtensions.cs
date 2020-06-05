@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (oldNodes != null)
             {
-                XNode[] rewritten = RewriteMany(symbol, visitedSymbols, compilation, oldNodes.ToArray(), cancellationToken);
+                var rewritten = RewriteMany(symbol, visitedSymbols, compilation, oldNodes.ToArray(), cancellationToken);
                 container.ReplaceNodes(rewritten);
             }
 
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return false;
                 }
 
-                for (int i = 0; i < left.Parameters.Length; i++)
+                for (var i = 0; i < left.Parameters.Length; i++)
                 {
                     if (!left.Parameters[i].Type.Equals(right.Parameters[i].Type))
                     {

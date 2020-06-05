@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool isOptional,
             bool hasDefaultValue,
             object defaultValue)
-            : base(containingType, attributes, Accessibility.NotApplicable, new DeclarationModifiers(), name)
+            : base(containingType?.ContainingAssembly, containingType, attributes, Accessibility.NotApplicable, new DeclarationModifiers(), name)
         {
             this.RefKind = refKind;
             this.IsParams = isParams;

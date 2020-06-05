@@ -3583,7 +3583,7 @@ class C { }";
 
             CreateFiles(files);
 
-            string expectedEditorConfigPath = SolutionDirectory.CreateOrOpenFile(".editorconfig").Path;
+            var expectedEditorConfigPath = SolutionDirectory.CreateOrOpenFile(".editorconfig").Path;
 
             using (var workspace = CreateMSBuildWorkspace())
             {

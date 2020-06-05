@@ -791,13 +791,15 @@ namespace Microsoft.CodeAnalysis
             // We pass it to the generators, which will realize any symbols they require. 
             compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, additionalTexts, diagnostics);
 
-            // https://github.com/dotnet/roslyn/issues/44087 
-            // Workaround by getting options for any generated trees that were produced.
-            // In the future we'll want to apply the config set rules at parse time, return the options, and add them in here
-            if (!sourceFileAnalyzerConfigOptions.IsDefault && generators.Length > 0)
+            if (generators.Length > 0)
             {
-                var generatedOptions = compilation.SyntaxTrees.Skip(sourceFileAnalyzerConfigOptions.Length).Select(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath));
-                sourceFileAnalyzerConfigOptions = sourceFileAnalyzerConfigOptions.AddRange(generatedOptions);
+                var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length);
+                if (!sourceFileAnalyzerConfigOptions.IsDefault)
+                {
+                    sourceFileAnalyzerConfigOptions = sourceFileAnalyzerConfigOptions.AddRange(generatedSyntaxTrees.Select(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath)));
+                }
+
+                embeddedTexts = embeddedTexts.AddRange(generatedSyntaxTrees.Select(t => EmbeddedText.FromSource(t.FilePath, t.GetText())));
             }
 
             CompileAndEmit(

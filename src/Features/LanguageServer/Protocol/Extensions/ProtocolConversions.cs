@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ProjectId ProjectContextToProjectId(ProjectContext projectContext)
         {
-            int delimiter = projectContext.Id.IndexOf('|');
+            var delimiter = projectContext.Id.IndexOf('|');
 
             return ProjectId.CreateFromSerialized(
                 Guid.Parse(projectContext.Id.Substring(0, delimiter)),

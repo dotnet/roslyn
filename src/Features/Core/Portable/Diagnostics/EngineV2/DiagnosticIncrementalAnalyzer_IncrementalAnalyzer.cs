@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                _ = await client.TryRunRemoteAsync(
+                await client.RunRemoteAsync(
                     WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                     solution: null,

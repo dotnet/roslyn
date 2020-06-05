@@ -158,7 +158,6 @@ __|234567890ABCDEF
 1234567890ABCDEF");
         }
 
-
         [WpfFact]
         public void BottomLeftTopRightSymbolToSymbol()
         {

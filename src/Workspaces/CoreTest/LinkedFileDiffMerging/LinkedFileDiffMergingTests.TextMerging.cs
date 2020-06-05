@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
@@ -43,8 +44,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 LanguageNames.CSharp);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423")]
         [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestIdenticalEditAfterIsolatedChanges()
         {
             TestLinkedFileSet(
@@ -126,8 +128,9 @@ Four",
                 LanguageNames.CSharp);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44423")]
         [Trait(Traits.Feature, Traits.Features.LinkedFileDiffMerging)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void TestTwoConflictsOnSeparatedLines()
         {
             TestLinkedFileSet(

@@ -8,11 +8,13 @@
     Work around .editorconfig evaluation bugs in command line builds.
     https://github.com/dotnet/roslyn/issues/43371
   -->
-  <ItemGroup Condition="'$(DesignTimeBuild)' != 'true'">
-    <_AbsoluteCompile Include="@(Compile->'%(FullPath)')" />
-    <Compile Remove="@(Compile)" />
-    <Compile Include="@(_AbsoluteCompile)" />
-  </ItemGroup>
+  <Target Name="MapToAbsoluteFilePaths" BeforeTargets="CoreCompile" Condition="'$(DesignTimeBuild)' != 'true'">
+    <ItemGroup>
+      <_AbsoluteCompile Include="@(Compile->'%(FullPath)')" />
+      <Compile Remove="@(Compile)" />
+      <Compile Include="@(_AbsoluteCompile)" />
+    </ItemGroup>
+  </Target>
 
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>

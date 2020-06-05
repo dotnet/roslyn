@@ -484,7 +484,6 @@ namespace @namespace
             Verify(GetChildren(children.Single()),
                 EvalResult("x", "0", "int", null));
 
-
             var derivedValue = CreateDkmClrValue(assembly.GetType("NotMangled").Instantiate());
 
             root = FormatResult("o", derivedValue);

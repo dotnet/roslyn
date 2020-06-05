@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 yield return item;
             }
-
         }
 
         [Fact]
@@ -2974,7 +2973,6 @@ class C
             var projectInfo =
                 ProjectInfo.Create(projectId, VersionStamp.Default, "Test", "Test", LanguageNames.CSharp)
                     .WithAnalyzerConfigDocuments(new[] { DocumentInfo.Create(editorConfigDocumentId, ".editorconfig", filePath: editorConfigFilePath) });
-
 
             solution = solution.AddProject(projectInfo);
 

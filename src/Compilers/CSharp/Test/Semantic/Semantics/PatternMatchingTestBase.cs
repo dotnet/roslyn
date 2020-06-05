@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static void VerifyModelForDuplicateVariableDeclarationInSameScope(
             SemanticModel model,
             SingleVariableDesignationSyntax designation,
-            LocalDeclarationKind kind)
+            LocalDeclarationKind kind = LocalDeclarationKind.PatternVariable)
         {
             var symbol = model.GetDeclaredSymbol(designation);
             Assert.Equal(designation.Identifier.ValueText, symbol.Name);
