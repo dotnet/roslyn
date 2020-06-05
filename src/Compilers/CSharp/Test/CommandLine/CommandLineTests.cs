@@ -28,6 +28,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
@@ -12232,7 +12233,7 @@ class C
 }");
 
             var generatedSource = "public class D { }";
-            var generator = new SimpleGenerator(generatedSource, "generatedSource.cs");
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
 
@@ -12256,8 +12257,8 @@ class C
 class C
 {
 }");
-            var generator = new SimpleGenerator(source1, source1Name);
-            var generator2 = new SimpleGenerator2(source2, source2Name);
+            var generator = new SingleFileTestGenerator(source1, source1Name);
+            var generator2 = new SingleFileTestGenerator2(source2, source2Name);
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
 
@@ -12287,7 +12288,7 @@ class C
 [*.cs]
 key = value");
 
-            var generator = new SimpleGenerator("public class D {}", "generated.cs");
+            var generator = new SingleFileTestGenerator("public class D {}", "generated.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: null);
         }
@@ -12528,43 +12529,6 @@ option1 = def");
                 },
                 SyntaxKind.PragmaWarningDirectiveTrivia
                 );
-        }
-    }
-
-    [Generator]
-    internal class SimpleGenerator : ISourceGenerator
-    {
-        private readonly string _sourceToAdd;
-        private readonly string _fileName;
-
-        /// <remarks>
-        /// Required for reflection based tests
-        /// </remarks>
-        public SimpleGenerator()
-        {
-            _sourceToAdd = string.Empty;
-        }
-
-        public SimpleGenerator(string sourceToAdd, string fileName)
-        {
-            _sourceToAdd = sourceToAdd;
-            _fileName = fileName;
-        }
-
-        public void Execute(SourceGeneratorContext context)
-        {
-            context.AddSource(_fileName, SourceText.From(_sourceToAdd, Encoding.UTF8));
-        }
-
-        public void Initialize(InitializationContext context)
-        {
-        }
-    }
-
-    internal class SimpleGenerator2 : SimpleGenerator
-    {
-        public SimpleGenerator2(string sourceToAdd, string fileName) : base(sourceToAdd, fileName)
-        {
         }
     }
 }
