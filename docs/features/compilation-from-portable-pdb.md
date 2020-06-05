@@ -315,9 +315,9 @@ Optimization level can be specified from the command line with [optimize](https:
 
 There are three possible values:
 
-* `debug` -> OptimizationLevel. Debug and DebugPlusMode is false
-* `debug+` -> OptimizationLevel. Debug and DebugPlusMode is true
-* `release` -> OptimizationLevel. Release and DebugPlusMode is ignored
+* `debug` -> `OptimizationLevel.Debug` and DebugPlusMode is false
+* `debug-plus` -> `OptimizationLevel.Debug` and DebugPlusMode is true
+* `release` -> `OptimizationLevel.Release` and DebugPlusMode is false (ignored)
 
 #### Runtime Version
 

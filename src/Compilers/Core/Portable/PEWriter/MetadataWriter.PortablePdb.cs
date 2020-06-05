@@ -868,11 +868,7 @@ namespace Microsoft.Cci
             var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
 
-            var optimization = module.CommonCompilation.Options.OptimizationLevel == OptimizationLevel.Debug
-                ? (module.CommonCompilation.Options.DebugPlusMode ? "debug+" : "debug")
-                : "release";
-
-            WriteValue(CompilationOptionNames.Optimization, optimization);
+            WriteValue(CompilationOptionNames.Optimization, module.CommonCompilation.Options.OptimizationLevel.ToPdbSerializedString(module.CommonCompilation.Options.DebugPlusMode));
 
             module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
 

@@ -59,12 +59,7 @@ namespace Roslyn.Test.Utilities.PDB
             var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             Assert.Equal(runtimeVersion, pdbOptions[CompilationOptionNames.RuntimeVersion]);
 
-            var optimization = compilationOptions.OptimizationLevel == OptimizationLevel.Debug
-                ? (compilationOptions.DebugPlusMode ? "debug+" : "debug")
-                : "release";
-
-            Assert.Equal(optimization, pdbOptions["optimization"]);
-
+            Assert.Equal(compilationOptions.OptimizationLevel.ToPdbSerializedString(compilationOptions.DebugPlusMode), pdbOptions["optimization"]);
             Assert.Equal(compilation.Language, pdbOptions["language"]);
         }
 
