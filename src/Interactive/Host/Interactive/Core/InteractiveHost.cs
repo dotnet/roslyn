@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         internal async Task<RemoteService> TryGetServiceAsync()
             => (await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false)).Service;
-        // Triggered whenever we create a fresh process.        // The ProcessExited event is not hooked yet.
-        internal event Action<Process>? InteractiveHostProcessCreated;
+        // Triggered whenever we create a fresh process.
+        // The ProcessExited event is not hooked yet.        internal event Action<Process>? InteractiveHostProcessCreated;
         }        #endregion
 
         ~InteractiveHost()
@@ -246,8 +246,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             if (initializedRemoteService.Service == null)
             {
                 return default!;
-            }
-            return await Async<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);
+            }            return await Async<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);
         }
         private static async Task<TResult> Async<TResult>(RemoteService remoteService, string targetName, params object?[] arguments)
         {
