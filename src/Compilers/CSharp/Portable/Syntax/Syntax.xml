@@ -3891,6 +3891,22 @@
       </Field>
     </Choice>
   </Node>
+  <Node Name="DataPropertyDeclarationSyntax" Base="MemberDeclarationSyntax">
+    <Kind Name="DataPropertyDeclaration" />
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="DataKeyword" Type="SyntaxToken">
+      <Kind Name="DataKeyword" />
+    </Field>
+    <Field Name="Type" Type="TypeSyntax" />
+    <Field Name="Identifier" Type="SyntaxToken">
+      <Kind Name="IdentifierToken" />
+    </Field>
+    <Field Name="Initializer" Type="EqualsValueClauseSyntax" Optional="true" />
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
   <Node Name="IndexerDeclarationSyntax" Base="BasePropertyDeclarationSyntax">
     <Kind Name="IndexerDeclaration"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>

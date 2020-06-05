@@ -4,8 +4,11 @@
 
 #nullable enable
 
+using System;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -15,8 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class RecordTests : CompilingTestBase
     {
-        private static CSharpCompilation CreateCompilation(CSharpTestSource source)
-            => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+        private static CSharpCompilation CreateCompilation(CSharpTestSource source, CSharpCompilationOptions? options = null)
+            => CSharpTestBase.CreateCompilation(
+                new[] { source, IsExternalInitTypeDefinition },
+                options: options,
+                parseOptions: TestOptions.RegularPreview);
 
         private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
             => base.CompileAndVerify(new[] { src, IsExternalInitTypeDefinition },
@@ -146,7 +152,7 @@ record C(int x, string y)
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
 
-            var x = (SourceOrRecordPropertySymbol)c.GetProperty("x");
+            var x = (SourcePropertySymbolBase)c.GetProperty("x");
             Assert.NotNull(x.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, x.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
@@ -159,6 +165,7 @@ record C(int x, string y)
             Assert.Equal(c, x.ContainingSymbol);
 
             var backing = x.BackingField;
+            Debug.Assert(backing != null);
             Assert.Equal(x, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);
@@ -176,7 +183,7 @@ record C(int x, string y)
             Assert.Equal(Accessibility.Public, setAccessor.DeclaredAccessibility);
             Assert.True(setAccessor.IsInitOnly);
 
-            var y = (SourceOrRecordPropertySymbol)c.GetProperty("y");
+            var y = (SourcePropertySymbolBase)c.GetProperty("y");
             Assert.NotNull(y.GetMethod);
             Assert.Equal(MethodKind.PropertyGet, y.GetMethod.MethodKind);
             Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);
@@ -189,6 +196,7 @@ record C(int x, string y)
             Assert.Equal(c, y.ContainingSymbol);
 
             backing = y.BackingField;
+            Debug.Assert(backing != null);
             Assert.Equal(y, backing.AssociatedSymbol);
             Assert.Equal(c, backing.ContainingSymbol);
             Assert.Equal(c, backing.ContainingType);
@@ -1256,6 +1264,278 @@ enum H : C { }
         }
 
         [Fact]
+        public void DataPropertiesLangVersion()
+        {
+            var src = @$"
+class X
+{{
+    data int A;
+    public data int B = 0;
+    data C;
+}}
+";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     data int A;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "data").WithArguments("records").WithLocation(4, 5),
+                // (4,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                //     data int A;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "data int A;").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 5),
+                // (5,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                //     public data int B = 0;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "public data int B = 0;").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(5, 5),
+                // (5,5): error CS0106: The modifier 'public' is not valid for this item
+                //     public data int B = 0;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public data int B = 0;").WithArguments("public").WithLocation(5, 5),
+                // (5,12): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public data int B = 0;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "data").WithArguments("records").WithLocation(5, 12),
+                // (6,5): error CS0246: The type or namespace name 'data' could not be found (are you missing a using directive or an assembly reference?)
+                //     data C;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "data").WithArguments("data").WithLocation(6, 5),
+                // (6,10): warning CS0169: The field 'X.C' is never used
+                //     data C;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "C").WithArguments("X.C").WithLocation(6, 10)
+            );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DataProperties1([CombinatorialValues("class", "struct", "record")] string typeKind)
+        {
+            var src = @$"
+{typeKind} X
+{{
+    data int A;
+    public data int B;
+    readonly data int C;
+    static data int D;
+    data int E;
+}}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0106: The modifier 'public' is not valid for this item
+                //     public data int B;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public data int B;").WithArguments("public").WithLocation(5, 5),
+                // (6,5): error CS0106: The modifier 'readonly' is not valid for this item
+                //     readonly data int C;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly data int C;").WithArguments("readonly").WithLocation(6, 5),
+                // (7,5): error CS0106: The modifier 'static' is not valid for this item
+                //     static data int D;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static data int D;").WithArguments("static").WithLocation(7, 5)
+            );
+        }
+
+        [Fact]
+        public void DataProperties2()
+        {
+            var src = @"
+class C
+{
+    data int X = 0;
+    data int Y = """";
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,18): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //     data int Y = "";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "int").WithLocation(5, 18)
+            );
+        }
+
+        [Fact]
+        public void DataProperties3()
+        {
+            var src = @"
+using System;
+unsafe class C
+{
+    data void P1;
+    data C2 P2;
+    data int* P3;
+    data delegate*<int> P4;
+    [Obsolete(""Obsolete"", false)]
+    data int P5;
+
+    data bool P6 = M2(out var X);
+    data int P7 = X;
+    data bool P8 = ("""".Length == 0 || M2(out var y)) && y == 0;
+
+    void M()
+    {
+        int x = P5;
+    }
+
+    static bool M2(out int x)
+    {
+        x = 0;
+        return true;
+    }
+
+    private class C2 {}
+}";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition },
+                options: TestOptions.UnsafeDebugDll,
+                parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0547: 'C.P1': property or indexer cannot have void type
+                //     data void P1;
+                Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "data void P1;").WithArguments("C.P1").WithLocation(5, 5),
+                // (5,10): error CS1547: Keyword 'void' cannot be used in this context
+                //     data void P1;
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 10),
+                // (6,5): error CS0053: Inconsistent accessibility: property type 'C.C2' is less accessible than property 'C.P2'
+                //     data C2 P2;
+                Diagnostic(ErrorCode.ERR_BadVisPropertyType, "data C2 P2;").WithArguments("C.P2", "C.C2").WithLocation(6, 5),
+                // (13,19): error CS0103: The name 'X' does not exist in the current context
+                //     data int P7 = X;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "X").WithArguments("X").WithLocation(13, 19),
+                // (14,57): error CS0165: Use of unassigned local variable 'y'
+                //     data bool P8 = ("".Length == 0 || M2(out var y)) && y == 0;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(14, 57),
+                // (18,17): warning CS0618: 'C.P5' is obsolete: 'Obsolete'
+                //         int x = P5;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "P5").WithArguments("C.P5", "Obsolete").WithLocation(18, 17)
+            );
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+
+            var p3 = (DataPropertySymbol)c.GetMember("P3");
+            Assert.True(p3.HasPointerType);
+
+            var p4 = (DataPropertySymbol)c.GetMember("P4");
+            Assert.True(p4.HasPointerType);
+
+            var p5 = (DataPropertySymbol)c.GetMember("P5");
+            Assert.Equal(ObsoleteAttributeKind.Obsolete, p5.ObsoleteKind);
+        }
+
+        [Fact]
+        public void DataProperties4()
+        {
+            var src = @"
+// Data properties are not legal on the top-level
+data int X;
+data int Y = 0;";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (3,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // data int X;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(3, 1),
+                // (3,10): warning CS0168: The variable 'X' is declared but never used
+                // data int X;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "X").WithArguments("X").WithLocation(3, 10),
+                // (4,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // data int Y = 0;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(4, 1),
+                // (4,10): warning CS0219: The variable 'Y' is assigned but its value is never used
+                // data int Y = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Y").WithArguments("Y").WithLocation(4, 10)
+            );
+
+            comp = CreateCompilation(
+                src,
+                parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview));
+            comp.VerifyDiagnostics(
+                // (3,1): error CS0103: The name 'data' does not exist in the current context
+                // data int X;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "data").WithArguments("data").WithLocation(3, 1),
+                // (3,6): error CS1002: ; expected
+                // data int X;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(3, 6),
+                // (4,1): error CS0103: The name 'data' does not exist in the current context
+                // data int Y = 0;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "data").WithArguments("data").WithLocation(4, 1),
+                // (4,6): error CS1002: ; expected
+                // data int Y = 0;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(4, 6)
+            );
+        }
+
+        [Fact]
+        public void DataProperties5()
+        {
+            var src = @"
+#nullable enable
+
+using System;
+
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+sealed class A1 : Attribute { }
+
+[AttributeUsage(AttributeTargets.Property)]
+sealed class A2 : Attribute { }
+
+class C
+{
+    [A1]
+    data int P1;
+
+    [A2]
+    [field: A1]
+    data string? P2;
+}";
+            Action<ModuleSymbol> symbolValidator = module =>
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var p1 = c.GetMember<PropertySymbol>("P1");
+                Assert.Equal("P1", p1.Name);
+                Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
+                Assert.Equal(SpecialType.System_Int32, p1.Type.SpecialType);
+                var a1 = module.GlobalNamespace.GetTypeMember("A1");
+                Assert.True(a1.Equals(p1.GetAttributes().Single().AttributeClass, TypeCompareKind.ConsiderEverything));
+
+                var p2 = c.GetMember<PropertySymbol>("P2");
+                Assert.Equal("P2", p2.Name);
+                Assert.Equal(Accessibility.Public, p2.DeclaredAccessibility);
+                Assert.Equal(SpecialType.System_String, p2.Type.SpecialType);
+                Assert.Equal(NullableAnnotation.Annotated, p2.TypeWithAnnotations.NullableAnnotation);
+                var a2 = module.GlobalNamespace.GetTypeMember("A2");
+                Assert.True(a2.Equals(p2.GetAttributes().Single().AttributeClass, TypeCompareKind.ConsiderEverything));
+
+                var backing = p2 is SourcePropertySymbolBase s
+                    ? s.BackingField!
+                    : c.GetMember<FieldSymbol>(GeneratedNames.MakeBackingFieldName("P2"));
+                Assert.True(backing.GetAttributes()
+                    .Select(attrData => attrData.AttributeClass)
+                    .Contains(a1));
+            };
+            _ = CompileAndVerify(
+                new[] { src, IsExternalInitTypeDefinition },
+                parseOptions: TestOptions.RegularPreview,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                sourceSymbolValidator: symbolValidator,
+                symbolValidator: symbolValidator);
+        }
+
+        [Fact]
+        public void DataPropertiesInterface()
+        {
+            var src = @$"
+interface X
+{{
+    data int A;
+    static data int D;
+}}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0525: Interfaces cannot contain instance fields
+                //     data int A;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "data int A;").WithLocation(4, 5),
+                // (5,5): error CS0106: The modifier 'static' is not valid for this item
+                //     static data int D;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static data int D;").WithArguments("static").WithLocation(5, 5),
+                // (5,5): error CS0525: Interfaces cannot contain instance fields
+                //     static data int D;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "static data int D;").WithLocation(5, 5)
+            );
+        }
+
+        [Fact]
         public void GenericRecord()
         {
             var src = @"
@@ -1404,6 +1684,120 @@ class C
   IL_001a:  pop
   IL_001b:  ret
 }");
+        }
+
+        [Fact]
+        public void DataPropertiesInitOnly()
+        {
+            var src = @"
+class C
+{
+    data int X;
+
+    public static void Main()
+    {
+        var c = new C() { X = 0 };
+        c.X = 2;
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS8852: Init-only property or indexer 'C.X' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         c.X = 2;
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.X").WithArguments("C.X").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void DataPropertiesEmit()
+        {
+            var src = @"
+using System;
+class C
+{
+    data int X;
+
+    public static void Main()
+    {
+        var c = new C() { X = 5 };
+        Console.WriteLine(c.X);
+    }
+}";
+            CompileAndVerify(src, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void DataPropertiesSemanticModel()
+        {
+            var src = @"
+#nullable enable
+abstract class B
+{
+    public abstract int P2 { get; init; }
+}
+class C : B
+{
+    data int P1 = 2;
+    override data int P2 = 2;
+    data int P3 = P1;
+    data string P4 = null;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (7,7): error CS0534: 'C' does not implement inherited abstract member 'B.P2.init'
+                // class C : B
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "B.P2.init").WithLocation(7, 7),
+                // (7,7): error CS0534: 'C' does not implement inherited abstract member 'B.P2.get'
+                // class C : B
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "B.P2.get").WithLocation(7, 7),
+                // (10,5): error CS0106: The modifier 'override' is not valid for this item
+                //     override data int P2 = 2;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "override data int P2 = 2;").WithArguments("override").WithLocation(10, 5),
+                // (11,19): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.P1'
+                //     data int P3 = P1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "P1").WithArguments("C.P1").WithLocation(11, 19),
+                // (12,22): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     data string P4 = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 22)
+            );
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var props = tree.GetRoot().DescendantNodes().OfType<DataPropertyDeclarationSyntax>().ToList();
+            var p1 = (IPropertySymbol)model.GetDeclaredSymbol(props[0])!;
+            Assert.NotNull(p1);
+            Assert.Equal("P1", p1.Name);
+            Assert.False(p1.IsReadOnly);
+            Assert.False(p1.IsWriteOnly);
+            Assert.True(p1.SetMethod!.IsInitOnly);
+            Assert.False(p1.IsAbstract);
+            Assert.False(p1.IsOverride);
+            Assert.False(p1.IsVirtual);
+
+            var typeInfo = model.GetTypeInfo(props[0].Initializer!.Value);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type!.SpecialType);
+            Assert.Equal(CodeAnalysis.NullableFlowState.NotNull, typeInfo.Nullability.FlowState);
+
+            var initializer = props[1].Initializer;
+            Assert.NotNull(initializer);
+            typeInfo = model.GetTypeInfo(initializer!.Value);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type!.SpecialType);
+
+            var p2 = (IPropertySymbol)model.GetDeclaredSymbol(props[1])!;
+            Assert.NotNull(p2);
+            Assert.Equal("P2", p2.Name);
+            Assert.False(p2.IsReadOnly);
+            Assert.False(p2.IsWriteOnly);
+            Assert.True(p2.SetMethod!.IsInitOnly);
+            Assert.False(p2.IsAbstract);
+            Assert.False(p2.IsOverride);
+            Assert.False(p2.IsVirtual);
+
+            var symbolInfo = model.GetSymbolInfo(props[2].Initializer!.Value);
+            Assert.True(symbolInfo.Symbol!.Equals(p1, SymbolEqualityComparer.Default));
+
+            var p4 = (IPropertySymbol)model.GetDeclaredSymbol(props[3])!;
+            Assert.Equal(CodeAnalysis.NullableAnnotation.NotAnnotated , p4.Type.NullableAnnotation);
+            typeInfo = model.GetTypeInfo(props[3].Initializer!.Value);
+            Assert.Equal(CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
         }
     }
 }

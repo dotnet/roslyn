@@ -11054,6 +11054,88 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
+    public sealed partial class DataPropertyDeclarationSyntax : MemberDeclarationSyntax
+    {
+        private SyntaxNode? attributeLists;
+        private TypeSyntax? type;
+        private EqualsValueClauseSyntax? initializer;
+
+        internal DataPropertyDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public override SyntaxList<AttributeListSyntax> AttributeLists => new SyntaxList<AttributeListSyntax>(GetRed(ref this.attributeLists, 0));
+
+        public override SyntaxTokenList Modifiers
+        {
+            get
+            {
+                var slot = this.Green.GetSlot(1);
+                return slot != null ? new SyntaxTokenList(this, slot, GetChildPosition(1), GetChildIndex(1)) : default;
+            }
+        }
+
+        public SyntaxToken DataKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.DataPropertyDeclarationSyntax)this.Green).dataKeyword, GetChildPosition(2), GetChildIndex(2));
+
+        public TypeSyntax Type => GetRed(ref this.type, 3)!;
+
+        public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.DataPropertyDeclarationSyntax)this.Green).identifier, GetChildPosition(4), GetChildIndex(4));
+
+        public EqualsValueClauseSyntax? Initializer => GetRed(ref this.initializer, 5);
+
+        public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DataPropertyDeclarationSyntax)this.Green).semicolonToken, GetChildPosition(6), GetChildIndex(6));
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                3 => GetRed(ref this.type, 3)!,
+                5 => GetRed(ref this.initializer, 5),
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                0 => this.attributeLists,
+                3 => this.type,
+                5 => this.initializer,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDataPropertyDeclaration(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDataPropertyDeclaration(this);
+
+        public DataPropertyDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken dataKeyword, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? initializer, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || dataKeyword != this.DataKeyword || type != this.Type || identifier != this.Identifier || initializer != this.Initializer || semicolonToken != this.SemicolonToken)
+            {
+                var newNode = SyntaxFactory.DataPropertyDeclaration(attributeLists, modifiers, dataKeyword, type, identifier, initializer, semicolonToken);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
+        public new DataPropertyDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.DataKeyword, this.Type, this.Identifier, this.Initializer, this.SemicolonToken);
+        internal override MemberDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
+        public new DataPropertyDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.DataKeyword, this.Type, this.Identifier, this.Initializer, this.SemicolonToken);
+        public DataPropertyDeclarationSyntax WithDataKeyword(SyntaxToken dataKeyword) => Update(this.AttributeLists, this.Modifiers, dataKeyword, this.Type, this.Identifier, this.Initializer, this.SemicolonToken);
+        public DataPropertyDeclarationSyntax WithType(TypeSyntax type) => Update(this.AttributeLists, this.Modifiers, this.DataKeyword, type, this.Identifier, this.Initializer, this.SemicolonToken);
+        public DataPropertyDeclarationSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.DataKeyword, this.Type, identifier, this.Initializer, this.SemicolonToken);
+        public DataPropertyDeclarationSyntax WithInitializer(EqualsValueClauseSyntax? initializer) => Update(this.AttributeLists, this.Modifiers, this.DataKeyword, this.Type, this.Identifier, initializer, this.SemicolonToken);
+        public DataPropertyDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.DataKeyword, this.Type, this.Identifier, this.Initializer, semicolonToken);
+
+        internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
+        public new DataPropertyDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
+        internal override MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
+        public new DataPropertyDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
+    }
+
     public sealed partial class IndexerDeclarationSyntax : BasePropertyDeclarationSyntax
     {
         private SyntaxNode? attributeLists;

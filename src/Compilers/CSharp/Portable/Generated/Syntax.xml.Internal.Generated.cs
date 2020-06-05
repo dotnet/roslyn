@@ -25414,6 +25414,207 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+    internal sealed partial class DataPropertyDeclarationSyntax : MemberDeclarationSyntax
+    {
+        internal readonly GreenNode? attributeLists;
+        internal readonly GreenNode? modifiers;
+        internal readonly SyntaxToken dataKeyword;
+        internal readonly TypeSyntax type;
+        internal readonly SyntaxToken identifier;
+        internal readonly EqualsValueClauseSyntax? initializer;
+        internal readonly SyntaxToken semicolonToken;
+
+        internal DataPropertyDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken dataKeyword, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? initializer, SyntaxToken semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 7;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(dataKeyword);
+            this.dataKeyword = dataKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+        }
+
+        internal DataPropertyDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken dataKeyword, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? initializer, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 7;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(dataKeyword);
+            this.dataKeyword = dataKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+        }
+
+        internal DataPropertyDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken dataKeyword, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? initializer, SyntaxToken semicolonToken)
+          : base(kind)
+        {
+            this.SlotCount = 7;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(dataKeyword);
+            this.dataKeyword = dataKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+        }
+
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+        public SyntaxToken DataKeyword => this.dataKeyword;
+        public TypeSyntax Type => this.type;
+        public SyntaxToken Identifier => this.identifier;
+        public EqualsValueClauseSyntax? Initializer => this.initializer;
+        public SyntaxToken SemicolonToken => this.semicolonToken;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.attributeLists,
+                1 => this.modifiers,
+                2 => this.dataKeyword,
+                3 => this.type,
+                4 => this.identifier,
+                5 => this.initializer,
+                6 => this.semicolonToken,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.DataPropertyDeclarationSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDataPropertyDeclaration(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDataPropertyDeclaration(this);
+
+        public DataPropertyDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken dataKeyword, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax initializer, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || dataKeyword != this.DataKeyword || type != this.Type || identifier != this.Identifier || initializer != this.Initializer || semicolonToken != this.SemicolonToken)
+            {
+                var newNode = SyntaxFactory.DataPropertyDeclaration(attributeLists, modifiers, dataKeyword, type, identifier, initializer, semicolonToken);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new DataPropertyDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.dataKeyword, this.type, this.identifier, this.initializer, this.semicolonToken, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new DataPropertyDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.dataKeyword, this.type, this.identifier, this.initializer, this.semicolonToken, GetDiagnostics(), annotations);
+
+        internal DataPropertyDeclarationSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 7;
+            var attributeLists = (GreenNode?)reader.ReadValue();
+            if (attributeLists != null)
+            {
+                AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            var modifiers = (GreenNode?)reader.ReadValue();
+            if (modifiers != null)
+            {
+                AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            var dataKeyword = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(dataKeyword);
+            this.dataKeyword = dataKeyword;
+            var type = (TypeSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(type);
+            this.type = type;
+            var identifier = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            var initializer = (EqualsValueClauseSyntax?)reader.ReadValue();
+            if (initializer != null)
+            {
+                AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
+            var semicolonToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.attributeLists);
+            writer.WriteValue(this.modifiers);
+            writer.WriteValue(this.dataKeyword);
+            writer.WriteValue(this.type);
+            writer.WriteValue(this.identifier);
+            writer.WriteValue(this.initializer);
+            writer.WriteValue(this.semicolonToken);
+        }
+
+        static DataPropertyDeclarationSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(DataPropertyDeclarationSyntax), r => new DataPropertyDeclarationSyntax(r));
+        }
+    }
+
     internal sealed partial class IndexerDeclarationSyntax : BasePropertyDeclarationSyntax
     {
         internal readonly GreenNode? attributeLists;
@@ -32392,6 +32593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitPropertyDeclaration(PropertyDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitArrowExpressionClause(ArrowExpressionClauseSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitEventDeclaration(EventDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitDataPropertyDeclaration(DataPropertyDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitAccessorList(AccessorListSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitAccessorDeclaration(AccessorDeclarationSyntax node) => this.DefaultVisit(node);
@@ -32620,6 +32822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitPropertyDeclaration(PropertyDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node) => this.DefaultVisit(node);
         public virtual void VisitEventDeclaration(EventDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitDataPropertyDeclaration(DataPropertyDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitAccessorList(AccessorListSyntax node) => this.DefaultVisit(node);
         public virtual void VisitAccessorDeclaration(AccessorDeclarationSyntax node) => this.DefaultVisit(node);
@@ -33197,6 +33400,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override CSharpSyntaxNode VisitEventDeclaration(EventDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.EventKeyword), (TypeSyntax)Visit(node.Type), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), (SyntaxToken)Visit(node.Identifier), (AccessorListSyntax)Visit(node.AccessorList), (SyntaxToken)Visit(node.SemicolonToken));
+
+        public override CSharpSyntaxNode VisitDataPropertyDeclaration(DataPropertyDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.DataKeyword), (TypeSyntax)Visit(node.Type), (SyntaxToken)Visit(node.Identifier), (EqualsValueClauseSyntax)Visit(node.Initializer), (SyntaxToken)Visit(node.SemicolonToken));
 
         public override CSharpSyntaxNode VisitIndexerDeclaration(IndexerDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), (SyntaxToken)Visit(node.ThisKeyword), (BracketedParameterListSyntax)Visit(node.ParameterList), (AccessorListSyntax)Visit(node.AccessorList), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), (SyntaxToken)Visit(node.SemicolonToken));
@@ -37131,6 +37337,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
             return new EventDeclarationSyntax(SyntaxKind.EventDeclaration, attributeLists.Node, modifiers.Node, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, semicolonToken, this.context);
+        }
+
+        public DataPropertyDeclarationSyntax DataPropertyDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken dataKeyword, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? initializer, SyntaxToken semicolonToken)
+        {
+            #if DEBUG
+            if (dataKeyword == null) throw new ArgumentNullException(nameof(dataKeyword));
+            if (dataKeyword.Kind != SyntaxKind.DataKeyword) throw new ArgumentException(nameof(dataKeyword));
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (identifier == null) throw new ArgumentNullException(nameof(identifier));
+            if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            if (semicolonToken == null) throw new ArgumentNullException(nameof(semicolonToken));
+            if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            #endif
+
+            return new DataPropertyDeclarationSyntax(SyntaxKind.DataPropertyDeclaration, attributeLists.Node, modifiers.Node, dataKeyword, type, identifier, initializer, semicolonToken, this.context);
         }
 
         public IndexerDeclarationSyntax IndexerDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax? accessorList, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
@@ -41883,6 +42104,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new EventDeclarationSyntax(SyntaxKind.EventDeclaration, attributeLists.Node, modifiers.Node, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, semicolonToken);
         }
 
+        public static DataPropertyDeclarationSyntax DataPropertyDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken dataKeyword, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? initializer, SyntaxToken semicolonToken)
+        {
+            #if DEBUG
+            if (dataKeyword == null) throw new ArgumentNullException(nameof(dataKeyword));
+            if (dataKeyword.Kind != SyntaxKind.DataKeyword) throw new ArgumentException(nameof(dataKeyword));
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (identifier == null) throw new ArgumentNullException(nameof(identifier));
+            if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            if (semicolonToken == null) throw new ArgumentNullException(nameof(semicolonToken));
+            if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            #endif
+
+            return new DataPropertyDeclarationSyntax(SyntaxKind.DataPropertyDeclaration, attributeLists.Node, modifiers.Node, dataKeyword, type, identifier, initializer, semicolonToken);
+        }
+
         public static IndexerDeclarationSyntax IndexerDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax? accessorList, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken? semicolonToken)
         {
 #if DEBUG
@@ -43028,6 +43264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(PropertyDeclarationSyntax),
                 typeof(ArrowExpressionClauseSyntax),
                 typeof(EventDeclarationSyntax),
+                typeof(DataPropertyDeclarationSyntax),
                 typeof(IndexerDeclarationSyntax),
                 typeof(AccessorListSyntax),
                 typeof(AccessorDeclarationSyntax),

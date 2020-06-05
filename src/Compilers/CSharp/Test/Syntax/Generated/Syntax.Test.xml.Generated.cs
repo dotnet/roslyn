@@ -535,6 +535,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.EventDeclarationSyntax GenerateEventDeclaration()
             => InternalSyntaxFactory.EventDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.EventKeyword), GenerateIdentifierName(), null, InternalSyntaxFactory.Identifier("Identifier"), null, null);
 
+        private static Syntax.InternalSyntax.DataPropertyDeclarationSyntax GenerateDataPropertyDeclaration()
+            => InternalSyntaxFactory.DataPropertyDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.DataKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Identifier("Identifier"), null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
+
         private static Syntax.InternalSyntax.IndexerDeclarationSyntax GenerateIndexerDeclaration()
             => InternalSyntaxFactory.IndexerDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateIdentifierName(), null, InternalSyntaxFactory.Token(SyntaxKind.ThisKeyword), GenerateBracketedParameterList(), null, null, null);
 
@@ -2923,6 +2926,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Null(node.AccessorList);
             Assert.Null(node.SemicolonToken);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestDataPropertyDeclarationFactoryAndProperties()
+        {
+            var node = GenerateDataPropertyDeclaration();
+
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
+            Assert.Equal(SyntaxKind.DataKeyword, node.DataKeyword.Kind);
+            Assert.NotNull(node.Type);
+            Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
+            Assert.Null(node.Initializer);
+            Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -8117,6 +8136,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDataPropertyDeclarationTokenDeleteRewriter()
+        {
+            var oldNode = GenerateDataPropertyDeclaration();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestDataPropertyDeclarationIdentityRewriter()
+        {
+            var oldNode = GenerateDataPropertyDeclaration();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestIndexerDeclarationTokenDeleteRewriter()
         {
             var oldNode = GenerateIndexerDeclaration();
@@ -9919,6 +9964,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static EventDeclarationSyntax GenerateEventDeclaration()
             => SyntaxFactory.EventDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.EventKeyword), GenerateIdentifierName(), default(ExplicitInterfaceSpecifierSyntax), SyntaxFactory.Identifier("Identifier"), default(AccessorListSyntax), default(SyntaxToken));
+
+        private static DataPropertyDeclarationSyntax GenerateDataPropertyDeclaration()
+            => SyntaxFactory.DataPropertyDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.DataKeyword), GenerateIdentifierName(), SyntaxFactory.Identifier("Identifier"), default(EqualsValueClauseSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static IndexerDeclarationSyntax GenerateIndexerDeclaration()
             => SyntaxFactory.IndexerDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateIdentifierName(), default(ExplicitInterfaceSpecifierSyntax), SyntaxFactory.Token(SyntaxKind.ThisKeyword), GenerateBracketedParameterList(), default(AccessorListSyntax), default(ArrowExpressionClauseSyntax), default(SyntaxToken));
@@ -12309,6 +12357,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.AccessorList);
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithEventKeyword(node.EventKeyword).WithType(node.Type).WithExplicitInterfaceSpecifier(node.ExplicitInterfaceSpecifier).WithIdentifier(node.Identifier).WithAccessorList(node.AccessorList).WithSemicolonToken(node.SemicolonToken);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestDataPropertyDeclarationFactoryAndProperties()
+        {
+            var node = GenerateDataPropertyDeclaration();
+
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
+            Assert.Equal(SyntaxKind.DataKeyword, node.DataKeyword.Kind());
+            Assert.NotNull(node.Type);
+            Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
+            Assert.Null(node.Initializer);
+            Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithDataKeyword(node.DataKeyword).WithType(node.Type).WithIdentifier(node.Identifier).WithInitializer(node.Initializer).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
         }
 
@@ -17495,6 +17559,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestEventDeclarationIdentityRewriter()
         {
             var oldNode = GenerateEventDeclaration();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestDataPropertyDeclarationTokenDeleteRewriter()
+        {
+            var oldNode = GenerateDataPropertyDeclaration();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestDataPropertyDeclarationIdentityRewriter()
+        {
+            var oldNode = GenerateDataPropertyDeclaration();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

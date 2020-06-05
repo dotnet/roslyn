@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static InitializerSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, CSharpSyntaxNode syntax, PropertySymbol propertySymbol, Binder rootBinder)
         {
             Debug.Assert(containingSemanticModel != null);
-            Debug.Assert(syntax.IsKind(SyntaxKind.PropertyDeclaration));
+            Debug.Assert(syntax.IsKind(SyntaxKind.PropertyDeclaration) || syntax.IsKind(SyntaxKind.DataPropertyDeclaration));
             return new InitializerSemanticModel(syntax, propertySymbol, rootBinder, containingSemanticModel);
         }
 
@@ -138,6 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     equalsValue = ((PropertyDeclarationSyntax)node).Initializer;
                     break;
 
+                case SyntaxKind.DataPropertyDeclaration:
+                    equalsValue = ((DataPropertyDeclarationSyntax)node).Initializer;
+                    break;
+
                 case SyntaxKind.Parameter:
                     equalsValue = ((ParameterSyntax)node).Default;
                     break;
@@ -175,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SymbolKind.Property:
                     {
-                        var property = (SourcePropertySymbol)this.MemberSymbol;
+                        var property = (SourcePropertySymbolBase)this.MemberSymbol;
                         BoundFieldEqualsValue result = binder.BindFieldInitializer(property.BackingField, equalsValue, diagnostics);
                         return new BoundPropertyEqualsValue(result.Syntax, property, result.Locals, result.Value);
                     }

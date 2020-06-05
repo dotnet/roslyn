@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -1828,6 +1829,173 @@ class C(int X, int Y)
                     M(SyntaxKind.OpenBraceToken);
                     M(SyntaxKind.CloseBraceToken);
                     N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DataProperty(
+            [CombinatorialValues("class", "struct", "interface", "record")] string typeKind)
+        {
+            var src = @$"
+{typeKind} X
+{{
+    data int A;
+    public data int B;
+    static data partial C;
+    data data D;
+    data int E = 0;
+    data static data D;
+    int data;
+    int data => 0;
+}}";
+            UsingTree(src,
+                // (9,10): error CS1585: Member modifier 'static' must precede the member type and name
+                //     data static data D;
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "static").WithArguments("static").WithLocation(9, 10));
+            N(SyntaxKind.CompilationUnit);
+            {
+                switch (typeKind)
+                {
+                    case "class":
+                        N(SyntaxKind.ClassDeclaration);
+                        N(SyntaxKind.ClassKeyword);
+                        break;
+                    case "struct":
+                        N(SyntaxKind.StructDeclaration);
+                        N(SyntaxKind.StructKeyword);
+                        break;
+                    case "interface":
+                        N(SyntaxKind.InterfaceDeclaration);
+                        N(SyntaxKind.InterfaceKeyword);
+                        break;
+                    case "record":
+                        N(SyntaxKind.RecordDeclaration);
+                        N(SyntaxKind.RecordKeyword);
+                        break;
+                }
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.DataPropertyDeclaration);
+                    {
+                        N(SyntaxKind.DataKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "A");
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.DataPropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.DataKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "B");
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.DataPropertyDeclaration);
+                    {
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.DataKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "partial");
+                        }
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.DataPropertyDeclaration);
+                    {
+                        N(SyntaxKind.DataKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "data");
+                        }
+                        N(SyntaxKind.IdentifierToken, "D");
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.DataPropertyDeclaration);
+                    {
+                        N(SyntaxKind.DataKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "E");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "data");
+                        }
+                    }
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "data");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "D");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "data");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "data");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

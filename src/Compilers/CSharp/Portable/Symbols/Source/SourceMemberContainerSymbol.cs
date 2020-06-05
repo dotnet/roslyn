@@ -2983,7 +2983,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var binder = binderFactory.GetBinder(paramList);
 
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
-                var existingOrAddedMembers = addProperties(ctor.Parameters);
+                var existingOrAddedMembers = addProperties(paramList, ctor.Parameters);
                 addDeconstruct(ctor.Parameters, existingOrAddedMembers);
             }
 
@@ -3047,13 +3047,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            ImmutableArray<PropertySymbol> addProperties(ImmutableArray<ParameterSymbol> recordParameters)
+            ImmutableArray<PropertySymbol> addProperties(ParameterListSyntax paramList, ImmutableArray<ParameterSymbol> recordParameters)
             {
                 var existingOrAddedMembers = ArrayBuilder<PropertySymbol>.GetInstance(recordParameters.Length);
                 int addedCount = 0;
-                foreach (ParameterSymbol param in recordParameters)
+                Debug.Assert(paramList.ParameterCount == recordParameters.Length);
+                for (int i = 0; i < paramList.ParameterCount; i++)
                 {
-                    var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
+                    var paramSyntax = paramList.Parameters[i];
+                    var paramSymbol = recordParameters[i];
+                    var property = new SynthesizedRecordPropertySymbol(this, paramSyntax, paramSymbol, diagnostics);
                     _ = memberSignatures.TryGetValue(property, out var existingMember);
                     existingMember ??= getInheritedMember(property, this);
                     if (existingMember is null)
@@ -3064,11 +3067,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         members.Add(property.SetMethod);
                         members.Add(property.BackingField);
 
-                        builder.InstanceInitializersForRecordDeclarationWithParameters.Insert(addedCount, new FieldOrPropertyInitializer.Builder(property.BackingField, paramList.Parameters[param.Ordinal]));
+                        builder.InstanceInitializersForRecordDeclarationWithParameters.Insert(
+                            addedCount,
+                            new FieldOrPropertyInitializer.Builder(property.BackingField, paramList.Parameters[i]));
                         addedCount++;
                     }
                     else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
-                        && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+                        && prop.TypeWithAnnotations.Equals(paramSymbol.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
                     {
                         // There already exists a member corresponding to the candidate synthesized property.
                         // The deconstructor is specified to simply assign from this property to the corresponding out parameter.
@@ -3077,10 +3082,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else
                     {
                         diagnostics.Add(ErrorCode.ERR_BadRecordMemberForPositionalParameter,
-                            param.Locations[0],
+                            paramSymbol.Locations[0],
                             new FormattedSymbol(existingMember, SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
-                            param.TypeWithAnnotations,
-                            param.Name);
+                            paramSymbol.TypeWithAnnotations,
+                            paramSymbol.Name);
                     }
                 }
 
@@ -3458,6 +3463,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         AddInitializer(ref instanceInitializers, backingField, initializer);
                                     }
                                 }
+                            }
+                        }
+                        break;
+
+                    case SyntaxKind.DataPropertyDeclaration:
+                        {
+                            var propertySyntax = (DataPropertyDeclarationSyntax)m;
+                            if (IsImplicitClass && reportMisplacedGlobalCode)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
+                                    new SourceLocation(propertySyntax.Identifier));
+                            }
+
+                            var property = new DataPropertySymbol(this, bodyBinder, propertySyntax, diagnostics);
+                            builder.NonTypeNonIndexerMembers.Add(property);
+
+                            AddAccessorIfAvailable(builder.NonTypeNonIndexerMembers, property.GetMethod, diagnostics);
+                            AddAccessorIfAvailable(builder.NonTypeNonIndexerMembers, property.SetMethod, diagnostics);
+
+                            FieldSymbol backingField = property.BackingField;
+                            Debug.Assert(!(backingField is null));
+                            builder.NonTypeNonIndexerMembers.Add(backingField);
+
+                            Debug.Assert(!property.IsStatic);
+                            var initializer = propertySyntax.Initializer;
+                            if (initializer != null)
+                            {
+                                AddInitializer(ref instanceInitializers, backingField, initializer);
                             }
                         }
                         break;

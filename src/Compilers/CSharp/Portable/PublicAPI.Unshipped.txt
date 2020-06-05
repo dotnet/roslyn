@@ -1,6 +1,22 @@
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.NewKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.AddModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.DataKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.Identifier.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.SemicolonToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.Update(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.SyntaxToken dataKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax initializer, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.WithAttributeLists(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.WithDataKeyword(Microsoft.CodeAnalysis.SyntaxToken dataKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.WithIdentifier(Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.WithInitializer(Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList modifiers) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.WithSemicolonToken(Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax.AddBaseListTypes(params Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax
@@ -27,6 +43,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.SimpleBaseTypeSyntax.AddArgumentListArgumen
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleBaseTypeSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleBaseTypeSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax argumentList) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleBaseTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleBaseTypeSyntax.WithArgumentList(Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax argumentList) -> Microsoft.CodeAnalysis.CSharp.Syntax.SimpleBaseTypeSyntax
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.DataPropertyDeclaration = 9064 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecordDeclaration = 9063 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecordKeyword = 8444 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax
@@ -50,8 +67,13 @@ Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithGreaterThanTo
 Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithLessThanToken(Microsoft.CodeAnalysis.SyntaxToken lessThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithParameters(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.FunctionPointerType = 9056 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDataPropertyDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitRecordDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
+override Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
@@ -67,6 +89,10 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax.Modifiers.
 override Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax.OpenBraceToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax.SemicolonToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax.TypeParameterList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DataPropertyDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DataPropertyDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, string identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DataPropertyDeclaration(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.DataPropertyDeclaration(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.SyntaxToken dataKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax initializer, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerType(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerType(Microsoft.CodeAnalysis.SyntaxToken callingConvention, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerType(Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.SyntaxToken asteriskToken, Microsoft.CodeAnalysis.SyntaxToken callingConvention, Microsoft.CodeAnalysis.SyntaxToken lessThanToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters, Microsoft.CodeAnalysis.SyntaxToken greaterThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
@@ -181,9 +207,11 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RecordDeclaration(Microsoft.C
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RecordDeclaration(Microsoft.CodeAnalysis.SyntaxToken keyword, Microsoft.CodeAnalysis.SyntaxToken identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RecordDeclaration(Microsoft.CodeAnalysis.SyntaxToken keyword, string identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax receiver, Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDataPropertyDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitParenthesizedPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitRecordDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.RecordDeclarationSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDataPropertyDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.DataPropertyDeclarationSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax node) -> TResult
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedPattern(Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax

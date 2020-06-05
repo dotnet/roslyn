@@ -656,6 +656,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return hasAttributes;
+
+                case SyntaxKind.DataPropertyDeclaration:
+                    return (((Syntax.InternalSyntax.DataPropertyDeclarationSyntax)member).AttributeLists).Any();
             }
 
             return false;
@@ -709,6 +712,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         set.Add(propertyDecl.Identifier.ValueText);
                     }
+                    break;
+
+                case SyntaxKind.DataPropertyDeclaration:
+                    anyNonTypeMembers = true;
+                    var dataProp = (Syntax.InternalSyntax.DataPropertyDeclarationSyntax)member;
+                    set.Add(dataProp.Identifier.ValueText);
                     break;
 
                 case SyntaxKind.EventDeclaration:

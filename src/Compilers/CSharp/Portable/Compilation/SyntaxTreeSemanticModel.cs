@@ -905,6 +905,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 GetOrAddModelIfContains(propertyDecl.ExpressionBody, span);
                         }
 
+                    case SyntaxKind.DataPropertyDeclaration:
+                        {
+                            var dataDecl = (DataPropertyDeclarationSyntax)memberDecl;
+                            return GetOrAddModelIfContains(dataDecl.Initializer, span);
+                        }
+
                     case SyntaxKind.GlobalStatement:
                         if (SyntaxFacts.IsSimpleProgramTopLevelStatement((GlobalStatementSyntax)memberDecl))
                         {
@@ -1108,6 +1114,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 var propertyDecl = (PropertyDeclarationSyntax)node.Parent;
                                 var propertySymbol = GetDeclaredSymbol(propertyDecl).GetSymbol<SourcePropertySymbol>();
+                                return InitializerSemanticModel.Create(
+                                    this,
+                                    propertyDecl,
+                                    propertySymbol,
+                                    GetFieldOrPropertyInitializerBinder(propertySymbol.BackingField, defaultOuter(), propertyDecl.Initializer));
+                            }
+
+                        case SyntaxKind.DataPropertyDeclaration:
+                            {
+                                var propertyDecl = (DataPropertyDeclarationSyntax)node.Parent;
+                                var propertySymbol = GetDeclaredSymbol(propertyDecl).GetSymbol<DataPropertySymbol>();
                                 return InitializerSemanticModel.Create(
                                     this,
                                     propertyDecl,
@@ -1618,6 +1635,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var propertyDecl = (PropertyDeclarationSyntax)declaration;
                         return GetDeclarationName(declaration, propertyDecl.ExplicitInterfaceSpecifier, propertyDecl.Identifier.ValueText);
                     }
+
+                case SyntaxKind.DataPropertyDeclaration:
+                    return ((DataPropertyDeclarationSyntax)declaration).Identifier.ValueText;
 
                 case SyntaxKind.IndexerDeclaration:
                     {

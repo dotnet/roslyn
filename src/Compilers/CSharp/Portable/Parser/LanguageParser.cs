@@ -1078,8 +1078,6 @@ tryAgain:
                     return DeclarationModifiers.Async;
                 case SyntaxKind.RefKeyword:
                     return DeclarationModifiers.Ref;
-                case SyntaxKind.DataKeyword:
-                    return DeclarationModifiers.Data;
                 case SyntaxKind.IdentifierToken:
                     switch (contextualKind)
                     {
@@ -1087,8 +1085,6 @@ tryAgain:
                             return DeclarationModifiers.Partial;
                         case SyntaxKind.AsyncKeyword:
                             return DeclarationModifiers.Async;
-                        case SyntaxKind.DataKeyword:
-                            return DeclarationModifiers.Data;
                     }
 
                     goto default;
@@ -1113,7 +1109,7 @@ tryAgain:
                     case DeclarationModifiers.Partial:
                         var nextToken = PeekToken(1);
                         var isPartialType = this.IsPartialType();
-                        var isPartialMember = this.IsPartialMember();
+                        var isPartialMember = this.IsContextualMember();
                         if (isPartialType || isPartialMember)
                         {
                             // Standard legal cases.
@@ -1178,9 +1174,6 @@ tryAgain:
                         modTok = ConvertToKeyword(this.EatToken());
                         modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
                         break;
-
-                    case DeclarationModifiers.Data:
-                        return;
 
                     default:
                         modTok = this.EatToken();
@@ -1331,30 +1324,22 @@ tryAgain:
             return false;
         }
 
-        private bool IsPartialMember()
+        /// <summary>
+        /// Check if this is a contextual keyword followed by a member declaration with a type
+        /// followed by identifier.
+        /// </summary>
+        private bool IsContextualMember()
         {
-            // note(cyrusn): this could have been written like so:
-            //
-            //  return
-            //    this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
-            //    this.PeekToken(1).Kind == SyntaxKind.VoidKeyword;
-            //
-            // However, we want to be lenient and allow the user to write 
-            // 'partial' in most modifier lists.  We will then provide them with
-            // a more specific message later in binding that they are doing 
-            // something wrong.
-            //
-            // Some might argue that the simple check would suffice.
-            // However, we'd like to maintain behavior with 
-            // previously shipped versions, and so we're keeping this code.
+            // The current token should be a contextual keyword, meaning that
+            // its raw kind is identifier
+            Debug.Assert(CurrentToken.Kind == SyntaxKind.IdentifierToken);
 
             // Here we check for:
-            //   partial ReturnType MemberName
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+            //   <keyword> ReturnType MemberName
             var point = this.GetResetPoint();
             try
             {
-                this.EatToken(); // partial
+                this.EatToken(); // <keyword>
 
                 if (this.ScanType() == ScanTypeFlags.NotType)
                 {
@@ -2213,7 +2198,7 @@ tryAgain:
                     }
                 }
 
-                // Destructors are disallowed in global code, skipping check for them.
+                // Destructors and `data` properties are disallowed in global code, skipping check for them.
                 // TODO: better error messages for script
 
                 // Check for constant
@@ -2484,7 +2469,6 @@ parse_member_name:;
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
                 this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
                 this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
-                this.CurrentToken.ContextualKind != SyntaxKind.DataKeyword &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
@@ -2648,6 +2632,12 @@ parse_member_name:;
                 if (this.CurrentToken.Kind == SyntaxKind.ConstKeyword)
                 {
                     return this.ParseConstantFieldDeclaration(attributes, modifiers, parentKind);
+                }
+
+                // Check for data property
+                if (CurrentToken.ContextualKind == SyntaxKind.DataKeyword && IsContextualMember())
+                {
+                    return ParseDataPropertyDeclaration(attributes, modifiers);
                 }
 
                 // Check for event.
@@ -4957,6 +4947,32 @@ tryAgain:
             }
         }
 
+#nullable enable
+        private DataPropertyDeclarationSyntax ParseDataPropertyDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        {
+            var dataKeyword = EatContextualToken(SyntaxKind.DataKeyword);
+            dataKeyword = CheckFeatureAvailability(dataKeyword, MessageID.IDS_FeatureRecords);
+            var type = ParseType();
+            var id = ParseIdentifierToken();
+            EqualsValueClauseSyntax? eq = null;
+            if (CurrentToken.Kind == SyntaxKind.EqualsToken)
+            {
+                var eqToken = EatToken(SyntaxKind.EqualsToken);
+                var value = ParseVariableInitializer();
+                eq = _syntaxFactory.EqualsValueClause(eqToken, value);
+            }
+            var semicolon = EatToken(SyntaxKind.SemicolonToken);
+            return _syntaxFactory.DataPropertyDeclaration(
+                attributes,
+                modifiers.ToList(),
+                dataKeyword,
+                type,
+                id,
+                eq,
+                semicolon);
+        }
+#nullable restore
+
         private DelegateDeclarationSyntax ParseDelegateDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.DelegateKeyword);
@@ -5274,7 +5290,7 @@ tryAgain:
         {
             if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
             {
-                if (this.IsPartialType() || this.IsPartialMember())
+                if (this.IsPartialType() || this.IsContextualMember())
                 {
                     return true;
                 }

@@ -78,6 +78,7 @@ member_declaration
   | base_method_declaration
   | base_property_declaration
   | base_type_declaration
+  | data_property_declaration
   | delegate_declaration
   | enum_member_declaration
   | global_statement
@@ -98,7 +99,6 @@ modifier
   : 'abstract'
   | 'async'
   | 'const'
-  | 'data'
   | 'extern'
   | 'fixed'
   | 'internal'
@@ -304,6 +304,10 @@ record_declaration
 
 struct_declaration
   : attribute_list* modifier* 'struct' identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{' member_declaration* '}' ';'?
+  ;
+
+data_property_declaration
+  : attribute_list* modifier* 'data' type identifier_token equals_value_clause? ';'
   ;
 
 delegate_declaration

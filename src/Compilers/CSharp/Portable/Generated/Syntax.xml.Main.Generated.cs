@@ -715,6 +715,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: MaybeNull]
         public virtual TResult VisitEventDeclaration(EventDeclarationSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a DataPropertyDeclarationSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitDataPropertyDeclaration(DataPropertyDeclarationSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a IndexerDeclarationSyntax node.</summary>
         [return: MaybeNull]
         public virtual TResult VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.DefaultVisit(node);
@@ -1439,6 +1443,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a EventDeclarationSyntax node.</summary>
         public virtual void VisitEventDeclaration(EventDeclarationSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a DataPropertyDeclarationSyntax node.</summary>
+        public virtual void VisitDataPropertyDeclaration(DataPropertyDeclarationSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a IndexerDeclarationSyntax node.</summary>
         public virtual void VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.DefaultVisit(node);
 
@@ -2113,6 +2120,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitEventDeclaration(EventDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.EventKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ExplicitInterfaceSpecifierSyntax?)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.Identifier), (AccessorListSyntax?)Visit(node.AccessorList), VisitToken(node.SemicolonToken));
+
+        public override SyntaxNode? VisitDataPropertyDeclaration(DataPropertyDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.DataKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitToken(node.Identifier), (EqualsValueClauseSyntax?)Visit(node.Initializer), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode? VisitIndexerDeclaration(IndexerDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ExplicitInterfaceSpecifierSyntax?)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.ThisKeyword), (BracketedParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), (AccessorListSyntax?)Visit(node.AccessorList), (ArrowExpressionClauseSyntax?)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
@@ -5431,6 +5441,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new EventDeclarationSyntax instance.</summary>
         public static EventDeclarationSyntax EventDeclaration(TypeSyntax type, string identifier)
             => SyntaxFactory.EventDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.EventKeyword), type, default, SyntaxFactory.Identifier(identifier), default, default);
+
+        /// <summary>Creates a new DataPropertyDeclarationSyntax instance.</summary>
+        public static DataPropertyDeclarationSyntax DataPropertyDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken dataKeyword, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? initializer, SyntaxToken semicolonToken)
+        {
+            if (dataKeyword.Kind() != SyntaxKind.DataKeyword) throw new ArgumentException(nameof(dataKeyword));
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            return (DataPropertyDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.DataPropertyDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)dataKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, initializer == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)initializer.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new DataPropertyDeclarationSyntax instance.</summary>
+        public static DataPropertyDeclarationSyntax DataPropertyDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax? initializer)
+            => SyntaxFactory.DataPropertyDeclaration(attributeLists, modifiers, SyntaxFactory.Token(SyntaxKind.DataKeyword), type, identifier, initializer, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+
+        /// <summary>Creates a new DataPropertyDeclarationSyntax instance.</summary>
+        public static DataPropertyDeclarationSyntax DataPropertyDeclaration(TypeSyntax type, SyntaxToken identifier)
+            => SyntaxFactory.DataPropertyDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.DataKeyword), type, identifier, default, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+
+        /// <summary>Creates a new DataPropertyDeclarationSyntax instance.</summary>
+        public static DataPropertyDeclarationSyntax DataPropertyDeclaration(TypeSyntax type, string identifier)
+            => SyntaxFactory.DataPropertyDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.DataKeyword), type, SyntaxFactory.Identifier(identifier), default, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         /// <summary>Creates a new IndexerDeclarationSyntax instance.</summary>
         public static IndexerDeclarationSyntax IndexerDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax? accessorList, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
