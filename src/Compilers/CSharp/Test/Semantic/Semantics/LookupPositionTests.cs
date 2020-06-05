@@ -1960,6 +1960,91 @@ partial record C(int X) : Base`(X`)
             TestLookupNames(text, expectedNames);
         }
 
+        [Fact]
+        public void RecordBaseArguments_06()
+        {
+            var text = @"
+class C : Base(X)
+`{
+`}
+";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "System.String System.Object.ToString()",
+                    "System.Type System.Object.GetType()",
+                    "void System.Object.Finalize()"),
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void RecordBaseArguments_07()
+        {
+            var text = @"
+struct C : Base(X)
+`{
+`}
+";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.ValueType.Equals(System.Object obj)",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Int32 System.ValueType.GetHashCode()",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "System.String System.Object.ToString()",
+                    "System.String System.ValueType.ToString()",
+                    "System.Type System.Object.GetType()",
+                    "void System.Object.Finalize()"),
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void RecordBaseArguments_08()
+        {
+            var text = @"
+interface C : Base(X)
+`{
+`}
+";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.String System.Object.ToString()",
+                    "System.Type System.Object.GetType()"),
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
         /// <summary>
         /// Given a program, calls LookupNames at each character position and verifies the results.
         /// 

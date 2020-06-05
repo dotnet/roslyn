@@ -3665,7 +3665,7 @@ False
             var src = @"
 using System;
 
-class Base
+record Base
 {
     public Base(int X, int Y)
     {
@@ -3734,7 +3734,7 @@ record C(int X, int Y) : Base(X, Y)
             var src = @"
 using System;
 
-class Base
+record Base
 {
     public Base(int X, int Y)
     {
@@ -3814,7 +3814,7 @@ record C(int X) : Base(Test(X, out var y), y)
             var src = @"
 using System;
 
-class Base
+record Base
 {
     public Base(int X, int Y)
     {
@@ -3856,7 +3856,7 @@ record C : Base(X, Y)
             var src = @"
 using System;
 
-class Base
+record Base
 {
     public Base(int X, int Y)
     {
@@ -3902,7 +3902,7 @@ partial record C : Base(X, Y)
             var src = @"
 using System;
 
-class Base
+record Base
 {
     public Base(int X, int Y)
     {
@@ -3956,7 +3956,7 @@ partial record C : Base(X, Y)
             var src = @"
 using System;
 
-class Base
+record Base
 {
     public Base(int X, int Y)
     {
@@ -4016,7 +4016,7 @@ partial record C : Base(X, Y)
             var src = @"
 using System;
 
-class Base
+record Base
 {
     public Base(int X, int Y)
     {
@@ -4074,7 +4074,7 @@ partial record C(int X, int Y) : Base(X, Y)
         public void BaseArguments_08()
         {
             var src = @"
-class Base
+record Base
 {
     public Base(int Y)
     {
@@ -4101,7 +4101,7 @@ record C(int X) : Base(Y)
         public void BaseArguments_09()
         {
             var src = @"
-class Base
+record Base
 {
     public Base(int X)
     {
@@ -4128,7 +4128,7 @@ record C(int X) : Base(this.X)
         public void BaseArguments_10()
         {
             var src = @"
-class Base
+record Base
 {
     public Base(int X)
     {
@@ -4148,6 +4148,155 @@ record C(dynamic X) : Base(X)
                 // record C(dynamic X) : Base(X)
                 Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, "(X)").WithLocation(11, 27)
                 );
+        }
+
+        [Fact]
+        public void BaseArguments_11()
+        {
+            var src = @"
+record Base
+{
+    public Base(int X, int Y)
+    {
+    }
+
+    public Base() {}
+}
+
+record C(int X) : Base(Test(X, out var y), y)
+{
+    int Z = y;
+
+    private static int Test(int x, out int y)
+    {
+        y = 2;
+        return x;
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (13,13): error CS0103: The name 'y' does not exist in the current context
+                //     int Z = y;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void BaseArguments_12()
+        {
+            var src = @"
+using System;
+
+class Base
+{
+    public Base(int X)
+    {
+    }
+}
+
+class C : Base(X)
+{
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (11,7): error CS7036: There is no argument given that corresponds to the required formal parameter 'X' of 'Base.Base(int)'
+                // class C : Base(X)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("X", "Base.Base(int)").WithLocation(11, 7),
+                // (11,15): error CS8861: Unexpected argument list.
+                // class C : Base(X)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(11, 15)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("Base(X)", x.Parent!.Parent!.Parent!.ToString());
+
+            var symbolInfo = model.GetSymbolInfo(x);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Same("<global namespace>", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Empty(model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void BaseArguments_13()
+        {
+            var src = @"
+using System;
+
+interface Base
+{
+}
+
+struct C : Base(X)
+{
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (8,16): error CS8861: Unexpected argument list.
+                // struct C : Base(X)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(8, 16)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("Base(X)", x.Parent!.Parent!.Parent!.ToString());
+
+            var symbolInfo = model.GetSymbolInfo(x);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Same("<global namespace>", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Empty(model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void BaseArguments_14()
+        {
+            var src = @"
+using System;
+
+interface Base
+{
+}
+
+interface C : Base(X)
+{
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (8,19): error CS8861: Unexpected argument list.
+                // interface C : Base(X)
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(8, 19)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("Base(X)", x.Parent!.Parent!.Parent!.ToString());
+
+            var symbolInfo = model.GetSymbolInfo(x);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Same("<global namespace>", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Empty(model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
         }
     }
 }
