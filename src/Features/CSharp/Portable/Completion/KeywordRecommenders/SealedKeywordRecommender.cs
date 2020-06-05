@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsGlobalStatementContext ||
                 context.IsMemberDeclarationContext(
                     validModifiers: s_validMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceRecordTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken) ||
                 context.IsTypeDeclarationContext(
                     validModifiers: s_validTypeModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }

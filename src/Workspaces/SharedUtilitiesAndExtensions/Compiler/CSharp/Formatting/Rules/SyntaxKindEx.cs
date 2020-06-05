@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public const SyntaxKind FunctionPointerType = (SyntaxKind)9056;
         public const SyntaxKind NotKeyword = (SyntaxKind)8440;
         public const SyntaxKind DataKeyword = (SyntaxKind)8441;
+        public const SyntaxKind RecordDeclaration = (SyntaxKind)9063;
 
 #if !CODE_STYLE
         private const uint ImplicitObjectCreationExpressionAssertion = -(ImplicitObjectCreationExpression - SyntaxKind.ImplicitObjectCreationExpression);
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private const uint OrKeywordValueAssertion = -(OrKeyword - SyntaxKind.OrKeyword);
         private const uint FunctionPointerTypeAssertion = -(FunctionPointerType - SyntaxKind.FunctionPointerType);
         private const uint NotKeywordValueAssertion = -(NotKeyword - SyntaxKind.NotKeyword);
+        private const uint RecordDeclarationValueAssertion = -(RecordDeclaration - SyntaxKind.RecordDeclaration);
 #endif
     }
 }
