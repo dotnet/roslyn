@@ -51,6 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArgumentList:
                     Debug.Assert(node.Parent is ConstructorInitializerSyntax);
                     break;
+                case SyntaxKind.RecordDeclaration:
+                    Debug.Assert(((RecordDeclarationSyntax)node).ParameterList is object);
+                    break;
                 default:
                     Debug.Assert(node is ExpressionSyntax);
                     break;
@@ -387,6 +390,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Initializer != null)
             {
                 VisitNodeToBind(node.Initializer);
+            }
+        }
+
+        public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
+        {
+            Debug.Assert(((RecordDeclarationSyntax)node).ParameterList is object);
+
+            if (node.BaseWithArguments is SimpleBaseTypeSyntax baseWithArguments)
+            {
+                VisitNodeToBind(baseWithArguments);
             }
         }
 

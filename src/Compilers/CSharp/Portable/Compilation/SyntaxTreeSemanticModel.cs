@@ -774,6 +774,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             !LookupPosition.IsInConstructorParameterScope(position, constructorDecl) &&
                             !LookupPosition.IsInParameterList(position, constructorDecl);
                         break;
+                    case SyntaxKind.RecordDeclaration:
+                        {
+                            var recordDecl = (RecordDeclarationSyntax)memberDecl;
+
+                            if (recordDecl.ParameterList is null)
+                            {
+                                outsideMemberDecl = true;
+                            }
+                            else
+                            {
+                                var argumentList = recordDecl.BaseWithArguments?.ArgumentList;
+                                outsideMemberDecl = argumentList is null || !LookupPosition.IsBetweenTokens(position, argumentList.OpenParenToken, argumentList.CloseParenToken);
+                            }
+                        }
+                        break;
                     case SyntaxKind.ConversionOperatorDeclaration:
                     case SyntaxKind.DestructorDeclaration:
                     case SyntaxKind.MethodDeclaration:
@@ -826,6 +841,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     expressionBody?.FullSpan.Contains(span) == true ||
                                     constructorDecl.Body?.FullSpan.Contains(span) == true) ?
                                    GetOrAddModel(constructorDecl) : null;
+                        }
+
+                    case SyntaxKind.RecordDeclaration:
+                        {
+                            var recordDecl = (RecordDeclarationSyntax)memberDecl;
+                            return recordDecl.ParameterList is object && recordDecl.BaseWithArguments?.ArgumentList.FullSpan.Contains(span) == true ? GetOrAddModel(memberDecl) : null;
                         }
 
                     case SyntaxKind.DestructorDeclaration:
@@ -1037,6 +1058,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var symbol = GetDeclaredSymbol(memberDecl).GetSymbol<SourceMemberMethodSymbol>();
                         return createMethodBodySemanticModel(memberDecl, symbol);
                     }
+
+                case SyntaxKind.RecordDeclaration:
+                    {
+                        var recordType = GetDeclaredSymbol((TypeDeclarationSyntax)node).GetSymbol<NamedTypeSymbol>();
+                        var symbol = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
+
+                        if (symbol?.GetSyntax() != node)
+                        {
+                            return null;
+                        }
+
+                        return createMethodBodySemanticModel(node, symbol);
+                    }
+
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.InitAccessorDeclaration:

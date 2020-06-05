@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
-                else if (kind == SyntaxKind.ThisConstructorInitializer || kind == SyntaxKind.BaseConstructorInitializer)
+                else if (kind == SyntaxKind.ThisConstructorInitializer || kind == SyntaxKind.BaseConstructorInitializer || kind == SyntaxKind.SimpleBaseType)
                 {
                     binder = rootBinder.GetBinder(current);
                 }
