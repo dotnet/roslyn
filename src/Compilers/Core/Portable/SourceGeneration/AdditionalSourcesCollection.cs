@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -16,13 +17,10 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ArrayBuilder<GeneratedSourceText> _sourcesAdded;
 
-        private readonly PooledHashSet<string> _hintNames;
-
-        private readonly object _collectionLock = new object();
+        private readonly StringComparer _hintNameComparer = StringComparer.OrdinalIgnoreCase;
 
         internal AdditionalSourcesCollection()
         {
-            _hintNames = PooledHashSet<string>.GetInstance();
             _sourcesAdded = ArrayBuilder<GeneratedSourceText>.GetInstance();
         }
 
@@ -61,52 +59,41 @@ namespace Microsoft.CodeAnalysis
             }
 
             hintName = AppendExtensionIfRequired(hintName);
-            lock (_collectionLock)
+            if (this.Contains(hintName))
             {
-                if (_hintNames.Contains(hintName))
-                {
-                    throw new ArgumentException(CodeAnalysisResources.HintNameUniquePerGenerator, nameof(hintName));
-                }
-
-                _hintNames.Add(hintName);
-                _sourcesAdded.Add(new GeneratedSourceText(hintName, source));
+                throw new ArgumentException(CodeAnalysisResources.HintNameUniquePerGenerator, nameof(hintName));
             }
+
+            _sourcesAdded.Add(new GeneratedSourceText(hintName, source));
         }
 
         public void RemoveSource(string hintName)
         {
             hintName = AppendExtensionIfRequired(hintName);
-            lock (_collectionLock)
+            for (int i = 0; i < _sourcesAdded.Count; i++)
             {
-                if (_hintNames.Contains(hintName))
+                if (_hintNameComparer.Equals(_sourcesAdded[i].HintName, hintName))
                 {
-                    _hintNames.Remove(hintName);
-                    for (int i = 0; i < _sourcesAdded.Count; i++)
-                    {
-                        // check the hashcodes, as thats the comparison we're using to put the names into _hintNames
-                        if (_sourcesAdded[i].HintName.GetHashCode() == hintName.GetHashCode())
-                        {
-                            _sourcesAdded.Remove(_sourcesAdded[i]);
-                            return;
-                        }
-                    }
+                    _sourcesAdded.Remove(_sourcesAdded[i]);
+                    return;
                 }
             }
         }
 
         public bool Contains(string hintName)
         {
-            lock (_collectionLock)
+            hintName = AppendExtensionIfRequired(hintName);
+            for (int i = 0; i < _sourcesAdded.Count; i++)
             {
-                return _hintNames.Contains(AppendExtensionIfRequired(hintName));
+                if (_hintNameComparer.Equals(_sourcesAdded[i].HintName, hintName))
+                {
+                    return true;
+                }
             }
+            return false;
         }
 
-        internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree()
-        {
-            _hintNames.Free();
-            return _sourcesAdded.ToImmutableAndFree();
-        }
+        internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree() => _sourcesAdded.ToImmutableAndFree();
 
         private static string AppendExtensionIfRequired(string hintName)
         {

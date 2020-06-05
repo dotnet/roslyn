@@ -106,6 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [InlineData("file", "file")]
         [InlineData("file", "file.cs")]
         [InlineData("file.cs", "file")]
+        [InlineData("file.cs", "file.CS")]
+        [InlineData("file.CS", "file.cs")]
+        [InlineData("file", "file.CS")]
+        [InlineData("file.CS", "file")]
+        [InlineData("File", "file")]
+        [InlineData("file", "File")]
         public void Hint_Name_Must_Be_Unique(string hintName1, string hintName2)
         {
             AdditionalSourcesCollection asc = new AdditionalSourcesCollection();
@@ -118,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [InlineData("file", "file")]
         [InlineData("file", "file.cs")]
         [InlineData("file.cs", "file")]
+        [InlineData("file.CS", "file")]
+        [InlineData("file", "file.CS")]
+        [InlineData("File", "file.cs")]
+        [InlineData("File.cs", "file")]
+        [InlineData("File.cs", "file.CS")]
         public void Contains(string addHintName, string checkHintName)
         {
             AdditionalSourcesCollection asc = new AdditionalSourcesCollection();
