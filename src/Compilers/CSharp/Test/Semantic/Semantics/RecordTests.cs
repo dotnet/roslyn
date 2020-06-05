@@ -3855,13 +3855,13 @@ True");
 record A;
 record B1(int P) : A
 {
-    internal B1() : this(0) { } // PROTOTYPE: Remove
-    internal int P { get; set; } // PROTOTYPE: Remove
+    internal B1() : this(0) { } // Use record base call syntax instead
+    internal int P { get; set; } // Use record base call syntax instead
 }
 record B2(int P) : A
 {
-    internal B2() : this(0) { } // PROTOTYPE: Remove
-    internal int P { get; set; } // PROTOTYPE: Remove
+    internal B2() : this(0) { } // Use record base call syntax instead
+    internal int P { get; set; } // Use record base call syntax instead
 }
 class Program
 {
@@ -3930,16 +3930,16 @@ True");
 @"using static System.Console;
 record A(int P)
 {
-    internal A() : this(0) { } // PROTOTYPE: Remove
-    internal int P { get; set; } // PROTOTYPE: Remove
+    internal A() : this(0) { } // Use record base call syntax instead
+    internal int P { get; set; } // Use record base call syntax instead
 }
 record B1(int P) : A
 {
-    internal B1() : this(0) { } // PROTOTYPE: Remove
+    internal B1() : this(0) { } // Use record base call syntax instead
 }
 record B2(int P) : A
 {
-    internal B2() : this(0) { } // PROTOTYPE: Remove
+    internal B2() : this(0) { } // Use record base call syntax instead
 }
 class Program
 {
@@ -4197,19 +4197,19 @@ True");
 @"using static System.Console;
 record A(int X)
 {
-    internal A() : this(0) { } // PROTOTYPE: Remove
-    internal int X { get; set; } // PROTOTYPE: Remove
+    internal A() : this(0) { } // Use record base call syntax instead
+    internal int X { get; set; } // Use record base call syntax instead
 }
 class B : A
 {
-    internal B() { } // PROTOTYPE: Remove
+    internal B() { } // Use record base call syntax instead
     internal B(int X, int Y) : base(X) { this.Y = Y; }
     internal int Y { get; set; }
 }
 record C(int X, int Y, int Z) : B
 {
-    internal C() : this(0, 0, 0) { } // PROTOTYPE: Remove
-    internal int Z { get; set; } // PROTOTYPE: Remove
+    internal C() : this(0, 0, 0) { } // Use record base call syntax instead
+    internal int Z { get; set; } // Use record base call syntax instead
 }
 class Program
 {
@@ -4299,7 +4299,7 @@ True");
   IL_0007:  callvirt   ""bool C.Equals(C)""
   IL_000c:  ret
 }");
-            // PROTOTYPE: Compare B.Y in C.Equals().
+            // https://github.com/dotnet/roslyn/issues/44895: C.Equals() should compare B.Y.
             verifier.VerifyIL("C.Equals(C)",
 @"{
   // Code size       34 (0x22)
@@ -4327,18 +4327,18 @@ True");
 @"using static System.Console;
 record A(int X)
 {
-    internal A() : this(0) { } // PROTOTYPE: Remove
-    internal int X { get; set; } // PROTOTYPE: Remove
+    internal A() : this(0) { } // Use record base call syntax instead
+    internal int X { get; set; } // Use record base call syntax instead
 }
 record B(int X, int Y) : A
 {
-    internal B() : this(0, 0) { } // PROTOTYPE: Remove
+    internal B() : this(0, 0) { } // Use record base call syntax instead
     internal int Y { get; set; }
 }
 record C(int X, int Y, int Z) : B
 {
-    internal C() : this(0, 0, 0) { } // PROTOTYPE: Remove
-    internal int Z { get; set; } // PROTOTYPE: Remove
+    internal C() : this(0, 0, 0) { } // Use record base call syntax instead
+    internal int Z { get; set; } // Use record base call syntax instead
 }
 class Program
 {
@@ -4498,7 +4498,7 @@ abstract class A
 }
 record B(int P, int Q) : A
 {
-    internal B() : this(0, 0) { } // PROTOTYPE: Remove
+    internal B() : this(0, 0) { } // Use record base call syntax instead
     internal override int Q { get; set; }
 }
 class C1 : B
@@ -4575,17 +4575,14 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (2,8): error CS0102: The type 'A' already contains a definition for 'EqualityContract'
-                // record A
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "A").WithArguments("A", "EqualityContract").WithLocation(2, 8));
-            // If error above is no longer reported, should verify execution:
-//            CompileAndVerify(comp, expectedOutput:
-//@"True
-//False
-//False
-//True
-//False");
+            comp.VerifyDiagnostics();
+            // init-only is unverifiable
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"True
+False
+False
+True
+False");
         }
 
         [Fact]
@@ -4613,16 +4610,13 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (2,17): error CS0102: The type 'A' already contains a definition for 'EqualityContract'
-                // abstract record A
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "A").WithArguments("A", "EqualityContract").WithLocation(2, 17));
-            // If error above is no longer reported, should verify execution:
-//            CompileAndVerify(comp, expectedOutput:
-//@"True
-//False
-//True
-//False");
+            comp.VerifyDiagnostics();
+            // init-only is unverifiable
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"True
+False
+True
+False");
         }
 
         [Fact]
@@ -4637,9 +4631,6 @@ record B : A;
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (1,8): error CS0102: The type 'A' already contains a definition for 'EqualityContract'
-                // record A
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "A").WithArguments("A", "EqualityContract").WithLocation(1, 8),
                 // (5,8): error CS0506: 'B.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
                 // record B : A;
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(5, 8));
@@ -4650,7 +4641,7 @@ record B : A;
         {
             var source =
 @"record A;
-record B
+record B : A
 {
     public sealed override System.Type EqualityContract => typeof(B);
 }
@@ -4658,22 +4649,78 @@ record C : B;
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,8): error CS0102: The type 'B' already contains a definition for 'EqualityContract'
-                // record B
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "B").WithArguments("B", "EqualityContract").WithLocation(2, 8),
-                // (4,40): error CS0115: 'B.EqualityContract': no suitable method found to override
-                //     public sealed override System.Type EqualityContract => typeof(B);
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "EqualityContract").WithArguments("B.EqualityContract").WithLocation(4, 40),
                 // (6,8): error CS0239: 'C.EqualityContract': cannot override inherited member 'B.EqualityContract' because it is sealed
                 // record C : B;
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C").WithArguments("C.EqualityContract", "B.EqualityContract").WithLocation(6, 8));
         }
 
-        // PROTOTYPE: 
-        // - Test record deriving from non-record where base does not implement Equals(Base). Derived should compare *accessible fields on Base*.
-        // - Test record deriving from non-record where base implements EqualityContract and Equals(Base).
-        // - Test non-record deriving from record where derived overrides EqualityContract but not Equals(Base).
-        // - Test multiple non-record derived types with a distinct EqualityContract value. Should not compare Equals.
-        // - Test multiple non-record derived types with a shared base EqualityContract value. Should compare Equals.
+        [Fact]
+        public void Equality_15()
+        {
+            var source =
+@"using System;
+record A;
+class B1 : A
+{
+    public B1(int p) { P = p; }
+    public int P { get; set;  }
+}
+class B2 : A
+{
+    public B2(int p) { P = p; }
+    public int P { get; set;  }
+    public override Type EqualityContract => typeof(B2);
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new B1(1).Equals(new B1(2)));
+        Console.WriteLine(new B1(1).Equals(new B2(1)));
+        Console.WriteLine(new B2(1).Equals(new B2(2)));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"True
+False
+True");
+        }
+
+        [Fact]
+        public void Equality_16()
+        {
+            var source =
+@"using System;
+record A;
+class B1 : A
+{
+    public B1(int p) { P = p; }
+    public int P { get; set;  }
+    public override Type EqualityContract => typeof(string);
+}
+class B2 : A
+{
+    public B2(int p) { P = p; }
+    public int P { get; set;  }
+    public override Type EqualityContract => typeof(string);
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new B1(1).Equals(new B1(2)));
+        Console.WriteLine(new B1(1).Equals(new B2(2)));
+        Console.WriteLine(new B2(1).Equals(new B2(2)));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"True
+True
+True");
+        }
     }
 }

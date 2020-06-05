@@ -2992,7 +2992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addCloneMethod();
 
             var equalityContract = addEqualityContract();
-            var otherEqualsMethods = ArrayBuilder<MethodSymbol>.GetInstance(); // PROTOTYPE: We don't need to hold onto the other Equals methods. The values aren't used.
+            var otherEqualsMethods = ArrayBuilder<MethodSymbol>.GetInstance();
             getOtherEquals(otherEqualsMethods, equalityContract);
 
             var thisEquals = addThisEquals(equalityContract, otherEqualsMethods.Count == 0 ? null : otherEqualsMethods[0]);
@@ -3114,19 +3114,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            static PropertySymbol? getInheritedEqualityContract(NamedTypeSymbol type)
+            {
+                while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
+                {
+                    var members = type.GetMembers(SynthesizedRecordEqualityContractProperty.PropertyName);
+                    // PROTOTYPE: This ignores accessibility and instance/static.
+                    if (members.FirstOrDefault(m => m is PropertySymbol property && property.ParameterCount == 0) is PropertySymbol property)
+                    {
+                        return property;
+                    }
+                }
+                return null;
+            }
+
             PropertySymbol addEqualityContract()
             {
-                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: false);
-                // PROTOTYPE: Test with explicit EqualityContract property from source.
+                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: getInheritedEqualityContract(this) is object);
                 // PROTOTYPE: Handle inherited member of unexpected member kind or unexpected
                 // property signature (distinct type, not virtual, sealed, etc.)
-                if (getInheritedMember(property, this) is PropertySymbol inheritedProperty)
+                if (!memberSignatures.ContainsKey(property))
                 {
-                    // PROTOTYPE: Should not have to re-create property!
-                    property = new SynthesizedRecordEqualityContractProperty(this, isOverride: true);
+                    members.Add(property);
+                    members.Add(property.GetMethod);
                 }
-                members.Add(property);
-                members.Add(property.GetMethod);
                 return property;
             }
 
@@ -3145,13 +3156,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 while ((equalityContract = equalityContract.OverriddenProperty) is object)
                 {
-                    var containingType = equalityContract.ContainingType;
-                    var member = containingType.GetMembers("Equals").FirstOrDefault(m =>
+                    var member = equalityContract.ContainingType.GetMembers("Equals").FirstOrDefault(m =>
                     {
+                        // PROTOTYPE: This ignores accessibility and instance/static.
                         if (m is MethodSymbol method)
                         {
                             var parameters = method.Parameters;
-                            if (parameters.Length == 1 && parameters[0].Type.Equals(containingType, TypeCompareKind.AllIgnoreOptions))
+                            if (parameters.Length == 1 && parameters[0].Type.Equals(m.ContainingType, TypeCompareKind.AllIgnoreOptions))
                             {
                                 return true;
                             }
