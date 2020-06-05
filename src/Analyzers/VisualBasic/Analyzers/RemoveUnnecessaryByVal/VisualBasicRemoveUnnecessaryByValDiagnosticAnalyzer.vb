@@ -12,17 +12,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
     Friend Class VisualBasicRemoveUnnecessaryByValDiagnosticAnalyzer
         Inherits AbstractBuiltInCodeStyleDiagnosticAnalyzer
 
-        Private Shared ReadOnly s_descriptor As New DiagnosticDescriptor(
-            id:=IDEDiagnosticIds.RemoveUnnecessaryByValDiagnosticId,
-            title:="",
-            messageFormat:="",
-            category:="",
-            defaultSeverity:=DiagnosticSeverity.Hidden,
-            isEnabledByDefault:=True,
-            description:="",
-            helpLinkUri:="",
-            WellKnownDiagnosticTags.Unnecessary)
-
         Public Sub New()
             MyBase.New(
                 diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryByValDiagnosticId,
