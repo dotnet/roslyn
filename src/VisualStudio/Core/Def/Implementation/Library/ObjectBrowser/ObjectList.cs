@@ -58,14 +58,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         private bool IsClassView()
-        {
-            return Helpers.IsClassView(_flags);
-        }
+            => Helpers.IsClassView(_flags);
 
         private bool IsFindSymbol()
-        {
-            return Helpers.IsFindSymbol(_flags);
-        }
+            => Helpers.IsFindSymbol(_flags);
 
         private ObjectListItem GetListItem(uint index)
         {
@@ -461,9 +457,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         protected override uint GetItemCount()
-        {
-            return (uint)_items.Length;
-        }
+            => (uint)_items.Length;
 
         protected override IVsSimpleObjectList2 GetList(uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch)
         {
@@ -739,14 +733,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         protected override string GetText(uint index, VSTREETEXTOPTIONS tto)
-        {
-            return GetDisplayText(index, tto);
-        }
+            => GetDisplayText(index, tto);
 
         protected override string GetTipText(uint index, VSTREETOOLTIPTYPE eTipType)
-        {
-            return null;
-        }
+            => null;
 
         protected override int GoToSource(uint index, VSOBJGOTOSRCTYPE srcType)
         {

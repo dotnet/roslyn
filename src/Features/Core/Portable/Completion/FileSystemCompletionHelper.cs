@@ -116,9 +116,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: _itemRules);
 
         public Task<ImmutableArray<CompletionItem>> GetItemsAsync(string directoryPath, CancellationToken cancellationToken)
-        {
-            return Task.Run(() => GetItems(directoryPath, cancellationToken), cancellationToken);
-        }
+            => Task.Run(() => GetItems(directoryPath, cancellationToken), cancellationToken);
 
         private ImmutableArray<CompletionItem> GetItems(string directoryPath, CancellationToken cancellationToken)
         {
@@ -263,9 +261,7 @@ namespace Microsoft.CodeAnalysis.Completion
             private readonly FileSystemCompletionHelper _fileSystemCompletionHelper;
 
             public TestAccessor(FileSystemCompletionHelper fileSystemCompletionHelper)
-            {
-                _fileSystemCompletionHelper = fileSystemCompletionHelper;
-            }
+                => _fileSystemCompletionHelper = fileSystemCompletionHelper;
 
             internal ImmutableArray<CompletionItem> GetItems(string directoryPath, CancellationToken cancellationToken)
                 => _fileSystemCompletionHelper.GetItems(directoryPath, cancellationToken);

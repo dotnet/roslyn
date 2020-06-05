@@ -554,9 +554,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 attributeLists: default,
                 modifiers: default,
                 returnType: SyntaxFactory.ParseTypeName("int[]"),
-                explicitInterfaceSpecifier: default,
+                explicitInterfaceSpecifier: null,
                 identifier: SyntaxFactory.Identifier("M"),
-                typeParameterList: default,
+                typeParameterList: null,
                 parameterList: SyntaxFactory.ParseParameterList("()"),
                 constraintClauses: default,
                 body: (BlockSyntax)SyntaxFactory.ParseStatement("{}"),
@@ -587,6 +587,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parameterList: SyntaxFactory.ParameterList(),
                 body: SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
             Assert.Equal(fullySpecified.ToFullString(), lambda.ToFullString());
+        }
+
+        [Fact]
+        public void TestParseNameWithOptions()
+        {
+            var type = "delegate*<void>";
+
+            var parsedWith8 = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular8);
+            parsedWith8.GetDiagnostics().Verify(
+                // (1,1): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(1, 1)
+            );
+
+            var parsedWithPreview = SyntaxFactory.ParseTypeName(type, options: TestOptions.RegularPreview);
+            parsedWithPreview.GetDiagnostics().Verify();
         }
     }
 }

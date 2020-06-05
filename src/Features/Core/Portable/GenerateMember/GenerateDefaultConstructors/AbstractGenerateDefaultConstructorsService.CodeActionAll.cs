@@ -11,11 +11,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
         private class CodeActionAll : AbstractCodeAction
         {
             public CodeActionAll(
-                TService service,
                 Document document,
                 State state,
                 IList<IMethodSymbol> constructors)
-                : base(service, document, state, constructors, FeaturesResources.Generate_all)
+                : base(document, state, constructors, FeaturesResources.Generate_all)
             {
             }
         }

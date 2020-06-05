@@ -3,9 +3,13 @@
   <ProductDependencies>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="5.0.0-beta.20119.14">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="1.0.0-beta.20301.10">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>4660949bde1083e8b1efba3096dd145d590a0b17</Sha>
+      <Sha>e4cb18bd64d291e5dc34e2f77317c33d5022a6b8</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="3.7.0-2.20267.1">
+      <Uri>https://github.com/dotnet/roslyn</Uri>
+      <Sha>3126e7a9753bf09a99e4c4f152b8dfef76862dc5</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>

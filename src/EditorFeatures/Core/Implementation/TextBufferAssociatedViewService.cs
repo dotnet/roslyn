@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor
             new ConditionalWeakTable<ITextBuffer, HashSet<ITextView>>();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TextBufferAssociatedViewService()
         {
         }
@@ -99,14 +100,10 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         public IEnumerable<ITextView> GetAssociatedTextViews(ITextBuffer textBuffer)
-        {
-            return GetTextViews(textBuffer);
-        }
+            => GetTextViews(textBuffer);
 
         private static bool HasFocus(ITextView textView)
-        {
-            return textView.HasAggregateFocus;
-        }
+            => textView.HasAggregateFocus;
 
         public static bool AnyAssociatedViewHasFocus(ITextBuffer textBuffer)
         {

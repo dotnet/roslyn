@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             public int GetHashCode(ISymbol x, int currentHash)
             {
                 if (x == null)
-                {
                     return 0;
-                }
 
                 x = UnwrapAlias(x);
 
@@ -56,45 +54,26 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private int GetHashCodeWorker(ISymbol x, int currentHash)
-            {
-                switch (x.Kind)
+                => x.Kind switch
                 {
-                    case SymbolKind.ArrayType:
-                        return CombineHashCodes((IArrayTypeSymbol)x, currentHash);
-                    case SymbolKind.Assembly:
-                        return CombineHashCodes((IAssemblySymbol)x, currentHash);
-                    case SymbolKind.Event:
-                        return CombineHashCodes((IEventSymbol)x, currentHash);
-                    case SymbolKind.Field:
-                        return CombineHashCodes((IFieldSymbol)x, currentHash);
-                    case SymbolKind.Label:
-                        return CombineHashCodes((ILabelSymbol)x, currentHash);
-                    case SymbolKind.Local:
-                        return CombineHashCodes((ILocalSymbol)x, currentHash);
-                    case SymbolKind.Method:
-                        return CombineHashCodes((IMethodSymbol)x, currentHash);
-                    case SymbolKind.NetModule:
-                        return CombineHashCodes((IModuleSymbol)x, currentHash);
-                    case SymbolKind.NamedType:
-                        return CombineHashCodes((INamedTypeSymbol)x, currentHash);
-                    case SymbolKind.Namespace:
-                        return CombineHashCodes((INamespaceSymbol)x, currentHash);
-                    case SymbolKind.Parameter:
-                        return CombineHashCodes((IParameterSymbol)x, currentHash);
-                    case SymbolKind.PointerType:
-                        return CombineHashCodes((IPointerTypeSymbol)x, currentHash);
-                    case SymbolKind.Property:
-                        return CombineHashCodes((IPropertySymbol)x, currentHash);
-                    case SymbolKind.RangeVariable:
-                        return CombineHashCodes((IRangeVariableSymbol)x, currentHash);
-                    case SymbolKind.TypeParameter:
-                        return CombineHashCodes((ITypeParameterSymbol)x, currentHash);
-                    case SymbolKind.Preprocessing:
-                        return CombineHashCodes((IPreprocessingSymbol)x, currentHash);
-                    default:
-                        return -1;
-                }
-            }
+                    SymbolKind.ArrayType => CombineHashCodes((IArrayTypeSymbol)x, currentHash),
+                    SymbolKind.Assembly => CombineHashCodes((IAssemblySymbol)x, currentHash),
+                    SymbolKind.Event => CombineHashCodes((IEventSymbol)x, currentHash),
+                    SymbolKind.Field => CombineHashCodes((IFieldSymbol)x, currentHash),
+                    SymbolKind.Label => CombineHashCodes((ILabelSymbol)x, currentHash),
+                    SymbolKind.Local => CombineHashCodes((ILocalSymbol)x, currentHash),
+                    SymbolKind.Method => CombineHashCodes((IMethodSymbol)x, currentHash),
+                    SymbolKind.NetModule => CombineHashCodes((IModuleSymbol)x, currentHash),
+                    SymbolKind.NamedType => CombineHashCodes((INamedTypeSymbol)x, currentHash),
+                    SymbolKind.Namespace => CombineHashCodes((INamespaceSymbol)x, currentHash),
+                    SymbolKind.Parameter => CombineHashCodes((IParameterSymbol)x, currentHash),
+                    SymbolKind.PointerType => CombineHashCodes((IPointerTypeSymbol)x, currentHash),
+                    SymbolKind.Property => CombineHashCodes((IPropertySymbol)x, currentHash),
+                    SymbolKind.RangeVariable => CombineHashCodes((IRangeVariableSymbol)x, currentHash),
+                    SymbolKind.TypeParameter => CombineHashCodes((ITypeParameterSymbol)x, currentHash),
+                    SymbolKind.Preprocessing => CombineHashCodes((IPreprocessingSymbol)x, currentHash),
+                    _ => -1,
+                };
 
             private int CombineHashCodes(IArrayTypeSymbol x, int currentHash)
             {
@@ -104,9 +83,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private int CombineHashCodes(IAssemblySymbol x, int currentHash)
-            {
-                return Hash.Combine(_symbolEquivalenceComparer._assemblyComparerOpt?.GetHashCode(x) ?? 0, currentHash);
-            }
+                => Hash.Combine(_symbolEquivalenceComparer._assemblyComparerOpt?.GetHashCode(x) ?? 0, currentHash);
 
             private int CombineHashCodes(IFieldSymbol x, int currentHash)
             {
@@ -115,22 +92,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     GetHashCode(x.ContainingSymbol, currentHash));
             }
 
-            private int CombineHashCodes(ILabelSymbol x, int currentHash)
+            private static int CombineHashCodes(ILabelSymbol x, int currentHash)
             {
                 return
                     Hash.Combine(x.Name,
                     Hash.Combine(x.Locations.FirstOrDefault(), currentHash));
             }
 
-            private int CombineHashCodes(ILocalSymbol x, int currentHash)
-            {
-                return Hash.Combine(x.Locations.FirstOrDefault(), currentHash);
-            }
+            private static int CombineHashCodes(ILocalSymbol x, int currentHash)
+                => Hash.Combine(x.Locations.FirstOrDefault(), currentHash);
 
             private static int CombineHashCodes<T>(ImmutableArray<T> array, int currentHash, Func<int, T, int> func)
-            {
-                return array.Aggregate<int, T>(currentHash, func);
-            }
+                => array.Aggregate<int, T>(currentHash, func);
 
             private int CombineHashCodes(IMethodSymbol x, int currentHash)
             {
@@ -164,9 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private int CombineHashCodes(IModuleSymbol x, int currentHash)
-            {
-                return CombineHashCodes(x.ContainingAssembly, Hash.Combine(x.Name, currentHash));
-            }
+                => CombineHashCodes(x.ContainingAssembly, Hash.Combine(x.Name, currentHash));
 
             private int CombineHashCodes(INamedTypeSymbol x, int currentHash)
             {
@@ -314,15 +285,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     GetHashCode(x.ContainingSymbol, currentHash);
             }
 
-            private int CombineHashCodes(IRangeVariableSymbol x, int currentHash)
-            {
-                return Hash.Combine(x.Locations.FirstOrDefault(), currentHash);
-            }
+            private static int CombineHashCodes(IRangeVariableSymbol x, int currentHash)
+                => Hash.Combine(x.Locations.FirstOrDefault(), currentHash);
 
-            private int CombineHashCodes(IPreprocessingSymbol x, int currentHash)
-            {
-                return Hash.Combine(x.GetHashCode(), currentHash);
-            }
+            private static int CombineHashCodes(IPreprocessingSymbol x, int currentHash)
+                => Hash.Combine(x.GetHashCode(), currentHash);
         }
     }
 }

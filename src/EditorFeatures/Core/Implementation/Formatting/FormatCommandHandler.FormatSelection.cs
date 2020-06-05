@@ -17,14 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
     internal partial class FormatCommandHandler
     {
         public CommandState GetCommandState(FormatSelectionCommandArgs args)
-        {
-            return GetCommandState(args.SubjectBuffer);
-        }
+            => GetCommandState(args.SubjectBuffer);
 
         public bool ExecuteCommand(FormatSelectionCommandArgs args, CommandExecutionContext context)
-        {
-            return TryExecuteCommand(args, context);
-        }
+            => TryExecuteCommand(args, context);
 
         private bool TryExecuteCommand(FormatSelectionCommandArgs args, CommandExecutionContext context)
         {

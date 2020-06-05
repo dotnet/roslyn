@@ -76,6 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isInImportsDirective As Boolean,
             isCustomEventContext As Boolean,
             isPossibleTupleContext As Boolean,
+            isInArgumentList As Boolean,
             cancellationToken As CancellationToken
         )
 
@@ -97,10 +98,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isNameOfContext:=isNameOfContext,
                 isInQuery:=isInQuery,
                 isInImportsDirective:=isInImportsDirective,
-                isWithinAsyncMethod:=IsWithinAsyncMethod(targetToken, cancellationToken),
+                isWithinAsyncMethod:=IsWithinAsyncMethod(targetToken),
                 isPossibleTupleContext:=isPossibleTupleContext,
-                isPatternContext:=False,
+                isAtStartOfPattern:=False,
+                isAtEndOfPattern:=False,
                 isRightSideOfNumericType:=False,
+                isOnArgumentListBracketOrComma:=isInArgumentList,
                 cancellationToken:=cancellationToken)
 
             Dim syntaxTree = semanticModel.SyntaxTree
@@ -127,10 +130,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
             Me.IsCustomEventContext = isCustomEventContext
 
-            Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective(position)
+            Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
         End Sub
 
-        Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+        Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken) As Boolean
             Dim enclosingMethod = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
             Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
         End Function
@@ -163,6 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
                 isCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
                 isPossibleTupleContext:=syntaxTree.IsPossibleTupleContext(targetToken, position),
+                isInArgumentList:=targetToken.Parent.IsKind(SyntaxKind.ArgumentList),
                 cancellationToken:=cancellationToken)
         End Function
 
@@ -188,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Return targetToken.Kind = SyntaxKind.None OrElse
                 targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
-                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective(position))
+                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective())
         End Function
 
         Private Shared Function ComputeIsPreprocessorStartContext(position As Integer, targetToken As SyntaxToken) As Boolean
@@ -199,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Return targetToken.Kind = SyntaxKind.None OrElse
                 targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
-                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective(position))
+                (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective())
         End Function
 
         Public Function IsFollowingParameterListOrAsClauseOfMethodDeclaration() As Boolean

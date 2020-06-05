@@ -380,15 +380,18 @@ namespace Roslyn.Test.Utilities
                 // the length of the other, since that number of insertions
                 // would be required.
                 int n = first.Length, m = second.Length;
-                if (n == 0) return m;
-                if (m == 0) return n;
+                if (n == 0)
+                    return m;
+                if (m == 0)
+                    return n;
 
                 // Rather than maintain an entire matrix (which would require O(n*m) space),
                 // just store the current row and the next row, each of which has a length m+1,
                 // so just O(m) space. Initialize the current row.
                 int curRow = 0, nextRow = 1;
                 int[][] rows = new int[][] { new int[m + 1], new int[m + 1] };
-                for (int j = 0; j <= m; ++j) rows[curRow][j] = j;
+                for (int j = 0; j <= m; ++j)
+                    rows[curRow][j] = j;
 
                 // For each virtual row (since we only have physical storage for two)
                 for (int i = 1; i <= n; ++i)
@@ -512,8 +515,8 @@ namespace Roslyn.Test.Utilities
             string expected,
             string actual,
             bool escapeQuotes = true,
-            [CallerFilePath]string expectedValueSourcePath = null,
-            [CallerLineNumber]int expectedValueSourceLine = 0)
+            [CallerFilePath] string expectedValueSourcePath = null,
+            [CallerLineNumber] int expectedValueSourceLine = 0)
         {
             var normalizedExpected = NormalizeWhitespace(expected);
             var normalizedActual = NormalizeWhitespace(actual);

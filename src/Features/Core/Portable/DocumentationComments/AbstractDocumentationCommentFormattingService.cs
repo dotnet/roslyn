@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             internal SemanticModel SemanticModel { get; set; }
+            internal ISymbol TypeResolutionSymbol { get; set; }
             internal int Position { get; set; }
 
             public bool AtBeginning
@@ -92,9 +94,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             internal TaggedTextStyle Style => _styleStack.Peek();
 
             public void AppendSingleSpace()
-            {
-                _pendingSingleSpace = true;
-            }
+                => _pendingSingleSpace = true;
 
             public void AppendString(string s)
             {
@@ -159,24 +159,16 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             public void PushNavigationTarget(string target, string hint)
-            {
-                _navigationTargetStack.Push((target, hint));
-            }
+                => _navigationTargetStack.Push((target, hint));
 
             public void PopNavigationTarget()
-            {
-                _navigationTargetStack.Pop();
-            }
+                => _navigationTargetStack.Pop();
 
             public void PushStyle(TaggedTextStyle style)
-            {
-                _styleStack.Push(_styleStack.Peek() | style);
-            }
+                => _styleStack.Push(_styleStack.Peek() | style);
 
             public void PopStyle()
-            {
-                _styleStack.Pop();
-            }
+                => _styleStack.Pop();
 
             public void MarkBeginOrEndPara()
             {
@@ -216,9 +208,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             public string GetText()
-            {
-                return Builder.GetFullText();
-            }
+                => Builder.GetFullText();
 
             private void EmitPendingChars()
             {
@@ -289,14 +279,15 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return state.GetText();
         }
 
-        public IEnumerable<TaggedText> Format(string rawXmlText, SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
+        public IEnumerable<TaggedText> Format(string rawXmlText, ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format, CancellationToken cancellationToken)
         {
-            if (rawXmlText == null)
+            if (rawXmlText is null)
             {
-                return null;
+                return SpecializedCollections.EmptyEnumerable<TaggedText>();
             }
+            //symbol = symbol.OriginalDefinition;
 
-            var state = new FormatterState() { SemanticModel = semanticModel, Position = position, Format = format };
+            var state = new FormatterState() { SemanticModel = semanticModel, Position = position, Format = format, TypeResolutionSymbol = symbol };
 
             // In case the XML is a fragment (that is, a series of elements without a parent)
             // wrap it up in a single tag. This makes parsing it much, much easier.
@@ -335,7 +326,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 {
                     foreach (var attribute in element.Attributes())
                     {
-                        AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.CrefAttributeName, SymbolDisplayPartKind.Text);
+                        AppendTextFromAttribute(state, attribute, attributeNameToParse: DocumentationCommentXmlNames.CrefAttributeName, SymbolDisplayPartKind.Text);
                     }
 
                     return;
@@ -355,7 +346,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 var kind = name == DocumentationCommentXmlNames.ParameterReferenceElementName ? SymbolDisplayPartKind.ParameterName : SymbolDisplayPartKind.TypeParameterName;
                 foreach (var attribute in element.Attributes())
                 {
-                    AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.NameAttributeName, kind);
+                    AppendTextFromAttribute(state, attribute, attributeNameToParse: DocumentationCommentXmlNames.NameAttributeName, kind);
                 }
 
                 return;
@@ -386,26 +377,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             if (name == DocumentationCommentXmlNames.ListElementName)
             {
                 var rawListType = element.Attribute(DocumentationCommentXmlNames.TypeAttributeName)?.Value;
-                DocumentationCommentListType listType;
-                switch (rawListType)
+                var listType = rawListType switch
                 {
-                    case "table":
-                        listType = DocumentationCommentListType.Table;
-                        break;
-
-                    case "number":
-                        listType = DocumentationCommentListType.Number;
-                        break;
-
-                    case "bullet":
-                        listType = DocumentationCommentListType.Bullet;
-                        break;
-
-                    default:
-                        listType = DocumentationCommentListType.None;
-                        break;
-                }
-
+                    "table" => DocumentationCommentListType.Table,
+                    "number" => DocumentationCommentListType.Number,
+                    "bullet" => DocumentationCommentListType.Bullet,
+                    _ => DocumentationCommentListType.None,
+                };
                 state.PushList(listType);
             }
             else if (name == DocumentationCommentXmlNames.ItemElementName)
@@ -480,13 +458,21 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return null;
         }
 
-        private static void AppendTextFromAttribute(FormatterState state, XElement element, XAttribute attribute, string attributeNameToParse, SymbolDisplayPartKind kind)
+        private static void AppendTextFromAttribute(FormatterState state, XAttribute attribute, string attributeNameToParse, SymbolDisplayPartKind kind)
         {
             var attributeName = attribute.Name.LocalName;
             if (attributeNameToParse == attributeName)
             {
-                state.AppendParts(
-                    CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format, kind).ToTaggedText(state.Style));
+                if (kind == SymbolDisplayPartKind.TypeParameterName)
+                {
+                    state.AppendParts(
+                        TypeParameterRefToSymbolDisplayParts(attribute.Value, state.TypeResolutionSymbol, state.Position, state.SemanticModel, state.Format).ToTaggedText(state.Style));
+                }
+                else
+                {
+                    state.AppendParts(
+                        CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format, kind).ToTaggedText(state.Style));
+                }
             }
             else
             {
@@ -525,6 +511,27 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             // if any of that fails fall back to just displaying the raw text
             return SpecializedCollections.SingletonEnumerable(
                 new SymbolDisplayPart(kind, symbol: null, text: TrimCrefPrefix(crefValue)));
+        }
+
+        internal static IEnumerable<SymbolDisplayPart> TypeParameterRefToSymbolDisplayParts(
+            string crefValue, ISymbol typeResolutionSymbol, int position, SemanticModel semanticModel, SymbolDisplayFormat format)
+        {
+            if (semanticModel != null)
+            {
+                var typeParameterIndex = typeResolutionSymbol.OriginalDefinition.GetAllTypeParameters().IndexOf(tp => tp.Name == crefValue);
+                if (typeParameterIndex >= 0)
+                {
+                    var typeArgs = typeResolutionSymbol.GetAllTypeArguments();
+                    if (typeArgs.Length > typeParameterIndex)
+                    {
+                        return typeArgs[typeParameterIndex].ToMinimalDisplayParts(semanticModel, position, format);
+                    }
+                }
+            }
+
+            // if any of that fails fall back to just displaying the raw text
+            return SpecializedCollections.SingletonEnumerable(
+                new SymbolDisplayPart(SymbolDisplayPartKind.TypeParameterName, symbol: null, text: TrimCrefPrefix(crefValue)));
         }
 
         private static string TrimCrefPrefix(string value)

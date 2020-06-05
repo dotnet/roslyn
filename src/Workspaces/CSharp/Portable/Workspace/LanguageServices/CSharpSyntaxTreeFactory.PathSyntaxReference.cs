@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return path.ToImmutableArray();
                 }
 
-                private int GetChildIndex(SyntaxNodeOrToken child)
+                private static int GetChildIndex(SyntaxNodeOrToken child)
                 {
                     var parent = child.Parent;
                     var index = 0;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw new InvalidOperationException(CSharpWorkspaceResources.Node_not_in_parent_s_child_list);
                 }
 
-                private int GetTriviaIndex(SyntaxTrivia trivia)
+                private static int GetTriviaIndex(SyntaxTrivia trivia)
                 {
                     var token = trivia.Token;
                     var index = 0;
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw new InvalidOperationException(CSharpWorkspaceResources.Trivia_is_not_associated_with_token);
                 }
 
-                private SyntaxTrivia GetTrivia(SyntaxToken token, int triviaIndex)
+                private static SyntaxTrivia GetTrivia(SyntaxToken token, int triviaIndex)
                 {
                     var leadingCount = token.LeadingTrivia.Count;
                     if (triviaIndex <= leadingCount)
@@ -144,11 +144,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override SyntaxNode GetSyntax(CancellationToken cancellationToken)
-                {
-                    return this.GetNode(_tree.GetRoot(cancellationToken));
-                }
+                    => this.GetNode(_tree.GetRoot(cancellationToken));
 
-                public async override Task<SyntaxNode> GetSyntaxAsync(CancellationToken cancellationToken = default)
+                public override async Task<SyntaxNode> GetSyntaxAsync(CancellationToken cancellationToken = default)
                 {
                     var root = await _tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                     return this.GetNode(root);

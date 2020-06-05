@@ -100,9 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             public override bool CanBeFixed(Diagnostic diagnostic)
-            {
-                return _supportedDiagnosticIds.Contains(diagnostic.Id);
-            }
+                => _supportedDiagnosticIds.Contains(diagnostic.Id);
         }
 
         private class SuppressionFixerFixAllProviderInfo : FixAllProviderInfo
@@ -119,9 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             public override bool CanBeFixed(Diagnostic diagnostic)
-            {
-                return _canBeSuppressedOrUnsuppressed(diagnostic);
-            }
+                => _canBeSuppressedOrUnsuppressed(diagnostic);
         }
     }
 }

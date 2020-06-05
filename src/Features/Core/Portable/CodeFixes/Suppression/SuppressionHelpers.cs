@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         public static readonly string[] SynthesizedExternalSourceDiagnosticCustomTags = new string[] { SynthesizedExternalSourceDiagnosticTag };
 
         public static bool CanBeSuppressed(Diagnostic diagnostic)
-        {
-            return CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: true);
-        }
+            => CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: true);
 
         public static bool CanBeSuppressedWithAttribute(Diagnostic diagnostic)
         {
@@ -33,9 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         public static bool CanBeUnsuppressed(Diagnostic diagnostic)
-        {
-            return CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: false);
-        }
+            => CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: false);
 
         private static bool CanBeSuppressedOrUnsuppressed(Diagnostic diagnostic, bool checkCanBeSuppressed)
         {
@@ -67,38 +63,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         public static bool IsNotConfigurableDiagnostic(DiagnosticData diagnostic)
-        {
-            return HasCustomTag(diagnostic.CustomTags, WellKnownDiagnosticTags.NotConfigurable);
-        }
+            => HasCustomTag(diagnostic.CustomTags, WellKnownDiagnosticTags.NotConfigurable);
 
         public static bool IsNotConfigurableDiagnostic(Diagnostic diagnostic)
-        {
-            return HasCustomTag(diagnostic.Descriptor.CustomTags, WellKnownDiagnosticTags.NotConfigurable);
-        }
+            => HasCustomTag(diagnostic.Descriptor.CustomTags, WellKnownDiagnosticTags.NotConfigurable);
 
         public static bool IsCompilerDiagnostic(DiagnosticData diagnostic)
-        {
-            return HasCustomTag(diagnostic.CustomTags, WellKnownDiagnosticTags.Compiler);
-        }
+            => HasCustomTag(diagnostic.CustomTags, WellKnownDiagnosticTags.Compiler);
 
         public static bool IsCompilerDiagnostic(Diagnostic diagnostic)
-        {
-            return HasCustomTag(diagnostic.Descriptor.CustomTags, WellKnownDiagnosticTags.Compiler);
-        }
+            => HasCustomTag(diagnostic.Descriptor.CustomTags, WellKnownDiagnosticTags.Compiler);
 
         public static bool IsSynthesizedExternalSourceDiagnostic(DiagnosticData diagnostic)
-        {
-            return HasCustomTag(diagnostic.CustomTags, SynthesizedExternalSourceDiagnosticTag);
-        }
+            => HasCustomTag(diagnostic.CustomTags, SynthesizedExternalSourceDiagnosticTag);
 
         public static bool IsSynthesizedExternalSourceDiagnostic(Diagnostic diagnostic)
-        {
-            return HasCustomTag(diagnostic.Descriptor.CustomTags, SynthesizedExternalSourceDiagnosticTag);
-        }
+            => HasCustomTag(diagnostic.Descriptor.CustomTags, SynthesizedExternalSourceDiagnosticTag);
 
         public static bool HasCustomTag(IEnumerable<string> customTags, string tagToFind)
-        {
-            return customTags != null && customTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, tagToFind) == 0);
-        }
+            => customTags != null && customTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, tagToFind) == 0);
     }
 }

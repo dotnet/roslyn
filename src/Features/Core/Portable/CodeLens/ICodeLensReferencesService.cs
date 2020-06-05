@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
         /// <summary>
         /// Given a document and syntax node, returns the fully qualified name of the located node's declaration.
         /// </summary>
-        Task<string> GetFullyQualifiedName(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
+        Task<string> GetFullyQualifiedNameAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             CancellationToken cancellationToken);
     }
 }

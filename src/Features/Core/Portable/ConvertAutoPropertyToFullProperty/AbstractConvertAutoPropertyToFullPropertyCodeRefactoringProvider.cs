@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
@@ -61,14 +60,14 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 property.Span);
         }
 
-        internal bool IsValidAutoProperty(IPropertySymbol propertySymbol)
+        internal static bool IsValidAutoProperty(IPropertySymbol propertySymbol)
         {
             var fields = propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>();
             var field = fields.FirstOrDefault(f => propertySymbol.Equals(f.AssociatedSymbol));
             return field != null;
         }
 
-        private async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)
+        private static async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)
         {
             var containingProperty = await context.TryGetRelevantNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
             if (!(containingProperty?.Parent is TTypeDeclarationNode))

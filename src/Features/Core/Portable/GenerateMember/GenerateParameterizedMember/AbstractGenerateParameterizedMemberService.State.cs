@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
-                if (!service.ValidateTypeToGenerateIn(document.Project.Solution, TypeToGenerateIn,
-                        IsStatic, ClassInterfaceModuleStructTypes))
+                if (!ValidateTypeToGenerateIn(TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
                 {
                     return false;
                 }
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
                 var syntaxFactory = destinationProvider.GetService<SyntaxGenerator>();
                 IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);
-                var generatedMethod = SignatureInfo.GenerateMethod(syntaxFactory, false, cancellationToken);
+                var generatedMethod = await SignatureInfo.GenerateMethodAsync(syntaxFactory, false, cancellationToken).ConfigureAwait(false);
                 return !existingMethods.Any(m => SignatureComparer.Instance.HaveSameSignature(m, generatedMethod, caseSensitive: syntaxFacts.IsCaseSensitive, compareParameterName: true, isParameterCaseSensitive: syntaxFacts.IsCaseSensitive));
             }
         }

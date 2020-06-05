@@ -48,8 +48,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static bool IsInSource(ISymbol symbol)
-        {
-            return symbol.Locations.Any(l => l.IsInSource);
-        }
+            => symbol.Locations.Any(l => l.IsInSource);
     }
 }

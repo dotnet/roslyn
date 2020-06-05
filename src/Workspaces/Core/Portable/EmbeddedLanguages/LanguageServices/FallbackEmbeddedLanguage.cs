@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         public ISyntaxClassifier Classifier { get; }
 
         public FallbackEmbeddedLanguage(EmbeddedLanguageInfo info)
-        {
-            Classifier = new FallbackSyntaxClassifier(info);
-        }
+            => Classifier = new FallbackSyntaxClassifier(info);
     }
 }

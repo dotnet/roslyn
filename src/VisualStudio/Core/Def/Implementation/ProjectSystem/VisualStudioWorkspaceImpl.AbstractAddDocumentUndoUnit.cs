@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -40,9 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             protected abstract Project AddDocument(Project fromProject);
 
             public override void GetDescription(out string pBstr)
-            {
-                pBstr = string.Format(FeaturesResources.Add_document_0, DocumentInfo.Name);
-            }
+                => pBstr = string.Format(FeaturesResources.Add_document_0, DocumentInfo.Name);
         }
     }
 }

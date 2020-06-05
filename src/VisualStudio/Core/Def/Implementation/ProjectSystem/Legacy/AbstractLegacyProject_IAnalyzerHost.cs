@@ -11,14 +11,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
     internal abstract partial class AbstractLegacyProject : IAnalyzerHost
     {
         void IAnalyzerHost.AddAnalyzerReference(string analyzerAssemblyFullPath)
-        {
-            VisualStudioProject.AddAnalyzerReference(analyzerAssemblyFullPath);
-        }
+            => VisualStudioProject.AddAnalyzerReference(analyzerAssemblyFullPath);
 
         void IAnalyzerHost.RemoveAnalyzerReference(string analyzerAssemblyFullPath)
-        {
-            VisualStudioProject.RemoveAnalyzerReference(analyzerAssemblyFullPath);
-        }
+            => VisualStudioProject.RemoveAnalyzerReference(analyzerAssemblyFullPath);
 
         void IAnalyzerHost.SetRuleSetFile(string ruleSetFileFullPath)
         {
@@ -38,13 +34,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         }
 
         void IAnalyzerHost.AddAdditionalFile(string additionalFilePath)
-        {
-            VisualStudioProject.AddAdditionalFile(additionalFilePath);
-        }
+            => VisualStudioProject.AddAdditionalFile(additionalFilePath);
 
         void IAnalyzerHost.RemoveAdditionalFile(string additionalFilePath)
-        {
-            VisualStudioProject.RemoveAdditionalFile(additionalFilePath);
-        }
+            => VisualStudioProject.RemoveAdditionalFile(additionalFilePath);
     }
 }

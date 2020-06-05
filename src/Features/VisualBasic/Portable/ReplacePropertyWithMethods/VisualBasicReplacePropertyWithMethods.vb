@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax, CrefReferenceSyntax, StatementSyntax, PropertyStatementSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -41,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 cancellationToken))
         End Function
 
-        Private Function ConvertPropertyToMembers(
+        Private Shared Function ConvertPropertyToMembers(
                 generator As SyntaxGenerator,
                 [property] As IPropertySymbol,
                 propertyStatement As PropertyStatementSyntax,
@@ -74,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return result
         End Function
 
-        Private Function GetGetMethod(
+        Private Shared Function GetGetMethod(
                 generator As SyntaxGenerator,
                 [property] As IPropertySymbol,
                 propertyStatement As PropertyStatementSyntax,
@@ -107,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return statement.WithAdditionalAnnotations(Formatter.Annotation)
         End Function
 
-        Private Function GetSetMethod(
+        Private Shared Function GetSetMethod(
                 generator As SyntaxGenerator,
                 [property] As IPropertySymbol,
                 propertyStatement As PropertyStatementSyntax,
@@ -137,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return methodDeclaration
         End Function
 
-        Private Function UpdateExplicitInterfaceImplementations(
+        Private Shared Function UpdateExplicitInterfaceImplementations(
                 [property] As IPropertySymbol,
                 method As IMethodSymbol,
                 desiredName As String) As IMethodSymbol
@@ -164,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                         method, explicitInterfaceImplementations:=updatedImplementations))
         End Function
 
-        Private Function UpdateExplicitInterfaceImplementation(
+        Private Shared Function UpdateExplicitInterfaceImplementation(
                 [property] As IPropertySymbol,
                 explicitInterfaceImplMethod As IMethodSymbol,
                 desiredName As String) As IMethodSymbol
@@ -180,14 +181,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return explicitInterfaceImplMethod
         End Function
 
-        Private Function CopyLeadingTriviaOver(propertyStatement As PropertyStatementSyntax,
+        Private Shared Function CopyLeadingTriviaOver(propertyStatement As PropertyStatementSyntax,
                                                methodDeclaration As SyntaxNode,
                                                documentationCommentRewriter As VisualBasicSyntaxRewriter) As SyntaxNode
             Return methodDeclaration.WithLeadingTrivia(
                 propertyStatement.GetLeadingTrivia().Select(Function(trivia) ConvertTrivia(trivia, documentationCommentRewriter)))
         End Function
 
-        Private Function ConvertTrivia(trivia As SyntaxTrivia, documentationCommentRewriter As VisualBasicSyntaxRewriter) As SyntaxTrivia
+        Private Shared Function ConvertTrivia(trivia As SyntaxTrivia, documentationCommentRewriter As VisualBasicSyntaxRewriter) As SyntaxTrivia
             If trivia.Kind() = SyntaxKind.DocumentationCommentTrivia Then
                 Dim converted = documentationCommentRewriter.Visit(trivia.GetStructure())
                 Return SyntaxFactory.Trivia(DirectCast(converted, StructuredTriviaSyntax))

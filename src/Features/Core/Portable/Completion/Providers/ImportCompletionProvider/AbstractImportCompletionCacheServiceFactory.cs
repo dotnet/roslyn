@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             return new ImportCompletionCacheService(_peItemsCache, _projectItemsCache);
         }
 
-        private void OnCacheFlushRequested(object sender, EventArgs e)
+        private void OnCacheFlushRequested(object? sender, EventArgs e)
         {
             _peItemsCache.Clear();
             _projectItemsCache.Clear();

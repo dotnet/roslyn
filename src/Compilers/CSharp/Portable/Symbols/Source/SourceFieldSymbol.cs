@@ -132,6 +132,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = DeclaringCompilation;
             var location = ErrorLocation;
 
+            if (Type.ContainsNativeInteger())
+            {
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 TypeWithAnnotations.NeedsNullableAttribute())
             {

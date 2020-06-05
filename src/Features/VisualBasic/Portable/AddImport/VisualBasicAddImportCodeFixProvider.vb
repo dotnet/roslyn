@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -105,12 +106,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Inherits AbstractAddImportCodeFixProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
         ''' <summary>	
         ''' For testing purposes so that tests can pass in mocks for these values.	
         ''' </summary>	
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification:="Used incorrectly by tests")>
         Friend Sub New(installerService As IPackageInstallerService,
                        searchService As ISymbolSearchService)
             MyBase.New(installerService, searchService)

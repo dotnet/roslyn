@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -29,13 +32,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var currentSolution = Workspace.CurrentSolution;
                 var fromProject = currentSolution.GetProject(FromProjectId);
-                var reference = fromProject?.MetadataReferences.OfType<PortableExecutableReference>()
-                                            .FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.FilePath, _filePath));
-
-                if (reference != null)
+                if (fromProject != null)
                 {
-                    var updatedProject = fromProject.RemoveMetadataReference(reference);
-                    Workspace.TryApplyChanges(updatedProject.Solution);
+                    var reference = fromProject.MetadataReferences.OfType<PortableExecutableReference>()
+                                               .FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.FilePath!, _filePath));
+
+                    if (reference != null)
+                    {
+                        var updatedProject = fromProject.RemoveMetadataReference(reference);
+                        Workspace.TryApplyChanges(updatedProject.Solution);
+                    }
                 }
             }
 

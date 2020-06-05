@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
         <ProjectReference>CSharpAssembly</ProjectReference>
         <Document>
         </Document>
@@ -227,7 +227,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Assert.True(mappedMember.Locations.All(Function(Loc) Loc.IsInSource))
             End Using
         End Function
-
 
         <Fact>
         Public Async Function TestFindRetargetedClass() As Task

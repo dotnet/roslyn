@@ -29,10 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private readonly IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDefinitionsAndReferencesFactory(SVsServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
+            => _serviceProvider = serviceProvider;
 
         public override DefinitionItem GetThirdPartyDefinitionItem(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
@@ -110,10 +109,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
             public override bool CanNavigateTo(Workspace workspace) => true;
 
-            public override bool TryNavigateTo(Workspace workspace, bool isPreview)
-            {
-                return TryOpenFile() && TryNavigateToPosition();
-            }
+            public override bool TryNavigateTo(Workspace workspace, NavigationBehavior _)
+                => TryOpenFile() && TryNavigateToPosition();
 
             private bool TryOpenFile()
             {

@@ -115,9 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         internal bool TryInitialize()
-        {
-            return this.TrySetContext(_isImmediateWindow);
-        }
+            => this.TrySetContext(_isImmediateWindow);
 
         private bool TrySetContext(
             bool isImmediateWindow)
@@ -233,9 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         private void TextBuffer_PostChanged(object sender, EventArgs e)
-        {
-            SetupImmediateWindowProjectionBuffer();
-        }
+            => SetupImmediateWindowProjectionBuffer();
 
         /// <summary>
         /// If there's a ? mark, we want to skip the ? mark itself, and include the text that follows it

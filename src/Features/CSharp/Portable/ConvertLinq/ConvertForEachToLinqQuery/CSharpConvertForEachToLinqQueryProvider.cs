@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         : AbstractConvertForEachToLinqQueryProvider<ForEachStatementSyntax, StatementSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpConvertForEachToLinqQueryProvider()
         {
         }
@@ -287,13 +289,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         .Where(statement => Equals(semanticModel.GetEnclosingSymbol(
                             statement.SpanStart, cancellationToken), memberDeclarationSymbol)).Count();
 
-                    if (forEachInfo.ForEachStatement.IsParentKind(SyntaxKind.Block) &&
-                        forEachInfo.ForEachStatement.Parent.Parent == memberDeclarationSyntax)
+                    if (forEachInfo.ForEachStatement.IsParentKind(SyntaxKind.Block, out BlockSyntax block) &&
+                        block.Parent == memberDeclarationSyntax)
                     {
                         // Check that 
                         // a. There are either just a single 'yield return' or 'yield return' with 'yield break' just after.
                         // b. Those foreach and 'yield break' (if exists) are last statements in the method (do not count local function declaration statements).
-                        var statementsOnBlockWithForEach = ((BlockSyntax)forEachInfo.ForEachStatement.Parent).Statements
+                        var statementsOnBlockWithForEach = block.Statements
                             .Where(statement => statement.Kind() != SyntaxKind.LocalFunctionStatement).ToArray();
                         var lastNonLocalFunctionStatement = statementsOnBlockWithForEach.Last();
                         if (yieldStatementsCount == 1 && lastNonLocalFunctionStatement == forEachInfo.ForEachStatement)
@@ -328,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     break;
             }
 
-            converter = default;
+            converter = null;
             return false;
         }
 

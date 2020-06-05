@@ -216,63 +216,43 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInGenericClassDecl()
-        {
-            await VerifyAbsenceAsync(@"class CL<$$");
-        }
+            => await VerifyAbsenceAsync(@"class CL<$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInGenericClassDeclList()
-        {
-            await VerifyAbsenceAsync(@"class CL<T, $$");
-        }
+            => await VerifyAbsenceAsync(@"class CL<T, $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInGenericStructDecl()
-        {
-            await VerifyAbsenceAsync(@"struct S<$$");
-        }
+            => await VerifyAbsenceAsync(@"struct S<$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInGenericStructDeclList()
-        {
-            await VerifyAbsenceAsync(@"struct S<T, $$");
-        }
+            => await VerifyAbsenceAsync(@"struct S<T, $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInGenericInterfaceDecl()
-        {
-            await VerifyAbsenceAsync(@"interface S<$$");
-        }
+            => await VerifyAbsenceAsync(@"interface S<$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInGenericInterfaceDeclList()
-        {
-            await VerifyAbsenceAsync(@"interface S<T, $$");
-        }
+            => await VerifyAbsenceAsync(@"interface S<T, $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInGenericDelegateDecl()
-        {
-            await VerifyAbsenceAsync(@"delegate void Del<$$");
-        }
+            => await VerifyAbsenceAsync(@"delegate void Del<$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInGenericDelegateDeclList()
-        {
-            await VerifyAbsenceAsync(@"delegate void Del<T, $$");
-        }
+            => await VerifyAbsenceAsync(@"delegate void Del<T, $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInGenericMethodDecl()
-        {
-            await VerifyAbsenceAsync(@"class C { void Method<$$");
-        }
+            => await VerifyAbsenceAsync(@"class C { void Method<$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInGenericMethodDeclList()
-        {
-            await VerifyAbsenceAsync(@"class C { void Method<T, $$");
-        }
+            => await VerifyAbsenceAsync(@"class C { void Method<T, $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInBaseList()
@@ -364,9 +344,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPartial()
-        {
-            await VerifyAbsenceAsync(@"partial $$");
-        }
+            => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterNestedPartial()
@@ -732,9 +710,7 @@ class C { }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAsyncAsType()
-        {
-            await VerifyAbsenceAsync(@"class c { async async $$ }");
-        }
+            => await VerifyAbsenceAsync(@"class c { async async $$ }");
 
         [WorkItem(1468, "https://github.com/dotnet/roslyn/issues/1468")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -770,6 +746,42 @@ class Program
         ($$
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerType()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeAfterComma()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<int, $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeAfterModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    delegate*<ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterDelegateAsterisk()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    delegate*$$");
         }
     }
 }

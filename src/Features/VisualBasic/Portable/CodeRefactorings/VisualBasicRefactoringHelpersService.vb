@@ -13,6 +13,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     Friend Class VisualBasicRefactoringHelpersService
         Inherits AbstractRefactoringHelpersService(Of ExpressionSyntax, ArgumentSyntax, ExpressionStatementSyntax)
 
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Iterator Function ExtractNodesSimple(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As IEnumerable(Of SyntaxNode)
             For Each baseExtraction In MyBase.ExtractNodesSimple(node, syntaxFacts)
                 Yield baseExtraction
@@ -49,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
 
         End Function
 
-        Function IsIdentifierOfParameter(node As SyntaxNode) As Boolean
+        Public Shared Function IsIdentifierOfParameter(node As SyntaxNode) As Boolean
             Return (TypeOf node Is ModifiedIdentifierSyntax) AndAlso (TypeOf node.Parent Is ParameterSyntax) AndAlso (CType(node.Parent, ParameterSyntax).Identifier Is node)
         End Function
     End Class

@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         private readonly IWaitContext _underlyingObject;
 
         public VSTypeScriptWaitContextWrapper(IWaitContext underlyingObject)
-        {
-            _underlyingObject = underlyingObject;
-        }
+            => _underlyingObject = underlyingObject;
 
         public CancellationToken CancellationToken => _underlyingObject.CancellationToken;
     }

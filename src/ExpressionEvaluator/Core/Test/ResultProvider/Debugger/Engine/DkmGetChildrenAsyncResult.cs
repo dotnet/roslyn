@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
 
         public static DkmGetChildrenAsyncResult CreateErrorResult(Exception exception)
         {
-            return new DkmGetChildrenAsyncResult(new DkmEvaluationResult[0], default(DkmEvaluationResultEnumContext)) { Exception = exception };
+            return new DkmGetChildrenAsyncResult(new DkmEvaluationResult[0], EnumContext: null) { Exception = exception };
         }
     }
 }

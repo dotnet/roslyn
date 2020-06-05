@@ -6,7 +6,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Class TriviaDataFactory
@@ -56,10 +55,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Next pair
             End Sub
 
-            Private Function GetTrailingAndLeadingTrivia(pair As KeyValuePair(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData)) As ValueTuple(Of SyntaxTriviaList, SyntaxTriviaList)
+            Private Function GetTrailingAndLeadingTrivia(pair As KeyValuePair(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData)) As (SyntaxTriviaList, SyntaxTriviaList)
                 If pair.Key.Item1.Kind = 0 OrElse _lastToken = pair.Key.Item2 Then
-                    Return ValueTuple.Create(Of SyntaxTriviaList, SyntaxTriviaList)(SyntaxTriviaList.Empty,
-                                                                                    GetSyntaxTriviaList(GetTextSpan(pair.Key), pair.Value, _cancellationToken))
+                    Return (SyntaxTriviaList.Empty,
+                            GetSyntaxTriviaList(GetTextSpan(pair.Key), pair.Value, _cancellationToken))
                 End If
 
                 Dim vbTriviaData = TryCast(pair.Value, TriviaDataWithList)
@@ -67,10 +66,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Dim triviaList = vbTriviaData.GetTriviaList(_cancellationToken)
                     Dim index = GetIndexForEndOfLeadingTrivia(triviaList)
 
-                    Return ValueTuple.Create(SyntaxFactory.TriviaList(CreateTriviaListFromTo(triviaList, 0, index)), SyntaxFactory.TriviaList(CreateTriviaListFromTo(triviaList, index + 1, triviaList.Count - 1)))
+                    Return (TriviaHelpers.CreateTriviaListFromTo(triviaList, 0, index),
+                            TriviaHelpers.CreateTriviaListFromTo(triviaList, index + 1, triviaList.Count - 1))
                 End If
 
-                Return ValueTuple.Create(Of SyntaxTriviaList, SyntaxTriviaList)(GetSyntaxTriviaList(GetTextSpan(pair.Key), pair.Value, _cancellationToken), SyntaxTriviaList.Empty)
+                ' Grab the text change we're making and split it into the trailing trivia for the
+                ' previous token and the leading trivia for the next token.  The trivia may contain
+                ' multiple newlines, so we need to first grab the trailing portion (up through the
+                ' first newline), then use the remainder as the leading portion.
+                Dim text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText
+                Dim trailing = SyntaxFactory.ParseTrailingTrivia(text)
+                Dim leading = SyntaxFactory.ParseLeadingTrivia(text.Substring(trailing.FullSpan.Length))
+
+                Return (trailing, leading)
             End Function
 
             Private Function GetTextSpan(pair As ValueTuple(Of SyntaxToken, SyntaxToken)) As TextSpan
@@ -85,20 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return TextSpan.FromBounds(pair.Item1.Span.End, pair.Item2.SpanStart)
             End Function
 
-            Private Function CreateTriviaListFromTo(triviaList As List(Of SyntaxTrivia), startIndex As Integer, endIndex As Integer) As IEnumerable(Of SyntaxTrivia)
-                If startIndex > endIndex Then
-                    Return SpecializedCollections.EmptyEnumerable(Of SyntaxTrivia)()
-                End If
-
-                Dim returnTriviaList = New List(Of SyntaxTrivia)(endIndex - startIndex)
-                For i As Integer = startIndex To endIndex
-                    returnTriviaList.Add(triviaList(i))
-                Next i
-
-                Return returnTriviaList
-            End Function
-
-            Private Function GetIndexForEndOfLeadingTrivia(triviaList As List(Of SyntaxTrivia)) As Integer
+            Private Shared Function GetIndexForEndOfLeadingTrivia(triviaList As SyntaxTriviaList) As Integer
                 For i As Integer = 0 To triviaList.Count - 1
                     Dim trivia = triviaList(i)
                     If trivia.Kind = SyntaxKind.EndOfLineTrivia Or
@@ -110,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return triviaList.Count - 1
             End Function
 
-            Private Function GetSyntaxTriviaList(textSpan As TextSpan, triviaData As TriviaData, cancellationToken As CancellationToken) As SyntaxTriviaList
+            Private Shared Function GetSyntaxTriviaList(textSpan As TextSpan, triviaData As TriviaData, cancellationToken As CancellationToken) As SyntaxTriviaList
                 Dim vbTriviaData = TryCast(triviaData, TriviaDataWithList)
                 If vbTriviaData IsNot Nothing Then
                     Return SyntaxFactory.TriviaList(vbTriviaData.GetTriviaList(cancellationToken))
@@ -166,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return token
             End Function
 
-            Private Function CreateNewToken(leadingTrivia As SyntaxTriviaList, token As SyntaxToken, trailingTrivia As SyntaxTriviaList) As SyntaxToken
+            Private Shared Function CreateNewToken(leadingTrivia As SyntaxTriviaList, token As SyntaxToken, trailingTrivia As SyntaxTriviaList) As SyntaxToken
                 Return token.With(leadingTrivia, trailingTrivia)
             End Function
         End Class

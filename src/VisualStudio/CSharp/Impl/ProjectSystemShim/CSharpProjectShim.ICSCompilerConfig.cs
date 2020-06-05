@@ -18,14 +18,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void GetOptionInfoAt(int index, out CompilerOptions optionID, out string switchName, out string switchDescription, out uint flags)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void GetOptionInfoAtEx(int index, out CompilerOptions optionID, out string shortSwitchName, out string longSwitchName, out string descriptiveSwitchName, out string switchDescription, out uint flags)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void ResetAllOptions()
         {
@@ -56,9 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void GetOption(CompilerOptions optionID, IntPtr variant)
-        {
-            Marshal.GetNativeVariantForObject(VisualStudioProjectOptionsProcessor[optionID], variant);
-        }
+            => Marshal.GetNativeVariantForObject(VisualStudioProjectOptionsProcessor[optionID], variant);
 
         public int CommitChanges(ref ICSError error)
         {
@@ -79,8 +73,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public string GetWarnInfo(int warnIndex)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 }

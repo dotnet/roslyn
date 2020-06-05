@@ -6,11 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -18,6 +15,18 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class OverloadResolution
     {
         public void BinaryOperatorOverloadResolution(BinaryOperatorKind kind, BoundExpression left, BoundExpression right, BinaryOperatorOverloadResolutionResult result, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            // We can do a table lookup for well-known problems in overload resolution.
+            BinaryOperatorOverloadResolution_EasyOut(kind, left, right, result);
+            if (result.Results.Count > 0)
+            {
+                return;
+            }
+
+            BinaryOperatorOverloadResolution_NoEasyOut(kind, left, right, result, ref useSiteDiagnostics);
+        }
+
+        internal void BinaryOperatorOverloadResolution_EasyOut(BinaryOperatorKind kind, BoundExpression left, BoundExpression right, BinaryOperatorOverloadResolutionResult result)
         {
             Debug.Assert(left != null);
             Debug.Assert(right != null);
@@ -30,13 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorKind underlyingKind = kind & ~BinaryOperatorKind.Logical;
 
-            // We can do a table lookup for well-known problems in overload resolution.
-
             BinaryOperatorEasyOut(underlyingKind, left, right, result);
-            if (result.Results.Count > 0)
-            {
-                return;
-            }
+        }
+
+        internal void BinaryOperatorOverloadResolution_NoEasyOut(BinaryOperatorKind kind, BoundExpression left, BoundExpression right, BinaryOperatorOverloadResolutionResult result, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            Debug.Assert(left != null);
+            Debug.Assert(right != null);
+            Debug.Assert(result.Results.Count == 0);
 
             // The following is a slight rewording of the specification to emphasize that not all
             // operands of a binary operation need to have a type.
@@ -654,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetPointerArithmeticOperators(kind, rightType, results);
             }
 
-            if ((object)leftType != null || (object)rightType != null)
+            if ((object)leftType != null || (object)rightType != null || left.Type is FunctionPointerTypeSymbol || right.Type is FunctionPointerTypeSymbol)
             {
                 // The pointer comparison operators are all "void* OP void*".
                 GetPointerComparisonOperators(kind, results);
@@ -677,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators);
+                this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators, skipNativeIntegerOperators: !left.Type.IsNativeIntegerOrNullableNativeIntegerType() && !right.Type.IsNativeIntegerOrNullableNativeIntegerType());
 
                 // SPEC 7.3.4: For predefined enum and delegate operators, the only operators
                 // considered are those defined by an enum or delegate type that is the binding

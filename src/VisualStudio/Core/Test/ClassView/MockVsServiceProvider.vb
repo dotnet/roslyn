@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
                 Return _navigationTool
             End If
 
-            Return Contract.FailWithReturn(Of Object)($"GetService only handles {NameOf(SVsClassView)}")
+            throw ExceptionUtilities.UnexpectedValue(serviceType)
         End Function
     End Class
 End Namespace

@@ -19,8 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public bool Includes(AssemblyIdentity assemblyIdentity)
-        {
-            return assemblyIdentity.Name.StartsWith(_prefix);
-        }
+            => assemblyIdentity.Name.StartsWith(_prefix);
     }
 }

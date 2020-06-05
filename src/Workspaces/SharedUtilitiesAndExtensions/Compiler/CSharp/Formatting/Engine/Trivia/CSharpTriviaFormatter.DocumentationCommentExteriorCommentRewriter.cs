@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Formatting;
+#nullable enable
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -20,20 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private readonly bool _forceIndentation;
             private readonly int _indentation;
             private readonly int _indentationDelta;
-            private readonly OptionSet _optionSet;
+            private readonly AnalyzerConfigOptions _options;
 
             public DocumentationCommentExteriorCommentRewriter(
                 bool forceIndentation,
                 int indentation,
                 int indentationDelta,
-                OptionSet optionSet,
+                AnalyzerConfigOptions options,
                 bool visitStructuredTrivia = true)
                 : base(visitIntoStructuredTrivia: visitStructuredTrivia)
             {
                 _forceIndentation = forceIndentation;
                 _indentation = indentation;
                 _indentationDelta = indentationDelta;
-                _optionSet = optionSet;
+                _options = options;
             }
 
             public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
@@ -52,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                 _forceIndentation,
                                                 _indentation,
                                                 _indentationDelta,
-                                                _optionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp),
-                                                _optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp));
+                                                _options.GetOption(FormattingOptions2.UseTabs),
+                                                _options.GetOption(FormattingOptions2.TabSize));
 
                         if (triviaText == newTriviaText)
                         {
@@ -69,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return base.VisitTrivia(trivia);
             }
 
-            private bool IsBeginningOrEndOfDocumentComment(SyntaxTrivia trivia)
+            private static bool IsBeginningOrEndOfDocumentComment(SyntaxTrivia trivia)
             {
                 var currentParent = trivia.Token.Parent;
 

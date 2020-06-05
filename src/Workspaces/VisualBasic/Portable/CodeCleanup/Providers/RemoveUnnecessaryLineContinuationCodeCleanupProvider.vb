@@ -4,8 +4,8 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Implements ICodeCleanupProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="https://github.com/dotnet/roslyn/issues/42820")>
         Public Sub New()
         End Sub
 
@@ -227,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 ReplaceLeadingTrivia(token2, leadingTrivia.Where(Function(t) t.Kind <> SyntaxKind.ColonTrivia).ToSyntaxTriviaList())
             End Sub
 
-            Private Function RemoveTrailingColonTrivia(token1 As SyntaxToken, trailing As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
+            Private Shared Function RemoveTrailingColonTrivia(token1 As SyntaxToken, trailing As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
                 If token1.Kind <> SyntaxKind.ColonToken OrElse trailing.Count = 0 Then
                     Return trailing
                 End If
@@ -249,11 +250,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                        GetLeadingTrivia(token2).ToFullString().GetNumberOfLineBreaks()
             End Function
 
-            Private Function IsLabelToken(token As SyntaxToken) As Boolean
+            Private Shared Function IsLabelToken(token As SyntaxToken) As Boolean
                 Return TypeOf token.Parent Is LabelStatementSyntax
             End Function
 
-            Private Function PartOfSinglelineConstruct(token As SyntaxToken) As Boolean
+            Private Shared Function PartOfSinglelineConstruct(token As SyntaxToken) As Boolean
                 Dim node = token.Parent
                 While node IsNot Nothing
                     If TypeOf node Is SingleLineIfStatementSyntax OrElse

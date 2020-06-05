@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -18,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         private static readonly ConditionalWeakTable<INamespaceSymbol, List<string>> s_namespaceToNameMap =
             new ConditionalWeakTable<INamespaceSymbol, List<string>>();
-        private static readonly ConditionalWeakTable<INamespaceSymbol, List<string>>.CreateValueCallback s_getNameParts = GetNameParts;
 
         public static readonly Comparison<INamespaceSymbol> CompareNamespaces = CompareTo;
         public static readonly IEqualityComparer<INamespaceSymbol> EqualityComparer = new Comparer();
@@ -149,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this INamespaceSymbol globalNamespace,
             string namespaceName)
         {
-            INamespaceSymbol? namespaceSymbol = globalNamespace;
+            var namespaceSymbol = globalNamespace;
             foreach (var name in namespaceName.Split('.'))
             {
                 var members = namespaceSymbol.GetMembers(name);

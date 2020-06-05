@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
         }
 
-        private async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
+        private static async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
         {
             var service = CompletionService.GetService(document);
             var change = await service.GetChangeAsync(document, item, completionListSpan, commitCharacter: null, cancellationToken).ConfigureAwait(false);
@@ -197,11 +197,11 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         {
             return new SpellCheckCodeAction(
                 string.Format(FeaturesResources.Change_0_to_1, oldName, newName),
-                c => Update(document, nameToken, newName, c),
+                c => UpdateAsync(document, nameToken, newName, c),
                 equivalenceKey: newName);
         }
 
-        private async Task<Document> Update(Document document, SyntaxToken nameToken, string newName, CancellationToken cancellationToken)
+        private async Task<Document> UpdateAsync(Document document, SyntaxToken nameToken, string newName, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceToken(nameToken, CreateIdentifier(nameToken, newName));

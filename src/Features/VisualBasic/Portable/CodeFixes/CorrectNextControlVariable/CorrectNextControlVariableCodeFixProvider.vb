@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -16,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
         Friend Const BC30451 As String = "BC30451" 'BC30451: 'y' is not declared. It may be inaccessible due to its protection level.
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -64,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
             context.RegisterCodeFix(New CorrectNextControlVariableCodeAction(context.Document, nodeToReplace, newNode), context.Diagnostics)
         End Function
 
-        Private Function FindControlVariable(nextStatement As NextStatementSyntax, nestingLevel As Integer) As SyntaxToken?
+        Private Shared Function FindControlVariable(nextStatement As NextStatementSyntax, nestingLevel As Integer) As SyntaxToken?
             Debug.Assert(nestingLevel >= 0)
 
             ' If we have code like this:
@@ -85,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
 
             ' A ForBlockSyntax can either be a ForBlock or a ForEachBlock. Get the control variable
             ' from that.
-            Dim controlVariable As SyntaxNode = Nothing
+            Dim controlVariable As SyntaxNode
             Select Case forBlock.Kind()
                 Case SyntaxKind.ForBlock
                     Dim forStatement = DirectCast(forBlock.ForOrForEachStatement, ForStatementSyntax)

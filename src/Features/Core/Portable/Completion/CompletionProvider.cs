@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion
         internal string Name { get; }
 
         protected CompletionProvider()
-        {
-            Name = GetType().FullName;
-        }
+            => Name = GetType().FullName;
 
         /// <summary>
         /// Implement to contribute <see cref="CompletionItem"/>'s and other details to a <see cref="CompletionList"/>
@@ -34,17 +32,21 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="trigger">The triggering action.</param>
         /// <param name="options">The set of options in effect.</param>
         public virtual bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
-        {
-            return false;
-        }
+            => false;
+
+        /// <summary>
+        /// This allows Completion Providers that indicated they were triggered textually to use syntax to
+        /// confirm they are really triggered, or decide they are not actually triggered and should become 
+        /// an augmenting provider instead.
+        /// </summary>
+        internal virtual async Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, OptionSet options, CancellationToken cancellationToken)
+            => ShouldTriggerCompletion(await document.GetTextAsync(cancellationToken).ConfigureAwait(false), caretPosition, trigger, options);
 
         /// <summary>
         /// Gets the description of the specified item.
         /// </summary>
         public virtual Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(CompletionDescription.Empty);
-        }
+            => Task.FromResult(CompletionDescription.Empty);
 
         /// <summary>
         /// Gets the change to be applied when the specified item is committed.

@@ -138,5 +138,57 @@ class C
     }
 }");
         }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterMethodReference()
+        {
+            await VerifyAbsenceAsync(
+@"
+using System;
+
+class C {
+    void M() {
+        var v = Console.WriteLine $$");
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterAnonymousMethod()
+        {
+            await VerifyAbsenceAsync(
+@"
+using System;
+
+class C {
+    void M() {
+        Action a = delegate { } $$");
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterLambda1()
+        {
+            await VerifyAbsenceAsync(
+@"
+using System;
+
+class C {
+    void M() {
+        Action b = (() => 0) $$");
+        }
+
+        [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterLambda2()
+        {
+            await VerifyAbsenceAsync(
+@"
+using System;
+
+class C {
+    void M() {
+        Action b = () => {} $$");
+        }
     }
 }

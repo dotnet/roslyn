@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis
 
             public bool IsMatch(string s)
             {
+                if (_numberRangePairs.IsEmpty)
+                {
+                    return Regex.IsMatch(s);
+                }
+
                 var match = Regex.Match(s);
                 if (!match.Success)
                 {
@@ -54,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Takes a <see cref="Section.Name"/> and creates a matcher that
-        /// matches the the given language. Returns null if the section name is
+        /// matches the given language. Returns null if the section name is
         /// invalid.
         /// </summary>
         internal static SectionNameMatcher? TryCreateSectionNameMatcher(string sectionName)

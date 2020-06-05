@@ -29,11 +29,13 @@
     <Rule Id="CA1066" Action="None" />
     <Rule Id="CA1067" Action="Warning" />
     <Rule Id="CA1068" Action="Warning" />
+    <Rule Id="CA1069" Action="None" /> <!-- Enums values should not be duplicated -->
     <Rule Id="CA1303" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26400: Enable rules CA1062, CA1303, CA1508, CA2100 and CA2215 for Roslyn.sln -->
     <Rule Id="CA1304" Action="None" />
     <Rule Id="CA1508" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26400: Enable rules CA1062, CA1303, CA1508, CA2100 and CA2215 for Roslyn.sln -->
     <Rule Id="CA1707" Action="None" />
     <Rule Id="CA1710" Action="None" />
+    <Rule Id="CA1713" Action="None" /> <!-- Events should not have 'Before' or 'After' prefix -->
     <Rule Id="CA1714" Action="None" />
     <Rule Id="CA1715" Action="None" />
     <Rule Id="CA1716" Action="None" />
@@ -54,8 +56,11 @@
     <Rule Id="CA1823" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/20404: Enable rule CA1823 (remove unused field) once we have a fixer for it -->
     <Rule Id="CA1824" Action="None" /> <!-- mark assemblies with NeutralResourcesLanguageAttribute -->
     <Rule Id="CA1827" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/37959: DoNotUseCountWhenAnyCanBeUsed -->
+    <Rule Id="CA1834" Action="None" /> <!-- Consider using 'StringBuilder.Append(char)' when applicable -->
+    <Rule Id="CA1835" Action="None" /> <!-- Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync' -->
     <Rule Id="CA2000" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25880 -->
     <Rule Id="CA2007" Action="Warning" />
+    <Rule Id="CA2109" Action="None" /> <!-- Review visible event handlers (legacy rule is no longer relevant) -->
     <Rule Id="CA2211" Action="None" />
     <Rule Id="CA2213" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25880 -->
     <Rule Id="CA2214" Action="None" /> <!-- do not call overridable methods in constructors: done in various places -->
@@ -67,6 +72,7 @@
     <Rule Id="CA2227" Action="None" />
     <Rule Id="CA2231" Action="None" />
     <Rule Id="CA2234" Action="None" />
+    <Rule Id="CA2249" Action="None" /> <!-- Consider using 'String.Contains' instead of 'String.IndexOf' -->
     <Rule Id="CA5350" Action="None" /> <!-- in some cases we must use legacy cryptographic hashes, so disable for now -->
     <Rule Id="CA5351" Action="None" /> <!-- in some cases we must use legacy cryptographic hashes, so disable for now -->
   </Rules>
@@ -108,8 +114,7 @@
     <Rule Id="RS0025" Action="Error" />
     <Rule Id="RS0026" Action="Error" />
     <Rule Id="RS0027" Action="Error" />
-    <Rule Id="RS0033" Action="None" /> <!-- Importing constructor should be [Obsolete] -->
-    <Rule Id="RS0034" Action="None" /> <!-- 'type_name' is MEF-exported and should have a single importing constructor of the correct form -->
+    <Rule Id="RS0040" Action="None" /> <!-- Defaultable types should have defaultable fields -->
   </Rules>
   <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers.ImmutableCollections">
     <Rule Id="RS0012" Action="Warning" />
@@ -145,7 +150,7 @@
     <Rule Id="CA9999" Action="None" /> <!-- We know the analyzers will fail during a bootstrap build -->
   </Rules>
   <Rules AnalyzerId="xunit.analyzers" RuleNamespace="Xunit.Analyzers">
-    <Rule Id="xUnit1004" Action="None" /> <!-- allow skipped tests -->
+    <Rule Id="xUnit1004" Action="Hidden" /> <!-- allow skipped tests, with a code fix to unskip them -->
     <Rule Id="xUnit2006" Action="None" /> <!-- "do not use generic Assert.Equal to test string equality" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2009" Action="None" /> <!-- "do not use Assert.True to check for substrings" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2012" Action="None" /> <!-- "do not use Enumerable.Any() to check if a value exists in a collection" is a valid assert, but very noisy right now -->
@@ -164,7 +169,6 @@
     <Rule Id="VSTHRD103" Action="None" /> <!-- Call async methods when in an async method -->
     <Rule Id="VSTHRD010" Action="None" /> <!-- Invoke single-threaded types on Main thread https://github.com/dotnet/roslyn/issues/29275 -->
     <Rule Id="VSTHRD110" Action="None" /> <!-- Observe result of async calls -->
-    <Rule Id="VSTHRD200" Action="None" /> <!-- Use "Async" suffix for async methods -->
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers">
     <Rule Id="HAA0101" Action="None" />

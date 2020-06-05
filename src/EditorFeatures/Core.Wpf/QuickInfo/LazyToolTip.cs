@@ -46,9 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             }
 
             public static void AttachTo(FrameworkElement element, IThreadingContext threadingContext, Func<DisposableToolTip> createToolTip)
-            {
-                new LazyToolTip(threadingContext, element, createToolTip);
-            }
+                => new LazyToolTip(threadingContext, element, createToolTip);
 
             private void OnToolTipOpening(object sender, ToolTipEventArgs e)
             {

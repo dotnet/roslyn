@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -18,12 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         public CSharpFormatEngine(
             SyntaxNode node,
-            OptionSet optionSet,
+            AnalyzerConfigOptions options,
             IEnumerable<AbstractFormattingRule> formattingRules,
             SyntaxToken token1,
             SyntaxToken token2)
             : base(TreeData.Create(node),
-                 optionSet,
+                 options,
                  formattingRules,
                  token1,
                  token2)
@@ -31,13 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected override AbstractTriviaDataFactory CreateTriviaFactory()
-        {
-            return new TriviaDataFactory(this.TreeData, this.OptionSet);
-        }
+            => new TriviaDataFactory(this.TreeData, this.Options);
 
         protected override AbstractFormattingResult CreateFormattingResult(TokenStream tokenStream)
-        {
-            return new FormattingResult(this.TreeData, tokenStream, this.SpanToFormat);
-        }
+            => new FormattingResult(this.TreeData, tokenStream, this.SpanToFormat);
     }
 }

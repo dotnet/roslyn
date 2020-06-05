@@ -13,8 +13,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -24,10 +22,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal static class AnalyzerHelper
+    internal static partial class AnalyzerHelper
     {
-        private const string CSharpCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer";
-        private const string VisualBasicCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer";
 
         // These are the error codes of the compiler warnings. 
         // Keep the ids the same so that de-duplication against compiler errors
@@ -66,23 +62,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 : descriptor.GetEffectiveSeverity(options);
         }
 
-        public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
-        {
-            // TODO: find better way.
-            var typeString = analyzer.GetType().ToString();
-            if (typeString == CSharpCompilerAnalyzerTypeName)
-            {
-                return true;
-            }
-
-            if (typeString == VisualBasicCompilerAnalyzerTypeName)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public static (string analyzerId, VersionStamp version) GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)
         {
             // Get the unique ID for given diagnostic analyzer.
@@ -92,11 +71,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
-            => analyzer.GetType().Assembly.GetName().Name;
+            => analyzer.GetType().Assembly.GetName().Name ?? throw ExceptionUtilities.Unreachable;
 
         public static OptionSet GetAnalyzerOptionSet(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            return GetAnalyzerOptionSetAsync(analyzerOptions, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSetAsync = GetAnalyzerOptionSetAsync(analyzerOptions, syntaxTree, cancellationToken);
+            if (optionSetAsync.IsCompleted)
+                return optionSetAsync.Result;
+
+            return optionSetAsync.AsTask().GetAwaiter().GetResult();
         }
 
         public static async ValueTask<OptionSet> GetAnalyzerOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
@@ -109,92 +92,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new AnalyzerConfigOptionSet(configOptions, optionSet);
         }
 
-        public static T GetOption<T>(this SemanticModelAnalysisContext context, Option<T> option)
+        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, ILanguageSpecificOption<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.SemanticModel.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
+            var optionAsync = GetOptionAsync<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken);
+            if (optionAsync.IsCompleted)
+                return optionAsync.Result;
 
-            return GetOption(analyzerOptions, option, syntaxTree, cancellationToken);
+            return optionAsync.AsTask().GetAwaiter().GetResult();
         }
 
-        public static T GetOption<T>(this SyntaxNodeAnalysisContext context, Option<T> option)
+        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, IPerLanguageOption<T> option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.Node.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
+            var optionAsync = GetOptionAsync<T>(analyzerOptions, option, language, syntaxTree, cancellationToken);
+            if (optionAsync.IsCompleted)
+                return optionAsync.Result;
 
-            return GetOption(analyzerOptions, option, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this SyntaxTreeAnalysisContext context, Option<T> option)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.Tree;
-            var cancellationToken = context.CancellationToken;
-
-            return GetOption(analyzerOptions, option, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this OperationAnalysisContext context, Option<T> option)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.Operation.Syntax.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            return GetOption(analyzerOptions, option, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, Option<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            return GetOptionAsync<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken).GetAwaiter().GetResult();
-        }
-
-        public static T GetOption<T>(this SemanticModelAnalysisContext context, PerLanguageOption<T> option, string language)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.SemanticModel.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            return GetOption(analyzerOptions, option, language, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this SyntaxNodeAnalysisContext context, PerLanguageOption<T> option, string language)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.Node.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            return GetOption(analyzerOptions, option, language, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this SyntaxTreeAnalysisContext context, PerLanguageOption<T> option, string language)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.Tree;
-            var cancellationToken = context.CancellationToken;
-
-            return GetOption(analyzerOptions, option, language, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this OperationAnalysisContext context, PerLanguageOption<T> option, string language)
-        {
-            var analyzerOptions = context.Options;
-            var syntaxTree = context.Operation.Syntax.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-
-            return GetOption(analyzerOptions, option, language, syntaxTree, cancellationToken);
-        }
-
-        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, PerLanguageOption<T> option, string language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            return GetOptionAsync<T>(analyzerOptions, option, language, syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            return optionAsync.AsTask().GetAwaiter().GetResult();
         }
 
         public static async ValueTask<T> GetOptionAsync<T>(this AnalyzerOptions analyzerOptions, IOption option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            var configOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-            if (configOptions.TryGetEditorConfigOption<T>(option, out var value))
+            if (analyzerOptions.TryGetEditorConfigOption<T>(option, syntaxTree, out var value))
             {
                 return value;
             }
@@ -202,13 +120,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #pragma warning disable CS0612 // Type or member is obsolete
             var optionSet = await analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).ConfigureAwait(false);
 #pragma warning restore CS0612 // Type or member is obsolete
-            return (T)optionSet?.GetOption(new OptionKey(option, language)) ?? (T)option.DefaultValue!;
-        }
 
-        [Obsolete]
-        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        public static OptionSet? GetOptions(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-            => analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            if (optionSet != null)
+            {
+                value = optionSet.GetOption<T>(new OptionKey(option, language));
+            }
+
+            return value ?? (T)option.DefaultValue!;
+        }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public static ValueTask<OptionSet?> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
@@ -301,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 warningLevel: 0,
                 projectId: projectId,
                 customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty,
+                properties: ImmutableDictionary<string, string?>.Empty,
                 language: language);
         }
 
@@ -315,9 +234,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static IEnumerable<AnalyzerPerformanceInfo> ToAnalyzerPerformanceInfo(this IDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analysisResult, DiagnosticAnalyzerInfoCache analyzerInfo)
-        {
-            return analysisResult.Select(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
-        }
+            => analysisResult.Select(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
 
         public static async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(
             Project project,
@@ -416,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // quick optimization to reduce allocations.
-            if (compilationWithAnalyzers == null || !analyzerInfoCache.SupportAnalysisKind(analyzer, document.Project.Language, kind))
+            if (compilationWithAnalyzers == null || !analyzer.SupportAnalysisKind(kind))
             {
                 if (kind == AnalysisKind.Syntax)
                 {
@@ -428,8 +345,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
-            if (kind != AnalysisKind.Syntax &&
-                analyzerInfoCache.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer))
+            if (kind != AnalysisKind.Syntax && analyzer.IsCompilerAnalyzer())
             {
                 var isEnabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -443,6 +359,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // REVIEW: more unnecessary allocations just to get diagnostics per analyzer
             var singleAnalyzer = ImmutableArray.Create(analyzer);
+            var skippedAnalyzerInfo = document.Project.GetSkippedAnalyzersInfo(analyzerInfoCache);
+            ImmutableArray<string> filteredIds;
 
             switch (kind)
             {
@@ -459,6 +377,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic, (d, a, t) => $"{d.Id}, {d.Project.Id}, {a}, {t.Length}", document, analyzer, tree);
                     }
+                    else if (skippedAnalyzerInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out filteredIds))
+                    {
+                        diagnostics = diagnostics.Filter(filteredIds);
+                    }
 
                     Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
                     return diagnostics.ConvertToLocalDiagnostics(document);
@@ -471,6 +393,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     diagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, span, singleAnalyzer, cancellationToken).ConfigureAwait(false);
+
+                    if (skippedAnalyzerInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out filteredIds))
+                    {
+                        diagnostics = diagnostics.Filter(filteredIds);
+                    }
 
                     Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
                     return diagnostics.ConvertToLocalDiagnostics(document);
@@ -555,10 +482,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
-        {
-            return (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
-        }
+            => (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
 
+#if DEBUG
         private static async Task VerifyDiagnosticLocationsAsync(ImmutableArray<Diagnostic> diagnostics, Project project, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
@@ -639,6 +565,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
             }
         }
+#endif
 
         public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(this IEnumerable<Diagnostic> diagnostics, Document targetDocument, TextSpan? span = null)
         {

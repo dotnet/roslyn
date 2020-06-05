@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
         {
             var snapshot = line.Snapshot;
             var text = snapshot.GetText();
-            _hasSpaceAfterComment = text.Contains(CommentSplitter.CommentCharacter + ' ');
 
             if (caretPosition > line.End.Position)
             {
@@ -55,16 +54,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
 
-            var splitter = CommentSplitter.Create(
+            var splitter = CommentSplitter.TryCreate(
                 document, position, root, sourceText,
-                useTabs, tabSize, indentStyle, _hasSpaceAfterComment, cancellationToken);
+                useTabs, tabSize, indentStyle, cancellationToken);
 
-            if (splitter == null)
-            {
-                return null;
-            }
-
-            return splitter.TrySplit();
+            return splitter?.TrySplit();
         }
     }
 }

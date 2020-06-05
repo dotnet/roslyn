@@ -12,8 +12,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     internal class FormattingWrappingPage : AbstractOptionPage
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
-        {
-            return new OptionPreviewControl(serviceProvider, optionStore, (o, s) => new WrappingViewModel(o, s));
-        }
+            => new OptionPreviewControl(serviceProvider, optionStore, (o, s) => new WrappingViewModel(o, s));
     }
 }

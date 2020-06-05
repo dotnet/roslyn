@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string Classification = nameof(Classification);
         public const string CodeModel = nameof(CodeModel);
         public const string CompletionSet = nameof(CompletionSet);
-        public const string DesignerAttribute = nameof(DesignerAttribute);
         public const string DiagnosticService = nameof(DiagnosticService);
         public const string EncapsulateField = nameof(EncapsulateField);
         public const string ErrorList = nameof(ErrorList);
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string ReferenceHighlighting = nameof(ReferenceHighlighting);
         public const string Rename = nameof(Rename);
         public const string RenameTracking = nameof(RenameTracking);
-        public const string RemoteHostClient = nameof(RemoteHostClient);
+        public const string SolutionChecksumUpdater = nameof(SolutionChecksumUpdater);
         public const string RuleSetEditor = nameof(RuleSetEditor);
         public const string SignatureHelp = nameof(SignatureHelp);
         public const string Snippets = nameof(Snippets);

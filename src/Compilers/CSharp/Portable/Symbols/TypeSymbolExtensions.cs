@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool CanBeAssignedNull(this TypeSymbol type)
         {
-            return type.IsReferenceType || type.IsPointerType() || type.IsNullableType();
+            return type.IsReferenceType || type.IsPointerOrFunctionPointer() || type.IsNullableType();
         }
 
         public static bool CanContainNull(this TypeSymbol type)
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             RoslynDebug.Assert((object)typeSymbol != null);
 
-            return typeSymbol.IsReferenceType || typeSymbol.IsEnumType() || typeSymbol.SpecialType.CanBeConst();
+            return typeSymbol.IsReferenceType || typeSymbol.IsEnumType() || typeSymbol.SpecialType.CanBeConst() || typeSymbol.IsNativeIntegerType;
         }
 
         /// <summary>
@@ -150,6 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static TypeSymbol EnumUnderlyingTypeOrSelf(this TypeSymbol type)
         {
             return type.GetEnumUnderlyingType() ?? type;
+        }
+
+        public static bool IsNativeIntegerOrNullableNativeIntegerType(this TypeSymbol? type)
+        {
+            return type?.StrippedType().IsNativeIntegerType == true;
         }
 
         public static bool IsObjectType(this TypeSymbol type)
@@ -277,6 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Pointer:
                 case TypeKind.Dynamic:
+                case TypeKind.FunctionPointer:
                     return false;
                 default:
                     return true;
@@ -333,6 +339,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             RoslynDebug.Assert((object)type != null);
             return type.TypeKind == TypeKind.Array && ((ArrayTypeSymbol)type).IsSZArray;
+        }
+
+        public static bool IsFunctionPointer(this TypeSymbol type)
+        {
+            return type.TypeKind == TypeKind.FunctionPointer;
+        }
+
+        public static bool IsPointerOrFunctionPointer(this TypeSymbol type)
+        {
+            switch (type.TypeKind)
+            {
+                case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         // If the type is a delegate type, it returns it. If the type is an
@@ -476,6 +500,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SpecialType.System_UInt32:
                     case SpecialType.System_Int64:
                     case SpecialType.System_UInt64:
+                    case SpecialType.System_IntPtr when type.IsNativeIntegerType:
+                    case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
                     case SpecialType.System_Char:
                     case SpecialType.System_Boolean:
                     case SpecialType.System_Single:
@@ -656,6 +682,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         next = ((PointerTypeSymbol)current).PointedAtTypeWithAnnotations;
                         break;
 
+                    case TypeKind.FunctionPointer:
+                        return visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable);
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(current.TypeKind);
                 }
@@ -663,6 +692,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Let's try to avoid early resolution of nullable types
                 typeWithAnnotationsOpt = canDigThroughNullable ? default : next;
                 type = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : null;
+            }
+
+            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable)
+            {
+                MethodSymbol currentPointer = type.Signature;
+                var result = VisitType(
+                    typeWithAnnotationsOpt: canDigThroughNullable ? default : currentPointer.ReturnTypeWithAnnotations,
+                    type: canDigThroughNullable ? currentPointer.ReturnTypeWithAnnotations.NullableUnderlyingTypeOrSelf : null,
+                    typeWithAnnotationsPredicate,
+                    typePredicate,
+                    arg,
+                    canDigThroughNullable,
+                    useDefaultType);
+                if (result is object)
+                {
+                    return result;
+                }
+
+                foreach (var parameter in currentPointer.Parameters)
+                {
+                    result = VisitType(
+                        typeWithAnnotationsOpt: canDigThroughNullable ? default : parameter.TypeWithAnnotations,
+                        type: canDigThroughNullable ? parameter.TypeWithAnnotations.NullableUnderlyingTypeOrSelf : null,
+                        typeWithAnnotationsPredicate,
+                        typePredicate,
+                        arg,
+                        canDigThroughNullable,
+                        useDefaultType);
+                    if (result is object)
+                    {
+                        return result;
+                    }
+                }
+
+                return null;
             }
         }
 
@@ -902,6 +966,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly Func<TypeSymbol, object?, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
 
+        internal static bool ContainsNativeInteger(this TypeSymbol type)
+        {
+            var result = type.VisitType((type, unused1, unused2) => type.IsNativeIntegerType, (object?)null, canDigThroughNullable: true);
+            return result is object;
+        }
+
+        internal static bool ContainsNativeInteger(this TypeWithAnnotations type)
+        {
+            return type.Type?.ContainsNativeInteger() == true;
+        }
+
+        internal static bool ContainsErrorType(this TypeSymbol type)
+        {
+            var result = type.VisitType((type, unused1, unused2) => type.IsErrorType(), (object?)null, canDigThroughNullable: true);
+            return result is object;
+        }
+
         /// <summary>
         /// Return true if the type contains any tuples.
         /// </summary>
@@ -1022,7 +1103,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsIntrinsicType(this TypeSymbol type)
         {
-            return type.SpecialType.IsIntrinsicType();
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_Boolean:
+                case SpecialType.System_Char:
+                case SpecialType.System_SByte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_Byte:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_IntPtr when type.IsNativeIntegerType:
+                case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
+                case SpecialType.System_Single:
+                case SpecialType.System_Double:
+                // NOTE: VB treats System.DateTime as an intrinsic, while C# does not.
+                //case SpecialType.System_DateTime:
+                case SpecialType.System_Decimal:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public static bool IsPartial(this TypeSymbol type)
@@ -1055,6 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Error:
                 case TypeKind.Interface:
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     return true;
 
                 case TypeKind.Enum:
@@ -1091,6 +1195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (type.TypeKind)
                 {
                     case TypeKind.Pointer:
+                    case TypeKind.FunctionPointer:
                         return true;
                     case TypeKind.Array:
                         type = ((ArrayTypeSymbol)type).ElementType;
@@ -1523,6 +1628,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         type = pointerType;
                         return changed;
                     }
+                case SymbolKind.FunctionPointer:
+                    {
+                        var functionPointerType = (FunctionPointerTypeSymbol)type;
+                        var changed = NormalizeTaskTypesInFunctionPointer(compilation, ref functionPointerType);
+                        type = functionPointerType;
+                        return changed;
+                    }
             }
             return false;
         }
@@ -1617,6 +1729,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
+        private static bool NormalizeTaskTypesInFunctionPointer(CSharpCompilation compilation, ref FunctionPointerTypeSymbol funcPtrType)
+        {
+            var returnType = funcPtrType.Signature.ReturnTypeWithAnnotations;
+            var madeChanges = NormalizeTaskTypesInType(compilation, ref returnType);
+
+            var paramTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+
+            if (funcPtrType.Signature.ParameterCount > 0)
+            {
+                var paramsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(funcPtrType.Signature.ParameterCount);
+                bool madeParamChanges = false;
+                foreach (var param in funcPtrType.Signature.Parameters)
+                {
+                    var paramType = param.TypeWithAnnotations;
+                    madeParamChanges |= NormalizeTaskTypesInType(compilation, ref paramType);
+                    paramsBuilder.Add(paramType);
+                }
+
+                if (madeParamChanges)
+                {
+                    madeChanges = true;
+                    paramTypes = paramsBuilder.ToImmutableAndFree();
+                }
+                else
+                {
+                    paramTypes = funcPtrType.Signature.ParameterTypesWithAnnotations;
+                    paramsBuilder.Free();
+                }
+            }
+
+            if (madeChanges)
+            {
+                funcPtrType = funcPtrType.SubstituteTypeSymbol(returnType, paramTypes, refCustomModifiers: default, paramRefCustomModifiers: default);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         internal static Cci.TypeReferenceWithAttributes GetTypeRefWithAttributes(
             this TypeWithAnnotations type,
             Emit.PEModuleBuilder moduleBuilder,
@@ -1630,16 +1783,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (type.Type.ContainsTupleNames())
                 {
-                    SynthesizedAttributeData? attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
-                    if (attr != null)
-                    {
-                        builder.Add(attr);
-                    }
+                    addIfNotNull(builder, compilation.SynthesizeTupleNamesAttribute(type.Type));
                 }
-
+                if (type.Type.ContainsNativeInteger())
+                {
+                    addIfNotNull(builder, moduleBuilder.SynthesizeNativeIntegerAttribute(declaringSymbol, type.Type));
+                }
                 if (compilation.ShouldEmitNullableAttributes(declaringSymbol))
                 {
-                    SynthesizedAttributeData? attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
+                    addIfNotNull(builder, moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type));
+                }
+
+                static void addIfNotNull(ArrayBuilder<Cci.ICustomAttribute> builder, SynthesizedAttributeData? attr)
+                {
                     if (attr != null)
                     {
                         builder.Add(attr);
@@ -1651,6 +1807,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static bool IsWellKnownTypeInAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("InAttribute");
+
+        internal static bool IsWellKnownTypeOutAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("OutAttribute");
 
         internal static bool IsWellKnownTypeUnmanagedType(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");
 
@@ -1693,6 +1851,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !returnType.IsGenericTaskType(declaringCompilation) &&
                 !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
                 !returnType.IsIAsyncEnumeratorType(declaringCompilation);
+        }
+
+        internal static int TypeToIndex(this TypeSymbol type)
+        {
+            switch (type.GetSpecialTypeSafe())
+            {
+                case SpecialType.System_Object: return 0;
+                case SpecialType.System_String: return 1;
+                case SpecialType.System_Boolean: return 2;
+                case SpecialType.System_Char: return 3;
+                case SpecialType.System_SByte: return 4;
+                case SpecialType.System_Int16: return 5;
+                case SpecialType.System_Int32: return 6;
+                case SpecialType.System_Int64: return 7;
+                case SpecialType.System_Byte: return 8;
+                case SpecialType.System_UInt16: return 9;
+                case SpecialType.System_UInt32: return 10;
+                case SpecialType.System_UInt64: return 11;
+                case SpecialType.System_IntPtr when type.IsNativeIntegerType: return 12;
+                case SpecialType.System_UIntPtr when type.IsNativeIntegerType: return 13;
+                case SpecialType.System_Single: return 14;
+                case SpecialType.System_Double: return 15;
+                case SpecialType.System_Decimal: return 16;
+
+                case SpecialType.None:
+                    if ((object)type != null && type.IsNullableType())
+                    {
+                        TypeSymbol underlyingType = type.GetNullableUnderlyingType();
+
+                        switch (underlyingType.GetSpecialTypeSafe())
+                        {
+                            case SpecialType.System_Boolean: return 17;
+                            case SpecialType.System_Char: return 18;
+                            case SpecialType.System_SByte: return 19;
+                            case SpecialType.System_Int16: return 20;
+                            case SpecialType.System_Int32: return 21;
+                            case SpecialType.System_Int64: return 22;
+                            case SpecialType.System_Byte: return 23;
+                            case SpecialType.System_UInt16: return 24;
+                            case SpecialType.System_UInt32: return 25;
+                            case SpecialType.System_UInt64: return 26;
+                            case SpecialType.System_IntPtr when underlyingType.IsNativeIntegerType: return 27;
+                            case SpecialType.System_UIntPtr when underlyingType.IsNativeIntegerType: return 28;
+                            case SpecialType.System_Single: return 29;
+                            case SpecialType.System_Double: return 30;
+                            case SpecialType.System_Decimal: return 31;
+                        }
+                    }
+
+                    // fall through
+                    goto default;
+
+                default: return -1;
+            }
         }
     }
 }

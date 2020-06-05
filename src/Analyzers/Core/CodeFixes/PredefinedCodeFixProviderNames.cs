@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string GenerateType = nameof(GenerateType);
         public const string ImplementAbstractClass = nameof(ImplementAbstractClass);
         public const string ImplementInterface = nameof(ImplementInterface);
-        public const string InsertMissingCast = nameof(InsertMissingCast);
         public const string MakeFieldReadonly = nameof(MakeFieldReadonly);
         public const string MakeStatementAsynchronous = nameof(MakeStatementAsynchronous);
         public const string MakeMethodSynchronous = nameof(MakeMethodSynchronous);
@@ -52,18 +51,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);
         public const string DeclareAsNullable = nameof(DeclareAsNullable);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
+        public const string RemoveUnnecessarySuppressions = nameof(RemoveUnnecessarySuppressions);
         public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
         public const string RemoveUnusedValues = nameof(RemoveUnusedValues);
         public const string RemoveUnusedLocalFunction = nameof(RemoveUnusedLocalFunction);
         public const string RemoveUnusedMembers = nameof(RemoveUnusedMembers);
         public const string RemoveUnusedVariable = nameof(RemoveUnusedVariable);
-        public const string RenameTracking = nameof(RenameTracking);
         public const string SimplifyNames = nameof(SimplifyNames);
         public const string SimplifyThisOrMe = nameof(SimplifyThisOrMe);
         public const string SpellCheck = nameof(SpellCheck);
         public const string Suppression = nameof(Suppression);
         public const string AddOverloads = nameof(AddOverloads);
         public const string AddNew = nameof(AddNew);
+        public const string RemoveNew = nameof(RemoveNew);
+        public const string UpdateLegacySuppressions = nameof(UpdateLegacySuppressions);
         public const string UnsealClass = nameof(UnsealClass);
         public const string UseImplicitType = nameof(UseImplicitType);
         public const string UseExplicitType = nameof(UseExplicitType);
@@ -73,5 +74,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseThrowExpression = nameof(UseThrowExpression);
         public const string PreferFrameworkType = nameof(PreferFrameworkType);
         public const string MakeStructFieldsWritable = nameof(MakeStructFieldsWritable);
+        public const string AddExplicitCast = nameof(AddExplicitCast);
     }
 }

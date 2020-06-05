@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private string GetAbsolutePath(string path, string baseDirectoryPath)
+        private static string GetAbsolutePath(string path, string baseDirectoryPath)
         {
             return Path.GetFullPath(FileUtilities.ResolveRelativePath(path, baseDirectoryPath) ?? path);
         }
@@ -169,8 +170,27 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// current working directory.</param>
         /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the solution is opened.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
-        public async Task<Solution> OpenSolutionAsync(
+#pragma warning disable RS0026 // Special case to avoid ILogger type getting loaded in downstream clients
+        public Task<Solution> OpenSolutionAsync(
+#pragma warning restore RS0026
             string solutionFilePath,
+            IProgress<ProjectLoadProgress> progress = null,
+            CancellationToken cancellationToken = default)
+            => OpenSolutionAsync(solutionFilePath, msbuildLogger: null, progress, cancellationToken);
+
+        /// <summary>
+        /// Open a solution file and all referenced projects.
+        /// </summary>
+        /// <param name="solutionFilePath">The path to the solution file to be opened. This may be an absolute path or a path relative to the
+        /// current working directory.</param>
+        /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the solution is opened.</param>
+        /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+#pragma warning disable RS0026 // Special case to avoid ILogger type getting loaded in downstream clients
+        public async Task<Solution> OpenSolutionAsync(
+#pragma warning restore RS0026
+            string solutionFilePath,
+            ILogger msbuildLogger,
             IProgress<ProjectLoadProgress> progress = null,
             CancellationToken cancellationToken = default)
         {
@@ -181,7 +201,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             this.ClearSolution();
 
-            var solutionInfo = await _loader.LoadSolutionInfoAsync(solutionFilePath, progress, cancellationToken).ConfigureAwait(false);
+            var solutionInfo = await _loader.LoadSolutionInfoAsync(solutionFilePath, progress, msbuildLogger, cancellationToken).ConfigureAwait(false);
 
             // construct workspace from loaded project infos
             this.OnSolutionAdded(solutionInfo);
@@ -198,8 +218,27 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// current working directory.</param>
         /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is opened.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
-        public async Task<Project> OpenProjectAsync(
+#pragma warning disable RS0026 // Special case to avoid ILogger type getting loaded in downstream clients
+        public Task<Project> OpenProjectAsync(
+#pragma warning restore RS0026
             string projectFilePath,
+            IProgress<ProjectLoadProgress> progress = null,
+            CancellationToken cancellationToken = default)
+            => OpenProjectAsync(projectFilePath, msbuildLogger: null, progress, cancellationToken);
+
+        /// <summary>
+        /// Open a project file and all referenced projects.
+        /// </summary>
+        /// <param name="projectFilePath">The path to the project file to be opened. This may be an absolute path or a path relative to the
+        /// current working directory.</param>
+        /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is opened.</param>
+        /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results..</param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+#pragma warning disable RS0026 // Special case to avoid ILogger type getting loaded in downstream clients
+        public async Task<Project> OpenProjectAsync(
+#pragma warning restore RS0026
+            string projectFilePath,
+            ILogger msbuildLogger,
             IProgress<ProjectLoadProgress> progress = null,
             CancellationToken cancellationToken = default)
         {
@@ -209,7 +248,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             var projectMap = ProjectMap.Create(this.CurrentSolution);
-            var projects = await _loader.LoadProjectInfoAsync(projectFilePath, projectMap, progress, cancellationToken).ConfigureAwait(false);
+            var projects = await _loader.LoadProjectInfoAsync(projectFilePath, projectMap, progress, msbuildLogger, cancellationToken).ConfigureAwait(false);
 
             // add projects to solution
             foreach (var project in projects)
@@ -244,7 +283,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private bool HasProjectFileChanges(ProjectChanges changes)
+        private static bool HasProjectFileChanges(ProjectChanges changes)
         {
             return changes.GetAddedDocuments().Any() ||
                    changes.GetRemovedDocuments().Any() ||
@@ -280,7 +319,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             try
             {
                 // if we need to modify the project file, load it first.
-                if (this.HasProjectFileChanges(projectChanges))
+                if (HasProjectFileChanges(projectChanges))
                 {
                     var projectPath = project.FilePath;
                     if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var fileLoader))
@@ -324,7 +363,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var document = this.CurrentSolution.GetDocument(documentId);
             if (document != null)
             {
-                Encoding encoding = DetermineEncoding(text, document);
+                var encoding = DetermineEncoding(text, document);
 
                 this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                 this.OnDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);
@@ -359,7 +398,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Debug.Assert(_applyChangesProjectFile != null);
 
             var project = this.CurrentSolution.GetProject(info.Id.ProjectId);
-            if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(project.FilePath, out var loader))
+            if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(project.FilePath, out _))
             {
                 var extension = _applyChangesProjectFile.GetDocumentExtension(info.SourceCodeKind);
                 var fileName = Path.ChangeExtension(info.Name, extension);

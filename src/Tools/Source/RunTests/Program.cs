@@ -6,16 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using RunTests.Cache;
-using Newtonsoft.Json.Linq;
 using RestSharp;
 using System.Collections.Immutable;
 using Newtonsoft.Json;
-using System.Reflection;
 using System.Diagnostics;
 
 namespace RunTests
@@ -63,7 +59,7 @@ namespace RunTests
                 return await RunCore(options, cancellationToken);
             }
 
-            var timeoutTask = Task.Delay(options.Timeout.Value);
+            var timeoutTask = Task.Delay(options.Timeout.Value, cancellationToken);
             var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var runTask = RunCore(options, cts.Token);
 
@@ -296,23 +292,7 @@ namespace RunTests
 
             foreach (var assemblyPath in options.Assemblies.OrderByDescending(x => new FileInfo(x).Length))
             {
-                var name = Path.GetFileName(assemblyPath);
-
-                // As a starting point we will just schedule the items we know to be a performance
-                // bottleneck.  Can adjust as we get real data.
-                if (name == "Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll" ||
-                    name == "Microsoft.CodeAnalysis.EditorFeatures.UnitTests.dll" ||
-                    name == "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll" ||
-                    name == "Microsoft.VisualStudio.LanguageServices.UnitTests.dll" ||
-                    name == "Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests.dll" ||
-                    name == "Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests.dll")
-                {
-                    list.AddRange(scheduler.Schedule(assemblyPath));
-                }
-                else
-                {
-                    list.Add(scheduler.CreateAssemblyInfo(assemblyPath));
-                }
+                list.AddRange(scheduler.Schedule(assemblyPath));
             }
 
             return list;
@@ -418,7 +398,7 @@ namespace RunTests
             try
             {
                 var client = new RestClient(Constants.DashboardUriString);
-                var response = await client.ExecuteTaskAsync(request);
+                var response = await client.ExecuteTaskAsync(request, cancellationToken);
                 if (response.StatusCode != System.Net.HttpStatusCode.NoContent)
                 {
                     Logger.Log($"Unable to send results: {response.ErrorMessage}");

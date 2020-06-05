@@ -14,19 +14,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             private readonly Compilation _compilation;
 
             public AnonymousTypeRemover(Compilation compilation)
-            {
-                _compilation = compilation;
-            }
+                => _compilation = compilation;
 
             public override ITypeSymbol DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ITypeSymbol VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return symbol;
-            }
+                => symbol;
 
             public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)
             {
@@ -37,6 +31,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 return _compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
+            }
+
+            public override ITypeSymbol VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                // TODO(https://github.com/dotnet/roslyn/issues/43890): function pointers could theoretically
+                // have a parameter of an anonymous type if you have a generic function that returns function
+                // pointers, and that was called with an anonymous type.
+                return symbol;
             }
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
@@ -68,9 +70,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)
-            {
-                return symbol;
-            }
+                => symbol;
         }
     }
 }

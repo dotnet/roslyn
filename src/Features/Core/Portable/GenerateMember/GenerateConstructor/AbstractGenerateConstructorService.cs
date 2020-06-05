@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -21,10 +22,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         where TArgumentSyntax : SyntaxNode
         where TAttributeArgumentSyntax : SyntaxNode
     {
-        protected AbstractGenerateConstructorService()
-        {
-        }
-
         protected abstract bool IsSimpleNameGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract bool IsConstructorInitializerGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken);
 
@@ -32,15 +29,43 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         protected abstract bool TryInitializeConstructorInitializerGeneration(SemanticDocument document, SyntaxNode constructorInitializer, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeSimpleAttributeNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out ImmutableArray<TArgumentSyntax> arguments, out ImmutableArray<TAttributeArgumentSyntax> attributeArguments, out INamedTypeSymbol typeToGenerateIn);
         protected abstract ImmutableArray<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameterNamingRule, CancellationToken cancellationToken);
-        protected virtual ImmutableArray<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TAttributeArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameternamingRule, CancellationToken cancellationToken)
-            => default;
 
         protected abstract string GenerateNameForArgument(SemanticModel semanticModel, TArgumentSyntax argument, CancellationToken cancellationToken);
-        protected virtual string GenerateNameForArgument(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) { return null; }
         protected abstract RefKind GetRefKind(TArgumentSyntax argument);
         protected abstract bool IsNamedArgument(TArgumentSyntax argument);
         protected abstract ITypeSymbol GetArgumentType(SemanticModel semanticModel, TArgumentSyntax argument, CancellationToken cancellationToken);
-        protected virtual ITypeSymbol GetAttributeArgumentType(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) { return null; }
+
+        protected abstract bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType);
+
+        protected abstract IMethodSymbol GetDelegatingConstructor(State state, SemanticDocument document, int argumentCount, INamedTypeSymbol namedType, ISet<IMethodSymbol> candidates, CancellationToken cancellationToken);
+        protected abstract IMethodSymbol GetCurrentConstructor(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken);
+        protected abstract IMethodSymbol GetDelegatedConstructor(SemanticModel semanticModel, IMethodSymbol constructor, CancellationToken cancellationToken);
+
+        protected virtual string GenerateNameForArgument(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) => null;
+        protected virtual ImmutableArray<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TAttributeArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameternamingRule, CancellationToken cancellationToken) => default;
+        protected virtual ITypeSymbol GetAttributeArgumentType(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) => null;
+
+        protected bool CanDelegeteThisConstructor(State state, SemanticDocument document, IMethodSymbol delegatedConstructor, CancellationToken cancellationToken = default)
+        {
+            var currentConstructor = GetCurrentConstructor(document.SemanticModel, state.Token, cancellationToken);
+            if (currentConstructor.Equals(delegatedConstructor))
+                return false;
+
+            // We need ensure that delegating constructor won't cause circular dependency.
+            // The chain of dependency can not exceed the number for constructors
+            var constructorsCount = delegatedConstructor.ContainingType.InstanceConstructors.Length;
+            for (var i = 0; i < constructorsCount; i++)
+            {
+                delegatedConstructor = GetDelegatedConstructor(document.SemanticModel, delegatedConstructor, cancellationToken);
+                if (delegatedConstructor == null)
+                    return true;
+
+                if (delegatedConstructor.Equals(currentConstructor))
+                    return false;
+            }
+
+            return false;
+        }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
@@ -51,29 +76,37 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
                 if (state != null)
                 {
-                    var result = ArrayBuilder<CodeAction>.GetInstance();
-                    var codeAction = new GenerateConstructorCodeAction((TService)this, document, state, withFields: true);
-                    result.Add(codeAction);
+                    using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 
-                    // First see the type of edit our regular code action would create.  If it 
-                    // creates fields, then also offer to perform the code action without creating
-                    // any fields.
-                    var edit = await codeAction.GetEditAsync(cancellationToken).ConfigureAwait(false);
-                    if (edit.addedFields)
+                    // If we have any fields we'd like to generate, offer a code action to do that.
+                    if (state.ParameterToNewFieldMap.Count > 0)
                     {
-                        result.Add(
-                            new GenerateConstructorCodeAction((TService)this, document, state, withFields: false));
+                        result.Add(new MyCodeAction(
+                            string.Format(FeaturesResources.Generate_constructor_in_0_with_fields, state.TypeToGenerateIn.Name),
+                            c => state.GetChangedDocumentAsync(document, withFields: true, withProperties: false, c)));
                     }
 
-                    return result.ToImmutableAndFree();
+                    // Same with a version that generates properties instead.
+                    if (state.ParameterToNewPropertyMap.Count > 0)
+                    {
+                        result.Add(new MyCodeAction(
+                            string.Format(FeaturesResources.Generate_constructor_in_0_with_properties, state.TypeToGenerateIn.Name),
+                            c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: true, c)));
+                    }
+
+                    // Always offer to just generate the constructor and nothing else.
+                    result.Add(new MyCodeAction(
+                        string.Format(FeaturesResources.Generate_constructor_in_0, state.TypeToGenerateIn.Name),
+                        c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: false, c)));
+
+                    return result.ToImmutable();
                 }
             }
 
             return ImmutableArray<CodeAction>.Empty;
         }
 
-        protected static bool IsSymbolAccessible(
-            ISymbol symbol, SemanticDocument document)
+        protected static bool IsSymbolAccessible(ISymbol symbol, SemanticDocument document)
         {
             if (symbol == null)
             {
@@ -105,6 +138,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 default:
                     return false;
+            }
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, title)
+            {
             }
         }
     }

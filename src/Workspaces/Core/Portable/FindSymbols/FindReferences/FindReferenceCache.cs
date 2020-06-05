@@ -62,71 +62,51 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
-            ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SemanticModel model, SyntaxNode root, SourceText sourceText,
-            string text, CancellationToken cancellationToken)
+            ISyntaxFactsService syntaxFacts,
+            SemanticModel model,
+            SyntaxNode root,
+            SourceText sourceText,
+            string text,
+            CancellationToken cancellationToken)
         {
             var normalized = syntaxFacts.IsCaseSensitive ? text : text.ToLowerInvariant();
 
             var entry = GetCachedEntry(model);
             if (entry == null)
             {
-                return GetIdentifierOrGlobalNamespaceTokensWithText(syntaxFacts, document, version, root, sourceText, normalized, cancellationToken);
+                return GetIdentifierOrGlobalNamespaceTokensWithText(syntaxFacts, root, sourceText, normalized, cancellationToken);
             }
 
             return entry.IdentifierCache.GetOrAdd(normalized,
                 key => GetIdentifierOrGlobalNamespaceTokensWithText(
-                    syntaxFacts, document, version, root, sourceText, key, cancellationToken));
+                    syntaxFacts, root, sourceText, key, cancellationToken));
         }
 
         private static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
-            ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SyntaxNode root, SourceText sourceText,
+            ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText sourceText,
             string text, CancellationToken cancellationToken)
         {
-            bool candidate(SyntaxToken t) =>
-                syntaxFacts.IsGlobalNamespaceKeyword(t) || (syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text));
-
             // identifier is not escaped
             if (sourceText != null)
             {
-                return GetTokensFromText(syntaxFacts, document, version, root, sourceText, text, candidate, cancellationToken);
+                return GetTokensFromText(syntaxFacts, root, sourceText, text, IsCandidate, cancellationToken);
             }
 
             // identifier is escaped
-            return root.DescendantTokens(descendIntoTrivia: true).Where(candidate).ToImmutableArray();
-        }
+            return root.DescendantTokens(descendIntoTrivia: true).Where(IsCandidate).ToImmutableArray();
 
-        private static ImmutableArray<SyntaxToken> GetTokensFromText(
-            ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SyntaxNode root,
-            SourceText content, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
-        {
-            return text.Length > 0
-                ? GetTokensFromText(syntaxFacts, root, content, text, candidate, cancellationToken)
-                : ImmutableArray<SyntaxToken>.Empty;
-        }
-
-        private static ImmutableArray<SyntaxToken> GetTokensFromText(
-            SyntaxNode root, List<int> positions, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
-        {
-            var result = ImmutableArray.CreateBuilder<SyntaxToken>();
-            foreach (var index in positions)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var token = root.FindToken(index, findInsideTrivia: true);
-
-                var span = token.Span;
-                if (!token.IsMissing && span.Start == index && span.Length == text.Length && candidate(token))
-                {
-                    result.Add(token);
-                }
-            }
-
-            return result.ToImmutable();
+            bool IsCandidate(SyntaxToken t)
+                => syntaxFacts.IsGlobalNamespaceKeyword(t) || (syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text));
         }
 
         private static ImmutableArray<SyntaxToken> GetTokensFromText(
             ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText content, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
         {
+            if (text.Length == 0)
+            {
+                return ImmutableArray<SyntaxToken>.Empty;
+            }
+
             var result = ImmutableArray.CreateBuilder<SyntaxToken>();
 
             var index = 0;

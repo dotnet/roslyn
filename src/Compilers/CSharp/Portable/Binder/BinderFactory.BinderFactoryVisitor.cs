@@ -94,6 +94,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ((CSharpSyntaxNode)node).Accept(this);
             }
 
+            public override Binder VisitGlobalStatement(GlobalStatementSyntax node)
+            {
+                if (SyntaxFacts.IsSimpleProgramTopLevelStatement(node))
+                {
+                    var compilationUnit = (CompilationUnitSyntax)node.Parent;
+
+                    if (compilationUnit != syntaxTree.GetRoot())
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(node), "node not part of tree");
+                    }
+
+                    var key = CreateBinderCacheKey(compilationUnit, NodeUsage.MethodBody);
+
+                    Binder result;
+                    if (!binderCache.TryGetValue(key, out result))
+                    {
+                        SynthesizedSimpleProgramEntryPointSymbol simpleProgram = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation, (CompilationUnitSyntax)node.Parent, fallbackToMainEntryPoint: false);
+                        ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder(_factory._ignoreAccessibility);
+                        result = bodyBinder.GetBinder(compilationUnit);
+
+                        binderCache.TryAdd(key, result);
+                    }
+
+                    return result;
+                }
+
+                return base.VisitGlobalStatement(node);
+            }
+
             // This is used mainly by the method body binder.  During construction of the method symbol,
             // the contexts are built "by hand" rather than by this builder (see
             // MethodMemberBuilder.EnsureDeclarationBound).
@@ -385,17 +414,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private NamedTypeSymbol GetContainerType(Binder binder, CSharpSyntaxNode node)
             {
-                var container = binder.ContainingMemberOrLambda as NamedTypeSymbol;
+                Symbol containingSymbol = binder.ContainingMemberOrLambda;
+                var container = containingSymbol as NamedTypeSymbol;
                 if ((object)container == null)
                 {
-                    Debug.Assert(binder.ContainingMemberOrLambda is NamespaceSymbol);
+                    Debug.Assert(containingSymbol is NamespaceSymbol);
                     if (node.Parent.Kind() == SyntaxKind.CompilationUnit && syntaxTree.Options.Kind != SourceCodeKind.Regular)
                     {
                         container = compilation.ScriptClass;
                     }
                     else
                     {
-                        container = ((NamespaceSymbol)binder.ContainingMemberOrLambda).ImplicitType;
+                        container = ((NamespaceSymbol)containingSymbol).ImplicitType;
                     }
                 }
 
@@ -737,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitNamespaceDeclaration(parent, _position, inBody, inUsing);
             }
 
-            internal InContainerBinder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent, int position, bool inBody, bool inUsing)
+            internal Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent, int position, bool inBody, bool inUsing)
             {
                 Debug.Assert(!inUsing || inBody, "inUsing => inBody");
 
@@ -747,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder result;
                 if (!binderCache.TryGetValue(key, out result))
                 {
-                    InContainerBinder outer;
+                    Binder outer;
                     var container = parent.Parent;
 
                     if (InScript && container.Kind() == SyntaxKind.CompilationUnit)
@@ -759,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        outer = (InContainerBinder)_factory.GetBinder(parent.Parent, position);
+                        outer = _factory.GetBinder(parent.Parent, position);
                     }
 
                     if (!inBody)
@@ -776,10 +806,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binderCache.TryAdd(key, result);
                 }
 
-                return (InContainerBinder)result;
+                return result;
             }
 
-            private InContainerBinder MakeNamespaceBinder(CSharpSyntaxNode node, NameSyntax name, InContainerBinder outer, bool inUsing)
+            private Binder MakeNamespaceBinder(CSharpSyntaxNode node, NameSyntax name, Binder outer, bool inUsing)
             {
                 QualifiedNameSyntax dotted;
                 while ((dotted = name as QualifiedNameSyntax) != null)
@@ -788,7 +818,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     name = dotted.Right;
                 }
 
-                NamespaceOrTypeSymbol container = outer.Container;
+                NamespaceOrTypeSymbol container;
+
+                if (outer is InContainerBinder inContainerBinder)
+                {
+                    container = inContainerBinder.Container;
+                }
+                else
+                {
+                    Debug.Assert(outer is SimpleProgramUnitBinder);
+                    container = outer.Compilation.GlobalNamespace;
+                }
+
                 NamespaceSymbol ns = ((NamespaceSymbol)container).GetNestedNamespace(name);
                 if ((object)ns == null) return outer;
                 return new InContainerBinder(ns, outer, node, inUsing: inUsing);
@@ -802,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     inScript: InScript);
             }
 
-            internal InContainerBinder VisitCompilationUnit(CompilationUnitSyntax compilationUnit, bool inUsing, bool inScript)
+            internal Binder VisitCompilationUnit(CompilationUnitSyntax compilationUnit, bool inUsing, bool inScript)
             {
                 if (compilationUnit != syntaxTree.GetRoot())
                 {
@@ -878,12 +919,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // + global namespace with top-level imports
                         // 
                         result = new InContainerBinder(compilation.GlobalNamespace, result, compilationUnit, inUsing: inUsing);
+
+                        if (!inUsing &&
+                            SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation, compilationUnit, fallbackToMainEntryPoint: true) is SynthesizedSimpleProgramEntryPointSymbol simpleProgram)
+                        {
+                            ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder(_factory._ignoreAccessibility);
+                            result = new SimpleProgramUnitBinder(result, (SimpleProgramBinder)bodyBinder.GetBinder(simpleProgram.SyntaxNode));
+                        }
                     }
 
                     binderCache.TryAdd(key, result);
                 }
 
-                return (InContainerBinder)result;
+                return result;
             }
 
             private static BinderCacheKey CreateBinderCacheKey(CSharpSyntaxNode node, NodeUsage usage)

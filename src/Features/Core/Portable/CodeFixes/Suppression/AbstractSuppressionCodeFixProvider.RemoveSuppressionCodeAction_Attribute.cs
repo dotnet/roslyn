@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 }
 
                 public override RemoveSuppressionCodeAction CloneForFixMultipleContext()
-                {
-                    return new AttributeRemoveAction(_attribute, _project, _diagnostic, Fixer, forFixMultipleContext: true);
-                }
+                    => new AttributeRemoveAction(_attribute, _project, _diagnostic, Fixer, forFixMultipleContext: true);
 
                 public override SyntaxTree SyntaxTreeToModify => _attribute.ApplicationSyntaxReference.SyntaxTree;
 
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         attributeNode;
                 }
 
-                protected async override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
                 {
                     var attributeNode = await GetAttributeToRemoveAsync(cancellationToken).ConfigureAwait(false);
                     var documentWithAttribute = _project.GetDocument(attributeNode.SyntaxTree);

@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
@@ -65,6 +64,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public IEventSymbol? OverriddenEvent => null;
 
-        public ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray.Create<CustomModifier>();
+        public static ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray.Create<CustomModifier>();
     }
 }

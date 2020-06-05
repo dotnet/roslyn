@@ -11,14 +11,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
     internal partial class AbstractLibraryManager : IOleCommandTarget
     {
         protected virtual bool TryQueryStatus(Guid commandGroup, uint commandId, ref OLECMDF commandFlags)
-        {
-            return false;
-        }
+            => false;
 
         protected virtual bool TryExec(Guid commandGroup, uint commandId)
-        {
-            return false;
-        }
+            => false;
 
         int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {

@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
         Inherits AbstractGenerateVariableService(Of VisualBasicGenerateVariableService, SimpleNameSyntax, ExpressionSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -89,7 +90,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
                 simpleNameOrMemberAccessExpression = identifierName
             End If
 
-
             Dim semanticModel = DirectCast(document.SemanticModel, SemanticModel)
             If Not IsLegal(semanticModel, simpleNameOrMemberAccessExpression, cancellationToken) AndAlso
                Not simpleNameOrMemberAccessExpression.Parent.IsKind(SyntaxKind.NameOfExpression, SyntaxKind.NamedFieldInitializer) Then
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
             Return True
         End Function
 
-        Private Function IsLegal(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function IsLegal(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As Boolean
             Dim tree = semanticModel.SyntaxTree
             Dim position = expression.SpanStart
 

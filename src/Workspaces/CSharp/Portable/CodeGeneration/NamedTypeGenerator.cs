@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                      cancellationToken)
                 : declaration;
 
-            return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options));
+            return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options, cancellationToken));
         }
 
         public static MemberDeclarationSyntax UpdateNamedTypeDeclaration(
@@ -279,8 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(INamedTypeSymbol namedType)
-        {
-            return namedType.TypeParameters.GenerateConstraintClauses();
-        }
+            => namedType.TypeParameters.GenerateConstraintClauses();
     }
 }

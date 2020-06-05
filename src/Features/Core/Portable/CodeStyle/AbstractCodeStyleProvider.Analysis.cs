@@ -5,7 +5,6 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// To that end, we don't let the subclass have direct access to the real <see
         /// cref="Diagnostics.AnalysisContext"/>. Instead, we pass this type to the subclass for it
         /// register with.  We then check if the registration should proceed given the <see
-        /// cref="CodeStyleOption{T}"/>
+        /// cref="CodeStyleOption2{T}"/>
         /// and the current <see cref="SyntaxTree"/> being processed.  If not, we don't do the
         /// actual registration.
         /// </summary>
@@ -73,21 +72,21 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     c => analyze(c.Compilation, _this));
             }
 
-            public void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext, CodeStyleOption<TOptionKind>> analyze)
+            public void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext, CodeStyleOption2<TOptionKind>> analyze)
             {
                 var provider = _codeStyleProvider;
                 _context.RegisterCodeBlockAction(
                     c => AnalyzeIfEnabled(provider, c, analyze, c.Options, c.SemanticModel.SyntaxTree, c.CancellationToken));
             }
 
-            public void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext, CodeStyleOption<TOptionKind>> analyze)
+            public void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext, CodeStyleOption2<TOptionKind>> analyze)
             {
                 var provider = _codeStyleProvider;
                 _context.RegisterSemanticModelAction(
                     c => AnalyzeIfEnabled(provider, c, analyze, c.Options, c.SemanticModel.SyntaxTree, c.CancellationToken));
             }
 
-            public void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext, CodeStyleOption<TOptionKind>> analyze)
+            public void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext, CodeStyleOption2<TOptionKind>> analyze)
             {
                 var provider = _codeStyleProvider;
                 _context.RegisterSyntaxTreeAction(
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
 
             public void RegisterOperationAction(
-                Action<OperationAnalysisContext, CodeStyleOption<TOptionKind>> analyze,
+                Action<OperationAnalysisContext, CodeStyleOption2<TOptionKind>> analyze,
                 params OperationKind[] operationKinds)
             {
                 var provider = _codeStyleProvider;
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
 
             public void RegisterSyntaxNodeAction<TSyntaxKind>(
-                Action<SyntaxNodeAnalysisContext, CodeStyleOption<TOptionKind>> analyze,
+                Action<SyntaxNodeAnalysisContext, CodeStyleOption2<TOptionKind>> analyze,
                 params TSyntaxKind[] syntaxKinds) where TSyntaxKind : struct
             {
                 var provider = _codeStyleProvider;
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
 
             private static void AnalyzeIfEnabled<TContext>(
-                TCodeStyleProvider provider, TContext context, Action<TContext, CodeStyleOption<TOptionKind>> analyze,
+                TCodeStyleProvider provider, TContext context, Action<TContext, CodeStyleOption2<TOptionKind>> analyze,
                 AnalyzerOptions options, SyntaxTree syntaxTree, CancellationToken cancellationToken)
             {
                 var optionValue = options.GetOption(provider._option, syntaxTree, cancellationToken);

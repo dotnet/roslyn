@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void TestTemporaryStorage(ITemporaryStorageService temporaryStorageService, SourceText text)
+        private static void TestTemporaryStorage(ITemporaryStorageService temporaryStorageService, SourceText text)
         {
             // create a temporary storage location
             var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None);
@@ -113,12 +112,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => storage.ReadStream());
             Assert.Throws<AggregateException>(() => storage.ReadStreamAsync().Result);
 
-            // 0 length streams are not allowed
-            var stream = new MemoryStream();
-            Assert.Throws<ArgumentOutOfRangeException>(() => storage.WriteStream(stream));
-            Assert.Throws<AggregateException>(() => storage.WriteStreamAsync(stream).Wait());
-
             // write a normal stream
+            var stream = new MemoryStream();
             stream.Write(new byte[] { 42 }, 0, 1);
             stream.Position = 0;
             storage.WriteStreamAsync(stream).Wait();
@@ -126,6 +121,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Writing multiple times is not allowed
             Assert.Throws<InvalidOperationException>(() => storage.WriteStream(null));
             Assert.Throws<AggregateException>(() => storage.WriteStreamAsync(null).Wait());
+        }
+
+        [Fact]
+        public void TestZeroLengthStreams()
+        {
+            var textFactory = new TextFactoryService();
+            var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
+            var storage = service.CreateTemporaryStreamStorage(CancellationToken.None);
+
+            // 0 length streams are allowed
+            using (var stream1 = new MemoryStream())
+            {
+                storage.WriteStream(stream1);
+            }
+
+            using (var stream2 = storage.ReadStream())
+            {
+                Assert.Equal(0, stream2.Length);
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -169,9 +183,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             GC.Collect(2);
         }
 
-        // We want to keep this test around, but not have it disabled/associated with a bug
-        // [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        private void TestTemporaryStorageScaling()
+        [Fact(Skip = "This test exists so it can be locally executed for scale testing, when required. Do not remove this test or unskip it in CI.")]
+        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestTemporaryStorageScaling()
         {
             // This will churn through 4GB of memory.  It validates that we don't
             // use up our address space in a 32 bit process.

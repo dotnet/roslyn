@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -12,31 +13,25 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         // gain of having hand written iterator seems about 50-100ms over auto generated one.
         // not sure whether it is worth it. but I already wrote it to test, so going to just keep it.
-        private class Iterator : IEnumerable<ValueTuple<int, SyntaxToken, SyntaxToken>>
+        private class Iterator : IEnumerable<(int index, SyntaxToken currentToken, SyntaxToken nextToken)>
         {
             private readonly List<SyntaxToken> _tokensIncludingZeroWidth;
 
             public Iterator(List<SyntaxToken> tokensIncludingZeroWidth)
-            {
-                _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
-            }
+                => _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
 
-            public IEnumerator<ValueTuple<int, SyntaxToken, SyntaxToken>> GetEnumerator()
-            {
-                return new Enumerator(_tokensIncludingZeroWidth);
-            }
+            public IEnumerator<(int index, SyntaxToken currentToken, SyntaxToken nextToken)> GetEnumerator()
+                => new Enumerator(_tokensIncludingZeroWidth);
 
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
+                => GetEnumerator();
 
-            private struct Enumerator : IEnumerator<ValueTuple<int, SyntaxToken, SyntaxToken>>
+            private struct Enumerator : IEnumerator<(int index, SyntaxToken currentToken, SyntaxToken nextToken)>
             {
                 private readonly List<SyntaxToken> _tokensIncludingZeroWidth;
                 private readonly int _maxCount;
 
-                private ValueTuple<int, SyntaxToken, SyntaxToken> _current;
+                private (int index, SyntaxToken currentToken, SyntaxToken nextToken) _current;
                 private int _index;
 
                 public Enumerator(List<SyntaxToken> tokensIncludingZeroWidth)
@@ -45,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     _maxCount = _tokensIncludingZeroWidth.Count - 1;
 
                     _index = 0;
-                    _current = new ValueTuple<int, SyntaxToken, SyntaxToken>();
+                    _current = default;
                 }
 
                 public void Dispose()
@@ -56,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 {
                     if (_index < _maxCount)
                     {
-                        _current = ValueTuple.Create(_index, _tokensIncludingZeroWidth[_index], _tokensIncludingZeroWidth[_index + 1]);
+                        _current = (_index, _tokensIncludingZeroWidth[_index], _tokensIncludingZeroWidth[_index + 1]);
                         _index++;
                         return true;
                     }
@@ -67,11 +62,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 private bool MoveNextRare()
                 {
                     _index = _maxCount + 1;
-                    _current = new ValueTuple<int, SyntaxToken, SyntaxToken>();
+                    _current = default;
                     return false;
                 }
 
-                public ValueTuple<int, SyntaxToken, SyntaxToken> Current => _current;
+                public (int index, SyntaxToken currentToken, SyntaxToken nextToken) Current => _current;
 
                 object System.Collections.IEnumerator.Current
                 {

@@ -117,37 +117,30 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 out var disposeAnalysisResult, out var pointsToAnalysisResult,
                 interproceduralAnalysisPredicateOpt))
             {
-                var notDisposedDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
-                var mayBeNotDisposedDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
-                try
+                using var _1 = ArrayBuilder<Diagnostic>.GetInstance(out var notDisposedDiagnostics);
+                using var _2 = ArrayBuilder<Diagnostic>.GetInstance(out var mayBeNotDisposedDiagnostics);
+
+                // Compute diagnostics for undisposed objects at exit block.
+                var exitBlock = disposeAnalysisResult.ControlFlowGraph.ExitBlock();
+                var disposeDataAtExit = disposeAnalysisResult.ExitBlockOutput.Data;
+                ComputeDiagnostics(disposeDataAtExit, notDisposedDiagnostics, mayBeNotDisposedDiagnostics,
+                    disposeAnalysisResult, pointsToAnalysisResult);
+
+                if (disposeAnalysisResult.ControlFlowGraph.OriginalOperation.HasAnyOperationDescendant(o => o.Kind == OperationKind.None))
                 {
-                    // Compute diagnostics for undisposed objects at exit block.
-                    var exitBlock = disposeAnalysisResult.ControlFlowGraph.ExitBlock();
-                    var disposeDataAtExit = disposeAnalysisResult.ExitBlockOutput.Data;
-                    ComputeDiagnostics(disposeDataAtExit, notDisposedDiagnostics, mayBeNotDisposedDiagnostics,
-                        disposeAnalysisResult, pointsToAnalysisResult);
-
-                    if (disposeAnalysisResult.ControlFlowGraph.OriginalOperation.HasAnyOperationDescendant(o => o.Kind == OperationKind.None))
-                    {
-                        // Workaround for https://github.com/dotnet/roslyn/issues/32100
-                        // Bail out in presence of OperationKind.None - not implemented IOperation.
-                        return;
-                    }
-
-                    // Report diagnostics preferring *not* disposed diagnostics over may be not disposed diagnostics
-                    // and avoiding duplicates.
-                    foreach (var diagnostic in notDisposedDiagnostics.Concat(mayBeNotDisposedDiagnostics))
-                    {
-                        if (reportedLocations.TryAdd(diagnostic.Location, true))
-                        {
-                            operationBlockContext.ReportDiagnostic(diagnostic);
-                        }
-                    }
+                    // Workaround for https://github.com/dotnet/roslyn/issues/32100
+                    // Bail out in presence of OperationKind.None - not implemented IOperation.
+                    return;
                 }
-                finally
+
+                // Report diagnostics preferring *not* disposed diagnostics over may be not disposed diagnostics
+                // and avoiding duplicates.
+                foreach (var diagnostic in notDisposedDiagnostics.Concat(mayBeNotDisposedDiagnostics))
                 {
-                    notDisposedDiagnostics.Free();
-                    mayBeNotDisposedDiagnostics.Free();
+                    if (reportedLocations.TryAdd(diagnostic.Location, true))
+                    {
+                        operationBlockContext.ReportDiagnostic(diagnostic);
+                    }
                 }
             }
 

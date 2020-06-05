@@ -19,9 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public readonly RoslynDefinitionBucket DefinitionBucket;
 
             protected Entry(RoslynDefinitionBucket definitionBucket)
-            {
-                DefinitionBucket = definitionBucket;
-            }
+                => DefinitionBucket = definitionBucket;
 
             public bool TryGetValue(string keyName, out object content)
             {

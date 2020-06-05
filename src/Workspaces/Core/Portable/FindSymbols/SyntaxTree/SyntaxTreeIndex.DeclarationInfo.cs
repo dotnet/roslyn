@@ -10,14 +10,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SyntaxTreeIndex
     {
-        private struct DeclarationInfo
+        private readonly struct DeclarationInfo
         {
             public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
 
             public DeclarationInfo(ImmutableArray<DeclaredSymbolInfo> declaredSymbolInfos)
-            {
-                DeclaredSymbolInfos = declaredSymbolInfos;
-            }
+                => DeclaredSymbolInfos = declaredSymbolInfos;
 
             public void WriteTo(ObjectWriter writer)
             {

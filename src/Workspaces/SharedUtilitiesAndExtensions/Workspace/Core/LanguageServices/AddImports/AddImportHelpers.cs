@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.AddImports
     internal static class AddImportHelpers
     {
         public static TRootSyntax MoveTrivia<TRootSyntax, TImportDirectiveSyntax>(
-            ISyntaxFactsService syntaxFacts,
+            ISyntaxFacts syntaxFacts,
             TRootSyntax root,
             SyntaxList<TImportDirectiveSyntax> existingImports,
             List<TImportDirectiveSyntax> newImports)
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.AddImports
                     newImports[0] = newImports[0].WithLeadingTrivia(originalFirstUsing.GetLeadingTrivia());
 
                     var trailingTrivia = newImports[0].GetTrailingTrivia();
-                    if (!syntaxFacts.IsEndOfLineTrivia(trailingTrivia.Count == 0 ? default : trailingTrivia[trailingTrivia.Count - 1]))
+                    if (!syntaxFacts.IsEndOfLineTrivia(trailingTrivia.Count == 0 ? default : trailingTrivia[^1]))
                     {
                         newImports[0] = newImports[0].WithAppendedTrailingTrivia(syntaxFacts.ElasticCarriageReturnLineFeed);
                     }
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             return root;
         }
 
-        private static bool IsDocCommentOrElastic(ISyntaxFactsService syntaxFacts, SyntaxTrivia t)
+        private static bool IsDocCommentOrElastic(ISyntaxFacts syntaxFacts, SyntaxTrivia t)
             => syntaxFacts.IsDocumentationComment(t) || syntaxFacts.IsElastic(t);
     }
 }

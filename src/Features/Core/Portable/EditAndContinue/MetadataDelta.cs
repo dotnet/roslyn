@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly ImmutableArray<byte> Bytes;
 
         public MetadataDelta(ImmutableArray<byte> bytes)
-        {
-            Bytes = bytes;
-        }
+            => Bytes = bytes;
     }
 }

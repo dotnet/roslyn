@@ -18,11 +18,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         }
 
         private static void AssertTrimmedEqual(string expected, string actual)
-        {
-            Assert.Equal(expected.Trim(), actual.Trim());
-        }
+            => Assert.Equal(expected.Trim(), actual.Trim());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44714"), Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public void TestPreserveDefaultPreferences()
         {
             AssertTrimmedEqual(
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 ReserializePreferences(NamingStylePreferences.DefaultNamingPreferencesString));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44714"), Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public void TestCannotUpgrade3To5()
         {
             var serializedPreferences = @"
@@ -140,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
                 ReserializePreferences(serializedPreferences));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44714"), Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public void TestCannotDowngradeHigherThanLatestVersion5()
         {
             var serializedPreferences = @"

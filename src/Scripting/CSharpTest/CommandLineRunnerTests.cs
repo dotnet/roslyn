@@ -235,7 +235,7 @@ $@"{LogoAndHelpPrompt}
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"{LogoAndHelpPrompt}
 > (1,2)
-[(1, 2)]
+(1, 2)
 > ", runner.Console.Out.ToString());
         }
 
@@ -407,7 +407,6 @@ $@"""@arg1""
 /arg2
 -arg3
 --arg4");
-
 
             var runner = CreateRunner(
                 args: new[] { $"@{rsp.Path}", "/arg5", "--", "/arg7" },
@@ -828,6 +827,29 @@ $@"{LogoAndHelpPrompt}
 > #help
 { ScriptingResources.HelpText }
 > ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void LangVersions()
+        {
+            var runner = CreateRunner(new[] { "/langversion:?" });
+            Assert.Equal(0, runner.RunInteractive());
+
+            var expected = Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>()
+                .Select(v => v.ToDisplayString());
+
+            var actual = runner.Console.Out.ToString();
+            var acceptableSurroundingChar = new[] { '\r', '\n', '(', ')', ' ' };
+            foreach (var version in expected)
+            {
+                if (version == "latest")
+                    continue;
+
+                var foundIndex = actual.IndexOf(version);
+                Assert.True(foundIndex > 0, $"Missing version '{version}'");
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex - 1]) >= 0);
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex + version.Length]) >= 0);
+            }
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]

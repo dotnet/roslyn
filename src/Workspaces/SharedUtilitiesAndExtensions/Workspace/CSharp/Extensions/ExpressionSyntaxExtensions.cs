@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -49,14 +50,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return parenthesized.WithTriviaFrom(expression);
         }
 
+#if !CODE_STYLE
+
+        public static PatternSyntax Parenthesize(
+            this PatternSyntax pattern, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+        {
+            var withoutTrivia = pattern.WithoutTrivia();
+            var parenthesized = includeElasticTrivia
+                ? SyntaxFactory.ParenthesizedPattern(withoutTrivia)
+                : SyntaxFactory.ParenthesizedPattern(
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
+                    withoutTrivia,
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
+
+            var result = parenthesized.WithTriviaFrom(pattern);
+            return addSimplifierAnnotation
+                ? result.WithAdditionalAnnotations(Simplifier.Annotation)
+                : result;
+        }
+
+#endif
+
         public static CastExpressionSyntax Cast(
             this ExpressionSyntax expression,
             ITypeSymbol targetType)
         {
-            return SyntaxFactory.CastExpression(
-                type: targetType.GenerateTypeSyntax(),
-                expression: expression.Parenthesize())
-                .WithAdditionalAnnotations(Simplifier.Annotation);
+            var parenthesized = expression.Parenthesize();
+            var castExpression = SyntaxFactory.CastExpression(
+                targetType.GenerateTypeSyntax(), parenthesized.WithoutTrivia()).WithTriviaFrom(parenthesized);
+
+            return castExpression.WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
         /// <summary>
@@ -102,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var speculatedCastExpression = (CastExpressionSyntax)specAnalyzer.ReplacedExpression;
-            if (!speculatedCastExpression.IsUnnecessaryCast(speculativeSemanticModel, cancellationToken))
+            if (!CastSimplifier.IsUnnecessaryCast(speculatedCastExpression, speculativeSemanticModel, cancellationToken))
             {
                 return expression;
             }

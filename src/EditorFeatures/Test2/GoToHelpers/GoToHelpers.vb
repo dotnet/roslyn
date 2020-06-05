@@ -7,14 +7,20 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 
 Friend Class GoToHelpers
     Friend Shared Async Function TestAsync(
-                                          workspaceDefinition As XElement,
-                                          testingMethod As Func(Of Document, Integer, SimpleFindUsagesContext, Task),
-                                          Optional shouldSucceed As Boolean = True,
-                                          Optional metadataDefinitions As String() = Nothing) As Task
+            workspaceDefinition As XElement,
+            outOfProcess As Boolean,
+            testingMethod As Func(Of Document, Integer, SimpleFindUsagesContext, Task),
+            Optional shouldSucceed As Boolean = True,
+            Optional metadataDefinitions As String() = Nothing) As Task
+
         Using workspace = TestWorkspace.Create(workspaceDefinition)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
+
             Dim documentWithCursor = workspace.DocumentWithCursor
             Dim position = documentWithCursor.CursorPosition.Value
 

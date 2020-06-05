@@ -104,7 +104,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken);
 
-        ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken);
+#nullable enable
+        ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode? node, SyntaxToken token, CancellationToken cancellationToken);
+#nullable disable
 
         SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location,
@@ -120,6 +122,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken GenerateUniqueLocalName(
             SemanticModel semanticModel, SyntaxNode location,
             SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
+
+        SyntaxToken GenerateUniqueName(string baseName, IEnumerable<string> usedNames);
 
         bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
     }

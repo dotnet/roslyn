@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         internal override AbstractSyntaxStructureProvider CreateProvider() => new OperatorDeclarationStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestOperator()
+        public async Task TestOperator1()
         {
             const string code = @"
 class C
@@ -24,6 +24,79 @@ class C
     {|hint:$$public static int operator +(int i){|textspan:
     {
     }|}|}
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestOperator2()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public static int operator +(int i){|textspan:
+    {
+    }|}|}
+    public static int operator -(int i)
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestOperator3()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public static int operator +(int i){|textspan:
+    {
+    }|}|}
+
+    public static int operator -(int i)
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestOperator4()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public static int operator +(int i){|textspan:
+    {
+    }|}|}
+    public static explicit operator C(int i)
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestOperator5()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public static int operator +(int i){|textspan:
+    {
+    }|}|}
+    public static explicit operator C(int i)
+    {
+    }
 }";
 
             await VerifyBlockSpansAsync(code,

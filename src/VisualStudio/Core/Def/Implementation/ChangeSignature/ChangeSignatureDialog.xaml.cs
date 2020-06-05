@@ -3,16 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.VisualStudio.PlatformUI;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
     /// <summary>
-    /// Interaction logic for ExtractInterfaceDialog.xaml
+    /// Interaction logic for ChangeSignatureDialog.xaml
     /// </summary>
     internal partial class ChangeSignatureDialog : DialogWindow
     {
@@ -25,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public string PreviewReferenceChanges { get { return ServicesVSResources.Preview_reference_changes; } }
         public string Remove { get { return ServicesVSResources.Re_move; } }
         public string Restore { get { return ServicesVSResources.Restore; } }
+        public string Add { get { return ServicesVSResources.Add; } }
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
 
@@ -48,6 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             defaultHeader.Header = ServicesVSResources.Default_;
             typeHeader.Header = ServicesVSResources.Type;
             parameterHeader.Header = ServicesVSResources.Parameter;
+            callsiteHeader.Header = ServicesVSResources.Callsite;
+            indexHeader.Header = ServicesVSResources.Index;
 
             ParameterText = SystemParameters.HighContrast ? SystemColors.WindowTextBrush : new SolidColorBrush(Color.FromArgb(0xFF, 0x1E, 0x1E, 0x1E));
             RemovedParameterText = SystemParameters.HighContrast ? SystemColors.WindowTextBrush : new SolidColorBrush(Colors.Gray);
@@ -62,9 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         private void ChangeSignatureDialog_Loaded(object sender, RoutedEventArgs e)
-        {
-            Members.Focus();
-        }
+            => Members.Focus();
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
@@ -75,9 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+            => DialogResult = false;
 
         private void MoveUp_Click(object sender, EventArgs e)
         {
@@ -125,6 +128,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
 
             SetFocusToSelectedRow();
+        }
+
+        private void Add_Click(object sender, RoutedEventArgs e)
+        {
+            var addParameterViewModel = _viewModel.CreateAddParameterDialogViewModel();
+            var dialog = new AddParameterDialog(addParameterViewModel);
+            var result = dialog.ShowModal();
+
+            ChangeSignatureLogger.LogAddParameterDialogLaunched();
+
+            if (result.HasValue && result.Value)
+            {
+                ChangeSignatureLogger.LogAddParameterDialogCommitted();
+
+                var addedParameter = new AddedParameter(
+                    addParameterViewModel.TypeSymbol,
+                    addParameterViewModel.TypeName,
+                    addParameterViewModel.ParameterName,
+                    GetCallSiteKind(addParameterViewModel),
+                    addParameterViewModel.IsCallsiteRegularValue ? addParameterViewModel.CallSiteValue : string.Empty,
+                    addParameterViewModel.IsRequired,
+                    addParameterViewModel.IsRequired ? string.Empty : addParameterViewModel.DefaultValue,
+                    addParameterViewModel.TypeBinds);
+
+                _viewModel.AddParameter(addedParameter);
+            }
+
+            SetFocusToSelectedRow();
+        }
+
+        private CallSiteKind GetCallSiteKind(AddParameterDialogViewModel addParameterViewModel)
+        {
+            if (addParameterViewModel.IsCallsiteInferred)
+                return CallSiteKind.Inferred;
+
+            if (addParameterViewModel.IsCallsiteOmitted)
+                return CallSiteKind.Omitted;
+
+            if (addParameterViewModel.IsCallsiteTodo)
+                return CallSiteKind.Todo;
+
+            Debug.Assert(addParameterViewModel.IsCallsiteRegularValue);
+
+            return addParameterViewModel.UseNamedArguments
+                ? CallSiteKind.ValueWithName
+                : CallSiteKind.Value;
         }
 
         private void SetFocusToSelectedRow()
@@ -212,9 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             private readonly ChangeSignatureDialog _dialog;
 
             public TestAccessor(ChangeSignatureDialog dialog)
-            {
-                _dialog = dialog;
-            }
+                => _dialog = dialog;
 
             public ChangeSignatureDialogViewModel ViewModel => _dialog._viewModel;
 
@@ -227,6 +274,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public DialogButton DownButton => _dialog.DownButton;
 
             public DialogButton UpButton => _dialog.UpButton;
+
+            public DialogButton AddButton => _dialog.AddButton;
 
             public DialogButton RemoveButton => _dialog.RemoveButton;
 

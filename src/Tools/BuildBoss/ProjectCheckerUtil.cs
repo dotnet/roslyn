@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -84,7 +88,6 @@ namespace BuildBoss
                     textWriter.WriteLine($"\tDo not use {propertyName}");
                     return false;
                 }
-
             }
 
             return true;
@@ -127,7 +130,8 @@ namespace BuildBoss
                 var name = packageRef.Name.Replace(".", "").Replace("-", "");
                 var floatingName = $"$({name}Version)";
                 var fixedName = $"$({name}FixedVersion)";
-                if (packageRef.Version != floatingName && packageRef.Version != fixedName)
+                if (packageRef.Version != floatingName && packageRef.Version != fixedName &&
+                   !IsAllowedFloatingVersion(packageRef, ProjectFilePath))
                 {
                     textWriter.WriteLine($"PackageReference {packageRef.Name} has incorrect version {packageRef.Version}");
                     textWriter.WriteLine($"Allowed values are {floatingName} or {fixedName}");
@@ -136,6 +140,10 @@ namespace BuildBoss
             }
 
             return allGood;
+
+            static bool IsAllowedFloatingVersion(PackageReference packageReference, string projectFilePath)
+                => packageReference.Name == "Microsoft.Build.Framework" &&
+                   Path.GetFileName(projectFilePath) == "Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj";
         }
 
         private bool CheckInternalsVisibleTo(TextWriter textWriter)

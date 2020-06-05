@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,12 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -25,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Elastic trivia Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -45,13 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 basePropertyDeclaration.AccessorList.Accessors.All(a => a.Body == null) &&
                 basePropertyDeclaration.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Any())
             {
-                var tokens = basePropertyDeclaration.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
+                var (firstToken, lastToken) = basePropertyDeclaration.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
 
-                list.Add(FormattingOperations.CreateSuppressOperation(tokens.Item1, tokens.Item2, SuppressOption.NoWrapping | SuppressOption.IgnoreElasticWrapping));
+                list.Add(FormattingOperations.CreateSuppressOperation(firstToken, lastToken, SuppressOption.NoWrapping | SuppressOption.IgnoreElasticWrapping));
             }
         }
 
-        private void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
             var initializer = GetInitializerNode(node);
             var lastTokenOfType = GetLastTokenOfType(node);
@@ -68,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private InitializerExpressionSyntax GetInitializerNode(SyntaxNode node)
+        private static InitializerExpressionSyntax? GetInitializerNode(SyntaxNode node)
             => node switch
             {
                 ObjectCreationExpressionSyntax objectCreationNode => objectCreationNode.Initializer,
@@ -77,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _ => null,
             };
 
-        private SyntaxToken? GetLastTokenOfType(SyntaxNode node)
+        private static SyntaxToken? GetLastTokenOfType(SyntaxNode node)
         {
             if (node is ObjectCreationExpressionSyntax objectCreationNode)
             {
@@ -97,9 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return null;
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
-            var operation = nextOperation.Invoke();
+            var operation = nextOperation.Invoke(in previousToken, in currentToken);
             if (operation == null)
             {
                 // If there are more than one Type Parameter Constraint Clause then each go in separate line
@@ -107,6 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     currentToken.IsKind(SyntaxKind.WhereKeyword) &&
                     currentToken.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause))
                 {
+                    RoslynDebug.AssertNotNull(previousToken.Parent);
+
                     // Check if there is another TypeParameterConstraintClause before
                     if (previousToken.Parent.Ancestors().OfType<TypeParameterConstraintClauseSyntax>().Any())
                     {
@@ -153,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return CreateAdjustNewLinesOperation(line, AdjustNewLinesOption.ForceLines);
         }
 
-        private AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembers(SyntaxToken previousToken, SyntaxToken currentToken)
+        private static AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenMembers(SyntaxToken previousToken, SyntaxToken currentToken)
         {
             if (!FormattingRangeHelper.InBetweenTwoMembers(previousToken, currentToken))
             {
@@ -219,9 +218,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return FormattingOperations.CreateAdjustNewLinesOperation(2 /* +1 for member itself and +1 for a blank line*/, AdjustNewLinesOption.ForceLines);
         }
 
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
-            var operation = nextOperation.Invoke();
+            var operation = nextOperation.Invoke(in previousToken, in currentToken);
             if (operation == null)
             {
                 return null;
@@ -256,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         // copied from compiler formatter to have same base forced format
-        private int LineBreaksAfter(SyntaxToken previousToken, SyntaxToken currentToken)
+        private static int LineBreaksAfter(SyntaxToken previousToken, SyntaxToken currentToken)
         {
             if (currentToken.Kind() == SyntaxKind.None)
             {
@@ -321,14 +320,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     break;
             }
 
-            if ((currentToken.Kind() == SyntaxKind.FromKeyword && currentToken.Parent.Kind() == SyntaxKind.FromClause) ||
-                (currentToken.Kind() == SyntaxKind.LetKeyword && currentToken.Parent.Kind() == SyntaxKind.LetClause) ||
-                (currentToken.Kind() == SyntaxKind.WhereKeyword && currentToken.Parent.Kind() == SyntaxKind.WhereClause) ||
-                (currentToken.Kind() == SyntaxKind.JoinKeyword && currentToken.Parent.Kind() == SyntaxKind.JoinClause) ||
-                (currentToken.Kind() == SyntaxKind.JoinKeyword && currentToken.Parent.Kind() == SyntaxKind.JoinIntoClause) ||
-                (currentToken.Kind() == SyntaxKind.OrderByKeyword && currentToken.Parent.Kind() == SyntaxKind.OrderByClause) ||
-                (currentToken.Kind() == SyntaxKind.SelectKeyword && currentToken.Parent.Kind() == SyntaxKind.SelectClause) ||
-                (currentToken.Kind() == SyntaxKind.GroupKeyword && currentToken.Parent.Kind() == SyntaxKind.GroupClause))
+            if ((currentToken.Kind() == SyntaxKind.FromKeyword && currentToken.Parent.IsKind(SyntaxKind.FromClause)) ||
+                (currentToken.Kind() == SyntaxKind.LetKeyword && currentToken.Parent.IsKind(SyntaxKind.LetClause)) ||
+                (currentToken.Kind() == SyntaxKind.WhereKeyword && currentToken.Parent.IsKind(SyntaxKind.WhereClause)) ||
+                (currentToken.Kind() == SyntaxKind.JoinKeyword && currentToken.Parent.IsKind(SyntaxKind.JoinClause)) ||
+                (currentToken.Kind() == SyntaxKind.JoinKeyword && currentToken.Parent.IsKind(SyntaxKind.JoinIntoClause)) ||
+                (currentToken.Kind() == SyntaxKind.OrderByKeyword && currentToken.Parent.IsKind(SyntaxKind.OrderByClause)) ||
+                (currentToken.Kind() == SyntaxKind.SelectKeyword && currentToken.Parent.IsKind(SyntaxKind.SelectClause)) ||
+                (currentToken.Kind() == SyntaxKind.GroupKeyword && currentToken.Parent.IsKind(SyntaxKind.GroupClause)))
             {
                 return 1;
             }
@@ -391,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
             else if (
                 nextToken.Kind() == SyntaxKind.WhileKeyword &&
-                nextToken.Parent.Kind() == SyntaxKind.DoStatement)
+                nextToken.Parent.IsKind(SyntaxKind.DoStatement))
             {
                 return 1;
             }
@@ -433,15 +432,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private bool IsWhitespace(SyntaxTrivia trivia)
+        private static bool IsWhitespace(SyntaxTrivia trivia)
         {
             return trivia.Kind() == SyntaxKind.WhitespaceTrivia
                 || trivia.Kind() == SyntaxKind.EndOfLineTrivia;
         }
 
-        private int GetNumberOfLines(IEnumerable<SyntaxTrivia> triviaList)
-        {
-            return triviaList.Sum(t => t.ToFullString().Replace("\r\n", "\r").Cast<char>().Count(c => SyntaxFacts.IsNewLine(c)));
-        }
+        private static int GetNumberOfLines(IEnumerable<SyntaxTrivia> triviaList)
+            => triviaList.Sum(t => t.ToFullString().Replace("\r\n", "\r").Cast<char>().Count(c => SyntaxFacts.IsNewLine(c)));
     }
 }

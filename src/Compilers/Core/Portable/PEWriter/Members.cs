@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -28,7 +29,7 @@ namespace Microsoft.Cci
         /// C/C++ style calling convention for unmanaged methods. The call stack is cleaned up by the caller, 
         /// which makes this convention suitable for calling methods that accept extra arguments.
         /// </summary>
-        C = SignatureCallingConvention.CDecl,
+        CDecl = SignatureCallingConvention.CDecl,
 
         /// <summary>
         /// The convention for calling managed methods with a fixed number of arguments.
@@ -68,7 +69,51 @@ namespace Microsoft.Cci
         /// <summary>
         /// The convention for calling an instance method that explicitly declares its first parameter to correspond to the this instance.
         /// </summary>
-        ExplicitThis = SignatureAttributes.ExplicitThis
+        ExplicitThis = SignatureAttributes.ExplicitThis,
+    }
+
+    internal static class CallingConventionUtils
+    {
+        private const SignatureCallingConvention SignatureCallingConventionMask =
+            SignatureCallingConvention.Default
+            | SignatureCallingConvention.CDecl
+            | SignatureCallingConvention.StdCall
+            | SignatureCallingConvention.ThisCall
+            | SignatureCallingConvention.FastCall
+            | SignatureCallingConvention.VarArgs;
+
+        private const SignatureAttributes SignatureAttributesMask =
+            SignatureAttributes.Generic
+            | SignatureAttributes.Instance
+            | SignatureAttributes.ExplicitThis;
+
+        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention, bool throwOnInvalidConvention = false)
+        {
+            var callingConvention = (CallingConvention)(convention & SignatureCallingConventionMask);
+            if (throwOnInvalidConvention && callingConvention != (CallingConvention)convention)
+            {
+                throw new UnsupportedSignatureContent();
+            }
+
+            return callingConvention;
+        }
+
+        internal static SignatureCallingConvention ToSignatureConvention(this CallingConvention convention)
+            => (SignatureCallingConvention)convention & SignatureCallingConventionMask;
+
+        /// <summary>
+        /// Compares calling conventions, ignoring calling convention attributes.
+        /// </summary>
+        internal static bool IsCallingConvention(this CallingConvention original, CallingConvention compare)
+        {
+            Debug.Assert((compare & ~(CallingConvention)SignatureCallingConventionMask) == 0);
+            return ((original & (CallingConvention)SignatureCallingConventionMask)) == compare;
+        }
+
+        internal static bool HasUnknownCallingConventionAttributeBits(this CallingConvention convention)
+            => (convention & ~((CallingConvention)SignatureCallingConventionMask
+                               | (CallingConvention)SignatureAttributesMask))
+               != 0;
     }
 
     /// <summary>

@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Indicates this <see cref="CompletionItem"/> is cached and reused across completion sessions. 
-        /// This might be used by completion system for things like deciding whether it can safaly cache and reuse
-        /// other data correspodning to this item.
+        /// This might be used by completion system for things like deciding whether it can safely cache and reuse
+        /// other data corresponding to this item.
         ///
         /// TODO: Revisit the approach we used for caching VS items.
         ///       https://github.com/dotnet/roslyn/issues/35160

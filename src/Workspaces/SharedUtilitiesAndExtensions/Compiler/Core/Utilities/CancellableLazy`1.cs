@@ -20,15 +20,13 @@ namespace Roslyn.Utilities
         }
 
         public CancellableLazy(T value)
-        {
-            _value = value;
-        }
+            => _value = value;
 
         public bool HasValue
         {
             get
             {
-                return this.TryGetValue(out var tmp);
+                return this.TryGetValue(out _);
             }
         }
 

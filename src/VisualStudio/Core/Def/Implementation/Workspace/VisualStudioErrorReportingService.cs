@@ -12,19 +12,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IInfoBarService _infoBarService;
 
         public VisualStudioErrorReportingService(IInfoBarService infoBarService)
-        {
-            _infoBarService = infoBarService;
-        }
+            => _infoBarService = infoBarService;
 
         public void ShowErrorInfoInActiveView(string message, params InfoBarUI[] items)
-        {
-            _infoBarService.ShowInfoBarInActiveView(message, items);
-        }
+            => _infoBarService.ShowInfoBarInActiveView(message, items);
 
         public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
-        {
-            _infoBarService.ShowInfoBarInGlobalView(message, items);
-        }
+            => _infoBarService.ShowInfoBarInGlobalView(message, items);
 
         public void ShowDetailedErrorInfo(Exception exception)
         {

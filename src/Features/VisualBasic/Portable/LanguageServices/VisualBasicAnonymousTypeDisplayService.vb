@@ -31,34 +31,34 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             kindOptions:=SymbolDisplayKindOptions.IncludeNamespaceKeyword Or SymbolDisplayKindOptions.IncludeTypeKeyword Or SymbolDisplayKindOptions.IncludeMemberKeyword)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Public Overrides Function GetAnonymousTypeParts(anonymousType As INamedTypeSymbol, semanticModel As SemanticModel, position As Integer, displayService As ISymbolDisplayService) As IEnumerable(Of SymbolDisplayPart)
+        Public Overrides Function GetAnonymousTypeParts(anonymousType As INamedTypeSymbol, semanticModel As SemanticModel, position As Integer) As IEnumerable(Of SymbolDisplayPart)
             If anonymousType.IsAnonymousDelegateType() Then
-                Return GetDelegateAnonymousType(anonymousType, semanticModel, position, displayService)
+                Return GetDelegateAnonymousType(anonymousType, semanticModel, position)
             Else
-                Return GetNormalAnonymousType(anonymousType, semanticModel, position, displayService)
+                Return GetNormalAnonymousType(anonymousType, semanticModel, position)
             End If
         End Function
 
-        Private Function GetDelegateAnonymousType(anonymousType As INamedTypeSymbol,
+        Private Shared Function GetDelegateAnonymousType(anonymousType As INamedTypeSymbol,
                                                   semanticModel As SemanticModel,
-                                                  position As Integer,
-                                                  displayService As ISymbolDisplayService) As IList(Of SymbolDisplayPart)
+                                                  position As Integer) As IList(Of SymbolDisplayPart)
             Dim method = anonymousType.DelegateInvokeMethod
 
             Dim members = New List(Of SymbolDisplayPart)()
             members.Add(Punctuation("<"))
             members.AddRange(MassageDelegateParts(
                 method,
-                displayService.ToMinimalDisplayParts(semanticModel, position, method, s_anonymousDelegateFormat)))
+                method.ToMinimalDisplayParts(semanticModel, position, s_anonymousDelegateFormat)))
             members.Add(Punctuation(">"))
 
             Return members
         End Function
 
-        Private Function MassageDelegateParts(delegateInvoke As IMethodSymbol,
+        Private Shared Function MassageDelegateParts(delegateInvoke As IMethodSymbol,
                                               parts As IEnumerable(Of SymbolDisplayPart)) As IEnumerable(Of SymbolDisplayPart)
             ' So ugly.  We remove the 'Invoke' name that was added by the symbol display service.
             Dim result = New List(Of SymbolDisplayPart)
@@ -77,10 +77,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Return result
         End Function
 
-        Private Function GetNormalAnonymousType(anonymousType As INamedTypeSymbol,
+        Private Shared Function GetNormalAnonymousType(anonymousType As INamedTypeSymbol,
                                                 semanticModel As SemanticModel,
-                                                position As Integer,
-                                                displayService As ISymbolDisplayService) As IList(Of SymbolDisplayPart)
+                                                position As Integer) As IList(Of SymbolDisplayPart)
             Dim members = New List(Of SymbolDisplayPart)()
 
             members.Add(Keyword(SyntaxFacts.GetText(SyntaxKind.NewKeyword)))
@@ -107,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 members.AddRange(Space())
                 members.Add(Keyword(SyntaxFacts.GetText(SyntaxKind.AsKeyword)))
                 members.AddRange(Space())
-                members.AddRange(displayService.ToMinimalDisplayParts(semanticModel, position, [property].Type).Select(Function(p) p.MassageErrorTypeNames("?")))
+                members.AddRange([property].Type.ToMinimalDisplayParts(semanticModel, position).Select(Function(p) p.MassageErrorTypeNames("?")))
             Next
 
             members.AddRange(Space())

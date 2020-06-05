@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
             // The first point indicates entry into the method and has the span of the method definition.
             SyntaxNode syntax = MethodDeclarationIfAvailable(methodBody.Syntax);
-            if (!method.IsImplicitlyDeclared)
+            if (!method.IsImplicitlyDeclared && !(method is SynthesizedSimpleProgramEntryPointSymbol))
             {
                 _methodEntryInstrumentation = AddAnalysisPoint(syntax, SkipAttributes(syntax), methodBodyFactory);
             }
@@ -223,7 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodBodyFactory.Literal(dynamicAnalysisSpans.Length)));
         }
 
-        public override BoundStatement CreateBlockPrologue(BoundBlock original, out LocalSymbol synthesizedLocal)
+#nullable enable
+        public override BoundStatement? CreateBlockPrologue(BoundBlock original, out LocalSymbol? synthesizedLocal)
+#nullable restore
         {
             BoundStatement previousPrologue = base.CreateBlockPrologue(original, out synthesizedLocal);
             if (_methodBody == original)

@@ -10,6 +10,7 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 #if DEBUG
 using System.Linq.Expressions;
@@ -110,6 +111,7 @@ namespace Roslyn.Utilities
         // simply changing the default underlying behavior, but rejected that idea because there was
         // a good chance that existing users had already drawn a dependency on the current behavior.
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task SafeContinueWith(
             this Task task,
             Action<Task> continuationAction,
@@ -128,6 +130,7 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationFunction, cancellationToken, continuationOptions, scheduler);
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<TResult> SafeContinueWith<TInput, TResult>(
             this Task<TInput> task,
             Func<Task<TInput>, TResult> continuationFunction,
@@ -138,6 +141,7 @@ namespace Roslyn.Utilities
                 task, continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<TResult> SafeContinueWith<TInput, TResult>(
             this Task<TInput> task,
             Func<Task<TInput>, TResult> continuationFunction,
@@ -151,6 +155,7 @@ namespace Roslyn.Utilities
                 (Task antecedent) => continuationFunction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task SafeContinueWith<TInput>(
             this Task<TInput> task,
             Action<Task<TInput>> continuationAction,
@@ -164,6 +169,7 @@ namespace Roslyn.Utilities
                 (Task antecedent) => continuationAction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<TResult> SafeContinueWith<TResult>(
             this Task task,
             Func<Task, TResult> continuationFunction,
@@ -207,6 +213,7 @@ namespace Roslyn.Utilities
             return task.ContinueWith(outerFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<TResult> SafeContinueWith<TResult>(
             this Task task,
             Func<Task, TResult> continuationFunction,
@@ -216,6 +223,7 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task SafeContinueWith(
             this Task task,
             Action<Task> continuationAction,
@@ -224,6 +232,7 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationAction, CancellationToken.None, TaskContinuationOptions.None, scheduler);
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task SafeContinueWith<TInput>(
             this Task<TInput> task,
             Action<Task<TInput>> continuationFunction,
@@ -232,6 +241,7 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationFunction, CancellationToken.None, TaskContinuationOptions.None, scheduler);
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<TResult> SafeContinueWith<TInput, TResult>(
             this Task<TInput> task,
             Func<Task<TInput>, TResult> continuationFunction,
@@ -240,6 +250,7 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationFunction, CancellationToken.None, TaskContinuationOptions.None, scheduler);
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task SafeContinueWith(
             this Task task,
             Action<Task> continuationAction,
@@ -250,6 +261,7 @@ namespace Roslyn.Utilities
         }
 
         // Code provided by Stephen Toub.
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<TResult> ContinueWithAfterDelay<TInput, TResult>(
             this Task<TInput> task,
             Func<Task<TInput>, TResult> continuationFunction,
@@ -266,6 +278,7 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<TNResult> ContinueWithAfterDelay<TNResult>(
             this Task task,
             Func<TNResult> continuationFunction,
@@ -282,6 +295,7 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task<TNResult> ContinueWithAfterDelay<TNResult>(
             this Task task,
             Func<Task, TNResult> continuationFunction,
@@ -298,6 +312,7 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task ContinueWithAfterDelay(
             this Task task,
             Action continuationAction,
@@ -500,6 +515,23 @@ namespace Roslyn.Utilities
 
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
+                    _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
+                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
+        }
+
+        public static Task ContinueWithAfterDelayFromAsync(
+            this Task task,
+            Func<Task, Task> continuationFunction,
+            CancellationToken cancellationToken,
+            int millisecondsDelay,
+            IExpeditableDelaySource delaySource,
+            TaskContinuationOptions taskContinuationOptions,
+            TaskScheduler scheduler)
+        {
+            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
+
+            return task.SafeContinueWith(t =>
+                delaySource.Delay(TimeSpan.FromMilliseconds(millisecondsDelay), cancellationToken).SafeContinueWithFromAsync(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }

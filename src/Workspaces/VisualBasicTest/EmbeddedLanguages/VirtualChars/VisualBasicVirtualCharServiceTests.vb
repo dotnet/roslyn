@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
     Public Class VisualBasicVirtualCharServiceTests
         Private Const _statementPrefix As String = "dim v = "
 
-        Private Function GetStringToken(text As String) As SyntaxToken
+        Private Shared Function GetStringToken(text As String) As SyntaxToken
             Dim statement = _statementPrefix + text
             Dim parsedStatement = DirectCast(SyntaxFactory.ParseExecutableStatement(statement), LocalDeclarationStatementSyntax)
             Dim expression = parsedStatement.Declarators(0).Initializer.Value
@@ -26,17 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
             Return token
         End Function
 
-        Private Sub Test(stringText As String, expected As String)
+        Private Shared Sub Test(stringText As String, expected As String)
             Dim token = GetStringToken(stringText)
             Dim virtualChars = VisualBasicVirtualCharService.Instance.TryConvertToVirtualChars(token)
             Dim actual = ConvertToString(virtualChars)
             Assert.Equal(expected, actual)
-        End Sub
-
-        Private Sub TestFailure(stringText As String)
-            Dim token = GetStringToken(stringText)
-            Dim virtualChars = VisualBasicVirtualCharService.Instance.TryConvertToVirtualChars(token)
-            Assert.True(virtualChars.IsDefault)
         End Sub
 
         <Fact>
@@ -79,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
             Test("$""a""""b""", "['a',[2,3]]['""',[3,5]]['b',[5,6]]")
         End Sub
 
-        Private Function ConvertToString(virtualChars As VirtualCharSequence) As String
+        Private Shared Function ConvertToString(virtualChars As VirtualCharSequence) As String
             Dim strings = ArrayBuilder(Of String).GetInstance()
             For Each ch In virtualChars
                 strings.Add(ConvertToString(ch))
@@ -88,11 +82,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
             Return String.Join("", strings.ToImmutableAndFree())
         End Function
 
-        Private Function ConvertToString(vc As VirtualChar) As String
-            Return $"[{ConvertToString(vc.Char)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]"
+        Private Shared Function ConvertToString(vc As VirtualChar) As String
+            Return $"[{ConvertToString(ChrW(vc.Rune.Value))},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]"
         End Function
 
-        Private Function ConvertToString(c As Char) As String
+        Private Shared Function ConvertToString(c As Char) As String
             Return "'" + c + "'"
         End Function
     End Class

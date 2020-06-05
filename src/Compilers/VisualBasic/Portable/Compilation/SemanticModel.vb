@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend MustOverride Function GetAttributeMemberGroup(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Symbol)
 
         ''' <summary>
-        ''' Gets symbol information about an cref reference syntax node. This is the worker
+        ''' Gets symbol information about a cref reference syntax node. This is the worker
         ''' function that is overridden in various derived kinds of Semantic Models. 
         ''' </summary>
         Friend MustOverride Function GetCrefReferenceSymbolInfo(crefReference As CrefReferenceSyntax, options As SymbolInfoOptions, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
@@ -2355,7 +2355,7 @@ _Default:
         End Function
 
         ''' <summary>
-        ''' Given an modified identifier that is part of a variable declaration, get the
+        ''' Given a modified identifier that is part of a variable declaration, get the
         ''' corresponding symbol.
         ''' </summary>
         ''' <param name="identifierSyntax">The modified identifier that declares a variable.</param>
@@ -2417,7 +2417,7 @@ _Default:
         End Function
 
         ''' <summary>
-        ''' Given an FieldInitializerSyntax, get the corresponding symbol of anonymous type property.
+        ''' Given a FieldInitializerSyntax, get the corresponding symbol of anonymous type property.
         ''' </summary>
         ''' <param name="fieldInitializerSyntax">The anonymous object creation field initializer syntax.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists or 
@@ -2466,7 +2466,7 @@ _Default:
         End Function
 
         ''' <summary>
-        ''' Given an CollectionRangeVariableSyntax, get the corresponding symbol.
+        ''' Given a CollectionRangeVariableSyntax, get the corresponding symbol.
         ''' </summary>
         ''' <param name="rangeVariableSyntax">The range variable syntax that declares a variable.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
@@ -3432,7 +3432,7 @@ _Default:
             VisualBasicDeclarationComputer.ComputeDeclarationsInSpan(Me, span, getSymbol, builder, cancellationToken)
         End Sub
 
-        Friend Overrides Sub ComputeDeclarationsInNode(node As SyntaxNode, getSymbol As Boolean, builder As ArrayBuilder(Of DeclarationInfo), cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing)
+        Friend Overrides Sub ComputeDeclarationsInNode(node As SyntaxNode, associatedSymbol As ISymbol, getSymbol As Boolean, builder As ArrayBuilder(Of DeclarationInfo), cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing)
             VisualBasicDeclarationComputer.ComputeDeclarationsInNode(Me, node, getSymbol, builder, cancellationToken)
         End Sub
 

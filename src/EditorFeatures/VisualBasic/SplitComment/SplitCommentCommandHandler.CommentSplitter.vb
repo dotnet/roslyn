@@ -19,7 +19,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
                            sourceText As SourceText, root As SyntaxNode,
                            tabSize As Integer, useTabs As Boolean,
                            trivia As SyntaxTrivia, indentStyle As IndentStyle,
-                           hasSpaceAfterComment As Boolean,
                            cancellationToken As CancellationToken)
                 _document = document
                 _cursorPosition = cursorPosition
@@ -27,31 +26,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
                 _root = root
                 _tabSize = tabSize
                 _useTabs = useTabs
-                _hasSpaceAfterComment = hasSpaceAfterComment
                 _cancellationToken = cancellationToken
                 _trivia = trivia
                 _indentStyle = indentStyle
             End Sub
 
-            Public Shared Function Create(document As Document, position As Integer,
+            Public Shared Function TryCreate(document As Document, position As Integer,
                                       root As SyntaxNode, sourceText As SourceText,
                                       useTabs As Boolean, tabSize As Integer,
-                                      indentStyle As IndentStyle,
-                                      hasSpaceAfterComment As Boolean,
-                                      CancellationToken As CancellationToken) As CommentSplitter
+                                      indentStyle As IndentStyle, CancellationToken As CancellationToken) As CommentSplitter
                 Dim trivia = root.FindTrivia(position)
                 If trivia.IsKind(SyntaxKind.CommentTrivia) Then
                     Return New CommentSplitter(document, position, sourceText,
                                                root, tabSize, useTabs, trivia,
-                                               indentStyle, hasSpaceAfterComment, CancellationToken)
+                                               indentStyle, CancellationToken)
                 Else
                     Return Nothing
                 End If
             End Function
 
             Protected Overrides Function CreateSplitComment(indentString As String) As SyntaxTriviaList
-                Dim prefix = _sourceText.GetSubText(TextSpan.FromBounds(_trivia.SpanStart, _cursorPosition)).ToString().Trim(" "c)
-                Dim suffix = _sourceText.GetSubText(TextSpan.FromBounds(_cursorPosition, _trivia.Span.End)).ToString().Trim(" "c)
+                Dim prefix = _sourceText.GetSubText(TextSpan.FromBounds(_trivia.SpanStart, _cursorPosition)).ToString().TrimStart(" "c)
+                Dim suffix = _sourceText.GetSubText(TextSpan.FromBounds(_cursorPosition, _trivia.Span.End)).ToString().TrimEnd(" "c)
 
                 Dim triviaList = New List(Of SyntaxTrivia)
                 triviaList.Add(SyntaxFactory.CommentTrivia(prefix))
@@ -62,11 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
                     triviaList.Add(SyntaxFactory.LineContinuationTrivia("_"))
                 End If
 
-                If _hasSpaceAfterComment Then
-                    triviaList.Add(SyntaxFactory.CommentTrivia(indentString + CommentCharacter + " " + suffix))
-                Else
-                    triviaList.Add(SyntaxFactory.CommentTrivia(indentString + CommentCharacter + suffix))
-                End If
+                triviaList.Add(SyntaxFactory.CommentTrivia(indentString + CommentCharacter + " " + suffix))
 
                 Return SyntaxFactory.TriviaList(triviaList)
             End Function

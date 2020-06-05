@@ -30,6 +30,7 @@ This document provides guidance for thinking about language interactions and tes
     - GetCFG (`ControlFlowGraph`)
 - VB/F# interop
 - Performance and stress testing
+- Can build VS
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
@@ -209,6 +210,7 @@ a[e]
 x++ 
 x-- 
 new X() 
+new() 
 typeof(T) 
 default(T)
 default 
@@ -307,6 +309,8 @@ __makeref( x )
 - Interpolated string
 - Tuple literal
 - Tuple
+- Default literal
+- Implicit object creation (target-typed new)
 
 ## Types 
 
@@ -344,6 +348,12 @@ __makeref( x )
 - Declaration Pattern
 - Constant Pattern
 - Recursive Pattern
+- Parenthesized Pattern
+- `and` Pattern
+- `or` Pattern
+- `not` Pattern
+- Relational Pattern
+- Type Pattern
 
 ## Metadata table numbers / token prefixes 
  

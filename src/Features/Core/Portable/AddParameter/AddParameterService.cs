@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var solution = invocationDocument.Project.Solution;
 
             var referencedSymbols = fixAllReferences
-                ? await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false)
+                ? await FindMethodDeclarationReferencesAsync(invocationDocument, method, cancellationToken).ConfigureAwait(false)
                 : method.GetAllMethodSymbolsOfPartialParts();
 
             var anySymbolReferencesNotInSource = referencedSymbols.Any(symbol => !symbol.IsFromSource());
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var generator = editor.Generator;
                 foreach (var methodDeclaration in documentLookup)
                 {
-                    var methodNode = syntaxRoot.FindNode(methodDeclaration.Locations[0].SourceSpan);
+                    var methodNode = syntaxRoot.FindNode(methodDeclaration.Locations[0].SourceSpan, getInnermostNodeForTie: true);
                     var existingParameters = generator.GetParameters(methodNode);
                     var insertionIndex = newParameterIndex ?? existingParameters.Count;
 
@@ -122,7 +122,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
                             ConflictAnnotation.Create(FeaturesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
                     }
 
-
                     if (method.MethodKind == MethodKind.ReducedExtension)
                     {
                         insertionIndex++;
@@ -138,18 +137,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return solution;
         }
 
-        private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferences(
+        private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferencesAsync(
             Document invocationDocument, IMethodSymbol method, CancellationToken cancellationToken)
         {
-            var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
+            var progress = new StreamingProgressCollector();
 
             await SymbolFinder.FindReferencesAsync(
-                symbolAndProjectId: SymbolAndProjectId.Create(method, invocationDocument.Project.Id),
-                solution: invocationDocument.Project.Solution,
-                documents: null,
-                progress: progress,
-                options: FindReferencesSearchOptions.Default,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                method, invocationDocument.Project.Solution, progress: progress,
+                documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
             var referencedSymbols = progress.GetReferencedSymbols();
             return referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)
                                     .OfType<IMethodSymbol>()
@@ -157,7 +152,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                                     .ToImmutableArray();
         }
 
-        private IParameterSymbol CreateParameterSymbol(
+        private static IParameterSymbol CreateParameterSymbol(
             IMethodSymbol method,
             ITypeSymbol parameterType,
             RefKind refKind,

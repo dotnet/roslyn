@@ -6,12 +6,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -146,7 +144,7 @@ namespace Microsoft.CodeAnalysis
             // and names the compilation after the file that contains it. We don't want to create a compilation, 
             // bind Mains etc. here. Besides the msbuild always includes /out in the command line it produces.
             // So if we don't have the /out argument we name the compilation "<anonymous>".
-            string assemblyName = (commandLineArguments.OutputFileName != null) ?
+            var assemblyName = (commandLineArguments.OutputFileName != null) ?
                 Path.GetFileNameWithoutExtension(commandLineArguments.OutputFileName) : "<anonymous>";
 
             // TODO (tomat): what should be the assemblyName when compiling a netmodule? Should it be /moduleassemblyname

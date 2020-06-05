@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -26,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var rewrittenCount = VisitExpression(stackAllocNode.Count);
             var type = stackAllocNode.Type;
+            Debug.Assert(type is { });
 
             if (rewrittenCount.ConstantValue?.Int32Value == 0)
             {
@@ -44,11 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.IsPointerType())
             {
                 var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
-                return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, stackAllocNode.Type);
+                return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, type);
             }
             else if (TypeSymbol.Equals(type.OriginalDefinition, _compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.ConsiderEverything2))
             {
-                var spanType = (NamedTypeSymbol)stackAllocNode.Type;
+                var spanType = (NamedTypeSymbol)type;
                 var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
                 var locals = ArrayBuilder<LocalSymbol>.GetInstance();
                 var countTemp = CaptureExpressionInTempIfNeeded(rewrittenCount, sideEffects, locals, SynthesizedLocalKind.Spill);
@@ -66,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constructorCall = new BoundBadExpression(
                         syntax: stackAllocNode.Syntax,
                         resultKind: LookupResultKind.NotInvocable,
-                        symbols: ImmutableArray<Symbol>.Empty,
+                        symbols: ImmutableArray<Symbol?>.Empty,
                         childBoundNodes: ImmutableArray<BoundExpression>.Empty,
                         type: ErrorTypeSymbol.UnknownResultType);
                 }

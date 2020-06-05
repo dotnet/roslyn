@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -51,6 +50,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.OriginalDefinition;
             }
         }
+
+        /// <summary>
+        /// If a property is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
+        /// listed in those attributes.
+        /// Otherwise, an empty array.
+        /// </summary>
+        internal virtual ImmutableArray<string> NotNullMembers => ImmutableArray<string>.Empty;
+
+        internal virtual ImmutableArray<string> NotNullWhenTrueMembers => ImmutableArray<string>.Empty;
+
+        internal virtual ImmutableArray<string> NotNullWhenFalseMembers => ImmutableArray<string>.Empty;
 
         /// <summary>
         /// Indicates whether or not the property returns by reference
@@ -419,6 +429,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (ReferenceEquals(this, other))
             {
                 return true;
+            }
+
+            if (other is NativeIntegerPropertySymbol nps)
+            {
+                return nps.Equals(this, compareKind);
             }
 
             // This checks if the property have the same definition and the type parameters on the containing types have been

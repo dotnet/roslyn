@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.SignatureHelp
@@ -11,28 +10,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     friend MustInherit class AbstractOrdinaryMethodSignatureHelpProvider
         inherits AbstractVisualBasicSignatureHelpProvider
 
-        Protected Function ConvertMemberGroupMember(document As Document,
+        Protected Shared Function ConvertMemberGroupMember(document As Document,
                                                     member As ISymbol,
                                                     position As Integer,
-                                                    semanticModel As SemanticModel,
-                                                    cancellationToken As CancellationToken) As SignatureHelpItem
+                                                    semanticModel As SemanticModel) As SignatureHelpItem
 
             Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
-            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
 
             Return CreateItem(
                 member, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 member.IsParams(),
                 Function(c) member.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
                 GetMemberGroupPreambleParts(member, semanticModel, position),
                 GetSeparatorParts(),
                 GetMemberGroupPostambleParts(member, semanticModel, position),
-                member.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
+                member.GetParameters().Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
         End Function
 
-        Private Function GetMemberGroupPreambleParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+        Private Shared Function GetMemberGroupPreambleParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
 
             AddExtensionPreamble(symbol, result)
@@ -50,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return result
         End Function
 
-        Private Function GetMemberGroupPostambleParts(symbol As ISymbol,
+        Private Shared Function GetMemberGroupPostambleParts(symbol As ISymbol,
                                                       semanticModel As SemanticModel,
                                                       position As Integer) As IList(Of SymbolDisplayPart)
             Dim parts = New List(Of SymbolDisplayPart)

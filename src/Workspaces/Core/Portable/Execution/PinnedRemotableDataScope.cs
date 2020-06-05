@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -57,17 +56,6 @@ namespace Microsoft.CodeAnalysis.Execution
             storages.RegisterSnapshot(solutionInfo.ScopeId, storage);
 
             return new PinnedRemotableDataScope(storages, storage, solutionInfo);
-        }
-
-        /// <summary>
-        /// Add asset that is not part of solution to be part of this snapshot.
-        /// 
-        /// TODO: currently, this asset must be something <see cref="ISerializerService"/> can understand
-        ///       this should be changed so that custom serializer can be discoverable by <see cref="RemotableData.Kind"/> 
-        /// </summary>
-        public void AddAdditionalAsset(CustomAsset asset)
-        {
-            _storage.AddAdditionalAsset(asset);
         }
 
         public async ValueTask<RemotableData?> GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)

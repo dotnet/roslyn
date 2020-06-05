@@ -13,6 +13,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Public Class VisualBasicProjectExistsUIContextProviderLanguageService
         Implements IProjectExistsUIContextProviderLanguageService
 
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
+
         Public Function GetUIContext() As UIContext Implements IProjectExistsUIContextProviderLanguageService.GetUIContext
             Return UIContext.FromUIContextGuid(Guids.VisualBasicProjectExistsInWorkspaceUIContext)
         End Function

@@ -5,7 +5,6 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -13,14 +12,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Friend Class SpecialFormattingRule
         Inherits CompatAbstractFormattingRule
 
-        Public Sub New()
+        Private ReadOnly _indentStyle As FormattingOptions.IndentStyle
+
+        Public Sub New(indentStyle As FormattingOptions.IndentStyle)
+            _indentStyle = indentStyle
         End Sub
 
-        Public Overrides Sub AddSuppressOperationsSlow(list As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextSuppressOperationAction)
+        Public Overrides Sub AddSuppressOperationsSlow(list As List(Of SuppressOperation), node As SyntaxNode, ByRef nextOperation As NextSuppressOperationAction)
             ' don't suppress anything
         End Sub
 
-        Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
 
             ' unlike regular one. force position of attribute
             Dim attributeNode = TryCast(previousToken.Parent, AttributeListSyntax)
@@ -29,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             End If
 
             ' no line operation. no line changes what so ever
-            Dim lineOperation = MyBase.GetAdjustNewLinesOperationSlow(previousToken, currentToken, optionSet, nextOperation)
+            Dim lineOperation = MyBase.GetAdjustNewLinesOperationSlow(previousToken, currentToken, nextOperation)
             If lineOperation IsNot Nothing Then
                 ' basically means don't ever put new line if there isn't already one, but do
                 ' indentation.
@@ -39,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return Nothing
         End Function
 
-        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
-            Dim spaceOperation = MyBase.GetAdjustSpacesOperationSlow(previousToken, currentToken, optionSet, nextOperation)
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
+            Dim spaceOperation = MyBase.GetAdjustSpacesOperationSlow(previousToken, currentToken, nextOperation)
 
             ' if there is force space operation, convert it to ForceSpaceIfSingleLine operation.
             ' (force space basically means remove all line breaks)
@@ -51,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return spaceOperation
         End Function
 
-        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextIndentBlockOperationAction)
+        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
             nextOperation.Invoke()
 
             Dim singleLineLambdaFunction = TryCast(node, SingleLineLambdaExpressionSyntax)
@@ -77,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             AddIndentBlockOperations(Of TypeParameterListSyntax)(list, node, Function(n) Not n.OpenParenToken.IsMissing AndAlso n.Parameters.Count > 0, indentationDelta:=1)
         End Sub
 
-        Private Overloads Sub AddIndentBlockOperations(Of T As SyntaxNode)(list As List(Of IndentBlockOperation), node As SyntaxNode, predicate As Func(Of T, Boolean), Optional indentationDelta As Integer = 0)
+        Private Overloads Shared Sub AddIndentBlockOperations(Of T As SyntaxNode)(list As List(Of IndentBlockOperation), node As SyntaxNode, predicate As Func(Of T, Boolean), Optional indentationDelta As Integer = 0)
             Dim parameterOrArgumentList = TryCast(node, T)
             If parameterOrArgumentList Is Nothing Then
                 Return
@@ -90,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             AddIndentBlockOperations(list, parameterOrArgumentList, indentationDelta)
         End Sub
 
-        Private Overloads Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), parameterOrArgumentList As SyntaxNode, indentationDelta As Integer)
+        Private Overloads Shared Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), parameterOrArgumentList As SyntaxNode, indentationDelta As Integer)
             Dim openBrace = parameterOrArgumentList.GetFirstToken(includeZeroWidth:=True)
             Dim closeBrace = parameterOrArgumentList.GetLastToken(includeZeroWidth:=True)
 
@@ -107,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                     baseToken, startToken, endToken, TextSpan.FromBounds(baseToken.Span.End, closeBrace.Span.End), indentationDelta, IndentBlockOption.RelativePosition))
         End Sub
 
-        Private Sub AddArgumentListIndentBlockOperations(operations As List(Of IndentBlockOperation), node As SyntaxNode)
+        Private Shared Sub AddArgumentListIndentBlockOperations(operations As List(Of IndentBlockOperation), node As SyntaxNode)
             Dim argumentList = TryCast(node, ArgumentListSyntax)
             If argumentList Is Nothing OrElse
                argumentList.OpenParenToken.IsMissing OrElse
@@ -163,11 +165,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Next
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAlignTokensOperationAction)
-            MyBase.AddAlignTokensOperationsSlow(operations, node, optionSet, nextAction)
+        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, ByRef nextAction As NextAlignTokensOperationAction)
+            MyBase.AddAlignTokensOperationsSlow(operations, node, nextAction)
 
             ' Smart token formatting off: No token alignment
-            If optionSet.GetOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic) <> FormattingOptions.IndentStyle.Smart Then
+            If _indentStyle <> FormattingOptions.IndentStyle.Smart Then
                 Return
             End If
 
@@ -178,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             AddCaseClauseAlignTokensOperations(operations, node)
         End Sub
 
-        Private Sub AddCaseClauseAlignTokensOperations(operations As List(Of AlignTokensOperation), node As SyntaxNode)
+        Private Shared Sub AddCaseClauseAlignTokensOperations(operations As List(Of AlignTokensOperation), node As SyntaxNode)
             Dim caseStatement = TryCast(node, CaseStatementSyntax)
             If caseStatement Is Nothing OrElse caseStatement.Cases.Count = 0 Then
                 Return
@@ -195,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                            AlignTokensOption.AlignIndentationOfTokensToBaseToken))
         End Sub
 
-        Private Overloads Sub AddAlignTokensOperations(Of T As SyntaxNode)(operations As List(Of AlignTokensOperation), node As SyntaxNode, baseTokenGetter As Func(Of T, SyntaxToken))
+        Private Overloads Shared Sub AddAlignTokensOperations(Of T As SyntaxNode)(operations As List(Of AlignTokensOperation), node As SyntaxNode, baseTokenGetter As Func(Of T, SyntaxToken))
             Dim parameterList = TryCast(node, T)
             If parameterList Is Nothing Then
                 Return
@@ -209,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             AddAlignTokensOperations(operations, baseToken)
         End Sub
 
-        Private Overloads Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), baseToken As SyntaxToken)
+        Private Overloads Shared Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), baseToken As SyntaxToken)
             operations.Add(FormattingOperations.CreateAlignTokensOperation(
                            baseToken,
                            SpecializedCollections.SingletonEnumerable(baseToken.GetNextToken(includeZeroWidth:=True)),

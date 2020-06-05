@@ -100,9 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public static bool IsSpecialType(ITypeSymbol type, SpecialType specialType)
-        {
-            return type != null && type.SpecialType == specialType;
-        }
+            => type != null && type.SpecialType == specialType;
 
         public static int GetPreferredIndex(int index, IList<bool> availableIndices, bool forward)
         {

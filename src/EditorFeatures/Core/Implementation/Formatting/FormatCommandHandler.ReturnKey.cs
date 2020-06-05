@@ -13,13 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
     internal partial class FormatCommandHandler
     {
         public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
-        {
-            ExecuteReturnOrTypeCommand(args, nextHandler, context.OperationContext.UserCancellationToken);
-        }
+            => ExecuteReturnOrTypeCommand(args, nextHandler, context.OperationContext.UserCancellationToken);
     }
 }

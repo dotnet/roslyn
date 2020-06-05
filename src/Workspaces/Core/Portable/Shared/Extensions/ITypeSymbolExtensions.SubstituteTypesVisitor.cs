@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override ITypeSymbol DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             private ITypeSymbol VisitType(ITypeSymbol symbol)
             {
@@ -42,12 +40,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override ITypeSymbol VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return VisitType(symbol);
-            }
+                => VisitType(symbol);
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)
+                => VisitType(symbol);
+
+            public override ITypeSymbol VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
             {
+                // TODO(https://github.com/dotnet/roslyn/issues/43890): also visit the underlying types of
+                // the parameters and return value
                 return VisitType(symbol);
             }
 
@@ -72,9 +73,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 // If we have a containing type, make sure its type arguments are updated as well.
-                var updatedContainingType = symbol.ContainingType == null
-                    ? null
-                    : symbol.ContainingType.Accept(this);
+                var updatedContainingType = symbol.ContainingType?.Accept(this);
 
                 // If our containing type changed, then find us again in the new containing type.
                 if (!Equals(updatedContainingType, symbol.ContainingType))

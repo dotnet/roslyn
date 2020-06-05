@@ -61,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogTargetTypeCompletionTicksDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
 
-
         internal static void LogExtensionMethodCompletionSuccess() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionSuccessCount);
 
@@ -122,8 +121,6 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         }
 
         private static string CreateProperty(string parent, string child)
-        {
-            return parent + "." + child;
-        }
+            => parent + "." + child;
     }
 }

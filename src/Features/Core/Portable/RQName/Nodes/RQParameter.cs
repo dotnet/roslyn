@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         }
 
         public SimpleTreeNode ToSimpleTree()
-        {
-            return new SimpleGroupNode(RQNameStrings.Param, CreateSimpleTreeForType());
-        }
+            => new SimpleGroupNode(RQNameStrings.Param, CreateSimpleTreeForType());
 
         public abstract SimpleTreeNode CreateSimpleTreeForType();
     }

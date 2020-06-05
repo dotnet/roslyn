@@ -15,18 +15,12 @@ namespace Microsoft.CodeAnalysis.Differencing
         protected abstract bool Equals(TElement oldElement, TElement newElement);
 
         protected sealed override bool ItemsEqual(ImmutableArray<TElement> oldSequence, int oldIndex, ImmutableArray<TElement> newSequence, int newIndex)
-        {
-            return Equals(oldSequence[oldIndex], newSequence[newIndex]);
-        }
+            => Equals(oldSequence[oldIndex], newSequence[newIndex]);
 
         public IEnumerable<SequenceEdit> GetEdits(ImmutableArray<TElement> oldSequence, ImmutableArray<TElement> newSequence)
-        {
-            return GetEdits(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-        }
+            => GetEdits(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
 
         public double ComputeDistance(ImmutableArray<TElement> oldSequence, ImmutableArray<TElement> newSequence)
-        {
-            return ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-        }
+            => ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
     }
 }

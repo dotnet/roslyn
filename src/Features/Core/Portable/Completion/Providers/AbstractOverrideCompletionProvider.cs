@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxFactory = newDocument.GetLanguageService<SyntaxGenerator>();
 
             var itemModifiers = MemberInsertionCompletionItem.GetModifiers(completionItem);
-            var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | newOverriddenMember.IsUnsafe());
+            var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | newOverriddenMember.RequiresUnsafeModifier());
 
             return syntaxFactory.OverrideAsync(
                 newOverriddenMember, newContainingType, newDocument, modifiers, cancellationToken);
@@ -69,12 +69,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             out ITypeSymbol returnType,
             out SyntaxToken nextToken);
 
-        protected bool IsOnStartLine(int position, SourceText text, int startLine)
-        {
-            return text.Lines.IndexOf(position) == startLine;
-        }
+        protected static bool IsOnStartLine(int position, SourceText text, int startLine)
+            => text.Lines.IndexOf(position) == startLine;
 
-        protected ITypeSymbol GetReturnType(ISymbol symbol)
+        protected static ITypeSymbol GetReturnType(ISymbol symbol)
             => symbol.Kind switch
             {
                 SymbolKind.Event => ((IEventSymbol)symbol).Type,

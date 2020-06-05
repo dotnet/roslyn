@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             private readonly int _blockId;
             private readonly CancellationToken _cancellationToken;
 
-            private int _tick;
+            private readonly int _tick;
             private bool _startLogged;
             private string? _message;
 
@@ -103,9 +103,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             /// return next unique pair id
             /// </summary>
             private static int GetNextUniqueBlockId()
-            {
-                return Interlocked.Increment(ref s_lastUniqueBlockId);
-            }
+                => Interlocked.Increment(ref s_lastUniqueBlockId);
 
             private void OnStart()
             {

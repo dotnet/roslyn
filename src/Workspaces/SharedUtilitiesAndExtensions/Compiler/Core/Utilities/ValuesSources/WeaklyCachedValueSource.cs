@@ -31,12 +31,13 @@ namespace Microsoft.CodeAnalysis.Host
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _lazyGate, SemaphoreSlimFactory.Instance);
 
-        public override bool TryGetValue([MaybeNullWhen(false)]out T value)
+#pragma warning disable CS8610 // Nullability of reference types in type of parameter doesn't match overridden member. (The compiler incorrectly identifies this as a change.)
+        public override bool TryGetValue([NotNullWhen(true)] out T? value)
+#pragma warning restore CS8610 // Nullability of reference types in type of parameter doesn't match overridden member.
         {
-            // Suppressing nullable warning due to https://github.com/dotnet/roslyn/issues/40266
             var weakReference = _weakReference;
             return weakReference != null && weakReference.TryGetTarget(out value) ||
-                _source.TryGetValue(out value!);
+                _source.TryGetValue(out value);
         }
 
         public override T GetValue(CancellationToken cancellationToken = default)

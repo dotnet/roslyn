@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LegacyCodeAnalysisVisualStudioSuppressionFixServiceAccessor(IVisualStudioSuppressionFixService implementation)
-        {
-            _implementation = implementation;
-        }
+            => _implementation = implementation;
 
         public bool AddSuppressions(IVsHierarchy projectHierarchyOpt)
             => _implementation.AddSuppressions(projectHierarchyOpt);

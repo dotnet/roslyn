@@ -10,7 +10,6 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -144,7 +143,7 @@ $$";
 ";
             var expected = @"
     /*
-     *$$*/
+     * $$*/
 ";
             Verify(code, expected);
         }
@@ -243,7 +242,7 @@ $$*
             var expected = @"
     /*
      *
-     * $$
+     *$$
 ";
             Verify(code, expected);
         }
@@ -342,7 +341,7 @@ $$*
             var expected = @"
     /*
   
-     * $$*
+     $$*
      */
 ";
             Verify(code, expected);
@@ -359,7 +358,7 @@ $$*
             var expected = @"
     /*
      *************
-     * $$
+     *$$
      */
 ";
             Verify(code, expected);
@@ -376,7 +375,7 @@ $$*
             var expected = @"
     /**
      *
-     * $$
+     *$$
      */
 ";
             Verify(code, expected);
@@ -392,7 +391,7 @@ $$*
             var expected = @"
     /**
       *
-      * $$
+      *$$
 ";
             Verify(code, expected);
         }
@@ -454,7 +453,7 @@ $$*
             var expected = @"
     /*
   
-     * $$*/
+     $$*/
 ";
             Verify(code, expected);
         }
@@ -528,7 +527,7 @@ $$*";
     /*$$ ";
             var expected = @"
     /*
-     *$$";
+     * $$";
             Verify(code, expected);
         }
 
@@ -566,7 +565,7 @@ $$*";
 ";
             var expected = @"
     /*
-     *$$*/
+     * $$*/
 ";
             VerifyTabs(code, expected);
         }
@@ -682,13 +681,51 @@ $$*";
             VerifyTabs(code, expected);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public void InLanguageConstructTrailingTrivia()
+        {
+            var code = @"
+class C
+{
+    int i; /*$$
+}
+";
+            var expected = @"
+class C
+{
+    int i; /*
+            * $$
+}
+";
+            Verify(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public void InLanguageConstructTrailingTrivia_Tabs()
+        {
+            var code = @"
+class C
+{
+<tab>int i; /*$$
+}
+";
+            var expected = @"
+class C
+{
+<tab>int i; /*
+<tab>        * $$
+}
+";
+            VerifyTabs(code, expected);
+        }
+
         protected override TestWorkspace CreateTestWorkspace(string initialMarkup)
             => TestWorkspace.CreateCSharp(initialMarkup);
 
         protected override (ReturnKeyCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer)
             => (new ReturnKeyCommandArgs(textView, textBuffer), "\r\n");
 
-        internal override ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService)
-            => new BlockCommentEditingCommandHandler(undoHistoryRegistry, editorOperationsFactoryService);
+        internal override ICommandHandler<ReturnKeyCommandArgs> GetCommandHandler(TestWorkspace workspace)
+            => Assert.IsType<BlockCommentEditingCommandHandler>(workspace.GetService<ICommandHandler>(ContentTypeNames.CSharpContentType, nameof(BlockCommentEditingCommandHandler)));
     }
 }

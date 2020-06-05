@@ -3,9 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Threading;
+
+#if !CODE_STYLE
+using System.Linq;
 using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
@@ -34,9 +37,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// ensure we have a logger by putting one from workspace service if one is not there already.
         /// </summary>
         public static ILogger GetLogger()
-        {
-            return Logger.s_currentLogger;
-        }
+            => Logger.s_currentLogger;
 
         /// <summary>
         /// log a specific event with a simple context message which should be very cheap to create
@@ -192,17 +193,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// return next unique pair id
         /// </summary>
         private static int GetNextUniqueBlockId()
-        {
-            return Interlocked.Increment(ref s_lastUniqueBlockId);
-        }
+            => Interlocked.Increment(ref s_lastUniqueBlockId);
 
         /// <summary>
         /// simplest way to log a start and end pair
         /// </summary>
         public static IDisposable LogBlock(FunctionId functionId, CancellationToken token)
-        {
-            return LogBlock(functionId, string.Empty, token);
-        }
+            => LogBlock(functionId, string.Empty, token);
 
         /// <summary>
         /// simplest way to log a start and end pair with a simple context message which should be very cheap to create

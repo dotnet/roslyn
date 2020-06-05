@@ -63,29 +63,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         EnvDTE.CodeElements ICodeElementContainer<CodeParameter>.GetCollection()
-        {
-            return this.Parameters;
-        }
+            => this.Parameters;
 
         EnvDTE.CodeElements ICodeElementContainer<CodeAttribute>.GetCollection()
-        {
-            return this.Attributes;
-        }
+            => this.Attributes;
 
         internal override ImmutableArray<SyntaxNode> GetParameters()
-        {
-            return ImmutableArray.CreateRange(CodeModelService.GetParameterNodes(LookupNode()));
-        }
+            => ImmutableArray.CreateRange(CodeModelService.GetParameterNodes(LookupNode()));
 
         protected override object GetExtenderNames()
-        {
-            return CodeModelService.GetPropertyExtenderNames();
-        }
+            => CodeModelService.GetPropertyExtenderNames();
 
         protected override object GetExtender(string name)
-        {
-            return CodeModelService.GetPropertyExtender(name, LookupNode(), LookupSymbol());
-        }
+            => CodeModelService.GetPropertyExtender(name, LookupNode(), LookupSymbol());
 
         public override EnvDTE.vsCMElement Kind
         {

@@ -693,7 +693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Select Case context
                             Case VarianceContext.ByVal
                                 ' "Type '|1' cannot be used as a ByVal parameter type because '|1' is an 'Out' type parameter."
-                                Debug.Assert(inappropriateOut, "unexpected: an variance error in ByVal must be due to an inappropriate out")
+                                Debug.Assert(inappropriateOut, "unexpected: a variance error in ByVal must be due to an inappropriate out")
                                 AppendVarianceDiagnosticInfo(diagnostics, ErrorFactory.ErrorInfo(ERRID.ERR_VarianceOutByValDisallowed1, type.Name))
 
                             Case VarianceContext.ByRef
@@ -1649,7 +1649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of NamedTypeSymbol)
-            Return GetTypeMembers(name).WhereAsArray(Function(t) t.Arity = arity)
+            Return GetTypeMembers(name).WhereAsArray(Function(t, arity_) t.Arity = arity_, arity)
         End Function
 
         Friend Overrides ReadOnly Property DefaultPropertyName As String
@@ -2717,7 +2717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If TypeKind = TypeKind.Submission Then
 
-                ' Only add an constructor if it is not shared OR if there are shared initializers
+                ' Only add a constructor if it is not shared OR if there are shared initializers
                 If Not isShared OrElse Me.AnyInitializerToBeInjectedIntoConstructor(initializers, False) Then
 
                     ' a submission can only have a single declaration:
@@ -3175,7 +3175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function GetSimpleNonTypeMembers(name As String) As ImmutableArray(Of Symbol)
-            If _lazyMembersAndInitializers IsNot Nothing OrElse MemberNames.Contains(name) Then
+            If _lazyMembersAndInitializers IsNot Nothing OrElse MemberNames.Contains(name, IdentifierComparison.Comparer) Then
                 Return GetMembers(name)
             End If
 

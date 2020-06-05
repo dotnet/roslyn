@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal struct TriviaList : IEnumerable<SyntaxTrivia>
+    internal readonly struct TriviaList
     {
         private readonly SyntaxTriviaList _list1;
         private readonly SyntaxTriviaList _list2;
@@ -19,30 +17,15 @@ namespace Microsoft.CodeAnalysis.Formatting
             _list2 = list2;
         }
 
-        public int Count
-        {
-            get
-            {
-                return _list1.Count + _list2.Count;
-            }
-        }
+        public int Count => _list1.Count + _list2.Count;
+
+        public SyntaxTrivia this[int index]
+            => index < _list1.Count ? _list1[index] : _list2[index - _list1.Count];
 
         public Enumerator GetEnumerator()
-        {
-            return new Enumerator(this);
-        }
+            => new Enumerator(this);
 
-        IEnumerator<SyntaxTrivia> IEnumerable<SyntaxTrivia>.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
-
-        public struct Enumerator : IEnumerator<SyntaxTrivia>
+        public struct Enumerator
         {
             private readonly SyntaxTriviaList _list1;
             private readonly SyntaxTriviaList _list2;
@@ -71,19 +54,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             public SyntaxTrivia Current => _enumerator.Current;
-
-            void IDisposable.Dispose()
-            {
-            }
-
-            void IEnumerator.Reset()
-            {
-            }
-
-            object IEnumerator.Current
-            {
-                get { return this.Current; }
-            }
         }
     }
 }

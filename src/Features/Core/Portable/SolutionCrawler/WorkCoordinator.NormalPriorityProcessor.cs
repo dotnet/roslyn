@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -15,6 +16,10 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
+
+#if DEBUG
+using System.Diagnostics;
+#endif
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -29,15 +34,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private const int MaxHighPriorityQueueCache = 29;
 
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
-                    private readonly ConcurrentDictionary<DocumentId, IDisposable> _higherPriorityDocumentsNotProcessed;
+                    private readonly ConcurrentDictionary<DocumentId, IDisposable?> _higherPriorityDocumentsNotProcessed;
 
-                    private ProjectId _currentProjectProcessing;
-                    private IDisposable _projectCache;
+                    private ProjectId? _currentProjectProcessing;
+                    private IDisposable? _projectCache;
 
                     // this is only used in ResetState to find out solution has changed
                     // and reset some states such as logging some telemetry or
                     // priorities active,visible, opened files and etc
-                    private Solution _lastSolution = null;
+                    private Solution? _lastSolution = null;
 
                     // whether this processor is running or not
                     private Task _running;
@@ -53,9 +58,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
-                        _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable>(concurrencyLevel: 2, capacity: 20);
+                        _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable?>(concurrencyLevel: 2, capacity: 20);
 
-                        _currentProjectProcessing = default;
+                        _currentProjectProcessing = null;
 
                         Start();
                     }
@@ -78,6 +83,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private void CheckHigherPriorityDocument(WorkItem item)
                     {
+                        Contract.ThrowIfFalse(item.DocumentId != null);
+
                         if (!item.InvocationReasons.Contains(PredefinedInvocationReasons.HighPriority))
                         {
                             return;
@@ -98,7 +105,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         SolutionCrawlerLogger.LogHigherPriority(Processor._logAggregator, id.Id);
                     }
 
-                    private IDisposable GetHighPriorityQueueProjectCache(DocumentId id)
+                    private IDisposable? GetHighPriorityQueueProjectCache(DocumentId id)
                     {
                         // NOTE: we have one potential issue where we can cache a lot of stuff in memory 
                         //       since we will cache all high prioirty work's projects in memory until they are processed. 
@@ -113,7 +120,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         if (!_workItemQueue.HasAnyWork)
                         {
-                            DisposeProjectCache();
+                            _projectCache?.Dispose();
+                            _projectCache = null;
                         }
 
                         return _workItemQueue.WaitAsync(cancellationToken);
@@ -130,7 +138,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             return;
                         }
 
-                        var source = new TaskCompletionSource<object>();
+                        var source = new TaskCompletionSource<object?>();
                         try
                         {
                             // mark it as running
@@ -146,6 +154,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 // successfully processed a high priority document.
                                 return;
                             }
+
                             // process one of documents remaining
                             if (!_workItemQueue.TryTakeAnyWork(
                                 _currentProjectProcessing, Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
@@ -214,20 +223,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             return;
                         }
 
-                        DisposeProjectCache();
-
+                        _projectCache?.Dispose();
                         _projectCache = Processor.EnableCaching(currentProject);
-                    }
-
-                    private static void DisposeProjectCache(IDisposable projectCache)
-                    {
-                        projectCache?.Dispose();
-                    }
-
-                    private void DisposeProjectCache()
-                    {
-                        DisposeProjectCache(_projectCache);
-                        _projectCache = null;
                     }
 
                     private IEnumerable<DocumentId> GetPrioritizedPendingDocuments()
@@ -298,12 +295,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // remove opened document processed
                         if (_higherPriorityDocumentsNotProcessed.TryRemove(documentId, out var projectCache))
                         {
-                            DisposeProjectCache(projectCache);
+                            projectCache?.Dispose();
                         }
                     }
 
                     private async Task ProcessDocumentAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                     {
+                        Contract.ThrowIfNull(workItem.DocumentId);
+
                         if (CancellationToken.IsCancellationRequested)
                         {
                             return;
@@ -346,8 +345,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                     {
                                         var isOpen = document.IsOpen();
 
-                                        await ProcessOpenDocumentIfNeeded(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
-                                        await ProcessCloseDocumentIfNeeded(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
+                                        await ProcessOpenDocumentIfNeededAsync(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
+                                        await ProcessCloseDocumentIfNeededAsync(analyzers, workItem, document, isOpen, cancellationToken).ConfigureAwait(false);
                                     }
 
                                     // check whether we are having special reanalyze request
@@ -359,7 +358,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 {
                                     SolutionCrawlerLogger.LogProcessDocumentNotExist(Processor._logAggregator);
 
-                                    RemoveDocument(documentId);
+                                    await RemoveDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                                 }
 
                                 if (!cancellationToken.IsCancellationRequested)
@@ -390,7 +389,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private async Task ProcessOpenDocumentIfNeeded(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
+                    private async Task ProcessOpenDocumentIfNeededAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (!isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentOpened))
                         {
@@ -402,7 +401,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         await Processor.RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.DocumentOpenAsync(d, c), cancellationToken).ConfigureAwait(false);
                     }
 
-                    private async Task ProcessCloseDocumentIfNeeded(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
+                    private async Task ProcessCloseDocumentIfNeededAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentClosed))
                         {
@@ -451,16 +450,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private void RemoveDocument(DocumentId documentId)
-                    {
-                        RemoveDocument(Analyzers, documentId);
-                    }
+                    private Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+                        => RemoveDocumentAsync(Analyzers, documentId, cancellationToken);
 
-                    private static void RemoveDocument(ImmutableArray<IIncrementalAnalyzer> analyzers, DocumentId documentId)
+                    private static async Task RemoveDocumentAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, DocumentId documentId, CancellationToken cancellationToken)
                     {
                         foreach (var analyzer in analyzers)
                         {
-                            analyzer.RemoveDocument(documentId);
+                            await analyzer.RemoveDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                         }
                     }
 
@@ -504,10 +501,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             return true;
                         }
 
-                        void ResetLogAggregatorIfNeeded(Solution currentSolution, Solution oldSolution)
+                        void ResetLogAggregatorIfNeeded(Solution currentSolution, Solution? oldSolution)
                         {
-                            if (currentSolution == null || oldSolution == null ||
-                                currentSolution.Id == oldSolution.Id)
+                            if (oldSolution == null || currentSolution.Id == oldSolution.Id)
                             {
                                 // we log aggregated info when solution is changed such as
                                 // new solution is opened or solution is closed
@@ -533,11 +529,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         _workItemQueue.Dispose();
 
-                        if (_projectCache != null)
-                        {
-                            _projectCache.Dispose();
-                            _projectCache = null;
-                        }
+                        _projectCache?.Dispose();
+                        _projectCache = null;
                     }
 
                     internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
@@ -553,7 +546,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // this shouldn't happen. would like to get some diagnostic
                         while (_workItemQueue.HasAnyWork)
                         {
-                            Environment.FailFast("How?");
+                            FailFast.Fail("How?");
                         }
                     }
                 }

@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class ProjectExtensions
     {
         public static bool IsFromPrimaryBranch(this Project project)
-        {
-            return project.Solution.BranchId == project.Solution.Workspace.PrimaryBranchId;
-        }
+            => project.Solution.BranchId == project.Solution.Workspace.PrimaryBranchId;
 
         public static async Task<bool> IsForkedProjectWithSemanticChangesAsync(this Project project, CancellationToken cancellationToken)
         {

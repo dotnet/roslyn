@@ -5,10 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,13 +17,15 @@ using static AnalyzerRunner.Program;
 
 namespace AnalyzerRunner
 {
-    internal sealed class DiagnosticAnalyzerRunner
+    public sealed class DiagnosticAnalyzerRunner
     {
+        private readonly Workspace _workspace;
         private readonly Options _options;
         private readonly ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzers;
 
-        public DiagnosticAnalyzerRunner(Options options)
+        public DiagnosticAnalyzerRunner(Workspace workspace, Options options)
         {
+            _workspace = workspace;
             _options = options;
 
             var analyzers = GetDiagnosticAnalyzers(options.AnalyzerPath);
@@ -34,20 +34,8 @@ namespace AnalyzerRunner
 
         public bool HasAnalyzers => _analyzers.Any(pair => pair.Value.Any());
 
-        public async Task RunAsync(Workspace workspace, CancellationToken cancellationToken)
+        private static Solution SetOptions(Solution solution)
         {
-            if (!HasAnalyzers)
-            {
-                return;
-            }
-
-            if (!string.IsNullOrEmpty(_options.ProfileRoot))
-            {
-                ProfileOptimization.StartProfile(nameof(DiagnosticAnalyzerRunner));
-            }
-
-            var solution = workspace.CurrentSolution;
-
             // Make sure AD0001 and AD0002 are reported as errors
             foreach (var projectId in solution.ProjectIds)
             {
@@ -61,6 +49,34 @@ namespace AnalyzerRunner
                 var modifiedCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
                 solution = solution.WithProjectCompilationOptions(projectId, modifiedCompilationOptions);
             }
+
+            return solution;
+        }
+
+        public async Task RunAsync(CancellationToken cancellationToken)
+        {
+            if (!HasAnalyzers)
+            {
+                return;
+            }
+
+            var solution = _workspace.CurrentSolution;
+            solution = SetOptions(solution);
+
+            await GetAnalysisResultAsync(solution, _analyzers, _options, cancellationToken).ConfigureAwait(false);
+        }
+
+        // Also runs per document analysis, used by AnalyzerRunner CLI tool
+        internal async Task RunAllAsync(CancellationToken cancellationToken)
+        {
+            if (!HasAnalyzers)
+            {
+                return;
+            }
+
+            var solution = _workspace.CurrentSolution;
+
+            solution = SetOptions(solution);
 
             var stopwatch = PerformanceTracker.StartNew();
 
@@ -285,7 +301,7 @@ namespace AnalyzerRunner
 
         private static ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> GetDiagnosticAnalyzersFromFile(string path)
         {
-            var analyzerReference = new AnalyzerFileReference(path, AssemblyLoader.Instance);
+            var analyzerReference = new AnalyzerFileReference(Path.GetFullPath(path), AssemblyLoader.Instance);
             var csharpAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
             var basicAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.VisualBasic);
             return ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty
@@ -387,7 +403,7 @@ namespace AnalyzerRunner
             }
         }
 
-        private static void WriteTelemetry(ImmutableDictionary<ProjectId, AnalysisResult> dictionary)
+        internal static void WriteTelemetry(ImmutableDictionary<ProjectId, AnalysisResult> dictionary)
         {
             if (dictionary.IsEmpty)
             {

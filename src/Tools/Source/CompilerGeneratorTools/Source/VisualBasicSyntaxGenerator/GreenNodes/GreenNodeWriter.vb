@@ -69,7 +69,6 @@ Friend Class GreenNodeWriter
         Console.WriteLine()
     End Sub
 
-
     Private Sub GenerateNodeStructures()
         For Each nodeStructure In _parseTree.NodeStructures.Values
             If Not nodeStructure.NoFactory Then
@@ -78,7 +77,7 @@ Friend Class GreenNodeWriter
         Next
     End Sub
 
-    ' Generate an constant value
+    ' Generate a constant value
     Private Function GetConstantValue(val As Long) As String
         Return val.ToString()
     End Function
@@ -294,7 +293,6 @@ Friend Class GreenNodeWriter
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
     End Sub
-
 
     ' Generate GetChild, GetChildrenCount so members can be accessed by index
     Private Sub GenerateGetChild(nodeStructure As ParseNodeStructure)
@@ -548,7 +546,6 @@ Friend Class GreenNodeWriter
             End If
         End If
 
-
         ' Generate code to initialize this class
 
         If contextual Then
@@ -564,7 +561,6 @@ Friend Class GreenNodeWriter
         If nodeStructure.Children.Count > 0 Then
             '_writer.WriteLine("            Dim fullWidth as integer")
             _writer.WriteLine()
-
 
             For Each child In nodeStructure.Children
                 Dim indent = ""
@@ -592,7 +588,6 @@ Friend Class GreenNodeWriter
         If StructureTypeName(nodeStructure) = "DirectiveTriviaSyntax" Then
             _writer.WriteLine("             SetFlags(NodeFlags.ContainsDirectives)")
         End If
-
 
         ' Generate End Sub
         _writer.WriteLine("        End Sub")
@@ -748,7 +743,6 @@ Friend Class GreenNodeWriter
 
     ' Generate public properties for a child that is a separated list
 
-
     Private Sub GenerateAccept(nodeStructure As ParseNodeStructure)
         If nodeStructure.ParentStructure IsNot Nothing AndAlso (_parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken OrElse nodeStructure.IsTrivia) Then
             Return
@@ -759,13 +753,11 @@ Friend Class GreenNodeWriter
         _writer.WriteLine()
     End Sub
 
-
     ' Generate special methods and properties for the root node. These only appear in the root node.
     Private Sub GenerateRootNodeSpecialMethods(nodeStructure As ParseNodeStructure)
 
         _writer.WriteLine()
     End Sub
-
 
     ' Generate the Visitor class definition
     Private Sub GenerateVisitorClass()
@@ -811,7 +803,6 @@ Friend Class GreenNodeWriter
         End If
         _writer.WriteLine("        End Function")
     End Sub
-
 
     ' Generate the RewriteVisitor class definition
     Private Sub GenerateRewriteVisitorClass()
@@ -900,9 +891,6 @@ Friend Class GreenNodeWriter
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
     End Sub
-
-
-
 
 End Class
 

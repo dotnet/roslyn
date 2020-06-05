@@ -105,9 +105,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         /// <param name="node">The node to remove that currently exists as part of the tree.</param>
         public void RemoveNode(SyntaxNode node)
-        {
-            RemoveNode(node, SyntaxGenerator.DefaultRemoveOptions);
-        }
+            => RemoveNode(node, SyntaxGenerator.DefaultRemoveOptions);
 
         /// <summary>
         /// Remove the node from the tree.
@@ -149,7 +147,6 @@ namespace Microsoft.CodeAnalysis.Editing
             _allowEditsOnLazilyCreatedTrackedNewNodes = true;
             _changes.Add(new ReplaceWithCollectionChange(node, computeReplacement, this));
         }
-
 
         internal void ReplaceNode<TArgument>(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, TArgument, SyntaxNode> computeReplacement, TArgument argument)
         {
@@ -266,9 +263,7 @@ namespace Microsoft.CodeAnalysis.Editing
             internal readonly SyntaxNode Node;
 
             public Change(SyntaxNode node)
-            {
-                this.Node = node;
-            }
+                => this.Node = node;
 
             public abstract SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator);
         }
@@ -281,9 +276,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
-            {
-                return root;
-            }
+                => root;
         }
 
         private class RemoveChange : Change
@@ -297,9 +290,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
-            {
-                return generator.RemoveNode(root, root.GetCurrentNode(this.Node), _options);
-            }
+                => generator.RemoveNode(root, root.GetCurrentNode(this.Node), _options);
         }
 
         private class ReplaceChange : Change
@@ -345,12 +336,12 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 var current = root.GetCurrentNode(this.Node);
                 var newNodes = _modifier(current, generator).ToList();
-                for (int i = 0; i < newNodes.Count; i++)
+                for (var i = 0; i < newNodes.Count; i++)
                 {
                     newNodes[i] = _editor.ApplyTrackingToNewNode(newNodes[i]);
                 }
 
-                return generator.ReplaceNode(root, current, newNodes);
+                return SyntaxGenerator.ReplaceNode(root, current, newNodes);
             }
         }
 

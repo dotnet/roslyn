@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         }
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return context.IsMemberAttributeContext(s_validTypeDeclarations, cancellationToken);
-        }
+            => context.IsMemberAttributeContext(s_validTypeDeclarations, cancellationToken);
     }
 }

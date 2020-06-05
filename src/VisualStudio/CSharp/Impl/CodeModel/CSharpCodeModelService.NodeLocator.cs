@@ -20,9 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     internal partial class CSharpCodeModelService
     {
         protected override AbstractNodeLocator CreateNodeLocator()
-        {
-            return new NodeLocator();
-        }
+            => new NodeLocator();
 
         private class NodeLocator : AbstractNodeLocator
         {

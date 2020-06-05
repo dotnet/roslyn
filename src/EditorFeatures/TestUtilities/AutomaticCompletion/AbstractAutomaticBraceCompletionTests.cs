@@ -7,13 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
-using Microsoft.VisualStudio.Text.Operations;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
@@ -87,14 +86,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
             if (result != null)
             {
-                Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
+                AssertEx.EqualOrDiff(result, session.SubjectBuffer.CurrentSnapshot.GetText());
             }
         }
 
         internal void CheckText(IBraceCompletionSession session, string result)
-        {
-            Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
-        }
+            => Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
 
         internal void CheckReturnOnNonEmptyLine(IBraceCompletionSession session, int expectedVirtualSpace)
         {
@@ -147,12 +144,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey, object> changedOptionSet = null)
+        internal Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey2, object> changedOptionSet = null)
         {
-            var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
-            var undoManager = workspace.ExportProvider.GetExportedValue<ITextBufferUndoManagerProvider>();
-            var editorOperationsFactoryService = workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>();
-
             if (changedOptionSet != null)
             {
                 var options = workspace.Options;
@@ -166,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
             var document = workspace.Documents.First();
 
-            var provider = new BraceCompletionSessionProvider(threadingContext, undoManager, editorOperationsFactoryService);
+            var provider = Assert.IsType<BraceCompletionSessionProvider>(workspace.ExportProvider.GetExportedValue<IBraceCompletionSessionProvider>());
             var openingPoint = new SnapshotPoint(document.GetTextBuffer().CurrentSnapshot, document.CursorPosition.Value);
             if (provider.TryCreateSession(document.GetTextView(), openingPoint, opening, closing, out var session))
             {
@@ -189,9 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
 
             public void Dispose()
-            {
-                this.Workspace.Dispose();
-            }
+                => this.Workspace.Dispose();
         }
     }
 }

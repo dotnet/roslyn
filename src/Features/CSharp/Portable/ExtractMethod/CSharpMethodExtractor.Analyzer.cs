@@ -7,11 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -92,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override ITypeSymbol GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol)
             {
-                var info = model.GetSpeculativeTypeInfo(this.SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression);
+                var info = model.GetSpeculativeTypeInfo(SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression);
                 if (Microsoft.CodeAnalysis.Shared.Extensions.ISymbolExtensions.IsErrorType(info.Type))
                 {
                     return null;
@@ -105,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override Tuple<SyntaxNode, SyntaxNode> GetFlowAnalysisNodeRange()
             {
-                var csharpSelectionResult = this.SelectionResult as CSharpSelectionResult;
+                var csharpSelectionResult = SelectionResult as CSharpSelectionResult;
 
                 var first = csharpSelectionResult.GetFirstStatement();
                 var last = csharpSelectionResult.GetLastStatement();
@@ -124,19 +122,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             protected override bool ContainsReturnStatementInSelectedCode(IEnumerable<SyntaxNode> jumpOutOfRegionStatements)
-            {
-                return jumpOutOfRegionStatements.Where(n => n is ReturnStatementSyntax).Any();
-            }
+                => jumpOutOfRegionStatements.Where(n => n is ReturnStatementSyntax).Any();
 
             protected override bool ReadOnlyFieldAllowed()
             {
-                var scope = this.SelectionResult.GetContainingScopeOf<ConstructorDeclarationSyntax>();
+                var scope = SelectionResult.GetContainingScopeOf<ConstructorDeclarationSyntax>();
                 return scope == null;
             }
 
             protected override ITypeSymbol GetSymbolType(SemanticModel semanticModel, ISymbol symbol)
             {
-                var selectionOperation = semanticModel.GetOperation(this.SelectionResult.GetContainingScope());
+                var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
 
                 switch (symbol)
                 {
