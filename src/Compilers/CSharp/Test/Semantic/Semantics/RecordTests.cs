@@ -3810,8 +3810,8 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            // https://github.com/dotnet/roslyn/issues/44879: Copy constructor copies static field.
             comp.VerifyDiagnostics(
-                // PROTOTYPE: Is this warning expected? Where is it from?
                 // (2,1): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 // record C
                 Diagnostic(ErrorCode.WRN_AssignmentToSelf, @"record C
@@ -4492,78 +4492,70 @@ True");
 abstract class A
 {
     internal virtual int P { get; set; }
-}
-abstract record B(int P, int Q) : A
-{
     internal abstract int Q { get; set; }
+}
+record B(int P, int Q) : A
+{
+    internal B() : this(0, 0) { } // PROTOTYPE: Remove
+    internal override int Q { get; set; }
 }
 class C1 : B
 {
-    internal override int Q { get; set; }
+    internal C1(int p, int q) { P = p; Q = q; }
+    internal override int P { get; set; }
 }
 class C2 : B
 {
-    internal override int P { get; set; }
-    internal override int Q => 2;
+    internal C2(int p, int q) { P = p; Q = q; }
+    internal override int Q { get; set; }
 }
 class Program
 {
     static void Main()
     {
-        var x = new C1(1, 2);
-        var y = new C1(1, 3);
-        var z = new C2(1, 3);
-        WriteLine(x.Equals(x));
-        WriteLine(y.Equals(y));
-        WriteLine(z.Equals(z));
-        WriteLine(x.Equals(y));
-        WriteLine(y.Equals(z));
+        WriteLine(new C1(1, 0).Equals(new C2(0, 0)));
+        WriteLine(new C1(0, 2).Equals(new C2(0, 0)));
+        WriteLine(new C1(0, 0).Equals(new C2(3, 0)));
+        WriteLine(new C1(0, 0).Equals(new C2(0, 4)));
     }
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
+            // PROTOTYPE: Compare A.P in B.Equals() - expectedOutput is incorrect - new C1(0, 0).Equals(new C2(3, 0)) should be False.
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
-True
-True
 False
-False");
-            verifier.VerifyIL("C.Equals(C)",
+True
+True");
+            verifier.VerifyIL("B.Equals(B)",
 @"{
-  // Code size       52 (0x34)
+  // Code size       42 (0x2a)
   .maxstack  3
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0032
-  IL_0003:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0008:  ldarg.0
-  IL_0009:  ldfld      ""int C.<P>k__BackingField""
-  IL_000e:  ldarg.1
-  IL_000f:  ldfld      ""int C.<P>k__BackingField""
-  IL_0014:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0019:  brfalse.s  IL_0032
-  IL_001b:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
-  IL_0020:  ldarg.0
-  IL_0021:  ldfld      ""object C.<Q>k__BackingField""
-  IL_0026:  ldarg.1
-  IL_0027:  ldfld      ""object C.<Q>k__BackingField""
-  IL_002c:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
-  IL_0031:  ret
-  IL_0032:  ldc.i4.0
-  IL_0033:  ret
+  IL_0001:  brfalse.s  IL_0028
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type B.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type B.EqualityContract.get""
+  IL_000f:  bne.un.s   IL_0028
+  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0016:  ldarg.0
+  IL_0017:  ldfld      ""int B.<Q>k__BackingField""
+  IL_001c:  ldarg.1
+  IL_001d:  ldfld      ""int B.<Q>k__BackingField""
+  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0027:  ret
+  IL_0028:  ldc.i4.0
+  IL_0029:  ret
 }");
         }
 
-        [Fact]
-        public void Equality_00()
-        {
-            // PROTOTYPE: 
-            // - Test record deriving from type with non-virtual or sealed EqualityContract. Should report an error.
-            // - Test record deriving from non-record where base does not implement Equals(Base). Derived should compare *accessible fields on Base*.
-            // - Test record deriving from non-record where base implements EqualityContract and Equals(Base).
-            // - Test non-record deriving from record where derived overrides EqualityContract but not Equals(Base).
-            // - Test multiple non-record derived types with a distinct EqualityContract value. Should not compare Equals.
-            // - Test multiple non-record derived types with a shared base EqualityContract value. Should compare Equals.
-            Assert.False(true);
-        }
+        // PROTOTYPE: 
+        // - Test record deriving from type with non-virtual or sealed EqualityContract. Should report an error.
+        // - Test record deriving from non-record where base does not implement Equals(Base). Derived should compare *accessible fields on Base*.
+        // - Test record deriving from non-record where base implements EqualityContract and Equals(Base).
+        // - Test non-record deriving from record where derived overrides EqualityContract but not Equals(Base).
+        // - Test multiple non-record derived types with a distinct EqualityContract value. Should not compare Equals.
+        // - Test multiple non-record derived types with a shared base EqualityContract value. Should compare Equals.
     }
 }
