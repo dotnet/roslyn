@@ -1082,6 +1082,9 @@ No editorconfig based code style option
 # IDE0077
 No editorconfig based code style option
 
+# IDE0078
+No editorconfig based code style option
+
 # IDE1006
 No editorconfig based code style option
 
