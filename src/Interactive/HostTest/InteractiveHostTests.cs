@@ -921,7 +921,6 @@ OK
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{initFile.Path}(1,3): error CS1002: { CSharpResources.ERR_SemicolonExpected }
 ", error);
 
-
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
 { string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
 [System.Diagnostics.Process]
@@ -1073,8 +1072,8 @@ new object[] { new Class1(), new Class2(), new Class3() }
             output = await ReadOutputToEnd();
             Assert.Equal("", error);
             output = ReadOutputToEnd();
-            Assert.Equal("[Metadata.ICSProp]\r\n", output);        }
-        [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
+            Assert.Equal("[Metadata.ICSProp]\r\n", output);
+        }        [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
         public async Task MissingReferencesReuse()
         {
             var source = @"
