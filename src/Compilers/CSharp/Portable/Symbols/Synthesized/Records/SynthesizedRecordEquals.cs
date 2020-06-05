@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // field1 == other.field1 && ... && fieldN == other.fieldN
-                // PROTOTYPE: Should compare accessible fields from all non-record base types as well.
+                // https://github.com/dotnet/roslyn/issues/44895: Should compare fields from non-record base classes.
                 var fields = ArrayBuilder<FieldSymbol>.GetInstance();
                 foreach (var f in ContainingType.GetFieldsToEmit())
                 {

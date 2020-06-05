@@ -4189,6 +4189,7 @@ True");
 }");
         }
 
+        [WorkItem(44895, "https://github.com/dotnet/roslyn/issues/44895")]
         [Fact]
         public void Equality_08()
         {
@@ -4243,7 +4244,7 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
-            // PROTOTYPE: Compare B.Y in C.Equals() - expectedOutput is incorrect.
+            // https://github.com/dotnet/roslyn/issues/44895: C.Equals() should compare B.Y.
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
 True
@@ -4484,6 +4485,7 @@ True");
 }");
         }
 
+        [WorkItem(44895, "https://github.com/dotnet/roslyn/issues/44895")]
         [Fact]
         public void Equality_10()
         {
@@ -4521,7 +4523,7 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
-            // PROTOTYPE: Compare A.P in B.Equals() - expectedOutput is incorrect - new C1(0, 0).Equals(new C2(3, 0)) should be False.
+            // https://github.com/dotnet/roslyn/issues/44895: B.Equals() should compare A.P and report False for new C1(0, 0).Equals(new C2(3, 0)).
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
 False
@@ -4550,8 +4552,124 @@ True");
 }");
         }
 
+        [Fact]
+        public void Equality_11()
+        {
+            var source =
+@"using System;
+record A
+{
+    public virtual Type EqualityContract => typeof(object);
+}
+record B1(object P) : A;
+record B2(object P) : A;
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new A().Equals(new A()));
+        Console.WriteLine(new A().Equals(new B1((object)null)));
+        Console.WriteLine(new B1((object)null).Equals(new A()));
+        Console.WriteLine(new B1((object)null).Equals(new B1((object)null)));
+        Console.WriteLine(new B1((object)null).Equals(new B2((object)null)));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (2,8): error CS0102: The type 'A' already contains a definition for 'EqualityContract'
+                // record A
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "A").WithArguments("A", "EqualityContract").WithLocation(2, 8));
+            // If error above is no longer reported, should verify execution:
+//            CompileAndVerify(comp, expectedOutput:
+//@"True
+//False
+//False
+//True
+//False");
+        }
+
+        [Fact]
+        public void Equality_12()
+        {
+            var source =
+@"using System;
+abstract record A
+{
+    public A() { }
+    public abstract Type EqualityContract { get; }
+}
+record B1(object P) : A;
+record B2(object P) : A;
+class Program
+{
+    static void Main()
+    {
+        var b1 = new B1((object)null);
+        var b2 = new B2((object)null);
+        Console.WriteLine(b1.Equals(b1));
+        Console.WriteLine(b1.Equals(b2));
+        Console.WriteLine(((A)b1).Equals(b1));
+        Console.WriteLine(((A)b1).Equals(b2));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (2,17): error CS0102: The type 'A' already contains a definition for 'EqualityContract'
+                // abstract record A
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "A").WithArguments("A", "EqualityContract").WithLocation(2, 17));
+            // If error above is no longer reported, should verify execution:
+//            CompileAndVerify(comp, expectedOutput:
+//@"True
+//False
+//True
+//False");
+        }
+
+        [Fact]
+        public void Equality_13()
+        {
+            var source =
+@"record A
+{
+    public System.Type EqualityContract => typeof(A);
+}
+record B : A;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0102: The type 'A' already contains a definition for 'EqualityContract'
+                // record A
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "A").WithArguments("A", "EqualityContract").WithLocation(1, 8),
+                // (5,8): error CS0506: 'B.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
+                // record B : A;
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(5, 8));
+        }
+
+        [Fact]
+        public void Equality_14()
+        {
+            var source =
+@"record A;
+record B
+{
+    public sealed override System.Type EqualityContract => typeof(B);
+}
+record C : B;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,8): error CS0102: The type 'B' already contains a definition for 'EqualityContract'
+                // record B
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "B").WithArguments("B", "EqualityContract").WithLocation(2, 8),
+                // (4,40): error CS0115: 'B.EqualityContract': no suitable method found to override
+                //     public sealed override System.Type EqualityContract => typeof(B);
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "EqualityContract").WithArguments("B.EqualityContract").WithLocation(4, 40),
+                // (6,8): error CS0239: 'C.EqualityContract': cannot override inherited member 'B.EqualityContract' because it is sealed
+                // record C : B;
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C").WithArguments("C.EqualityContract", "B.EqualityContract").WithLocation(6, 8));
+        }
+
         // PROTOTYPE: 
-        // - Test record deriving from type with non-virtual or sealed EqualityContract. Should report an error.
         // - Test record deriving from non-record where base does not implement Equals(Base). Derived should compare *accessible fields on Base*.
         // - Test record deriving from non-record where base implements EqualityContract and Equals(Base).
         // - Test non-record deriving from record where derived overrides EqualityContract but not Equals(Base).
