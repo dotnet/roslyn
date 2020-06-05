@@ -620,7 +620,7 @@ public struct X1
         {
             var text = @"struct S
 {
-    public int I {get { throw null; } set {} } = 9;
+    public int I { get { throw null; } set {} } = 9;
 }";
 
             var comp = CreateCompilation(text);
