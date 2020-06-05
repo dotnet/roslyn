@@ -3,6 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -10,26 +12,35 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
-    <ExportCodeFixProvider(LanguageNames.VisualBasic)>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicRemoveUnnecessaryByValCodeFixProvider
-        Inherits CodeFixProvider
+        Inherits SyntaxEditorBasedCodeFixProvider
+
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+        End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryByValDiagnosticId)
 
-        Public Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
-            Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
-            Dim node = root.FindNode(context.Span)
+        Friend Overrides ReadOnly Property CodeFixCategory As CodeFixCategory
+            Get
+                Return CodeFixCategory.CodeStyle
+            End Get
+        End Property
 
+        Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             context.RegisterCodeFix(New MyCodeAction(
                 VisualBasicAnalyzersResources.Remove_ByVal,
-                Function(ct) RemoveByVal(context.Document, node, ct)),
+                Function(ct) FixAsync(context.Document, context.Diagnostics.First(), ct)),
                 context.Diagnostics)
+            Return Task.CompletedTask
         End Function
 
-        Private Shared Async Function RemoveByVal(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
-            Dim editor = Await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(False)
+        Protected Overrides Async Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim node = root.FindNode(diagnostics.First().Location.SourceSpan)
             editor.RemoveNode(node)
-            Return editor.GetChangedDocument()
         End Function
 
         Private Class MyCodeAction
