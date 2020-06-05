@@ -131,13 +131,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return null;
             }
 
-            // Need to check if the target method is read only, and if not, if it is being written to
-            if (invocation.TargetMethod.IsReadOnly == false && invocation.Parent != null)
+            // If the target method is writeable then we need to make sure we do not change a writeable 
+            // indexer to a read-only indexer, otherwise it will cause compiler errors
+            if (invocation.TargetMethod.IsReadOnly == false && invocation.Parent != null && invocation.Syntax.IsLeftSideOfAnyAssignExpression())
             {
-                if (invocation.Syntax.IsLeftSideOfAnyAssignExpression())
-                {
-                    return null;
-                }
+                return null;
             }
 
             // See if we have: (start, end - start).  Specifically where the start operation it the
