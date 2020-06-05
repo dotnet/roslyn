@@ -979,7 +979,6 @@ OK
 {initFile.Path}(1,3): error CS1002: { CSharpResources.ERR_SemicolonExpected }
 ", error);
 
-
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
 { string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(rspFile.Path)) }
 [System.Diagnostics.Process]
@@ -1142,7 +1141,6 @@ new object[] { new Class1(), new Class2(), new Class3() }
             var error = await ReadErrorOutputToEnd();
             output = await ReadOutputToEnd();
             Assert.Equal("", error);
-
 
             Assert.Equal("[Metadata.ICSProp]\r\n", output);
         }
