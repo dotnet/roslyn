@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case (Equal, false):
                         return _hasFalse;
                     default:
-                        throw new ArgumentException("relation");
+                        return true;
                 }
             }
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case (Equal, false):
                         return !_hasTrue;
                     default:
-                        throw new ArgumentException("relation");
+                        return true;
                 }
             }
 

@@ -895,6 +895,136 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementThroughFieldMember_FixAll_SameMemberInDifferentType()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface I
+{
+    void Method1();
+}
+
+class C : {|FixAllInDocument:I|}
+{
+    I i;
+}
+
+class D : I
+{
+    I i;
+}",
+@"interface I
+{
+    void Method1();
+}
+
+class C : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}
+
+class D : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementThroughFieldMember_FixAll_FieldInOnePropInAnother()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface I
+{
+    void Method1();
+}
+
+class C : {|FixAllInDocument:I|}
+{
+    I i;
+}
+
+class D : I
+{
+    I i { get; }
+}",
+@"interface I
+{
+    void Method1();
+}
+
+class C : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}
+
+class D : I
+{
+    I i { get; }
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementThroughFieldMember_FixAll_FieldInOneNonViableInAnother()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface I
+{
+    void Method1();
+}
+
+class C : {|FixAllInDocument:I|}
+{
+    I i;
+}
+
+class D : I
+{
+    int i;
+}",
+@"interface I
+{
+    void Method1();
+}
+
+class C : I
+{
+    I i;
+
+    public void Method1()
+    {
+        i.Method1();
+    }
+}
+
+class D : I
+{
+    int i;
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementThroughFieldMemberInterfaceWithIndexer()
         {
             await TestWithAllCodeStyleOptionsOffAsync(

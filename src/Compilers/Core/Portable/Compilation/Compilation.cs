@@ -2729,7 +2729,7 @@ namespace Microsoft.CodeAnalysis
             if (IsSubmission && !HasCodeToEmit())
             {
                 // Still report diagnostics since downstream submissions will assume there are no errors.
-                diagnostics.AddRange(this.GetDiagnostics());
+                diagnostics.AddRange(this.GetDiagnostics(cancellationToken));
                 return null;
             }
 

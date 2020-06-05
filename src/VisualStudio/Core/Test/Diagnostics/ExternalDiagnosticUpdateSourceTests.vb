@@ -347,7 +347,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim project = workspace.CurrentSolution.Projects.First()
 
-
                 Dim diagnosticWaiter = TryCast(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), AsynchronousOperationListener)
 
                 Dim service = New Microsoft.CodeAnalysis.Diagnostics.TestDiagnosticAnalyzerService(listener:=diagnosticWaiter)

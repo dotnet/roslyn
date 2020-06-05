@@ -42,7 +42,7 @@
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
     <BenchmarkDotNetVersion>0.12.1</BenchmarkDotNetVersion>
     <DiffPlexVersion>1.4.4</DiffPlexVersion>
-    <DropAppVersion>17.144.28413-buildid7983345</DropAppVersion>
+    <DropAppVersion>18.165.29912-buildid11693003</DropAppVersion>
     <EnvDTEVersion>8.0.2</EnvDTEVersion>
     <EnvDTE80Version>8.0.0</EnvDTE80Version>
     <FakeSignVersion>0.9.2</FakeSignVersion>

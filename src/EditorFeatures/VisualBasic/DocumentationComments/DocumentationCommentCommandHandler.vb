@@ -38,7 +38,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
             End Get
         End Property
 
-
         Protected Overrides Function GetContainingMember(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As DeclarationStatementSyntax
             Return syntaxTree.GetRoot(cancellationToken).FindToken(position).GetContainingMember()
         End Function
