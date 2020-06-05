@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// <remarks>
     /// Handles spawning of the host process and communication between the local callers and the remote session.
     /// </remarks>
-    internal sealed partial class InteractiveHost
+    internal sealed partial class InteractiveHost : IDisposable
     {
         internal const bool DefaultIs64Bit = true;
 
@@ -78,111 +78,16 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal event Action<char[], int>? ErrorOutputReceived;
 
         internal Process? TryGetProcess()
-        {
-            var lazyRemoteService = _lazyRemoteService;
-            return (lazyRemoteService?.InitializedService != null &&
-                    lazyRemoteService.InitializedService.TryGetValue(out var initializedService)) ? initializedService.Service.Process : null;
-        }
+            => _lazyRemoteService?.TryGetInitializedService()?.Service.Process;
 
         internal async Task<RemoteService> TryGetServiceAsync()
-        {
-            var service = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
-            return service.Service;
-        }
+            => (await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false)).Service;
+
         // Triggered whenever we create a fresh process.
         // The ProcessExited event is not hooked yet.
         internal event Action<Process>? InteractiveHostProcessCreated;
 
         #endregion
-
-        private static string GenerateUniqueChannelLocalName()
-            => typeof(InteractiveHost).FullName + Guid.NewGuid();
-
-        private async Task<RemoteService?> TryStartProcessAsync(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
-        {
-            Process? newProcess = null;
-            int newProcessId = -1;
-            try
-            {
-                int currentProcessId = Process.GetCurrentProcess().Id;
-
-                var remoteServerPort = "InteractiveHostChannel-" + Guid.NewGuid();
-
-                var processInfo = new ProcessStartInfo(hostPath);
-                var pipeName = GenerateUniqueChannelLocalName();
-                processInfo.Arguments = pipeName + " " + currentProcessId;
-                processInfo.WorkingDirectory = _initialWorkingDirectory;
-                processInfo.CreateNoWindow = true;
-                processInfo.UseShellExecute = false;
-                processInfo.RedirectStandardOutput = true;
-                processInfo.RedirectStandardError = true;
-                processInfo.StandardErrorEncoding = Encoding.UTF8;
-                processInfo.StandardOutputEncoding = Encoding.UTF8;
-
-                newProcess = new Process();
-                newProcess.StartInfo = processInfo;
-
-                // enables Process.Exited event to be raised:
-                newProcess.EnableRaisingEvents = true;
-
-                newProcess.Start();
-                InteractiveHostProcessCreated?.Invoke(newProcess);
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                try
-                {
-                    newProcessId = newProcess.Id;
-                }
-                catch
-                {
-                    newProcessId = 0;
-                }
-
-                var clientStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-                JsonRpc jsonRpc;
-
-                try
-                {
-                    await clientStream.ConnectAsync(cancellationToken).ConfigureAwait(false);
-                    jsonRpc = JsonRpc.Attach(clientStream);
-                    await jsonRpc.InvokeWithCancellationAsync<Task>("InitializeAsync",
-                        new object[] { _replServiceProviderType.AssemblyQualifiedName, culture.Name },
-                        cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) when (e is ObjectDisposedException || (!CheckAlive(newProcess, hostPath)))
-                {
-                    return null;
-                }
-
-                return new RemoteService(this, newProcess, newProcessId, jsonRpc);
-            }
-            catch (OperationCanceledException)
-            {
-                if (newProcess != null)
-                {
-                    RemoteService.InitiateTermination(newProcess, newProcessId);
-                }
-
-                return null;
-            }
-        }
-
-        private bool CheckAlive(Process process, string hostPath)
-        {
-            bool alive = process.IsAlive();
-            if (!alive)
-            {
-                string errorString = process.StandardError.ReadToEnd();
-
-                WriteOutputInBackground(
-                    isError: true,
-                    string.Format(InteractiveHostResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, hostPath, process.ExitCode),
-                    errorString);
-            }
-
-            return alive;
-        }
 
         ~InteractiveHost()
         {
@@ -307,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         return default;
                     }
 
-                    var initializedService = await currentRemoteService.InitializedService.GetValueAsync(currentRemoteService.CancellationSource.Token).ConfigureAwait(false);
+                    var initializedService = await currentRemoteService.GetInitializedServiceAsync().ConfigureAwait(false);
                     if (initializedService.Service != null && initializedService.Service.Process.IsAlive())
                     {
                         return initializedService;
@@ -349,6 +254,11 @@ namespace Microsoft.CodeAnalysis.Interactive
         private async Task<TResult> Async<TResult>(string targetName, params object?[] arguments)
         {
             var initializedRemoteService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
+            if (initializedRemoteService.Service == null)
+            {
+                return default!;
+            }
+
             return await Async<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);
         }
 
