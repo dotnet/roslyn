@@ -266,7 +266,8 @@ See [compiler options](https://docs.microsoft.com/en-us/dotnet/csharp/language-r
 | compiler-version | full version with SHA |
 | fallback-encoding | see see [file encoding](#file-encoding) |
 | define | [define](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/define-compiler-option) |
-| language-version | [langversion](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/langversion-compiler-option) |
+| language | string for language. `CSharp` or `VisualBasic` |
+| language-version | Version of the language used, matches `[0-9]+(\.[0-9]+)?`. See [langversion](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/langversion-compiler-option) |
 | nullable | [nullable](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references) |
 | optimization | see [optimization](#optimization) |
 | runtime-version | see [runtime version](#runtime-version) |
@@ -280,7 +281,8 @@ See [compiler options](https://docs.microsoft.com/en-us/dotnet/visual-basic/refe
 | ------- | --------------- |
 | compiler-version | full version with SHA |
 | define | [define](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/define) |
-| language-version | [langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion) |
+| language | string for language. `CSharp` or `VisualBasic` |
+| language-version | Version of the language used, matches `[0-9]+(\.[0-9]+)?`. See [langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion) |
 | optimization | see [optimization](#optimization) |
 | strict | [optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict) |
 | runtime-version | see [runtime version](#runtime-version) |
