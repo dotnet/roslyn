@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public const SyntaxKind NotPattern = (SyntaxKind)9033;
         public const SyntaxKind AndKeyword = (SyntaxKind)8439;
         public const SyntaxKind OrKeyword = (SyntaxKind)8438;
+        public const SyntaxKind FunctionPointerType = (SyntaxKind)9056;
+        public const SyntaxKind NotKeyword = (SyntaxKind)8440;
         public const SyntaxKind DataKeyword = (SyntaxKind)8441;
 
 #if !CODE_STYLE
@@ -36,14 +38,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// <para>The subtraction will overflow if <see cref="SyntaxKind.RelationalPattern"/> is greater, and the conversion
         /// to an unsigned value after negation will overflow if <see cref="RelationalPattern"/> is greater.</para>
         /// </remarks>
-        private const uint DataKeywordValueAssertion = -(DataKeyword - SyntaxKind.DataKeyword);
         private const uint RelationalPatternValueAssertion = -(RelationalPattern - SyntaxKind.RelationalPattern);
+        private const uint DataKeywordValueAssertion = -(DataKeyword - SyntaxKind.DataKeyword);
         private const uint ParenthesizedPatternValueAssertion = -(ParenthesizedPattern - SyntaxKind.ParenthesizedPattern);
         private const uint AndPatternValueAssertion = -(AndPattern - SyntaxKind.AndPattern);
         private const uint OrPatternValueAssertion = -(OrPattern - SyntaxKind.OrPattern);
         private const uint NotPatternValueAssertion = -(NotPattern - SyntaxKind.NotPattern);
         private const uint AndKeywordValueAssertion = -(AndKeyword - SyntaxKind.AndKeyword);
         private const uint OrKeywordValueAssertion = -(OrKeyword - SyntaxKind.OrKeyword);
+        private const uint FunctionPointerTypeAssertion = -(FunctionPointerType - SyntaxKind.FunctionPointerType);
+        private const uint NotKeywordValueAssertion = -(NotKeyword - SyntaxKind.NotKeyword);
 #endif
     }
 }

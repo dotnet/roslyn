@@ -330,6 +330,18 @@ namespace Microsoft.CodeAnalysis
                     typeSymbol = DecodeGenericTypeInstanceOrThrow(ref ppSig, out refersToNoPiaLocalType);
                     break;
 
+                case SignatureTypeCode.FunctionPointer:
+                    var signatureHeader = ppSig.ReadSignatureHeader();
+                    var parameters = DecodeSignatureParametersOrThrow(ref ppSig, signatureHeader, typeParameterCount: out int typeParamCount, shouldProcessAllBytes: false, isFunctionPointerSignature: true);
+
+                    if (typeParamCount != 0)
+                    {
+                        throw new UnsupportedSignatureContent();
+                    }
+
+                    typeSymbol = MakeFunctionPointerTypeSymbol(Cci.CallingConventionUtils.FromSignatureConvention(signatureHeader.CallingConvention, throwOnInvalidConvention: true), ImmutableArray.Create(parameters));
+                    break;
+
                 default:
                     throw new UnsupportedSignatureContent();
             }
@@ -741,6 +753,12 @@ namespace Microsoft.CodeAnalysis
                         requiredModifiersFound |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
                         isAllowed = true;
                     }
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute) != 0 &&
+                        IsAcceptedOutAttributeModifierType(type))
+                    {
+                        requiredModifiersFound |= AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute;
+                        isAllowed = true;
+                    }
 
                     if (!isAllowed)
                     {
@@ -1003,6 +1021,12 @@ tryAgain:
             if (typeCode == SignatureTypeCode.TypeHandle)
             {
                 // TypeDefOrRefOrSpec encoded
+                // From the PortablePDB spec: https://github.com/dotnet/runtime/blob/master/src/libraries/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#localconstant-table-0x34
+                // The encoding of the GeneralValue is determined based upon the type expressed by TypeDefOrRefOrSpecEncoded
+                // specified in GeneralConstant. GeneralValue for special types listed in the table below has to be present
+                // and is encoded as specified.
+                // If the GeneralValue is not present the value of the constant is the default value of the type. If the type 
+                // is a reference type the value is a null reference, if the type is a pointer type the value is a null pointer, etc.
                 bool refersToNoPiaLocalType;
                 type = GetSymbolForTypeHandleOrThrow(sigReader.ReadTypeHandle(), out refersToNoPiaLocalType, allowTypeSpec: true, requireShortForm: true);
 
@@ -1016,8 +1040,9 @@ tryAgain:
                 }
                 else if (sigReader.RemainingBytes == 0)
                 {
-                    // default(T)
-                    value = (type.IsReferenceType || type.TypeKind == TypeKind.Pointer) ? ConstantValue.Null : ConstantValue.Bad;
+                    // Note: even though the PortablePDB spec permits constants of pointer types, C# does not, so those
+                    // should only ever be seen if the PDB being decoded is a custom-assembled PDB for non-legal C#.
+                    value = (type.IsReferenceType || type.TypeKind == TypeKind.Pointer || type.TypeKind == TypeKind.FunctionPointer) ? ConstantValue.Null : ConstantValue.Bad;
                 }
                 else
                 {
@@ -1182,27 +1207,38 @@ tryAgain:
         }
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded parameter type is invalid.</exception>
-        private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info, bool isReturn)
+        private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info, bool isReturn, bool allowOutAttribute = false)
         {
-            var allowedRequiredModifiers = AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute;
+            var allowedAttributes = AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute;
+
+            if (allowOutAttribute)
+            {
+                allowedAttributes |= AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute;
+            }
+
             if (isReturn)
             {
                 // PROTOTYPE(init-only): make this more restrictive (ie. disallow aside from the return value of an instance setter)
-                allowedRequiredModifiers |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
+                allowedAttributes |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
             }
 
             info.CustomModifiers = DecodeModifiersOrThrow(
                 ref signatureReader,
-                allowedRequiredModifiers,
+                allowedAttributes,
                 out SignatureTypeCode typeCode,
-                out AllowedRequiredModifierType inAttributeFound);
+                out AllowedRequiredModifierType foundRequiredTypes);
 
             if (typeCode == SignatureTypeCode.ByReference)
             {
+                if (allowOutAttribute && (foundRequiredTypes & allowedAttributes) == allowedAttributes)
+                {
+                    throw new UnsupportedSignatureContent();
+                }
+
                 info.IsByRef = true;
 
                 info.RefCustomModifiers = info.CustomModifiers;
-                if ((inAttributeFound & ~AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) != 0)
+                if ((foundRequiredTypes & AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0)
                 {
                     // This cannot be placed on RefCustomModifiers, just CustomModifiers
                     info.CustomModifiers = default;
@@ -1211,9 +1247,9 @@ tryAgain:
 
                 info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
             }
-            else if ((inAttributeFound & ~AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0)
+            else if ((foundRequiredTypes & ~AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0)
             {
-                // This cannot be placed on CustomModifiers, just RefCustomModifiers
+                // in and out can only be placed on RefCustomModifiers
                 throw new UnsupportedSignatureContent();
             }
 
@@ -1877,7 +1913,7 @@ tryAgain:
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        protected ParamInfo<TypeSymbol>[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount)
+        protected ParamInfo<TypeSymbol>[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount, bool shouldProcessAllBytes = true, bool isFunctionPointerSignature = false)
         {
             int paramCount;
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out paramCount, out typeParameterCount);
@@ -1895,15 +1931,15 @@ tryAgain:
                 for (paramIndex = 1; paramIndex <= paramCount; paramIndex++)
                 {
                     // Figure out the type.
-                    DecodeParameterOrThrow(ref signatureReader, ref paramInfo[paramIndex], isReturn: false);
+                    DecodeParameterOrThrow(ref signatureReader, ref paramInfo[paramIndex], isReturn: false, isFunctionPointerSignature);
                 }
 
-                if (signatureReader.RemainingBytes > 0)
+                if (shouldProcessAllBytes && signatureReader.RemainingBytes > 0)
                 {
                     throw new UnsupportedSignatureContent();
                 }
             }
-            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException)
+            catch (Exception e) when ((e is UnsupportedSignatureContent || e is BadImageFormatException) && !isFunctionPointerSignature)
             {
                 for (; paramIndex <= paramCount; paramIndex++)
                 {
@@ -2490,6 +2526,7 @@ tryAgain:
             System_Runtime_InteropServices_InAttribute = 1 << 1,
             System_Runtime_InteropServices_UnmanagedType = 1 << 2,
             System_Runtime_CompilerServices_IsExternalInit = 1 << 3,
+            System_Runtime_CompilerServices_OutAttribute = 1 << 4,
         }
     }
 }

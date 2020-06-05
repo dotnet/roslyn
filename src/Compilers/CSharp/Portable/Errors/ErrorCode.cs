@@ -1739,11 +1739,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 8.0
 
+        #region diagnostics introduced in preview
+
         ERR_InternalError = 8751,
 
         ERR_TypelessNewIllegalTargetType = 8752,
         ERR_TypelessNewNotValid = 8753,
         ERR_TypelessNewNoTargetType = 8754,
+
+        ERR_BadFuncPointerParamModifier = 8755,
+        ERR_BadFuncPointerArgCount = 8756,
+        ERR_MethFuncPtrMismatch = 8757,
+        ERR_FuncPtrRefMismatch = 8758,
+        ERR_FuncPtrMethMustBeStatic = 8759,
 
         ERR_ExternEventInitializer = 8760,
         ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
@@ -1764,8 +1772,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // available 8773
 
-        #region diagnostics introduced for C# 9.0
-
         WRN_MemberNotNull = 8774,
         WRN_MemberNotNullWhen = 8775,
         WRN_MemberNotNullBadMember = 8776,
@@ -1780,17 +1786,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_GeneratorFailedDuringInitialization = 8784,
         WRN_GeneratorFailedDuringGeneration = 8785,
 
+        ERR_WrongFuncPtrCallingConvention = 8786,
+        ERR_MissingAddressOf = 8787,
+        ERR_CannotUseReducedExtensionMethodInAddressOf = 8788,
+        ERR_CannotUseFunctionPointerAsFixedLocal = 8789,
+
         ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,
         WRN_GivenExpressionAlwaysMatchesPattern = 8793,
         WRN_IsPatternAlways = 8794,
+
         ERR_PartialMethodWithAccessibilityModsMustHaveImplementation = 8795,
         ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods = 8796,
         ERR_PartialMethodWithOutParamMustHaveAccessMods = 8797,
         ERR_PartialMethodWithExtendedModMustHaveAccessMods = 8798,
         ERR_PartialMethodAccessibilityDifference = 8799,
         ERR_PartialMethodExtendedModDifference = 8800,
+
+        ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 8801,
+        ERR_SimpleProgramMultipleUnitsWithTopLevelStatements = 8802,
+        ERR_TopLevelStatementAfterNamespaceOrType = 8803,
+        ERR_SimpleProgramDisallowsMainType = 8804,
+        ERR_SimpleProgramNotAnExecutable = 8805,
+
+        ERR_UnsupportedCallingConvention = 8806,
+        ERR_InvalidFunctionPointerCallingConvention = 8807,
+        ERR_InvalidFuncPointerReturnTypeModifier = 8808,
+        ERR_DupReturnTypeMod = 8809,
+        ERR_AddressOfMethodGroupInExpressionTree = 8810,
+        ERR_CannotConvertAddressOfToDelegate = 8811,
+        ERR_AddressOfToNonFunctionPointer = 8812,
 
         ERR_BadRecordDeclaration = 8850,
         ERR_DuplicateRecordConstructor = 8851,
@@ -1803,6 +1829,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoSingleCloneMethod = 8858,
         ERR_ContainingTypeMustDeriveFromWithReturnType = 8859,
         ERR_WithMemberIsNotRecordProperty = 8860,
+        ERR_UnexpectedArgumentList = 8861,
+        ERR_UnexpectedOrMissingConstructorInitializerInRecord = 8862,
+        ERR_MultipleRecordParameterLists = 8863,
 
         #endregion
 

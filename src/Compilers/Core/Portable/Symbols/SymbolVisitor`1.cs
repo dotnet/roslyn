@@ -119,6 +119,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         [return: MaybeNull]
+        public virtual TResult VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+        {
+            return DefaultVisit(symbol);
+        }
+
+        [return: MaybeNull]
         public virtual TResult VisitProperty(IPropertySymbol symbol)
         {
             return DefaultVisit(symbol);

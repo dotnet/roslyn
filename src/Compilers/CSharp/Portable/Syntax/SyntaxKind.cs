@@ -204,6 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         DataKeyword = 8441,
         WithKeyword = 8442,
         InitKeyword = 8443,
+        RecordKeyword = 8444,
+
         /// when adding a contextual keyword following functions must be adapted:
         /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
         /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
@@ -613,10 +615,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitStackAllocArrayCreationExpression = 9053,
         SuppressNullableWarningExpression = 9054,
         NullableDirectiveTrivia = 9055,
+        FunctionPointerType = 9056,
 
         InitAccessorDeclaration = 9060,
 
         WithExpression = 9061,
         WithInitializerExpression = 9062,
+        RecordDeclaration = 9063
     }
 }

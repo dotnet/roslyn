@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int AwaitKeyword { get; }
         int GlobalKeyword { get; }
         int IfKeyword { get; }
+        int? GlobalStatement { get; }
 
         #endregion
 

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         // the 'progress' parameter which will then update the UI.
                         var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
 
-                        var success = await client.TryRunRemoteAsync(
+                        await client.RunRemoteAsync(
                             WellKnownServiceHubService.CodeAnalysis,
                             nameof(IRemoteSymbolFinder.FindReferencesAsync),
                             solution,
@@ -51,8 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             serverCallback,
                             cancellationToken).ConfigureAwait(false);
 
-                        if (success)
-                            return;
+                        return;
                     }
                 }
 

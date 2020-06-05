@@ -311,6 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NullableType:
                 case SyntaxKind.PredefinedType:
                 case SyntaxKind.TupleType:
+                case SyntaxKind.FunctionPointerType:
                     return true;
                 default:
                     return IsName(kind);
@@ -344,6 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.EnumDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     return true;
 
                 default:
@@ -793,6 +795,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.StructDeclaration;
                 case SyntaxKind.InterfaceKeyword:
                     return SyntaxKind.InterfaceDeclaration;
+                case SyntaxKind.RecordKeyword:
+                    return SyntaxKind.RecordDeclaration;
                 default:
                     return SyntaxKind.None;
             }
@@ -1120,6 +1124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DataKeyword:
                 case SyntaxKind.WithKeyword:
                 case SyntaxKind.InitKeyword:
+                case SyntaxKind.RecordKeyword:
                     return true;
                 default:
                     return false;
@@ -1235,6 +1240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.WithKeyword;
                 case "init":
                     return SyntaxKind.InitKeyword;
+                case "record":
+                    return SyntaxKind.RecordKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1666,6 +1673,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "with";
                 case SyntaxKind.InitKeyword:
                     return "init";
+                case SyntaxKind.RecordKeyword:
+                    return "record";
                 default:
                     return string.Empty;
             }

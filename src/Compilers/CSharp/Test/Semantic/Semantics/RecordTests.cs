@@ -42,69 +42,105 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 class Point(int x, int y);
 ";
             var src2 = @"
-data class Point { }
+record Point { }
 ";
             var src3 = @"
-data class Point(int x, int y);
+record Point(int x, int y);
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (2,12): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // error CS8805: Program using top-level statements must be an executable.
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,12): error CS1514: { expected
                 // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("records").WithLocation(2, 12),
-                // (2,12): error CS8800: Records must have both a 'data' modifier and non-empty parameter list
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 12),
+                // (2,12): error CS1513: } expected
                 // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "(int x, int y)").WithLocation(2, 12),
-                // (2,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 12),
+                // (2,12): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "x").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(2, 17),
-                // (2,24): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y);").WithArguments("top-level statements").WithLocation(2, 12),
+                // (2,12): error CS8803: Top-level statements must precede namespace and type declarations.
                 // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "y").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(2, 24),
-                // (2,26): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 12),
+                // (2,12): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ";").WithArguments("records").WithLocation(2, 26)
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 12),
+                // (2,13): error CS8185: A declaration is not allowed in this context.
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(2, 13),
+                // (2,13): error CS0165: Use of unassigned local variable 'x'
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(2, 13),
+                // (2,20): error CS8185: A declaration is not allowed in this context.
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(2, 20),
+                // (2,20): error CS0165: Use of unassigned local variable 'y'
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 20)
             );
             comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (2,1): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // data class Point { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "data").WithArguments("records").WithLocation(2, 1),
-                // (2,12): error CS8761: Records must have both a 'data' modifier and parameter list
-                // data class Point { }
-                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "Point").WithLocation(2, 12)
+                // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record Point { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
+                // (2,8): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // record Point { }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Point").WithLocation(2, 8),
+                // (2,8): error CS0548: '<invalid-global-code>.Point': property or indexer must have at least one accessor
+                // record Point { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("<invalid-global-code>.Point").WithLocation(2, 8)
             );
             comp = CreateCompilation(src3, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (2,1): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // data class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "data").WithArguments("records").WithLocation(2, 1),
-                // (2,17): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // data class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x, int y)").WithArguments("records").WithLocation(2, 17),
-                // (2,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
-                // data class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "x").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(2, 22),
-                // (2,29): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
-                // data class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "y").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(2, 29),
-                // (2,31): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // data class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ";").WithArguments("records").WithLocation(2, 31)
+                // error CS8805: Program using top-level statements must be an executable.
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "record Point(int x, int y);").WithArguments("top-level statements").WithLocation(2, 1),
+                // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
+                // (2,8): error CS8112: Local function 'Point(int, int)' must declare a body because it is not marked 'static extern'.
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "Point").WithArguments("Point(int, int)").WithLocation(2, 8),
+                // (2,8): warning CS8321: The local function 'Point' is declared but never used
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Point").WithArguments("Point").WithLocation(2, 8)
             );
 
             comp = CreateCompilation(src1);
             comp.VerifyDiagnostics(
-                // (2,12): error CS8761: Records must have both a 'data' modifier and parameter list
+                // error CS8805: Program using top-level statements must be an executable.
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,12): error CS1514: { expected
                 // class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "(int x, int y)").WithLocation(2, 12)
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 12),
+                // (2,12): error CS1513: } expected
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 12),
+                // (2,12): error CS8803: Top-level statements must precede namespace and type declarations.
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 12),
+                // (2,12): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 12),
+                // (2,13): error CS8185: A declaration is not allowed in this context.
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(2, 13),
+                // (2,13): error CS0165: Use of unassigned local variable 'x'
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(2, 13),
+                // (2,20): error CS8185: A declaration is not allowed in this context.
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(2, 20),
+                // (2,20): error CS0165: Use of unassigned local variable 'y'
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 20)
             );
             comp = CreateCompilation(src2);
-            comp.VerifyDiagnostics(
-                // (2,12): error CS8761: Records must have both a 'data' modifier and parameter list
-                // data class Point { }
-                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "Point").WithLocation(2, 12)
-            );
+            comp.VerifyDiagnostics();
+
             comp = CreateCompilation(src3);
             comp.VerifyDiagnostics();
         }
@@ -114,8 +150,9 @@ data class Point(int x, int y);
         {
             var src = @"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
+    int Z = 123;
     public static void Main()
     {
         var c = new C(1, 2);
@@ -123,9 +160,27 @@ data class C(int X, int Y)
         Console.WriteLine(c.Y);
     }
 }";
-            CompileAndVerify(src, expectedOutput: @"
+            var verifier = CompileAndVerify(src, expectedOutput: @"
 1
 2");
+            verifier.VerifyIL("C..ctor(int, int)", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.<X>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      ""int C.<Y>k__BackingField""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.s   123
+  IL_0011:  stfld      ""int C.Z""
+  IL_0016:  ldarg.0
+  IL_0017:  call       ""object..ctor()""
+  IL_001c:  ret
+}
+");
         }
 
         [Fact]
@@ -133,7 +188,7 @@ data class C(int X, int Y)
         {
             var src = @"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public C(int a, int b)
     {
@@ -148,9 +203,9 @@ data class C(int X, int Y)
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (3,13): error CS8762: There cannot be a primary constructor and a member constructor with the same parameter types.
-                // data class C(int X, int Y)
-                Diagnostic(ErrorCode.ERR_DuplicateRecordConstructor, "(int X, int Y)").WithLocation(3, 13)
+                // (3,9): error CS8851: There cannot be a primary constructor and a member constructor with the same parameter types.
+                // record C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_DuplicateRecordConstructor, "(int X, int Y)").WithLocation(3, 9)
             );
         }
 
@@ -159,7 +214,7 @@ data class C(int X, int Y)
         {
             var src = @"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public int X { get; }
 
@@ -180,7 +235,7 @@ data class C(int X, int Y)
         {
             var src = @"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public int X { get; } = 3;
 
@@ -200,17 +255,17 @@ data class C(int X, int Y)
         public void RecordProperties_05()
         {
             var src = @"
-data class C(int X, int X)
+record C(int X, int X)
 {
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (2,25): error CS0100: The parameter name 'X' is a duplicate
-                // data class C(int X, int X)
-                Diagnostic(ErrorCode.ERR_DuplicateParamName, "X").WithArguments("X").WithLocation(2, 25),
-                // (2,25): error CS0102: The type 'C' already contains a definition for 'X'
-                // data class C(int X, int X)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(2, 25)
+                // (2,21): error CS0100: The parameter name 'X' is a duplicate
+                // record C(int X, int X)
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, "X").WithArguments("X").WithLocation(2, 21),
+                // (2,21): error CS0102: The type 'C' already contains a definition for 'X'
+                // record C(int X, int X)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(2, 21)
             );
         }
 
@@ -218,31 +273,60 @@ data class C(int X, int X)
         public void RecordProperties_06()
         {
             var src = @"
-data class C(int X)
+record C(int X, int Y)
 {
-    public void get_X() {}
+    public void get_X() { }
+    public void set_X() { }
+    int get_Y(int value) => value;
+    int set_Y(int value) => value;
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (2,18): error CS0082: Type 'C' already reserves a member called 'get_X' with the same parameter types
-                // data class C(int X)
-                Diagnostic(ErrorCode.ERR_MemberReserved, "X").WithArguments("get_X", "C").WithLocation(2, 18)
-            );
+                // (2,14): error CS0082: Type 'C' already reserves a member called 'get_X' with the same parameter types
+                // record C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_MemberReserved, "X").WithArguments("get_X", "C").WithLocation(2, 14),
+                // (2,21): error CS0082: Type 'C' already reserves a member called 'set_Y' with the same parameter types
+                // record C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_MemberReserved, "Y").WithArguments("set_Y", "C").WithLocation(2, 21));
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "C C.Clone()",
+                "C..ctor(System.Int32 X, System.Int32 Y)",
+                "System.Int32 C.<X>k__BackingField",
+                "System.Int32 C.X.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.X.init",
+                "System.Int32 C.X { get; init; }",
+                "System.Int32 C.<Y>k__BackingField",
+                "System.Int32 C.Y.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.Y.init",
+                "System.Int32 C.Y { get; init; }",
+                "void C.get_X()",
+                "void C.set_X()",
+                "System.Int32 C.get_Y(System.Int32 value)",
+                "System.Int32 C.set_Y(System.Int32 value)",
+                "System.Boolean C.Equals(C? )",
+                "System.Boolean C.Equals(System.Object? )",
+                "System.Int32 C.GetHashCode()",
+                "C..ctor(C )",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
         public void RecordProperties_07()
         {
             var comp = CreateCompilation(@"
-data class C1(object P, object get_P);
-data class C2(object get_P, object P);");
+record C1(object P, object get_P);
+record C2(object get_P, object P);");
             comp.VerifyDiagnostics(
-                // (2,22): error CS0102: The type 'C1' already contains a definition for 'get_P'
-                // data class C1(object P, object get_P);
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C1", "get_P").WithLocation(2, 22),
-                // (3,36): error CS0102: The type 'C2' already contains a definition for 'get_P'
-                // data class C2(object get_P, object P);
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C2", "get_P").WithLocation(3, 36)
+                // (2,18): error CS0102: The type 'C1' already contains a definition for 'get_P'
+                // record C1(object P, object get_P);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C1", "get_P").WithLocation(2, 18),
+                // (3,32): error CS0102: The type 'C2' already contains a definition for 'get_P'
+                // record C2(object get_P, object P);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C2", "get_P").WithLocation(3, 32)
             );
         }
 
@@ -250,7 +334,7 @@ data class C2(object get_P, object P);");
         public void RecordProperties_08()
         {
             var comp = CreateCompilation(@"
-data class C1(object O1)
+record C1(object O1)
 {
     public object O1 { get; } = O1;
     public object O2 { get; } = O1;
@@ -265,21 +349,70 @@ data class C1(object O1)
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "O1").WithArguments("C1.O1").WithLocation(5, 33)
             );
         }
+
+        [Fact]
+        public void RecordProperties_09()
+        {
+            var src =
+@"record C(object P1, object P2, object P3, object P4)
+{
+    class P1 { }
+    object P2 = 2;
+    int P3(object o) => 3;
+    int P4<T>(T t) => 4;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (1,17): error CS0102: The type 'C' already contains a definition for 'P1'
+                // record C(object P1, object P2, object P3, object P4)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("C", "P1").WithLocation(1, 17),
+                // (1,28): error CS0102: The type 'C' already contains a definition for 'P2'
+                // record C(object P1, object P2, object P3, object P4)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P2").WithArguments("C", "P2").WithLocation(1, 28),
+                // (1,39): error CS0102: The type 'C' already contains a definition for 'P3'
+                // record C(object P1, object P2, object P3, object P4)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(1, 39),
+                // (1,50): error CS0102: The type 'C' already contains a definition for 'P4'
+                // record C(object P1, object P2, object P3, object P4)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P4").WithArguments("C", "P4").WithLocation(1, 50));
+        }
+
+        [Fact]
+        public void RecordProperties_10()
+        {
+            var src =
+@"record C(object P)
+{
+    const int P = 4;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (1,1): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                // record C(object P)
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, @"record C(object P)
+{
+    const int P = 4;
+}").WithLocation(1, 1),
+                // (1,17): error CS0102: The type 'C' already contains a definition for 'P'
+                // record C(object P)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(1, 17));
+        }
+
         [Fact]
         public void EmptyRecord()
         {
             var src = @"
-data class C(); ";
+record C(); ";
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,13): error CS8770: Records must have both a 'data' modifier and non-empty parameter list
-                // data class C();
-                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 13)
+                // (2,9): error CS8850: A positional record must have both a 'data' modifier and non-empty parameter list
+                // record C(); 
+                Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 9)
             );
         }
 
-        [Fact]
+        [Fact(Skip = "record struct")]
         public void StructRecord1()
         {
             var src = @"
@@ -327,7 +460,7 @@ data struct Point(int X, int Y);";
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "record struct")]
         public void StructRecord2()
         {
             var src = @"
@@ -350,7 +483,7 @@ True
 False");
         }
 
-        [Fact]
+        [Fact(Skip = "record struct")]
         public void StructRecord3()
         {
             var src = @"
@@ -388,7 +521,7 @@ True");
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "record struct")]
         public void StructRecord4()
         {
             var src = @"
@@ -416,7 +549,7 @@ data struct S(int X, int Y)
 s");
         }
 
-        [Fact]
+        [Fact(Skip = "record struct")]
         public void StructRecord5()
         {
             var src = @"
@@ -439,7 +572,7 @@ data struct S(int X, int Y)
 s");
         }
 
-        [Fact]
+        [Fact(Skip = "record struct")]
         public void StructRecordDefaultCtor()
         {
             const string src = @"
@@ -461,7 +594,7 @@ class C
         public void WithExpr1()
         {
             var src = @"
-data class C(int X)
+record C(int X)
 {
     public static void Main()
     {
@@ -490,7 +623,7 @@ data class C(int X)
         {
             var src = @"
 using System;
-data class C(int X)
+record C(int X)
 {
     public static void Main()
     {
@@ -509,7 +642,7 @@ data class C(int X)
         public void WithExpr3()
         {
             var src = @"
-data class C(int X)
+record C(int X)
 {
     public static void Main()
     {
@@ -575,7 +708,7 @@ class B
 {
     public B Clone() => null;
 }
-data class C(int X) : B
+record C(int X) : B
 {
     public static void Main()
     {
@@ -655,7 +788,7 @@ class B
     public int X { get; }
     public virtual B Clone() => null;
 }
-data class C(int X) : B
+record C(int X) : B
 {
     public string Y { get; }
     public static void Main()
@@ -675,7 +808,7 @@ data class C(int X) : B
         public void WithExpr9()
         {
             var src = @"
-data class C(int X)
+record C(int X)
 {
     public string Clone() => null;
     public static void Main()
@@ -696,7 +829,7 @@ data class C(int X)
         public void WithExpr11()
         {
             var src = @"
-data class C(int X)
+record C(int X)
 {
     public C Clone() => null;
     public static void Main()
@@ -718,7 +851,7 @@ data class C(int X)
         {
             var src = @"
 using System;
-data class C(int X)
+record C(int X)
 {
     public C Clone() => new C(this.X);
     public static void Main()
@@ -755,7 +888,7 @@ data class C(int X)
         {
             var src = @"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public C Clone() => new C(X, Y);
     public override string ToString() => X + "" "" + Y;
@@ -792,7 +925,7 @@ data class C(int X, int Y)
         {
             var src = @"
 using System;
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public C Clone() => new C(this.X, this.Y);
     public override string ToString() => X + "" "" + Y;
@@ -837,7 +970,7 @@ data class C(int X, int Y)
         public void WithExpr15()
         {
             var src = @"
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public C Clone() => null;
     public static void Main()
@@ -858,7 +991,7 @@ data class C(int X, int Y)
         public void WithExpr16()
         {
             var src = @"
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public C Clone() => null;
     public static void Main()
@@ -884,7 +1017,7 @@ class B
     public int X { get; }
     private B Clone() => null;
 }
-data class C(int X) : B
+record C(int X) : B
 {
     public static void Main()
     {
@@ -909,7 +1042,7 @@ class B
     public int X { get; }
     protected B Clone() => null;
 }
-data class C(int X) : B
+record C(int X) : B
 {
     public static void Main()
     {
@@ -934,7 +1067,7 @@ class B
     public int X { get; }
     protected B Clone() => null;
 }
-data class C(int X)
+record C(int X)
 {
     public static void Main()
     {
@@ -983,7 +1116,7 @@ class B
     public class X { }
     public B Clone() => null;
 }
-data class C(int X)
+record C(int X)
 {
     public static void Main()
     {
@@ -1011,7 +1144,7 @@ class B
     public int X = 0;
     public B Clone() => null;
 }
-data class C(int X)
+record C(int X)
 {
     public static void Main()
     {
@@ -1032,7 +1165,7 @@ class B
     public int X = 0;
     public B Clone() => null;
 }
-data class C(int X)
+record C(int X)
 {
     public static void Main()
     {
@@ -1077,7 +1210,7 @@ class C
         public void WithExprNoExpressionToPropertyTypeConversion()
         {
             var src = @"
-data class C(int X)
+record C(int X)
 {
     public C Clone() => null;
     public static void Main()
@@ -1125,7 +1258,7 @@ class D
         {
             var src = @"
 using System;
-data class C(int X, int Y, int Z)
+record C(int X, int Y, int Z)
 {
     public C Clone() => new C(X, Y, Z);
     public static void Main()
@@ -1309,7 +1442,7 @@ Block[B3] - Exit
         {
             var src = @"
 using System;
-data class C(long X)
+record C(long X)
 {
     public C Clone() => new C(X);
     public static void Main()
@@ -1355,7 +1488,7 @@ struct S
         return s._i;
     }
 }
-data class C(long X)
+record C(long X)
 {
     public C Clone() => new C(X);
     public static void Main()
@@ -1408,7 +1541,7 @@ struct S
         return s._i;
     }
 }
-data class C(long X)
+record C(long X)
 {
     public C Clone() => new C(X);
     public static void Main()
@@ -1437,7 +1570,7 @@ struct S
     }
     public static explicit operator long(S s) => s._i;
 }
-data class C(long X)
+record C(long X)
 {
     public C Clone() => new C(X);
     public static void Main()
@@ -1460,7 +1593,7 @@ data class C(long X)
         {
             var src = @"
 using System;
-data class C(object X)
+record C(object X)
 {
     public C Clone() => new C(X);
     public static void Main()
@@ -1676,7 +1809,7 @@ class C : B
         public void WithSemanticModel1()
         {
             var src = @"
-data class C(int X, string Y)
+record C(int X, string Y)
 {
     public static void Main()
     {
@@ -1788,7 +1921,7 @@ Block[B3] - Exit
         public void WithBadExprArg()
         {
             var src = @"
-data class C(int X, int Y)
+record C(int X, int Y)
 {
     public C Clone() => null;
     public static void Main()
@@ -1856,7 +1989,7 @@ IWithExpressionOperation (OperationKind.WithExpression, Type: C, IsInvalid) (Syn
         public void WithExpr_DefiniteAssignment_01()
         {
             var src = @"
-data class B(int X)
+record B(int X)
 {
     static void M(B b)
     {
@@ -1873,7 +2006,7 @@ data class B(int X)
         public void WithExpr_DefiniteAssignment_02()
         {
             var src = @"
-data class B(int X, string Y)
+record B(int X, string Y)
 {
     static void M(B b)
     {
@@ -1889,7 +2022,7 @@ data class B(int X, string Y)
         public void WithExpr_DefiniteAssignment_03()
         {
             var src = @"
-data class B(int X, string Y)
+record B(int X, string Y)
 {
     static void M(B b)
     {
@@ -1908,7 +2041,7 @@ data class B(int X, string Y)
         public void WithExpr_DefiniteAssignment_04()
         {
             var src = @"
-data class B(int X)
+record B(int X)
 {
     static void M()
     {
@@ -1924,7 +2057,7 @@ data class B(int X)
         public void WithExpr_DefiniteAssignment_05()
         {
             var src = @"
-data class B(int X)
+record B(int X)
 {
     static void M()
     {
@@ -1943,7 +2076,7 @@ data class B(int X)
         public void WithExpr_DefiniteAssignment_06()
         {
             var src = @"
-data class B(int X)
+record B(int X)
 {
     static void M(B b)
     {
@@ -1962,7 +2095,7 @@ data class B(int X)
         public void WithExpr_DefiniteAssignment_07()
         {
             var src = @"
-data class B(int X)
+record B(int X)
 {
     static void M(B b)
     {
@@ -1981,7 +2114,7 @@ data class B(int X)
         {
             var src = @"
 #nullable enable
-data class B(int X)
+record B(int X)
 {
     static void M(B b)
     {
@@ -2001,7 +2134,7 @@ data class B(int X)
         {
             var src = @"
 #nullable enable
-data class B(string X)
+record B(string X)
 {
     static void M(B b, string? s)
     {
@@ -2022,7 +2155,7 @@ data class B(string X)
         {
             var src = @"
 #nullable enable
-data class B(string? X)
+record B(string? X)
 {
     public B Clone() => new B(X);
 
@@ -2058,7 +2191,7 @@ data class B(string? X)
         {
             var src = @"
 #nullable enable
-data class B(int X)
+record B(int X)
 {
     static void M1(B? b)
     {
@@ -2087,7 +2220,7 @@ data class B(int X)
         {
             var src = @"
 #nullable enable
-data class B(string? X, string? Y)
+record B(string? X, string? Y)
 {
     public B Clone() => new B(X, Y);
 
@@ -2162,7 +2295,7 @@ class B
 #nullable enable
 using System.Diagnostics.CodeAnalysis;
 
-data class B([AllowNull] string X)
+record B([AllowNull] string X)
 {
     public B Clone() => new B(X);
 
@@ -2193,7 +2326,7 @@ data class B([AllowNull] string X)
         {
             var src = @"
 #nullable enable
-data class B(string? X, string? Y)
+record B(string? X, string? Y)
 {
     public B Clone() => new B(X, Y);
 
@@ -2234,7 +2367,7 @@ data class B(string? X, string? Y)
         {
             var src = @"
 #nullable enable
-data class B(string? X, string? Y)
+record B(string? X, string? Y)
 {
     static void M1(B b1)
     {
@@ -2258,7 +2391,7 @@ data class B(string? X, string? Y)
         {
             var src = @"
 #nullable enable
-data class B(string X, string Y)
+record B(string X, string Y)
 {
     static string M0(out string? s) { s = null; return ""hello""; }
 
@@ -2291,7 +2424,7 @@ class A
     public string? Z { get; init; }
 }
 
-data class B(string? X) : A
+record B(string? X) : A
 {
     public A Clone() => new B(X) { Y = Y, Z = Z };
     public new string Z { get; init; } = ""zed"";
@@ -2317,7 +2450,7 @@ data class B(string? X) : A
             var src = @"
 #nullable enable
 
-data class B(string? X)
+record B(string? X)
 {
     public B? Clone() => new B(X);
 
@@ -2345,7 +2478,7 @@ data class B(string? X)
 #nullable enable
 using System.Diagnostics.CodeAnalysis;
 
-data class B(string? X)
+record B(string? X)
 {
     [return: MaybeNull]
     public B Clone() => new B(X);
@@ -2375,7 +2508,7 @@ data class B(string? X)
 #nullable enable
 using System.Diagnostics.CodeAnalysis;
 
-data class B(string? X)
+record B(string? X)
 {
     [return: NotNull]
     public B? Clone() => new B(X);
@@ -2398,7 +2531,7 @@ data class B(string? X)
             var src = @"
 #nullable enable
 
-data class B(string? X)
+record B(string? X)
 {
     public B? Clone() => new B(X);
 
@@ -2517,7 +2650,7 @@ class D
         {
             var src = @"
 using System;
-data class C(int Y)
+record C(int Y)
 {
     private readonly int[] _a = new[] { 0 };
     public ref int X => ref _a[0];
@@ -2566,7 +2699,7 @@ data class C(int Y)
         {
             var src = @"
 using System;
-data class C(int Y)
+record C(int Y)
 {
     private readonly int[] _a = new[] { 0 };
     public ref int X
@@ -2607,7 +2740,7 @@ data class C(int Y)
         public void WithExpressionSameLHS()
         {
             var comp = CreateCompilation(@"
-data class C(int X)
+record C(int X)
 {
     public static void Main()
     {
@@ -2622,6 +2755,7 @@ data class C(int X)
             );
         }
 
+        [WorkItem(44616, "https://github.com/dotnet/roslyn/issues/44616")]
         [Fact]
         public void Inheritance_01()
         {
@@ -2636,7 +2770,7 @@ data class C(int X)
     private protected object P5 { get; set; }
     private object P6 { get; set; }
 }
-data class B(object P1, object P2, object P3, object P4, object P5, object P6) : A
+record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
 {
 }";
             var comp = CreateCompilation(source);
@@ -2644,16 +2778,12 @@ data class B(object P1, object P2, object P3, object P4, object P5, object P6) :
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "System.Object B.P1 { get; init; }",
-                "System.Object B.P2 { get; init; }",
-                "System.Object B.P3 { get; init; }",
-                "System.Object B.P4 { get; init; }",
-                "System.Object B.P5 { get; init; }",
                 "System.Object B.P6 { get; init; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
+        [WorkItem(44616, "https://github.com/dotnet/roslyn/issues/44616")]
         [Fact]
         public void Inheritance_02()
         {
@@ -2663,21 +2793,17 @@ data class B(object P1, object P2, object P3, object P4, object P5, object P6) :
     internal A() { }
     private protected object P1 { get; set; }
     private object P2 { get; set; }
-    private data class B(object P1, object P2) : A
+    private record B(object P1, object P2) : A
     {
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "A.B").ToTestDisplayStrings();
-            var expectedMembers = new[]
-            {
-                "System.Object A.B.P1 { get; init; }",
-                "System.Object A.B.P2 { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(new string[0], actualMembers);
         }
 
+        [WorkItem(44616, "https://github.com/dotnet/roslyn/issues/44616")]
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -2689,22 +2815,27 @@ data class B(object P1, object P2, object P3, object P4, object P5, object P6) :
     public A() { }
     internal object P { get; set; }
 }
-data class B1(object P) : A
+public record B(object Q) : A
+{
+    public B() : this(null) { }
+}
+record C1(object P, object Q) : B
 {
 }";
             var comp = CreateCompilation(sourceA);
-            AssertEx.Equal(new[] { "System.Object B1.P { get; init; }" }, GetProperties(comp, "B1").ToTestDisplayStrings());
+            AssertEx.Equal(new string[0], GetProperties(comp, "C1").ToTestDisplayStrings());
             var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
 
             var sourceB =
-@"data class B2(object P) : A
+@"record C2(object P, object Q) : B
 {
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            AssertEx.Equal(new[] { "System.Object B2.P { get; init; }" }, GetProperties(comp, "B2").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Object C2.P { get; init; }" }, GetProperties(comp, "C2").ToTestDisplayStrings());
         }
 
+        [WorkItem(44616, "https://github.com/dotnet/roslyn/issues/44616")]
         [Fact]
         public void Inheritance_04()
         {
@@ -2720,23 +2851,13 @@ data class B1(object P) : A
     public static object P6 { get; set; }
     public ref object P7 => throw null;
 }
-data class B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
+record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
 {
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            var expectedMembers = new[]
-            {
-                "System.Object B.P1 { get; init; }",
-                "System.Object B.P2 { get; init; }",
-                "System.Object B.P3 { get; init; }",
-                "System.Object B.P4 { get; init; }",
-                "System.Object B.P5 { get; init; }",
-                "System.Object B.P6 { get; init; }",
-                "System.Object B.P7 { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(new string[0], actualMembers);
         }
 
         [Fact]
@@ -2749,18 +2870,13 @@ data class B(object P1, object P2, object P3, object P4, object P5, object P6, o
     public object P1 { get; set; }
     public int P2 { get; set; }
 }
-data class B(int P1, object P2) : A
+record B(int P1, object P2) : A
 {
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            var expectedMembers = new[]
-            {
-                "System.Int32 B.P1 { get; init; }",
-                "System.Object B.P2 { get; init; }",
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(new string[0], actualMembers);
         }
 
         [Fact]
@@ -2773,7 +2889,7 @@ data class B(int P1, object P2) : A
     internal int Y { set { } }
     internal int Z;
 }
-data class B(int X, int Y, int Z) : A
+record B(int X, int Y, int Z) : A
 {
 }
 class Program
@@ -2790,18 +2906,12 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (15,9): error CS8852: Init-only property or indexer 'B.X' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
-                //         b.X = 4;
-                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "b.X").WithArguments("B.X").WithLocation(15, 9),
-                // (16,9): error CS8852: Init-only property or indexer 'B.Y' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
-                //         b.Y = 5;
-                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "b.Y").WithArguments("B.Y").WithLocation(16, 9),
-                // (17,9): error CS8852: Init-only property or indexer 'B.Z' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
-                //         b.Z = 6;
-                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "b.Z").WithArguments("B.Z").WithLocation(17, 9));
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            AssertEx.Equal(new string[0], actualMembers);
         }
 
+        [WorkItem(44785, "https://github.com/dotnet/roslyn/issues/44785")]
         [Fact]
         public void Inheritance_07()
         {
@@ -2811,18 +2921,85 @@ class Program
     public abstract int X { get; }
     public virtual int Y { get; }
 }
-data class B(int X, int Y) : A
+abstract record B1(int X, int Y) : A
+{
+}
+record B2(int X, int Y) : A
 {
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,12): error CS0534: 'B' does not implement inherited abstract member 'A.X.get'
-                // data class B(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.X.get").WithLocation(6, 12));
+                // (9,8): error CS0534: 'B2' does not implement inherited abstract member 'A.X.get'
+                // record B2(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B2").WithArguments("B2", "A.X.get").WithLocation(9, 8));
+
+            AssertEx.Equal(new string[0], GetProperties(comp, "B1").ToTestDisplayStrings());
+            AssertEx.Equal(new string[0], GetProperties(comp, "B2").ToTestDisplayStrings());
+        }
+
+        [WorkItem(44785, "https://github.com/dotnet/roslyn/issues/44785")]
+        [Fact]
+        public void Inheritance_08()
+        {
+            var source =
+@"abstract class A
+{
+    public abstract int X { get; }
+    public virtual int Y { get; }
+    public virtual int Z { get; }
+}
+abstract class B : A
+{
+    public override abstract int Y { get; }
+}
+record C(int X, int Y, int Z) : B
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,8): error CS0534: 'C' does not implement inherited abstract member 'B.Y.get'
+                // record C(int X, int Y, int Z) : B
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "B.Y.get").WithLocation(11, 8),
+                // (11,8): error CS0534: 'C' does not implement inherited abstract member 'A.X.get'
+                // record C(int X, int Y, int Z) : B
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.X.get").WithLocation(11, 8));
+
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            AssertEx.Equal(new string[0], actualMembers);
         }
 
         [Fact]
-        public void Inheritance_08()
+        public void Inheritance_09()
+        {
+            var source =
+@"abstract record C(int X, int Y)
+{
+    public abstract int X { get; }
+    public virtual int Y { get; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "C C.Clone()",
+                "C..ctor(System.Int32 X, System.Int32 Y)",
+                "System.Int32 C.X { get; }",
+                "System.Int32 C.X.get",
+                "System.Int32 C.<Y>k__BackingField",
+                "System.Int32 C.Y { get; }",
+                "System.Int32 C.Y.get",
+                "System.Boolean C.Equals(C? )",
+                "System.Boolean C.Equals(System.Object? )",
+                "System.Int32 C.GetHashCode()",
+                "C..ctor(C )",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_10()
         {
             var source =
 @"using System;
@@ -2834,10 +3011,7 @@ interface IB
 {
     int Y { get; }
 }
-data class C(int X, int Y) : IA, IB
-{
-}
-data struct S(int X, int Y) : IA, IB
+record C(int X, int Y) : IA, IB
 {
 }
 class Program
@@ -2847,20 +3021,15 @@ class Program
         var c = new C(1, 2);
         Console.WriteLine(""{0}, {1}"", c.X, c.Y);
         Console.WriteLine(""{0}, {1}"", ((IA)c).X, ((IB)c).Y);
-        var s = new S(3, 4);
-        Console.WriteLine(""{0}, {1}"", s.X, s.Y);
-        Console.WriteLine(""{0}, {1}"", ((IA)s).X, ((IB)s).Y);
     }
 }";
             CompileAndVerify(source, expectedOutput:
 @"1, 2
-1, 2
-3, 4
-3, 4");
+1, 2");
         }
 
         [Fact]
-        public void Inheritance_09()
+        public void Inheritance_11()
         {
             var source =
 @"interface IA
@@ -2871,27 +3040,713 @@ interface IB
 {
     object Y { get; set; }
 }
-data class C(object X, object Y) : IA, IB
-{
-}
-data struct S(object X, object Y) : IA, IB
+record C(object X, object Y) : IA, IB
 {
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,36): error CS0738: 'C' does not implement interface member 'IA.X'. 'C.X' cannot implement 'IA.X' because it does not have the matching return type of 'int'.
-                // data class C(object X, object Y) : IA, IB
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "IA").WithArguments("C", "IA.X", "C.X", "int").WithLocation(9, 36),
-                // (9,40): error CS8854: 'C' does not implement interface member 'IB.Y.set'. 'C.Y.init' cannot implement 'IB.Y.set'.
-                // data class C(object X, object Y) : IA, IB
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "IB").WithArguments("C", "IB.Y.set", "C.Y.init").WithLocation(9, 40),
-                // (12,37): error CS0738: 'S' does not implement interface member 'IA.X'. 'S.X' cannot implement 'IA.X' because it does not have the matching return type of 'int'.
-                // data struct S(object X, object Y) : IA, IB
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "IA").WithArguments("S", "IA.X", "S.X", "int").WithLocation(12, 37),
-                // (12,41): error CS8854: 'S' does not implement interface member 'IB.Y.set'. 'S.Y.init' cannot implement 'IB.Y.set'.
-                // data struct S(object X, object Y) : IA, IB
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "IB").WithArguments("S", "IB.Y.set", "S.Y.init").WithLocation(12, 41)
+                // (9,32): error CS0738: 'C' does not implement interface member 'IA.X'. 'C.X' cannot implement 'IA.X' because it does not have the matching return type of 'int'.
+                // record C(object X, object Y) : IA, IB
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "IA").WithArguments("C", "IA.X", "C.X", "int").WithLocation(9, 32),
+                // (9,36): error CS8854: 'C' does not implement interface member 'IB.Y.set'. 'C.Y.init' cannot implement 'IB.Y.set'.
+                // record C(object X, object Y) : IA, IB
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "IB").WithArguments("C", "IB.Y.set", "C.Y.init").WithLocation(9, 36)
             );
+        }
+
+        [Fact]
+        public void Inheritance_12()
+        {
+            var source =
+@"class A
+{
+    public object X { get; }
+    public object Y { get; }
+}
+record B(object X, object Y) : A
+{
+    public object X { get; }
+    public object Y { get; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,19): warning CS0108: 'B.X' hides inherited member 'A.X'. Use the new keyword if hiding was intended.
+                //     public object X { get; }
+                Diagnostic(ErrorCode.WRN_NewRequired, "X").WithArguments("B.X", "A.X").WithLocation(8, 19),
+                // (9,19): warning CS0108: 'B.Y' hides inherited member 'A.Y'. Use the new keyword if hiding was intended.
+                //     public object Y { get; }
+                Diagnostic(ErrorCode.WRN_NewRequired, "Y").WithArguments("B.Y", "A.Y").WithLocation(9, 19));
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object B.X { get; }",
+                "System.Object B.Y { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_13()
+        {
+            var source =
+@"record A(object X, object Y)
+{
+    internal A() : this(null, null) { }
+}
+record B(object X, object Y) : A
+{
+    public object X { get; }
+    public object Y { get; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,19): warning CS0108: 'B.X' hides inherited member 'A.X'. Use the new keyword if hiding was intended.
+                //     public object X { get; }
+                Diagnostic(ErrorCode.WRN_NewRequired, "X").WithArguments("B.X", "A.X").WithLocation(7, 19),
+                // (8,19): warning CS0108: 'B.Y' hides inherited member 'A.Y'. Use the new keyword if hiding was intended.
+                //     public object Y { get; }
+                Diagnostic(ErrorCode.WRN_NewRequired, "Y").WithArguments("B.Y", "A.Y").WithLocation(8, 19));
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object B.X { get; }",
+                "System.Object B.Y { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_14()
+        {
+            var source =
+@"class A
+{
+    public object P1 { get; }
+    public object P2 { get; }
+    public object P3 { get; }
+    public object P4 { get; }
+}
+class B : A
+{
+    public new int P1 { get; }
+    public new int P2 { get; }
+}
+record C(object P1, int P2, object P3, int P4) : B
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            AssertEx.Equal(new string[0], actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_15()
+        {
+            var source =
+@"record C(int P1, object P2)
+{
+    public object P1 { get; set; }
+    public int P2 { get; set; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object C.P1 { get; set; }",
+                "System.Int32 C.P2 { get; set; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_16()
+        {
+            var source =
+@"class A
+{
+    public int P1 { get; }
+    public int P2 { get; }
+    public int P3 { get; }
+    public int P4 { get; }
+}
+record B(object P1, int P2, object P3, int P4) : A
+{
+    public new object P1 { get; }
+    public new object P2 { get; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object B.P1 { get; }",
+                "System.Object B.P2 { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_17()
+        {
+            var source =
+@"class A
+{
+    public object P1 { get; }
+    public object P2 { get; }
+    public object P3 { get; }
+    public object P4 { get; }
+}
+record B(object P1, int P2, object P3, int P4) : A
+{
+    public new int P1 { get; }
+    public new int P2 { get; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Int32 B.P1 { get; }",
+                "System.Int32 B.P2 { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_18()
+        {
+            var source =
+@"record C(object P1, object P2, object P3, object P4, object P5)
+{
+    public object P1 { get { return null; } set { } }
+    public object P2 { get; }
+    public object P3 { set { } }
+    public static object P4 { get; set; }
+    public ref object P5 => throw null;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,1): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                // record C(object P1, object P2, object P3, object P4, object P5)
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, @"record C(object P1, object P2, object P3, object P4, object P5)
+{
+    public object P1 { get { return null; } set { } }
+    public object P2 { get; }
+    public object P3 { set { } }
+    public static object P4 { get; set; }
+    public ref object P5 => throw null;
+}").WithLocation(1, 1));
+
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object C.P1 { get; set; }",
+                "System.Object C.P2 { get; }",
+                "System.Object C.P3 { set; }",
+                "System.Object C.P4 { get; set; }",
+                "ref System.Object C.P5 { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_19()
+        {
+            var source =
+@"#pragma warning disable 8618
+#nullable enable
+class A
+{
+    internal A() { }
+    public object P1 { get; }
+    public dynamic[] P2 { get; }
+    public object? P3 { get; }
+    public object[] P4 { get; }
+    public (int X, int Y) P5 { get; }
+    public (int, int)[] P6 { get; }
+    public nint P7 { get; }
+    public System.UIntPtr[] P8 { get; }
+}
+record B(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8) : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            AssertEx.Equal(new string[0], actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_20()
+        {
+            var source =
+@"#pragma warning disable 8618
+#nullable enable
+record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X, int Y)[] P6, System.IntPtr P7, nuint[] P8)
+{
+    public object P1 { get; }
+    public dynamic[] P2 { get; }
+    public object? P3 { get; }
+    public object[] P4 { get; }
+    public (int X, int Y) P5 { get; }
+    public (int, int)[] P6 { get; }
+    public nint P7 { get; }
+    public System.UIntPtr[] P8 { get; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object C.P1 { get; }",
+                "dynamic[] C.P2 { get; }",
+                "System.Object? C.P3 { get; }",
+                "System.Object[] C.P4 { get; }",
+                "(System.Int32 X, System.Int32 Y) C.P5 { get; }",
+                "(System.Int32, System.Int32)[] C.P6 { get; }",
+                "nint C.P7 { get; }",
+                "System.UIntPtr[] C.P8 { get; }"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Inheritance_21(bool useCompilationReference)
+        {
+            var sourceA =
+@"public class A
+{
+    public object P1 { get; }
+    internal object P2 { get; }
+}
+public class B : A
+{
+    internal new object P1 { get; }
+    public new object P2 { get; }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
+
+            var sourceB =
+@"record C(object P1, object P2) : B
+{
+}
+class Program
+{
+    static void Main()
+    {
+        var c = new C(1, 2);
+        System.Console.WriteLine(""({0}, {1})"", c.P1, c.P2);
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            AssertEx.Equal(new string[0], actualMembers);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "(, )");
+            verifier.VerifyIL("C..ctor(object, object)",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""B..ctor()""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size       41 (0x29)
+  .maxstack  3
+  .locals init (C V_0) //c
+  IL_0000:  ldc.i4.1
+  IL_0001:  box        ""int""
+  IL_0006:  ldc.i4.2
+  IL_0007:  box        ""int""
+  IL_000c:  newobj     ""C..ctor(object, object)""
+  IL_0011:  stloc.0
+  IL_0012:  ldstr      ""({0}, {1})""
+  IL_0017:  ldloc.0
+  IL_0018:  callvirt   ""object A.P1.get""
+  IL_001d:  ldloc.0
+  IL_001e:  callvirt   ""object B.P2.get""
+  IL_0023:  call       ""void System.Console.WriteLine(string, object, object)""
+  IL_0028:  ret
+}");
+        }
+
+        [Fact]
+        public void Inheritance_22()
+        {
+            var source =
+@"class A
+{
+    public ref object P1 => throw null;
+    public object P2 => throw null;
+}
+class B : A
+{
+    public new object P1 => throw null;
+    public new ref object P2 => throw null;
+}
+record C(object P1, object P2) : B
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            AssertEx.Equal(new string[0], actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_23()
+        {
+            var source =
+@"class A
+{
+    public static object P1 { get; }
+    public object P2 { get; }
+}
+class B : A
+{
+    public new object P1 { get; }
+    public new static object P2 { get; }
+}
+record C(object P1, object P2) : B
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            AssertEx.Equal(new string[0], actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_24()
+        {
+            var source =
+@"class A
+{
+    public object get_P() => null;
+    public object set_Q() => null;
+}
+record B(object P, object Q) : A
+{
+}
+record C(object P)
+{
+    public object get_P() => null;
+    public object set_Q() => null;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,17): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
+                // record C(object P)
+                Diagnostic(ErrorCode.ERR_MemberReserved, "P").WithArguments("get_P", "C").WithLocation(9, 17));
+
+            var expectedMembers = new[]
+            {
+                "B B.Clone()",
+                "B..ctor(System.Object P, System.Object Q)",
+                "System.Object B.<P>k__BackingField",
+                "System.Object B.P.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.P.init",
+                "System.Object B.P { get; init; }",
+                "System.Object B.<Q>k__BackingField",
+                "System.Object B.Q.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Q.init",
+                "System.Object B.Q { get; init; }",
+                "System.Boolean B.Equals(B? )",
+                "System.Boolean B.Equals(System.Object? )",
+                "System.Int32 B.GetHashCode()",
+                "B..ctor(B )",
+            };
+            AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings());
+
+            expectedMembers = new[]
+            {
+                "C C.Clone()",
+                "C..ctor(System.Object P)",
+                "System.Object C.<P>k__BackingField",
+                "System.Object C.P.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.P.init",
+                "System.Object C.P { get; init; }",
+                "System.Object C.get_P()",
+                "System.Object C.set_Q()",
+                "System.Boolean C.Equals(C? )",
+                "System.Boolean C.Equals(System.Object? )",
+                "System.Int32 C.GetHashCode()",
+                "C..ctor(C )",
+            };
+            AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Inheritance_25()
+        {
+            var sourceA =
+@"public class A
+{
+    public class P1 { }
+    internal object P2 = 2;
+    public int P3(object o) => 3;
+    internal int P4<T>(T t) => 4;
+}";
+            var sourceB =
+@"record B(object P1, object P2, object P3, object P4) : A
+{
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object B.P4 { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+
+            comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            expectedMembers = new[]
+            {
+                "System.Object B.P2 { get; init; }",
+                "System.Object B.P4 { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_26()
+        {
+            var sourceA =
+@"public class A
+{
+    internal const int P = 4;
+}";
+            var sourceB =
+@"record B(object P) : A
+{
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics();
+            AssertEx.Equal(new string[0], GetProperties(comp, "B").ToTestDisplayStrings());
+
+            comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            AssertEx.Equal(new[] { "System.Object B.P { get; init; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Inheritance_27()
+        {
+            var source =
+@"class A
+{
+    public object P { get; }
+    public object Q { get; set; }
+}
+record B(object get_P, object set_Q) : A
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object B.get_P { get; init; }",
+                "System.Object B.set_Q { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_28()
+        {
+            var source =
+@"interface I
+{
+    object P { get; }
+}
+class A : I
+{
+    object I.P => null;
+}
+record B(object P) : A
+{
+}
+record C(object P) : I
+{
+    object I.P => null;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            AssertEx.Equal(new[] { "System.Object B.P { get; init; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Object C.P { get; init; }", "System.Object C.I.P { get; }" }, GetProperties(comp, "C").ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void Inheritance_29()
+        {
+            var sourceA =
+@"Public Class A
+    Public Property P(o As Object) As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+    Public Property Q(x As Object, y As Object) As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+";
+            var compA = CreateVisualBasicCompilation(sourceA);
+            compA.VerifyDiagnostics();
+            var refA = compA.EmitToImageReference();
+
+            var sourceB =
+@"record B(object P, object Q) : A
+{
+    object P { get; }
+}";
+            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            compB.VerifyDiagnostics();
+
+            var actualMembers = GetProperties(compB, "B").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object B.Q { get; init; }",
+                "System.Object B.P { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_30()
+        {
+            var sourceA =
+@"Public Class A
+    Public ReadOnly Overloads Property P() As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Public ReadOnly Overloads Property P(o As Object) As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Public Overloads Property Q(o As Object) As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+    Public Overloads Property Q() As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+";
+            var compA = CreateVisualBasicCompilation(sourceA);
+            compA.VerifyDiagnostics();
+            var refA = compA.EmitToImageReference();
+
+            var sourceB =
+@"record B(object P, object Q) : A
+{
+}";
+            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            compB.VerifyDiagnostics();
+
+            var actualMembers = GetProperties(compB, "B").ToTestDisplayStrings();
+            AssertEx.Equal(new string[0], actualMembers);
+        }
+
+        [Fact]
+        public void Inheritance_31()
+        {
+            var sourceA =
+@"Public Class A
+    Public ReadOnly Property P() As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Public Property Q(o As Object) As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+    Public Property R(o As Object) As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+Public Class B
+    Inherits A
+    Public ReadOnly Overloads Property P(o As Object) As Object
+        Get
+            Return Nothing
+        End Get
+    End Property
+    Public Overloads Property Q() As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+    Public Overloads Property R(x As Object, y As Object) As Object
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+";
+            var compA = CreateVisualBasicCompilation(sourceA);
+            compA.VerifyDiagnostics();
+            var refA = compA.EmitToImageReference();
+
+            var sourceB =
+@"record C(object P, object Q, object R) : B
+{
+}";
+            var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            compB.VerifyDiagnostics();
+
+            var actualMembers = GetProperties(compB, "C").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object C.R { get; init; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -2904,22 +3759,23 @@ data struct S(object X, object Y) : IA, IB
     public sealed override int GetHashCode() => 0;
     public sealed override string ToString() => null;
 }
-data class B(int X, int Y) : A
+record B(int X, int Y) : A
 {
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,12): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
-                // data class B(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 12),
-                // (7,12): error CS0239: 'B.Equals(object?)': cannot override inherited member 'A.Equals(object)' because it is sealed
-                // data class B(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.Equals(object?)", "A.Equals(object)").WithLocation(7, 12));
+                // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
+                // record B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8),
+                // (7,8): error CS0239: 'B.Equals(object?)': cannot override inherited member 'A.Equals(object)' because it is sealed
+                // record B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.Equals(object?)", "A.Equals(object)").WithLocation(7, 8));
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
                 "B B.Clone()",
+                "B..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 B.<X>k__BackingField",
                 "System.Int32 B.X.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.X.init",
@@ -2932,7 +3788,6 @@ data class B(int X, int Y) : A
                 "System.Boolean B.Equals(System.Object? )",
                 "System.Int32 B.GetHashCode()",
                 "B..ctor(B )",
-                "B..ctor(System.Int32 X, System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -2947,19 +3802,20 @@ data class B(int X, int Y) : A
     public abstract override int GetHashCode();
     public abstract override string ToString();
 }
-data class B(int X, int Y) : A
+record B(int X, int Y) : A
 {
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,12): error CS0534: 'B' does not implement inherited abstract member 'A.ToString()'
-                // data class B(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.ToString()").WithLocation(7, 12));
+                // (7,8): error CS0534: 'B' does not implement inherited abstract member 'A.ToString()'
+                // record B(int X, int Y) : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.ToString()").WithLocation(7, 8));
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
                 "B B.Clone()",
+                "B..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 B.<X>k__BackingField",
                 "System.Int32 B.X.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.X.init",
@@ -2972,9 +3828,122 @@ data class B(int X, int Y) : A
                 "System.Boolean B.Equals(System.Object? )",
                 "System.Int32 B.GetHashCode()",
                 "B..ctor(B )",
-                "B..ctor(System.Int32 X, System.Int32 Y)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [WorkItem(44692, "https://github.com/dotnet/roslyn/issues/44692")]
+        [Fact]
+        public void DuplicateProperty_01()
+        {
+            var src =
+@"record C(object Q)
+{
+    public object P { get; }
+    public object P { get; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0102: The type 'C' already contains a definition for 'P'
+                //     public object P { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 19));
+
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object C.Q { get; init; }",
+                "System.Object C.P { get; }",
+                "System.Object C.P { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [WorkItem(44692, "https://github.com/dotnet/roslyn/issues/44692")]
+        [Fact]
+        public void DuplicateProperty_02()
+        {
+            var src =
+@"record C(object P, object Q)
+{
+    public object P { get; }
+    public int P { get; }
+    public int Q { get; }
+    public object Q { get; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,16): error CS0102: The type 'C' already contains a definition for 'P'
+                //     public int P { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 16),
+                // (6,19): error CS0102: The type 'C' already contains a definition for 'Q'
+                //     public object Q { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Q").WithArguments("C", "Q").WithLocation(6, 19));
+
+            var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object C.P { get; }",
+                "System.Int32 C.P { get; }",
+                "System.Int32 C.Q { get; }",
+                "System.Object C.Q { get; }",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void DuplicateProperty_03()
+        {
+            var src =
+@"class A
+{
+    public object P { get; }
+    public object P { get; }
+    public object Q { get; }
+    public int Q { get; }
+}
+record B(object Q) : A
+{
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0102: The type 'A' already contains a definition for 'P'
+                //     public object P { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("A", "P").WithLocation(4, 19),
+                // (6,16): error CS0102: The type 'A' already contains a definition for 'Q'
+                //     public int Q { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Q").WithArguments("A", "Q").WithLocation(6, 16));
+
+            var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
+            AssertEx.Equal(new string[0], actualMembers);
+        }
+
+        [Fact]
+        public void NominalRecordWith()
+        {
+            var src = @"
+using System;
+record C
+{
+    public int X { get; init; }
+    public string Y;
+    public int Z { get; set; }
+
+    public static void Main()
+    {
+        var c = new C() { X = 1, Y = ""2"", Z = 3 };
+        var c2 = new C() { X = 1, Y = ""2"", Z = 3 };
+        Console.WriteLine(c.Equals(c2));
+        var c3 = c2 with { X = 3, Y = ""2"", Z = 1 };
+        Console.WriteLine(c.Equals(c2));
+        Console.WriteLine(c3.Equals(c2));
+        Console.WriteLine(c2.X + "" "" + c2.Y + "" "" + c2.Z);
+    }
+}";
+            CompileAndVerify(src, expectedOutput: @"
+True
+True
+False
+1 2 3");
         }
 
         private static ImmutableArray<Symbol> GetProperties(CSharpCompilation comp, string typeName)

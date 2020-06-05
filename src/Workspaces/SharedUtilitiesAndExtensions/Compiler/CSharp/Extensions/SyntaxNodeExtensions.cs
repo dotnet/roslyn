@@ -1035,6 +1035,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
+        public static bool IsTopLevelOfUsingAliasDirective(this SyntaxToken node)
+            => node switch
+            {
+                { Parent: NameEqualsSyntax { Parent: UsingDirectiveSyntax _ } } => true,
+                { Parent: IdentifierNameSyntax { Parent: UsingDirectiveSyntax _ } } => true,
+                _ => false
+            };
+
         public static T WithCommentsFrom<T>(this T node, SyntaxToken leadingToken, SyntaxToken trailingToken)
             where T : SyntaxNode
             => node.WithCommentsFrom(

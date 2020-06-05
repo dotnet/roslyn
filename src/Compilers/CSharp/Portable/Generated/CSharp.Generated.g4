@@ -276,7 +276,7 @@ base_type
   ;
 
 simple_base_type
-  : type
+  : type argument_list?
   ;
 
 enum_member_declaration
@@ -286,19 +286,24 @@ enum_member_declaration
 type_declaration
   : class_declaration
   | interface_declaration
+  | record_declaration
   | struct_declaration
   ;
 
 class_declaration
-  : attribute_list* modifier* 'class' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  : attribute_list* modifier* 'class' identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{' member_declaration* '}' ';'?
   ;
 
 interface_declaration
   : attribute_list* modifier* 'interface' identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{' member_declaration* '}' ';'?
   ;
 
+record_declaration
+  : attribute_list* modifier* syntax_token identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  ;
+
 struct_declaration
-  : attribute_list* modifier* 'struct' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  : attribute_list* modifier* 'struct' identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{' member_declaration* '}' ';'?
   ;
 
 delegate_declaration
@@ -319,6 +324,7 @@ namespace_declaration
 
 type
   : array_type
+  | function_pointer_type
   | name
   | nullable_type
   | omitted_type_argument
@@ -334,6 +340,10 @@ array_type
 
 array_rank_specifier
   : '[' (expression (',' expression)*)? ']'
+  ;
+
+function_pointer_type
+  : 'delegate' '*' syntax_token? '<' parameter (',' parameter)* '>'
   ;
 
 nullable_type

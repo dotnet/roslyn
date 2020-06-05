@@ -2,17 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
 #nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
-using System.Text;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -38,10 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 GeneratedNames.MakeBackingFieldName(name),
                 isReadOnly: true,
                 isStatic: false,
-                hasInitializer: backingParameter.HasExplicitDefaultValue);
+                hasInitializer: true);
             GetMethod = new GetAccessorSymbol(this, name);
             SetMethod = new InitAccessorSymbol(this, name, diagnostics);
         }
+
+        public ParameterSymbol BackingParameter => _backingParameter;
 
         internal override bool IsAutoProperty => true;
 
