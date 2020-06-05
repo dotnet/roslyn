@@ -40,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly CodeAnalysis.Workspace _workspace;
 
         private VSClientCapabilities _clientCapabilities;
+        private bool _shuttingDown;
 
         public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol,
             CodeAnalysis.Workspace workspace, IDiagnosticService diagnosticService, string? clientName)
@@ -61,6 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             _clientCapabilities = new VSClientCapabilities();
         }
+
+        public bool Running => !_shuttingDown && !_jsonRpc.IsDisposed
 
         /// <summary>
         /// Handle the LSP initialize request by storing the client capabilities
@@ -102,6 +105,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [JsonRpcMethod(Methods.ShutdownName)]
         public Task ShutdownAsync(CancellationToken _)
         {
+            Contract.ThrowIfTrue(_shuttingDown, "Shutdown has already been called.");
+
+            _shuttingDown = true;
             _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
 
             return Task.CompletedTask;
@@ -110,6 +116,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [JsonRpcMethod(Methods.ExitName)]
         public Task ExitAsync(CancellationToken _)
         {
+            Contract.ThrowIfFalse(_shuttingDown, "Shutdown has not been called yet.");
+
             try
             {
                 if (!_jsonRpc.IsDisposed)
@@ -124,11 +132,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             return Task.CompletedTask;
-        }
-
-        [JsonRpcMethod(Methods.ExitName)]
-        public void Exit()
-        {
         }
 
         [JsonRpcMethod(Methods.TextDocumentDefinitionName, UseSingleObjectParameterDeserialization = true)]

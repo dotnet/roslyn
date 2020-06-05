@@ -68,6 +68,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         public Task<Connection> ActivateAsync(CancellationToken token)
         {
+            Contract.ThrowIfTrue(_languageServer?.Running == true, "The language server has not yet shutdown.");
+
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
             _languageServer = new InProcLanguageServer(serverStream, serverStream, _languageServerProtocol, _workspace, _diagnosticService, clientName: _diagnosticsClientName);
             return Task.FromResult(new Connection(clientStream, clientStream));
