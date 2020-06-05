@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<RemoteExecutionResult> ExecuteAsync(string code)
         {
             Contract.ThrowIfNull(code);
-            return Async<RemoteExecutionResult>("ExecuteAsync", code);
+            return Async<RemoteExecutionResult>(nameof(Service.ExecuteAsync), code);
         }
 
         /// <summary>
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
             Contract.ThrowIfNull(path);
-            return Async<RemoteExecutionResult>("ExecuteFileAsync", path);
+            return Async<RemoteExecutionResult>(nameof(Service.ExecuteFileAsync), path);
         }
 
         /// <summary>
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<bool> AddReferenceAsync(string reference)
         {
             Contract.ThrowIfNull(reference);
-            return Async<bool>("AddReferenceAsync", reference);
+            return Async<bool>(nameof(Service.AddReferenceAsync), reference);
         }
 
         /// <summary>
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             Contract.ThrowIfNull(sourceSearchPaths);
             Contract.ThrowIfNull(baseDirectory);
 
-            return Async<RemoteExecutionResult>("SetPathsAsync", referenceSearchPaths, sourceSearchPaths, baseDirectory);
+            return Async<RemoteExecutionResult>(nameof(Service.SetPathsAsync), referenceSearchPaths, sourceSearchPaths, baseDirectory);
         }
 
         #endregion
