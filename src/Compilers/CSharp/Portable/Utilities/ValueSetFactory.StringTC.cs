@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             string IEquatableValueTC<string>.FromConstantValue(ConstantValue constantValue)
             {
-                var result = constantValue.StringValue;
+                var result = constantValue.IsBad ? string.Empty : constantValue.StringValue;
                 Debug.Assert(result != null);
                 return result;
             }

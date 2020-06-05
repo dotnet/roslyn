@@ -12,11 +12,6 @@
         <target state="translated">Adicionar aguardar</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="new">Add explicit cast</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
         <target state="translated">Adicionar usings ausentes</target>
@@ -62,6 +57,11 @@
         <target state="translated">Aplicar as preferências de qualificação 'this.'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_using_directive_placement_preferences">
+        <source>Apply preferred 'using' placement preferences</source>
+        <target state="new">Apply preferred 'using' placement preferences</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
         <target state="translated">Atribuir parâmetros 'out'</target>
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
-        <target state="new">Convert to regular string</target>
+        <target state="translated">Converter para cadeia de caracteres regular</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
@@ -109,12 +109,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
-        <target state="new">Convert to verbatim string</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_type_to_0">
-        <source>Convert type to '{0}'</source>
-        <target state="new">Convert type to '{0}'</target>
+        <target state="translated">Converter para cadeia de caracteres verbatim</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -146,6 +141,11 @@
         <source>Make 'ref struct'</source>
         <target state="translated">Alterar 'ref struct'</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="new">Remove 'new' modifier</target>
+        <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
@@ -187,14 +187,9 @@
         <target state="translated">Aviso: embutindo a chamada de método temporária na condicional.</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_is_not_null_here">
-        <source>'{0}' is not null here.</source>
-        <target state="translated">'{0}' não é nulo aqui.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_may_be_null_here">
-        <source>'{0}' may be null here.</source>
-        <target state="translated">'{0}' pode ser nulo aqui.</target>
+      <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
+        <source>Warning: Inlining temporary variable may change code meaning.</source>
+        <target state="new">Warning: Inlining temporary variable may change code meaning.</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">

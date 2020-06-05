@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// CONSIDER: most types won't have indexers, so we could move the indexer list
         /// into a subclass to spare most instances the space required for the field.
         /// </remarks>
-        private sealed class MembersAndInitializers
+        protected sealed class MembersAndInitializers
         {
             internal readonly ImmutableArray<Symbol> NonTypeNonIndexerMembers;
             internal readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers;
@@ -1279,13 +1279,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (m.Kind)
                 {
                     case SymbolKind.Field:
-                        yield return (FieldSymbol)m;
+                        var field = (FieldSymbol)m;
+                        yield return field.TupleUnderlyingField ?? field;
                         break;
                     case SymbolKind.Event:
                         FieldSymbol associatedField = ((EventSymbol)m).AssociatedField;
                         if ((object)associatedField != null)
                         {
-                            yield return associatedField;
+                            yield return associatedField.TupleUnderlyingField ?? associatedField;
                         }
                         break;
                 }
@@ -1339,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //       we often need to get members just to do a lookup.
         //       All additional checks and diagnostics may be not
         //       needed yet or at all.
-        private MembersAndInitializers GetMembersAndInitializers()
+        protected MembersAndInitializers GetMembersAndInitializers()
         {
             var membersAndInitializers = _lazyMembersAndInitializers;
             if (membersAndInitializers != null)
@@ -1682,10 +1683,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // UNDONE: Consider adding a secondary location pointing to the second method.
         private void ReportMethodSignatureCollision(DiagnosticBag diagnostics, SourceMemberMethodSymbol method1, SourceMemberMethodSymbol method2)
         {
-            // Partial methods are allowed to collide by signature.
-            if (method1.IsPartial && method2.IsPartial)
+            switch (method1, method2)
             {
-                return;
+                case (SourceOrdinaryMethodSymbol { IsPartialDefinition: true }, SourceOrdinaryMethodSymbol { IsPartialImplementation: true }):
+                case (SourceOrdinaryMethodSymbol { IsPartialImplementation: true }, SourceOrdinaryMethodSymbol { IsPartialDefinition: true }):
+                    // these could be 2 parts of the same partial method.
+                    // Partial methods are allowed to collide by signature.
+                    return;
+                case (SynthesizedSimpleProgramEntryPointSymbol { }, SynthesizedSimpleProgramEntryPointSymbol { }):
+                    return;
             }
 
             // If method1 is a constructor only because its return type is missing, then
@@ -2398,7 +2404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private MembersAndInitializers BuildMembersAndInitializers(DiagnosticBag diagnostics)
+        protected virtual MembersAndInitializers BuildMembersAndInitializers(DiagnosticBag diagnostics)
         {
             var builder = new MembersAndInitializersBuilder();
             AddDeclaredNontypeMembers(builder, diagnostics);
@@ -2565,6 +2571,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if ((object)method.OtherPartOfPartial != null && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(method, method.OtherPartOfPartial))
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, method.Locations[0], method, method.OtherPartOfPartial);
+                    }
+                    else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessModifier: true })
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.Locations[0], method);
                     }
                 }
             }
@@ -3333,7 +3343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 AddInitializer(ref instanceInitializers, ref builder.InstanceSyntaxLength, null, globalStatement);
                             }
-                            else if (reportMisplacedGlobalCode)
+                            else if (reportMisplacedGlobalCode && !SyntaxFacts.IsSimpleProgramTopLevelStatement((GlobalStatementSyntax)m))
                             {
                                 diagnostics.Add(ErrorCode.ERR_GlobalStatement, new SourceLocation(globalStatement));
                             }

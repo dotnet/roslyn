@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 
             var (symbol, project) = symbolAndProjectOpt.Value;
 
-            var bases = FindBaseHelpers.FindBases(
-                symbol, project, cancellationToken);
+            var solution = project.Solution;
+            var bases = FindBaseHelpers.FindBases(symbol, solution, cancellationToken);
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_bases,
@@ -43,20 +43,19 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             foreach (var baseSymbol in bases)
             {
                 var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(
-                   SymbolAndProjectId.Create(baseSymbol, project.Id), project.Solution, cancellationToken).ConfigureAwait(false);
-                if (sourceDefinition.Symbol != null)
+                   baseSymbol, solution, cancellationToken).ConfigureAwait(false);
+                if (sourceDefinition != null)
                 {
-                    var definitionItem = await sourceDefinition.Symbol.ToClassifiedDefinitionItemAsync(
-                        project.Solution.GetProject(sourceDefinition.ProjectId), includeHiddenLocations: false,
-                        FindReferencesSearchOptions.Default, cancellationToken: cancellationToken)
-                        .ConfigureAwait(false);
+                    var definitionItem = await sourceDefinition.ToClassifiedDefinitionItemAsync(
+                        solution, isPrimary: true, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
+
                     await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
                     found = true;
                 }
                 else if (baseSymbol.Locations.Any(l => l.IsInMetadata))
                 {
                     var definitionItem = baseSymbol.ToNonClassifiedDefinitionItem(
-                        project, includeHiddenLocations: true);
+                        solution, includeHiddenLocations: true);
                     await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
                     found = true;
                 }

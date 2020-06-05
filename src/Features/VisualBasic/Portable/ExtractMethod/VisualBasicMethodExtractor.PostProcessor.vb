@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 map.GetOrAdd(type, Function() New List(Of LocalDeclarationStatementSyntax)()).Add(statement)
             End Sub
 
-            Private Function GetMergedDeclarationStatements(map As Dictionary(Of ITypeSymbol, List(Of LocalDeclarationStatementSyntax))) As IEnumerable(Of LocalDeclarationStatementSyntax)
+            Private Shared Function GetMergedDeclarationStatements(map As Dictionary(Of ITypeSymbol, List(Of LocalDeclarationStatementSyntax))) As IEnumerable(Of LocalDeclarationStatementSyntax)
                 Dim declarationStatements = New List(Of LocalDeclarationStatementSyntax)()
 
                 For Each keyValuePair In map
@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return True
             End Function
 
-            Private Function ContainsAnyInitialization(statement As LocalDeclarationStatementSyntax) As Boolean
+            Private Shared Function ContainsAnyInitialization(statement As LocalDeclarationStatementSyntax) As Boolean
                 For Each variable In statement.Declarators
                     If variable.Initializer IsNot Nothing Then
                         Return True
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return True
             End Function
 
-            Public Function RemoveDeclarationAssignmentPattern(statements As IEnumerable(Of StatementSyntax)) As IEnumerable(Of StatementSyntax)
+            Public Shared Function RemoveDeclarationAssignmentPattern(statements As IEnumerable(Of StatementSyntax)) As IEnumerable(Of StatementSyntax)
                 If statements.Count() < 2 Then
                     Return statements
                 End If
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return SpecializedCollections.SingletonEnumerable(Of StatementSyntax)(newDeclaration).Concat(statements.Skip(2))
             End Function
 
-            Public Function RemoveInitializedDeclarationAndReturnPattern(statements As IEnumerable(Of StatementSyntax)) As IEnumerable(Of StatementSyntax)
+            Public Shared Function RemoveInitializedDeclarationAndReturnPattern(statements As IEnumerable(Of StatementSyntax)) As IEnumerable(Of StatementSyntax)
                 ' if we have inline temp variable as service, we could just use that service here.
                 ' since it is not a service right now, do very simple clean up
                 If statements.Count() <> 2 Then

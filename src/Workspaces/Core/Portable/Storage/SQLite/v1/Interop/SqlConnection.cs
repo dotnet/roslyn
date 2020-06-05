@@ -31,10 +31,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
         /// </summary>
         private readonly SafeSqliteHandle _handle;
 
+#pragma warning disable IDE0052 // Remove unread private members - TODO: Can this field be removed?
         /// <summary>
         /// For testing purposes to simulate failures during testing.
         /// </summary>
         private readonly IPersistentStorageFaultInjector _faultInjector;
+#pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>
         /// Our cache of prepared statements for given sql strings.
@@ -296,7 +298,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
         public static void Throw(SafeSqliteHandle handle, Result result)
         {
             throw new SqlException(result,
-                NativeMethods.sqlite3_errmsg(handle) + "\r\n" +
+                NativeMethods.sqlite3_errmsg(handle) + Environment.NewLine +
                 NativeMethods.sqlite3_errstr(NativeMethods.sqlite3_extended_errcode(handle)));
         }
     }

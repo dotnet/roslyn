@@ -15,9 +15,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
             => FindBaseTypes(type).AddRange(type.AllInterfaces).CastArray<ISymbol>();
 
         public static ImmutableArray<ISymbol> FindOverriddenAndImplementedMembers(
-            ISymbol symbol, Project project, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            var solution = project.Solution;
             var results = ArrayBuilder<ISymbol>.GetInstance();
 
             // This is called for all: class, struct or interface member.
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Add to results overridden members only. Do not add hidden members.
-                    if (SymbolFinder.IsOverride(solution, symbol, member, cancellationToken))
+                    if (SymbolFinder.IsOverride(solution, symbol, member))
                     {
                         results.Add(member);
 

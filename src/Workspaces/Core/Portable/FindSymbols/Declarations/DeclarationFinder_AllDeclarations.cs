@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal static partial class DeclarationFinder
     {
-        public static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
+        public static async Task<ImmutableArray<ISymbol>> FindAllDeclarationsWithNormalQueryAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (query.Name != null && string.IsNullOrWhiteSpace(query.Name))
             {
-                return ImmutableArray<SymbolAndProjectId>.Empty;
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
@@ -41,28 +41,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var solution = project.Solution;
 
-                var result = await client.TryRunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                var result = await client.RunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
                     solution,
                     new object[] { project.Id, query.Name, query.Kind, criteria },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
-                }
+                return await RehydrateAsync(solution, result, cancellationToken).ConfigureAwait(false);
             }
 
             return await FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
                 project, query, criteria, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
+        internal static async Task<ImmutableArray<ISymbol>> FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var list = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+            var list = ArrayBuilder<ISymbol>.GetInstance();
 
             if (project.SupportsCompilation)
             {
@@ -94,12 +91,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // for the passed in project.
                 for (var i = 0; i < list.Count; i++)
                 {
-                    var symbolAndProjectId = list[i];
-                    if (symbolAndProjectId.Symbol is INamespaceSymbol ns)
+                    var symbol = list[i];
+                    if (symbol is INamespaceSymbol ns)
                     {
-                        list[i] = new SymbolAndProjectId(
-                            compilation.GetCompilationNamespace(ns),
-                            project.Id);
+                        list[i] = compilation.GetCompilationNamespace(ns);
                     }
                 }
             }
@@ -107,10 +102,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return list.ToImmutableAndFree();
         }
 
-        private static async Task<ImmutableArray<SymbolAndProjectId>> RehydrateAsync(
+        private static async Task<ImmutableArray<ISymbol>> RehydrateAsync(
             Solution solution, IList<SerializableSymbolAndProjectId> array, CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<SymbolAndProjectId>.GetInstance(array.Count);
+            var result = ArrayBuilder<ISymbol>.GetInstance(array.Count);
 
             foreach (var dehydrated in array)
             {
@@ -118,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var rehydrated = await dehydrated.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                 if (rehydrated != null)
                 {
-                    result.Add(rehydrated.Value);
+                    result.Add(rehydrated);
                 }
             }
 

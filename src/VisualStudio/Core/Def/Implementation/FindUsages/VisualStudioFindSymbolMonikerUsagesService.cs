@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
-using Microsoft.CodeAnalysis.Editor.LanguageServiceIndexFormat;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -42,19 +42,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             _codeIndexProvider = codeIndexProvider;
         }
 
-        public override async IAsyncEnumerable<ExternalReferenceItem> FindReferencesByMoniker(
-            DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers,
-            IStreamingProgressTracker progress, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public override async IAsyncEnumerable<ExternalReferenceItem> FindReferencesByMonikerAsync(
+            DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (_codeIndexProvider == null)
                 yield break;
 
+            // Only grab the first 500 results.  This keeps server load lower and is acceptable for //build demo purposes.
+            const int PageCount = 5;
+
             var convertedMonikers = ConvertMonikers(monikers);
-            var currentPage = 0;
-            while (true)
+            for (var currentPage = 0; currentPage < PageCount; currentPage++)
             {
                 var referenceItems = await FindReferencesByMonikerAsync(
-                    _codeIndexProvider, definition, convertedMonikers, progress, currentPage, cancellationToken).ConfigureAwait(false);
+                    _codeIndexProvider, definition, convertedMonikers, currentPage, cancellationToken).ConfigureAwait(false);
 
                 // If we got no items, we're done.
                 if (referenceItems.Length == 0)
@@ -62,24 +63,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 
                 foreach (var item in referenceItems)
                     yield return item;
-
-                // Otherwise, we got some items.  Return them to our caller and attempt to retrieve
-                // another page.
-                currentPage++;
             }
         }
 
         private async Task<ImmutableArray<ExternalReferenceItem>> FindReferencesByMonikerAsync(
-            ICodeIndexProvider codeIndexProvider, DefinitionItem definition, ImmutableArray<ISymbolMoniker> monikers,
-            IStreamingProgressTracker progress, int pageIndex, CancellationToken cancellationToken)
+            ICodeIndexProvider codeIndexProvider, DefinitionItem definition,
+            ImmutableArray<ISymbolMoniker> monikers, int pageIndex, CancellationToken cancellationToken)
         {
-            // Let the find-refs window know we have outstanding work
-            await using var _1 = await progress.AddSingleItemAsync().ConfigureAwait(false);
-
             var results = await FindReferencesByMonikerAsync(
                 codeIndexProvider, monikers, pageIndex, cancellationToken).ConfigureAwait(false);
 
-            using var _2 = ArrayBuilder<ExternalReferenceItem>.GetInstance(out var referenceItems);
+            using var _ = ArrayBuilder<ExternalReferenceItem>.GetInstance(out var referenceItems);
 
             foreach (var result in results)
                 referenceItems.Add(ConvertResult(definition, result));
@@ -106,9 +100,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             var displayPath = obj.Value<string>("displayPath");
             var span = ConvertLinePositionSpan(obj.Value<JObject>("range"));
             var text = obj.Value<string>("text");
+            var repository = obj.Value<string>("repository");
+            var scope = (ExternalScope)obj.Value<int>("scope");
 
             return new CodeIndexExternalReferenceItem(
-                this, definition, obj, projectName, displayPath, span, text);
+                this, definition, obj, repository, scope, projectName, displayPath, span, text);
 
             static LinePositionSpan ConvertLinePositionSpan(JObject obj)
                 => new LinePositionSpan(

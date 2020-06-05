@@ -161,7 +161,7 @@ public static class NavigateTo
 
             VisualStudio.Editor.SetUseSuggestionMode(false);
 
-            VisualStudio.Editor.SendKeys("nam");
+            VisualStudio.Editor.SendKeys("names");
             Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.Editor.SendKeys(" Goo");

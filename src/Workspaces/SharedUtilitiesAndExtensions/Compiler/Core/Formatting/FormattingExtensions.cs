@@ -168,7 +168,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             var isEmptyString = false;
             var builder = StringBuilderPool.Allocate();
 
-            var trimmedTriviaText = triviaText.TrimEnd(s_trimChars);
             var nonWhitespaceCharIndex = GetFirstNonWhitespaceIndexInString(triviaText);
             if (nonWhitespaceCharIndex == -1)
             {

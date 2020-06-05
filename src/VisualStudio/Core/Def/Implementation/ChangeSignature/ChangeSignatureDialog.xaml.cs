@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.VisualStudio.PlatformUI;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
@@ -133,24 +136,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var dialog = new AddParameterDialog(addParameterViewModel);
             var result = dialog.ShowModal();
 
+            ChangeSignatureLogger.LogAddParameterDialogLaunched();
+
             if (result.HasValue && result.Value)
             {
+                ChangeSignatureLogger.LogAddParameterDialogCommitted();
+
                 var addedParameter = new AddedParameter(
                     addParameterViewModel.TypeSymbol,
                     addParameterViewModel.TypeName,
                     addParameterViewModel.ParameterName,
-                    (addParameterViewModel.IsCallsiteOmitted || addParameterViewModel.IsCallsiteTodo) ? "" : addParameterViewModel.CallSiteValue,
+                    GetCallSiteKind(addParameterViewModel),
+                    addParameterViewModel.IsCallsiteRegularValue ? addParameterViewModel.CallSiteValue : string.Empty,
                     addParameterViewModel.IsRequired,
-                    addParameterViewModel.IsRequired ? "" : addParameterViewModel.DefaultValue,
-                    addParameterViewModel.UseNamedArguments,
-                    addParameterViewModel.IsCallsiteOmitted,
-                    addParameterViewModel.IsCallsiteTodo,
+                    addParameterViewModel.IsRequired ? string.Empty : addParameterViewModel.DefaultValue,
                     addParameterViewModel.TypeBinds);
 
                 _viewModel.AddParameter(addedParameter);
             }
 
             SetFocusToSelectedRow();
+        }
+
+        private CallSiteKind GetCallSiteKind(AddParameterDialogViewModel addParameterViewModel)
+        {
+            if (addParameterViewModel.IsCallsiteInferred)
+                return CallSiteKind.Inferred;
+
+            if (addParameterViewModel.IsCallsiteOmitted)
+                return CallSiteKind.Omitted;
+
+            if (addParameterViewModel.IsCallsiteTodo)
+                return CallSiteKind.Todo;
+
+            Debug.Assert(addParameterViewModel.IsCallsiteRegularValue);
+
+            return addParameterViewModel.UseNamedArguments
+                ? CallSiteKind.ValueWithName
+                : CallSiteKind.Value;
         }
 
         private void SetFocusToSelectedRow()

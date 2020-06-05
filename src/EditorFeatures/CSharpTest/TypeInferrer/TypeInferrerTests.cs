@@ -1585,7 +1585,6 @@ i++) { }", "global::System.Boolean", mode);
 for (string? s = [|Goo()|]; ; ) { }", "global::System.String?", mode);
         }
 
-
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestUsing1(TestMode mode)
             => await TestInMethodAsync(@"using ([|Goo()|]) { }", "global::System.IDisposable", mode);
@@ -3076,6 +3075,24 @@ class Program
         {
             await TestInMethodAsync(
 @"(int, string) x = (1, [||]);", "global::System.String", TestMode.Position);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestInferringInEnumHasFlags(TestMode mode)
+        {
+            var text =
+@"using System.IO;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        FileInfo f;
+        f.Attributes.HasFlag([|flag|]);
+    }
+}";
+
+            await TestAsync(text, "global::System.IO.FileAttributes", mode);
         }
     }
 }

@@ -40,7 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-
         public AbstractProject(
             VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,

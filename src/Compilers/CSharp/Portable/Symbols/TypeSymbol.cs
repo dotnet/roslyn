@@ -504,14 +504,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets corresponding primitive type code for this type declaration.
         /// </summary>
         internal Microsoft.Cci.PrimitiveTypeCode PrimitiveTypeCode
-        {
-            get
+            => TypeKind switch
             {
-                return this.IsPointerType()
-                    ? Microsoft.Cci.PrimitiveTypeCode.Pointer
-                    : SpecialTypes.GetTypeCode(SpecialType);
-            }
-        }
+                TypeKind.Pointer => Microsoft.Cci.PrimitiveTypeCode.Pointer,
+                TypeKind.FunctionPointer => Microsoft.Cci.PrimitiveTypeCode.FunctionPointer,
+                _ => SpecialTypes.GetTypeCode(SpecialType)
+            };
 
         #region Use-Site Diagnostics
 
@@ -1672,7 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    ReportMismatchinReturnType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
+                    ReportMismatchInReturnType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
                         (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
                         {
                             if (arg.isExplicit)

@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
                     hasErrors = true;
                 }
-                else if (inputType.IsPointerType() == true && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+                else if (inputType.IsPointerType() && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
                 {
                     // before C# 8 we did not permit `pointer is null`
                     diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, patternExpression.Location);
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // input value among many constant tests.
                         convertedExpression = operand;
                     }
-                    else if (conversion.ConversionKind == ConversionKind.NullToPointer ||
+                    else if (conversion.ConversionKind == ConversionKind.ImplicitNullToPointer ||
                         (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true))
                     {
                         convertedExpression = operand;
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            else if (inputType.TypeKind == TypeKind.Pointer || patternType.TypeKind == TypeKind.Pointer)
+            else if (inputType.IsPointerOrFunctionPointer() || patternType.IsPointerOrFunctionPointer())
             {
                 // pattern-matching is not permitted for pointer types
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, typeSyntax.Location);
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            if (inputType.IsPointerType())
+            if (inputType.IsPointerOrFunctionPointer())
             {
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
                 hasErrors = true;
@@ -962,10 +962,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            if (inputType.IsPointerType() &&
-                (node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation ||
-                 // before C# 8 we did not permit `pointer is var x`
-                 Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
+            if ((inputType.IsPointerOrFunctionPointer() && node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
+                || (inputType.IsPointerType() && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
             {
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
                 hasErrors = true;
@@ -1007,6 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             variableSymbol: out Symbol? variableSymbol, variableAccess: out BoundExpression? variableAccess);
                         var boundOperandType = new BoundTypeExpression(syntax: node, aliasOpt: null, typeWithAnnotations: declType); // fake a type expression for the variable's type
                         // We continue to use a BoundDeclarationPattern for the var pattern, as they have more in common.
+                        Debug.Assert(node.Parent is { });
                         return new BoundDeclarationPattern(
                             node.Parent.Kind() == SyntaxKind.VarPattern ? node.Parent : node, // for `var x` use whole pattern, otherwise use designation for the syntax
                             variableSymbol, variableAccess, boundOperandType, isVar: true,
@@ -1249,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BinaryOperatorKind.Float:
                 case BinaryOperatorKind.Double:
-                    if (!hasErrors && constantValueOpt != null && double.IsNaN(constantValueOpt.DoubleValue))
+                    if (!hasErrors && constantValueOpt != null && !constantValueOpt.IsBad && double.IsNaN(constantValueOpt.DoubleValue))
                     {
                         diagnostics.Add(ErrorCode.ERR_RelationalPatternWithNaN, node.Expression.Location);
                         hasErrors = true;
@@ -1335,8 +1334,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isDisjunction)
             {
                 permitDesignations = false; // prevent designators under 'or'
-                var left = BindPattern(node.LeftPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
-                var right = BindPattern(node.RightPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
+                var left = BindPattern(node.Left, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
+                var right = BindPattern(node.Right, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
 
                 // Compute the common type. This algorithm is quadratic, but disjunctive patterns are unlikely to be huge
                 var narrowedTypeCandidates = ArrayBuilder<TypeSymbol>.GetInstance(2);
@@ -1417,9 +1416,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var left = BindPattern(node.LeftPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
+                var left = BindPattern(node.Left, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
                 var leftOutputValEscape = GetValEscape(left.ConvertedType, inputValEscape);
-                var right = BindPattern(node.RightPattern, left.ConvertedType, leftOutputValEscape, permitDesignations, hasErrors, diagnostics);
+                var right = BindPattern(node.Right, left.ConvertedType, leftOutputValEscape, permitDesignations, hasErrors, diagnostics);
                 return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, convertedType: right.ConvertedType, hasErrors);
             }
         }

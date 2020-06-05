@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         {
         }
 
-        protected async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
+        protected static async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
             Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         /// <param name="selectedMembers"></param>
         /// <param name="rules"></param>
         /// <returns></returns>
-        protected ImmutableArray<IParameterSymbol> DetermineParameters(
+        protected static ImmutableArray<IParameterSymbol> DetermineParameters(
             ImmutableArray<ISymbol> selectedMembers, ImmutableArray<NamingRule> rules)
         {
             var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();

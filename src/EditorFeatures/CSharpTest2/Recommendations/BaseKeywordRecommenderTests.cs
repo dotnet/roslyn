@@ -37,19 +37,19 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
+        public async Task TestNotAfterGlobalStatement()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(
 @"System.Console.WriteLine();
-$$");
+$$", options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        public async Task TestNotAfterGlobalVariableDeclaration()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(
 @"int i = 0;
-$$");
+$$", options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

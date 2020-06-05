@@ -223,6 +223,43 @@
       <summary>Creates a PointerTypeSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="FunctionPointerTypeSyntax" Base="TypeSyntax">
+    <Kind Name="FunctionPointerType"/>
+    <Field Name="DelegateKeyword" Type="SyntaxToken">
+      <Kind Name="DelegateKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the delegate keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="AsteriskToken" Type="SyntaxToken">
+      <Kind Name="AsteriskToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the asterisk.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CallingConvention" Type="SyntaxToken" Optional="true">
+      <PropertyComment>
+        <summary>SyntaxToken representing the optional calling convention.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="LessThanToken" Type="SyntaxToken">
+      <Kind Name="LessThanToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the less than token.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;ParameterSyntax&gt;" MinCount="1">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of ParameterSyntaxes representing the list of parameters and return type.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="GreaterThanToken" Type="SyntaxToken">
+      <Kind Name="GreaterThanToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the greater than token.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
   <Node Name="NullableTypeSyntax" Base="TypeSyntax">
     <Kind Name="NullableType"/>
     <Field Name="ElementType" Type="TypeSyntax">
@@ -314,7 +351,8 @@
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>
   <!-- Expressions -->
-  <AbstractNode Name="ExpressionSyntax" Base="CSharpSyntaxNode">
+  <AbstractNode Name="ExpressionOrPatternSyntax" Base="CSharpSyntaxNode" />
+  <AbstractNode Name="ExpressionSyntax" Base="ExpressionOrPatternSyntax">
     <TypeComment>
       <summary>Provides the base class from which the classes that represent expression syntax nodes are derived. This is an abstract class.</summary>
     </TypeComment>
@@ -1881,7 +1919,7 @@
     </Field>
     <Field Name="Condition" Type="ExpressionSyntax"/>
   </Node>
-  <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
+  <AbstractNode Name="PatternSyntax" Base="ExpressionOrPatternSyntax" />
   <Node Name="DiscardPatternSyntax" Base="PatternSyntax">
     <Kind Name="DiscardPattern" />
     <Field Name="UnderscoreToken" Type="SyntaxToken">
@@ -1984,16 +2022,16 @@
   <Node Name="BinaryPatternSyntax" Base="PatternSyntax">
     <Kind Name="OrPattern"/>
     <Kind Name="AndPattern"/>
-    <Field Name="LeftPattern" Type="PatternSyntax" />
-    <Field Name="PatternOperator" Type="SyntaxToken">
+    <Field Name="Left" Type="PatternSyntax" />
+    <Field Name="OperatorToken" Type="SyntaxToken">
       <Kind Name="OrKeyword"/>
       <Kind Name="AndKeyword"/>
     </Field>
-    <Field Name="RightPattern" Type="PatternSyntax" />
+    <Field Name="Right" Type="PatternSyntax" />
   </Node>
   <Node Name="UnaryPatternSyntax" Base="PatternSyntax">
     <Kind Name="NotPattern"/>
-    <Field Name="PatternOperator" Type="SyntaxToken">
+    <Field Name="OperatorToken" Type="SyntaxToken">
       <Kind Name="NotKeyword"/>
     </Field>
     <Field Name="Pattern" Type="PatternSyntax" />

@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
     {
         private static readonly Dictionary<BinaryOperatorKind, SyntaxKind> s_operatorMap = new Dictionary<BinaryOperatorKind, SyntaxKind>
         {
-            { BinaryOperatorKind.NotEquals, SyntaxKind.ExclamationEqualsToken },
             { BinaryOperatorKind.LessThan, SyntaxKind.LessThanToken },
             { BinaryOperatorKind.GreaterThan, SyntaxKind.GreaterThanToken },
             { BinaryOperatorKind.LessThanOrEqual, SyntaxKind.LessThanEqualsToken },
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 
             Debug.Assert(whenClause == null || section.Labels.Length == 1, "We shouldn't have guards when we're combining multiple cases into a single arm");
 
-            for (int i = 1; i < section.Labels.Length; i++)
+            for (var i = 1; i < section.Labels.Length; i++)
             {
                 var label = section.Labels[i];
                 Debug.Assert(label.Guards.Length == 0, "We shouldn't have guards when we're combining multiple cases into a single arm");
@@ -104,10 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                 AnalyzedPattern.Type p when feature.HasFlag(Feature.TypePattern) => TypePattern((TypeSyntax)p.IsExpressionSyntax.Right),
                 AnalyzedPattern.Type p => DeclarationPattern((TypeSyntax)p.IsExpressionSyntax.Right, DiscardDesignation()),
                 AnalyzedPattern.Relational p => RelationalPattern(Token(s_operatorMap[p.OperatorKind]), p.Value),
-                AnalyzedPattern.Range p => BinaryPattern(
-                    SyntaxKind.AndPattern,
-                    RelationalPattern(Token(SyntaxKind.GreaterThanEqualsToken), p.LowerBound).Parenthesize(),
-                    RelationalPattern(Token(SyntaxKind.LessThanEqualsToken), p.HigherBound).Parenthesize()),
                 var p => throw ExceptionUtilities.UnexpectedValue(p)
             };
 

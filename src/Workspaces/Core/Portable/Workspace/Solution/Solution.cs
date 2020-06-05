@@ -116,15 +116,45 @@ namespace Microsoft.CodeAnalysis
             return new Project(solution, state);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter 'cancellationToken' - shipped public API
         /// <summary>
         /// Gets the <see cref="Project"/> associated with an assembly symbol.
         /// </summary>
-        public Project? GetProject(IAssemblySymbol assemblySymbol, CancellationToken cancellationToken = default)
+        public Project? GetProject(IAssemblySymbol assemblySymbol,
+            CancellationToken cancellationToken = default)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             var projectState = _state.GetProjectState(assemblySymbol);
 
             return projectState == null ? null : GetProject(projectState.Id);
         }
+
+        /// <summary>
+        /// Given a <paramref name="symbol"/> returns the <see cref="ProjectId"/> of the <see cref="Project"/> it came
+        /// from.  Returns <see langword="null"/> if <paramref name="symbol"/> does not come from <paramref name="symbol"/>.
+        /// </summary>
+        /// <remarks>
+        /// This function differs from <see cref="GetProject(IAssemblySymbol, CancellationToken)"/> in terms of how it
+        /// treats <see cref="IAssemblySymbol"/>s.  Specifically, say there is the following:
+        ///
+        /// <c>
+        /// Project-A, containing Symbol-A.<para/>
+        /// Project-B, with a reference to Project-A, and usage of Symbol-A.
+        /// </c>
+        ///
+        /// It is possible (with retargeting, and other complex cases) that Symbol-A from Project-B will be a different
+        /// symbol than Symbol-A from Project-A.  However, <see cref="GetProject(IAssemblySymbol, CancellationToken)"/>
+        /// will always try to return Project-A for either of the Symbol-A's, as it prefers to return the original
+        /// Source-Project of the original definition, not the project that actually produced the symbol.  For many
+        /// features this is an acceptable abstraction.  However, for some cases (Find-References in particular) it is
+        /// necessary to resolve symbols back to the actual project/compilation that produced them for correctness.
+        /// </remarks>
+        internal ProjectId? GetOriginatingProjectId(ISymbol symbol)
+            => _state.GetOriginatingProjectId(symbol);
+
+        /// <inheritdoc cref="GetOriginatingProjectId"/>
+        internal Project? GetOriginatingProject(ISymbol symbol)
+            => GetProject(GetOriginatingProjectId(symbol));
 
         /// <summary>
         /// True if the solution contains the document in one of its projects
@@ -1878,8 +1908,8 @@ namespace Microsoft.CodeAnalysis
         {
             var projectState = _state.GetRequiredProjectState(projectId);
 
-            bool isSubmission = projectState.IsSubmission;
-            bool hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => _state.GetRequiredProjectState(p.ProjectId).IsSubmission);
+            var isSubmission = projectState.IsSubmission;
+            var hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => _state.GetRequiredProjectState(p.ProjectId).IsSubmission);
 
             foreach (var projectReference in projectReferences)
             {

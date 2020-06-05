@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Apply type substitution to a generic method to create an method symbol with the given type parameters supplied.
+        /// Apply type substitution to a generic method to create a method symbol with the given type parameters supplied.
         /// </summary>
         /// <param name="typeArguments"></param>
         /// <returns></returns>
@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // https://github.com/dotnet/roslyn/issues/30071: Replace with Construct(ImmutableArray<TypeWithAnnotations>).
         /// <summary>
-        /// Apply type substitution to a generic method to create an method symbol with the given type parameters supplied.
+        /// Apply type substitution to a generic method to create a method symbol with the given type parameters supplied.
         /// </summary>
         /// <param name="typeArguments"></param>
         /// <returns></returns>
@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If the member is in an assembly with unified references,
             // we check if its definition depends on a type from a unified reference.
-            if (this.ContainingModule.HasUnifiedReferences)
+            if (this.ContainingModule?.HasUnifiedReferences == true)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
 
@@ -944,11 +944,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal bool IsIterator
+        internal virtual bool IsIterator
         {
             get
             {
-                return !IteratorElementTypeWithAnnotations.IsDefault;
+                return false;
             }
         }
 
@@ -1067,6 +1067,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (other is SubstitutedMethodSymbol sms)
             {
                 return sms.Equals(this, compareKind);
+            }
+
+            if (other is NativeIntegerMethodSymbol nms)
+            {
+                return nms.Equals(this, compareKind);
             }
 
             return base.Equals(other, compareKind);

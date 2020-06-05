@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics);
 
         /// <summary>
-        /// Return the bound expression if the lambda is has an expression body and can be reused easily.
+        /// Return the bound expression if the lambda has an expression body and can be reused easily.
         /// This is an optimization only. Implementations can return null to skip reuse.
         /// </summary>
         protected abstract BoundExpression GetLambdaExpressionBody(BoundBlock body);
@@ -615,7 +615,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterHelpers.EnsureNullableAttributeExists(compilation, lambdaSymbol, lambdaParameters, diagnostics, modifyCompilation: false);
             // Note: we don't need to warn on annotations used in #nullable disable context for lambdas, as this is handled in binding already
 
-            ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
             ValidateUnsafeParameters(diagnostics, cacheKey.ParameterTypes);
 
             bool reachableEndpoint = ControlFlowPass.Analyze(compilation, lambdaSymbol, block, diagnostics);

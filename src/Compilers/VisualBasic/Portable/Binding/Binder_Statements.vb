@@ -1346,7 +1346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If equalsValueOpt IsNot Nothing Then
                     Dim valueSyntax As ExpressionSyntax = equalsValueOpt.Value
 
-                    ' Use an LocalInProgressBinder to detect cycles using locals.
+                    ' Use a LocalInProgressBinder to detect cycles using locals.
                     Dim binder = New LocalInProgressBinder(Me, symbol)
                     valueExpression = binder.BindValue(valueSyntax, diagnostics)
 

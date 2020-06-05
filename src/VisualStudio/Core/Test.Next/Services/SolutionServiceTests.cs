@@ -161,32 +161,41 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             using var workspace = TestWorkspace.CreateCSharp("");
 
-            await VerifySolutionUpdate(workspace, solution =>
+            static Solution SetProjectProperties(Solution solution, int version)
             {
                 var projectId = solution.ProjectIds.Single();
                 return solution
-                    .WithProjectName(projectId, "NewName")
-                    .WithProjectAssemblyName(projectId, "NewAssemblyName")
-                    .WithProjectFilePath(projectId, "NewFilePath")
-                    .WithProjectOutputFilePath(projectId, "NewOutputFilePath")
-                    .WithProjectOutputRefFilePath(projectId, "NewOutputRefFilePath")
-                    .WithProjectCompilationOutputFilePaths(projectId, new CompilationOutputFilePaths("NewAssemblyPath"))
-                    .WithProjectDefaultNamespace(projectId, "NewDefaultNamespace")
-                    .WithHasAllInformation(projectId, false)
-                    .WithRunAnalyzers(projectId, false);
-            }, solution =>
+                    .WithProjectName(projectId, "Name" + version)
+                    .WithProjectAssemblyName(projectId, "AssemblyName" + version)
+                    .WithProjectFilePath(projectId, "FilePath" + version)
+                    .WithProjectOutputFilePath(projectId, "OutputFilePath" + version)
+                    .WithProjectOutputRefFilePath(projectId, "OutputRefFilePath" + version)
+                    .WithProjectCompilationOutputFilePaths(projectId, new CompilationOutputFilePaths("AssemblyPath" + version))
+                    .WithProjectDefaultNamespace(projectId, "DefaultNamespace" + version)
+                    .WithHasAllInformation(projectId, (version % 2) != 0)
+                    .WithRunAnalyzers(projectId, (version % 2) != 0);
+            }
+
+            static void ValidateProperties(Solution solution, int version)
             {
                 var project = solution.Projects.Single();
-                Assert.Equal("NewName", project.Name);
-                Assert.Equal("NewAssemblyName", project.AssemblyName);
-                Assert.Equal("NewFilePath", project.FilePath);
-                Assert.Equal("NewOutputFilePath", project.OutputFilePath);
-                Assert.Equal("NewOutputRefFilePath", project.OutputRefFilePath);
-                Assert.Equal("NewAssemblyPath", project.CompilationOutputFilePaths.AssemblyPath);
-                Assert.Equal("NewDefaultNamespace", project.DefaultNamespace);
-                Assert.False(project.State.HasAllInformation);
-                Assert.False(project.State.RunAnalyzers);
-            }).ConfigureAwait(false);
+                Assert.Equal("Name" + version, project.Name);
+                Assert.Equal("AssemblyName" + version, project.AssemblyName);
+                Assert.Equal("FilePath" + version, project.FilePath);
+                Assert.Equal("OutputFilePath" + version, project.OutputFilePath);
+                Assert.Equal("OutputRefFilePath" + version, project.OutputRefFilePath);
+                Assert.Equal("AssemblyPath" + version, project.CompilationOutputFilePaths.AssemblyPath);
+                Assert.Equal("DefaultNamespace" + version, project.DefaultNamespace);
+                Assert.Equal((version % 2) != 0, project.State.HasAllInformation);
+                Assert.Equal((version % 2) != 0, project.State.RunAnalyzers);
+            }
+
+            Assert.True(workspace.SetCurrentSolution(s => SetProjectProperties(s, version: 0), WorkspaceChangeKind.SolutionChanged));
+
+            await VerifySolutionUpdate(workspace,
+                newSolutionGetter: s => SetProjectProperties(s, version: 1),
+                oldSolutionValidator: s => ValidateProperties(s, version: 0),
+                newSolutionValidator: s => ValidateProperties(s, version: 1)).ConfigureAwait(false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -433,18 +442,20 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private static async Task VerifySolutionUpdate(
             TestWorkspace workspace,
             Func<Solution, Solution> newSolutionGetter,
-            Action<Solution> solutionValidator = null)
+            Action<Solution> oldSolutionValidator = null,
+            Action<Solution> newSolutionValidator = null)
         {
-            var map = new Dictionary<Checksum, object>();
-
             var solution = workspace.CurrentSolution;
-            var service = await GetSolutionServiceAsync(solution, map);
+            oldSolutionValidator?.Invoke(solution);
 
+            var map = new Dictionary<Checksum, object>();
+            var service = await GetSolutionServiceAsync(solution, map);
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
             // update primary workspace
             await service.UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
             var recoveredSolution = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
+            oldSolutionValidator?.Invoke(recoveredSolution);
 
             Assert.IsAssignableFrom<RemoteWorkspace>(recoveredSolution.Workspace);
             var primaryWorkspace = recoveredSolution.Workspace;
@@ -469,7 +480,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));
             Assert.Same(primaryWorkspace.PrimaryBranchId, third.BranchId);
 
-            solutionValidator?.Invoke(recoveredNewSolution);
+            newSolutionValidator?.Invoke(recoveredNewSolution);
         }
 
         private static async Task<SolutionService> GetSolutionServiceAsync(Solution solution, Dictionary<Checksum, object> map = null)
@@ -482,7 +493,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = 0;
             var storage = new AssetStorage();
-            _ = new SimpleAssetSource(storage, map);
+            storage.Initialize(new SimpleAssetSource(map));
             var remoteWorkspace = new RemoteWorkspace(applyStartupOptions: false);
 
             return new SolutionService(new AssetProvider(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>()));

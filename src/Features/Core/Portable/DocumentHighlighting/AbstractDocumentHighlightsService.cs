@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
@@ -31,8 +30,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var result = await client.TryRunRemoteAsync<IList<SerializableDocumentHighlights>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
+                var result = await client.RunRemoteAsync<IList<SerializableDocumentHighlights>>(
+                    WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                     solution,
                     new object[]
@@ -44,10 +43,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return result.Value.SelectAsArray(h => h.Rehydrate(solution));
-                }
+                return result.SelectAsArray(h => h.Rehydrate(solution));
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
@@ -64,11 +60,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 return result;
             }
 
-            // use speculative semantic model to see whether we are on a symbol we can do HR
-            var span = new TextSpan(position, 0);
             var solution = document.Project.Solution;
 
-            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                 semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
@@ -76,19 +70,12 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 return ImmutableArray<DocumentHighlights>.Empty;
             }
 
-            symbol = await GetSymbolToSearchAsync(document, position, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
-            if (symbol == null)
-            {
-                return ImmutableArray<DocumentHighlights>.Empty;
-            }
-
             // Get unique tags for referenced symbols
             return await GetTagsForReferencedSymbolAsync(
-                new SymbolAndProjectId(symbol, document.Project.Id),
-                document, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
+        private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             var languagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
@@ -127,12 +114,11 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             Document document,
             IImmutableSet<Document> documentsToSearch,
             CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
             Contract.ThrowIfNull(symbol);
             if (ShouldConsiderSymbol(symbol))
             {
@@ -140,7 +126,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
                 var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await SymbolFinder.FindReferencesAsync(
-                    symbolAndProjectId, document.Project.Solution, progress,
+                    symbol, document.Project.Solution, progress,
                     documentsToSearch, options, cancellationToken).ConfigureAwait(false);
 
                 return await FilterAndCreateSpansAsync(

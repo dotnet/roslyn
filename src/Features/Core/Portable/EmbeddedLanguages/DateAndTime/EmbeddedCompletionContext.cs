@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
     {
         private readonly struct EmbeddedCompletionContext
         {
-            private static DateTime s_exampleDateTime = DateTime.Parse("2009-06-15T13:45:30.1234567");
-            private static CultureInfo s_enUsCulture = CultureInfo.GetCultureInfo("en-US");
+            private static readonly DateTime s_exampleDateTime = DateTime.Parse("2009-06-15T13:45:30.1234567");
+            private static readonly CultureInfo s_enUsCulture = CultureInfo.GetCultureInfo("en-US");
 
             private readonly ArrayBuilder<DateAndTimeItem> _items;
             private readonly TextSpan _replacementSpan;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 AddExample(examples, standard, displayText, secondaryCulture, hideCulture);
             }
 
-            private void AddExample(
+            private static void AddExample(
                 ArrayBuilder<string> examples, bool standard, string displayText, CultureInfo culture, bool hideCulture)
             {
                 // Single letter custom strings need a %, or else they're interpreted as a format

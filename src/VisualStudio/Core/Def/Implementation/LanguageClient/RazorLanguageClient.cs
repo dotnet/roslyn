@@ -4,7 +4,6 @@
 
 #nullable enable
 
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -31,8 +30,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     internal class RazorLanguageClient : AbstractLanguageServerClient
     {
         public const string ClientName = "RazorCSharp";
-
-        protected override bool SupportsHover => true;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).

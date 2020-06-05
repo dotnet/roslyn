@@ -264,6 +264,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(CreatePart(SymbolDisplayPartKind.NumericLiteral, symbol, symbol.Name));
                 return;
             }
+            else if (symbol.MethodKind == MethodKind.FunctionPointerSignature)
+            {
+                AddKeyword(SyntaxKind.DelegateKeyword);
+                AddPunctuation(SyntaxKind.AsteriskToken);
+
+                // Expose calling convention here when there is a public API: https://github.com/dotnet/roslyn/issues/39865
+
+                AddPunctuation(SyntaxKind.LessThanToken);
+
+                foreach (var param in symbol.Parameters)
+                {
+                    param.Accept(this.NotFirstVisitor);
+                    AddPunctuation(SyntaxKind.CommaToken);
+                    AddSpace();
+                }
+
+                if (symbol.ReturnsByRef)
+                {
+                    AddRefIfRequired();
+                }
+                else if (symbol.ReturnsByRefReadonly)
+                {
+                    AddRefReadonlyIfRequired();
+                }
+
+                AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
+
+                symbol.ReturnType.Accept(this.NotFirstVisitor);
+
+                AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers, leadingSpace: true, trailingSpace: false);
+
+                AddPunctuation(SyntaxKind.GreaterThanToken);
+                return;
+            }
 
             if (symbol.IsExtensionMethod && format.ExtensionMethodStyle != SymbolDisplayExtensionMethodStyle.Default)
             {
@@ -303,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case MethodKind.Destructor:
                         case MethodKind.Conversion:
                             // If we're using the metadata format, then include the return type.  
-                            // Otherwise we eschew it since it is redundant in an conversion
+                            // Otherwise we eschew it since it is redundant in a conversion
                             // signature.
                             if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames))
                             {
@@ -581,7 +615,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // used on their own or in the context of methods.
 
             var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType);
-            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName);
+            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName)
+                              && !(symbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.FunctionPointerSignature });
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
 
             if (includeBrackets && symbol.IsOptional)
@@ -792,14 +827,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddExplicitInterfaceIfRequired<T>(ImmutableArray<T> implementedMethods) where T : ISymbol
+        private void AddExplicitInterfaceIfRequired<T>(ImmutableArray<T> implementedMembers) where T : ISymbol
         {
-            if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeExplicitInterface) && !implementedMethods.IsEmpty)
+            if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeExplicitInterface) && !implementedMembers.IsEmpty)
             {
-                var implementedMethod = implementedMethods[0];
-                Debug.Assert(implementedMethod.ContainingType != null);
+                var implementedMember = implementedMembers[0];
+                Debug.Assert(implementedMember.ContainingType != null);
 
-                INamedTypeSymbol containingType = implementedMethod.ContainingType;
+                INamedTypeSymbol containingType = implementedMember.ContainingType;
                 if (containingType != null)
                 {
                     containingType.Accept(this.NotFirstVisitor);

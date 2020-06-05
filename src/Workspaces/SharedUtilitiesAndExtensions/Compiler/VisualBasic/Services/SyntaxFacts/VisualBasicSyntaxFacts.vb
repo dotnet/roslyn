@@ -80,6 +80,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return SyntaxFactory.ParseLeadingTrivia(text)
         End Function
 
+        Public Function EscapeIdentifier(identifier As String) As String Implements ISyntaxFacts.EscapeIdentifier
+            Dim keywordKind = SyntaxFacts.GetKeywordKind(identifier)
+            Dim needsEscaping = keywordKind <> SyntaxKind.None
+
+            Return If(needsEscaping, "[" & identifier & "]", identifier)
+        End Function
+
         Public Function IsVerbatimIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsVerbatimIdentifier
             Return False
         End Function
@@ -141,6 +148,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Function IsObjectCreationExpressionType(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsObjectCreationExpressionType
             Return node.IsParentKind(SyntaxKind.ObjectCreationExpression) AndAlso
                 DirectCast(node.Parent, ObjectCreationExpressionSyntax).Type Is node
+        End Function
+
+        Public Function IsDeclarationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclarationExpression
+            ' VB doesn't support declaration expressions
+            Return False
         End Function
 
         Public Function IsAttributeName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAttributeName
@@ -297,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return type <> PredefinedType.None
         End Function
 
-        Private Function GetPredefinedType(token As SyntaxToken) As PredefinedType
+        Private Shared Function GetPredefinedType(token As SyntaxToken) As PredefinedType
             Select Case token.Kind
                 Case SyntaxKind.BooleanKeyword
                     Return PredefinedType.Boolean
@@ -351,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return op <> PredefinedOperator.None
         End Function
 
-        Private Function GetPredefinedOperator(token As SyntaxToken) As PredefinedOperator
+        Private Shared Function GetPredefinedOperator(token As SyntaxToken) As PredefinedOperator
             Select Case token.Kind
                 Case SyntaxKind.PlusToken, SyntaxKind.PlusEqualsToken
                     Return PredefinedOperator.Addition
@@ -855,7 +867,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Private Function ContainsExclusively(outerSpan As TextSpan, innerSpan As TextSpan) As Boolean
+        Private Shared Function ContainsExclusively(outerSpan As TextSpan, innerSpan As TextSpan) As Boolean
             If innerSpan.IsEmpty Then
                 Return outerSpan.Contains(innerSpan.Start)
             End If
@@ -863,12 +875,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return outerSpan.Contains(innerSpan)
         End Function
 
-        Private Function GetSyntaxListSpan(Of T As SyntaxNode)(list As SyntaxList(Of T)) As TextSpan
+        Private Shared Function GetSyntaxListSpan(Of T As SyntaxNode)(list As SyntaxList(Of T)) As TextSpan
             Debug.Assert(list.Count > 0)
             Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
 
-        Private Function GetSeparatedSyntaxListSpan(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T)) As TextSpan
+        Private Shared Function GetSeparatedSyntaxListSpan(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T)) As TextSpan
             Debug.Assert(list.Count > 0)
             Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
@@ -1216,6 +1228,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return String.Empty
         End Function
 
+        Public Function GetNameForAttributeArgument(argument As SyntaxNode) As String Implements ISyntaxFacts.GetNameForAttributeArgument
+            ' All argument types are ArgumentSyntax in VB. 
+            Return GetNameForArgument(argument)
+        End Function
+
         Public Function IsLeftSideOfDot(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLeftSideOfDot
             Return TryCast(node, ExpressionSyntax).IsLeftSideOfDot()
         End Function
@@ -1302,11 +1319,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.IsKind(SyntaxKind.ImportsStatement)
         End Function
 
-        Public Function IsGlobalAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsGlobalAttribute
+        Public Function IsGlobalAssemblyAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsGlobalAssemblyAttribute
+            Return IsGlobalAttribute(node, SyntaxKind.AssemblyKeyword)
+        End Function
+
+        Public Function IsModuleAssemblyAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsGlobalModuleAttribute
+            Return IsGlobalAttribute(node, SyntaxKind.ModuleKeyword)
+        End Function
+
+        Private Shared Function IsGlobalAttribute(node As SyntaxNode, attributeTarget As SyntaxKind) As Boolean
             If node.IsKind(SyntaxKind.Attribute) Then
                 Dim attributeNode = CType(node, AttributeSyntax)
                 If attributeNode.Target IsNot Nothing Then
-                    Return attributeNode.Target.AttributeModifier.IsKind(SyntaxKind.AssemblyKeyword)
+                    Return attributeNode.Target.AttributeModifier.IsKind(attributeTarget)
                 End If
             End If
 
@@ -1802,7 +1827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.IsExecutableBlock()
         End Function
 
-        Public Function GetExecutableBlockStatements(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetExecutableBlockStatements
+        Public Function GetExecutableBlockStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode) Implements ISyntaxFacts.GetExecutableBlockStatements
             Return node.GetExecutableBlockStatements()
         End Function
 
@@ -2276,6 +2301,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                         Return p.ParameterList IsNot Nothing AndAlso p.ParameterList.Parameters.Count > 0 AndAlso p.Modifiers.Any(SyntaxKind.DefaultKeyword)
                     End If
             End Select
+            Return False
+        End Function
+
+        Public Function IsImplicitObjectCreation(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsImplicitObjectCreation
             Return False
         End Function
 

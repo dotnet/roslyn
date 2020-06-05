@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -2262,9 +2263,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         switch (i)
         {
-            case >= 1 and <= 5:
+            case <= 5 and >= 1:
                 return;
-            case >= 6 and <= 7:
+            case <= 7 and >= 6:
                 return;
         }
     }
@@ -2499,6 +2500,98 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 LanguageVersion = LanguageVersionExtensions.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestInequality()
+        {
+            var source =
+@"class C
+{
+    void M(int i)
+    {
+        [||]if ((i > 123 && i < 456) && i != 0 || i == 10)
+        {
+            return;
+        }
+    }
+}";
+
+            var fixedSource =
+ @"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case > 123 and < 456 when i != 0:
+            case 10:
+                return;
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
+
+        [WorkItem(44278, "https://github.com/dotnet/roslyn/issues/44278")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestTopLevelStatement()
+        {
+            var source = @"
+var e = new ET1();
+
+[||]if (e == ET1.A)
+{
+}
+else if (e == ET1.C)
+{
+}
+
+enum ET1
+{
+    A,
+    B,
+    C,
+}";
+
+            var fixedSource = @"
+var e = new ET1();
+
+switch (e)
+{
+    case ET1.A:
+        break;
+    case ET1.C:
+        break;
+}
+
+enum ET1
+{
+    A,
+    B,
+    C,
+}";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            };
+
+            test.ExpectedDiagnostics.Add(
+                // error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805"));
+
+            await test.RunAsync();
         }
     }
 }

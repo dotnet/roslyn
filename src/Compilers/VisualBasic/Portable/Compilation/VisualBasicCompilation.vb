@@ -2165,10 +2165,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager) As AnalyzerDriver
+        Friend Overrides Function CreateAnalyzerDriver(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager, severityFilter As SeverityFilter) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.Kind
             Dim isComment As Func(Of SyntaxTrivia, Boolean) = Function(trivia As SyntaxTrivia) trivia.Kind() = SyntaxKind.CommentTrivia
-            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager, isComment)
+            Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, analyzerManager, severityFilter, isComment)
         End Function
 
 #End Region
@@ -2725,6 +2725,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol
             Throw New NotSupportedException(VBResources.ThereAreNoPointerTypesInVB)
+        End Function
+
+        Protected Overrides Function CommonCreateFunctionPointerTypeSymbol(
+                returnType As ITypeSymbol,
+                refKind as RefKind,
+                parameterTypes as ImmutableArray(Of ITypeSymbol),
+                parameterRefKinds as ImmutableArray(Of RefKind)) As IFunctionPointerTypeSymbol
+            Throw New NotSupportedException(VBResources.ThereAreNoFunctionPointerTypesInVB)
         End Function
 
         Protected Overrides Function CommonCreateNativeIntegerTypeSymbol(signed As Boolean) As INamedTypeSymbol

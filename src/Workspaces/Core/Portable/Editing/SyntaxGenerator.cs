@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia Whitespace(string text);
         internal abstract SyntaxTrivia SingleLineComment(string text);
 
+        internal abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim);
+        internal abstract SyntaxToken CreateInterpolatedStringEndToken();
+
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
@@ -216,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return decl;
         }
 
-        private OperatorKind GetOperatorKind(IMethodSymbol method)
+        private static OperatorKind GetOperatorKind(IMethodSymbol method)
             => method.Name switch
             {
                 WellKnownMemberNames.ImplicitConversionName => OperatorKind.ImplicitConversion,
@@ -1168,7 +1171,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
         }
 
-        internal SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
+        internal static SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
             => root.ReplaceNode(node, newDeclarations);
 
         /// <summary>
@@ -1291,7 +1294,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract TNode ClearTrivia<TNode>(TNode node) where TNode : SyntaxNode;
 
+#pragma warning disable CA1822 // Mark members as static - shipped public API
         protected int IndexOf<T>(IReadOnlyList<T> list, T element)
+#pragma warning restore CA1822 // Mark members as static
         {
             for (int i = 0, count = list.Count; i < count; i++)
             {
@@ -1956,6 +1961,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an object creation expression.
         /// </summary>
         public abstract SyntaxNode ObjectCreationExpression(SyntaxNode namedType, IEnumerable<SyntaxNode> arguments);
+
+        internal abstract SyntaxNode ObjectCreationExpression(
+            SyntaxNode namedType, SyntaxToken openParen, SeparatedSyntaxList<SyntaxNode> arguments, SyntaxToken closeParen);
 
         /// <summary>
         /// Creates an object creation expression.

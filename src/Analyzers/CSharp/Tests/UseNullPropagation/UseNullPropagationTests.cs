@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNullPropagation
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestLeft_Equals()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -61,7 +61,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestRight_Equals()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -85,7 +85,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestLeft_NotEquals()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -109,7 +109,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -133,7 +133,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndObjectCast()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -157,7 +157,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestRight_NotEquals()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -181,7 +181,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestIndexer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -205,7 +205,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestConditionalAccess()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -229,7 +229,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestMemberAccess()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -268,7 +268,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestParenthesizedCondition()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -292,7 +292,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestFixAll1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -318,7 +318,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestFixAll2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -475,7 +475,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestNullableMemberAccess()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -505,7 +505,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestNullableElementAccess()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -545,7 +545,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndIsNull()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -601,7 +601,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndReferenceEquals1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -626,7 +626,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndReferenceEquals2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -683,7 +683,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndReferenceEqualsWithObject1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -708,7 +708,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndReferenceEqualsWithObject2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -765,7 +765,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndNotIsNull()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -821,7 +821,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndLogicalNotReferenceEquals1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -846,7 +846,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndLogicalNotReferenceEquals2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -903,7 +903,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -928,7 +928,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestWithNullableTypeAndLogicalNotReferenceEqualsWithObject2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -985,7 +985,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestEqualsWithLogicalNot()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {
@@ -1010,7 +1010,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
         public async Task TestNotEqualsWithLogicalNot()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 class C
 {

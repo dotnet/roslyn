@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var rewriter = new SingleLineRewriter(useElasticTrivia);
-            return (TNode)rewriter.Visit(node);
+            return (TNode?)rewriter.Visit(node);
         }
 
         /// <summary>
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         break;
                     }
 
-                case GlobalStatementSyntax global:
+                case GlobalStatementSyntax _:
                     return true;
                 case ConstructorInitializerSyntax constructorInitializer:
                     return constructorInitializer.ContainsInArgument(span);
@@ -1030,6 +1030,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             deconstructionLeft = null;
             return false;
         }
+
+        public static bool IsTopLevelOfUsingAliasDirective(this SyntaxToken node)
+            => node switch
+            {
+                { Parent: NameEqualsSyntax { Parent: UsingDirectiveSyntax _ } } => true,
+                { Parent: IdentifierNameSyntax { Parent: UsingDirectiveSyntax _ } } => true,
+                _ => false
+            };
 
         public static T WithCommentsFrom<T>(this T node, SyntaxToken leadingToken, SyntaxToken trailingToken)
             where T : SyntaxNode

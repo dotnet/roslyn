@@ -5,21 +5,42 @@
 #nullable enable
 
 using System;
+using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.Interop
 {
-    internal sealed class SafeSqliteStatementHandle : SafeSqliteChildHandle<sqlite3_stmt>
+    internal sealed class SafeSqliteStatementHandle : SafeHandle
     {
+        private readonly sqlite3_stmt? _wrapper;
+        private readonly SafeHandleLease _lease;
+
         public SafeSqliteStatementHandle(SafeSqliteHandle sqliteHandle, sqlite3_stmt? wrapper)
-            : base(sqliteHandle, wrapper?.ptr ?? IntPtr.Zero, wrapper)
+            : base(invalidHandleValue: IntPtr.Zero, ownsHandle: true)
         {
+            _wrapper = wrapper;
+            SetHandle(wrapper?.ptr ?? IntPtr.Zero);
+            _lease = sqliteHandle.Lease();
         }
 
-        protected override bool ReleaseChildHandle()
+        public override bool IsInvalid => handle == IntPtr.Zero;
+
+        public sqlite3_stmt DangerousGetWrapper()
+            => _wrapper!;
+
+        protected override bool ReleaseHandle()
         {
-            var result = (Result)raw.sqlite3_finalize(Wrapper);
-            return result == Result.OK;
+            try
+            {
+                var result = (Result)raw.sqlite3_finalize(_wrapper);
+                SetHandle(IntPtr.Zero);
+                return result == Result.OK;
+            }
+            finally
+            {
+                _lease.Dispose();
+            }
         }
     }
 }

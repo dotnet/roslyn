@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class FindReferencesTests : ServicesTestBase
     {
-        private Solution CreateSolution()
+        private static Solution CreateSolution()
             => new AdhocWorkspace().CurrentSolution;
 
-        private Solution GetSingleDocumentSolution(string sourceText)
+        private static Solution GetSingleDocumentSolution(string sourceText)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     .AddDocument(did, "goo.cs", SourceText.From(sourceText));
         }
 
-        private Solution GetMultipleDocumentSolution(string[] sourceTexts)
+        private static Solution GetMultipleDocumentSolution(string[] sourceTexts)
         {
             var pid = ProjectId.CreateNewId();
 
@@ -322,7 +322,12 @@ namespace N2
 
             var references = (await SymbolFinder.FindReferencesAsync(interfaceMethod, solution)).ToList();
             Assert.Equal(2, references.Count);
-            Assert.True(references.Any(r => r.DefinitionAndProjectId.ProjectId == desktopProject.Id));
+
+            var projectIds = new HashSet<ProjectId>();
+            foreach (var r in references)
+                projectIds.Add(solution.GetOriginatingProjectId(r.Definition));
+
+            Assert.True(projectIds.Contains(desktopProject.Id));
         }
 
         [Fact, WorkItem(35786, "https://github.com/dotnet/roslyn/issues/35786")]

@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsGlobalStatementContext ||
                 context.IsObjectCreationTypeContext ||
                 (context.IsGenericTypeArgumentContext && !context.TargetToken.Parent.HasAncestor<XmlCrefAttributeSyntax>()) ||
+                context.IsFunctionPointerTypeArgumentContext ||
                 context.IsIsOrAsTypeContext ||
                 context.IsLocalVariableDeclarationContext ||
                 context.IsParameterTypeContext ||

@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsCatchFilterContext;
         public readonly bool IsDestructorTypeContext;
         public readonly bool IsLeftSideOfImportAliasDirective;
+        public readonly bool IsFunctionPointerTypeArgumentContext;
 
         private CSharpSyntaxContext(
             Workspace workspace,
@@ -106,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isAfterPatternContext,
             bool isRightSideOfNumericType,
             bool isInArgumentList,
+            bool isFunctionPointerTypeArgumentContext,
             CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
@@ -147,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsCatchFilterContext = isCatchFilterContext;
             this.IsDestructorTypeContext = isDestructorTypeContext;
             this.IsLeftSideOfImportAliasDirective = isLeftSideOfImportAliasDirective;
+            this.IsFunctionPointerTypeArgumentContext = isFunctionPointerTypeArgumentContext;
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -265,17 +268,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isAfterPatternContext: syntaxTree.IsAtEndOfPattern(leftToken, position),
                 isRightSideOfNumericType: isRightSideOfNumericType,
                 isInArgumentList: isArgumentListToken,
+                isFunctionPointerTypeArgumentContext: syntaxTree.IsFunctionPointerTypeArgumentContext(position, leftToken, cancellationToken),
                 cancellationToken: cancellationToken);
         }
 
         public static CSharpSyntaxContext CreateContext_Test(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var inferenceService = new CSharpTypeInferenceService();
-            var types = inferenceService.InferTypes(semanticModel, position, cancellationToken);
+            _ = inferenceService.InferTypes(semanticModel, position, cancellationToken);
             return CreateContextWorker(workspace: null, semanticModel: semanticModel, position: position, cancellationToken: cancellationToken);
         }
 
-        private new static bool IsWithinAsyncMethod()
+        private static new bool IsWithinAsyncMethod()
         {
             // TODO: Implement this if any C# completion code needs to know if it is in an async 
             // method or not.
@@ -380,7 +384,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var leftToken = this.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
-            return targetToken.Kind() == SyntaxKind.AwaitKeyword && targetToken.GetPreviousToken().IsBeginningOfStatementContext();
+            if (targetToken.IsKind(SyntaxKind.AwaitKeyword))
+            {
+                var previousToken = targetToken.GetPreviousToken();
+                if (previousToken.IsBeginningOfStatementContext())
+                {
+                    return true;
+                }
+
+                return SyntaxTree.IsGlobalStatementContext(targetToken.SpanStart, cancellationToken);
+            }
+            else if (SyntaxTree.IsScript()
+                && targetToken.IsKind(SyntaxKind.IdentifierToken)
+                && targetToken.HasMatchingText(SyntaxKind.AwaitKeyword))
+            {
+                // The 'await' keyword is parsed as an identifier in C# script
+                return SyntaxTree.IsGlobalStatementContext(targetToken.SpanStart, cancellationToken);
+            }
+
+            return false;
         }
     }
 }

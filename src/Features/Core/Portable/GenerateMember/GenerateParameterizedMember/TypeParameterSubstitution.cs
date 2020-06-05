@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var commonTypes = await GetDerivedAndImplementedTypesAsync(
                     (INamedTypeSymbol)symbol.ConstraintTypes[0], projects).ConfigureAwait(false);
 
-                for (int i = 1; i < symbol.ConstraintTypes.Length; i++)
+                for (var i = 1; i < symbol.ConstraintTypes.Length; i++)
                 {
                     var currentTypes = await GetDerivedAndImplementedTypesAsync(
                         (INamedTypeSymbol)symbol.ConstraintTypes[i], projects).ConfigureAwait(false);
@@ -134,14 +134,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
                 var solution = _project.Solution;
 
-                var symbolAndProjectId = SymbolAndProjectId.Create(constraintType, _project.Id);
+                var symbol = constraintType;
                 var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
-                    symbolAndProjectId, solution, projects, _cancellationToken).ConfigureAwait(false);
+                    symbol, solution, projects, _cancellationToken).ConfigureAwait(false);
 
-                var implementedTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresAndClassesAsync(
-                    symbolAndProjectId, solution, projects, _cancellationToken).ConfigureAwait(false);
+                var implementedTypes = await SymbolFinder.FindImplementationsAsync(
+                    symbol, solution, projects, _cancellationToken).ConfigureAwait(false);
 
-                return derivedClasses.Concat(implementedTypes).Select(t => t.Symbol).ToSet();
+                return derivedClasses.Concat(implementedTypes).ToSet();
             }
         }
     }

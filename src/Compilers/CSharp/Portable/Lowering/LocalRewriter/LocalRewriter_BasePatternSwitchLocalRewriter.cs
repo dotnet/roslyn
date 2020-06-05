@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -28,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override ArrayBuilder<BoundStatement> BuilderForSection(SyntaxNode whenClauseSyntax)
             {
                 // We need the section syntax to get the section builder from the map. Unfortunately this is a bit awkward
-                SyntaxNode sectionSyntax = whenClauseSyntax is SwitchLabelSyntax l ? l.Parent : whenClauseSyntax;
+                SyntaxNode? sectionSyntax = whenClauseSyntax is SwitchLabelSyntax l ? l.Parent : whenClauseSyntax;
+                Debug.Assert(sectionSyntax is { });
                 bool found = _switchArms.TryGetValue(sectionSyntax, out ArrayBuilder<BoundStatement>? result);
                 if (!found || result == null)
                     throw new InvalidOperationException();
@@ -39,8 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected BaseSwitchLocalRewriter(
                 SyntaxNode node,
                 LocalRewriter localRewriter,
-                ImmutableArray<SyntaxNode> arms)
-                : base(node, localRewriter)
+                ImmutableArray<SyntaxNode> arms,
+                bool generateInstrumentation)
+                : base(node, localRewriter, generateInstrumentation)
             {
                 foreach (var arm in arms)
                 {
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We start each switch block of a switch statement with a hidden sequence point so that
                     // we do not appear to be in the previous switch block when we begin.
-                    if (GenerateSequencePoints)
+                    if (GenerateInstrumentation)
                         armBuilder.Add(_factory.HiddenSequencePoint());
 
                     _switchArms.Add(arm, armBuilder);

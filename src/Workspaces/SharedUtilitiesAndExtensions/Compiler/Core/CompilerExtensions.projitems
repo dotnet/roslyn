@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="InternalUtilities\ExceptionUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs" Link="InternalUtilities\KeyValuePairUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\NonCopyableAttribute.cs" Link="InternalUtilities\NonCopyableAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\NonDefaultableAttribute.cs" Link="InternalUtilities\NonDefaultableAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="InternalUtilities\NullableAttributes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs" Link="InternalUtilities\ReferenceEqualityComparer.cs" />
@@ -45,6 +46,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs" Link="Serialization\ObjectReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs" Link="Serialization\ObjectWriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SourceCodeKindExtensions.cs" Link="Utilities\Compiler\SourceCodeKindExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SpecialTypeExtensions.cs" Link="Extensions\Compiler\SpecialTypeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs">
       <Link>Collections\ArrayBuilderExtensions.cs</Link>
     </Compile>
@@ -188,6 +190,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharSequence.Enumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ListExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MethodKindEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectWriterExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolKindEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\IPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\PrecedenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\UnusedParametersPreference.cs" />
@@ -352,6 +357,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\UnicodeDebug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\UnicodeUtility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System.Text\Utf16Utility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IExpeditableDelaySource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AliasSymbolCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AnnotationTable.cs" />
@@ -485,5 +491,8 @@
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Extensions\Compiler\" />
   </ItemGroup>
 </Project>

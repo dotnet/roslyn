@@ -4076,14 +4076,14 @@ class C
       IL_001b:  ldloc.1
       IL_001c:  brtrue.s   IL_0020
       IL_001e:  br.s       IL_0027
-      IL_0020:  br.s       IL_0022
+     ~IL_0020:  br.s       IL_0022
      -IL_0022:  ldloc.0
       IL_0023:  stloc.s    V_4
       IL_0025:  br.s       IL_002c
      -IL_0027:  ldc.i4.0
       IL_0028:  stloc.s    V_4
       IL_002a:  br.s       IL_002c
-      IL_002c:  ldc.i4.1
+     ~IL_002c:  ldc.i4.1
       IL_002d:  brtrue.s   IL_0030
      -IL_002f:  nop
      ~IL_0030:  ldloc.s    V_4
@@ -4152,7 +4152,7 @@ class C
       IL_000e:  unbox.any  ""int""
       IL_0013:  stloc.0
      ~IL_0014:  br.s       IL_0016
-      IL_0016:  br.s       IL_0018
+     ~IL_0016:  br.s       IL_0018
       IL_0018:  ldc.i4.1
       IL_0019:  brtrue.s   IL_001c
      -IL_001b:  nop
@@ -4165,7 +4165,7 @@ class C
      -IL_0026:  ldc.i4.2
       IL_0027:  stloc.s    V_5
       IL_0029:  br.s       IL_002b
-      IL_002b:  ldc.i4.1
+     ~IL_002b:  ldc.i4.1
       IL_002c:  brtrue.s   IL_002f
      -IL_002e:  nop
      -IL_002f:  ldloc.s    V_5
@@ -4174,7 +4174,7 @@ class C
      -IL_0035:  ldc.i4.3
       IL_0036:  stloc.s    V_4
       IL_0038:  br.s       IL_003a
-      IL_003a:  ldc.i4.1
+     ~IL_003a:  ldc.i4.1
       IL_003b:  brtrue.s   IL_003e
      -IL_003d:  nop
      ~IL_003e:  ldloc.s    V_4
@@ -4242,7 +4242,7 @@ class C
      -IL_001a:  stfld      ""int C.<G>d__0.<>1__state""
       IL_001f:  ldloc.0
       IL_0020:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
-     ~IL_0025:  ldloca.s   V_0
+      IL_0025:  ldloca.s   V_0
       IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<C.<G>d__0>(ref C.<G>d__0)""
       IL_002c:  ldloc.0
       IL_002d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
@@ -4285,30 +4285,30 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.G", @"
-{
-  // Code size       56 (0x38)
-  .maxstack  2
-  .locals init (C.<G>d__0 V_0)
- ~IL_0000:  newobj     ""C.<G>d__0..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.0
- ~IL_0007:  ldarg.0
-  IL_0008:  stfld      ""System.Threading.Tasks.Task<object> C.<G>d__0.o""
-  IL_000d:  ldloc.0
- -IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
-  IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
-  IL_0018:  ldloc.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<G>d__0.<>1__state""
-  IL_001f:  ldloc.0
-  IL_0020:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
-  IL_0025:  ldloca.s   V_0
-  IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<C.<G>d__0>(ref C.<G>d__0)""
-  IL_002c:  ldloc.0
-  IL_002d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
-  IL_0032:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
-  IL_0037:  ret
-}
+    {
+      // Code size       56 (0x38)
+      .maxstack  2
+      .locals init (C.<G>d__0 V_0)
+     ~IL_0000:  newobj     ""C.<G>d__0..ctor()""
+      IL_0005:  stloc.0
+      IL_0006:  ldloc.0
+     ~IL_0007:  ldarg.0
+      IL_0008:  stfld      ""System.Threading.Tasks.Task<object> C.<G>d__0.o""
+      IL_000d:  ldloc.0
+     -IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+      IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+      IL_0018:  ldloc.0
+      IL_0019:  ldc.i4.m1
+      IL_001a:  stfld      ""int C.<G>d__0.<>1__state""
+      IL_001f:  ldloc.0
+      IL_0020:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+      IL_0025:  ldloca.s   V_0
+      IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<C.<G>d__0>(ref C.<G>d__0)""
+      IL_002c:  ldloc.0
+     <IL_002d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
+      IL_0032:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+      IL_0037:  ret
+    }
 ", methodToken: diff1.UpdatedMethods.Single());
         }
 
@@ -4367,7 +4367,7 @@ class C
      ~IL_000e:  ldloc.s    V_6
       IL_0010:  brfalse.s  IL_0014
       IL_0012:  br.s       IL_0032
-      IL_0014:  ldc.i4.1
+     ~IL_0014:  ldc.i4.1
       IL_0015:  brtrue.s   IL_0018
      -IL_0017:  nop
      ~IL_0018:  ldloc.0
@@ -4380,7 +4380,7 @@ class C
      -IL_0023:  ldc.i4.2
       IL_0024:  stloc.s    V_7
       IL_0026:  br.s       IL_0028
-      IL_0028:  ldc.i4.1
+     ~IL_0028:  ldc.i4.1
       IL_0029:  brtrue.s   IL_002c
      -IL_002b:  nop
      -IL_002c:  ldloc.s    V_7
@@ -4389,7 +4389,7 @@ class C
      -IL_0032:  ldc.i4.1
       IL_0033:  stloc.s    V_5
       IL_0035:  br.s       IL_0037
-      IL_0037:  ldc.i4.1
+     ~IL_0037:  ldc.i4.1
       IL_0038:  brtrue.s   IL_003b
      -IL_003a:  nop
      ~IL_003b:  ldloc.s    V_5

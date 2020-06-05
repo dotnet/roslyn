@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new SpacingFormattingRule(cachedOptions);
         }
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             RoslynDebug.Assert(previousToken.Parent != null && currentToken.Parent != null);
 
@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing between parenthesis and expression
-            if ((previousParentKind == SyntaxKind.ParenthesizedExpression && previousKind == SyntaxKind.OpenParenToken) ||
-                (currentParentKind == SyntaxKind.ParenthesizedExpression && currentKind == SyntaxKind.CloseParenToken))
+            if ((previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKindEx.ParenthesizedPattern) && previousKind == SyntaxKind.OpenParenToken) ||
+                (currentToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKindEx.ParenthesizedPattern) && currentKind == SyntaxKind.CloseParenToken))
             {
                 return AdjustSpacesOperationZeroOrOne(_options.SpaceWithinExpressionParentheses);
             }
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // Semicolons in an empty for statement.  i.e.   for(;;)
             if (previousParentKind == SyntaxKind.ForStatement
-                && this.IsEmptyForStatement((ForStatementSyntax)previousToken.Parent!))
+                && IsEmptyForStatement((ForStatementSyntax)previousToken.Parent!))
             {
                 if (currentKind == SyntaxKind.SemicolonToken
                     && (previousKind != SyntaxKind.SemicolonToken
@@ -287,7 +287,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.Parent is BinaryExpressionSyntax ||
                 previousToken.Parent is BinaryExpressionSyntax ||
                 currentToken.Parent is AssignmentExpressionSyntax ||
-                previousToken.Parent is AssignmentExpressionSyntax)
+                previousToken.Parent is AssignmentExpressionSyntax ||
+                currentToken.Parent.IsKind(SyntaxKindEx.AndPattern, SyntaxKindEx.OrPattern, SyntaxKindEx.RelationalPattern) ||
+                previousToken.Parent.IsKind(SyntaxKindEx.AndPattern, SyntaxKindEx.OrPattern, SyntaxKindEx.RelationalPattern))
             {
                 switch (_options.SpacingAroundBinaryOperator)
                 {
@@ -296,8 +298,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     case BinaryOperatorSpacingOptions.Remove:
                         if (currentKind == SyntaxKind.IsKeyword ||
                             currentKind == SyntaxKind.AsKeyword ||
+                            currentKind == SyntaxKindEx.AndKeyword ||
+                            currentKind == SyntaxKindEx.OrKeyword ||
                             previousKind == SyntaxKind.IsKeyword ||
-                            previousKind == SyntaxKind.AsKeyword)
+                            previousKind == SyntaxKind.AsKeyword ||
+                            previousKind == SyntaxKindEx.AndKeyword ||
+                            previousKind == SyntaxKindEx.OrKeyword)
                         {
                             // User want spaces removed but at least one is required for the "as" & "is" keyword
                             return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
@@ -312,6 +318,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         System.Diagnostics.Debug.Assert(false, "Invalid BinaryOperatorSpacingOptions");
                         break;
                 }
+            }
+
+            // Function pointer type adjustments
+            if (previousParentKind == SyntaxKindEx.FunctionPointerType && currentParentKind == SyntaxKindEx.FunctionPointerType)
+            {
+                // No spacing between delegate and *
+                if (currentKind == SyntaxKind.AsteriskToken && previousKind == SyntaxKind.DelegateKeyword)
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+
+                // Force a space between * and the calling convention
+                if (currentKind == SyntaxKind.IdentifierToken && previousKind == SyntaxKind.AsteriskToken)
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+
+                if (currentKind == SyntaxKind.LessThanToken)
+                {
+                    switch (previousKind)
+                    {
+                        // No spacing between the * and < tokens if there is no calling convention
+                        case SyntaxKind.AsteriskToken:
+                        // No spacing between the calling convention and opening angle bracket of function pointer types:
+                        // delegate* cdecl<
+                        case SyntaxKind.IdentifierToken:
+                            return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                    }
+                }
+            }
+
+            // For spacing after the 'not' pattern operator
+            if (previousToken.Parent.IsKind(SyntaxKindEx.NotPattern))
+            {
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // No space after $" and $@" and @$" at the start of an interpolated string
@@ -389,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
         public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
@@ -399,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SuppressVariableDeclaration(list, node);
         }
 
-        private bool IsEmptyForStatement(ForStatementSyntax forStatement) =>
+        private static bool IsEmptyForStatement(ForStatementSyntax forStatement) =>
             forStatement.Initializers.Count == 0
             && forStatement.Declaration == null
             && forStatement.Condition == null
@@ -421,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private AdjustSpacesOperation AdjustSpacesOperationZeroOrOne(bool option, AdjustSpacesOption explicitOption = AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+        private static AdjustSpacesOperation AdjustSpacesOperationZeroOrOne(bool option, AdjustSpacesOption explicitOption = AdjustSpacesOption.ForceSpacesIfOnSingleLine)
         {
             if (option)
             {
@@ -433,13 +474,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private bool HasFormattableBracketParent(SyntaxToken token)
+        private static bool HasFormattableBracketParent(SyntaxToken token)
             => token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression);
 
-        private bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
+        private static bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
             => (syntaxKind == SyntaxKind.TypeOfExpression || syntaxKind == SyntaxKind.DefaultExpression || syntaxKind == SyntaxKind.SizeOfExpression);
 
-        private bool IsControlFlowLikeKeywordStatementKind(SyntaxKind syntaxKind)
+        private static bool IsControlFlowLikeKeywordStatementKind(SyntaxKind syntaxKind)
         {
             return (syntaxKind == SyntaxKind.IfStatement || syntaxKind == SyntaxKind.WhileStatement || syntaxKind == SyntaxKind.SwitchStatement ||
                 syntaxKind == SyntaxKind.ForStatement || syntaxKind == SyntaxKind.ForEachStatement || syntaxKind == SyntaxKind.ForEachVariableStatement ||

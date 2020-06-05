@@ -18,13 +18,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal static class WatsonReporter
     {
-        /// <summary>
-        /// Controls whether or not we actually report the failure.
-        /// There are situations where we know we're in a bad state and any further reports are unlikely to be
-        /// helpful, so we shouldn't send them.
-        /// </summary>
-        private static bool s_report = true;
-
         private static Dictionary<string, string>? s_capturedFileContent;
 
         private static TelemetrySession? s_telemetrySession;
@@ -81,11 +74,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 FailFast.OnFatalException(exception);
             }
 
-            if (!s_report)
-            {
-                return;
-            }
-
             var emptyCallstack = exception.SetCallstackIfEmpty();
             var currentProcess = Process.GetCurrentProcess();
 
@@ -100,21 +88,24 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
             var faultEvent = new FaultEvent(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
-                description: "Roslyn NonFatal Watson",
+                description: GetDescription(exception),
                 FaultSeverity.Diagnostic,
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
                 {
-                    // add current process dump
-                    faultUtility.AddProcessDump(currentProcess.Id);
-
-                    // add ServiceHub log files:
-                    foreach (var path in CollectServiceHubLogFilePaths())
+                    if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
                     {
-                        faultUtility.AddFile(path);
+                        // add ServiceHub log files:
+                        foreach (var path in CollectServiceHubLogFilePaths())
+                        {
+                            faultUtility.AddFile(path);
+                        }
                     }
 
-                    // Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
+                    // Returning "0" signals that, if sampled, we should send data to Watson. 
+                    // Any other value will cancel the Watson report. We never want to trigger a process dump manually, 
+                    // we'll let TargetedNotifications determine if a dump should be collected.
+                    // See https://aka.ms/roslynnfwdocs for more details
                     return 0;
                 });
 
@@ -124,6 +115,39 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             faultEvent.SetExtraParameters(exception, emptyCallstack);
 
             session.PostEvent(faultEvent);
+        }
+
+        private static string GetDescription(Exception exception)
+        {
+            const string CodeAnalysisNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis);
+
+            // Be resilient to failing here.  If we can't get a suitable name, just fall back to the standard name we
+            // used to report.
+            try
+            {
+                // walk up the stack looking for the first call from a type that isn't in the ErrorReporting namespace.
+                foreach (var frame in new StackTrace(exception).GetFrames())
+                {
+                    var method = frame.GetMethod();
+                    var methodName = method?.Name;
+                    if (methodName == null)
+                        continue;
+
+                    var declaringTypeName = method?.DeclaringType?.FullName;
+                    if (declaringTypeName == null)
+                        continue;
+
+                    if (!declaringTypeName.StartsWith(CodeAnalysisNamespace))
+                        continue;
+
+                    return declaringTypeName + "." + methodName;
+                }
+            }
+            catch
+            {
+            }
+
+            return "Roslyn NonFatal Watson";
         }
 
         private static List<string> CollectServiceHubLogFilePaths()
@@ -152,9 +176,13 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                         // name our services more consistently to simplify filtering
 
                         // filter logs that are not relevant to Roslyn investigation
-                        if (!name.Contains("-" + WellKnownServiceHubServices.NamePrefix) &&
+                        if (!name.Contains("-" + RemoteServiceName.Prefix) &&
+                            !name.Contains("-" + RemoteServiceName.IntelliCodeServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.RazorServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.UnitTestingAnalysisServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.LiveUnitTestingBuildServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.UnitTestingSourceLookupServiceName) &&
                             !name.Contains("-CodeLens") &&
-                            !name.Contains("-pythia") &&
                             !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
                             !name.Contains("-hub"))
                         {

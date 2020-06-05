@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
 {
     internal abstract class AbstractUseInferredMemberNameCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        abstract protected void LanguageSpecificRemoveSuggestedNode(SyntaxEditor editor, SyntaxNode node);
+        protected abstract void LanguageSpecificRemoveSuggestedNode(SyntaxEditor editor, SyntaxNode node);
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId);
@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
 
             return Task.CompletedTask;
         }
-
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
