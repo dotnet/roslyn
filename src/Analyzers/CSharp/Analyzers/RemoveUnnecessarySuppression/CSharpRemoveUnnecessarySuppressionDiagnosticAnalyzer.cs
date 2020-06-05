@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppression
     {
         public CSharpRemoveUnnecessarySuppressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessarySuppressionForIsExpressionDiagnosticId,
-                   new LocalizableResourceString(nameof(CSharpFeaturesResources.Remove_unnecessary_suppression_operator), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)),
-                   new LocalizableResourceString(nameof(CSharpFeaturesResources.Suppression_operator_has_no_effect_and_can_be_misinterpreted), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)))
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_suppression_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Suppression_operator_has_no_effect_and_can_be_misinterpreted), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 

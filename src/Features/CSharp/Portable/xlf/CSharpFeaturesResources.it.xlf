@@ -142,34 +142,14 @@
         <target state="translated">Imposta come 'ref struct'</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Negate_expression_changes_semantics">
-        <source>Negate expression (changes semantics)</source>
-        <target state="new">Negate expression (changes semantics)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
         <target state="new">Remove 'new' modifier</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_operator_preserves_semantics">
-        <source>Remove operator (preserves semantics)</source>
-        <target state="new">Remove operator (preserves semantics)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="new">Remove suppression operators</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">Rimuovi i cast non necessari</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_suppression_operator">
-        <source>Remove unnecessary suppression operator</source>
-        <target state="new">Remove unnecessary suppression operator</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variables">
@@ -195,11 +175,6 @@
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Ordina i modificatori di accessibilità</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">
-        <source>Suppression operator has no effect and can be misinterpreted</source>
-        <target state="new">Suppression operator has no effect and can be misinterpreted</target>
         <note />
       </trans-unit>
       <trans-unit id="Unseal_class_0">

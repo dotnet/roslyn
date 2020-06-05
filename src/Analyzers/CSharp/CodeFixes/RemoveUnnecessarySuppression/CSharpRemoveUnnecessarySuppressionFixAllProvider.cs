@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppression
             }
 
             protected override string CodeActionTitle
-                => CSharpFeaturesResources.Remove_suppression_operators;
+                => CSharpAnalyzersResources.Remove_suppression_operators;
 
             protected override async Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {

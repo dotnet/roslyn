@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppression
 
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    CSharpFeaturesResources.Remove_operator_preserves_semantics,
+                    CSharpAnalyzersResources.Remove_operator_preserves_semantics,
                     c => FixAllAsync(document, diagnostics, negate: false, c),
                     RemoveOperator),
                 context.Diagnostics);
 
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    CSharpFeaturesResources.Negate_expression_changes_semantics,
+                    CSharpAnalyzersResources.Negate_expression_changes_semantics,
                     c => FixAllAsync(document, diagnostics, negate: true, c),
                     NegateExpression),
                 context.Diagnostics);
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppression
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
                 : base(title, createChangedDocument, equivalenceKey)
