@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -249,18 +248,18 @@ start:
     /// Contains methods related to synthesizing bound nodes in lowered form 
     /// that does not need any processing before passing to codegen
     /// </summary>
-    internal static partial class MethodBodySynthesizer
+    internal static class MethodBodySynthesizer
     {
         /// <summary>
         /// Given a set of fields, produce an expression that is true when all of the given fields on
         /// `this` are equal to the fields on <paramref name="otherReceiver" /> according to the
         /// default EqualityComparer.
         /// </summary>
-        public static BoundExpression GenerateFieldEquals<TList>(
+        public static BoundExpression GenerateFieldEquals(
             BoundExpression? initialExpression,
             BoundExpression otherReceiver,
-            TList fields,
-            SyntheticBoundNodeFactory F) where TList : IReadOnlyList<FieldSymbol>
+            ArrayBuilder<FieldSymbol> fields,
+            SyntheticBoundNodeFactory F)
         {
             Debug.Assert(fields.Count > 0);
 

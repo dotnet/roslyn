@@ -15,23 +15,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedRecordObjEquals : SynthesizedInstanceMethodSymbol
     {
         private readonly MethodSymbol _typedRecordEquals;
+        private readonly int _memberOffset;
 
         public override NamedTypeSymbol ContainingType { get; }
 
         public override ImmutableArray<ParameterSymbol> Parameters { get; }
 
-        public SynthesizedRecordObjEquals(NamedTypeSymbol containingType, MethodSymbol typedRecordEquals)
+        public SynthesizedRecordObjEquals(NamedTypeSymbol containingType, MethodSymbol typedRecordEquals, int memberOffset)
         {
+            var compilation = containingType.DeclaringCompilation;
             _typedRecordEquals = typedRecordEquals;
+            _memberOffset = memberOffset;
             ContainingType = containingType;
             Parameters = ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(
                 this,
-                TypeWithAnnotations.Create(
-                    isNullableEnabled: true,
-                    containingType.DeclaringCompilation.GetSpecialType(SpecialType.System_Object),
-                    isAnnotated: true),
+                TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), NullableAnnotation.Annotated),
                 ordinal: 0,
                 RefKind.None));
+            ReturnTypeWithAnnotations = TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Boolean));
         }
 
         public override string Name => "Equals";
@@ -52,11 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override RefKind RefKind => RefKind.None;
 
-        internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.SynthesizedRecordObjEquals;
+        internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
-        public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(
-            isNullableEnabled: true,
-            ContainingType.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean));
+        public override TypeWithAnnotations ReturnTypeWithAnnotations { get; }
 
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
@@ -143,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
+                // PROTOTYPE: Shouldn't have to bind to "Equals". The caller has the actual method in hand.
                 // For classes:
                 //      return this.Equals(param as ContainingType);
                 expression = F.InstanceCall(F.This(), "Equals", F.As(paramAccess, ContainingType));
