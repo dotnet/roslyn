@@ -8,8 +8,11 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.PDB
 
 Public Class VisualBasicDeterministicBuildCompilationTests
     Inherits BasicTestBase
@@ -23,7 +26,7 @@ Public Class VisualBasicDeterministicBuildCompilationTests
         ' See VisualBasicCompilation.SerializeForPdb for options that are added
         Assert.Equal(originalOptions.CheckOverflow.ToString(), pdbOptions("checked"))
         Assert.Equal(originalOptions.OptionStrict.ToString(), pdbOptions("strict"))
-        Assert.Equal(originalOptions.ParseOptions.LanguageVersion.ToString(), pdbOptions("language-version"))
+        Assert.Equal(originalOptions.ParseOptions.LanguageVersion.MapSpecifiedToEffectiveVersion().ToDisplayString(), pdbOptions("language-version"))
 
 
         Dim preprocessorStrings = originalOptions.ParseOptions.PreprocessorSymbols.Select(Function(p)

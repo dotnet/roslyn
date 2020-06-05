@@ -5,16 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.PEWriter;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Roslyn.Test.Utilities.PDB
@@ -38,12 +36,12 @@ namespace Roslyn.Test.Utilities.PDB
         {
             if (emitOptions.FallbackSourceFileEncoding != null)
             {
-                Assert.Equal(emitOptions.FallbackSourceFileEncoding.WebName, pdbOptions[CompilationOptionNames.FallbackEncoding]);
+                Assert.Equal(emitOptions.FallbackSourceFileEncoding.WebName, pdbOptions["fallback-encoding"]);
             }
 
             if (emitOptions.DefaultSourceFileEncoding != null)
             {
-                Assert.Equal(emitOptions.DefaultSourceFileEncoding.WebName, pdbOptions[CompilationOptionNames.DefaultEncoding]);
+                Assert.Equal(emitOptions.DefaultSourceFileEncoding.WebName, pdbOptions["default-encoding"]);
             }
 
             int portabilityPolicy = 0;
@@ -53,10 +51,10 @@ namespace Roslyn.Test.Utilities.PDB
                 portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
             }
 
-            Assert.Equal(portabilityPolicy.ToString(), pdbOptions[CompilationOptionNames.PortabilityPolicy]);
+            Assert.Equal(portabilityPolicy.ToString(), pdbOptions["portability-policy"]);
 
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-            Assert.Equal(compilerVersion.ToString(), pdbOptions[CompilationOptionNames.CompilerVersion]);
+            Assert.Equal(compilerVersion.ToString(), pdbOptions["compiler-version"]);
 
             var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             Assert.Equal(runtimeVersion, pdbOptions[CompilationOptionNames.RuntimeVersion]);
@@ -65,8 +63,9 @@ namespace Roslyn.Test.Utilities.PDB
                 ? (compilationOptions.DebugPlusMode ? "debug+" : "debug")
                 : "release";
 
-            Assert.Equal(optimization, pdbOptions[CompilationOptionNames.Optimization]);
+            Assert.Equal(optimization, pdbOptions["optimization"]);
 
+            Assert.Equal(compilation.Language, pdbOptions["language"]);
         }
 
         public static void VerifyReferenceInfo(TestMetadataReferenceInfo[] references, BlobReader metadataReferenceReader)

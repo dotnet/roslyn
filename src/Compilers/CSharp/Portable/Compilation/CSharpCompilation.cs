@@ -14,9 +14,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PEWriter;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -3492,7 +3491,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             WriteValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
             WriteValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
             WriteValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
-            WriteValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToString());
+
+            // LanguageVersion should already be mapped to a specific version
+            Debug.Assert(LanguageVersion == LanguageVersion.MapSpecifiedToEffectiveVersion());
+            WriteValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
 
             var preprocessorSymbols = GetPreprocessorSymbols();
             if (preprocessorSymbols.Any())

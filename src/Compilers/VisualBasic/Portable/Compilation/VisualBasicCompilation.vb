@@ -15,7 +15,6 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.InternalUtilities
 Imports Microsoft.CodeAnalysis.Operations
-Imports Microsoft.CodeAnalysis.PEWriter
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
@@ -711,7 +710,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)
             WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
-            WriteValue(builder, CompilationOptionNames.LanguageVersion, LanguageVersion.ToString())
+
+            ' LanguageVersion should already be mapped to an effective version at this point
+            Debug.Assert(LanguageVersion.MapSpecifiedToEffectiveVersion() = LanguageVersion)
+            WriteValue(builder, CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString())
+
             WriteValue(builder, CompilationOptionNames.Strict, Options.OptionStrict.ToString())
 
             If Options.ParseOptions IsNot Nothing Then

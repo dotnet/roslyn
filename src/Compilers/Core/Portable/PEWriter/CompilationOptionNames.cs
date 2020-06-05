@@ -20,6 +20,7 @@ namespace Microsoft.Cci
         public const string RuntimeVersion = "runtime-version";
         public const string Optimization = "optimization";
         public const string Checked = "checked";
+        public const string Language = "language";
         public const string LanguageVersion = "language-version";
         public const string Unsafe = "unsafe";
         public const string Nullable = "nullable";

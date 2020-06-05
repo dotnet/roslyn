@@ -84,12 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
         [Theory]
         [ClassData(typeof(CSharpDeterministicBuildCompilationTests))]
-        public void PortablePdb_DeterministicCompilation(CSharpCompilationOptions compilationOptions, EmitOptions emitOptions)
+        public void PortablePdb_DeterministicCompilation(CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, CSharpParseOptions parseOptions)
         {
-            var parseOptions = new CSharpParseOptions(
-                languageVersion: LanguageVersion.CSharp8,
-                kind: SourceCodeKind.Regular);
-
             var sourceOne = Parse(@"
 using System;
 
@@ -138,17 +134,13 @@ public struct StructWithValue
                 emitOptions: emitOptions);
 
             var testSource = new[] { sourceOne, sourceTwo, sourceThree };
-            TestDeterministicCompilationCSharp(parseOptions.LanguageVersion.ToString(), testSource, compilationOptions, emitOptions, referenceOne, referenceTwo);
+            TestDeterministicCompilationCSharp(parseOptions.LanguageVersion.MapSpecifiedToEffectiveVersion().ToDisplayString(), testSource, compilationOptions, emitOptions, referenceOne, referenceTwo);
         }
 
         [ConditionalTheory(typeof(DesktopOnly))]
         [ClassData(typeof(CSharpDeterministicBuildCompilationTests))]
-        public void PortablePdb_DeterministicCompilationWithSJIS(CSharpCompilationOptions compilationOptions, EmitOptions emitOptions)
+        public void PortablePdb_DeterministicCompilationWithSJIS(CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, CSharpParseOptions parseOptions)
         {
-            var parseOptions = new CSharpParseOptions(
-                languageVersion: LanguageVersion.CSharp8,
-                kind: SourceCodeKind.Regular);
-
             var sourceOne = Parse(@"
 using System;
 
@@ -206,14 +198,14 @@ public struct StructWithValue
 
         private static IEnumerable<object[]> GetTestParameters()
         {
-            var compilationOptionsSet = GetCompilationOptions();
-            var emitOptionsSet = DeterministicBuildCompilationTestHelpers.GetEmitOptions();
-
-            foreach (var compilationOptions in compilationOptionsSet)
+            foreach (var compilationOptions in GetCompilationOptions())
             {
-                foreach (var emitOptions in emitOptionsSet)
+                foreach (var emitOptions in DeterministicBuildCompilationTestHelpers.GetEmitOptions())
                 {
-                    yield return new object[] { compilationOptions, emitOptions };
+                    foreach (var parseOptions in GetCSharpParseOptions())
+                    {
+                        yield return new object[] { compilationOptions, emitOptions, parseOptions };
+                    }
                 }
             }
         }
@@ -270,6 +262,17 @@ public struct StructWithValue
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: true, suppressSilverlightPlatformAssembliesPortability: false)));
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: false, suppressSilverlightPlatformAssembliesPortability: true)));
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: true, suppressSilverlightPlatformAssembliesPortability: true)));
+        }
+
+        private static IEnumerable<CSharpParseOptions> GetCSharpParseOptions()
+        {
+            var parseOptions = new CSharpParseOptions(
+                languageVersion: LanguageVersion.CSharp8,
+                kind: SourceCodeKind.Regular);
+
+            yield return parseOptions;
+            yield return parseOptions.WithLanguageVersion(LanguageVersion.Latest);
+            yield return parseOptions.WithLanguageVersion(LanguageVersion.Preview);
         }
     }
 }

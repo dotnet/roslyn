@@ -844,6 +844,8 @@ namespace Microsoft.Cci
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
             WriteValue(CompilationOptionNames.CompilerVersion, compilerVersion);
 
+            WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
+
             if (module.EmitOptions.FallbackSourceFileEncoding != null)
             {
                 WriteValue(CompilationOptionNames.FallbackEncoding, module.EmitOptions.FallbackSourceFileEncoding.WebName);
