@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Current usage:
     ///  (1) C# this or base expression.
     ///  (2) VB Me, MyClass, or MyBase expression.
-    ///  (3) C# object or collection initializers.
+    ///  (3) C# object or collection or 'with' expression initializers.
     ///  (4) VB With statements, object or collection initializers.
     /// </para>
     /// </summary>
