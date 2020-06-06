@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Dependent projects computed in stage (1) are cached to avoid recomputation.
         /// </summary>
         private static async Task<ImmutableArray<Project>> GetDependentProjectsWorkerAsync(
-            this ISymbol symbol,
+            ISymbol symbol,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -422,7 +422,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static bool HasReferenceToAssembly(this Project project, string assemblyName, CancellationToken cancellationToken)
         {
-            var hasMatch = project.GetAssemblyReferenceType(
+            var hasMatch = GetAssemblyReferenceType(
+                project,
                 a => a.Name == assemblyName ? true : (bool?)null,
                 cancellationToken);
 
@@ -436,7 +437,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// as the value of this function.  Otherwise 'null' is returned.
         /// </summary>
         private static T? GetAssemblyReferenceType<T>(
-            this Project project,
+            Project project,
             Func<IAssemblySymbol, T?> predicate,
             CancellationToken cancellationToken) where T : struct
         {
