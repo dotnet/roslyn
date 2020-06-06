@@ -18,7 +18,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         {
             private static readonly ManualResetEventSlim s_clientExited = new ManualResetEventSlim(false);
 
-            private static Control? s_control;
+            private readonly Func<Func<object>, object> _invokeOnMainThread;
 
             private ServiceState? _serviceState;
 
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             #region Setup
 
-            public Service()
+            private Service(Func<Func<object>, object> invokeOnMainThread)
             {
                 var initialState = new EvaluationState(
                     scriptState: null,
@@ -129,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     workingDirectory: Directory.GetCurrentDirectory());
 
                 _lastTask = Task.FromResult(initialState);
+                _invokeOnMainThread = invokeOnMainThread;
 
                 Console.OutputEncoding = Encoding.UTF8;
 
@@ -150,11 +150,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _serviceState?.Dispose();
                 _serviceState = null;
             }
-
-            /*public override object? InitializeLifetimeService()
-            {
-                return null;
-            }*/
 
             public Task InitializeAsync(string replServiceProviderTypeName, string cultureName)
             {
@@ -233,54 +228,27 @@ namespace Microsoft.CodeAnalysis.Interactive
                 s_clientExited.Set();
             }
 
-            internal static async Task RunServerAsync(string[] args)
+            internal static Task RunServerAsync(string[] args, Func<Func<object>, object> invokeOnMainThread)
             {
-                if (args.Length != 2)
-                {
-                    throw new ArgumentException("Expecting arguments: <pipe name> <client process id>");
-                }
-
-                await RunServerAsync(args[0], int.Parse(args[1], CultureInfo.InvariantCulture)).ConfigureAwait(false);
+                Contract.ThrowIfFalse(args.Length == 2, "Expecting arguments: <pipe name> <client process id>");
+                return RunServerAsync(args[0], int.Parse(args[1], CultureInfo.InvariantCulture), invokeOnMainThread);
             }
 
             /// <summary>
             /// Implements remote server.
             /// </summary>
-            private static async Task RunServerAsync(string pipeName, int clientProcessId)
+            private static async Task RunServerAsync(string pipeName, int clientProcessId, Func<Func<object>, object> invokeOnMainThread)
             {
                 if (!AttachToClientProcess(clientProcessId))
                 {
                     return;
                 }
 
-                // Disables Windows Error Reporting for the process, so that the process fails fast.
-                // Unfortunately, this doesn't work on Windows Server 2008 (OS v6.0), Vista (OS v6.0) and XP (OS v5.1)
-                // Note that GetErrorMode is not available on XP at all.
-                if (Environment.OSVersion.Version >= new Version(6, 1, 0, 0))
-                {
-                    SetErrorMode(GetErrorMode() | ErrorMode.SEM_FAILCRITICALERRORS | ErrorMode.SEM_NOOPENFILEERRORBOX | ErrorMode.SEM_NOGPFAULTERRORBOX);
-                }
-
                 try
                 {
-                    using (var resetEvent = new ManualResetEventSlim(false))
-                    {
-                        var uiThread = new Thread(() =>
-                        {
-                            s_control = new Control();
-                            s_control.CreateControl();
-                            resetEvent.Set();
-                            Application.Run();
-                        });
-                        uiThread.SetApartmentState(ApartmentState.STA);
-                        uiThread.IsBackground = true;
-                        uiThread.Start();
-                        resetEvent.Wait();
-                    }
-
                     var serverStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
                     await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
-                    var jsonRPC = JsonRpc.Attach(serverStream, new Service());
+                    var jsonRPC = JsonRpc.Attach(serverStream, new Service(invokeOnMainThread));
                     await jsonRPC.Completion.ConfigureAwait(false);
                     // the client can instantiate interactive host now:
                     s_clientExited.Wait();
@@ -290,11 +258,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                     // TODO:(miziga): delete and make a finally or catch statement for the try
                 }                // force exit even if there are foreground threads running:
                 Environment.Exit(0);
-            }
-
-            internal static string ServiceName
-            {
-                get { return typeof(Service).Name; }
             }
 
             #endregion
@@ -354,12 +317,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Reads given initialization file (.rsp) and loads and executes all assembly references and files, respectively specified in it.
             /// Execution is performed on the UI thread.
             /// </summary>
-            public async Task<RemoteExecutionResult> InitializeContextAsync(string? initializationFile, bool isRestarting)
+            public async Task<RemoteExecutionResult> InitializeContextAsync(string? initializationFilePath, bool isRestarting)
             {
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFile, isRestarting);
+                    _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFilePath, isRestarting);
                 }
                 return await completionSource.Task.ConfigureAwait(false);
             }
@@ -551,10 +514,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             private async Task<EvaluationState> InitializeContextAsync(
                 Task<EvaluationState> lastTask,
                 TaskCompletionSource<RemoteExecutionResult> completionSource,
-                string? initializationFile,
+                string? initializationFilePath,
                 bool isRestarting)
             {
-                Contract.ThrowIfFalse(initializationFile == null || PathUtilities.IsAbsolute(initializationFile));
+                Contract.ThrowIfFalse(initializationFilePath == null || PathUtilities.IsAbsolute(initializationFilePath));
                 var serviceState = GetServiceState();
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
 
@@ -567,15 +530,15 @@ namespace Microsoft.CodeAnalysis.Interactive
                         Console.Out.WriteLine(serviceState.ReplServiceProvider.Logo);
                     }
 
-                    if (File.Exists(initializationFile))
+                    if (File.Exists(initializationFilePath))
                     {
-                        Console.Out.WriteLine(string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(initializationFile)));
+                        Console.Out.WriteLine(string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(initializationFilePath)));
                         var parser = serviceState.ReplServiceProvider.CommandLineParser;
 
                         // The base directory for relative paths is the directory that contains the .rsp file.
                         // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
-                        var rspDirectory = Path.GetDirectoryName(initializationFile);
-                        var args = parser.Parse(new[] { "@" + initializationFile }, rspDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null);
+                        var rspDirectory = Path.GetDirectoryName(initializationFilePath);
+                        var args = parser.Parse(new[] { "@" + initializationFilePath }, rspDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null);
 
                         foreach (var error in args.Errors)
                         {
@@ -786,33 +749,29 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private async Task<ScriptState<object>> ExecuteOnUIThreadAsync(Script<object> script, ScriptState<object>? state, bool displayResult)
+            private Task<ScriptState<object>> ExecuteOnUIThreadAsync(Script<object> script, ScriptState<object>? state, bool displayResult)
             {
-                Contract.ThrowIfNull(s_control, "UI thread not initialized");
+                return (Task<ScriptState<object>>)_invokeOnMainThread((Func<Task<ScriptState<object>>>)(async () =>
+                {
+                    var serviceState = GetServiceState();
 
-                return await ((Task<ScriptState<object>>)s_control.Invoke(
-                    (Func<Task<ScriptState<object>>>)(async () =>
+                    var task = (state == null) ?
+                        script.RunAsync(serviceState.Globals, catchException: e => true, cancellationToken: CancellationToken.None) :
+                        script.RunFromAsync(state, catchException: e => true, cancellationToken: CancellationToken.None);
+
+                    var newState = await task.ConfigureAwait(false);
+
+                    if (newState.Exception != null)
                     {
-                        var serviceState = GetServiceState();
+                        DisplayException(newState.Exception);
+                    }
+                    else if (displayResult && newState.Script.HasReturnValue())
+                    {
+                        serviceState.Globals.Print(newState.ReturnValue);
+                    }
 
-                        var task = (state == null) ?
-                            script.RunAsync(serviceState.Globals, catchException: e => true, cancellationToken: CancellationToken.None) :
-                            script.RunFromAsync(state, catchException: e => true, cancellationToken: CancellationToken.None);
-
-                        var newState = await task.ConfigureAwait(false);
-
-                        if (newState.Exception != null)
-                        {
-                            DisplayException(newState.Exception);
-                        }
-                        else if (displayResult && newState.Script.HasReturnValue())
-                        {
-                            serviceState.Globals.Print(newState.ReturnValue);
-                        }
-
-                        return newState;
-
-                    }))).ConfigureAwait(false);
+                    return newState;
+                }));
             }
 
             private void DisplayInteractiveErrors(ImmutableArray<Diagnostic> diagnostics, TextWriter output)
@@ -838,45 +797,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                     int notShown = diagnostics.Length - MaxErrorCount;
                     output.WriteLine(string.Format(output.FormatProvider, InteractiveHostResources.plus_additional_0_1, notShown, (notShown == 1) ? "error" : "errors"));
                 }
-            }
-
-            #endregion
-
-            #region Win32 API
-
-            [DllImport("kernel32", PreserveSig = true)]
-            internal static extern ErrorMode SetErrorMode(ErrorMode mode);
-
-            [DllImport("kernel32", PreserveSig = true)]
-            internal static extern ErrorMode GetErrorMode();
-
-            [Flags]
-            internal enum ErrorMode : int
-            {
-                /// <summary>
-                /// Use the system default, which is to display all error dialog boxes.
-                /// </summary>
-                SEM_FAILCRITICALERRORS = 0x0001,
-
-                /// <summary>
-                /// The system does not display the critical-error-handler message box. Instead, the system sends the error to the calling process.
-                /// Best practice is that all applications call the process-wide SetErrorMode function with a parameter of SEM_FAILCRITICALERRORS at startup. 
-                /// This is to prevent error mode dialogs from hanging the application.
-                /// </summary>
-                SEM_NOGPFAULTERRORBOX = 0x0002,
-
-                /// <summary>
-                /// The system automatically fixes memory alignment faults and makes them invisible to the application. 
-                /// It does this for the calling process and any descendant processes. This feature is only supported by 
-                /// certain processor architectures. For more information, see the Remarks section.
-                /// After this value is set for a process, subsequent attempts to clear the value are ignored.
-                /// </summary>
-                SEM_NOALIGNMENTFAULTEXCEPT = 0x0004,
-
-                /// <summary>
-                /// The system does not display a message box when it fails to find a file. Instead, the error is returned to the calling process.
-                /// </summary>
-                SEM_NOOPENFILEERRORBOX = 0x8000,
             }
 
             #endregion

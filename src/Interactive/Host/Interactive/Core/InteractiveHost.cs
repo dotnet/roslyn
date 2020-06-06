@@ -5,18 +5,12 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.IO.Pipes;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -28,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// </remarks>
     internal sealed partial class InteractiveHost : IDisposable
     {
-        internal const bool DefaultIs64Bit = true;
+        internal const InteractiveHostPlatform DefaultPlatform = InteractiveHostPlatform.Desktop32;
 
         private readonly Type _replServiceProviderType;
         private readonly string _initialWorkingDirectory;
@@ -53,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </remarks>
         private readonly bool _joinOutputWritingThreadsOnDisposal;
 
-        internal event Action<bool>? ProcessStarting;
+        internal event Action<InteractiveHostOptions>? ProcessStarting;
 
         public InteractiveHost(
             Type replServiceProviderType,

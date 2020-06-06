@@ -1529,4 +1529,10 @@ I agree to all of the foregoing:</value>
   <data name="Warning_colon_type_does_not_bind" xml:space="preserve">
     <value>Warning: type does not bind</value>
   </data>
+  <data name="Bitness32" xml:space="preserve">
+    <value>32-bit</value>
+  </data>
+  <data name="Bitness64" xml:space="preserve">
+    <value>64-bit</value>
+  </data>
 </root>

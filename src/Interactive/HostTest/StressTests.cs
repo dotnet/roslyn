@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
+    using System.Globalization;
     using System.Threading.Tasks;
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         private async Task TestKillAfterAsync(int milliseconds)
         {
             using var host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: 1, joinOutputWritingThreadsOnDisposal: true);
+            var options = InteractiveHostOptions.CreateFromDirectory(HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop64);
 
             host.InteractiveHostProcessCreated += new Action<Process>(proc =>
             {
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
                 });
             });
 
-            await host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory())).ConfigureAwait(false);
+            await host.ResetAsync(options).ConfigureAwait(false);
 
             for (int j = 0; j < 10; j++)
             {

@@ -17,6 +17,11 @@
         <target state="translated">在交互式窗口中执行所选内容。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Interactive_host_process_platform">
+        <source>Interactive host process platform</source>
+        <target state="new">Interactive host process platform</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Print_a_list_of_referenced_assemblies">
         <source>Print a list of referenced assemblies.</source>
         <target state="translated">打印引用程序集的列表。</target>
