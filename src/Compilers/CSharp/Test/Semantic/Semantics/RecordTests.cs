@@ -295,6 +295,8 @@ record C(int X, int Y)
             var expectedMembers = new[]
             {
                 "C C.Clone()",
+                "System.Type C.EqualityContract.get",
+                "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 C.<X>k__BackingField",
                 "System.Int32 C.X.get",
@@ -308,9 +310,9 @@ record C(int X, int Y)
                 "void C.set_X()",
                 "System.Int32 C.get_Y(System.Int32 value)",
                 "System.Int32 C.set_Y(System.Int32 value)",
-                "System.Boolean C.Equals(C? )",
-                "System.Boolean C.Equals(System.Object? )",
                 "System.Int32 C.GetHashCode()",
+                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(C? )",
                 "C..ctor(C )",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -2877,6 +2879,7 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type B.EqualityContract { get; }",
                 "System.Object B.P6 { get; init; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -2899,7 +2902,7 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6) : A
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "A.B").ToTestDisplayStrings();
-            AssertEx.Equal(new string[0], actualMembers);
+            AssertEx.Equal(new[] { "System.Type A.B.EqualityContract { get; }" }, actualMembers);
         }
 
         [WorkItem(44616, "https://github.com/dotnet/roslyn/issues/44616")]
@@ -2922,7 +2925,7 @@ record C1(object P, object Q) : B
 {
 }";
             var comp = CreateCompilation(sourceA);
-            AssertEx.Equal(new string[0], GetProperties(comp, "C1").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Type C1.EqualityContract { get; }" }, GetProperties(comp, "C1").ToTestDisplayStrings());
             var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
 
             var sourceB =
@@ -2931,7 +2934,7 @@ record C1(object P, object Q) : B
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            AssertEx.Equal(new[] { "System.Object C2.P { get; init; }" }, GetProperties(comp, "C2").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Type C2.EqualityContract { get; }", "System.Object C2.P { get; init; }" }, GetProperties(comp, "C2").ToTestDisplayStrings());
         }
 
         [WorkItem(44616, "https://github.com/dotnet/roslyn/issues/44616")]
@@ -2956,7 +2959,7 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6, objec
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            AssertEx.Equal(new string[0], actualMembers);
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
 
         [Fact]
@@ -2975,7 +2978,7 @@ record B(int P1, object P2) : A
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            AssertEx.Equal(new string[0], actualMembers);
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
 
         [Fact]
@@ -3007,7 +3010,7 @@ class Program
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            AssertEx.Equal(new string[0], actualMembers);
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
 
         [WorkItem(44785, "https://github.com/dotnet/roslyn/issues/44785")]
@@ -3032,8 +3035,8 @@ record B2(int X, int Y) : A
                 // record B2(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B2").WithArguments("B2", "A.X.get").WithLocation(9, 8));
 
-            AssertEx.Equal(new string[0], GetProperties(comp, "B1").ToTestDisplayStrings());
-            AssertEx.Equal(new string[0], GetProperties(comp, "B2").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Type B1.EqualityContract { get; }" }, GetProperties(comp, "B1").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Type B2.EqualityContract { get; }" }, GetProperties(comp, "B2").ToTestDisplayStrings());
         }
 
         [WorkItem(44785, "https://github.com/dotnet/roslyn/issues/44785")]
@@ -3064,7 +3067,7 @@ record C(int X, int Y, int Z) : B
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "A.X.get").WithLocation(11, 8));
 
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
-            AssertEx.Equal(new string[0], actualMembers);
+            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
         }
 
         [Fact]
@@ -3083,15 +3086,17 @@ record C(int X, int Y, int Z) : B
             var expectedMembers = new[]
             {
                 "C C.Clone()",
+                "System.Type C.EqualityContract.get",
+                "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 C.X { get; }",
                 "System.Int32 C.X.get",
                 "System.Int32 C.<Y>k__BackingField",
                 "System.Int32 C.Y { get; }",
                 "System.Int32 C.Y.get",
-                "System.Boolean C.Equals(C? )",
-                "System.Boolean C.Equals(System.Object? )",
                 "System.Int32 C.GetHashCode()",
+                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(C? )",
                 "C..ctor(C )",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -3178,6 +3183,7 @@ record B(object X, object Y) : A
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type B.EqualityContract { get; }",
                 "System.Object B.X { get; }",
                 "System.Object B.Y { get; }",
             };
@@ -3208,6 +3214,7 @@ record B(object X, object Y) : A
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type B.EqualityContract { get; }",
                 "System.Object B.X { get; }",
                 "System.Object B.Y { get; }",
             };
@@ -3236,7 +3243,7 @@ record C(object P1, int P2, object P3, int P4) : B
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
-            AssertEx.Equal(new string[0], actualMembers);
+            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
         }
 
         [Fact]
@@ -3253,6 +3260,7 @@ record C(object P1, int P2, object P3, int P4) : B
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type C.EqualityContract { get; }",
                 "System.Object C.P1 { get; set; }",
                 "System.Int32 C.P2 { get; set; }",
             };
@@ -3280,6 +3288,7 @@ record B(object P1, int P2, object P3, int P4) : A
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type B.EqualityContract { get; }",
                 "System.Object B.P1 { get; }",
                 "System.Object B.P2 { get; }",
             };
@@ -3308,6 +3317,7 @@ record B(object P1, int P2, object P3, int P4) : A
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type B.EqualityContract { get; }",
                 "System.Int32 B.P1 { get; }",
                 "System.Int32 B.P2 { get; }",
             };
@@ -3342,6 +3352,7 @@ record B(object P1, int P2, object P3, int P4) : A
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type C.EqualityContract { get; }",
                 "System.Object C.P1 { get; set; }",
                 "System.Object C.P2 { get; }",
                 "System.Object C.P3 { set; }",
@@ -3375,7 +3386,7 @@ record B(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            AssertEx.Equal(new string[0], actualMembers);
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
 
         [Fact]
@@ -3400,6 +3411,7 @@ record C(dynamic P1, object[] P2, object P3, object?[] P4, (int, int) P5, (int X
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type C.EqualityContract { get; }",
                 "System.Object C.P1 { get; }",
                 "dynamic[] C.P2 { get; }",
                 "System.Object? C.P3 { get; }",
@@ -3447,7 +3459,7 @@ class Program
             comp.VerifyDiagnostics();
 
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
-            AssertEx.Equal(new string[0], actualMembers);
+            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
 
             var verifier = CompileAndVerify(comp, expectedOutput: "(, )");
             verifier.VerifyIL("C..ctor(object, object)",
@@ -3499,7 +3511,7 @@ record C(object P1, object P2) : B
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
-            AssertEx.Equal(new string[0], actualMembers);
+            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
         }
 
         [Fact]
@@ -3522,7 +3534,7 @@ record C(object P1, object P2) : B
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
-            AssertEx.Equal(new string[0], actualMembers);
+            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
         }
 
         [Fact]
@@ -3551,6 +3563,8 @@ record C(object P)
             var expectedMembers = new[]
             {
                 "B B.Clone()",
+                "System.Type B.EqualityContract.get",
+                "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Object P, System.Object Q)",
                 "System.Object B.<P>k__BackingField",
                 "System.Object B.P.get",
@@ -3560,9 +3574,9 @@ record C(object P)
                 "System.Object B.Q.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Q.init",
                 "System.Object B.Q { get; init; }",
-                "System.Boolean B.Equals(B? )",
-                "System.Boolean B.Equals(System.Object? )",
                 "System.Int32 B.GetHashCode()",
+                "System.Boolean B.Equals(System.Object? )",
+                "System.Boolean B.Equals(B? )",
                 "B..ctor(B )",
             };
             AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings());
@@ -3570,6 +3584,8 @@ record C(object P)
             expectedMembers = new[]
             {
                 "C C.Clone()",
+                "System.Type C.EqualityContract.get",
+                "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Object P)",
                 "System.Object C.<P>k__BackingField",
                 "System.Object C.P.get",
@@ -3577,9 +3593,9 @@ record C(object P)
                 "System.Object C.P { get; init; }",
                 "System.Object C.get_P()",
                 "System.Object C.set_Q()",
-                "System.Boolean C.Equals(C? )",
-                "System.Boolean C.Equals(System.Object? )",
                 "System.Int32 C.GetHashCode()",
+                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(C? )",
                 "C..ctor(C )",
             };
             AssertEx.Equal(expectedMembers, comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings());
@@ -3605,6 +3621,7 @@ record C(object P)
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type B.EqualityContract { get; }",
                 "System.Object B.P4 { get; init; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -3616,6 +3633,7 @@ record C(object P)
             actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             expectedMembers = new[]
             {
+                "System.Type B.EqualityContract { get; }",
                 "System.Object B.P2 { get; init; }",
                 "System.Object B.P4 { get; init; }",
             };
@@ -3636,13 +3654,13 @@ record C(object P)
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB });
             comp.VerifyDiagnostics();
-            AssertEx.Equal(new string[0], GetProperties(comp, "B").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
 
             comp = CreateCompilation(sourceA);
             var refA = comp.EmitToImageReference();
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            AssertEx.Equal(new[] { "System.Object B.P { get; init; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }", "System.Object B.P { get; init; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
         }
 
         [Fact]
@@ -3662,6 +3680,7 @@ record B(object get_P, object set_Q) : A
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type B.EqualityContract { get; }",
                 "System.Object B.get_P { get; init; }",
                 "System.Object B.set_Q { get; init; }",
             };
@@ -3689,8 +3708,8 @@ record C(object P) : I
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
-            AssertEx.Equal(new[] { "System.Object B.P { get; init; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
-            AssertEx.Equal(new[] { "System.Object C.P { get; init; }", "System.Object C.I.P { get; }" }, GetProperties(comp, "C").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }", "System.Object B.P { get; init; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }", "System.Object C.P { get; init; }", "System.Object C.I.P { get; }" }, GetProperties(comp, "C").ToTestDisplayStrings());
         }
 
         [Fact]
@@ -3729,6 +3748,7 @@ End Class
             var actualMembers = GetProperties(compB, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type B.EqualityContract { get; }",
                 "System.Object B.Q { get; init; }",
                 "System.Object B.P { get; }",
             };
@@ -3778,7 +3798,7 @@ End Class
             compB.VerifyDiagnostics();
 
             var actualMembers = GetProperties(compB, "B").ToTestDisplayStrings();
-            AssertEx.Equal(new string[0], actualMembers);
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
 
         [Fact]
@@ -3843,6 +3863,7 @@ End Class
             var actualMembers = GetProperties(compB, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type C.EqualityContract { get; }",
                 "System.Object C.R { get; init; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -3874,6 +3895,8 @@ record B(int X, int Y) : A
             var expectedMembers = new[]
             {
                 "B B.Clone()",
+                "System.Type B.EqualityContract.get",
+                "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 B.<X>k__BackingField",
                 "System.Int32 B.X.get",
@@ -3883,9 +3906,9 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
                 "System.Int32 B.Y { get; init; }",
-                "System.Boolean B.Equals(B? )",
-                "System.Boolean B.Equals(System.Object? )",
                 "System.Int32 B.GetHashCode()",
+                "System.Boolean B.Equals(System.Object? )",
+                "System.Boolean B.Equals(B? )",
                 "B..ctor(B )",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -3914,6 +3937,8 @@ record B(int X, int Y) : A
             var expectedMembers = new[]
             {
                 "B B.Clone()",
+                "System.Type B.EqualityContract.get",
+                "System.Type B.EqualityContract { get; }",
                 "B..ctor(System.Int32 X, System.Int32 Y)",
                 "System.Int32 B.<X>k__BackingField",
                 "System.Int32 B.X.get",
@@ -3923,9 +3948,9 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
                 "System.Int32 B.Y { get; init; }",
-                "System.Boolean B.Equals(B? )",
-                "System.Boolean B.Equals(System.Object? )",
                 "System.Int32 B.GetHashCode()",
+                "System.Boolean B.Equals(System.Object? )",
+                "System.Boolean B.Equals(B? )",
                 "B..ctor(B )",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
@@ -3950,6 +3975,7 @@ record B(int X, int Y) : A
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type C.EqualityContract { get; }",
                 "System.Object C.Q { get; init; }",
                 "System.Object C.P { get; }",
                 "System.Object C.P { get; }",
@@ -3981,6 +4007,7 @@ record B(int X, int Y) : A
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
+                "System.Type C.EqualityContract { get; }",
                 "System.Object C.P { get; }",
                 "System.Int32 C.P { get; }",
                 "System.Int32 C.Q { get; }",
@@ -4013,7 +4040,7 @@ record B(object Q) : A
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Q").WithArguments("A", "Q").WithLocation(6, 16));
 
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
-            AssertEx.Equal(new string[0], actualMembers);
+            AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
 
         [Fact]
@@ -4688,6 +4715,1149 @@ interface C : Base(X)
             Assert.Same("<global namespace>", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Empty(model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact(Skip = "record struct")]
+        public void Equality_01()
+        {
+            var source =
+@"using static System.Console;
+data struct S;
+class Program
+{
+    static void Main()
+    {
+        var x = new S();
+        var y = new S();
+        WriteLine(x.Equals(y));
+        WriteLine(((object)x).Equals(y));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True");
+            verifier.VerifyIL("S.Equals(in S)",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""System.Type S.EqualityContract.get""
+  IL_0006:  ldarg.1
+  IL_0007:  ldobj      ""S""
+  IL_000c:  stloc.0
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""System.Type S.EqualityContract.get""
+  IL_0014:  ceq
+  IL_0016:  ret
+}");
+            verifier.VerifyIL("S.Equals(object)",
+@"{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (S V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  isinst     ""S""
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  ldc.i4.0
+  IL_0009:  ret
+  IL_000a:  ldarg.0
+  IL_000b:  ldarg.1
+  IL_000c:  unbox.any  ""S""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""bool S.Equals(in S)""
+  IL_0019:  ret
+}");
+        }
+
+        [Fact]
+        public void Equality_02()
+        {
+            var source =
+@"using static System.Console;
+record C;
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        var y = new C();
+        WriteLine(x.Equals(y));
+        WriteLine(((object)x).Equals(y));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True");
+            verifier.VerifyIL("C.Equals(C)",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_000f:  ceq
+  IL_0011:  ret
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+}");
+            verifier.VerifyIL("C.Equals(object)",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""C""
+  IL_0007:  callvirt   ""bool C.Equals(C)""
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
+        public void Equality_03()
+        {
+            var source =
+@"using static System.Console;
+record C
+{
+    private static int _nextId = 0;
+    private int _id;
+    public C() { _id = _nextId++; }
+}
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        var y = new C();
+        WriteLine(x.Equals(x));
+        WriteLine(x.Equals(y));
+        WriteLine(y.Equals(y));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            // https://github.com/dotnet/roslyn/issues/44879: Copy constructor copies static field.
+            comp.VerifyDiagnostics(
+                // (2,1): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                // record C
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, @"record C
+{
+    private static int _nextId = 0;
+    private int _id;
+    public C() { _id = _nextId++; }
+}").WithLocation(2, 1));
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+False
+True");
+            verifier.VerifyIL("C.Equals(C)",
+@"{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0028
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_000f:  bne.un.s   IL_0028
+  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0016:  ldarg.0
+  IL_0017:  ldfld      ""int C._id""
+  IL_001c:  ldarg.1
+  IL_001d:  ldfld      ""int C._id""
+  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0027:  ret
+  IL_0028:  ldc.i4.0
+  IL_0029:  ret
+}");
+        }
+
+        [Fact]
+        public void Equality_04()
+        {
+            var source =
+@"using static System.Console;
+record A;
+record B1(int P) : A
+{
+    internal B1() : this(0) { } // Use record base call syntax instead
+    internal int P { get; set; } // Use record base call syntax instead
+}
+record B2(int P) : A
+{
+    internal B2() : this(0) { } // Use record base call syntax instead
+    internal int P { get; set; } // Use record base call syntax instead
+}
+class Program
+{
+    static B1 NewB1(int p) => new B1 { P = p }; // PROTOTYPE: Replace with new B1(P)
+    static B2 NewB2(int p) => new B2 { P = p }; // PROTOTYPE: Replace with new B2(P)
+    static void Main()
+    {
+        WriteLine(new A().Equals(NewB1(1)));
+        WriteLine(NewB1(1).Equals(new A()));
+        WriteLine(NewB1(1).Equals(NewB2(1)));
+        WriteLine(new A().Equals((A)NewB2(1)));
+        WriteLine(((A)NewB2(1)).Equals(new A()));
+        WriteLine(((A)NewB2(1)).Equals(NewB2(1)));
+        WriteLine(NewB2(1).Equals((A)NewB2(1)));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"False
+False
+False
+False
+False
+True
+True");
+            verifier.VerifyIL("A.Equals(A)",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000f:  ceq
+  IL_0011:  ret
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+}");
+            verifier.VerifyIL("B1.Equals(B1)",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool A.Equals(A)""
+  IL_0007:  brfalse.s  IL_0020
+  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""int B1.<P>k__BackingField""
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""int B1.<P>k__BackingField""
+  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_001f:  ret
+  IL_0020:  ldc.i4.0
+  IL_0021:  ret
+}");
+        }
+
+        [Fact]
+        public void Equality_05()
+        {
+            var source =
+@"using static System.Console;
+record A(int P)
+{
+    internal A() : this(0) { } // Use record base call syntax instead
+    internal int P { get; set; } // Use record base call syntax instead
+}
+record B1(int P) : A
+{
+    internal B1() : this(0) { } // Use record base call syntax instead
+}
+record B2(int P) : A
+{
+    internal B2() : this(0) { } // Use record base call syntax instead
+}
+class Program
+{
+    static A NewA(int p) => new A { P = p }; // PROTOTYPE: Replace with new A(P)
+    static B1 NewB1(int p) => new B1 { P = p }; // PROTOTYPE: Replace with new B1(P)
+    static B2 NewB2(int p) => new B2 { P = p }; // PROTOTYPE: Replace with new B2(P)
+    static void Main()
+    {
+        WriteLine(NewA(1).Equals(NewB1(1)));
+        WriteLine(NewB1(1).Equals(NewA(1)));
+        WriteLine(NewB1(1).Equals(NewB2(1)));
+        WriteLine(NewA(1).Equals((A)NewB2(1)));
+        WriteLine(((A)NewB2(1)).Equals(NewA(1)));
+        WriteLine(((A)NewB2(1)).Equals(NewB2(1)));
+        WriteLine(NewB2(1).Equals((A)NewB2(1)));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"False
+False
+False
+False
+False
+True
+True");
+            verifier.VerifyIL("A.Equals(A)",
+@"{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0028
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000f:  bne.un.s   IL_0028
+  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0016:  ldarg.0
+  IL_0017:  ldfld      ""int A.<P>k__BackingField""
+  IL_001c:  ldarg.1
+  IL_001d:  ldfld      ""int A.<P>k__BackingField""
+  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0027:  ret
+  IL_0028:  ldc.i4.0
+  IL_0029:  ret
+}");
+            verifier.VerifyIL("B1.Equals(B1)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool A.Equals(A)""
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void Equality_06()
+        {
+            var source =
+@"using static System.Console;
+record A;
+class B : A { }
+record C : B;
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new A().Equals(new A()));
+        WriteLine(new A().Equals(new B()));
+        WriteLine(new A().Equals(new C()));
+        WriteLine(new B().Equals(new A()));
+        WriteLine(new B().Equals(new B()));
+        WriteLine(new B().Equals(new C()));
+        WriteLine(new C().Equals(new A()));
+        WriteLine(new C().Equals(new B()));
+        WriteLine(new C().Equals(new C()));
+        WriteLine(((A)new C()).Equals(new A()));
+        WriteLine(((A)new C()).Equals(new B()));
+        WriteLine(((A)new C()).Equals(new C()));
+        WriteLine(new C().Equals((A)new C()));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+False
+True
+True
+False
+False
+False
+True
+False
+False
+True
+True");
+            verifier.VerifyIL("A.Equals(A)",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000f:  ceq
+  IL_0011:  ret
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+}");
+            verifier.VerifyIL("C.Equals(A)",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""C""
+  IL_0007:  callvirt   ""bool C.Equals(C)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("C.Equals(C)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool A.Equals(A)""
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void Equality_07()
+        {
+            var source =
+@"using static System.Console;
+record A;
+record B : A;
+record C : B;
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new A().Equals(new A()));
+        WriteLine(new A().Equals(new B()));
+        WriteLine(new A().Equals(new C()));
+        WriteLine(new B().Equals(new A()));
+        WriteLine(new B().Equals(new B()));
+        WriteLine(new B().Equals(new C()));
+        WriteLine(new C().Equals(new A()));
+        WriteLine(new C().Equals(new B()));
+        WriteLine(new C().Equals(new C()));
+        WriteLine(((A)new B()).Equals(new A()));
+        WriteLine(((A)new B()).Equals(new B()));
+        WriteLine(((A)new B()).Equals(new C()));
+        WriteLine(((A)new C()).Equals(new A()));
+        WriteLine(((A)new C()).Equals(new B()));
+        WriteLine(((A)new C()).Equals(new C()));
+        WriteLine(((B)new C()).Equals(new A()));
+        WriteLine(((B)new C()).Equals(new B()));
+        WriteLine(((B)new C()).Equals(new C()));
+        WriteLine(new C().Equals((A)new C()));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+False
+False
+False
+True
+False
+False
+False
+True
+False
+True
+False
+False
+False
+True
+False
+False
+True
+True");
+            verifier.VerifyIL("A.Equals(A)",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000f:  ceq
+  IL_0011:  ret
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+}");
+            verifier.VerifyIL("B.Equals(A)",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""B""
+  IL_0007:  callvirt   ""bool B.Equals(B)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("C.Equals(A)",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""C""
+  IL_0007:  callvirt   ""bool C.Equals(C)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("C.Equals(B)",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""C""
+  IL_0007:  callvirt   ""bool C.Equals(C)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("C.Equals(C)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool B.Equals(B)""
+  IL_0007:  ret
+}");
+
+            verifyMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
+            verifyMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
+            verifyMethod(comp.GetMember<MethodSymbol>("C.get_EqualityContract"), isOverride: true);
+
+            verifyMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? )", true));
+            verifyMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? )", true));
+            verifyMethods(comp.GetMembers("C.Equals"), ("System.Boolean C.Equals(C? )", false), ("System.Boolean C.Equals(B? )", true), ("System.Boolean C.Equals(A? )", true), ("System.Boolean C.Equals(System.Object? )", true));
+
+            static void verifyMethods(ImmutableArray<Symbol> members, params (string, bool)[] values)
+            {
+                Assert.Equal(members.Length, values.Length);
+                for (int i = 0; i < members.Length; i++)
+                {
+                    var method = (MethodSymbol)members[i];
+                    (string name, bool isOverride) = values[i];
+                    Assert.Equal(name, method.ToTestDisplayString(includeNonNullable: true));
+                    verifyMethod(method, isOverride);
+                }
+            }
+
+            static void verifyMethod(MethodSymbol method, bool isOverride)
+            {
+                Assert.True(method.IsVirtual);
+                Assert.Equal(isOverride, method.IsOverride);
+                Assert.True(method.IsMetadataVirtual());
+                Assert.Equal(!isOverride, method.IsMetadataNewSlot());
+            }
+        }
+
+        [WorkItem(44895, "https://github.com/dotnet/roslyn/issues/44895")]
+        [Fact]
+        public void Equality_08()
+        {
+            var source =
+@"using static System.Console;
+record A(int X)
+{
+    internal A() : this(0) { } // Use record base call syntax instead
+    internal int X { get; set; } // Use record base call syntax instead
+}
+class B : A
+{
+    internal B() { } // Use record base call syntax instead
+    internal B(int X, int Y) : base(X) { this.Y = Y; }
+    internal int Y { get; set; }
+}
+record C(int X, int Y, int Z) : B
+{
+    internal C() : this(0, 0, 0) { } // Use record base call syntax instead
+    internal int Z { get; set; } // Use record base call syntax instead
+}
+class Program
+{
+    static A NewA(int x) => new A { X = x }; // PROTOTYPE: Replace with new A(X), etc.
+    static B NewB(int x, int y) => new B { X = x, Y = y };
+    static C NewC(int x, int y, int z) => new C { X = x, Y = y, Z = z };
+    static void Main()
+    {
+        WriteLine(NewA(1).Equals(NewA(1)));
+        WriteLine(NewA(1).Equals(NewB(1, 2)));
+        WriteLine(NewA(1).Equals(NewC(1, 2, 3)));
+        WriteLine(NewB(1, 2).Equals(NewA(1)));
+        WriteLine(NewB(1, 2).Equals(NewB(1, 2)));
+        WriteLine(NewB(1, 2).Equals(NewC(1, 2, 3)));
+        WriteLine(NewC(1, 2, 3).Equals(NewA(1)));
+        WriteLine(NewC(1, 2, 3).Equals(NewB(1, 2)));
+        WriteLine(NewC(1, 2, 3).Equals(NewC(1, 2, 3)));
+        WriteLine(NewC(1, 2, 3).Equals(NewC(4, 2, 3)));
+        WriteLine(NewC(1, 2, 3).Equals(NewC(1, 4, 3)));
+        WriteLine(NewC(1, 2, 3).Equals(NewC(1, 4, 4)));
+        WriteLine(((A)NewB(1, 2)).Equals(NewA(1)));
+        WriteLine(((A)NewB(1, 2)).Equals(NewB(1, 2)));
+        WriteLine(((A)NewB(1, 2)).Equals(NewC(1, 2, 3)));
+        WriteLine(((A)NewC(1, 2, 3)).Equals(NewA(1)));
+        WriteLine(((A)NewC(1, 2, 3)).Equals(NewB(1, 2)));
+        WriteLine(((A)NewC(1, 2, 3)).Equals(NewC(1, 2, 3)));
+        WriteLine(((B)NewC(1, 2, 3)).Equals(NewA(1)));
+        WriteLine(((B)NewC(1, 2, 3)).Equals(NewB(1, 2)));
+        WriteLine(((B)NewC(1, 2, 3)).Equals(NewC(1, 2, 3)));
+        WriteLine(NewC(1, 2, 3).Equals((A)NewC(1, 2, 3)));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            // https://github.com/dotnet/roslyn/issues/44895: C.Equals() should compare B.Y.
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+False
+True
+True
+False
+False
+False
+True
+False
+True
+False
+True
+True
+False
+False
+False
+True
+False
+False
+True
+True");
+            verifier.VerifyIL("A.Equals(A)",
+@"{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0028
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000f:  bne.un.s   IL_0028
+  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0016:  ldarg.0
+  IL_0017:  ldfld      ""int A.<X>k__BackingField""
+  IL_001c:  ldarg.1
+  IL_001d:  ldfld      ""int A.<X>k__BackingField""
+  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0027:  ret
+  IL_0028:  ldc.i4.0
+  IL_0029:  ret
+}");
+            verifier.VerifyIL("C.Equals(A)",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""C""
+  IL_0007:  callvirt   ""bool C.Equals(C)""
+  IL_000c:  ret
+}");
+            // https://github.com/dotnet/roslyn/issues/44895: C.Equals() should compare B.Y.
+            verifier.VerifyIL("C.Equals(C)",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool A.Equals(A)""
+  IL_0007:  brfalse.s  IL_0020
+  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""int C.<Z>k__BackingField""
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""int C.<Z>k__BackingField""
+  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_001f:  ret
+  IL_0020:  ldc.i4.0
+  IL_0021:  ret
+}");
+        }
+
+        [Fact]
+        public void Equality_09()
+        {
+            var source =
+@"using static System.Console;
+record A(int X)
+{
+    internal A() : this(0) { } // Use record base call syntax instead
+    internal int X { get; set; } // Use record base call syntax instead
+}
+record B(int X, int Y) : A
+{
+    internal B() : this(0, 0) { } // Use record base call syntax instead
+    internal int Y { get; set; }
+}
+record C(int X, int Y, int Z) : B
+{
+    internal C() : this(0, 0, 0) { } // Use record base call syntax instead
+    internal int Z { get; set; } // Use record base call syntax instead
+}
+class Program
+{
+    static A NewA(int x) => new A { X = x }; // PROTOTYPE: Replace with new A(X), etc.
+    static B NewB(int x, int y) => new B { X = x, Y = y };
+    static C NewC(int x, int y, int z) => new C { X = x, Y = y, Z = z };
+    static void Main()
+    {
+        WriteLine(NewA(1).Equals(NewA(1)));
+        WriteLine(NewA(1).Equals(NewB(1, 2)));
+        WriteLine(NewA(1).Equals(NewC(1, 2, 3)));
+        WriteLine(NewB(1, 2).Equals(NewA(1)));
+        WriteLine(NewB(1, 2).Equals(NewB(1, 2)));
+        WriteLine(NewB(1, 2).Equals(NewC(1, 2, 3)));
+        WriteLine(NewC(1, 2, 3).Equals(NewA(1)));
+        WriteLine(NewC(1, 2, 3).Equals(NewB(1, 2)));
+        WriteLine(NewC(1, 2, 3).Equals(NewC(1, 2, 3)));
+        WriteLine(NewC(1, 2, 3).Equals(NewC(4, 2, 3)));
+        WriteLine(NewC(1, 2, 3).Equals(NewC(1, 4, 3)));
+        WriteLine(NewC(1, 2, 3).Equals(NewC(1, 4, 4)));
+        WriteLine(((A)NewB(1, 2)).Equals(NewA(1)));
+        WriteLine(((A)NewB(1, 2)).Equals(NewB(1, 2)));
+        WriteLine(((A)NewB(1, 2)).Equals(NewC(1, 2, 3)));
+        WriteLine(((A)NewC(1, 2, 3)).Equals(NewA(1)));
+        WriteLine(((A)NewC(1, 2, 3)).Equals(NewB(1, 2)));
+        WriteLine(((A)NewC(1, 2, 3)).Equals(NewC(1, 2, 3)));
+        WriteLine(((B)NewC(1, 2, 3)).Equals(NewA(1)));
+        WriteLine(((B)NewC(1, 2, 3)).Equals(NewB(1, 2)));
+        WriteLine(((B)NewC(1, 2, 3)).Equals(NewC(1, 2, 3)));
+        WriteLine(NewC(1, 2, 3).Equals((A)NewC(1, 2, 3)));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+False
+False
+False
+True
+False
+False
+False
+True
+False
+False
+False
+False
+True
+False
+False
+False
+True
+False
+False
+True
+True");
+            verifier.VerifyIL("A.Equals(A)",
+@"{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0028
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000f:  bne.un.s   IL_0028
+  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0016:  ldarg.0
+  IL_0017:  ldfld      ""int A.<X>k__BackingField""
+  IL_001c:  ldarg.1
+  IL_001d:  ldfld      ""int A.<X>k__BackingField""
+  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0027:  ret
+  IL_0028:  ldc.i4.0
+  IL_0029:  ret
+}");
+            verifier.VerifyIL("B.Equals(A)",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""B""
+  IL_0007:  callvirt   ""bool B.Equals(B)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("B.Equals(B)",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool A.Equals(A)""
+  IL_0007:  brfalse.s  IL_0020
+  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""int B.<Y>k__BackingField""
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""int B.<Y>k__BackingField""
+  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_001f:  ret
+  IL_0020:  ldc.i4.0
+  IL_0021:  ret
+}");
+            verifier.VerifyIL("C.Equals(A)",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""C""
+  IL_0007:  callvirt   ""bool C.Equals(C)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("C.Equals(B)",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""C""
+  IL_0007:  callvirt   ""bool C.Equals(C)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("C.Equals(C)",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool B.Equals(B)""
+  IL_0007:  brfalse.s  IL_0020
+  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""int C.<Z>k__BackingField""
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""int C.<Z>k__BackingField""
+  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_001f:  ret
+  IL_0020:  ldc.i4.0
+  IL_0021:  ret
+}");
+        }
+
+        [WorkItem(44895, "https://github.com/dotnet/roslyn/issues/44895")]
+        [Fact]
+        public void Equality_10()
+        {
+            var source =
+@"using static System.Console;
+abstract class A
+{
+    internal virtual int P { get; set; }
+    internal abstract int Q { get; set; }
+}
+record B(int P, int Q) : A
+{
+    internal B() : this(0, 0) { } // Use record base call syntax instead
+    internal override int Q { get; set; }
+}
+class C1 : B
+{
+    internal C1(int p, int q) { P = p; Q = q; }
+    internal override int P { get; set; }
+}
+class C2 : B
+{
+    internal C2(int p, int q) { P = p; Q = q; }
+    internal override int Q { get; set; }
+}
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new C1(1, 0).Equals(new C2(0, 0)));
+        WriteLine(new C1(0, 2).Equals(new C2(0, 0)));
+        WriteLine(new C1(0, 0).Equals(new C2(3, 0)));
+        WriteLine(new C1(0, 0).Equals(new C2(0, 4)));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            // https://github.com/dotnet/roslyn/issues/44895: B.Equals() should compare A.P and report False for new C1(0, 0).Equals(new C2(3, 0)).
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+False
+True
+True");
+            verifier.VerifyIL("B.Equals(B)",
+@"{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0028
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type B.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type B.EqualityContract.get""
+  IL_000f:  bne.un.s   IL_0028
+  IL_0011:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0016:  ldarg.0
+  IL_0017:  ldfld      ""int B.<Q>k__BackingField""
+  IL_001c:  ldarg.1
+  IL_001d:  ldfld      ""int B.<Q>k__BackingField""
+  IL_0022:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0027:  ret
+  IL_0028:  ldc.i4.0
+  IL_0029:  ret
+}");
+        }
+
+        [Fact]
+        public void Equality_11()
+        {
+            var source =
+@"using System;
+record A
+{
+    protected virtual Type EqualityContract => typeof(object);
+}
+record B1(object P) : A;
+record B2(object P) : A;
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new A().Equals(new A()));
+        Console.WriteLine(new A().Equals(new B1((object)null)));
+        Console.WriteLine(new B1((object)null).Equals(new A()));
+        Console.WriteLine(new B1((object)null).Equals(new B1((object)null)));
+        Console.WriteLine(new B1((object)null).Equals(new B2((object)null)));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            // init-only is unverifiable
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"True
+False
+False
+True
+False");
+        }
+
+        [Fact]
+        public void Equality_12()
+        {
+            var source =
+@"using System;
+abstract record A
+{
+    public A() { }
+    protected abstract Type EqualityContract { get; }
+}
+record B1(object P) : A;
+record B2(object P) : A;
+class Program
+{
+    static void Main()
+    {
+        var b1 = new B1((object)null);
+        var b2 = new B2((object)null);
+        Console.WriteLine(b1.Equals(b1));
+        Console.WriteLine(b1.Equals(b2));
+        Console.WriteLine(((A)b1).Equals(b1));
+        Console.WriteLine(((A)b1).Equals(b2));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            // init-only is unverifiable
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"True
+False
+True
+False");
+        }
+
+        [Fact]
+        public void Equality_13()
+        {
+            var source =
+@"record A
+{
+    protected System.Type EqualityContract => typeof(A);
+}
+record B : A;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,8): error CS0506: 'B.EqualityContract': cannot override inherited member 'A.EqualityContract' because it is not marked virtual, abstract, or override
+                // record B : A;
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(5, 8));
+        }
+
+        [Fact]
+        public void Equality_14()
+        {
+            var source =
+@"record A;
+record B : A
+{
+    protected sealed override System.Type EqualityContract => typeof(B);
+}
+record C : B;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,8): error CS0239: 'C.EqualityContract': cannot override inherited member 'B.EqualityContract' because it is sealed
+                // record C : B;
+                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C").WithArguments("C.EqualityContract", "B.EqualityContract").WithLocation(6, 8));
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "B B.Clone()",
+                "System.Type B.EqualityContract { get; }",
+                "System.Type B.EqualityContract.get",
+                "System.Int32 B.GetHashCode()",
+                "System.Boolean B.Equals(System.Object? )",
+                "System.Boolean B.Equals(A? )",
+                "System.Boolean B.Equals(B? )",
+                "B..ctor(B )",
+                "B..ctor()",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void Equality_15()
+        {
+            var source =
+@"using System;
+record A;
+class B1 : A
+{
+    public B1(int p) { P = p; }
+    public int P { get; set;  }
+}
+class B2 : A
+{
+    public B2(int p) { P = p; }
+    public int P { get; set;  }
+    protected override Type EqualityContract => typeof(B2);
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new B1(1).Equals(new B1(2)));
+        Console.WriteLine(new B1(1).Equals(new B2(1)));
+        Console.WriteLine(new B2(1).Equals(new B2(2)));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"True
+False
+True");
+        }
+
+        [Fact]
+        public void Equality_16()
+        {
+            var source =
+@"using System;
+record A;
+class B1 : A
+{
+    public B1(int p) { P = p; }
+    public int P { get; set;  }
+    protected override Type EqualityContract => typeof(string);
+}
+class B2 : A
+{
+    public B2(int p) { P = p; }
+    public int P { get; set;  }
+    protected override Type EqualityContract => typeof(string);
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new B1(1).Equals(new B1(2)));
+        Console.WriteLine(new B1(1).Equals(new B2(2)));
+        Console.WriteLine(new B2(1).Equals(new B2(2)));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"True
+True
+True");
+        }
+
+        [Fact]
+        public void Equality_17()
+        {
+            var source =
+@"using static System.Console;
+record A;
+record B1(int P) : A
+{
+    public override bool Equals(A other) => false;
+}
+record B2(int P) : A
+{
+    public override bool Equals(A other) => true;
+}
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new B1(1).Equals(new B1(1)));
+        WriteLine(new B1(1).Equals(new B1(2)));
+        WriteLine(new B2(3).Equals(new B2(3)));
+        WriteLine(new B2(3).Equals(new B2(4)));
+        WriteLine(((A)new B1(1)).Equals(new B1(1)));
+        WriteLine(((A)new B1(1)).Equals(new B1(2)));
+        WriteLine(((A)new B2(3)).Equals(new B2(3)));
+        WriteLine(((A)new B2(3)).Equals(new B2(4)));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            // init-only is unverifiable
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"True
+False
+True
+False
+False
+False
+True
+True");
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B1").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "B1 B1.Clone()",
+                "System.Type B1.EqualityContract.get",
+                "System.Type B1.EqualityContract { get; }",
+                "B1..ctor(System.Int32 P)",
+                "System.Int32 B1.<P>k__BackingField",
+                "System.Int32 B1.P.get",
+                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B1.P.init",
+                "System.Int32 B1.P { get; init; }",
+                "System.Boolean B1.Equals(A other)",
+                "System.Int32 B1.GetHashCode()",
+                "System.Boolean B1.Equals(System.Object? )",
+                "System.Boolean B1.Equals(B1? )",
+                "B1..ctor(B1 )",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
     }
 }

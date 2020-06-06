@@ -2989,10 +2989,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addCopyCtor();
             addCloneMethod();
 
-            var thisEquals = addThisEquals();
+            PropertySymbol equalityContract = addEqualityContract();
+            var otherEqualsMethods = ArrayBuilder<MethodSymbol>.GetInstance();
+            getOtherEquals(otherEqualsMethods, equalityContract);
+
+            var thisEquals = addThisEquals(equalityContract, otherEqualsMethod: otherEqualsMethods.Count == 0 ? null : otherEqualsMethods[0]);
+            addOtherEquals(otherEqualsMethods, equalityContract, thisEquals);
             addObjectEquals(thisEquals);
             addHashCode();
 
+            otherEqualsMethods.Free();
             memberSignatures.Free();
 
             return;
@@ -3015,7 +3021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addCopyCtor()
             {
-                var ctor = new SynthesizedRecordCopyCtor(this, diagnostics);
+                var ctor = new SynthesizedRecordCopyCtor(this, memberOffset: members.Count);
                 if (!memberSignatures.ContainsKey(ctor))
                 {
                     members.Add(ctor);
@@ -3087,7 +3093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addObjectEquals(MethodSymbol thisEquals)
             {
-                var objEquals = new SynthesizedRecordObjEquals(this, thisEquals);
+                var objEquals = new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count);
                 if (!memberSignatures.ContainsKey(objEquals))
                 {
                     // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
@@ -3097,7 +3103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addHashCode()
             {
-                var hashCode = new SynthesizedRecordGetHashCode(this);
+                var hashCode = new SynthesizedRecordGetHashCode(this, memberOffset: members.Count);
                 if (!memberSignatures.ContainsKey(hashCode))
                 {
                     // https://github.com/dotnet/roslyn/issues/44617: Don't add if the overridden method is sealed
@@ -3105,15 +3111,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            MethodSymbol addThisEquals()
+            static PropertySymbol? getInheritedEqualityContract(NamedTypeSymbol type)
             {
-                var thisEquals = new SynthesizedRecordEquals(this);
+                while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
+                {
+                    var members = type.GetMembers(SynthesizedRecordEqualityContractProperty.PropertyName);
+                    // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
+                    if (members.FirstOrDefault(m => m is PropertySymbol property && property.ParameterCount == 0) is PropertySymbol property)
+                    {
+                        return property;
+                    }
+                }
+                return null;
+            }
+
+            PropertySymbol addEqualityContract()
+            {
+                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: getInheritedEqualityContract(this) is object);
+                // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
+                if (!memberSignatures.ContainsKey(property))
+                {
+                    members.Add(property);
+                    members.Add(property.GetMethod);
+                }
+                return property;
+            }
+
+            MethodSymbol addThisEquals(PropertySymbol equalityContract, MethodSymbol? otherEqualsMethod)
+            {
+                var thisEquals = new SynthesizedRecordEquals(this, parameterType: this, isOverride: false, equalityContract, otherEqualsMethod, memberOffset: members.Count);
                 if (!memberSignatures.TryGetValue(thisEquals, out var existing))
                 {
                     members.Add(thisEquals);
                     return thisEquals;
                 }
                 return (MethodSymbol)existing;
+            }
+
+            static void getOtherEquals(ArrayBuilder<MethodSymbol> otherEqualsMethods, PropertySymbol equalityContract)
+            {
+                while ((equalityContract = equalityContract.OverriddenProperty) is object)
+                {
+                    var member = equalityContract.ContainingType.GetMembers("Equals").FirstOrDefault(m =>
+                    {
+                        if (m is MethodSymbol method)
+                        {
+                            var parameters = method.Parameters;
+                            if (parameters.Length == 1 && parameters[0].Type.Equals(m.ContainingType, TypeCompareKind.AllIgnoreOptions))
+                            {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                    // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
+                    if (member is MethodSymbol method)
+                    {
+                        otherEqualsMethods.Add(method);
+                    }
+                }
+            }
+
+            void addOtherEquals(ArrayBuilder<MethodSymbol> otherEqualsMethods, PropertySymbol equalityContract, MethodSymbol thisEquals)
+            {
+                foreach (var otherEqualsMethod in otherEqualsMethods)
+                {
+                    var method = new SynthesizedRecordEquals(
+                        this,
+                        parameterType: otherEqualsMethod.Parameters[0].Type,
+                        isOverride: true,
+                        equalityContract,
+                        otherEqualsMethod: thisEquals,
+                        memberOffset: members.Count);
+                    if (!memberSignatures.ContainsKey(method))
+                    {
+                        members.Add(method);
+                    }
+                }
             }
         }
 

@@ -2174,16 +2174,18 @@ public record C(int i)
             var cMembers = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers();
             AssertEx.SetEqual(new[] {
                 "C C.Clone()",
+                "System.Type C.EqualityContract.get",
+                "System.Type C.EqualityContract { get; }",
+                "C..ctor(System.Int32 i)",
                 "System.Int32 C.<i>k__BackingField",
                 "System.Int32 C.i.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.i.init",
                 "System.Int32 C.i { get; init; }",
                 "void C.M()",
-                "System.Boolean C.Equals(C? )",
-                "System.Boolean C.Equals(System.Object? )",
                 "System.Int32 C.GetHashCode()",
-                "C..ctor(C )",
-                "C..ctor(System.Int32 i)" }, cMembers.ToTestDisplayStrings());
+                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(C? )",
+                "C..ctor(C )" }, cMembers.ToTestDisplayStrings());
 
             foreach (var member in cMembers)
             {
