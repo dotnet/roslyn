@@ -4830,6 +4830,34 @@ True");
   IL_0002:  call       ""bool B.Equals(B)""
   IL_0007:  ret
 }");
+
+            verifyMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
+            verifyMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
+            verifyMethod(comp.GetMember<MethodSymbol>("C.get_EqualityContract"), isOverride: true);
+
+            verifyMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? )", true));
+            verifyMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? )", true));
+            verifyMethods(comp.GetMembers("C.Equals"), ("System.Boolean C.Equals(C? )", false), ("System.Boolean C.Equals(B? )", true), ("System.Boolean C.Equals(A? )", true), ("System.Boolean C.Equals(System.Object? )", true));
+
+            static void verifyMethods(ImmutableArray<Symbol> members, params (string, bool)[] values)
+            {
+                Assert.Equal(members.Length, values.Length);
+                for (int i = 0; i < members.Length; i++)
+                {
+                    var method = (MethodSymbol)members[i];
+                    (string name, bool isOverride) = values[i];
+                    Assert.Equal(name, method.ToTestDisplayString(includeNonNullable: true));
+                    verifyMethod(method, isOverride);
+                }
+            }
+
+            static void verifyMethod(MethodSymbol method, bool isOverride)
+            {
+                Assert.True(method.IsVirtual);
+                Assert.Equal(isOverride, method.IsOverride);
+                Assert.True(method.IsMetadataVirtual());
+                Assert.Equal(!isOverride, method.IsMetadataNewSlot());
+            }
         }
 
         [WorkItem(44895, "https://github.com/dotnet/roslyn/issues/44895")]
@@ -5202,7 +5230,7 @@ True");
 @"using System;
 record A
 {
-    public virtual Type EqualityContract => typeof(object);
+    protected virtual Type EqualityContract => typeof(object);
 }
 record B1(object P) : A;
 record B2(object P) : A;
@@ -5236,7 +5264,7 @@ False");
 abstract record A
 {
     public A() { }
-    public abstract Type EqualityContract { get; }
+    protected abstract Type EqualityContract { get; }
 }
 record B1(object P) : A;
 record B2(object P) : A;
@@ -5268,7 +5296,7 @@ False");
             var source =
 @"record A
 {
-    public System.Type EqualityContract => typeof(A);
+    protected System.Type EqualityContract => typeof(A);
 }
 record B : A;
 ";
@@ -5286,7 +5314,7 @@ record B : A;
 @"record A;
 record B : A
 {
-    public sealed override System.Type EqualityContract => typeof(B);
+    protected sealed override System.Type EqualityContract => typeof(B);
 }
 record C : B;
 ";
@@ -5327,7 +5355,7 @@ class B2 : A
 {
     public B2(int p) { P = p; }
     public int P { get; set;  }
-    public override Type EqualityContract => typeof(B2);
+    protected override Type EqualityContract => typeof(B2);
 }
 class Program
 {
@@ -5356,13 +5384,13 @@ class B1 : A
 {
     public B1(int p) { P = p; }
     public int P { get; set;  }
-    public override Type EqualityContract => typeof(string);
+    protected override Type EqualityContract => typeof(string);
 }
 class B2 : A
 {
     public B2(int p) { P = p; }
     public int P { get; set;  }
-    public override Type EqualityContract => typeof(string);
+    protected override Type EqualityContract => typeof(string);
 }
 class Program
 {

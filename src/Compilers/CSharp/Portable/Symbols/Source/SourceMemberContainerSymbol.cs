@@ -2989,11 +2989,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addCopyCtor();
             addCloneMethod();
 
-            var equalityContract = addEqualityContract();
+            PropertySymbol equalityContract = addEqualityContract();
             var otherEqualsMethods = ArrayBuilder<MethodSymbol>.GetInstance();
             getOtherEquals(otherEqualsMethods, equalityContract);
 
-            var thisEquals = addThisEquals(equalityContract, otherEqualsMethods.Count == 0 ? null : otherEqualsMethods[0]);
+            var thisEquals = addThisEquals(equalityContract, otherEqualsMethod: otherEqualsMethods.Count == 0 ? null : otherEqualsMethods[0]);
             addOtherEquals(otherEqualsMethods, equalityContract, thisEquals);
             addObjectEquals(thisEquals);
             addHashCode();
@@ -3044,7 +3044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var property = new SynthesizedRecordPropertySymbol(this, param, diagnostics);
                     if (!memberSignatures.ContainsKey(property) &&
-                        getInheritedMember(property, this) is null)
+                        !hidesInheritedMember(property, this))
                     {
                         members.Add(property);
                         members.Add(property.GetMethod);
@@ -3066,7 +3066,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
             }
 
-            static Symbol? getInheritedMember(Symbol symbol, NamedTypeSymbol type)
+            static bool hidesInheritedMember(Symbol symbol, NamedTypeSymbol type)
             {
                 while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
                 {
@@ -3080,16 +3080,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         out var hiddenBuilder);
                     if (hiddenBuilder is object)
                     {
-                        var result = hiddenBuilder[0];
                         hiddenBuilder.Free();
-                        return result;
+                        return true;
                     }
                     if (bestMatch is object)
                     {
-                        return bestMatch;
+                        return true;
                     }
                 }
-                return null;
+                return false;
             }
 
             void addObjectEquals(MethodSymbol thisEquals)
