@@ -2058,7 +2058,6 @@ record C(int X)
                     "Microsoft",
                     "C"),
                 Add( // Members
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -2070,6 +2069,7 @@ record C(int X)
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 Combine(
@@ -2098,7 +2098,6 @@ record C(int X)
                     "Microsoft",
                     "C"),
                 Add( // Members
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -2110,6 +2109,7 @@ record C(int X)
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 s_pop
