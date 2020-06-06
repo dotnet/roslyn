@@ -7,32 +7,37 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
+    [Export(typeof(IDiagnosticService))]
+    [Shared]
+    [PartNotDiscoverable]
     internal class MockDiagnosticService : IDiagnosticService
     {
         public const string DiagnosticId = "MockId";
 
-        private readonly Workspace _workspace;
         private DiagnosticData? _diagnostic;
 
         public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
 
-        public MockDiagnosticService(Workspace workspace)
-            => _workspace = workspace;
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public MockDiagnosticService()
+        {
+        }
 
         public IEnumerable<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
-            Assert.Equal(workspace, _workspace);
-            Assert.Equal(projectId, GetProjectId());
-            Assert.Equal(documentId, GetDocumentId());
+            Assert.Equal(projectId, GetProjectId(workspace));
+            Assert.Equal(documentId, GetDocumentId(workspace));
 
             if (_diagnostic == null)
             {
@@ -46,9 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         public IEnumerable<UpdatedEventArgs> GetDiagnosticsUpdatedEventArgs(Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
         {
-            Assert.Equal(workspace, _workspace);
-            Assert.Equal(projectId, GetProjectId());
-            Assert.Equal(documentId, GetDocumentId());
+            Assert.Equal(projectId, GetProjectId(workspace));
+            Assert.Equal(documentId, GetDocumentId(workspace));
 
             if (_diagnostic == null)
             {
@@ -56,27 +60,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
             else
             {
-                yield return new UpdatedEventArgs(this, workspace, GetProjectId(), GetDocumentId());
+                yield return new UpdatedEventArgs(this, workspace, GetProjectId(workspace), GetDocumentId(workspace));
             }
         }
 
-        internal void CreateDiagnosticAndFireEvents(Location location)
+        internal void CreateDiagnosticAndFireEvents(Workspace workspace, Location location)
         {
-            var document = _workspace.CurrentSolution.Projects.Single().Documents.Single();
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             _diagnostic = DiagnosticData.Create(Diagnostic.Create(DiagnosticId, "MockCategory", "MockMessage", DiagnosticSeverity.Error, DiagnosticSeverity.Error, isEnabledByDefault: true, warningLevel: 0,
                 location: location),
                 document);
 
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                this, _workspace, _workspace.CurrentSolution,
-                GetProjectId(), GetDocumentId(),
+                this, workspace, workspace.CurrentSolution,
+                GetProjectId(workspace), GetDocumentId(workspace),
                 ImmutableArray.Create(_diagnostic)));
         }
 
-        private DocumentId GetDocumentId()
-            => _workspace.CurrentSolution.Projects.Single().Documents.Single().Id;
+        private DocumentId GetDocumentId(Workspace workspace)
+            => workspace.CurrentSolution.Projects.Single().Documents.Single().Id;
 
-        private ProjectId GetProjectId()
-            => _workspace.CurrentSolution.Projects.Single().Id;
+        private ProjectId GetProjectId(Workspace workspace)
+            => workspace.CurrentSolution.Projects.Single().Id;
     }
 }
