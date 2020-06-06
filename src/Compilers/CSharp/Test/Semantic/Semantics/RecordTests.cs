@@ -5011,6 +5011,110 @@ interface C : Base(X)
             Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
         }
 
+        [Fact]
+        public void BaseArguments_15()
+        {
+            var src = @"
+using System;
+
+record Base
+{
+    public Base(int X, int Y)
+    {
+        Console.WriteLine(X);
+        Console.WriteLine(Y);
+    }
+
+    public Base() {}
+}
+
+partial record C
+{
+}
+
+partial record C(int X, int Y) : Base(X, Y)
+{
+    int Z = 123;
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(c.Z);
+    }
+}
+
+partial record C
+{
+}
+";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+1
+2
+123");
+            verifier.VerifyIL("C..ctor(int, int)", @"
+
+{
+  // Code size       31 (0x1f)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.<X>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      ""int C.<Y>k__BackingField""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.s   123
+  IL_0011:  stfld      ""int C.Z""
+  IL_0016:  ldarg.0
+  IL_0017:  ldarg.1
+  IL_0018:  ldarg.2
+  IL_0019:  call       ""Base..ctor(int, int)""
+  IL_001e:  ret
+}
+");
+
+            var comp = CreateCompilation(src);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").ElementAt(1);
+            Assert.Equal("Base(X, Y)", x.Parent!.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Same(symbol.ContainingSymbol, model.GetEnclosingSymbol(x.SpanStart));
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void BaseArguments_16()
+        {
+            var src = @"
+using System;
+
+record Base
+{
+    public Base(Func<int> X)
+    {
+        Console.WriteLine(X());
+    }
+
+    public Base() {}
+}
+
+record C(int X) : Base(() => X)
+{
+    public static void Main()
+    {
+        var c = new C(1);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"1");
+        }
+
         [Fact(Skip = "record struct")]
         public void Equality_01()
         {
@@ -6092,84 +6196,6 @@ True");
         }
 
         [Fact]
-        public void BaseArguments_15()
-        {
-            var src = @"
-using System;
-
-record Base
-{
-    public Base(int X, int Y)
-    {
-        Console.WriteLine(X);
-        Console.WriteLine(Y);
-    }
-
-    public Base() {}
-}
-
-partial record C
-{
-}
-
-partial record C(int X, int Y) : Base(X, Y)
-{
-    int Z = 123;
-    public static void Main()
-    {
-        var c = new C(1, 2);
-        Console.WriteLine(c.Z);
-    }
-}
-
-partial record C
-{
-}
-";
-            var verifier = CompileAndVerify(src, expectedOutput: @"
-1
-2
-123");
-            verifier.VerifyIL("C..ctor(int, int)", @"
-
-{
-  // Code size       31 (0x1f)
-  .maxstack  3
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stfld      ""int C.<X>k__BackingField""
-  IL_0007:  ldarg.0
-  IL_0008:  ldarg.2
-  IL_0009:  stfld      ""int C.<Y>k__BackingField""
-  IL_000e:  ldarg.0
-  IL_000f:  ldc.i4.s   123
-  IL_0011:  stfld      ""int C.Z""
-  IL_0016:  ldarg.0
-  IL_0017:  ldarg.1
-  IL_0018:  ldarg.2
-  IL_0019:  call       ""Base..ctor(int, int)""
-  IL_001e:  ret
-}
-");
-
-            var comp = CreateCompilation(src);
-
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-
-            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").ElementAt(1);
-            Assert.Equal("Base(X, Y)", x.Parent!.Parent!.Parent!.ToString());
-
-            var symbol = model.GetSymbolInfo(x).Symbol;
-            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
-            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
-            Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", symbol.ContainingSymbol.ToTestDisplayString());
-            Assert.Same(symbol.ContainingSymbol, model.GetEnclosingSymbol(x.SpanStart));
-            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
-            Assert.Contains("X", model.LookupNames(x.SpanStart));
-        }
-
-        [Fact]
         public void Initializers_01()
         {
             var src = @"
@@ -6233,6 +6259,107 @@ record C(int X)
             Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void Initializers_03()
+        {
+            var src = @"
+record C(int X)
+{
+    const int Z = X + 1;
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.X'
+                //     const int Z = X + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "X").WithArguments("C.X").WithLocation(4, 19)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Property, symbol!.Kind);
+            Assert.Equal("System.Int32 C.X { get; init; }", symbol.ToTestDisplayString());
+            Assert.Equal("C", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void Initializers_04()
+        {
+            var src = @"
+using System;
+
+record C(int X)
+{
+    Func<int> Z = () => X + 1;
+
+    public static void Main()
+    {
+        var c = new C(1);
+        Console.WriteLine(c.Z());
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"2");
+
+            var comp = CreateCompilation(src);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("() => X + 1", x.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("lambda expression", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void Initializers_05()
+        {
+            var src = @"
+using System;
+
+record Base
+{
+    public Base(Func<int> X)
+    {
+        Console.WriteLine(X());
+    }
+
+    public Base() {}
+}
+
+record C(int X) : Base(() => 100 + X++)
+{
+    Func<int> Y = () => 200 + X++;
+    Func<int> Z = () => 300 + X++;
+
+    public static void Main()
+    {
+        var c = new C(1);
+        Console.WriteLine(c.Y());
+        Console.WriteLine(c.Z());
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+101
+202
+303
+");
         }
     }
 }
