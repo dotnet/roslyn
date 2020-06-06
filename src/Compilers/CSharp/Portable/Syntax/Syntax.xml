@@ -3197,11 +3197,11 @@
   </AbstractNode>
   <AbstractNode Name="TypeDeclarationSyntax" Base="BaseTypeDeclarationSyntax">
     <TypeComment>
-      <summary>Base class for type declaration syntax (class, struct, interface).</summary>
+      <summary>Base class for type declaration syntax (class, struct, interface, record).</summary>
     </TypeComment>
     <Field Name="Keyword" Type="SyntaxToken">
       <PropertyComment>
-        <summary>Gets the type keyword token ("class", "struct", "interface").</summary>
+        <summary>Gets the type keyword token ("class", "struct", "interface", "record").</summary>
       </PropertyComment>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true"/>

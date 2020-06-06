@@ -8612,7 +8612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new BaseTypeDeclarationSyntax AddModifiers(params SyntaxToken[] items) => (BaseTypeDeclarationSyntax)AddModifiersCore(items);
     }
 
-    /// <summary>Base class for type declaration syntax (class, struct, interface).</summary>
+    /// <summary>Base class for type declaration syntax (class, struct, interface, record).</summary>
     public abstract partial class TypeDeclarationSyntax : BaseTypeDeclarationSyntax
     {
         internal TypeDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
