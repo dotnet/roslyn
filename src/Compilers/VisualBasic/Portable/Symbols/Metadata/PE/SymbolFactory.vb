@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Friend Overrides Function IsAcceptedIsExternalInitModifierType(type As TypeSymbol) As Boolean
-            ' PROTOTYPE(init-only): VB doesn't deal with init-only members yet.
+            ' https://github.com/dotnet/roslyn/issues/44870 VB doesn't deal with init-only members yet.
             Return False
         End Function
 

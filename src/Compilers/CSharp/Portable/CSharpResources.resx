@@ -6128,13 +6128,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The receiver of a `with` expression must have a non-void type.</value>
   </data>
   <data name="ERR_NoSingleCloneMethod" xml:space="preserve">
-    <value>The receiver type '{0}' does not have an accessible parameterless instance method named "Clone".</value>
-  </data>
-  <data name="ERR_ContainingTypeMustDeriveFromWithReturnType" xml:space="preserve">
-    <value>The type of the 'with' expression receiver, '{0}', does not derive from the return type of the 'Clone' method, '{1}'.</value>
-  </data>
-  <data name="ERR_WithMemberIsNotRecordProperty" xml:space="preserve">
-    <value>All arguments to a `with` expression must be compiler-generated record properties.</value>
+    <value>The receiver type '{0}' is not a valid record type.</value>
   </data>
   <data name="ERR_AssignmentInitOnly" xml:space="preserve">
     <value>Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</value>
@@ -6246,5 +6240,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_MultipleRecordParameterLists" xml:space="preserve">
     <value>Only a single record partial declaration may have a parameter list</value>
+  </data>
+  <data name="ERR_BadRecordBase" xml:space="preserve">
+    <value>Records may only inherit from object or another record</value>
+  </data>
+  <data name="ERR_BadInheritanceFromRecord" xml:space="preserve">
+    <value>Only records may inherit from records.</value>
   </data>
 </root>

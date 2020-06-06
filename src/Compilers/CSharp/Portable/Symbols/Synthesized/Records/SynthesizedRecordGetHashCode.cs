@@ -14,11 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedRecordGetHashCode : SynthesizedInstanceMethodSymbol
     {
+        private readonly int _memberOffset;
+
         public override NamedTypeSymbol ContainingType { get; }
 
-
-        public SynthesizedRecordGetHashCode(NamedTypeSymbol containingType)
+        public SynthesizedRecordGetHashCode(NamedTypeSymbol containingType, int memberOffset)
         {
+            _memberOffset = memberOffset;
             ContainingType = containingType;
         }
 
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override RefKind RefKind => RefKind.None;
 
-        internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.SynthesizedRecordObjEquals;
+        internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(
             isNullableEnabled: true,
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            // PROTOYPE: We can do better :)
+            // https://github.com/dotnet/roslyn/issues/44683 We can do better :)
             F.CloseMethod(F.Return(F.Literal(0)));
         }
     }

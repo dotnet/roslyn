@@ -20,11 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         // Spec: https://github.com/dotnet/csharplang/blob/master/proposals/init.md
 
-        // PROTOTYPE(init-only): test allowed from 'with' expression
-        // PROTOTYPE(init-only): test dynamic scenario
-        // PROTOTYPE(init-only): test whether reflection use property despite modreq?
-        // PROTOTYPE(init-only): test behavior of old compiler with modreq. For example VB
-        // PROTOTYPE(init-only): test with ambiguous IsExternalInit types
+        // https://github.com/dotnet/roslyn/issues/44685
+        // test allowed from 'with' expression
+        // test dynamic scenario
+        // test whether reflection use property despite modreq?
+        // test behavior of old compiler with modreq. For example VB
+        // test with ambiguous IsExternalInit types
 
         [Fact]
         public void TestCSharp8()
@@ -600,32 +601,31 @@ class Derived2 : Derived
             Assert.True(property.GetPublicSymbol().SetMethod.IsInitOnly);
         }
 
-        [Fact(Skip = "PROTOTYPE(init-only) Not yet supported")]
+        [Fact]
         public void InitOnlyPropertyAssignmentAllowedInWithInitializer()
         {
             string source = @"
-public class C
+record C
 {
     public int Property { get; init; }
 
     void M(C c)
     {
-        _ = c with { Property = null };
+        _ = c with { Property = 1 };
     }
 
-    public C Clone() => throw null;
 }
 
-class Derived : C
+record Derived : C
 {
 }
 
-class Derived2 : Derived
+record Derived2 : Derived
 {
     void M(C c)
     {
-        _ = c with { Property = null };
-        _ = this with { Property = null };
+        _ = c with { Property = 1 };
+        _ = this with { Property = 1 };
     }
 }
 
@@ -642,11 +642,12 @@ class Other
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(init-only) Not yet supported")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44859")]
+        [WorkItem(44859, "https://github.com/dotnet/roslyn/issues/44859")]
         public void InitOnlyPropertyAssignmentAllowedInWithInitializer_Evaluation()
         {
             string source = @"
-public class C
+record C
 {
     private int field;
     public int Property { get { return field; } init { field = value; System.Console.Write(""set ""); } }
@@ -2172,17 +2173,19 @@ public record C(int i)
 
             var cMembers = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers();
             AssertEx.SetEqual(new[] {
-                "C C.Clone()",
+                "C C.<>Clone()",
+                "System.Type C.EqualityContract.get",
+                "System.Type C.EqualityContract { get; }",
+                "C..ctor(System.Int32 i)",
                 "System.Int32 C.<i>k__BackingField",
                 "System.Int32 C.i.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.i.init",
                 "System.Int32 C.i { get; init; }",
                 "void C.M()",
-                "System.Boolean C.Equals(C? )",
-                "System.Boolean C.Equals(System.Object? )",
                 "System.Int32 C.GetHashCode()",
-                "C..ctor(C )",
-                "C..ctor(System.Int32 i)" }, cMembers.ToTestDisplayStrings());
+                "System.Boolean C.Equals(System.Object? )",
+                "System.Boolean C.Equals(C? )",
+                "C..ctor(C )" }, cMembers.ToTestDisplayStrings());
 
             foreach (var member in cMembers)
             {
@@ -2849,7 +2852,7 @@ public class D
                 );
 
             var property0 = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
-            Assert.False(property0.HasUseSiteError); // PROTOTYPE(init-only): expect use-site error
+            Assert.False(property0.HasUseSiteError); // https://github.com/dotnet/roslyn/issues/44671: expect use-site error
             Assert.True(property0.MustCallMethodsDirectly);
             Assert.Equal("System.Int32", property0.Type.ToTestDisplayString());
             Assert.Null(property0.GetMethod);
@@ -3101,14 +3104,14 @@ public class D
 
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(); // PROTOTYPE(init-only): expect error diagnostics
+            comp.VerifyDiagnostics(); // expect error diagnostics
 
-            // PROTOTYPE(init-only): decoding should be more restrictive
+            // https://github.com/dotnet/roslyn/issues/44671: decoding should be more restrictive
             var method = (PEMethodSymbol)comp.GlobalNamespace.GetMember("C.M");
             Assert.False(method.IsInitOnly);
             Assert.False(method.GetPublicSymbol().IsInitOnly);
-            Assert.False(method.HasUseSiteError); // PROTOTYPE(init-only): expect true
-            Assert.False(method.ReturnType.IsErrorType()); // PROTOTYPE(init-only): expect true
+            Assert.False(method.HasUseSiteError); // expect true
+            Assert.False(method.ReturnType.IsErrorType()); // expect true
         }
 
         [Fact]
@@ -3377,7 +3380,7 @@ public class D
 }
 ";
 
-            // PROTOTYPE(init-only): when decoding PE for a ref property, we don't allow IsExternalInit on the return (as opposed to ref return). We don't allow such properties in source.
+            // https://github.com/dotnet/roslyn/issues/44671: when decoding PE for a ref property, we don't allow IsExternalInit on the return (as opposed to ref return). We don't allow such properties in source.
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -3462,10 +3465,10 @@ public class Derived : C
 
             var reference = CreateMetadataReferenceFromIlSource(il);
             var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
-            // PROTOTYPE(init-only): make this more restrictive (ie. disallow aside from the return value of an instance setter)
+            // https://github.com/dotnet/roslyn/issues/44671 make this more restrictive (ie. disallow aside from the return value of an instance setter)
             comp.VerifyDiagnostics();
 
-            // PROTOTYPE(init-only): getter should have use-site error
+            // getter should have use-site error
             var property = (PEPropertySymbol)comp.GlobalNamespace.GetMember("C.Property");
             Assert.False(property.GetMethod.IsInitOnly);
             Assert.False(property.GetPublicSymbol().GetMethod.IsInitOnly);

@@ -5,19 +5,20 @@
 #nullable enable
 
 using System.Collections.Immutable;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedRecordCopyCtor : SynthesizedInstanceConstructor
     {
+        private readonly int _memberOffset;
+
         public SynthesizedRecordCopyCtor(
             SourceMemberContainerTypeSymbol containingType,
-            DiagnosticBag diagnostics)
+            int memberOffset)
             : base(containingType)
         {
+            _memberOffset = memberOffset;
             Parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(
                 this,
                 TypeWithAnnotations.Create(
@@ -29,12 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<ParameterSymbol> Parameters { get; }
 
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            // We need a separate sort key because struct records will have two synthesized
-            // constructors: the record constructor, and the parameterless constructor
-            return LexicalSortKey.SynthesizedRecordCopyCtor;
-        }
+        internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
         internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory F, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics)
         {

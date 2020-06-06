@@ -6,10 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -37,7 +35,6 @@ record C(int x, int y)
                     "Microsoft",
                     "C"),
                 Add( // Members
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -49,6 +46,7 @@ record C(int x, int y)
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 s_pop
@@ -70,7 +68,6 @@ record C(int x, int y)
                 Add( // C Type parameters
                     "T"),
                 Add( // Members
-                    "C<T> C<T>.Clone()",
                     "System.Int32 C<T>.x { get; init; }",
                     "T C<T>.t { get; init; }",
                     "System.Boolean C<T>.Equals(C<T>? )",
@@ -83,6 +80,7 @@ record C(int x, int y)
                     "System.Object System.Object.MemberwiseClone()",
                     "void System.Object.Finalize()",
                     "System.String System.Object.ToString()",
+                    "System.Type C<T>.EqualityContract { get; }",
                     "System.Type System.Object.GetType()"),
                 s_pop
                 );
@@ -100,7 +98,6 @@ record C(int x, int y)
     T t { get; }
 `}";
             var members = new[] {
-                "C<T> C<T>.Clone()",
                 "System.Int32 C<T>.x { get; }",
                 "T C<T>.t { get; }",
                 "System.Boolean C<T>.Equals(C<T>? )",
@@ -113,6 +110,7 @@ record C(int x, int y)
                 "System.Object System.Object.MemberwiseClone()",
                 "void System.Object.Finalize()",
                 "System.String System.Object.ToString()",
+                    "System.Type C<T>.EqualityContract { get; }",
                 "System.Type System.Object.GetType()",
             };
             var expectedNames = MakeExpectedSymbols(
@@ -1707,7 +1705,6 @@ record C(int X) : Base`(X`)
                     "Microsoft",
                     "C"),
                 Add( // Members + parameters
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -1718,11 +1715,11 @@ record C(int X) : Base`(X`)
                     "System.Int32 X",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -1733,6 +1730,7 @@ record C(int X) : Base`(X`)
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 s_pop
@@ -1755,7 +1753,6 @@ record C : Base(X)
                     "Microsoft",
                     "C"),
                 Add( // Members
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -1765,6 +1762,7 @@ record C : Base(X)
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 s_pop
@@ -1791,7 +1789,6 @@ partial record C : Base(X, Y)
                     "Microsoft",
                     "C"),
                 Add( // Members
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -1802,11 +1799,11 @@ partial record C : Base(X, Y)
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -1817,6 +1814,7 @@ partial record C : Base(X, Y)
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 s_pop
@@ -1844,7 +1842,6 @@ partial record C : Base(X)
                     "Microsoft",
                     "C"),
                 Add( // Members + parameters
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -1855,11 +1852,11 @@ partial record C : Base(X)
                     "System.Int32 X",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -1870,11 +1867,11 @@ partial record C : Base(X)
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -1885,6 +1882,7 @@ partial record C : Base(X)
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 s_pop
@@ -1911,7 +1909,6 @@ partial record C(int X) : Base`(X`)
                     "Microsoft",
                     "C"),
                 Add( // Members
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -1922,11 +1919,11 @@ partial record C(int X) : Base`(X`)
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members + parameters
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -1937,11 +1934,11 @@ partial record C(int X) : Base`(X`)
                     "System.Int32 X",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members
-                    "C C.Clone()",
                     "System.Boolean C.Equals(C? )",
                     "System.Boolean C.Equals(System.Object? )",
                     "System.Boolean System.Object.Equals(System.Object obj)",
@@ -1952,6 +1949,7 @@ partial record C(int X) : Base`(X`)
                     "System.Int32 System.Object.GetHashCode()",
                     "System.Object System.Object.MemberwiseClone()",
                     "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
                     "void System.Object.Finalize()"),
                 s_pop
