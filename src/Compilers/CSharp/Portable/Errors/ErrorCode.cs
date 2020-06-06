@@ -1739,7 +1739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 8.0
 
-        #region diagnostics introduced in preview
+        #region diagnostics introduced in C# 9.0
 
         ERR_InternalError = 8751,
 
@@ -1817,6 +1817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AddressOfMethodGroupInExpressionTree = 8810,
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
+        ERR_FeatureNotAvailableInVersion9 = 8813,
 
         ERR_BadRecordDeclaration = 8850,
         ERR_DuplicateRecordConstructor = 8851,
@@ -1834,8 +1835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadInheritanceFromRecord = 8865,
         ERR_BadRecordMemberForPositionalParameter = 8866,
 
-        #endregion
-
+        #endregion diagnostics introduced for C# 9.0
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }
