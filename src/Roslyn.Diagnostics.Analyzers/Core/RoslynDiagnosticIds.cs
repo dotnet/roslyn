@@ -49,6 +49,7 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string DoNotCallGetTestAccessorRuleId = "RS0043";
         public const string CreateTestAccessorRuleId = "RS0044";
         public const string ExposeMemberForTestingRuleId = "RS0045";
+        public const string AvoidOptSuffixForNullableEnableCodeRuleId = "RS0046";
 
         public const string WrapStatementsRuleId = "RS0100";
         public const string BlankLinesRuleId = "RS0101";
