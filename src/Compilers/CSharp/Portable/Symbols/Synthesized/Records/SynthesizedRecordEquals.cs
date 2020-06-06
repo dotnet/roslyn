@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -35,30 +36,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol? otherEqualsMethod,
             int memberOffset)
         {
+            // If the parameter is a struct type, it should be declared `in`
+            // and we need to call EnsureIsReadOnlyAttributeExists().
+            Debug.Assert(!parameterType.IsStructType());
+
             var compilation = containingType.DeclaringCompilation;
-            bool isStruct = parameterType.IsStructType();
 
             _equalityContract = equalityContract;
             _otherEqualsMethod = otherEqualsMethod;
             _memberOffset = memberOffset;
 
             ContainingType = containingType;
+            IsVirtual = !isOverride;
             IsOverride = isOverride;
             Parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(
                 this,
-                TypeWithAnnotations.Create(parameterType, nullableAnnotation: isStruct ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated),
+                TypeWithAnnotations.Create(parameterType, nullableAnnotation: NullableAnnotation.Annotated),
                 ordinal: 0,
-                isStruct ? RefKind.In : RefKind.None));
+                RefKind.None));
             ReturnTypeWithAnnotations = TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Boolean));
-
-            if (isStruct)
-            {
-                // If the record type is a struct, the parameter is marked 'in'
-                compilation.EnsureIsReadOnlyAttributeExists(
-                    diagnostics: null,
-                    location: Location.None,
-                    modifyCompilation: true);
-            }
         }
 
         public override string Name => "Equals";
@@ -106,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsStatic => false;
 
-        public override bool IsVirtual => true;
+        public override bool IsVirtual { get; }
 
         public override bool IsOverride { get; }
 
@@ -202,9 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     //     field1 == other.field1 && ... && fieldN == other.fieldN;
 
                     // other != null
-                    retExpr = other.Type.IsStructType() ?
-                        null :
-                        F.ObjectNotEqual(other, F.Null(F.SpecialType(SpecialType.System_Object)));
+                    Debug.Assert(!other.Type.IsStructType());
+                    retExpr = F.ObjectNotEqual(other, F.Null(F.SpecialType(SpecialType.System_Object)));
 
                     // EqualityContract == other.EqualityContract
                     var contractsEqual = F.Binary(

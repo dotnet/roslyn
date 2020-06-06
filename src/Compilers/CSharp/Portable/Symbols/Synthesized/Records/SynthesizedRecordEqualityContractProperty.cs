@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedRecordEqualityContractProperty(NamedTypeSymbol containingType, bool isOverride)
         {
             ContainingType = containingType;
+            IsVirtual = !isOverride;
             IsOverride = isOverride;
             TypeWithAnnotations = TypeWithAnnotations.Create(containingType.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), NullableAnnotation.NotAnnotated);
             GetMethod = new GetAccessorSymbol(this);
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsStatic => false;
 
-        public override bool IsVirtual => true;
+        public override bool IsVirtual { get; }
 
         public override bool IsOverride { get; }
 

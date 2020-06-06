@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsStatic => false;
 
-        public override bool IsVirtual => true;
+        public override bool IsVirtual => false;
 
         public override bool IsOverride => true;
 
