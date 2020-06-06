@@ -7,7 +7,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Security.RightsManagement;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;

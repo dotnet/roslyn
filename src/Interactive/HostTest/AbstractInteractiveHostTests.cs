@@ -4,27 +4,13 @@
 
 #nullable enable
 
-extern alias InteractiveHost;
-
-using System;
-using Microsoft.CodeAnalysis.CSharp;
+using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
-    using System.IO;
-    using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
-
     public abstract class AbstractInteractiveHostTests : CSharpTestBase
     {
-        internal static string GetInteractiveHostDirectory()
-            => Path.GetDirectoryName(typeof(StressTests).Assembly.Location);
-
-        // Forces xUnit to load dependent assemblies before we launch InteractiveHost.exe process.
-        private static readonly Type[] s_testDependencies = new[]
-        {
-            typeof(InteractiveHost),
-            typeof(CSharpCompilation)
-        };
+        internal readonly static string HostRootPath = Path.Combine(Path.GetDirectoryName(typeof(AbstractInteractiveHostTests).Assembly.Location), "Host");
     }
 }

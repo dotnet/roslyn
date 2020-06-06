@@ -21,6 +21,12 @@
     <!-- Path to our servicehub entry point dll in the vsix directory relative 
          to our servicehub.servicehub.json files in the same vsix directory -->
     <ServiceHubAssemblyBasePath>.\</ServiceHubAssemblyBasePath>
+
+    <!--
+      Warning MSB3270: There was a mismatch between the processor architecture of the project being built "MSIL" 
+      and the processor architecture of the reference "net472\win10-x64\InteractiveHost64.exe", "AMD64".
+    -->
+    <NoWarn>$(NoWarn);MSB3270</NoWarn>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
@@ -265,12 +271,40 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.csproj">
-      <Name>InteractiveComponents</Name>
-      <!-- Do not include Roslyn.VisualStudio.InteractiveComponents.dll in the VSIX -->
+    <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64.csproj">
+      <Name>InteractiveHost.Core64</Name>
+
+      <SetTargetFramework>TargetFramework=netcoreapp3.1</SetTargetFramework>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+
       <Private>false</Private>
-      <VSIXSubPath>DesktopHost</VSIXSubPath>
-      <IncludeOutputGroupsInVSIX>VsixSourceItemsOutputGroup</IncludeOutputGroupsInVSIX>
+      <VSIXSubPath>InteractiveHost\Core</VSIXSubPath>
+      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64.csproj">
+      <Name>InteractiveHost.Desktop64</Name>
+
+      <SetTargetFramework>TargetFramework=net472</SetTargetFramework>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+
+      <Private>false</Private>
+      <VSIXSubPath>InteractiveHost\Desktop</VSIXSubPath>
+      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost32.csproj">
+      <Name>InteractiveHost.Desktop32</Name>
+
+      <SetTargetFramework>TargetFramework=net472</SetTargetFramework>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+
+      <Private>false</Private>
+      <VSIXSubPath>InteractiveHost\Desktop</VSIXSubPath>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>

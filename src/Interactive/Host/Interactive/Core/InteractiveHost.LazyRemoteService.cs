@@ -7,6 +7,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading;
@@ -62,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 try
                 {
-                    Host.ProcessStarting?.Invoke(Options.InitializationFile != null);
+                    Host.ProcessStarting?.Invoke(Options);
 
-                    var remoteService = await TryStartProcessAsync(Options.GetHostPath(), Options.Culture, cancellationToken).ConfigureAwait(false);
+                    var remoteService = await TryStartProcessAsync(Options.HostPath, Options.Culture, cancellationToken).ConfigureAwait(false);
                     if (remoteService == null)
                     {
                         return default;
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     // try to execute initialization script:
                     var isRestarting = InstanceId > 1;
-                    var initializationResult = await InvokeRemoteAsync<RemoteExecutionResult>(remoteService, nameof(Service.InitializeContextAsync), Options.InitializationFile, isRestarting).ConfigureAwait(false);
+                    var initializationResult = await InvokeRemoteAsync<RemoteExecutionResult>(remoteService, nameof(Service.InitializeContextAsync), Options.InitializationFilePath, isRestarting).ConfigureAwait(false);
                     initializing = false;
                     if (!initializationResult.Success)
                     {
@@ -133,7 +134,19 @@ namespace Microsoft.CodeAnalysis.Interactive
                     EnableRaisingEvents = true
                 };
 
-                newProcess.Start();
+                try
+                {
+                    newProcess.Start();
+                }
+                catch (Exception e)
+                {
+                    Host.WriteOutputInBackground(
+                        isError: true,
+                        string.Format(InteractiveHostResources.Failed_to_create_a_remote_process_for_interactive_code_execution, hostPath),
+                        e.Message);
+
+                    return null;
+                }
 
                 Host.InteractiveHostProcessCreated?.Invoke(newProcess);
 

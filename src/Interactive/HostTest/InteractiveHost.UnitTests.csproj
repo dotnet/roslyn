@@ -37,8 +37,27 @@
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
     <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\Roslyn.Services.UnitTests.Utilities.csproj" />
-    <ProjectReference Include="..\DesktopHost\InteractiveHost32.csproj" />
-    <ProjectReference Include="..\DesktopHost\InteractiveHost64.csproj" />
+    
+    <ProjectReference Include="..\HostProcess\InteractiveHost32.csproj">
+      <SetTargetFramework>TargetFramework=net472</SetTargetFramework>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>InteractiveHostPath_Desktop32</OutputItemType>
+    </ProjectReference>
+    
+    <ProjectReference Include="..\HostProcess\InteractiveHost64.csproj">
+      <SetTargetFramework>TargetFramework=net472</SetTargetFramework>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>InteractiveHostPath_Desktop64</OutputItemType>
+    </ProjectReference>
+
+    <ProjectReference Include="..\HostProcess\InteractiveHost64.csproj">
+      <SetTargetFramework>TargetFramework=netcoreapp3.1</SetTargetFramework>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>InteractiveHostPath_Core</OutputItemType>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -55,4 +74,23 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
+  
+  <!--
+    Creates the same directory structure containing flavors of InteractiveHost under the output directory as is used in VSIX.
+  -->
+  <Target Name="_DeployInteractiveHosts" BeforeTargets="AfterBuild" >
+    <PropertyGroup>
+      <_Desktop64Dir>@(InteractiveHostPath_Desktop64->'%(RootDir)%(Directory)')</_Desktop64Dir>
+      <_Desktop32Dir>@(InteractiveHostPath_Desktop32->'%(RootDir)%(Directory)')</_Desktop32Dir>
+      <_CoreDir>@(InteractiveHostPath_Desktop64->'%(RootDir)%(Directory)')</_CoreDir>
+  </PropertyGroup>
+    <ItemGroup>
+      <_SourceFiles Include="$(_Desktop64Dir)**\*.*" TargetDirectory="Host\Desktop" />
+      <_SourceFiles Include="$(_Desktop32Dir)InteractiveHost32.*" TargetDirectory="Host\Desktop" />
+      <_SourceFiles Include="$(_CoreDir)\**\*.*" TargetDirectory="Host\Core"/>
+    </ItemGroup>
+    <Copy SourceFiles="%(_SourceFiles.Identity)"
+          DestinationFiles="$(OutputPath)%(_SourceFiles.TargetDirectory)\%(_SourceFiles.RecursiveDir)%(_SourceFiles.FileName)%(_SourceFiles.Extension)"
+          UseHardlinksIfPossible="true" />
+  </Target>
 </Project>
