@@ -37,8 +37,8 @@
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
     <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\Roslyn.Services.UnitTests.Utilities.csproj" />
-    <ProjectReference Include="..\DesktopHost\InteractiveHost32.csproj" />
-    <ProjectReference Include="..\DesktopHost\InteractiveHost64.csproj" />
+    <ProjectReference Include="..\HostProcess\InteractiveHost32.csproj" />
+    <ProjectReference Include="..\HostProcess\InteractiveHost64.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
