@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -160,11 +161,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.OpenBraceToken);
 
                 AddAccessor(symbol, symbol.GetMethod, SyntaxKind.GetKeyword);
-                AddAccessor(symbol, symbol.SetMethod, SyntaxKind.SetKeyword);
+                var keywordForSetAccessor = IsInitOnly(symbol.SetMethod) ? SyntaxKind.InitKeyword : SyntaxKind.SetKeyword;
+                AddAccessor(symbol, symbol.SetMethod, keywordForSetAccessor);
 
                 AddSpace();
                 AddPunctuation(SyntaxKind.CloseBraceToken);
             }
+        }
+
+        private static bool IsInitOnly(IMethodSymbol symbol)
+        {
+            return symbol?.IsInitOnly == true;
         }
 
         private void AddPropertyNameAndParameters(IPropertySymbol symbol)
@@ -444,7 +451,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         AddPropertyNameAndParameters(associatedProperty);
                         AddPunctuation(SyntaxKind.DotToken);
-                        AddKeyword(symbol.MethodKind == MethodKind.PropertyGet ? SyntaxKind.GetKeyword : SyntaxKind.SetKeyword);
+                        AddKeyword(symbol.MethodKind == MethodKind.PropertyGet ? SyntaxKind.GetKeyword :
+                            IsInitOnly(symbol) ? SyntaxKind.InitKeyword : SyntaxKind.SetKeyword);
                         break;
                     }
                 case MethodKind.EventAdd:

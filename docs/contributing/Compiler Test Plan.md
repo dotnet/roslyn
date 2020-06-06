@@ -55,7 +55,7 @@ This document provides guidance for thinking about language interactions and tes
 - Partial method
 - Named and optional parameters
 - String interpolation
-- Properties (read-write, read-only, write-only, auto-property, expression-bodied)
+- Properties (read-write, read-only, init-only, write-only, auto-property, expression-bodied)
 - Interfaces (implicit vs. explicit interface member implementation)
 - Delegates
 - Multi-declaration

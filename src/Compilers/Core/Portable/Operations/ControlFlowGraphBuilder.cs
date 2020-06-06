@@ -6982,5 +6982,19 @@ oneMoreTime:
             throw ExceptionUtilities.Unreachable;
         }
 
+        public override IOperation VisitWithExpression(IWithExpressionOperation operation, int? argument)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            // Initializer is removed from the tree and turned into a series of statements that assign to the cloned instance
+            IOperation visitedInstance = Visit(operation.Value);
+
+            IOperation cloned = operation.CloneMethod is null
+                ? MakeInvalidOperation(visitedInstance.Type, visitedInstance)
+                : new InvocationOperation(operation.CloneMethod, visitedInstance,
+                    isVirtual: true, arguments: ImmutableArray<IArgumentOperation>.Empty,
+                    semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, isImplicit: true);
+
+            return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, cloned));
+        }
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -155,6 +156,32 @@ class Class : IInterface
         throw new System.NotImplementedException();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestMethodInRecord()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+}
+
+record Record : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+}
+
+record Record : IInterface
+{
+    public void Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: TestOptions.RegularPreview);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -8543,6 +8570,30 @@ class C : [|I|]
         throw new System.NotImplementedException();
     }
 }", index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task ImplementInitOnlyProperty()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface I
+{
+    int Property { get; init; }
+}
+
+class C : [|I|]
+{
+}",
+@"
+interface I
+{
+    int Property { get; init; }
+}
+
+class C : [|I|]
+{
+    public int Property { get => throw new System.NotImplementedException(); init => throw new System.NotImplementedException(); }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
