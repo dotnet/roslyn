@@ -1186,6 +1186,134 @@ record C(int X)
         }
 
         [Fact]
+        public void AccessibilityOfBaseCtor_01()
+        {
+            var src = @"
+using System;
+
+record Base
+{
+    protected Base(int X, int Y)
+    {
+        Console.WriteLine(X);
+        Console.WriteLine(Y);
+    }
+
+    public Base() {}
+
+    public static void Main()
+    {
+        var c = new C(1, 2);
+    }
+}
+
+record C(int X, int Y) : Base(X, Y);
+";
+            CompileAndVerify(src, expectedOutput: @"
+1
+2
+");
+        }
+
+        [Fact]
+        public void AccessibilityOfBaseCtor_02()
+        {
+            var src = @"
+using System;
+
+record Base
+{
+    protected Base(int X, int Y)
+    {
+        Console.WriteLine(X);
+        Console.WriteLine(Y);
+    }
+
+    public Base() {}
+
+    public static void Main()
+    {
+        var c = new C(1, 2);
+    }
+}
+
+record C(int X, int Y) : Base(X, Y) {}
+";
+            CompileAndVerify(src, expectedOutput: @"
+1
+2
+");
+        }
+
+        [Fact]
+        [WorkItem(44898, "https://github.com/dotnet/roslyn/issues/44898")]
+        public void AccessibilityOfBaseCtor_03()
+        {
+            var src = @"
+abstract record A
+{
+    protected A() {}
+    protected A(A x) {}
+};
+record B(object P) : A;
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(44898, "https://github.com/dotnet/roslyn/issues/44898")]
+        public void AccessibilityOfBaseCtor_04()
+        {
+            var src = @"
+abstract record A
+{
+    protected A() {}
+    protected A(A x) {}
+};
+record B(object P) : A {}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(44898, "https://github.com/dotnet/roslyn/issues/44898")]
+        public void AccessibilityOfBaseCtor_05()
+        {
+            var src = @"
+abstract record A
+{
+    protected A() {}
+    protected A(A x) {}
+};
+record B : A;
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(44898, "https://github.com/dotnet/roslyn/issues/44898")]
+        public void AccessibilityOfBaseCtor_06()
+        {
+            var src = @"
+abstract record A
+{
+    protected A() {}
+    protected A(A x) {}
+};
+record B : A {}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void WithExprNestedErrors()
         {
             var src = @"

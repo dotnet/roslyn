@@ -1867,8 +1867,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The constructor is implicit. We need to get the binder for the body
                 // of the enclosing class. 
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
-                SyntaxToken bodyToken = GetImplicitConstructorBodyToken(containerNode);
-                outerBinder = compilation.GetBinderFactory(containerNode.SyntaxTree).GetBinder(containerNode, bodyToken.Position);
+                BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
+
+                if (containerNode is RecordDeclarationSyntax recordDecl)
+                {
+                    outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                }
+                else
+                {
+                    SyntaxToken bodyToken = GetImplicitConstructorBodyToken(containerNode);
+                    outerBinder = binderFactory.GetBinder(containerNode, bodyToken.Position);
+                }
             }
             else
             {
