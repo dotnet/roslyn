@@ -1136,7 +1136,7 @@ class C
         public void WithParsing16()
         {
             var text = @"x with { X = ""2"" };";
-            // PROTOTYPE
+            // https://github.com/dotnet/roslyn/issues/44688
             // The parser doesn't see this as an invalid expression
             // statement, but as a broken declaration, e.g.
             //      x with <missing ,> { X = ""2 "" <missing ;> };

@@ -2972,8 +2972,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(builder.RecordDeclarationWithParameters is object);
                 Debug.Assert(builder.InstanceInitializersForRecordDeclarationWithParameters is object);
 
-                // PROTOTYPE: The semantics of an empty parameter list have not been decided. Error
-                // for now
+                // https://github.com/dotnet/roslyn/issues/44677
+                // The semantics of an empty parameter list have not been decided. Error for now
                 if (paramList.ParameterCount == 0)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);

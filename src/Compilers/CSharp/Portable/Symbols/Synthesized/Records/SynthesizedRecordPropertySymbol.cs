@@ -224,7 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Name = SourcePropertyAccessorSymbol.GetAccessorName(
                     paramName,
                     getNotSet: false,
-                    isWinMdOutput: false /* PROTOTYPE */);
+                    // https://github.com/dotnet/roslyn/issues/44684
+                    isWinMdOutput: false);
 
                 var comp = property.DeclaringCompilation;
                 var type = TypeWithAnnotations.Create(comp.GetSpecialType(SpecialType.System_Void));
