@@ -15,11 +15,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedRecordClone : SynthesizedInstanceMethodSymbol
     {
+        public override TypeWithAnnotations ReturnTypeWithAnnotations { get; }
         public override NamedTypeSymbol ContainingType { get; }
+        public override bool IsOverride { get; }
 
         public SynthesizedRecordClone(NamedTypeSymbol containingType)
         {
             ContainingType = containingType;
+            var baseType = containingType.BaseTypeNoUseSiteDiagnostics;
+            if (FindValidCloneMethod(baseType) is { } baseClone)
+            {
+                // Use covariant returns when available
+                ReturnTypeWithAnnotations = baseClone.ReturnTypeWithAnnotations;
+                IsOverride = true;
+            }
+            else
+            {
+                ReturnTypeWithAnnotations = TypeWithAnnotations.Create(isNullableEnabled: true, containingType);
+                IsOverride = false;
+            }
         }
 
         public override string Name => WellKnownMemberNames.CloneMethodName;
@@ -41,10 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override RefKind RefKind => RefKind.None;
 
         public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
-
-        public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(
-            isNullableEnabled: true,
-            ContainingType);
 
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
@@ -69,10 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsStatic => false;
 
-        // PROTOTYPE: Inheritance is not handled
-        public override bool IsVirtual => true;
-
-        public override bool IsOverride => false;
+        public override bool IsVirtual => !IsOverride;
 
         public override bool IsAbstract => false;
 
@@ -102,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override IEnumerable<SecurityAttribute> GetSecurityInformation()
             => Array.Empty<SecurityAttribute>();
 
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => true;
+        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => !IsOverride;
 
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => true;
 
@@ -112,7 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 
-            // PROTOTYPE: what about base fields?
             var members = ContainingType.GetMembers(WellKnownMemberNames.InstanceConstructorName);
             foreach (var member in members)
             {
@@ -126,6 +132,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             throw ExceptionUtilities.Unreachable;
+        }
+
+        internal static MethodSymbol? FindValidCloneMethod(NamedTypeSymbol containingType)
+        {
+            for (; !(containingType is null); containingType = containingType.BaseTypeNoUseSiteDiagnostics)
+            {
+                foreach (var member in containingType.GetMembers(WellKnownMemberNames.CloneMethodName))
+                {
+                    if (member is MethodSymbol
+                    {
+                        DeclaredAccessibility: Accessibility.Public,
+                        IsStatic: false,
+                        IsAbstract: false,
+                        ParameterCount: 0,
+                        Arity: 0
+                    } method && (method.IsOverride || method.IsVirtual))
+                    {
+                        return method;
+                    }
+                }
+            }
+            return null;
         }
     }
 }

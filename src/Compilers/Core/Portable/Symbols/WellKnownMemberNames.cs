@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public const string SliceMethodName = "Slice";
 
-        // PROTOTYPE: internal since this has yet to be approved
-        internal const string CloneMethodName = "Clone";
+        // internal until we settle on this long-term
+        internal const string CloneMethodName = "<>Clone";
     }
 }

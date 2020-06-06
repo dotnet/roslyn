@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             RoslynDebug.AssertNotNull(withExpr.CloneMethod);
             Debug.Assert(withExpr.CloneMethod.ParameterCount == 0);
+            Debug.Assert(withExpr.Receiver.Type!.Equals(withExpr.Type, TypeCompareKind.ConsiderEverything));
 
             // for a with expression of the form
             //
@@ -116,14 +117,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we want to lower it to a call to the receiver's `Clone` method, then
             // set the given record properties. i.e.
             //
-            //      var tmp = receiver.Clone();
+            //      var tmp = (ReceiverType)receiver.Clone();
             //      tmp.P1 = e1;
             //      tmp.P2 = e2;
             //      tmp
 
-            var cloneCall = _factory.Call(
-                VisitExpression(withExpr.Receiver),
-                withExpr.CloneMethod);
+            var cloneCall = _factory.Convert(
+                withExpr.Type,
+                _factory.Call(
+                    VisitExpression(withExpr.Receiver),
+                    withExpr.CloneMethod));
 
             return MakeExpressionWithInitializer(
                 withExpr.Syntax,
