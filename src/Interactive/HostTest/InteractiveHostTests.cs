@@ -1221,15 +1221,17 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
         public async Task Bitness()
         {
             await _host.ExecuteAsync(@"System.IntPtr.Size");
-            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture, is64Bit: true));
+            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop64));
             await _host.ExecuteAsync(@"System.IntPtr.Size");
-            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture, is64Bit: false));
+            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop32));
+            await _host.ExecuteAsync(@"System.IntPtr.Size");
+            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture, InteractiveHostPlatform.Core));
             await _host.ExecuteAsync(@"System.IntPtr.Size");
 
             var output = await ReadOutputToEnd();
             var error = await ReadErrorOutputToEnd();
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("4\r\n8\r\n4\r\n", output);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("4\r\n8\r\n4\r\n8\r\n", output);
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
         }
 

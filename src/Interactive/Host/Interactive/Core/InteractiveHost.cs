@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// </remarks>
     internal sealed partial class InteractiveHost : IDisposable
     {
-        internal const bool DefaultIs64Bit = true;
+        internal const InteractiveHostPlatform DefaultPlatform = InteractiveHostPlatform.Desktop32;
 
         private readonly Type _replServiceProviderType;
         private readonly string _initialWorkingDirectory;

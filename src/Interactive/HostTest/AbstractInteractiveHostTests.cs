@@ -7,12 +7,8 @@
 extern alias InteractiveHost;
 
 using System;
-using System.Reflection;
-using System.Runtime.Remoting.Channels.Ipc;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Interactive;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {

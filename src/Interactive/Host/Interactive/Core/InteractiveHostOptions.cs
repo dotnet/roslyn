@@ -4,8 +4,6 @@
 
 #nullable enable
 
-using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using Roslyn.Utilities;
@@ -28,29 +26,32 @@ namespace Microsoft.CodeAnalysis.Interactive
         public CultureInfo Culture { get; }
 
         /// <summary>
-        /// Path to interactive host directory.
+        /// Path to interactive host directory (this directory is expected to contain Core and Desktop subdirectories).
         /// </summary>
         public string HostDirectory { get; }
 
         /// <summary>
-        /// Host process bitness.
+        /// Host process platform.
         /// </summary>
-        public bool Is64Bit { get; }
+        public InteractiveHostPlatform Platform { get; }
 
         public InteractiveHostOptions(
             string hostDirectory,
             string? initializationFile = null,
             CultureInfo? culture = null,
-            bool is64Bit = false)
+            InteractiveHostPlatform platform = InteractiveHostPlatform.Desktop32)
         {
             Contract.ThrowIfNull(hostDirectory);
             HostDirectory = hostDirectory;
             InitializationFile = initializationFile;
             Culture = culture ?? CultureInfo.CurrentUICulture;
-            Is64Bit = is64Bit;
+            Platform = platform;
         }
 
         public string GetHostPath()
-            => Path.Combine(HostDirectory, "InteractiveHost" + (Is64Bit ? "64" : "32") + ".exe");
+            => Path.Combine(
+                HostDirectory,
+                (Platform == InteractiveHostPlatform.Core) ? "Core" : "Desktop",
+                "InteractiveHost" + (Platform == InteractiveHostPlatform.Desktop32 ? "32" : "64") + ".exe");
     }
 }

@@ -1520,4 +1520,10 @@ I agree to all of the foregoing:</value>
   <data name="Infer_from_context" xml:space="preserve">
     <value>Infer from context</value>
   </data>
+  <data name="Bitness32" xml:space="preserve">
+    <value>32-bit</value>
+  </data>
+  <data name="Bitness64" xml:space="preserve">
+    <value>64-bit</value>
+  </data>
 </root>

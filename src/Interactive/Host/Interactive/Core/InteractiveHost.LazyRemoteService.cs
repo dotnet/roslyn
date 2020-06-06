@@ -7,6 +7,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading;
@@ -135,7 +136,19 @@ namespace Microsoft.CodeAnalysis.Interactive
                     EnableRaisingEvents = true
                 };
 
-                newProcess.Start();
+                try
+                {
+                    newProcess.Start();
+                }
+                catch (Exception e)
+                {
+                    Host.WriteOutputInBackground(
+                        isError: true,
+                        string.Format(InteractiveHostResources.Failed_to_create_a_remote_process_for_interactive_code_execution, hostPath),
+                        e.Message);
+
+                    return null;
+                }
 
                 Host.InteractiveHostProcessCreated?.Invoke(newProcess);
 
