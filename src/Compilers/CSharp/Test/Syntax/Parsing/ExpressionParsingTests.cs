@@ -203,6 +203,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestNestedInterpolatedStringLiteralExpression()
+        {
+            test("$@\"aaa{@$\"bbb\nccc\"}ddd\"");
+            test("$@\"aaa{$@\"bbb\nccc\"}ddd\"");
+            void test(string text)
+            {
+                var expr = (InterpolatedStringExpressionSyntax)this.ParseExpression(text);
+                Assert.NotNull(expr);
+                Assert.Equal(SyntaxKind.InterpolatedStringExpression, expr.Kind());
+                Assert.Equal(0, expr.Errors().Length);
+
+                Assert.Equal("aaa", ((InterpolatedStringTextSyntax)expr.Contents[0]).TextToken.Text);
+                var innerStr = (InterpolatedStringExpressionSyntax)((InterpolationSyntax)expr.Contents[1]).Expression;
+                Assert.Equal("bbb\nccc", ((InterpolatedStringTextSyntax)innerStr.Contents[0]).TextToken.Text);
+                Assert.Equal("ddd", ((InterpolatedStringTextSyntax)expr.Contents[2]).TextToken.Text);
+            }
+        }
+
+        [Fact]
         public void TestCharacterLiteralExpression()
         {
             var text = "'c'";
