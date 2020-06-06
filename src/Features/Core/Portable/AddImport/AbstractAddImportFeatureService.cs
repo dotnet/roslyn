@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 var callbackTarget = new RemoteSymbolSearchService(symbolSearchService);
 
-                var result = await client.TryRunRemoteAsync<IList<AddImportFixData>>(
+                var result = await client.RunRemoteAsync<IList<AddImportFixData>>(
                     WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteAddImportFeatureService.GetFixesAsync),
                     document.Project.Solution,
@@ -76,10 +76,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     callbackTarget,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    return result.Value.ToImmutableArray();
-                }
+                return result.ToImmutableArray();
             }
 
             return await GetFixesInCurrentProcessAsync(

@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 try
                 {
-                    _ = await client.TryRunRemoteAsync(
+                    await client.RunRemoteAsync(
                         WellKnownServiceHubService.CodeAnalysis,
                         nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                         solution: null,
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     forcedAnalysis, analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics, analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
                     project.Id, analyzerMap.Keys.ToArray());
 
-                var result = await client.TryRunRemoteAsync(
+                return await client.RunRemoteAsync(
                     WellKnownServiceHubService.CodeAnalysis,
                     nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
                     solution,
@@ -136,8 +136,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     callbackTarget: null,
                     (s, c) => ReadCompilerAnalysisResultAsync(s, analyzerMap, project, c),
                     cancellationToken).ConfigureAwait(false);
-
-                return result.HasValue ? result.Value : DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
             }
 
             private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)

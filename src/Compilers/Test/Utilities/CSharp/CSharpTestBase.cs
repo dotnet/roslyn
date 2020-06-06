@@ -1745,6 +1745,14 @@ namespace System.Runtime.CompilerServices
             return actualOperation;
         }
 
+        protected static void VerifyOperationTreeForNode(CSharpCompilation compilation, SemanticModel model, SyntaxNode syntaxNode, string expectedOperationTree)
+        {
+            var actualOperation = model.GetOperation(syntaxNode);
+            Assert.NotNull(actualOperation);
+            var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
+            OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
+        }
+
         protected static void VerifyFlowGraphForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedFlowGraph)
             where TSyntaxNode : SyntaxNode
         {
@@ -1926,8 +1934,8 @@ namespace System.Runtime.CompilerServices
             return comp;
         }
 
-        protected static CSharpCompilation CreateCompilationWithSpan(string s, CSharpCompilationOptions options = null)
-            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s), options);
+        protected static CSharpCompilation CreateCompilationWithSpan(string s, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+            => CreateCompilationWithSpan(SyntaxFactory.ParseSyntaxTree(s, options: parseOptions), options);
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
