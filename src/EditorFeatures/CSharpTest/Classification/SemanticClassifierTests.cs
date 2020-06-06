@@ -3902,5 +3902,65 @@ class X
                 code: @"nuint i = 0;",
                 expected: Classifications(Class("nuint")));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task StaticBoldingMethodName()
+        {
+            await TestAsync(
+@"class C
+{
+    public static void Method()
+    {
+        System.Action action = Method;
+    }
+}",
+            Namespace("System"),
+            Delegate("Action"),
+            Method("Method"),
+            Static("Method"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task StaticBoldingMethodNameNestedInNameof()
+        {
+            await TestAsync(
+@"class C
+{
+    public static void Method()
+    {
+        _ = nameof(Method);
+    }
+}",
+            Keyword("_"),
+            Keyword("nameof"),
+            Static("Method"),
+            Method("Method"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task BoldingMethodNameStaticAndNot()
+        {
+            await TestAsync(
+    @"class C
+{
+    public static void Method()
+    {
+        
+    }
+
+    public void Method(int x) 
+    {
+
+    }
+
+    public void Test() {
+        _ = nameof(Method);
+    }
+}",
+            Keyword("_"),
+            Keyword("nameof"),
+            Static("Method"),
+            Method("Method"));
+        }
     }
 }
