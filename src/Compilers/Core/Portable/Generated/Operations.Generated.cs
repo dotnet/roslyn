@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Current usage:
     ///  (1) C# this or base expression.
     ///  (2) VB Me, MyClass, or MyBase expression.
-    ///  (3) C# object or collection initializers.
+    ///  (3) C# object or collection or 'with' expression initializers.
     ///  (4) VB With statements, object or collection initializers.
     /// </para>
     /// </summary>
@@ -2875,6 +2875,32 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Constant value of the pattern operation.
         /// </summary>
         IOperation Value { get; }
+    }
+    /// <summary>
+    /// Represents cloning of an object instance.
+    /// <para>
+    ///   Current usage:
+    ///   (1) C# with expression.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
+    public interface IWithExpressionOperation : IOperation
+    {
+        /// <summary>
+        /// Value to be cloned.
+        /// </summary>
+        IOperation Value { get; }
+        /// <summary>
+        /// Clone method to be invoked on the value.
+        /// </summary>
+        IMethodSymbol CloneMethod { get; }
+        /// <summary>
+        /// With collection initializer.
+        /// </summary>
+        IObjectOrCollectionInitializerOperation Initializer { get; }
     }
     #endregion
 
@@ -8529,6 +8555,73 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
+    internal abstract partial class BaseWithExpressionOperation : Operation, IWithExpressionOperation
+    {
+        internal BaseWithExpressionOperation(IMethodSymbol cloneMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.WithExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            CloneMethod = cloneMethod;
+        }
+        public abstract IOperation Value { get; }
+        public IMethodSymbol CloneMethod { get; }
+        public abstract IObjectOrCollectionInitializerOperation Initializer { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (Value is object) yield return Value;
+                if (Initializer is object) yield return Initializer;
+            }
+        }
+        public override void Accept(OperationVisitor visitor) => visitor.VisitWithExpression(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitWithExpression(this, argument);
+    }
+    internal sealed partial class WithExpressionOperation : BaseWithExpressionOperation, IWithExpressionOperation
+    {
+        internal WithExpressionOperation(IOperation value, IMethodSymbol cloneMethod, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(cloneMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Value = SetParentOperation(value, this);
+            Initializer = SetParentOperation(initializer, this);
+        }
+        public override IOperation Value { get; }
+        public override IObjectOrCollectionInitializerOperation Initializer { get; }
+    }
+    internal abstract partial class LazyWithExpressionOperation : BaseWithExpressionOperation, IWithExpressionOperation
+    {
+        private IOperation _lazyValue = s_unset;
+        private IObjectOrCollectionInitializerOperation _lazyInitializer = s_unsetObjectOrCollectionInitializer;
+        internal LazyWithExpressionOperation(IMethodSymbol cloneMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(cloneMethod, semanticModel, syntax, type, constantValue, isImplicit){ }
+        protected abstract IOperation CreateValue();
+        public override IOperation Value
+        {
+            get
+            {
+                if (_lazyValue == s_unset)
+                {
+                    IOperation value = CreateValue();
+                    SetParentOperation(value, this);
+                    Interlocked.CompareExchange(ref _lazyValue, value, s_unset);
+                }
+                return _lazyValue;
+            }
+        }
+        protected abstract IObjectOrCollectionInitializerOperation CreateInitializer();
+        public override IObjectOrCollectionInitializerOperation Initializer
+        {
+            get
+            {
+                if (_lazyInitializer == s_unsetObjectOrCollectionInitializer)
+                {
+                    IObjectOrCollectionInitializerOperation initializer = CreateInitializer();
+                    SetParentOperation(initializer, this);
+                    Interlocked.CompareExchange(ref _lazyInitializer, initializer, s_unsetObjectOrCollectionInitializer);
+                }
+                return _lazyInitializer;
+            }
+        }
+    }
     #endregion
     #region Visitors
     public abstract partial class OperationVisitor
@@ -8655,6 +8748,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitBinaryPattern(IBinaryPatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitTypePattern(ITypePatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitRelationalPattern(IRelationalPatternOperation operation) => DefaultVisit(operation);
+        public virtual void VisitWithExpression(IWithExpressionOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -8780,6 +8874,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult VisitBinaryPattern(IBinaryPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult VisitTypePattern(ITypePatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult VisitRelationalPattern(IRelationalPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitWithExpression(IWithExpressionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }
