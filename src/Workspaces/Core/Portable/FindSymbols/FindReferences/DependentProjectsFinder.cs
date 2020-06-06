@@ -422,30 +422,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static bool HasReferenceToAssembly(this Project project, string assemblyName, CancellationToken cancellationToken)
         {
-            var hasMatch = GetAssemblyReferenceType(
-                project,
-                a => a.Name == assemblyName ? true : (bool?)null,
-                cancellationToken);
-
-            return hasMatch == true;
-        }
-
-        /// <summary>
-        /// Determines if this project has a reference to an assembly matching a passed
-        /// in predicate.  The predicate returns 'null' to indicate no match, and non-null
-        /// to indicate a match of some kind.  If any match is found, that value is returned
-        /// as the value of this function.  Otherwise 'null' is returned.
-        /// </summary>
-        private static T? GetAssemblyReferenceType<T>(
-            Project project,
-            Func<IAssemblySymbol, T?> predicate,
-            CancellationToken cancellationToken) where T : struct
-        {
             // If the project we're looking at doesn't even support compilations, then there's no 
             // way for it to have an IAssemblySymbol.  And without that, there is no way for it
             // to have any sort of 'ReferenceTo' the provided 'containingAssembly' symbol.
             if (!project.SupportsCompilation)
-                return null;
+                return false;
 
             if (!project.TryGetCompilation(out var compilation))
             {
@@ -463,15 +444,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol symbol)
                 {
-                    var result = predicate(symbol);
-                    if (result != null)
-                    {
-                        return result;
-                    }
+                    if (symbol.Name == assemblyName)
+                        return true;
                 }
             }
 
-            return null;
+            return false;
         }
     }
 }
