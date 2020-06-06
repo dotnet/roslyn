@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
              DiagnosticBag diagnostics) :
              base(containingType, syntax.ParameterList!.GetLocation(), syntax, MethodKind.Constructor, diagnostics)
         {
-            this.MakeFlags(MethodKind.Constructor, DeclarationModifiers.Public, returnsVoid: true, isExtensionMethod: false);
+            this.MakeFlags(MethodKind.Constructor, containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public, returnsVoid: true, isExtensionMethod: false);
         }
 
         internal RecordDeclarationSyntax GetSyntax()

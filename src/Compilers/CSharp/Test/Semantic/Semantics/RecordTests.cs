@@ -3148,6 +3148,10 @@ record B2(int X, int Y) : A
 
             AssertEx.Equal(new[] { "System.Type B1.EqualityContract { get; }" }, GetProperties(comp, "B1").ToTestDisplayStrings());
             AssertEx.Equal(new[] { "System.Type B2.EqualityContract { get; }" }, GetProperties(comp, "B2").ToTestDisplayStrings());
+
+            var b1Ctor = comp.GetTypeByMetadataName("B1")!.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Single();
+            Assert.Equal("B1..ctor(System.Int32 X, System.Int32 Y)", b1Ctor.ToTestDisplayString());
+            Assert.Equal(Accessibility.Protected, b1Ctor.DeclaredAccessibility);
         }
 
         [WorkItem(44785, "https://github.com/dotnet/roslyn/issues/44785")]
@@ -4426,6 +4430,7 @@ record C(int X, int Y) : Base(X, Y)
             Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
             Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
             Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, symbol.ContainingSymbol.DeclaredAccessibility);
             Assert.Same(symbol.ContainingSymbol, model.GetEnclosingSymbol(x.SpanStart));
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));
