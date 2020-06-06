@@ -54,5 +54,21 @@ namespace Microsoft.CodeAnalysis.Host
                                  .Select(l => l.Value)
                                  .OfType<IEventListener<TService>>();
         }
+
+        internal TestAccessor GetTestAccessor()
+        {
+            return new TestAccessor(this);
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly EventListenerTracker<TService> _eventListenerTracker;
+
+            internal TestAccessor(EventListenerTracker<TService> eventListenerTracker)
+                => _eventListenerTracker = eventListenerTracker;
+
+            internal ref readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> EventListeners
+                => ref _eventListenerTracker._eventListeners;
+        }
     }
 }
