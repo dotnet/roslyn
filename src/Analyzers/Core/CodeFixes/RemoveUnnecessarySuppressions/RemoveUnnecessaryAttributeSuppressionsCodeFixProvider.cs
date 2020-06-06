@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in context.Diagnostics)
             {
+                // Register code fix with a defensive check
                 if (root.FindNode(diagnostic.Location.SourceSpan) != null)
                 {
                     context.RegisterCodeFix(

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in context.Diagnostics)
             {
+                // Defensive check that we are operating on the diagnostic on a pragma.
                 if (root.FindTrivia(diagnostic.Location.SourceSpan.Start).HasStructure)
                 {
                     context.RegisterCodeFix(
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 
         protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var seenNodes = new HashSet<SyntaxNode>();
+            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var seenNodes);
             foreach (var diagnostic in diagnostics)
             {
                 RemoveNode(diagnostic.Location, editor, seenNodes);

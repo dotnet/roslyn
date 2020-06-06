@@ -14,23 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions
     Friend NotInheritable Class VisualBasicRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer
         Inherits AbstractRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer
 
-        Protected Overrides ReadOnly Property CompilerErrorCodePrefix As String
-            Get
-                Return "BC"
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property CompilerErrorCodePrefix As String = "BC"
 
-        Protected Overrides ReadOnly Property CompilerErrorCodeDigitCount As Integer
-            Get
-                Return 5
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property CompilerErrorCodeDigitCount As Integer = 5
 
-        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
-            Get
-                Return VisualBasicSyntaxFacts.Instance
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Protected Overrides Function GetCompilerDiagnosticAnalyzerInfo() As (assembly As Assembly, typeName As String)
             Return (GetType(SyntaxKind).Assembly, CompilerDiagnosticAnalyzerNames.VisualBasicCompilerAnalyzerTypeName)

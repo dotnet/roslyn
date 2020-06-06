@@ -241,11 +241,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (compilationWithAnalyzers.AnalysisOptions.ConcurrentAnalysis)
             {
                 var bag = new ConcurrentBag<Diagnostic>();
-                var tasks = new Task[project.DocumentIds.Count];
-                var i = 0;
+                using var _ = ArrayBuilder<Task>.GetInstance(project.DocumentIds.Count, out var tasks);
                 foreach (var document in project.Documents)
                 {
-                    tasks[i++] = AnalyzeDocumentAsync(suppressionAnalyzer, document, bag.Add);
+                    tasks.Add(AnalyzeDocumentAsync(suppressionAnalyzer, document, bag.Add));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);

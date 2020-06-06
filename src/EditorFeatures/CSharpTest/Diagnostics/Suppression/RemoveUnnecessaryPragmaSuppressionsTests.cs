@@ -601,6 +601,36 @@ class Class
 ");
             }
 
+            [Fact]
+            public async Task TestDoNotRemoveDiagnosticSuppressionsForSuppressedAnalyzer()
+            {
+                var source = $@"
+class Class
+{{
+    void M()
+    {{
+[|#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary, but suppressed
+#pragma warning disable {UserDiagnosticAnalyzer.Descriptor0168.Id} // Variable is declared but never used - Unnecessary, but suppressed
+        int y;
+#pragma warning restore {UserDiagnosticAnalyzer.Descriptor0168.Id} // Variable is declared but never used - Unnecessary, but suppressed
+#pragma warning restore CS0168 // Variable is declared but never used - Unnecessary, but suppressed|]
+        y = 1;
+    }}
+}}";
+                var parameters = new TestParameters();
+                using var workspace = CreateWorkspaceFromFile(source, parameters);
+
+                // Suppress the diagnostic in options.
+                var projectId = workspace.Projects[0].Id;
+                var compilationOptions = TestOptions.DebugDll.WithSpecificDiagnosticOptions(
+                ImmutableDictionary<string, ReportDiagnostic>.Empty
+                    .Add(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, ReportDiagnostic.Suppress));
+                workspace.SetCurrentSolution(s => s.WithProjectCompilationOptions(projectId, compilationOptions), WorkspaceChangeKind.ProjectChanged, projectId);
+
+                var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
+                Assert.True(actions.Length == 0, "An action was offered when none was expected");
+            }
+
             [Theory, CombinatorialData]
             public async Task TestDoNotRemoveCompilerDiagnosticSuppression_IntegerId(bool leadingZero)
             {
