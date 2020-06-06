@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -109,7 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             cancellationToken.ThrowIfCancellationRequested();
             var newSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-
+            var singleLanguage = newSolution.GetChanges(fixAllState.Project.Solution).
+                                             GetProjectChanges().All(pc => pc.NewProject.Language == fixAllState.Project.Language);
             if (showPreviewChangesDialog)
             {
                 newSolution = PreviewChanges(
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     newSolution,
                     FeaturesResources.Fix_all_occurrences,
                     codeAction.Title,
-                    fixAllState.Project.Language,
+                    singleLanguage ? fixAllState.Project.Language : null,
                     workspace,
                     fixAllState.CorrelationId,
                     cancellationToken);
