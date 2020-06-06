@@ -15,59 +15,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.FindSymbols.DependentProjects;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    using DependentProjectMap = ConcurrentDictionary<DefinitionProject, AsyncLazy<ImmutableArray<DependentProject>>>;
+
     /// <summary>
     /// Provides helper methods for finding dependent projects across a solution that a given symbol can be referenced within.
     /// </summary>
-    internal static class DependentProjectsFinder
+    internal static partial class DependentProjectsFinder
     {
-        /// <summary>
-        /// A helper struct used for keying in <see cref="s_dependentProjectsCache"/>.
-        /// </summary>
-        private readonly struct DefinitionProject : IEquatable<DefinitionProject>
-        {
-            private readonly ProjectId? _sourceProjectId;
-            private readonly string? _assemblyName;
-
-            public DefinitionProject(ProjectId? sourceProjectId, string assemblyName)
-            {
-                _sourceProjectId = sourceProjectId;
-                _assemblyName = assemblyName;
-            }
-
-            public override bool Equals(object? obj)
-                => obj is DefinitionProject project && Equals(project);
-
-            public bool Equals(DefinitionProject other)
-                => EqualityComparer<ProjectId?>.Default.Equals(_sourceProjectId, other._sourceProjectId) &&
-                   _assemblyName == other._assemblyName;
-
-            public override int GetHashCode()
-                => Hash.Combine(_sourceProjectId, _assemblyName?.GetHashCode() ?? 0);
-        }
-
-        private readonly struct DependentProject : IEquatable<DependentProject>
-        {
-            public readonly ProjectId ProjectId;
-            public readonly bool HasInternalsAccess;
-
-            public DependentProject(ProjectId dependentProjectId, bool hasInternalsAccess)
-            {
-                this.ProjectId = dependentProjectId;
-                this.HasInternalsAccess = hasInternalsAccess;
-            }
-
-            public override bool Equals(object? obj)
-                => obj is DependentProject project && this.Equals(project);
-
-            public override int GetHashCode()
-                => Hash.Combine(HasInternalsAccess, ProjectId.GetHashCode());
-
-            public bool Equals(DependentProject other)
-                => HasInternalsAccess == other.HasInternalsAccess && ProjectId.Equals(other.ProjectId);
-        }
 
         /// <summary>
         /// Dependent projects cache.
@@ -75,14 +33,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         ///     Key: DefinitionProject, which contains the assembly name and a flag indicating whether assembly is source or metadata assembly.
         ///     Value: List of DependentProjects, where each DependentProject contains a dependent project ID and a flag indicating whether the dependent project has internals access to definition project.
         /// </summary>
-        private static readonly ConditionalWeakTable<Solution, ConcurrentDictionary<DefinitionProject, ImmutableArray<DependentProject>>> s_dependentProjectsCache =
-            new ConditionalWeakTable<Solution, ConcurrentDictionary<DefinitionProject, ImmutableArray<DependentProject>>>();
+        private static readonly ConditionalWeakTable<Solution, DependentProjectMap> s_dependentProjectsCache =
+            new ConditionalWeakTable<Solution, DependentProjectMap>();
 
         /// <summary>
         /// Used to create a new concurrent dependent projects map for a given assembly when needed.
         /// </summary>
-        private static readonly ConditionalWeakTable<Solution, ConcurrentDictionary<DefinitionProject, ImmutableArray<DependentProject>>>.CreateValueCallback s_createDependentProjectsMapCallback =
-            _ => new ConcurrentDictionary<DefinitionProject, ImmutableArray<DependentProject>>(concurrencyLevel: 2, capacity: 20);
+        private static readonly ConditionalWeakTable<Solution, DependentProjectMap>.CreateValueCallback s_createDependentProjectsMapCallback =
+            _ => new DependentProjectMap();
 
         public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project>? projects, CancellationToken cancellationToken)
@@ -160,15 +118,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             else
             {
-                // We cache the dependent projects for non-private symbols, check in the cache first.
+                // We cache the dependent projects for non-private symbols to speed up future calls.
                 var dependentProjectsMap = s_dependentProjectsCache.GetValue(solution, s_createDependentProjectsMapCallback);
-                var key = new DefinitionProject(sourceProjectId: sourceProject?.Id, assemblyName: containingAssembly.Name.ToLower());
 
-                if (!dependentProjectsMap.TryGetValue(key, out dependentProjects))
-                {
-                    dependentProjects = await GetDependentProjectsCoreAsync(symbol, solution, sourceProject, visibility, cancellationToken).ConfigureAwait(false);
-                    dependentProjectsMap.TryAdd(key, dependentProjects);
-                }
+                var asyncLazy = dependentProjectsMap.GetOrAdd(
+                    new DefinitionProject(sourceProjectId: sourceProject?.Id, assemblyName: containingAssembly.Name.ToLower()),
+                    _ => new AsyncLazy<ImmutableArray<DependentProject>>(c => GetDependentProjectsCoreAsync(symbol, solution, sourceProject, visibility, c), cacheResult: true));
+                dependentProjects = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
 
             // 2) Filter the above computed dependent projects based on symbol visibility.
