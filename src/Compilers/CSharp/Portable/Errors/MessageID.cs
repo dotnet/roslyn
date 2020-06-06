@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_TopLevelStatements:
                 case MessageID.IDS_FeatureInitOnlySetters: // semantic check
                 case MessageID.IDS_FeatureRecords:
-                    return LanguageVersion.Preview;
+                    return LanguageVersion.CSharp9;
 
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
