@@ -279,7 +279,7 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
 
       <Private>false</Private>
-      <VSIXSubPath>CoreHost</VSIXSubPath>
+      <VSIXSubPath>InteractiveHost\Core</VSIXSubPath>
       <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
@@ -291,7 +291,7 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
 
       <Private>false</Private>
-      <VSIXSubPath>DesktopHost</VSIXSubPath>
+      <VSIXSubPath>InteractiveHost\Desktop</VSIXSubPath>
       <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
@@ -303,7 +303,7 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
 
       <Private>false</Private>
-      <VSIXSubPath>DesktopHost</VSIXSubPath>
+      <VSIXSubPath>InteractiveHost\Desktop</VSIXSubPath>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
