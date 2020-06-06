@@ -45,7 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var param = F.Parameter(Parameters[0]);
             foreach (var field in ContainingType.GetFieldsToEmit())
             {
-                statements.Add(F.Assignment(F.Field(F.This(), field), F.Field(param, field)));
+                if (!field.IsStatic)
+                {
+                    statements.Add(F.Assignment(F.Field(F.This(), field), F.Field(param, field)));
+                }
             }
         }
     }

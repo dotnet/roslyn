@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? cloneMethod = null;
             if (!receiverType.IsErrorType())
             {
-                // PROTOTYPE: The receiver type must have a instance method called 'Clone' with no parameters
                 LookupMembersInType(
                     lookupResult,
                     receiverType,
@@ -64,39 +63,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 lookupResult.Clear();
-                // PROTOTYPE: discarding use-site diagnostics
-                useSiteDiagnostics = null;
 
-                if (cloneMethod is null)
+                if (cloneMethod is null ||
+                    !receiverType.IsEqualToOrDerivedFrom(
+                        cloneMethod.ReturnType,
+                        TypeCompareKind.ConsiderEverything,
+                        ref useSiteDiagnostics))
                 {
+                    useSiteDiagnostics = null;
                     hasErrors = true;
                     diagnostics.Add(ErrorCode.ERR_NoSingleCloneMethod, syntax.Receiver.Location, receiverType);
                 }
-                else
-                {
-                    // Check return type
-                    if (!receiverType.IsEqualToOrDerivedFrom(
-                            cloneMethod.ReturnType,
-                            TypeCompareKind.ConsiderEverything,
-                            ref useSiteDiagnostics))
-                    {
-                        hasErrors = true;
-                        diagnostics.Add(
-                            ErrorCode.ERR_ContainingTypeMustDeriveFromWithReturnType,
-                            syntax.Receiver.Location,
-                            receiverType,
-                            cloneMethod.ReturnType);
-                    }
-
-                    // PROTOTYPE: discarding use-site diagnostics
-                    useSiteDiagnostics = null;
-                }
             }
 
-            var cloneReturnType = cloneMethod?.ReturnType;
             var initializer = BindInitializerExpression(
                 syntax.Initializer,
-                cloneReturnType ?? receiverType,
+                receiverType,
                 syntax.Receiver,
                 diagnostics);
 
@@ -108,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver,
                 cloneMethod,
                 initializer,
-                cloneReturnType ?? receiverType,
+                receiverType,
                 hasErrors: hasErrors);
         }
     }

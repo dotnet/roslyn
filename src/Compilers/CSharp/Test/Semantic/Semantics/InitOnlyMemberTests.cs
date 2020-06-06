@@ -2173,7 +2173,7 @@ public record C(int i)
 
             var cMembers = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers();
             AssertEx.SetEqual(new[] {
-                "C C.Clone()",
+                "C C.<>Clone()",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
                 "C..ctor(System.Int32 i)",
