@@ -5178,8 +5178,8 @@ record B2(int P) : A
 }
 class Program
 {
-    static B1 NewB1(int p) => new B1 { P = p }; // PROTOTYPE: Replace with new B1(P)
-    static B2 NewB2(int p) => new B2 { P = p }; // PROTOTYPE: Replace with new B2(P)
+    static B1 NewB1(int p) => new B1 { P = p }; // Use record base call syntax instead
+    static B2 NewB2(int p) => new B2 { P = p }; // Use record base call syntax instead
     static void Main()
     {
         WriteLine(new A().Equals(NewB1(1)));
@@ -5256,9 +5256,9 @@ record B2(int P) : A
 }
 class Program
 {
-    static A NewA(int p) => new A { P = p }; // PROTOTYPE: Replace with new A(P)
-    static B1 NewB1(int p) => new B1 { P = p }; // PROTOTYPE: Replace with new B1(P)
-    static B2 NewB2(int p) => new B2 { P = p }; // PROTOTYPE: Replace with new B2(P)
+    static A NewA(int p) => new A { P = p }; // Use record base call syntax instead
+    static B1 NewB1(int p) => new B1 { P = p }; // Use record base call syntax instead
+    static B2 NewB2(int p) => new B2 { P = p }; // Use record base call syntax instead
     static void Main()
     {
         WriteLine(NewA(1).Equals(NewB1(1)));
@@ -5508,32 +5508,38 @@ True");
   IL_0007:  ret
 }");
 
-            verifyMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
-            verifyMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
-            verifyMethod(comp.GetMember<MethodSymbol>("C.get_EqualityContract"), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.get_EqualityContract"), isOverride: true);
 
-            verifyMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? )", true));
-            verifyMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? )", true));
-            verifyMethods(comp.GetMembers("C.Equals"), ("System.Boolean C.Equals(C? )", false), ("System.Boolean C.Equals(B? )", true), ("System.Boolean C.Equals(A? )", true), ("System.Boolean C.Equals(System.Object? )", true));
+            // Should include <>Clone.
 
-            static void verifyMethods(ImmutableArray<Symbol> members, params (string, bool)[] values)
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.GetHashCode"), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.GetHashCode"), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.GetHashCode"), isOverride: true);
+
+            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? )", true));
+            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? )", true));
+            VerifyVirtualMethods(comp.GetMembers("C.Equals"), ("System.Boolean C.Equals(C? )", false), ("System.Boolean C.Equals(B? )", true), ("System.Boolean C.Equals(A? )", true), ("System.Boolean C.Equals(System.Object? )", true));
+        }
+
+        private static void VerifyVirtualMethod(MethodSymbol method, bool isOverride)
+        {
+            Assert.Equal(!isOverride, method.IsVirtual);
+            Assert.Equal(isOverride, method.IsOverride);
+            Assert.True(method.IsMetadataVirtual());
+            Assert.Equal(!isOverride, method.IsMetadataNewSlot());
+        }
+
+        private static void VerifyVirtualMethods(ImmutableArray<Symbol> members, params (string displayString, bool isOverride)[] values)
+        {
+            Assert.Equal(members.Length, values.Length);
+            for (int i = 0; i < members.Length; i++)
             {
-                Assert.Equal(members.Length, values.Length);
-                for (int i = 0; i < members.Length; i++)
-                {
-                    var method = (MethodSymbol)members[i];
-                    (string name, bool isOverride) = values[i];
-                    Assert.Equal(name, method.ToTestDisplayString(includeNonNullable: true));
-                    verifyMethod(method, isOverride);
-                }
-            }
-
-            static void verifyMethod(MethodSymbol method, bool isOverride)
-            {
-                Assert.True(method.IsVirtual);
-                Assert.Equal(isOverride, method.IsOverride);
-                Assert.True(method.IsMetadataVirtual());
-                Assert.Equal(!isOverride, method.IsMetadataNewSlot());
+                var method = (MethodSymbol)members[i];
+                (string displayString, bool isOverride) = values[i];
+                Assert.Equal(displayString, method.ToTestDisplayString(includeNonNullable: true));
+                VerifyVirtualMethod(method, isOverride);
             }
         }
 
@@ -5566,7 +5572,7 @@ record C(int X, int Y, int Z) : B
 }
 class Program
 {
-    static A NewA(int x) => new A { X = x }; // PROTOTYPE: Replace with new A(X), etc.
+    static A NewA(int x) => new A { X = x }; // Use record base call syntax instead
     static B NewB(int x, int y) => new B { X = x, Y = y };
     static C NewC(int x, int y, int z) => new C { X = x, Y = y, Z = z };
     static void Main()
@@ -5693,7 +5699,7 @@ record C(int X, int Y, int Z) : B
 }
 class Program
 {
-    static A NewA(int x) => new A { X = x }; // PROTOTYPE: Replace with new A(X), etc.
+    static A NewA(int x) => new A { X = x }; // Use record base call syntax instead
     static B NewB(int x, int y) => new B { X = x, Y = y };
     static C NewC(int x, int y, int z) => new C { X = x, Y = y, Z = z };
     static void Main()
@@ -5962,14 +5968,14 @@ record A;
 record B1 : A
 {
     public B1(int p) { P = p; }
-    public int P { get; set;  }
+    public int P { get; set; }
     protected override Type EqualityContract => typeof(A);
     public virtual bool Equals(B1 o) => base.Equals((A)o);
 }
 record B2 : A
 {
     public B2(int p) { P = p; }
-    public int P { get; set;  }
+    public int P { get; set; }
     protected override Type EqualityContract => typeof(B2);
     public virtual bool Equals(B2 o) => base.Equals((A)o);
 }
@@ -5997,7 +6003,7 @@ record A;
 record B1 : A
 {
     public B1(int p) { P = p; }
-    public int P { get; set;  }
+    public int P { get; set; }
     protected override Type EqualityContract => typeof(string);
     public override bool Equals(A a) => base.Equals(a);
     public virtual bool Equals(B1 b) => base.Equals((A)b);
@@ -6005,7 +6011,7 @@ record B1 : A
 record B2 : A
 {
     public B2(int p) { P = p; }
-    public int P { get; set;  }
+    public int P { get; set; }
     protected override Type EqualityContract => typeof(string);
     public override bool Equals(A a) => base.Equals(a);
     public virtual bool Equals(B2 b) => base.Equals((A)b);
@@ -6085,6 +6091,90 @@ True");
                 "B1..ctor(B1 )",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Equality_18(bool useCompilationReference)
+        {
+            var sourceA = @"public record A;";
+            var comp = CreateCompilation(sourceA);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
+            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? )", true));
+            var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
+
+            var sourceB = @"record B : A;";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
+            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? )", true));
+        }
+
+        [Fact]
+        public void Equality_19()
+        {
+            var source =
+@"using static System.Console;
+record A<T>;
+record B : A<int>;
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new A<int>().Equals(new A<int>()));
+        WriteLine(new A<int>().Equals(new B()));
+        WriteLine(new B().Equals(new A<int>()));
+        WriteLine(new B().Equals(new B()));
+        WriteLine(((A<int>)new B()).Equals(new A<int>()));
+        WriteLine(((A<int>)new B()).Equals(new B()));
+        WriteLine(new B().Equals((A<int>)new B()));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+False
+False
+True
+False
+True
+True");
+            verifier.VerifyIL("A<T>.Equals(A<T>)",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type A<T>.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type A<T>.EqualityContract.get""
+  IL_000f:  ceq
+  IL_0011:  ret
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+}");
+            verifier.VerifyIL("B.Equals(A<int>)",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""B""
+  IL_0007:  callvirt   ""bool B.Equals(B)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("B.Equals(B)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool A<int>.Equals(A<int>)""
+  IL_0007:  ret
+}");
         }
     }
 }
