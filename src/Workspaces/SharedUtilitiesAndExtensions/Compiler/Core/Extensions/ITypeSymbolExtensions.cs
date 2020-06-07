@@ -15,12 +15,33 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using System.Reflection;
+#endif
+
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
         private const string DefaultParameterName = "p";
         private const string DefaultBuiltInParameterName = "v";
+
+#if CODE_STYLE
+        private static readonly Func<IPropertySymbol, IFieldSymbol?> GetPropertyAssociatedField =
+            typeof(IPropertySymbol)
+                .GetProperty("AssociatedField", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                ?.GetMethod
+                ?.CreateDelegate<Func<IPropertySymbol, IFieldSymbol?>>()
+                ?? GetAssociatedFieldFromGetMembers;
+
+        // Graceful fallback if using a newer version of the CodeStyle package against an older version of Roslyn
+        private static IFieldSymbol? GetAssociatedFieldFromGetMembers(IPropertySymbol propertySymbol)
+        {
+            return propertySymbol.ContainingType?.GetMembers()
+                .OfType<IFieldSymbol>()
+                .FirstOrDefault(f => SymbolEqualityComparer.Default.Equals(f.AssociatedSymbol, propertySymbol));
+        }
+#endif
 
         public static bool CanAddNullCheck([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
         {
@@ -688,7 +709,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             foreach (var member in type.GetMembers())
             {
                 // TODO: Events?
+#if CODE_STYLE
+                var fieldSymbol = member as IFieldSymbol ?? (member is IPropertySymbol property ? GetPropertyAssociatedField.Invoke(property) : null);
+#else
                 var fieldSymbol = member as IFieldSymbol ?? (member as IPropertySymbol)?.AssociatedField;
+#endif
                 if (fieldSymbol is null)
                 {
                     continue;
