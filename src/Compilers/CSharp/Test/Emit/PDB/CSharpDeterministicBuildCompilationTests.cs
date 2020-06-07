@@ -193,7 +193,7 @@ public struct StructWithValue
                 emitOptions: emitOptions);
 
             var testSource = new[] { sourceOne, sourceTwo, sourceThree };
-            TestDeterministicCompilationCSharp(parseOptions.LanguageVersion.ToString(), testSource, compilationOptions, emitOptions, referenceOne, referenceTwo);
+            TestDeterministicCompilationCSharp(parseOptions.LanguageVersion.MapSpecifiedToEffectiveVersion().ToDisplayString(), testSource, compilationOptions, emitOptions, referenceOne, referenceTwo);
         }
 
         public IEnumerator<object[]> GetEnumerator() => GetTestParameters().GetEnumerator();
