@@ -3,14 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 #nullable enable
 namespace Microsoft.CodeAnalysis
@@ -59,8 +54,20 @@ namespace Microsoft.CodeAnalysis
 
         internal AdditionalSourcesCollection AdditionalSources { get; }
 
+        /// <summary>
+        /// Adds a <see cref="SourceText"/> to the compilation
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
         public void AddSource(string hintName, SourceText sourceText) => AdditionalSources.Add(hintName, sourceText);
 
+        /// <summary>
+        /// Adds a <see cref="Diagnostic"/> to the users compilation 
+        /// </summary>
+        /// <param name="diagnostic">The diagnostic that should be added to the compilation</param>
+        /// <remarks>
+        /// The severity of the diagnostic may cause the compilation to fail, depending on the <see cref="Compilation"/> settings.
+        /// </remarks>
         public void ReportDiagnostic(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
     }
 

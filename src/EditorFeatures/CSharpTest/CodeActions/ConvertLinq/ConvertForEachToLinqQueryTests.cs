@@ -1265,7 +1265,6 @@ class C
             await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
         public async Task ReturnIEnumerablePartialMethod()
         {
@@ -3127,7 +3126,6 @@ class C
 
             await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
         public async Task CountInMultipleDeclarationMergeToReturnLast()

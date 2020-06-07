@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal sealed class MetadataEntityReferenceComparer : IEqualityComparer<Cci.IReference>
+    internal sealed class MetadataEntityReferenceComparer : IEqualityComparer<object>
     {
         internal static readonly MetadataEntityReferenceComparer ConsiderEverything = new MetadataEntityReferenceComparer(TypeCompareKind.ConsiderEverything);
 
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _compareKind = compareKind;
         }
 
-        public bool Equals(Cci.IReference x, Cci.IReference y)
+        public new bool Equals(object x, object y)
         {
             if (x is null)
             {
@@ -32,13 +32,17 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 return sx.Equals(sy, _compareKind);
             }
+            else if (x is ISymbolCompareKindComparableInternal cx && y is ISymbolCompareKindComparableInternal cy)
+            {
+                return cx.Equals(cy, _compareKind);
+            }
             else
             {
                 return x.Equals(y);
             }
         }
 
-        public int GetHashCode(Cci.IReference obj)
+        public int GetHashCode(object obj)
         {
             return obj?.GetHashCode() ?? 0;
         }

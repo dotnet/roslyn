@@ -52,12 +52,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Friend Overrides Function IsAcceptedInAttributeModifierType(type As TypeSymbol) As Boolean
-            ' VB doesn't deal with ref-readonly parameters or return-types.
+            ' VB doesn't deal with ref-readonly parameters, function pointers, or ref-return-types.
+            Return False
+        End Function
+
+        Friend Overrides Function IsAcceptedOutAttributeModifierType(type As TypeSymbol) As Boolean
+            ' VB doesn't deal with ref-readonly parameters, function pointers, or ref-return-types.
             Return False
         End Function
 
         Friend Overrides Function IsAcceptedUnmanagedTypeModifierType(type As TypeSymbol) As Boolean
             ' VB doesn't deal with unmanaged generic type constraints
+            Return False
+        End Function
+
+        Friend Overrides Function IsAcceptedIsExternalInitModifierType(type As TypeSymbol) As Boolean
+            ' https://github.com/dotnet/roslyn/issues/44870 VB doesn't deal with init-only members yet.
             Return False
         End Function
 
@@ -160,6 +170,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return If(namedType IsNot Nothing AndAlso namedType.IsGenericType, UnboundGenericType.Create(namedType), type)
         End Function
 
+        Friend Overrides Function MakeFunctionPointerTypeSymbol(callingConvention As Cci.CallingConvention, retAndParamTypes As ImmutableArray(Of ParamInfo(Of TypeSymbol))) As TypeSymbol
+            Return New UnsupportedMetadataTypeSymbol()
+        End Function
     End Class
 
 End Namespace

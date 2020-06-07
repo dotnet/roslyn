@@ -52,7 +52,6 @@ End Module
 "
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMultiLineIdentifier() As Task
             Await TestFixOneAsync(
@@ -71,7 +70,6 @@ End Module
         End If
 ")
         End Function
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestElseIf() As Task
@@ -302,8 +300,6 @@ End Module")
 End Module")
         End Function
 
-
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestMultipleStatementsMultiLineIfBlock() As Task
             Await TestInRegularAndScriptAsync(
@@ -330,8 +326,6 @@ End Module",
     End Sub
 End Module")
         End Function
-
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestTriviaAfterMultiLineIfBlock() As Task
@@ -578,7 +572,6 @@ End Module",
     End Sub
 End Module")
         End Function
-
 
         <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>

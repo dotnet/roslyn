@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var currentConstructor = semanticModel.GetDeclaredSymbol(constructorInitializer.Parent);
+            var currentConstructor = semanticModel.GetDeclaredSymbol(constructorInitializer.Parent, cancellationToken);
 
             var accessibleConstructors = type.InstanceConstructors
                                              .WhereAsArray(c => c.IsAccessibleWithin(within) && !c.Equals(currentConstructor))

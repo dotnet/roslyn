@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     }
                 });
             var options = new CodeGenerationOptions(reuseSyntax: true, generateMethodBodies: false);
-            var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options: options);
+            var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options: options, cancellationToken: cancellationToken);
 
             // Remove some original members since we are pulling members into class.
             // Note: If the user chooses to make the member abstract, then the original member will be changed to an override,

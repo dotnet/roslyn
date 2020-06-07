@@ -141,6 +141,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     SymbolKind.RangeVariable => RangeVariablesAreEquivalent((IRangeVariableSymbol)x, (IRangeVariableSymbol)y),
                     SymbolKind.TypeParameter => TypeParametersAreEquivalent((ITypeParameterSymbol)x, (ITypeParameterSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Preprocessing => PreprocessingSymbolsAreEquivalent((IPreprocessingSymbol)x, (IPreprocessingSymbol)y),
+                    SymbolKindEx.FunctionPointer =>
+#if !CODE_STYLE
+                        FunctionPointerTypesAreEquivalent((IFunctionPointerTypeSymbol)x, (IFunctionPointerTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
+#else
+                        false,
+#endif
                     _ => false,
                 };
             }
@@ -174,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private static bool LocalsAreEquivalent(ILocalSymbol x, ILocalSymbol y)
                 => HaveSameLocation(x, y);
 
-            private bool MethodsAreEquivalent(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool MethodsAreEquivalent(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies, bool considerReturnRefKinds = false)
             {
                 if (!AreCompatibleMethodKinds(x.MethodKind, y.MethodKind))
                 {
@@ -234,6 +240,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
 
                     if (!ReturnTypesAreEquivalent(x, y, equivalentTypesWithDifferingAssemblies))
+                    {
+                        return false;
+                    }
+
+                    if (considerReturnRefKinds && !AreRefKindsEquivalent(x.RefKind, y.RefKind, distinguishRefFromOut: false))
                     {
                         return false;
                     }
@@ -347,19 +358,43 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 if (x.IsTupleType)
                     return HandleTupleTypes(x, y, equivalentTypesWithDifferingAssemblies);
 
-                if (!AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies))
-                    return false;
-
-                // Above check makes sure that the containing assemblies are considered the same by the assembly comparer being used.
-                // If they are in fact not the same (have different name) and the caller requested to know about such types add {x, y} 
-                // to equivalentTypesWithDifferingAssemblies map.
-                if (equivalentTypesWithDifferingAssemblies != null &&
-                    x.ContainingType == null &&
-                    x.ContainingAssembly != null &&
-                    !AssemblyIdentityComparer.SimpleNameComparer.Equals(x.ContainingAssembly.Name, y.ContainingAssembly.Name) &&
-                    !equivalentTypesWithDifferingAssemblies.ContainsKey(x))
+                if (x.Kind == SymbolKind.ErrorType &&
+                    x.ContainingSymbol is INamespaceSymbol xNamespace &&
+                    y.ContainingSymbol is INamespaceSymbol yNamespace)
                 {
-                    equivalentTypesWithDifferingAssemblies.Add(x, y);
+                    Debug.Assert(y.Kind == SymbolKind.ErrorType);
+
+                    // For error types, we just ensure that the containing namespaces are equivalent up to the root.
+                    while (true)
+                    {
+                        if (xNamespace.Name != yNamespace.Name)
+                            return false;
+
+                        // Error namespaces don't set the IsGlobalNamespace bit unfortunately.  So we just do the
+                        // nominal check to see if we've actually hit the root.
+                        if (xNamespace.Name == "")
+                            break;
+
+                        xNamespace = xNamespace.ContainingNamespace;
+                        yNamespace = yNamespace.ContainingNamespace;
+                    }
+                }
+                else
+                {
+                    if (!AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies))
+                        return false;
+
+                    // Above check makes sure that the containing assemblies are considered the same by the assembly comparer being used.
+                    // If they are in fact not the same (have different name) and the caller requested to know about such types add {x, y} 
+                    // to equivalentTypesWithDifferingAssemblies map.
+                    if (equivalentTypesWithDifferingAssemblies != null &&
+                        x.ContainingType == null &&
+                        x.ContainingAssembly != null &&
+                        !AssemblyIdentityComparer.SimpleNameComparer.Equals(x.ContainingAssembly.Name, y.ContainingAssembly.Name) &&
+                        !equivalentTypesWithDifferingAssemblies.ContainsKey(x))
+                    {
+                        equivalentTypesWithDifferingAssemblies.Add(x, y);
+                    }
                 }
 
                 if (x.IsAnonymousType)
@@ -536,6 +571,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
                     AreEquivalent(x.PointedAtType, y.PointedAtType, equivalentTypesWithDifferingAssemblies);
             }
+
+#if !CODE_STYLE
+            private bool FunctionPointerTypesAreEquivalent(IFunctionPointerTypeSymbol x, IFunctionPointerTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+                => MethodsAreEquivalent(x.Signature, y.Signature, equivalentTypesWithDifferingAssemblies);
+#endif
 
             private bool PropertiesAreEquivalent(IPropertySymbol x, IPropertySymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
