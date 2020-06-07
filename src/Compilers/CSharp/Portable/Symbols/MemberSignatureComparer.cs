@@ -454,8 +454,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // CONSIDER: modify hash for constraints?
 
-                hash = Hash.Combine(member.GetMemberArity(), hash);
-                hash = Hash.Combine(member.GetParameterCount(), hash);
+                if (member.Kind != SymbolKind.Field)
+                {
+                    hash = Hash.Combine(member.GetMemberArity(), hash);
+                    hash = Hash.Combine(member.GetParameterCount(), hash);
+                }
             }
             return hash;
         }

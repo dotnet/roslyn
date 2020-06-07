@@ -98,6 +98,7 @@ modifier
   : 'abstract'
   | 'async'
   | 'const'
+  | 'data'
   | 'extern'
   | 'fixed'
   | 'internal'
@@ -242,7 +243,7 @@ accessor_list
   ;
 
 accessor_declaration
-  : attribute_list* modifier* ('get' | 'set' | 'add' | 'remove' | identifier_token) (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* ('get' | 'set' | 'init' | 'add' | 'remove' | identifier_token) (block | (arrow_expression_clause ';'))
   ;
 
 indexer_declaration
@@ -275,7 +276,7 @@ base_type
   ;
 
 simple_base_type
-  : type
+  : type argument_list?
   ;
 
 enum_member_declaration
@@ -285,6 +286,7 @@ enum_member_declaration
 type_declaration
   : class_declaration
   | interface_declaration
+  | record_declaration
   | struct_declaration
   ;
 
@@ -294,6 +296,10 @@ class_declaration
 
 interface_declaration
   : attribute_list* modifier* 'interface' identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{' member_declaration* '}' ';'?
+  ;
+
+record_declaration
+  : attribute_list* modifier* syntax_token identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 struct_declaration
@@ -689,6 +695,7 @@ expression
   | tuple_expression
   | type
   | type_of_expression
+  | with_expression
   ;
 
 anonymous_function_expression
@@ -996,6 +1003,10 @@ tuple_expression
 
 type_of_expression
   : 'typeof' '(' type ')'
+  ;
+
+with_expression
+  : expression 'with' initializer_expression
   ;
 
 xml_node

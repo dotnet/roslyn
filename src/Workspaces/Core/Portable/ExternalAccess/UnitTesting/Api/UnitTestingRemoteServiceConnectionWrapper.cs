@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal readonly struct UnitTestingRemoteServiceConnectionWrapper
+    internal readonly struct UnitTestingRemoteServiceConnectionWrapper : IDisposable
     {
         internal RemoteServiceConnection UnderlyingObject { get; }
 
@@ -28,5 +29,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         public async Task<Optional<T>> TryRunRemoteAsync<T>(string targetName, Solution? solution, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
             => await UnderlyingObject.RunRemoteAsync<T>(targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
+
+        public void Dispose() => UnderlyingObject?.Dispose();
     }
 }

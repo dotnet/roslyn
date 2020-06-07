@@ -208,6 +208,15 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
+        protected const string IsExternalInitTypeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}
+";
+
         protected const string IAsyncDisposableDefinition = @"
 namespace System
 {

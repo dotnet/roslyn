@@ -990,6 +990,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         IndexedTypeParameterSymbol.Take(method.Arity),
                         targetParamsBuilder.ToImmutableAndFree(),
                         method.RefKind,
+                        method.IsInitOnly,
                         translator.Retarget(method.ReturnTypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                         translator.RetargetModifiers(method.RefCustomModifiers, out modifiersHaveChanged_Ignored),
                         ImmutableArray<MethodSymbol>.Empty);
