@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UseAutoProperty;
@@ -51,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 AnalyzeMembers(context, namespaceDeclaration.Members, analysisResults);
             }
             else if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration) ||
-                member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration))
+                member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration) ||
+                member.IsKind(SyntaxKindEx.RecordDeclaration, out typeDeclaration))
             {
                 // If we have a class or struct, recurse inwards.
                 AnalyzeMembers(context, typeDeclaration.Members, analysisResults);
