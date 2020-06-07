@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _clientCapabilities = new VSClientCapabilities();
         }
 
-        public bool Running => !_shuttingDown && !_jsonRpc.IsDisposed
+        public bool Running => !_shuttingDown && !_jsonRpc.IsDisposed;
 
         /// <summary>
         /// Handle the LSP initialize request by storing the client capabilities
