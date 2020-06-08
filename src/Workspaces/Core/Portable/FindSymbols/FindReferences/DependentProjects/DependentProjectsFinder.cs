@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SymbolKey containingAssemblySymbolKey,
             Project? sourceProject,
             Project project,
-            AsyncLazy<HashSet<string>> sourceProjectInternalsVisibleToMap,
+            AsyncLazy<HashSet<string>?> sourceProjectInternalsVisibleToSet,
             CancellationToken cancellationToken)
         {
             // Only examine real roslyn projects that have a direct P2P reference to the source project (if it exists),
@@ -272,30 +272,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return default;
             }
 
-            if (sourceProject == null)
-            {
-                // If it's a symbol from metadata, do the full check for every project to see if it has a reference to
-                // this metadata dll.
-                var internalsVisibleTo = await MetadataAssemblyHasInternalsAccessAsync(
-                    containingAssembly, containingAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
-
-                return (isDependent: true, project.Id, internalsVisibleTo);
-            }
-            else
+            if (sourceProject != null)
             {
                 // If it's a symbol from source, then load our fast cache of IVT information for that source-project and
                 // see if this project is in that set.
-                var ivtMap = await sourceProjectInternalsVisibleToMap.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                var internalsVisibleTo = ivtMap.Contains(project.AssemblyName);
-
-                return (isDependent: true, project.Id, internalsVisibleTo);
+                var ivtSet = await sourceProjectInternalsVisibleToSet.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                if (ivtSet != null)
+                    return (isDependent: true, project.Id, ivtSet.Contains(project.AssemblyName));
             }
+
+            var internalsVisibleTo = await AssemblySymbolHasInternalsAccessAsync(
+                containingAssembly, containingAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
+
+            return (isDependent: true, project.Id, internalsVisibleTo);
+
         }
 
         /// <summary>
         /// Performs the full, expensive, compilation check if <paramref name="project"/> can see internal symbols from <paramref name="containingAssembly"/>.
         /// </summary>
-        private static async Task<bool> MetadataAssemblyHasInternalsAccessAsync(
+        private static async Task<bool> AssemblySymbolHasInternalsAccessAsync(
             IAssemblySymbol containingAssembly,
             SymbolKey containingAssemblySymbolKey,
             Project project,
@@ -341,20 +337,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// However, we will still only look in those projects for documents that can match, so it shouldn't result in
         /// significant extra work to be done.
         /// </remarks>
-        private static AsyncLazy<HashSet<string>> GetSourceProjectInternalsVisibleToMap(Project? sourceProject)
+        private static AsyncLazy<HashSet<string>?> GetSourceProjectInternalsVisibleToSet(Project? sourceProject)
         {
             // If we're dealing with a metadata symbol, we have no source information we can look at to make this
             // determination.
             if (sourceProject == null)
-                return new AsyncLazy<HashSet<string>>(new HashSet<string>());
+                return new AsyncLazy<HashSet<string>?>(new HashSet<string>());
 
-            return new AsyncLazy<HashSet<string>>(
+            return new AsyncLazy<HashSet<string>?>(
                 async c =>
                 {
                     // Load all the indices for all documents in the project and grab any potential IVT attributes.
                     var tasks = sourceProject.Documents.Select(async d =>
                     {
                         var index = await d.GetSyntaxTreeIndexAsync(c).ConfigureAwait(false);
+                        if (index.InternalsVisibleTo == null)
+                            return (ImmutableArray<string>?)null;
+
                         return index.InternalsVisibleTo.SelectAsArray(ivt => GetAssemblyName(ivt));
                     }).ToArray();
 
