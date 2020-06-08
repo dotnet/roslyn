@@ -380,8 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.Default:
                 case LanguageVersion.LatestMajor:
                     return LanguageVersion.CSharp8;
-                case LanguageVersion.Preview:
-                    return LanguageVersion.CSharp9;
+                case LanguageVersion.CSharp9:
+                    return LanguageVersion.Preview;
                 default:
                     return version;
             }
