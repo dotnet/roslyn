@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly ImmutableDictionary<object, AnalyzerConfigOptions> _treeDict;
 
-        private readonly AnalyzerConfigOptions _globalOptions;
-
         public static CompilerAnalyzerConfigOptionsProvider Empty { get; }
             = new CompilerAnalyzerConfigOptionsProvider(
                 ImmutableDictionary<object, AnalyzerConfigOptions>.Empty,
@@ -24,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerConfigOptions globalOptions)
         {
             _treeDict = treeDict;
-            _globalOptions = globalOptions;
+            GlobalOptions = globalOptions;
         }
 
-        public override AnalyzerConfigOptions GlobalOptions { get => _globalOptions; }
+        public override AnalyzerConfigOptions GlobalOptions { get; }
 
         public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
             => _treeDict.TryGetValue(tree, out var options) ? options : CompilerAnalyzerConfigOptions.Empty;
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => _treeDict.TryGetValue(textFile, out var options) ? options : CompilerAnalyzerConfigOptions.Empty;
 
         internal CompilerAnalyzerConfigOptionsProvider WithTreeOptions(ImmutableDictionary<object, AnalyzerConfigOptions> treeDict)
-            => new CompilerAnalyzerConfigOptionsProvider(_treeDict.AddRange(treeDict), _globalOptions);
+            => new CompilerAnalyzerConfigOptionsProvider(_treeDict.AddRange(treeDict), GlobalOptions);
 
         internal CompilerAnalyzerConfigOptionsProvider WithGlobalOptions(AnalyzerConfigOptions globalOptions)
             => new CompilerAnalyzerConfigOptionsProvider(_treeDict, globalOptions);

@@ -855,8 +855,8 @@ namespace Microsoft.CodeAnalysis
             return exitCode;
         }
 
-        private static void UpdateAnalyzerConfigOptionsProvider(
-            ref CompilerAnalyzerConfigOptionsProvider existing,
+        private static CompilerAnalyzerConfigOptionsProvider UpdateAnalyzerConfigOptionsProvider(
+            CompilerAnalyzerConfigOptionsProvider existing,
             IEnumerable<SyntaxTree> syntaxTrees,
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
             ImmutableArray<AdditionalText> additionalFiles = default,
@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
-            existing = existing.WithTreeOptions(builder.ToImmutable());
+            return existing.WithTreeOptions(builder.ToImmutable());
         }
 
         /// <summary>
@@ -941,8 +941,8 @@ namespace Microsoft.CodeAnalysis
                         diagnostics.AddRange(result.Diagnostics);
                     }
 
-                    UpdateAnalyzerConfigOptionsProvider(
-                        ref analyzerConfigProvider,
+                    analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
+                        analyzerConfigProvider,
                         compilation.SyntaxTrees,
                         sourceFileAnalyzerConfigOptions,
                         additionalTextFiles,
@@ -959,8 +959,8 @@ namespace Microsoft.CodeAnalysis
                     if (Arguments.AnalyzerConfigPaths.Length > 0)
                     {
                         var generatedSourceFileAnalyzerConfigOptions = generatedSyntaxTrees.SelectAsArray(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath));
-                        UpdateAnalyzerConfigOptionsProvider(
-                            ref analyzerConfigProvider,
+                        analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
+                            analyzerConfigProvider,
                             generatedSyntaxTrees,
                             generatedSourceFileAnalyzerConfigOptions);
                     }
