@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (token.IsKind(SyntaxKind.OpenBraceToken))
             {
-                if (token.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.InterfaceDeclaration))
+                if (token.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKindEx.RecordDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.InterfaceDeclaration))
                 {
                     return true;
                 }
@@ -585,6 +585,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // A type can also show up after certain types of modifiers
             if (canBePartial &&
                 token.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
+            {
+                return true;
+            }
+
+            if (token.IsKindOrHasMatchingText(SyntaxKindEx.DataKeyword))
             {
                 return true;
             }
@@ -775,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     position,
                     contextOpt: null,
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }
@@ -2758,7 +2763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsIsOrAsOrSwitchExpressionContext(
+        public static bool IsIsOrAsOrSwitchOrWithExpressionContext(
             this SyntaxTree syntaxTree,
             SemanticModel semanticModel,
             int position,
@@ -2783,10 +2788,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
-            // is/as are valid after expressions.
+            // is/as/with are valid after expressions.
             if (token.IsLastTokenOfNode<ExpressionSyntax>(out var expression))
             {
-                // 'is/as' not allowed after a anonymous-method/lambda/method-group.
+                // 'is/as/with' not allowed after a anonymous-method/lambda/method-group.
                 if (expression.IsAnyLambdaOrAnonymousMethod())
                     return false;
 
@@ -2848,7 +2853,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     // async $$
                     //
                     // 'async' will look like a normal identifier.  But we don't want to follow it
-                    // with 'is' or 'as' if it's actually the start of a lambda.
+                    // with 'is' or 'as' or 'with' if it's actually the start of a lambda.
                     var delegateType = CSharpTypeInferenceService.Instance.InferDelegateType(
                         semanticModel, token.SpanStart, cancellationToken);
                     if (delegateType != null)

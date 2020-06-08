@@ -1621,7 +1621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 propertySymbol = propertySymbol.OriginalDefinition;
             }
 
-            var sourceProperty = propertySymbol as SourcePropertySymbol;
+            var sourceProperty = propertySymbol as SourceOrRecordPropertySymbol;
             var propertyIsStatic = propertySymbol.IsStatic;
 
             return (object)sourceProperty != null &&
@@ -3265,6 +3265,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (syntax)
             {
+                case RecordDeclarationSyntax recordDecl:
+                    return BindRecordConstructorBody(recordDecl, diagnostics);
+
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
                     {
@@ -3311,6 +3314,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      expressionBody: null);
         }
 
+        private BoundNode BindRecordConstructorBody(RecordDeclarationSyntax recordDecl, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(recordDecl.ParameterList is object);
+
+            Binder bodyBinder = this.GetBinder(recordDecl);
+            Debug.Assert(bodyBinder != null);
+
+            BoundExpressionStatement initializer = null;
+            if (recordDecl.BaseWithArguments is SimpleBaseTypeSyntax baseWithArguments)
+            {
+                initializer = bodyBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
+            }
+
+            return new BoundConstructorMethodBody(recordDecl,
+                                                  bodyBinder.GetDeclaredLocalsForScope(recordDecl),
+                                                  initializer,
+                                                  blockBody: new BoundBlock(recordDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
+                                                  expressionBody: null);
+        }
+
+        internal BoundExpressionStatement BindConstructorInitializer(SimpleBaseTypeSyntax initializer, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(initializer.Parent?.Parent is RecordDeclarationSyntax recordDecl && recordDecl.ParameterList is object && recordDecl.BaseWithArguments == initializer);
+
+            BoundExpression initializerInvocation = GetBinder(initializer).BindConstructorInitializer(initializer.ArgumentList, (MethodSymbol)this.ContainingMember(), diagnostics);
+            var constructorInitializer = new BoundExpressionStatement(initializer, initializerInvocation);
+            Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
+            return constructorInitializer;
+        }
+
         private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, DiagnosticBag diagnostics)
         {
             if (constructor.Initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
@@ -3320,6 +3353,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder bodyBinder = this.GetBinder(constructor);
             Debug.Assert(bodyBinder != null);
+
+            if (constructor.Initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) != true &&
+                ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any())
+            {
+                Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, constructor.Initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+            }
 
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,

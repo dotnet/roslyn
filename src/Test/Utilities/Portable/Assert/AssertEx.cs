@@ -441,14 +441,19 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public static void SetEqual<T>(T[] expected, T[] actual)
+            => SetEqual((IEnumerable<T>)actual, expected);
+
         public static void SetEqual<T>(IEnumerable<T> actual, params T[] expected)
         {
             var expectedSet = new HashSet<T>(expected);
             if (!expectedSet.SetEquals(actual))
             {
-                // If they're not set equals, then they're not "regular" equals either.
-                Assert.Equal(expected, actual);
+                var message = GetAssertMessage(ToString(expected, ",\r\n", itemInspector: withQuotes), ToString(actual, ",\r\n", itemInspector: withQuotes));
+                Assert.True(false, message);
             }
+
+            string withQuotes(T t) => $"\"{Convert.ToString(t)}\"";
         }
 
         public static void None<T>(IEnumerable<T> actual, Func<T, bool> predicate)

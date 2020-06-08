@@ -1806,11 +1806,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }
 
-        internal static bool IsWellKnownTypeInAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("InAttribute");
+        internal static bool IsWellKnownTypeInAttribute(this TypeSymbol typeSymbol)
+            => typeSymbol.IsWellKnownInteropServicesTopLevelType("InAttribute");
+
+        internal static bool IsWellKnownTypeUnmanagedType(this TypeSymbol typeSymbol)
+            => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");
+
+        internal static bool IsWellKnownTypeIsExternalInit(this TypeSymbol typeSymbol)
+            => typeSymbol.IsWellKnownCompilerServicesTopLevelType("IsExternalInit");
 
         internal static bool IsWellKnownTypeOutAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("OutAttribute");
-
-        internal static bool IsWellKnownTypeUnmanagedType(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");
 
         private static bool IsWellKnownInteropServicesTopLevelType(this TypeSymbol typeSymbol, string name)
         {
@@ -1819,26 +1824,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var interopServicesNamespace = typeSymbol.ContainingNamespace;
-            if (interopServicesNamespace?.Name != "InteropServices")
+            return IsContainedInNamespace(typeSymbol, "System", "Runtime", "InteropServices");
+        }
+
+        private static bool IsWellKnownCompilerServicesTopLevelType(this TypeSymbol typeSymbol, string name)
+        {
+            if (typeSymbol.Name != name || typeSymbol.ContainingType is object)
             {
                 return false;
             }
 
-            var runtimeNamespace = interopServicesNamespace.ContainingNamespace;
-            if (runtimeNamespace?.Name != "Runtime")
+            return IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices");
+        }
+
+        private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string innerNS)
+        {
+            var innerNamespace = typeSymbol.ContainingNamespace;
+            if (innerNamespace?.Name != innerNS)
             {
                 return false;
             }
 
-            var systemNamespace = runtimeNamespace.ContainingNamespace;
-            if (systemNamespace?.Name != "System")
+            var midNamespace = innerNamespace.ContainingNamespace;
+            if (midNamespace?.Name != midNS)
             {
                 return false;
             }
 
-            var globalNamespace = systemNamespace.ContainingNamespace;
+            var outerNamespace = midNamespace.ContainingNamespace;
+            if (outerNamespace?.Name != outerNS)
+            {
+                return false;
+            }
 
+            var globalNamespace = outerNamespace.ContainingNamespace;
             return globalNamespace != null && globalNamespace.IsGlobalNamespace;
         }
 

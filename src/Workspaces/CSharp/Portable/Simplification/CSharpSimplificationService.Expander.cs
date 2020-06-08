@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 while (parent != null)
                 {
-                    if (parent.Kind() == SyntaxKind.ObjectInitializerExpression)
+                    if (parent.IsKind(SyntaxKind.ObjectInitializerExpression, SyntaxKind.WithInitializerExpression))
                     {
                         return currentNode.Kind() == SyntaxKind.SimpleAssignmentExpression &&
                             object.Equals(((AssignmentExpressionSyntax)currentNode).Left, identifierName);
