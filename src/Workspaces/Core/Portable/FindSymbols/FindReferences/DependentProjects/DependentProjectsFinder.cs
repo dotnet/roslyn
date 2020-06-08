@@ -37,12 +37,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             new ConditionalWeakTable<Solution, DependentProjectMap>();
 
         /// <summary>
-        /// Used to create a new concurrent dependent projects map for a given assembly when needed.
-        /// </summary>
-        private static readonly ConditionalWeakTable<Solution, DependentProjectMap>.CreateValueCallback s_createDependentProjectsMapCallback =
-            _ => new DependentProjectMap();
-
-        /// <summary>
         /// Returns the set of <see cref="Project"/>s in <paramref name="solution"/> that <paramref name="symbol"/>
         /// could be referenced in.  Note that results are not precise.  Specifically, if a project cannot reference
         /// <paramref name="symbol"/> it will not be included. However, some projects which cannot reference <paramref
@@ -110,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else
             {
                 // We cache the dependent projects for non-private symbols to speed up future calls.
-                var dependentProjectsMap = s_dependentProjectsCache.GetValue(solution, s_createDependentProjectsMapCallback);
+                var dependentProjectsMap = s_dependentProjectsCache.GetValue(solution, _ => new DependentProjectMap());
                 var definitionProject = new DefinitionProject(sourceProjectId: sourceProject?.Id, assemblyName: containingAssembly.Name.ToLower());
 
                 var asyncLazy = dependentProjectsMap.GetOrAdd(
