@@ -143,8 +143,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMember">
-        <source>Record member '{0}' must be a readable instance property of type '{1}'.</source>
-        <target state="new">Record member '{0}' must be a readable instance property of type '{1}'.</target>
+        <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
+        <target state="new">Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">

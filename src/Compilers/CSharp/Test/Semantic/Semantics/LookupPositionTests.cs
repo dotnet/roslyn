@@ -1719,6 +1719,7 @@ record C(int X) : Base`(X`)
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members
@@ -1734,6 +1735,7 @@ record C(int X) : Base`(X`)
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 s_pop
             );
@@ -1803,6 +1805,7 @@ partial record C : Base(X, Y)
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members
@@ -1818,6 +1821,7 @@ partial record C : Base(X, Y)
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 s_pop
 
@@ -1856,6 +1860,7 @@ partial record C : Base(X)
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members
@@ -1871,6 +1876,7 @@ partial record C : Base(X)
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members
@@ -1886,6 +1892,7 @@ partial record C : Base(X)
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 s_pop
             );
@@ -1923,6 +1930,7 @@ partial record C(int X) : Base`(X`)
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members + parameters
@@ -1938,6 +1946,7 @@ partial record C(int X) : Base`(X`)
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 s_pop,
                 Add( // Members
@@ -1953,6 +1962,7 @@ partial record C(int X) : Base`(X`)
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 s_pop
             );
@@ -2073,6 +2083,7 @@ record C(int X)
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 Combine(
                     Remove("System.Int32 C.X { get; init; }"),
@@ -2113,6 +2124,7 @@ record C(int X)
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 s_pop
             );
@@ -2148,6 +2160,7 @@ record C(int X)
                     "System.String System.Object.ToString()",
                     "System.Type C.EqualityContract { get; }",
                     "System.Type System.Object.GetType()",
+                    "void C.Deconstruct(out System.Int32 X)",
                     "void System.Object.Finalize()"),
                 s_pop
             );

@@ -3077,9 +3077,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else
                     {
                         diagnostics.Add(ErrorCode.ERR_BadRecordMember,
-                            existingMember.Locations.FirstOrDefault() ?? builder.RecordDeclarationWithParameters.Identifier.GetLocation(),
-                            existingMember.Name, // TODO: use a qualified name
-                            param.TypeWithAnnotations);
+                            param.Locations[0],
+                            existingMember.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
+                            param.TypeWithAnnotations,
+                            param.Name);
                     }
                 }
 
