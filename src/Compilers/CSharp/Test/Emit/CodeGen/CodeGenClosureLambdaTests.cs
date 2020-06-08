@@ -5377,5 +5377,46 @@ class C
   IL_0059:  ret
 }");
         }
+
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaInsideGenericLocalFunctionInsideLoop()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            void LocalMethod<TLocal>(TLocal value)
+            {
+                StaticMethod(value, param, (_, __) => message);
+                StaticMethod(new List<TLocal> { value }, param, (_, __) => message);
+                StaticMethod(new TLocal[] { value }, param, (_, __) => message);
+            }
+
+            message = i.ToString();
+            LocalMethod<string>(string.Empty);
+        }
+    }
+
+    static void StaticMethod<TFirst, TSecond, TOut>(TFirst first, TSecond second, Func<TFirst, TSecond, TOut> func)
+    {
+        Console.Write($""{func(first, second)}-{typeof(TFirst)};"");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
+        }
     }
 }

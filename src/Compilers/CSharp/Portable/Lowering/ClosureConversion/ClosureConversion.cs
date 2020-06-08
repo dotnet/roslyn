@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1597,17 +1598,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // different from the local variable `type`, which has the node's type substituted for the current container.
                         var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).Type;
 
-                        var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
-                            // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 
-                            // no need to include the top-level method ordinal in the field name.
-                            (closureKind == ClosureKind.General) ? -1 : topLevelMethodId.Ordinal,
-                            topLevelMethodId.Generation,
-                            lambdaId.Ordinal,
-                            lambdaId.Generation);
+                        // We cannot reference a type argument from the parent method outside the method
+                        // so if the lambda has such an argument we cannot cache it in a field
+                        if (!HasTypeArgumentsFromReferencedMethod(cacheVariableType))
+                        {
+                            var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
+                                // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already,
+                                // no need to include the top-level method ordinal in the field name.
+                                (closureKind == ClosureKind.General) ? -1 : topLevelMethodId.Ordinal,
+                                topLevelMethodId.Generation,
+                                lambdaId.Ordinal,
+                                lambdaId.Generation);
 
-                        var cacheField = new SynthesizedLambdaCacheFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, _topLevelMethod, isReadOnly: false, isStatic: closureKind == ClosureKind.Singleton);
-                        CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField);
-                        cache = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
+                            var cacheField = new SynthesizedLambdaCacheFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, _topLevelMethod, isReadOnly: false, isStatic: closureKind == ClosureKind.Singleton);
+                            CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField);
+                            cache = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
+                            result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
+                        }
                     }
                     else
                     {
@@ -1618,9 +1625,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (_addedStatements == null) _addedStatements = ArrayBuilder<BoundStatement>.GetInstance();
                         cache = F.Local(cacheLocal);
                         _addedStatements.Add(F.Assignment(cache, F.Null(type)));
+                        result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
                     }
-
-                    result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
                 }
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {
@@ -1630,6 +1636,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+
+            bool HasTypeArgumentsFromReferencedMethod(TypeSymbol symbolToCheck)
+            {
+                if (symbolToCheck is TypeParameterSymbol)
+                {
+                    foreach (var typeArgument in referencedMethod.TypeArgumentsWithAnnotations)
+                    {
+                        var referencedMethodTypeArgument = typeArgument.Type;
+                        if (referencedMethodTypeArgument is SubstitutedTypeParameterSymbol substitutedTypeParameterSymbol)
+                        {
+                            referencedMethodTypeArgument = substitutedTypeParameterSymbol.UnderlyingTypeParameter;
+                        }
+
+                        if (referencedMethodTypeArgument.Equals(symbolToCheck, TypeCompareKind.ConsiderEverything))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                if (symbolToCheck is ConstructedNamedTypeSymbol genericType)
+                {
+                    var typeArguments = genericType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                    return typeArguments.Any(t => HasTypeArgumentsFromReferencedMethod(t.Type));
+                }
+
+                if (symbolToCheck is ArrayTypeSymbol arrayType)
+                {
+                    return HasTypeArgumentsFromReferencedMethod(arrayType.ElementType);
+                }
+
+                return false;
+            }
         }
 
         // This helper checks syntactically whether there is a loop or lambda expression
