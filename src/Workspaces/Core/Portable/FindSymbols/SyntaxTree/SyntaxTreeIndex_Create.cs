@@ -73,9 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
             var complexExtensionMethodInfoBuilder = ArrayBuilder<int>.GetInstance();
             var simpleExtensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
-
-            using var _1 = PooledDictionary<string, string>.GetInstance(out var usingAliases);
-            using var _2 = ArrayBuilder<string>.GetInstance(out var internalsVisibleTo);
+            using var _ = PooledDictionary<string, string>.GetInstance(out var usingAliases);
 
             try
             {
@@ -121,29 +119,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
-
                             containsGlobalAttributes = containsGlobalAttributes || syntaxFacts.IsGlobalAttribute(node);
-                            if (containsGlobalAttributes && syntaxFacts.IsGlobalAssemblyAttribute(node))
-                            {
-                                var attributeName = syntaxFacts.GetNameOfAttribute(node).ToString();
-
-                                var comparer = syntaxFacts.IsCaseSensitive
-                                    ? StringComparison.Ordinal
-                                    : StringComparison.OrdinalIgnoreCase;
-
-                                if (attributeName.EndsWith("InternalsVisibleToAttribute", comparer) ||
-                                    attributeName.EndsWith("InternalsVisibleTo", comparer))
-                                {
-                                    var arguments = syntaxFacts.GetArgumentsOfAttribute(node);
-                                    if (arguments.Count > 0)
-                                    {
-                                        var argument = arguments[0];
-                                        var expression = syntaxFacts.GetExpressionOfAttributeArgument(argument);
-                                        if (syntaxFacts.IsStringLiteralExpression(expression))
-                                            internalsVisibleTo.Add(arguments[0].GetFirstToken().ValueText);
-                                    }
-                                }
-                            }
 
                             if (syntaxFacts.IsUsingAliasDirective(node) && infoFactory.TryGetAliasesFromUsingDirective(node, out var aliases))
                             {
@@ -279,22 +255,21 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                         new BloomFilter(FalsePositiveProbability, isCaseSensitive, identifiers),
                         new BloomFilter(FalsePositiveProbability, isCaseSensitive, escapedIdentifiers)),
                     new ContextInfo(
-                        predefinedTypes,
-                        predefinedOperators,
-                        internalsVisibleTo.ToImmutable(),
-                        containsForEachStatement,
-                        containsLockStatement,
-                        containsUsingStatement,
-                        containsQueryExpression,
-                        containsThisConstructorInitializer,
-                        containsBaseConstructorInitializer,
-                        containsElementAccess,
-                        containsIndexerMemberCref,
-                        containsDeconstruction,
-                        containsAwait,
-                        containsTupleExpressionOrTupleType,
-                        containsImplicitObjectCreation,
-                        containsGlobalAttributes),
+                            predefinedTypes,
+                            predefinedOperators,
+                            containsForEachStatement,
+                            containsLockStatement,
+                            containsUsingStatement,
+                            containsQueryExpression,
+                            containsThisConstructorInitializer,
+                            containsBaseConstructorInitializer,
+                            containsElementAccess,
+                            containsIndexerMemberCref,
+                            containsDeconstruction,
+                            containsAwait,
+                            containsTupleExpressionOrTupleType,
+                            containsImplicitObjectCreation,
+                            containsGlobalAttributes),
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(
