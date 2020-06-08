@@ -3981,6 +3981,55 @@ record C(int X, int Y, int Z) : B(X, Y)
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
                 comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
+
+        [Fact]
+        public void Deconstruct_Inheritance_03()
+        {
+            var source = @"
+using System;
+
+record B(int X, int Y)
+{
+    internal B() : this(0, 1) { }
+}
+
+record C(int X, int Y) : B
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+        switch (c)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(0, 1));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "0101");
+            verifier.VerifyDiagnostics();
+
+            var comp = verifier.Compilation;
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
         
         [Fact]
         public void Deconstruct_Conversion_01()
