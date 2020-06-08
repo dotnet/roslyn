@@ -209,6 +209,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        private static bool IsInternalsVisibleToAttribute(AttributeData attr)
+        {
+            var attrType = attr.AttributeClass;
+            return attrType?.Name == nameof(InternalsVisibleToAttribute) &&
+                   attrType.ContainingNamespace?.Name == nameof(System.Runtime.CompilerServices) &&
+                   attrType.ContainingNamespace.ContainingNamespace?.Name == nameof(System.Runtime) &&
+                   attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&
+                   attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
+        }
+
         private static void AddNonSubmissionDependentProjects(
             Solution solution,
             (IAssemblySymbol assembly, Project? sourceProject) assemblyAndSourceProject,
@@ -256,16 +266,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return set;
-        }
-
-        private static bool IsInternalsVisibleToAttribute(AttributeData attr)
-        {
-            var attrType = attr.AttributeClass;
-            return attrType?.Name == nameof(InternalsVisibleToAttribute) &&
-                   attrType.ContainingNamespace?.Name == nameof(System.Runtime.CompilerServices) &&
-                   attrType.ContainingNamespace.ContainingNamespace?.Name == nameof(System.Runtime) &&
-                   attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&
-                   attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
         }
 
         private static bool HasReferenceTo(
