@@ -9306,5 +9306,26 @@ class Evil
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 7)
             );
         }
+
+        [Fact]
+        public void PointerTypeArrayInTypeParameter2()
+        {
+            var source =
+@"
+#pragma warning disable CS0169 // Unused fields
+public class C
+{
+    public delegate void D<T>(object sender, T t);
+    public event D<int*[]> ev;
+}
+";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (9,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     C<int*[]> EvilField;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 7)
+            );
+        }
     }
 }

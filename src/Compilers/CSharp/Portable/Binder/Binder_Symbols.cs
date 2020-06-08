@@ -554,18 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConsList<TypeSymbol> basesBeingResolved,
             bool disallowRestrictedTypes)
         {
-            // We need to temporarily disable suppression of unsafe diagnostics, since
-            // an array can be used as a generic type argument and if we suppress unsafe diagnostics,
-            // nothing would be reported for this:
-            //
-            // class C<T>
-            // {
-            //     T Field;
-            // }
-            //
-            // var instance = new C<int*[]>();
-            var binder = WithFlags(Flags & ~BinderFlags.SuppressUnsafeDiagnostics);
-            TypeWithAnnotations type = binder.BindType(node.ElementType, diagnostics, basesBeingResolved);
+            TypeWithAnnotations type = BindType(node.ElementType, diagnostics, basesBeingResolved);
 
             if (type.IsStatic)
             {
@@ -1217,12 +1206,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeWithAnnotations BindTypeArgument(TypeSyntax typeArgument, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
         {
-            // Unsafe types can never be type arguments, but there's a special error code for that.
-            var binder = this.WithAdditionalFlags(BinderFlags.SuppressUnsafeDiagnostics);
-
             var arg = typeArgument.Kind() == SyntaxKind.OmittedTypeArgument
                 ? TypeWithAnnotations.Create(UnboundArgumentErrorTypeSymbol.Instance)
-                : binder.BindType(typeArgument, diagnostics, basesBeingResolved);
+                : BindType(typeArgument, diagnostics, basesBeingResolved);
 
             return arg;
         }
