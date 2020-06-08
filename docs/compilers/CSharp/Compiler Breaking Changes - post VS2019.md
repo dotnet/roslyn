@@ -121,3 +121,10 @@ public class Derived : Base<string?>
 }
 ```
 
+20. https://github.com/dotnet/roslyn/issues/44088 Previously the compiler would allow the usage of an array with a pointer type inside type parameters without the usage of `/unsafe` or `unsafe` modifier. In *Visual Studio 2019 version 16.8*, the compiler reports errors for this. Example:
+``` csharp
+class C<T>
+{
+    C<int*[]> Field; // Error, pointers may only be used in unsafe context
+}
+```
