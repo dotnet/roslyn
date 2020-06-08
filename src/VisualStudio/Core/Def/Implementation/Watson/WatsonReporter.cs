@@ -180,8 +180,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                             !name.Contains("-" + RemoteServiceName.IntelliCodeServiceName) &&
                             !name.Contains("-" + RemoteServiceName.RazorServiceName) &&
                             !name.Contains("-" + RemoteServiceName.UnitTestingAnalysisServiceName) &&
-                            !name.Contains("-" + RemoteServiceName.LiveUnitTestingServiceName) &&
-                            !name.Contains("-" + RemoteServiceName.TestSourceLocationLookupServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.LiveUnitTestingBuildServiceName) &&
+                            !name.Contains("-" + RemoteServiceName.UnitTestingSourceLookupServiceName) &&
                             !name.Contains("-CodeLens") &&
                             !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
                             !name.Contains("-hub"))

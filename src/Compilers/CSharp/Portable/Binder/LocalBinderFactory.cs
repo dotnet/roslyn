@@ -156,6 +156,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.ExpressionBody, enclosing);
         }
 
+        public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
+        {
+            Debug.Assert(node.ParameterList is object);
+
+            Binder enclosing = new ExpressionVariableBinder(node, _enclosing);
+            AddToMap(node, enclosing);
+
+            if (node.BaseWithArguments is SimpleBaseTypeSyntax baseWithArguments)
+            {
+                enclosing = enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);
+                AddToMap(baseWithArguments, enclosing);
+                Visit(baseWithArguments.ArgumentList, enclosing);
+            }
+        }
+
         public override void VisitDestructorDeclaration(DestructorDeclarationSyntax node)
         {
             Visit(node.Body);

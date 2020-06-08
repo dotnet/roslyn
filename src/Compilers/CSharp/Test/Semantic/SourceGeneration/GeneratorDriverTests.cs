@@ -99,7 +99,7 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             int initCount = 0, executeCount = 0;
-            var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++, sourceOpt: "public class C { }");
+            var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++, source: "public class C { }");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
             driver = driver.RunFullGeneration(compilation, out var outputCompilation, out _);
@@ -266,7 +266,7 @@ class C { }
             Assert.Single(outputCompilation.SyntaxTrees);
 
             // create an edit
-            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file2.cs", ""));
+            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file2.cs", ""));
             driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
 
             // now try apply edits (which will fail)
@@ -297,7 +297,7 @@ class C { }
             Assert.Single(outputCompilation.SyntaxTrees);
 
             // create an edit
-            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file1.cs", ""));
+            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file1.cs", ""));
             driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
 
             // now try apply edits
@@ -322,14 +322,14 @@ class C { }
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions,
                                                                generators: ImmutableArray.Create<ISourceGenerator>(testGenerator),
-                                                               additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("c:\\a\\file1.cs", "")));
+                                                               additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("a\\file1.cs", "")));
 
             // run initial generation pass
             driver = driver.RunFullGeneration(compilation, out var outputCompilation, out _);
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
 
             // create an edit
-            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file2.cs", ""));
+            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file2.cs", ""));
             driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
 
             // now try apply edits
@@ -342,9 +342,9 @@ class C { }
             Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
 
             // lets add multiple edits   
-            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file3.cs", "")),
-                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file4.cs", "")),
-                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file5.cs", ""))));
+            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file3.cs", "")),
+                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file4.cs", "")),
+                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file5.cs", ""))));
             // now try apply edits
             driver = driver.TryApplyEdits(compilation, out editedCompilation, out succeeded);
             Assert.True(succeeded);
@@ -364,11 +364,11 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
-            var text = new InMemoryAdditionalText("c:\\a\\file1.cs", "");
+            var text = new InMemoryAdditionalText("a\\file1.cs", "");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions,
                                                                generators: ImmutableArray.Create<ISourceGenerator>(testGenerator),
-                                                               additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("c:\\a\\file1.cs", "")));
+                                                               additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("a\\file1.cs", "")));
 
             driver = driver.RunFullGeneration(compilation, out var outputCompilation, out _);
 
@@ -384,7 +384,7 @@ class C { }
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
 
             // create an edit
-            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file2.cs", ""));
+            AdditionalFileAddedEdit edit = new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file2.cs", ""));
             driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
 
             // now try apply edits
@@ -410,19 +410,19 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
-            var text = new InMemoryAdditionalText("c:\\a\\file1.cs", "");
+            var text = new InMemoryAdditionalText("a\\file1.cs", "");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions,
                                                                generators: ImmutableArray.Create<ISourceGenerator>(testGenerator),
-                                                               additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("c:\\a\\file1.cs", "")));
+                                                               additionalTexts: ImmutableArray.Create<AdditionalText>(new InMemoryAdditionalText("a\\file1.cs", "")));
 
             driver.RunFullGeneration(compilation, out var outputCompilation, out _);
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
 
             // add multiple edits   
-            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file2.cs", "")),
-                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file3.cs", "")),
-                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("c:\\a\\file4.cs", ""))));
+            driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file2.cs", "")),
+                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file3.cs", "")),
+                                                                                new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file4.cs", ""))));
 
             // but just do a full generation (don't try apply)
             driver.RunFullGeneration(compilation, out outputCompilation, out _);
@@ -442,7 +442,7 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             SingleFileTestGenerator testGenerator1 = new SingleFileTestGenerator("public class D { }");
-            SingleFileTestGenerator testGenerator2 = new SingleFileTestGenerator("public class E { }");
+            SingleFileTestGenerator2 testGenerator2 = new SingleFileTestGenerator2("public class E { }");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions,
                                                                generators: ImmutableArray.Create<ISourceGenerator>(testGenerator1),
@@ -510,7 +510,7 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             var exception = new InvalidOperationException("init error");
-            var generator = new CallbackGenerator((ic) => throw exception, (sgc) => { }, sourceOpt: "class D { }");
+            var generator = new CallbackGenerator((ic) => throw exception, (sgc) => { }, source: "class D { }");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out var outputCompilation, out _);
@@ -559,7 +559,7 @@ class C { }
             var exception = new InvalidOperationException("generate error");
 
             var generator = new CallbackGenerator((ic) => { }, (sgc) => throw exception);
-            var generator2 = new CallbackGenerator((ic) => { }, (sgc) => { }, sourceOpt: "public class D { }");
+            var generator2 = new CallbackGenerator2((ic) => { }, (sgc) => { }, source: "public class D { }");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator, generator2), ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
@@ -595,7 +595,7 @@ class C
 
             var exception = new InvalidOperationException("generate error");
 
-            var generator = new CallbackGenerator((ic) => { }, (sgc) => throw exception, sourceOpt: "public class D { }");
+            var generator = new CallbackGenerator((ic) => { }, (sgc) => throw exception, source: "public class D { }");
 
             GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
             driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
@@ -636,99 +636,62 @@ class C { }
                 Diagnostic("TG001").WithLocation(1, 1)
                 );
         }
-    }
 
-    internal class SingleFileTestGenerator : ISourceGenerator
-    {
-        private readonly string _content;
-        private readonly string _hintName;
-
-        public SingleFileTestGenerator(string content, string hintName = "generatedFile")
+        [Fact]
+        public void Generator_HintName_MustBe_Unique()
         {
-            _content = content;
-            _hintName = hintName;
-        }
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
 
-        public void Execute(SourceGeneratorContext context)
-        {
-            context.AdditionalSources.Add(this._hintName, SourceText.From(_content, Encoding.UTF8));
-        }
-
-        public void Initialize(InitializationContext context)
-        {
-        }
-    }
-
-    internal class CallbackGenerator : ISourceGenerator
-    {
-        private readonly Action<InitializationContext> _onInit;
-        private readonly Action<SourceGeneratorContext> _onExecute;
-        private readonly string _sourceOpt;
-
-        public CallbackGenerator(Action<InitializationContext> onInit, Action<SourceGeneratorContext> onExecute, string sourceOpt = "")
-        {
-            _onInit = onInit;
-            _onExecute = onExecute;
-            _sourceOpt = sourceOpt;
-        }
-
-        public void Execute(SourceGeneratorContext context)
-        {
-            _onExecute(context);
-            if (!string.IsNullOrWhiteSpace(_sourceOpt))
+            var generator = new CallbackGenerator((ic) => { }, (sgc) =>
             {
-                context.AdditionalSources.Add("source.cs", SourceText.From(_sourceOpt, Encoding.UTF8));
-            }
+                sgc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8));
+
+                // the assert should swallow the exception, so we'll actually succesfully generate
+                Assert.Throws<ArgumentException>("hintName", () => sgc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8)));
+
+                // also throws for <name> vs <name>.cs
+                Assert.Throws<ArgumentException>("hintName", () => sgc.AddSource("test.cs", SourceText.From("public class D{}", Encoding.UTF8)));
+            });
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
+            outputCompilation.VerifyDiagnostics();
+            generatorDiagnostics.Verify();
+            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
         }
-        public void Initialize(InitializationContext context) => _onInit(context);
-    }
 
-    internal class AdditionalFileAddedGenerator : ISourceGenerator
-    {
-        public bool CanApplyChanges { get; set; } = true;
-
-        public void Execute(SourceGeneratorContext context)
+        [Fact]
+        public void Generator_HintName_Is_Appended_With_GeneratorName()
         {
-            foreach (var file in context.AdditionalFiles)
-            {
-                AddSourceForAdditionalFile(context.AdditionalSources, file);
-            }
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new SingleFileTestGenerator("public class D {}", "source.cs");
+            var generator2 = new SingleFileTestGenerator2("public class E {}", "source.cs");
+
+            GeneratorDriver driver = new CSharpGeneratorDriver(parseOptions, ImmutableArray.Create<ISourceGenerator>(generator, generator2), ImmutableArray<AdditionalText>.Empty);
+            driver.RunFullGeneration(compilation, out var outputCompilation, out var generatorDiagnostics);
+            outputCompilation.VerifyDiagnostics();
+            generatorDiagnostics.Verify();
+            Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
+
+            var filePaths = outputCompilation.SyntaxTrees.Skip(1).Select(t => t.FilePath).ToArray();
+            Assert.Equal(new[] {
+                $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}_source.cs",
+                $"{generator2.GetType().Module.ModuleVersionId}_{generator2.GetType().FullName}_source.cs"
+            }, filePaths);
         }
-
-        public void Initialize(InitializationContext context)
-        {
-            context.RegisterForAdditionalFileChanges(UpdateContext);
-        }
-
-        bool UpdateContext(EditContext context, AdditionalFileEdit edit)
-        {
-            if (edit is AdditionalFileAddedEdit add && CanApplyChanges)
-            {
-                AddSourceForAdditionalFile(context.AdditionalSources, add.AddedText);
-                return true;
-            }
-            return false;
-        }
-
-        private void AddSourceForAdditionalFile(AdditionalSourcesCollection sources, AdditionalText file) => sources.Add(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
-
-        private string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path)}.generated";
-    }
-
-    internal class InMemoryAdditionalText : AdditionalText
-    {
-        private readonly SourceText _content;
-
-        public InMemoryAdditionalText(string path, string content)
-        {
-            Path = path;
-            _content = SourceText.From(content);
-        }
-
-        public override string Path { get; }
-
-        public override SourceText GetText(CancellationToken cancellationToken = default) => _content;
-
     }
 }
 

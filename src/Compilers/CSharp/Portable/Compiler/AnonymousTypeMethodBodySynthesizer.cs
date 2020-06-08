@@ -123,27 +123,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                          F.Convert(manager.System_Object, boundLocal),
                                                          F.Null(manager.System_Object));
 
-                //  prepare symbols
-                MethodSymbol equalityComparer_Equals = manager.System_Collections_Generic_EqualityComparer_T__Equals;
-                MethodSymbol equalityComparer_get_Default = manager.System_Collections_Generic_EqualityComparer_T__get_Default;
-                NamedTypeSymbol equalityComparerType = equalityComparer_Equals.ContainingType;
-
                 // Compare fields
-                for (int index = 0; index < anonymousType.Properties.Length; index++)
+                if (anonymousType.Properties.Length > 0)
                 {
-                    // Prepare constructed symbols
-                    TypeParameterSymbol typeParameter = anonymousType.TypeParameters[index];
-                    FieldSymbol fieldSymbol = anonymousType.Properties[index].BackingField;
-                    NamedTypeSymbol constructedEqualityComparer = equalityComparerType.Construct(typeParameter);
-
-                    // Generate 'retExpression' = 'retExpression && System.Collections.Generic.EqualityComparer<T_index>.
-                    //                                                  Default.Equals(this.backingFld_index, local.backingFld_index)'
-                    retExpression = F.LogicalAnd(retExpression,
-                                                 F.Call(F.StaticCall(constructedEqualityComparer,
-                                                                     equalityComparer_get_Default.AsMember(constructedEqualityComparer)),
-                                                        equalityComparer_Equals.AsMember(constructedEqualityComparer),
-                                                        F.Field(F.This(), fieldSymbol),
-                                                        F.Field(boundLocal, fieldSymbol)));
+                    var fields = ArrayBuilder<FieldSymbol>.GetInstance(anonymousType.Properties.Length);
+                    foreach (var prop in anonymousType.Properties)
+                    {
+                        fields.Add(prop.BackingField);
+                    }
+                    retExpression = MethodBodySynthesizer.GenerateFieldEquals(retExpression, boundLocal, fields, F);
+                    fields.Free();
                 }
 
                 // Final return statement

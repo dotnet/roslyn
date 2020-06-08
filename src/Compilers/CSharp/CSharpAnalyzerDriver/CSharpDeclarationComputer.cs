@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.RecordDeclaration:
                     {
                         var t = (TypeDeclarationSyntax)node;
                         foreach (var decl in t.Members)
@@ -230,8 +231,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     {
                         var t = (AccessorDeclarationSyntax)node;
                         var blocks = ArrayBuilder<SyntaxNode>.GetInstance();

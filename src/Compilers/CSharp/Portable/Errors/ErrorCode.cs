@@ -1818,6 +1818,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotConvertAddressOfToDelegate = 8811,
         ERR_AddressOfToNonFunctionPointer = 8812,
 
+        ERR_BadRecordDeclaration = 8850,
+        ERR_DuplicateRecordConstructor = 8851,
+        ERR_AssignmentInitOnly = 8852,
+        ERR_CantChangeInitOnlyOnOverride = 8853,
+        ERR_CloseUnimplementedInterfaceMemberWrongInitOnly = 8854,
+        ERR_ExplicitPropertyMismatchInitOnly = 8855,
+        ERR_BadInitAccessor = 8856,
+        ERR_InvalidWithReceiverType = 8857,
+        ERR_NoSingleCloneMethod = 8858,
+        ERR_UnexpectedArgumentList = 8861,
+        ERR_UnexpectedOrMissingConstructorInitializerInRecord = 8862,
+        ERR_MultipleRecordParameterLists = 8863,
+        ERR_BadRecordBase = 8864,
+        ERR_BadInheritanceFromRecord = 8865,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

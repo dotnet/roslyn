@@ -188,7 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.New)) == 0);
             }
 
-
             if ((result & DeclarationModifiers.Const) != 0)
             {
                 if ((result & DeclarationModifiers.Static) != 0)

@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     }
                     else
                     {
-                        await AddDescriptionForNamedTypeAsync(namedType).ConfigureAwait(false);
+                        AddDescriptionForNamedType(namedType);
                     }
                 }
                 else if (symbol is INamespaceSymbol namespaceSymbol)
@@ -380,37 +380,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     PlainText(FeaturesResources.Represents_an_object_whose_operations_will_be_resolved_at_runtime));
             }
 
-            private async Task AddDescriptionForNamedTypeAsync(INamedTypeSymbol symbol)
+            private void AddDescriptionForNamedType(INamedTypeSymbol symbol)
             {
                 if (symbol.IsAwaitableNonDynamic(_semanticModel, _position))
                 {
                     AddAwaitablePrefix();
                 }
 
-                var token = await _semanticModel.SyntaxTree.GetTouchingTokenAsync(_position, CancellationToken).ConfigureAwait(false);
-                if (token != default)
-                {
-                    var syntaxFactsService = Workspace.Services.GetLanguageServices(token.Language).GetService<ISyntaxFactsService>();
-                    if (syntaxFactsService.IsAwaitKeyword(token))
-                    {
-                        if (symbol.SpecialType == SpecialType.System_Void)
-                        {
-                            AddToGroup(SymbolDescriptionGroups.MainDescription,
-                                PlainText(FeaturesResources.Awaited_task_returns_no_value));
-                            return;
-                        }
-
-                        AddAwaitSymbolDescription(symbol);
-                    }
-                    else
-                    {
-                        AddSymbolDescription(symbol);
-                    }
-                }
-                else
-                {
-                    AddSymbolDescription(symbol);
-                }
+                AddSymbolDescription(symbol);
 
                 if (!symbol.IsUnboundGenericType && !TypeArgumentsAndParametersAreSame(symbol))
                 {
@@ -419,18 +396,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                     AddTypeParameterMapPart(allTypeParameters, allTypeArguments);
                 }
-            }
-
-            private void AddAwaitSymbolDescription(INamedTypeSymbol symbol)
-            {
-                var defaultSymbol = "{0}";
-                var symbolIndex = FeaturesResources.Awaited_task_returns_0.IndexOf(defaultSymbol);
-
-                AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    PlainText(FeaturesResources.Awaited_task_returns_0.Substring(0, symbolIndex)));
-                AddSymbolDescription(symbol);
-                AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    PlainText(FeaturesResources.Awaited_task_returns_0.Substring(symbolIndex + defaultSymbol.Length)));
             }
 
             private void AddSymbolDescription(INamedTypeSymbol symbol)
