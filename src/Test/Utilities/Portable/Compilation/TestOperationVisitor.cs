@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Same(operation.Operation, operation.Children.Single());
         }
 
-        internal override void VisitWith(IWithOperation operation)
+        internal override void VisitWith(IWithStatementOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);
             AssertEx.Equal(new[] { operation.Value, operation.Body }, operation.Children);
@@ -1520,7 +1520,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _ = operation.IsImplicit;
         }
 
-        public override void VisitWithExpression(IWithExpressionOperation operation)
+        public override void VisitWithExpression(IWithOperation operation)
         {
             Assert.Equal(OperationKind.WithExpression, operation.Kind);
             _ = operation.CloneMethod;

@@ -398,7 +398,7 @@ record C(); ";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (2,9): error CS8850: A positional record must have both a 'data' modifier and non-empty parameter list
-                // record C(); 
+                // record C();
                 Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 9)
             );
         }
@@ -661,25 +661,25 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (2)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c = new C(0)')
-              Left: 
+              Left:
                 ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c = new C(0)')
-              Right: 
+              Right:
                 IObjectCreationOperation (Constructor: C..ctor(System.Int32 X)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C(0)')
                   Arguments(1):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: X) (OperationKind.Argument, Type: null) (Syntax: '0')
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Initializer: 
+                  Initializer:
                     null
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = c with { };')
-              Expression: 
+              Expression:
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: 'c = c with { }')
-                  Left: 
+                  Left:
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
-                  Right: 
+                  Right:
                     IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { }')
-                      Instance Receiver: 
+                      Instance Receiver:
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
         Next (Regular) Block[B2]
@@ -1409,7 +1409,7 @@ X");
 
             var withExpr1 = root.DescendantNodes().OfType<WithExpressionSyntax>().First();
             comp.VerifyOperationTree(withExpr1, @"
-IWithExpressionOperation (OperationKind.WithExpression, Type: C) (Syntax: 'c with { Y  ...  = W(""X"") }')
+IWithOperation (OperationKind.WithExpression, Type: C) (Syntax: 'c with { Y  ...  = W(""X"") }')
   Value:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
@@ -1460,9 +1460,9 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c = new C(0, 1, 2)')
-              Left: 
+              Left:
                 ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c = new C(0, 1, 2)')
-              Right: 
+              Right:
                 IObjectCreationOperation (Constructor: C..ctor(System.Int32 X, System.Int32 Y, System.Int32 Z)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C(0, 1, 2)')
                   Arguments(3):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: X) (OperationKind.Argument, Type: null) (Syntax: '0')
@@ -1477,7 +1477,7 @@ Block[B0] - Entry
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Initializer: 
+                  Initializer:
                     null
         Next (Regular) Block[B2]
             Entering: {R2}
@@ -1488,22 +1488,22 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (5)
                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
-                  Value: 
+                  Value:
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
-                  Value: 
+                  Value:
                     IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
-                      Instance Receiver: 
+                      Instance Receiver:
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Y = W(""Y"")')
-                  Left: 
+                  Left:
                     IPropertyReferenceOperation: System.Int32 C.Y { get; init; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Y')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
-                  Right: 
+                  Right:
                     IInvocationOperation (System.Int32 C.W(System.String s)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'W(""Y"")')
-                      Instance Receiver: 
+                      Instance Receiver:
                         null
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument, Type: null) (Syntax: '""Y""')
@@ -1511,13 +1511,13 @@ Block[B0] - Entry
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = W(""X"")')
-                  Left: 
+                  Left:
                     IPropertyReferenceOperation: System.Int32 C.X { get; init; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
-                  Right: 
+                  Right:
                     IInvocationOperation (System.Int32 C.W(System.String s)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'W(""X"")')
-                      Instance Receiver: 
+                      Instance Receiver:
                         null
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument, Type: null) (Syntax: '""X""')
@@ -1525,11 +1525,11 @@ Block[B0] - Entry
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = c with  ... = W(""X"") };')
-                  Expression: 
+                  Expression:
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: 'c = c with  ...  = W(""X"") }')
-                      Left: 
+                      Left:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
-                      Right: 
+                      Right:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c with { Y  ...  = W(""X"") }')
             Next (Regular) Block[B3]
                 Leaving: {R2} {R1}
@@ -1934,7 +1934,7 @@ record C(int X, string Y)
             Assert.True(x.ISymbol.Equals(symbolInfo.Symbol));
 
             comp.VerifyOperationTree(withExpr, @"
-IWithExpressionOperation (OperationKind.WithExpression, Type: C) (Syntax: 'c with { X = 2 }')
+IWithOperation (OperationKind.WithExpression, Type: C) (Syntax: 'c with { X = 2 }')
   Value:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
@@ -1963,9 +1963,9 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c = new C(0, ""a"")')
-              Left: 
+              Left:
                 ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c = new C(0, ""a"")')
-              Right: 
+              Right:
                 IObjectCreationOperation (Constructor: C..ctor(System.Int32 X, System.String Y)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C(0, ""a"")')
                   Arguments(2):
                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: X) (OperationKind.Argument, Type: null) (Syntax: '0')
@@ -1976,7 +1976,7 @@ Block[B0] - Entry
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""a"") (Syntax: '""a""')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Initializer: 
+                  Initializer:
                     null
         Next (Regular) Block[B2]
             Entering: {R2}
@@ -1987,27 +1987,27 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (4)
                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
-                  Value: 
+                  Value:
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c with { X = 2 }')
-                  Value: 
+                  Value:
                     IInvocationOperation (virtual C C.<>Clone()) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'c with { X = 2 }')
-                      Instance Receiver: 
+                      Instance Receiver:
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                       Arguments(0)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = 2')
-                  Left: 
+                  Left:
                     IPropertyReferenceOperation: System.Int32 C.X { get; init; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c with { X = 2 }')
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = c with { X = 2 };')
-                  Expression: 
+                  Expression:
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: 'c = c with { X = 2 }')
-                      Left: 
+                      Left:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
-                      Right: 
+                      Right:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c with { X = 2 }')
             Next (Regular) Block[B3]
                 Leaving: {R2} {R1}
@@ -2039,19 +2039,19 @@ class C
             var withExpr = root.DescendantNodes().OfType<WithExpressionSyntax>().Single();
 
             comp.VerifyOperationTree(withExpr, @"
-IWithExpressionOperation (OperationKind.WithExpression, Type: C, IsInvalid) (Syntax: 'c with { X = 2 }')
-  Value: 
+IWithOperation (OperationKind.WithExpression, Type: C, IsInvalid) (Syntax: 'c with { X = 2 }')
+  Value:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'c')
   CloneMethod: null
-  Initializer: 
+  Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ X = 2 }')
       Initializers(1):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = 2')
-            Left: 
+            Left:
               IPropertyReferenceOperation: System.Int32 C.X { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
-                Instance Receiver: 
+                Instance Receiver:
                   IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
-            Right: 
+            Right:
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')");
 
             var main = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
@@ -2068,12 +2068,12 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c = new C()')
-              Left: 
+              Left:
                 ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c = new C()')
-              Right: 
+              Right:
                 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
                   Arguments(0)
-                  Initializer: 
+                  Initializer:
                     null
         Next (Regular) Block[B2]
             Entering: {R2}
@@ -2084,26 +2084,26 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (4)
                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
-                  Value: 
+                  Value:
                     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c')
-                  Value: 
+                  Value:
                     IInvalidOperation (OperationKind.Invalid, Type: C, IsInvalid, IsImplicit) (Syntax: 'c')
                       Children(1):
                           ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'c')
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = 2')
-                  Left: 
+                  Left:
                     IPropertyReferenceOperation: System.Int32 C.X { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'c')
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'c = c with { X = 2 };')
-                  Expression: 
+                  Expression:
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: 'c = c with { X = 2 }')
-                      Left: 
+                      Left:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
-                      Right: 
+                      Right:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'c')
             Next (Regular) Block[B3]
                 Leaving: {R2} {R1}
@@ -2162,7 +2162,7 @@ record C(int X, int Y)
 
             var withExpr1 = root.DescendantNodes().OfType<WithExpressionSyntax>().First();
             comp.VerifyOperationTree(withExpr1, @"
-IWithExpressionOperation (OperationKind.WithExpression, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
+IWithOperation (OperationKind.WithExpression, Type: C, IsInvalid) (Syntax: 'c with { 5 }')
   Value:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
@@ -2175,7 +2175,7 @@ IWithExpressionOperation (OperationKind.WithExpression, Type: C, IsInvalid) (Syn
 
             var withExpr2 = root.DescendantNodes().OfType<WithExpressionSyntax>().Skip(1).Single();
             comp.VerifyOperationTree(withExpr2, @"
-IWithExpressionOperation (OperationKind.WithExpression, Type: C, IsInvalid) (Syntax: 'c with { ')
+IWithOperation (OperationKind.WithExpression, Type: C, IsInvalid) (Syntax: 'c with { ')
   Value:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
   CloneMethod: C C.<>Clone()
@@ -2759,7 +2759,7 @@ record C
     public string Y { get; init; }
     public long Z;
     public event Action E;
-    
+
     public C() { }
     public C(C other)
     {
@@ -2808,7 +2808,7 @@ public record C
     public int X { get; set; }
     public string Y { get; init; }
     public long Z;
-    
+
     public C() { }
     public C(C other)
     {
