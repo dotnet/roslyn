@@ -6228,8 +6228,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethodReturnCantBeRefAny">
-        <source>Method or delegate cannot return type '{0}'</source>
-        <target state="translated">Metoda nebo delegát nemůže vracet typ {0}.</target>
+        <source>Method, delegate, or function pointer cannot return type '{0}'</source>
+        <target state="needs-review-translation">Metoda nebo delegát nemůže vracet typ {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompileCancelled">

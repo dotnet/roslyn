@@ -6228,8 +6228,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethodReturnCantBeRefAny">
-        <source>Method or delegate cannot return type '{0}'</source>
-        <target state="translated">Die Methode oder der Delegat kann den Typ "{0}" nicht zurückgeben.</target>
+        <source>Method, delegate, or function pointer cannot return type '{0}'</source>
+        <target state="needs-review-translation">Die Methode oder der Delegat kann den Typ "{0}" nicht zurückgeben.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompileCancelled">

@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FunctionPointerTests : CompilingTestBase
     {
-        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
+        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework targetFramework = default)
         {
-            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions ?? TestOptions.RegularPreview);
+            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions ?? TestOptions.RegularPreview, targetFramework: targetFramework);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointers(CSharpCompilation compilation, string? expectedOutput = null)
@@ -2861,6 +2861,51 @@ IBlockOperation (4 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
                   IParameterReferenceOperation: ptr1 (OperationKind.ParameterReference, Type: delegate*<System.String, System.Int32, System.Void>, IsInvalid) (Syntax: 'ptr1')
 ");
+        }
+
+        [Fact, WorkItem(44953, "https://github.com/dotnet/roslyn/issues/44953")]
+        public void StaticClassInFunctionPointer()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe static class C
+{
+    static delegate*<C, C> Ptr;
+}");
+
+            comp.VerifyDiagnostics(
+                // (4,22): error CS0721: 'C': static types cannot be used as parameters
+                //     static delegate*<C, C> Ptr;
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C").WithLocation(4, 22),
+                // (4,25): error CS0722: 'C': static types cannot be used as return types
+                //     static delegate*<C, C> Ptr;
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C").WithArguments("C").WithLocation(4, 25),
+                // (4,28): warning CS0169: The field 'C.Ptr' is never used
+                //     static delegate*<C, C> Ptr;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Ptr").WithArguments("C.Ptr").WithLocation(4, 28)
+            );
+        }
+
+        [Fact, WorkItem(44953, "https://github.com/dotnet/roslyn/issues/44953")]
+        public void RestrictedTypeInFunctionPointer()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+unsafe static class C
+{
+    static delegate*<ArgIterator, ref ArgIterator, ArgIterator> Ptr;
+}", targetFramework: TargetFramework.NetCoreApp30);
+
+            comp.VerifyDiagnostics(
+                // (5,35): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //     static delegate*<ArgIterator, ref ArgIterator, ArgIterator> Ptr;
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref ArgIterator").WithArguments("System.ArgIterator").WithLocation(5, 35),
+                // (5,52): error CS1599: Method, delegate, or function pointer cannot return type 'System.ArgIterator'
+                //     static delegate*<ArgIterator, ref ArgIterator, ArgIterator> Ptr;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(5, 52),
+                // (5,65): warning CS0169: The field 'C.Ptr' is never used
+                //     static delegate*<ArgIterator, ref ArgIterator, ArgIterator> Ptr;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Ptr").WithArguments("C.Ptr").WithLocation(5, 65)
+            );
         }
     }
 }

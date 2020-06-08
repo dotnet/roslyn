@@ -531,7 +531,7 @@ class Program
                 // (39,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(39, 34),
-                // (39,12): error CS1599: Method or delegate cannot return type 'TypedReference'
+                // (39,12): error CS1599: Method, delegate, or function pointer cannot return type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12)
             );
@@ -926,7 +926,7 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (14,19): error CS1599: Method or delegate cannot return type 'TypedReference'
+                // (14,19): error CS1599: Method, delegate, or function pointer cannot return type 'TypedReference'
                 //     public static TypedReference operator +(Span<int> x, Program y) => default(TypedReference);
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference").WithLocation(14, 19)
             );

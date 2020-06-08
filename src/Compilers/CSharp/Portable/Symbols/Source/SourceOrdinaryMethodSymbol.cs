@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    // Method or delegate cannot return type '{0}'
+                    // Method, delegate, or function pointer cannot return type '{0}'
                     diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType.Type);
                 }
             }

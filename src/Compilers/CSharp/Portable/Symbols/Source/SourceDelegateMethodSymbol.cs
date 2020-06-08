@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
-                // Method or delegate cannot return type '{0}'
+                // Method, delegate, or function pointer cannot return type '{0}'
                 diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType.Type);
             }
 
