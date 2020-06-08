@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -55,21 +54,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 await using var _ = await _progressTracker.AddSingleItemAsync().ConfigureAwait(false);
 
-                var start = DateTime.Now;
                 var symbols = await DetermineAllSymbolsAsync(symbol).ConfigureAwait(false);
-                Console.WriteLine("Determine all symbols: " + (DateTime.Now - start));
 
-                start = DateTime.Now;
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
-                Console.WriteLine("Create project map: " + (DateTime.Now - start));
-                Console.WriteLine("Project count: " + projectMap.Count);
-                if (false)
-                {
-                    var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);
-                    ValidateProjectToDocumentMap(projectToDocumentMap);
+                var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);
+                ValidateProjectToDocumentMap(projectToDocumentMap);
 
-                    await ProcessAsync(projectToDocumentMap).ConfigureAwait(false);
-                }
+                await ProcessAsync(projectToDocumentMap).ConfigureAwait(false);
             }
             finally
             {
