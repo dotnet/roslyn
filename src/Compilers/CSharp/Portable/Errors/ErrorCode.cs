@@ -1832,6 +1832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MultipleRecordParameterLists = 8863,
         ERR_BadRecordBase = 8864,
         ERR_BadInheritanceFromRecord = 8865,
+        ERR_BadRecordMember = 8866,
 
         #endregion
 

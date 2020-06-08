@@ -17,16 +17,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedRecordDeconstructor : SynthesizedInstanceMethodSymbol
     {
         private readonly int _memberOffset;
-        private readonly ImmutableArray<Symbol> _members;
+        private readonly ImmutableArray<PropertySymbol> _properties;
 
         public SynthesizedRecordDeconstructor(
             SourceMemberContainerTypeSymbol containingType,
             ImmutableArray<ParameterSymbol> ctorParameters,
-            ImmutableArray<Symbol> members,
+            ImmutableArray<PropertySymbol> properties,
             int memberOffset)
         {
             _memberOffset = memberOffset;
-            _members = members;
+            _properties = properties;
             ContainingType = containingType;
             Parameters = ctorParameters.SelectAsArray(
                 (param, ordinal, _) =>
@@ -119,21 +119,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 
-            Debug.Assert(Parameters.Length == _members.Length);
-            var statementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(_members.Length + 1);
-            for (int i = 0; i < _members.Length; i++)
+            // these lengths only differ in error scenarios
+            Debug.Assert(Parameters.Length == _properties.Length);
+            var statementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(_properties.Length + 1);
+            for (int i = 0; i < _properties.Length; i++)
             {
                 var parameter = Parameters[i];
-                var member = _members[i];
-                var propertyAccess = member switch
-                {
-                    PropertySymbol prop => F.Property(F.This(), prop),
-                    FieldSymbol field => F.Field(F.This(), field),
-                    _ => throw ExceptionUtilities.UnexpectedValue(member.Kind)
-                };
+                var property = _properties[i];
 
                 // parameter_i = property_i;
-                statementsBuilder.Add(F.Assignment(F.Parameter(parameter), propertyAccess));
+                statementsBuilder.Add(F.Assignment(F.Parameter(parameter), F.Property(F.This(), property)));
             }
             statementsBuilder.Add(F.Return());
             F.CloseMethod(F.Block(statementsBuilder.ToImmutableAndFree()));

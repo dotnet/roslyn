@@ -3655,15 +3655,14 @@ record C(int X, int Y) : B
 }
 ";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                    // (13,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-                    //             case C(int x, int y):
-                    Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int x, int y)").WithArguments("C", "Deconstruct").WithLocation(13, 19),
-                    // (13,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
-                    //             case C(int x, int y):
-                    Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("C", "2").WithLocation(13, 19));
+            comp.VerifyDiagnostics();
+                // // (4,16): error CS8866: Record member 'X' must be a readable instance property of type 'int'.
+                // //     public int X() => 3;
+                // Diagnostic(ErrorCode.ERR_BadRecordMember, "X").WithArguments("X", "int").WithLocation(4, 16));
 
-            Assert.Null(comp.GetMember("C.Deconstruct"));
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
         [Fact]

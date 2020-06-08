@@ -2984,10 +2984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
                 var existingOrAddedMembers = addProperties(ctor.Parameters);
-                if (existingOrAddedMembers.Length == ctor.Parameters.Length)
-                {
-                    addDeconstructor(ctor.Parameters, existingOrAddedMembers);
-                }
+                addDeconstructor(ctor.Parameters, existingOrAddedMembers);
             }
 
             addCopyCtor();
@@ -3023,7 +3020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ctor;
             }
 
-            void addDeconstructor(ImmutableArray<ParameterSymbol> parameters, ImmutableArray<Symbol> properties)
+            void addDeconstructor(ImmutableArray<ParameterSymbol> parameters, ImmutableArray<PropertySymbol> properties)
             {
                 var ctor = new SynthesizedRecordDeconstructor(this, parameters, properties, memberOffset: members.Count);
                 if (!memberSignatures.ContainsKey(ctor))
@@ -3050,9 +3047,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            ImmutableArray<Symbol> addProperties(ImmutableArray<ParameterSymbol> recordParameters)
+            ImmutableArray<PropertySymbol> addProperties(ImmutableArray<ParameterSymbol> recordParameters)
             {
-                var existingOrAddedMembers = ArrayBuilder<Symbol>.GetInstance(recordParameters.Length);
+                var existingOrAddedMembers = ArrayBuilder<PropertySymbol>.GetInstance(recordParameters.Length);
                 int addedCount = 0;
                 foreach (ParameterSymbol param in recordParameters)
                 {
@@ -3070,11 +3067,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         builder.InstanceInitializersForRecordDeclarationWithParameters.Insert(addedCount, new FieldOrPropertyInitializer.Builder(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
                     }
-                    else if (!existingMember.IsStatic && existingMember.Kind switch { SymbolKind.Property => true, SymbolKind.Field => true, _ => false })
+                    else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
+                        && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
                     {
                         // There already exists a member corresponding to the candidate synthesized property.
                         // The deconstructor is specified to simply assign from this property to the corresponding out parameter.
-                        existingOrAddedMembers.Add(existingMember);
+                        existingOrAddedMembers.Add(prop);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadRecordMember,
+                            existingMember.Locations.FirstOrDefault() ?? builder.RecordDeclarationWithParameters.Identifier.GetLocation(),
+                            existingMember.Name, // TODO: use a qualified name
+                            param.TypeWithAnnotations);
                     }
                 }
 
