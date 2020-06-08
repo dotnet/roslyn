@@ -355,7 +355,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     throw new InvalidOperationException("IL visualization function is not set");
                 }
 
-
                 return _visualizeRealIL(_lazyModuleSymbol, methodData, markers, _testData.Module.GetMethodBody(methodData.Method).AreLocalsZeroed);
             }
 

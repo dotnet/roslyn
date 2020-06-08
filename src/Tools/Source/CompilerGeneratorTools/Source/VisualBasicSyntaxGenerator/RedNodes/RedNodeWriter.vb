@@ -126,7 +126,6 @@ Friend Class RedNodeWriter
         Next
     End Sub
 
-
     Private Sub GenerateRedFactory()
         'Private Shared Function CreateRed(ByVal green As GreenNode, ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
         '    Requires(green IsNot Nothing)
@@ -494,7 +493,6 @@ Friend Class RedNodeWriter
                     _writer.Write(", {0}", FieldParamName(allFields(i)))
                 Next
             End If
-
 
             For Each child In GetAllChildrenOfStructure(nodeStructure)
                 If KindTypeStructure(child.ChildKind).IsToken Then
@@ -1071,7 +1069,6 @@ Friend Class RedNodeWriter
         _writer.WriteLine()
     End Sub
 
-
     ' Generate GetChild, GetChildrenCount so members can be accessed by index
     Private Sub GenerateGetSlotCount(nodeStructure As ParseNodeStructure, allChildren As List(Of ParseNodeChild))
         If _parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken Then
@@ -1120,8 +1117,6 @@ Friend Class RedNodeWriter
         _writer.WriteLine("            {0}Me.DefaultVisit(node){1}", If(withResult, "Return ", ""), If(withResult, "", " : Return"))
         _writer.WriteLine("        End {0}", If(withResult, "Function", "Sub"))
     End Sub
-
-
 
     ' Generate the RewriteVisitor class definition
     Private Sub GenerateRewriteVisitorClass()
@@ -1218,6 +1213,5 @@ Friend Class RedNodeWriter
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
     End Sub
-
 
 End Class

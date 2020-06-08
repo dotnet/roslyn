@@ -121,6 +121,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract string Language { get; }
 
+        internal abstract void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder);
+
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
         {
             if (globalsType != null && !IsValidHostObjectType(globalsType))
@@ -2514,6 +2516,7 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken)
         {
             options = options ?? EmitOptions.Default.WithIncludePrivateMembers(metadataPEStream == null);
+
             bool embedPdb = options.DebugInformationFormat == DebugInformationFormat.Embedded;
             Debug.Assert(!embedPdb || pdbStream == null);
             Debug.Assert(metadataPEStream == null || !options.IncludePrivateMembers); // you may not use a secondary stream and include private members together
@@ -2591,10 +2594,7 @@ namespace Microsoft.CodeAnalysis
                         (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
                         testData?.SymWriterFactory,
                         diagnostics,
-                        metadataOnly: options.EmitMetadataOnly,
-                        includePrivateMembers: options.IncludePrivateMembers,
-                        emitTestCoverageData: options.EmitTestCoverageData,
-                        pePdbFilePath: options.PdbFilePath,
+                        emitOptions: options,
                         privateKeyOpt: privateKeyOpt,
                         cancellationToken: cancellationToken);
                 }
@@ -2729,7 +2729,7 @@ namespace Microsoft.CodeAnalysis
             if (IsSubmission && !HasCodeToEmit())
             {
                 // Still report diagnostics since downstream submissions will assume there are no errors.
-                diagnostics.AddRange(this.GetDiagnostics());
+                diagnostics.AddRange(this.GetDiagnostics(cancellationToken));
                 return null;
             }
 
@@ -2755,10 +2755,7 @@ namespace Microsoft.CodeAnalysis
             EmitStreamProvider? pdbStreamProvider,
             Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             DiagnosticBag diagnostics,
-            bool metadataOnly,
-            bool includePrivateMembers,
-            bool emitTestCoverageData,
-            string? pePdbFilePath,
+            EmitOptions emitOptions,
             RSAParameters? privateKeyOpt,
             CancellationToken cancellationToken)
         {
@@ -2772,6 +2769,8 @@ namespace Microsoft.CodeAnalysis
 
             // PDB Stream provider should not be given if PDB is to be embedded into the PE file:
             Debug.Assert(moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Embedded || pdbStreamProvider == null);
+
+            string? pePdbFilePath = emitOptions.PdbFilePath;
 
             if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded || pdbStreamProvider != null)
             {
@@ -2827,10 +2826,10 @@ namespace Microsoft.CodeAnalysis
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
-                        metadataOnly,
-                        includePrivateMembers,
+                        emitOptions.EmitMetadataOnly,
+                        emitOptions.IncludePrivateMembers,
                         deterministic,
-                        emitTestCoverageData,
+                        emitOptions.EmitTestCoverageData,
                         privateKeyOpt,
                         cancellationToken))
                     {

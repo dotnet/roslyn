@@ -424,7 +424,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 localBuilder[slot] = flags;
             }
 
-
             if (localBuilder != null)
             {
                 dynamicLocalMap = localBuilder.ToImmutable();

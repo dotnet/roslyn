@@ -1231,7 +1231,7 @@ namespace CSharpSyntaxGenerator
                     if (baseType != null)
                     {
                         Write($"internal override {baseType.Name} With{field.Name}Core({GetRedPropertyType(baseField)} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)}");
-                        if (IsOptional(baseField) && !IsOptional(field))
+                        if (baseField.Type != "SyntaxToken" && IsOptional(baseField) && !IsOptional(field))
                         {
                             Write($" ?? throw new ArgumentNullException(nameof({CamelCase(field.Name)}))");
                         }

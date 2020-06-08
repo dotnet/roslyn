@@ -260,7 +260,6 @@ End Class]]></a>
             Await TestAsync(text.Value, HelpKeywords.CollectionInitializer)
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestConstructor() As Task
             Dim text = <a><![CDATA[
@@ -271,7 +270,6 @@ End Class]]></a>
 
             Await TestAsync(text.Value, HelpKeywords.Constructor)
         End Function
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestDistinct() As Task
@@ -476,7 +474,6 @@ End Class]]></a>
             Await TestAsync(text.Value, "vb.Erase")
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestEraseStatement2() As Task
             Dim text = <a><![CDATA[
@@ -489,7 +486,6 @@ End Class]]></a>
 
             Await TestAsync(text.Value, "vb.Erase")
         End Function
-
 
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestError() As Task
@@ -1500,7 +1496,6 @@ Public Class Test
 End Class
 ]]></a>.Value, "vb.As")
 
-
         End Function
 
         <WorkItem(863305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/863305")>
@@ -1940,7 +1935,6 @@ End Class]]></a>.Value, "vb.Not")
     End Sub
 End Class]]></a>.Value, "vb.Integer")
         End Function
-
 
         <WorkItem(866074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866074")>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>

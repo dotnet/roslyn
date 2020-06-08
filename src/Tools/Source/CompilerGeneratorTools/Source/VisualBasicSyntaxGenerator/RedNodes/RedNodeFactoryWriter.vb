@@ -294,8 +294,6 @@ Friend Class RedNodeFactoryWriter
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
 
-
-
         ' For tokens, generate factory method that doesn't take trivia
         If nodeStructure.IsToken Then
             ' 5. Generate the Function line

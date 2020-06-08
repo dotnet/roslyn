@@ -122,7 +122,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
                             ConflictAnnotation.Create(FeaturesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
                     }
 
-
                     if (method.MethodKind == MethodKind.ReducedExtension)
                     {
                         insertionIndex++;

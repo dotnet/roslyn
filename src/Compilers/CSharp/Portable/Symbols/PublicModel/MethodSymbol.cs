@@ -141,6 +141,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        bool IMethodSymbol.IsInitOnly
+        {
+            get
+            {
+                return _underlying.IsInitOnly;
+            }
+        }
+
         IMethodSymbol IMethodSymbol.OriginalDefinition
         {
             get
