@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols.DependentProjects;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -26,7 +27,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal static partial class DependentProjectsFinder
     {
-
         /// <summary>
         /// Dependent projects cache.
         /// For a given solution, maps from an assembly (source/metadata) to the set of projects referencing it.
@@ -267,8 +267,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (isSubmission)
                 return;
 
-            var internalsVisibleToMap = CreateInternalsVisibleToMap(containingAssembly);
-
+            var fastCheckInternalsVisibleToSourceAsync = GetFastCheckInternalsVisibleToSource(sourceProject);
+            var fastCheckInternalsVisibleToCompilation = GetFastCheckInternalsVisibleToCompilation(containingAssembly);
             var containingAssemblySymbolKey = containingAssembly.GetSymbolKey(cancellationToken);
 
             foreach (var projectId in solution.ProjectIds)
@@ -277,54 +277,95 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (project.SupportsCompilation && HasReferenceTo(containingAssembly, sourceProject, project, cancellationToken))
+                if (project.SupportsCompilation &&
+                    HasReferenceTo(containingAssembly, sourceProject, project, cancellationToken))
                 {
-                    var hasInternalsAccess = await HasInternalsAccessAsync(
-                        containingAssembly, containingAssemblySymbolKey,
-                        internalsVisibleToMap, project, cancellationToken).ConfigureAwait(false);
+                    var hasInternalsAccess =
+                        await fastCheckInternalsVisibleToSourceAsync(project.AssemblyName).ConfigureAwait(false) &&
+                        fastCheckInternalsVisibleToCompilation(project.AssemblyName) &&
+                        await HasInternalsAccessAsync(containingAssembly, containingAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
 
                     dependentProjects.Add(new DependentProject(project.Id, hasInternalsAccess));
                 }
             }
         }
 
+        /// <summary>
+        /// Performs the full, expensive, compilation check if <paramref name="project"/> can see internal symbols from <paramref name="containingAssembly"/>.
+        /// </summary>
         private static async Task<bool> HasInternalsAccessAsync(
             IAssemblySymbol containingAssembly, SymbolKey containingAssemblySymbolKey,
-            Lazy<HashSet<string>> internalsVisibleToMap, Project project, CancellationToken cancellationToken)
+            Project project, CancellationToken cancellationToken)
         {
-            if (internalsVisibleToMap.Value.Contains(project.AssemblyName) &&
-                project.SupportsCompilation)
-            {
-                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            Debug.Assert(project.SupportsCompilation);
 
-                var targetAssembly = compilation.Assembly;
-                if (containingAssembly.Language != targetAssembly.Language)
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var targetAssembly = compilation.Assembly;
+
+            if (containingAssembly.Language != targetAssembly.Language)
+            {
+                var resolvedSymbol = containingAssemblySymbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+                if (resolvedSymbol is IAssemblySymbol sourceAssemblyInTargetCompilation)
                 {
-                    var resolvedSymbol = containingAssemblySymbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-                    if (resolvedSymbol is IAssemblySymbol sourceAssemblyInTargetCompilation)
-                    {
-                        return targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssemblyInTargetCompilation);
-                    }
+                    return targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssemblyInTargetCompilation);
                 }
-                else
-                {
-                    return targetAssembly.IsSameAssemblyOrHasFriendAccessTo(containingAssembly);
-                }
+            }
+            else
+            {
+                return targetAssembly.IsSameAssemblyOrHasFriendAccessTo(containingAssembly);
             }
 
             return false;
         }
 
         /// <summary>
-        /// This method creates an initial cheap InternalsVisibleTo map from the given <paramref name="assembly"/> to the assembly names that have friend access to this assembly.
-        /// This map is a superset of the actual InternalsVisibleTo map and is used for performance reasons only.
-        /// While identifying depend projects that can reference a given symbol (see method <see cref="AddNonSubmissionDependentProjectsAsync"/>), we need to know a symbol's
-        /// accessibility from referencing projects. This requires us to create a compilation for the referencing project just to check accessibility and can be performance intensive.
-        /// Instead, we crack the assembly attributes just for the symbol's containing assembly here to enable cheap checks for friend assemblies in <see cref="AddNonSubmissionDependentProjectsAsync"/>.
+        /// This method creates an initial cheapish InternalsVisibleTo map from the given <paramref
+        /// name="sourceProject"/> to the assembly names that have friend access to this assembly.  It uses the
+        /// information stored in our syntactic indices to avoid having to check with the compilation to get the 
+        /// assembly attributes in the project.
         /// </summary>
-        private static Lazy<HashSet<string>> CreateInternalsVisibleToMap(IAssemblySymbol assembly)
+        private static Func<string, Task<bool>> GetFastCheckInternalsVisibleToSource(Project? sourceProject)
         {
-            var internalsVisibleToMap = new Lazy<HashSet<string>>(() =>
+            // If we're dealing with a metadata symbol, we have no source information we can look at to make this
+            // determination.  So just assume any other assembly has IVT to us.  We'll later do the more expensive
+            // semantic check to know for sure.
+            if (sourceProject == null)
+                return _ => Task.FromResult(true);
+
+            // Lazily initialize and compute the actual place where we store the information.
+            Task<HashSet<string>>? internalsVisibleToMap = null;
+
+            return async v =>
+            {
+                internalsVisibleToMap ??= ComputeInternalsVisibleToMap(sourceProject);
+                var map = await internalsVisibleToMap.ConfigureAwait(false);
+                return map.Contains(v);
+            };
+
+            static Task<HashSet<string>> ComputeInternalsVisibleToMap(Project sourceProject)
+            {
+                var map = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            }
+        }
+
+        /// <summary>
+        /// This method creates an initial cheapish InternalsVisibleTo map from the given <paramref name="assembly"/> to
+        /// the assembly names that have friend access to this assembly.  It still requires parsing and binding of all
+        /// assembly level attributes in the assembly.
+        /// </summary>
+        private static Func<string, bool> GetFastCheckInternalsVisibleToCompilation(IAssemblySymbol assembly)
+        {
+            // Lazily initialize and compute the actual place where we store the information.
+            HashSet<string>? internalsVisibleToMap = null;
+
+            return v =>
+            {
+                internalsVisibleToMap ??= ComputeInternalsVisibleToMap(assembly);
+                return internalsVisibleToMap.Contains(v);
+            };
+
+            static HashSet<string> ComputeInternalsVisibleToMap(IAssemblySymbol assembly)
             {
                 var map = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var attr in assembly.GetAttributes().Where(IsInternalsVisibleToAttribute))
@@ -344,8 +385,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 return map;
-            }, isThreadSafe: true);
-            return internalsVisibleToMap;
+            }
         }
 
         private static bool HasReferenceTo(
