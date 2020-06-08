@@ -3852,6 +3852,83 @@ record C(Action X)
         }
 
         [Fact]
+        public void Deconstruct_WriteOnlyPropertyInBase()
+        {
+            var source = @"
+using System;
+
+record B
+{
+    public int X { set { } }
+}
+
+record C(int X) : B
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(1));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,14): error CS8866: Record member 'B.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
+                // record C(int X) : B
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "int", "X").WithLocation(9, 14));
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_PrivateWriteOnlyPropertyInBase()
+        {
+            var source = @"
+using System;
+
+record B
+{
+    private int X { set { } }
+}
+
+record C(int X) : B
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(1));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X)",
+                verifier.Compilation.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
         public void Deconstruct_Empty()
         {
             var source = @"
@@ -4030,7 +4107,90 @@ record C(int X, int Y) : B
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
                 comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
-        
+
+        [Fact]
+        public void Deconstruct_Inheritance_04()
+        {
+            var source = @"
+using System;
+
+record A<T>(T P) { internal A() : this(default(T)) { } }
+record B1(int P, object Q) : A<int>(P) { internal B1() : this(0, null) { } }
+record B2(object P, object Q) : A<object>(P) { internal B2() : this(null, null) { } }
+record B3<T>(T P, object Q) : A<T>(P) { internal B3() : this(default, 0) { } }
+
+class C
+{
+    static void M0(A<int> arg)
+    {
+        switch (arg)
+        {
+            case A<int>(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    static void M1(B1 arg)
+    {
+        switch (arg)
+        {
+            case B1(int p, object q):
+                Console.Write(p);
+                Console.Write(q);
+                break;
+        }
+    }
+
+    static void M2(B2 arg)
+    {
+        switch (arg)
+        {
+            case B2(object p, object q):
+                Console.Write(p);
+                Console.Write(q);
+                break;
+        }
+    }
+
+    static void M3(B3<int> arg)
+    {
+        switch (arg)
+        {
+            case B3<int>(int p, object q):
+                Console.Write(p);
+                Console.Write(q);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M0(new A<int>(0));
+        M1(new B1(1, 2));
+        M2(new B2(3, 4));
+        M3(new B3<int>(5, 6));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "0123456");
+            verifier.VerifyDiagnostics();
+
+            var comp = verifier.Compilation;
+            Assert.Equal(
+                "void A<T>.Deconstruct(out T P)",
+                comp.GetMember("A.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+            Assert.Equal(
+                "void B1.Deconstruct(out System.Int32 P, out System.Object Q)",
+                comp.GetMember("B1.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+            Assert.Equal(
+                "void B2.Deconstruct(out System.Object P, out System.Object Q)",
+                comp.GetMember("B2.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+            Assert.Equal(
+                "void B3<T>.Deconstruct(out T P, out System.Object Q)",
+                comp.GetMember("B3.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
         [Fact]
         public void Deconstruct_Conversion_01()
         {
@@ -4072,7 +4232,7 @@ record C(int X, int Y)
                 "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
                 comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
-        
+
         [Fact]
         public void Deconstruct_Conversion_02()
         {
