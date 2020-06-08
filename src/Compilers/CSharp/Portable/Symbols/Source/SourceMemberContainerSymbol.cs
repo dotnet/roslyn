@@ -2984,7 +2984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
                 var existingOrAddedMembers = addProperties(ctor.Parameters);
-                addDeconstructor(ctor.Parameters, existingOrAddedMembers);
+                addDeconstruct(ctor.Parameters, existingOrAddedMembers);
             }
 
             addCopyCtor();
@@ -3020,9 +3020,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ctor;
             }
 
-            void addDeconstructor(ImmutableArray<ParameterSymbol> parameters, ImmutableArray<PropertySymbol> properties)
+            void addDeconstruct(ImmutableArray<ParameterSymbol> parameters, ImmutableArray<PropertySymbol> properties)
             {
-                var ctor = new SynthesizedRecordDeconstructor(this, parameters, properties, memberOffset: members.Count);
+                var ctor = new SynthesizedRecordDeconstruct(this, parameters, properties, memberOffset: members.Count);
                 if (!memberSignatures.ContainsKey(ctor))
                 {
                     members.Add(ctor);

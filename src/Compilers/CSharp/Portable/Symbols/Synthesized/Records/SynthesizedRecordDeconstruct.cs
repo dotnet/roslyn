@@ -14,12 +14,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedRecordDeconstructor : SynthesizedInstanceMethodSymbol
+    internal sealed class SynthesizedRecordDeconstruct : SynthesizedInstanceMethodSymbol
     {
         private readonly int _memberOffset;
         private readonly ImmutableArray<PropertySymbol> _properties;
 
-        public SynthesizedRecordDeconstructor(
+        public SynthesizedRecordDeconstruct(
             SourceMemberContainerTypeSymbol containingType,
             ImmutableArray<ParameterSymbol> ctorParameters,
             ImmutableArray<PropertySymbol> properties,
