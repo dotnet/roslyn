@@ -266,14 +266,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
                     hasErrors = true;
                 }
-                else if (inputType.IsPointerType() && Compilation.LanguageVersion < MessageID.IDS_FeatureNullPointerConstantPattern.RequiredVersion())
+                else if (inputType.IsPointerType())
                 {
-                    // before C# 8 we did not permit `pointer is null`
-                    diagnostics.Add(ErrorCode.ERR_FeatureNotAvailableInVersion7_3,
-                        patternExpression.Location,
-                        MessageID.IDS_FeatureNullPointerConstantPattern.Localize(),
-                        new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullPointerConstantPattern.RequiredVersion()));
-                    hasErrors = true;
+                    CheckFeatureAvailability(patternExpression, MessageID.IDS_FeatureNullPointerConstantPattern, diagnostics, patternExpression.Location);
                 }
             }
 

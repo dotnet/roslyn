@@ -348,6 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureNotNullGenericTypeConstraint:// semantic check
                 case MessageID.IDS_FeatureSwitchExpression:
                 case MessageID.IDS_FeatureAsyncUsing:
+                case MessageID.IDS_FeatureNullPointerConstantPattern: //semantic check
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.
