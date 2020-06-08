@@ -319,6 +319,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (declaration.Kind == DeclarationKind.Record)
+            {
+                var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T);
+                baseInterfaces.Add(type.Construct(this));
+            }
+
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             if ((object)baseType != null)
