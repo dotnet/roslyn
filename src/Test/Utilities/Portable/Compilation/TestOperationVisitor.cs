@@ -1522,7 +1522,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitWithExpression(IWithOperation operation)
         {
-            Assert.Equal(OperationKind.WithExpression, operation.Kind);
+            Assert.Equal(OperationKind.With, operation.Kind);
             _ = operation.CloneMethod;
             IEnumerable<IOperation> children = SpecializedCollections.SingletonEnumerable(operation.Value).Concat(operation.Initializer);
             AssertEx.Equal(children, operation.Children);
