@@ -5704,6 +5704,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRecursivePatterns" xml:space="preserve">
     <value>recursive patterns</value>
   </data>
+  <data name="IDS_FeatureNullPointerConstantPattern" xml:space="preserve">
+    <value>null pointer constant pattern</value>
+  </data>
   <data name="ERR_WrongNumberOfSubpatterns" xml:space="preserve">
     <value>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</value>
   </data>
@@ -5886,9 +5889,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PointerTypeInPatternMatching" xml:space="preserve">
     <value>Pattern-matching is not permitted for pointer types.</value>
-  </data>
-  <data name="ERR_LanguageVersionDoesNotSupportPointerTypeInPatternMatching" xml:space="preserve">
-    <value>Pointers cannot be matched to null in C# {1}. Please use language version '{2}' or greater.</value>
   </data>
   <data name="ERR_ArgumentNameInITuplePattern" xml:space="preserve">
     <value>Element names are not permitted when pattern-matching via 'System.Runtime.CompilerServices.ITuple'.</value>

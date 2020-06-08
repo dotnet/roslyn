@@ -1634,8 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PointerTypeInPatternMatching = 8521,
         ERR_ArgumentNameInITuplePattern = 8522,
         ERR_DiscardPatternInSwitchStatement = 8523,
-        ERR_LanguageVersionDoesNotSupportPointerTypeInPatternMatching = 8524,
-        // available 8525-8596
+        // available 8524-8596
         #endregion diagnostics introduced for recursive patterns
 
         WRN_ThrowPossibleNull = 8597,

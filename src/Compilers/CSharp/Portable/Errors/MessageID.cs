@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_TopLevelStatements = MessageBase + 12778,
         IDS_FeatureFunctionPointers = MessageBase + 12779,
         IDS_AddressOfMethodGroup = MessageBase + 12780,
+        IDS_FeatureNullPointerConstantPattern = MessageBase + 12781,
     }
 
     // Message IDs may refer to strings that need to be localized.
