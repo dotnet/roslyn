@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -22,7 +23,7 @@ using Microsoft.CodeAnalysis.Storage;
 
 namespace IdeCoreBenchmarks
 {
-    [SimpleJob(RunStrategy.Monitoring, targetCount: 10)]
+    [MemoryDiagnoser]
     public class FindReferencesBenchmarks
     {
         private readonly string _solutionPath;
@@ -37,7 +38,7 @@ namespace IdeCoreBenchmarks
             if (!File.Exists(_solutionPath))
                 throw new ArgumentException("Couldn't find Roslyn.sln");
 
-            Console.Write("Found roslyn.sln");
+            Console.Write("Found roslyn.sln: " + Process.GetCurrentProcess().Id);
         }
 
         [GlobalSetup]
@@ -50,10 +51,12 @@ namespace IdeCoreBenchmarks
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
                 .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
 
-            Console.WriteLine("Opening roslyn");
+            Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
+            // Thread.Sleep(TimeSpan.FromSeconds(20));
+
             var start = DateTime.Now;
             _ = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
-            Console.WriteLine("Finished opening roslyn: "+ (DateTime.Now - start));
+            Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
 
             var storageService = _workspace.Services.GetService<IPersistentStorageService>();
             if (storageService == null)
@@ -74,9 +77,17 @@ namespace IdeCoreBenchmarks
         {
             var solution = _workspace.CurrentSolution;
             var project = solution.Projects.First(p => p.AssemblyName == "Microsoft.CodeAnalysis.CSharp");
+
+            var start = DateTime.Now;
             var compilation = await project.GetCompilationAsync();
-            var documentType = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser");
-            var references = await SymbolFinder.FindReferencesAsync(documentType, solution);
+            Console.WriteLine("Time to get first compilation: " + (DateTime.Now - start));
+            var type = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser");
+            if (type == null)
+                throw new Exception("Couldn't find type");
+
+            start = DateTime.Now;
+            var references = await SymbolFinder.FindReferencesAsync(type, solution);
+            Console.WriteLine("Time to find-refs: " + (DateTime.Now - start));
             var refList = references.ToList();
             Console.WriteLine($"References count: {refList.Count}");
             var locations = refList.SelectMany(r => r.Locations).ToList();

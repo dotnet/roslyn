@@ -25,7 +25,7 @@ using Microsoft.CodeAnalysis.Storage;
 
 namespace IdeCoreBenchmarks
 {
-    [SimpleJob(RunStrategy.Monitoring, targetCount: 10)]
+    [MemoryDiagnoser]
     public class NavigateToBenchmarks
     {
         private readonly string _solutionPath;
