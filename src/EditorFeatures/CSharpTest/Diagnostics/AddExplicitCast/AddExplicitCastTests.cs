@@ -431,7 +431,6 @@ class Program
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task VariableDeclarationWithPublicFieldMember()
         {
@@ -1557,7 +1556,6 @@ class Program
 }");
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task ExactMethodCandidate()
         {
@@ -2425,7 +2423,6 @@ class Program
     }
 }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
         public async Task MultipleOptions1()

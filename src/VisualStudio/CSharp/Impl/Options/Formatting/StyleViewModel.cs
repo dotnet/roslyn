@@ -1282,7 +1282,6 @@ class Customer2
 //]
 " };
 
-
         private static readonly string s_preferStaticLocalFunction = $@"
 class Customer1
 {{

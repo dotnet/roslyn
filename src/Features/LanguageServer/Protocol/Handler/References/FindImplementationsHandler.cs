@@ -6,7 +6,6 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             foreach (var definition in context.GetDefinitions())
             {
                 var text = definition.GetClassifiedText();
-                foreach (var sourceSpan in context.GetDefinitions().SelectMany(definition => definition.SourceSpans))
+                foreach (var sourceSpan in definition.SourceSpans)
                 {
                     if (clientCapabilities?.HasVisualStudioLspCapability() == true)
                     {

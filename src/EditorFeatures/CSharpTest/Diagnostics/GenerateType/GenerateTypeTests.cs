@@ -107,7 +107,6 @@ public class Employee
 index: 1);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestGenerateClassFromConstructorConstraint()
         {

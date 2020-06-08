@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
-                context.IsIsOrAsOrSwitchExpressionContext;
+                context.IsIsOrAsOrSwitchOrWithExpressionContext;
         }
     }
 }

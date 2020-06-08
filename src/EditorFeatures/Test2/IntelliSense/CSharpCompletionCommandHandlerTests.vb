@@ -5107,12 +5107,41 @@ class C
                               </Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.SendTypeChars("w")
+                state.SendTypeChars("z")
                 Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
 
                 state.SendBackspace()
                 state.SendTypeChars("i")
                 Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
+
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AfterIdentifierInCaseLabel_ClassNameOnly_WithMiscLetters(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class identifier { }
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case identifier $$
+        }
+    }
+}
+                              </Document>,
+                  showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("a")
+                Await state.AssertSelectedCompletionItem(displayText:="and", isHardSelected:=False)
+
+                state.SendBackspace()
+                state.SendTypeChars("w")
+                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=False)
 
             End Using
         End Function
@@ -6745,7 +6774,6 @@ namespace NS2
             End Using
         End Function
 
-
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletelyMatchedExpandedItemAndPrefixMatchedNonExpandedItem(showCompletionInArgumentLists As Boolean) As Task
@@ -6900,7 +6928,6 @@ namespace NS2
                 ' make sure expander is selected
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
                 Await state.AssertSelectedCompletionItem(displayText:="MyTask1", inlineDescription:="")
-
 
                 Dim expectedOrder As (String, String)() =
                     {

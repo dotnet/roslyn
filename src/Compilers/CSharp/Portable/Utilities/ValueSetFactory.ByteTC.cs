@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (byte)(value - 1);
             }
 
-            byte INumericTC<byte>.FromConstantValue(ConstantValue constantValue) => constantValue.ByteValue;
+            byte INumericTC<byte>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (byte)0 : constantValue.ByteValue;
 
             ConstantValue INumericTC<byte>.ToConstantValue(byte value) => ConstantValue.Create(value);
 

@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case (Equal, false):
                         return BoolValueSet.OnlyFalse;
                     default:
-                        throw new ArgumentException("relation");
+                        // for error recovery
+                        return BoolValueSet.AllValues;
                 }
             }
 
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
             {
                 Debug.Assert(relation == BinaryOperatorKind.Equal);
-                return left.BooleanValue == right.BooleanValue;
+                return left.IsBad || right.IsBad || left.BooleanValue == right.BooleanValue;
             }
         }
     }

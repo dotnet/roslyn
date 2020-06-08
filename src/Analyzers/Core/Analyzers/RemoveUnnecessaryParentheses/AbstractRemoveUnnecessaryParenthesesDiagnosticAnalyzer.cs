@@ -121,8 +121,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
             var severity = preference.Notification.Severity;
 
-            var additionalLocations = ImmutableArray.Create(parenthesizedExpression.GetLocation(),
-                parenthesizedExpression.GetFirstToken().GetLocation(), parenthesizedExpression.GetLastToken().GetLocation());
+            var additionalLocations = ImmutableArray.Create(
+                parenthesizedExpression.GetLocation(),
+                parenthesizedExpression.GetFirstToken().GetLocation(),
+                parenthesizedExpression.GetLastToken().GetLocation());
 
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 s_diagnosticDescriptor,

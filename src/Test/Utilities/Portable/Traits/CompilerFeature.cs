@@ -36,5 +36,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         LambdaDiscardParameters,
         StatementAttributes,
         TopLevelStatements,
+        InitOnlySetters,
     }
 }

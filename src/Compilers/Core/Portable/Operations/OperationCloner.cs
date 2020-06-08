@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal override IOperation VisitNoneOperation(IOperation operation, object argument)
         {
-            return new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit);
+            return new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit, operation.Type);
         }
 
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation
@@ -661,6 +661,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitUsingDeclaration(IUsingDeclarationOperation operation, object argument)
         {
             return new UsingDeclarationOperation(Visit(operation.DeclarationGroup), operation.IsAsynchronous, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitWithExpression(IWithExpressionOperation operation, object argument)
+        {
+            return new WithExpressionOperation(Visit(operation.Value), operation.CloneMethod, Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
     }
 }

@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
             // Generate the interface syntax node, which will be inserted above the type it's extracted from
             var codeGenService = trackedDocument.GetLanguageService<ICodeGenerationService>();
-            var interfaceNode = codeGenService.CreateNamedTypeDeclaration(extractedInterfaceSymbol)
+            var interfaceNode = codeGenService.CreateNamedTypeDeclaration(extractedInterfaceSymbol, cancellationToken: cancellationToken)
                 .WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
 
             typeDeclaration = currentRoot.GetCurrentNode(typeDeclaration);
@@ -470,7 +470,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             explicitInterfaceImplementations: default,
                             name: method.Name,
                             typeParameters: method.TypeParameters,
-                            parameters: method.Parameters));
+                            parameters: method.Parameters,
+                            isInitOnly: method.IsInitOnly));
                         break;
                     case SymbolKind.Property:
                         var property = member as IPropertySymbol;

@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return TransformArrayType((ArrayTypeSymbol)type);
                 case TypeKind.Pointer:
                     return TransformPointerType((PointerTypeSymbol)type);
+                case TypeKind.FunctionPointer:
+                    return TransformFunctionPointerType((FunctionPointerTypeSymbol)type);
                 case TypeKind.TypeParameter:
                 case TypeKind.Dynamic:
                     IgnoreIndex();
@@ -135,6 +137,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             IgnoreIndex();
             return type.WithPointedAtType(TransformTypeWithAnnotations(type.PointedAtTypeWithAnnotations));
+        }
+
+        private FunctionPointerTypeSymbol TransformFunctionPointerType(FunctionPointerTypeSymbol type)
+        {
+            IgnoreIndex();
+
+            var transformedReturnType = TransformTypeWithAnnotations(type.Signature.ReturnTypeWithAnnotations);
+            var transformedParameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+            var paramsModified = false;
+
+            if (type.Signature.ParameterCount > 0)
+            {
+                var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(type.Signature.ParameterCount);
+                foreach (var param in type.Signature.Parameters)
+                {
+                    var transformedParam = TransformTypeWithAnnotations(param.TypeWithAnnotations);
+                    paramsModified = paramsModified || !transformedParam.IsSameAs(param.TypeWithAnnotations);
+                    builder.Add(transformedParam);
+                }
+
+                if (paramsModified)
+                {
+                    transformedParameterTypes = builder.ToImmutableAndFree();
+                }
+                else
+                {
+                    transformedParameterTypes = type.Signature.ParameterTypesWithAnnotations;
+                    builder.Free();
+                }
+            }
+
+            if (paramsModified || !transformedReturnType.IsSameAs(type.Signature.ReturnTypeWithAnnotations))
+            {
+                return type.SubstituteTypeSymbol(transformedReturnType, transformedParameterTypes, refCustomModifiers: default, paramRefCustomModifiers: default);
+            }
+            else
+            {
+                return type;
+            }
         }
 
         private int Increment()
