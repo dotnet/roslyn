@@ -343,15 +343,7 @@ record C1(object O1)
     public object O1 { get; } = O1;
     public object O2 { get; } = O1;
 }");
-            // PROTOTYPE: primary ctor parameters not currently in scope
-            comp.VerifyDiagnostics(
-                // (4,33): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C1.O1'
-                //     public object O1 { get; } = O1;
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "O1").WithArguments("C1.O1").WithLocation(4, 33),
-                // (5,33): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C1.O1'
-                //     public object O2 { get; } = O1;
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "O1").WithArguments("C1.O1").WithLocation(5, 33)
-            );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -393,7 +385,8 @@ record C1(object O1)
             comp.VerifyDiagnostics(
                 // (1,17): error CS0102: The type 'C' already contains a definition for 'P'
                 // record C(object P)
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(1, 17));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(1, 17)
+                );
         }
 
         [Fact]
@@ -3943,6 +3936,22 @@ record B(int X, int Y)
                 "ref System.Object C.P5 { get; }",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+
+            var verifier = CompileAndVerify(source);
+
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  ldfld      ""object C.<P2>k__BackingField""
+  IL_000d:  stfld      ""object C.<P2>k__BackingField""
+  IL_0012:  ret
+}
+");
         }
 
         [Fact]
@@ -5485,6 +5494,110 @@ interface C : Base(X)
             Assert.DoesNotContain("X", model.LookupNames(x.SpanStart));
         }
 
+        [Fact]
+        public void BaseArguments_15()
+        {
+            var src = @"
+using System;
+
+record Base
+{
+    public Base(int X, int Y)
+    {
+        Console.WriteLine(X);
+        Console.WriteLine(Y);
+    }
+
+    public Base() {}
+}
+
+partial record C
+{
+}
+
+partial record C(int X, int Y) : Base(X, Y)
+{
+    int Z = 123;
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(c.Z);
+    }
+}
+
+partial record C
+{
+}
+";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+1
+2
+123");
+            verifier.VerifyIL("C..ctor(int, int)", @"
+
+{
+  // Code size       31 (0x1f)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.<X>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      ""int C.<Y>k__BackingField""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.s   123
+  IL_0011:  stfld      ""int C.Z""
+  IL_0016:  ldarg.0
+  IL_0017:  ldarg.1
+  IL_0018:  ldarg.2
+  IL_0019:  call       ""Base..ctor(int, int)""
+  IL_001e:  ret
+}
+");
+
+            var comp = CreateCompilation(src);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").ElementAt(1);
+            Assert.Equal("Base(X, Y)", x.Parent!.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X, System.Int32 Y)", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Same(symbol.ContainingSymbol, model.GetEnclosingSymbol(x.SpanStart));
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void BaseArguments_16()
+        {
+            var src = @"
+using System;
+
+record Base
+{
+    public Base(Func<int> X)
+    {
+        Console.WriteLine(X());
+    }
+
+    public Base() {}
+}
+
+record C(int X) : Base(() => X)
+{
+    public static void Main()
+    {
+        var c = new C(1);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"1");
+        }
+
         [Fact(Skip = "record struct")]
         public void Equality_01()
         {
@@ -5656,8 +5769,8 @@ record B2(int P) : A
 }
 class Program
 {
-    static B1 NewB1(int p) => new B1 { P = p }; // PROTOTYPE: Replace with new B1(P)
-    static B2 NewB2(int p) => new B2 { P = p }; // PROTOTYPE: Replace with new B2(P)
+    static B1 NewB1(int p) => new B1 { P = p }; // Use record base call syntax instead
+    static B2 NewB2(int p) => new B2 { P = p }; // Use record base call syntax instead
     static void Main()
     {
         WriteLine(new A().Equals(NewB1(1)));
@@ -5734,9 +5847,9 @@ record B2(int P) : A
 }
 class Program
 {
-    static A NewA(int p) => new A { P = p }; // PROTOTYPE: Replace with new A(P)
-    static B1 NewB1(int p) => new B1 { P = p }; // PROTOTYPE: Replace with new B1(P)
-    static B2 NewB2(int p) => new B2 { P = p }; // PROTOTYPE: Replace with new B2(P)
+    static A NewA(int p) => new A { P = p }; // Use record base call syntax instead
+    static B1 NewB1(int p) => new B1 { P = p }; // Use record base call syntax instead
+    static B2 NewB2(int p) => new B2 { P = p }; // Use record base call syntax instead
     static void Main()
     {
         WriteLine(NewA(1).Equals(NewB1(1)));
@@ -5986,32 +6099,38 @@ True");
   IL_0007:  ret
 }");
 
-            verifyMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
-            verifyMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
-            verifyMethod(comp.GetMember<MethodSymbol>("C.get_EqualityContract"), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.get_EqualityContract"), isOverride: true);
 
-            verifyMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? )", true));
-            verifyMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? )", true));
-            verifyMethods(comp.GetMembers("C.Equals"), ("System.Boolean C.Equals(C? )", false), ("System.Boolean C.Equals(B? )", true), ("System.Boolean C.Equals(A? )", true), ("System.Boolean C.Equals(System.Object? )", true));
+            // Should include <>Clone.
 
-            static void verifyMethods(ImmutableArray<Symbol> members, params (string, bool)[] values)
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.GetHashCode"), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.GetHashCode"), isOverride: true);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("C.GetHashCode"), isOverride: true);
+
+            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? )", true));
+            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? )", true));
+            VerifyVirtualMethods(comp.GetMembers("C.Equals"), ("System.Boolean C.Equals(C? )", false), ("System.Boolean C.Equals(B? )", true), ("System.Boolean C.Equals(A? )", true), ("System.Boolean C.Equals(System.Object? )", true));
+        }
+
+        private static void VerifyVirtualMethod(MethodSymbol method, bool isOverride)
+        {
+            Assert.Equal(!isOverride, method.IsVirtual);
+            Assert.Equal(isOverride, method.IsOverride);
+            Assert.True(method.IsMetadataVirtual());
+            Assert.Equal(!isOverride, method.IsMetadataNewSlot());
+        }
+
+        private static void VerifyVirtualMethods(ImmutableArray<Symbol> members, params (string displayString, bool isOverride)[] values)
+        {
+            Assert.Equal(members.Length, values.Length);
+            for (int i = 0; i < members.Length; i++)
             {
-                Assert.Equal(members.Length, values.Length);
-                for (int i = 0; i < members.Length; i++)
-                {
-                    var method = (MethodSymbol)members[i];
-                    (string name, bool isOverride) = values[i];
-                    Assert.Equal(name, method.ToTestDisplayString(includeNonNullable: true));
-                    verifyMethod(method, isOverride);
-                }
-            }
-
-            static void verifyMethod(MethodSymbol method, bool isOverride)
-            {
-                Assert.True(method.IsVirtual);
-                Assert.Equal(isOverride, method.IsOverride);
-                Assert.True(method.IsMetadataVirtual());
-                Assert.Equal(!isOverride, method.IsMetadataNewSlot());
+                var method = (MethodSymbol)members[i];
+                (string displayString, bool isOverride) = values[i];
+                Assert.Equal(displayString, method.ToTestDisplayString(includeNonNullable: true));
+                VerifyVirtualMethod(method, isOverride);
             }
         }
 
@@ -6044,7 +6163,7 @@ record C(int X, int Y, int Z) : B
 }
 class Program
 {
-    static A NewA(int x) => new A { X = x }; // PROTOTYPE: Replace with new A(X), etc.
+    static A NewA(int x) => new A { X = x }; // Use record base call syntax instead
     static B NewB(int x, int y) => new B { X = x, Y = y };
     static C NewC(int x, int y, int z) => new C { X = x, Y = y, Z = z };
     static void Main()
@@ -6171,7 +6290,7 @@ record C(int X, int Y, int Z) : B
 }
 class Program
 {
-    static A NewA(int x) => new A { X = x }; // PROTOTYPE: Replace with new A(X), etc.
+    static A NewA(int x) => new A { X = x }; // Use record base call syntax instead
     static B NewB(int x, int y) => new B { X = x, Y = y };
     static C NewC(int x, int y, int z) => new C { X = x, Y = y, Z = z };
     static void Main()
@@ -6440,14 +6559,14 @@ record A;
 record B1 : A
 {
     public B1(int p) { P = p; }
-    public int P { get; set;  }
+    public int P { get; set; }
     protected override Type EqualityContract => typeof(A);
     public virtual bool Equals(B1 o) => base.Equals((A)o);
 }
 record B2 : A
 {
     public B2(int p) { P = p; }
-    public int P { get; set;  }
+    public int P { get; set; }
     protected override Type EqualityContract => typeof(B2);
     public virtual bool Equals(B2 o) => base.Equals((A)o);
 }
@@ -6475,7 +6594,7 @@ record A;
 record B1 : A
 {
     public B1(int p) { P = p; }
-    public int P { get; set;  }
+    public int P { get; set; }
     protected override Type EqualityContract => typeof(string);
     public override bool Equals(A a) => base.Equals(a);
     public virtual bool Equals(B1 b) => base.Equals((A)b);
@@ -6483,7 +6602,7 @@ record B1 : A
 record B2 : A
 {
     public B2(int p) { P = p; }
-    public int P { get; set;  }
+    public int P { get; set; }
     protected override Type EqualityContract => typeof(string);
     public override bool Equals(A a) => base.Equals(a);
     public virtual bool Equals(B2 b) => base.Equals((A)b);
@@ -6563,6 +6682,257 @@ True");
                 "B1..ctor(B1 )",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Equality_18(bool useCompilationReference)
+        {
+            var sourceA = @"public record A;";
+            var comp = CreateCompilation(sourceA);
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
+            VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? )", false), ("System.Boolean A.Equals(System.Object? )", true));
+            var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
+
+            var sourceB = @"record B : A;";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            VerifyVirtualMethod(comp.GetMember<MethodSymbol>("B.get_EqualityContract"), isOverride: true);
+            VerifyVirtualMethods(comp.GetMembers("B.Equals"), ("System.Boolean B.Equals(B? )", false), ("System.Boolean B.Equals(A? )", true), ("System.Boolean B.Equals(System.Object? )", true));
+        }
+
+        [Fact]
+        public void Equality_19()
+        {
+            var source =
+@"using static System.Console;
+record A<T>;
+record B : A<int>;
+class Program
+{
+    static void Main()
+    {
+        WriteLine(new A<int>().Equals(new A<int>()));
+        WriteLine(new A<int>().Equals(new B()));
+        WriteLine(new B().Equals(new A<int>()));
+        WriteLine(new B().Equals(new B()));
+        WriteLine(((A<int>)new B()).Equals(new A<int>()));
+        WriteLine(((A<int>)new B()).Equals(new B()));
+        WriteLine(new B().Equals((A<int>)new B()));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+False
+False
+True
+False
+True
+True");
+            verifier.VerifyIL("A<T>.Equals(A<T>)",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""System.Type A<T>.EqualityContract.get""
+  IL_0009:  ldarg.1
+  IL_000a:  callvirt   ""System.Type A<T>.EqualityContract.get""
+  IL_000f:  ceq
+  IL_0011:  ret
+  IL_0012:  ldc.i4.0
+  IL_0013:  ret
+}");
+            verifier.VerifyIL("B.Equals(A<int>)",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  isinst     ""B""
+  IL_0007:  callvirt   ""bool B.Equals(B)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("B.Equals(B)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool A<int>.Equals(A<int>)""
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void Initializers_01()
+        {
+            var src = @"
+using System;
+
+record C(int X)
+{
+    int Z = X + 1;
+
+    public static void Main()
+    {
+        var c = new C(1);
+        Console.WriteLine(c.Z);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"2");
+
+            var comp = CreateCompilation(src);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void Initializers_02()
+        {
+            var src = @"
+record C(int X)
+{
+    static int Z = X + 1;
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,20): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.X'
+                //     static int Z = X + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "X").WithArguments("C.X").WithLocation(4, 20)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Property, symbol!.Kind);
+            Assert.Equal("System.Int32 C.X { get; init; }", symbol.ToTestDisplayString());
+            Assert.Equal("C", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void Initializers_03()
+        {
+            var src = @"
+record C(int X)
+{
+    const int Z = X + 1;
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.X'
+                //     const int Z = X + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "X").WithArguments("C.X").WithLocation(4, 19)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Property, symbol!.Kind);
+            Assert.Equal("System.Int32 C.X { get; init; }", symbol.ToTestDisplayString());
+            Assert.Equal("C", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void Initializers_04()
+        {
+            var src = @"
+using System;
+
+record C(int X)
+{
+    Func<int> Z = () => X + 1;
+
+    public static void Main()
+    {
+        var c = new C(1);
+        Console.WriteLine(c.Z());
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"2");
+
+            var comp = CreateCompilation(src);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("() => X + 1", x.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("lambda expression", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void Initializers_05()
+        {
+            var src = @"
+using System;
+
+record Base
+{
+    public Base(Func<int> X)
+    {
+        Console.WriteLine(X());
+    }
+
+    public Base() {}
+}
+
+record C(int X) : Base(() => 100 + X++)
+{
+    Func<int> Y = () => 200 + X++;
+    Func<int> Z = () => 300 + X++;
+
+    public static void Main()
+    {
+        var c = new C(1);
+        Console.WriteLine(c.Y());
+        Console.WriteLine(c.Z());
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+101
+202
+303
+");
         }
     }
 }

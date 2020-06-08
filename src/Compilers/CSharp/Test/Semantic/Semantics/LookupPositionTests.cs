@@ -2045,6 +2045,116 @@ interface C : Base(X)
             TestLookupNames(text, expectedNames);
         }
 
+        [Fact]
+        public void RecordInitializers_01()
+        {
+            var text = @"
+record C(int X)
+`{
+    int Z `= X + 1`;
+`}
+";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    "System.Boolean C.Equals(C? )",
+                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 C.GetHashCode()",
+                    "System.Int32 C.X { get; init; }",
+                    "System.Int32 C.Z",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
+                    "System.Type System.Object.GetType()",
+                    "void System.Object.Finalize()"),
+                Combine(
+                    Remove("System.Int32 C.X { get; init; }"),
+                    Add("System.Int32 X")
+                    ),
+                Combine(s_pop, s_pop),
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void RecordInitializers_02()
+        {
+            var text = @"
+record C(int X)
+`{
+    static int Z = X + 1;
+`}
+";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    "System.Boolean C.Equals(C? )",
+                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 C.GetHashCode()",
+                    "System.Int32 C.X { get; init; }",
+                    "System.Int32 C.Z",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
+                    "System.Type System.Object.GetType()",
+                    "void System.Object.Finalize()"),
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
+        [Fact]
+        public void RecordInitializers_03()
+        {
+            var text = @"
+record C(int X)
+`{
+    const int Z = X + 1;
+`}
+";
+            var expectedNames = MakeExpectedSymbols(
+                Add( // Global
+                    "System",
+                    "Microsoft",
+                    "C"),
+                Add( // Members
+                    "System.Boolean C.Equals(C? )",
+                    "System.Boolean C.Equals(System.Object? )",
+                    "System.Boolean System.Object.Equals(System.Object obj)",
+                    "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                    "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                    "System.Int32 C.GetHashCode()",
+                    "System.Int32 C.X { get; init; }",
+                    "System.Int32 C.Z",
+                    "System.Int32 System.Object.GetHashCode()",
+                    "System.Object System.Object.MemberwiseClone()",
+                    "System.String System.Object.ToString()",
+                    "System.Type C.EqualityContract { get; }",
+                    "System.Type System.Object.GetType()",
+                    "void System.Object.Finalize()"),
+                s_pop
+            );
+
+            TestLookupNames(text, expectedNames);
+        }
+
         /// <summary>
         /// Given a program, calls LookupNames at each character position and verifies the results.
         /// 
