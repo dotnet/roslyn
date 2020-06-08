@@ -1562,7 +1562,8 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(DesktopOnly)), WorkItem(44901, "https://github.com/dotnet/roslyn/issues/44901"), WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")]
+        [WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")]
+        [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/44901")]
         public void PortableStateMachineDebugInfo()
         {
             string src = @"

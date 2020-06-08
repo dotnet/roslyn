@@ -898,7 +898,7 @@ End Module
 ", sequencePoints:="M+VB$StateMachine_0_F.MoveNext")
         End Sub
 
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <ConditionalFact(AlwaysSkip:="https://github.com/dotnet/roslyn/issues/44901")>
         Public Sub PartialKickoffMethod()
             Dim src = "
 Public Partial Class C

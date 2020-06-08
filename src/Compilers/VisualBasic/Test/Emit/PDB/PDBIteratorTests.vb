@@ -531,7 +531,7 @@ End Module
         End Sub
 
         <WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")>
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <ConditionalFact(AlwaysSkip:="https://github.com/dotnet/roslyn/issues/44901")>
         Public Sub PortableStateMachineDebugInfo()
             Dim src = "
 Imports System.Collections.Generic

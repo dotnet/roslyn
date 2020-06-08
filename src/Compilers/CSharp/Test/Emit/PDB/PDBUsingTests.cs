@@ -2474,7 +2474,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(DesktopOnly)), WorkItem(44901, "https://github.com/dotnet/roslyn/issues/44901")]
+        [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/44901")]
         public void ImportScopeEquality()
         {
             var sources = new[] { @"
