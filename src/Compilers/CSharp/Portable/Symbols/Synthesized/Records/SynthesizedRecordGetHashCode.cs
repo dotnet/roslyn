@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            // PROTOYPE: We can do better :)
+            // https://github.com/dotnet/roslyn/issues/44683 We can do better :)
             F.CloseMethod(F.Return(F.Literal(0)));
         }
     }

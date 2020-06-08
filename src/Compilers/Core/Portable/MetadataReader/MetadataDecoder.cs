@@ -1218,7 +1218,7 @@ tryAgain:
 
             if (isReturn)
             {
-                // PROTOTYPE(init-only): make this more restrictive (ie. disallow aside from the return value of an instance setter)
+                // https://github.com/dotnet/roslyn/issues/44671 make this more restrictive (ie. disallow aside from the return value of an instance setter)
                 allowedAttributes |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
             }
 

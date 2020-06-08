@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override IEnumerable<SecurityAttribute> GetSecurityInformation()
             => Array.Empty<SecurityAttribute>();
 
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
+        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => !IsOverride;
 
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => true;
 

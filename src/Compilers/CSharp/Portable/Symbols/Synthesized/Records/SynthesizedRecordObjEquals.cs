@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // PROTOTYPE: Shouldn't have to bind to "Equals". The caller has the actual method in hand.
                 // For classes:
                 //      return this.Equals(param as ContainingType);
-                expression = F.InstanceCall(F.This(), "Equals", F.As(paramAccess, ContainingType));
+                expression = F.Call(F.This(), _typedRecordEquals, F.As(paramAccess, ContainingType));
             }
 
             F.CloseMethod(F.Block(ImmutableArray.Create<BoundStatement>(F.Return(expression))));

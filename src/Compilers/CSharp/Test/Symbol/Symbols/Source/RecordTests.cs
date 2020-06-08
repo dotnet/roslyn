@@ -993,7 +993,7 @@ record C
 }");
             var members = comp.GlobalNamespace.GetTypeMember("C").GetMembers();
             AssertEx.Equal(new[] {
-                "C! C.Clone()",
+                "C! C.<>Clone()",
                 "System.Type! C.EqualityContract.get",
                 "System.Type! C.EqualityContract { get; }",
                 "System.Int32 C.<X>k__BackingField",
@@ -1180,6 +1180,140 @@ data struct S2(int X, int Y);";
                 // data struct S2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "Y").WithArguments("Y").WithLocation(5, 27)
             );
+        }
+
+        [Fact]
+        public void RecordInheritance()
+        {
+            var src = @"
+class A { }
+record B : A { }
+record C : B { }
+class D : C { }
+interface E : C { }
+struct F : C { }
+enum G : C { }";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,12): error CS8864: Records may only inherit from object or another record
+                // record B : A { }
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(3, 12),
+                // (5,11): error CS8865: Only records may inherit from records.
+                // class D : C { }
+                Diagnostic(ErrorCode.ERR_BadInheritanceFromRecord, "C").WithLocation(5, 11),
+                // (6,15): error CS0527: Type 'C' in interface list is not an interface
+                // interface E : C { }
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(6, 15),
+                // (7,12): error CS0527: Type 'C' in interface list is not an interface
+                // struct F : C { }
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(7, 12),
+                // (8,10): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                // enum G : C
+                Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "C").WithLocation(8, 10)
+            );
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void RecordInheritance2(bool emitReference)
+        {
+            var src = @"
+public class A { }
+public record B { }
+public record C : B { }";
+            var comp = CreateCompilation(src);
+
+            var src2 = @"
+record D : C { }
+record E : A { }
+interface F : C { }
+struct G : C { }
+enum H : C { }
+";
+
+            var comp2 = CreateCompilation(src2,
+                parseOptions: TestOptions.RegularPreview,
+                references: new[] {
+                emitReference ? comp.EmitToImageReference() : comp.ToMetadataReference()
+            });
+
+            comp2.VerifyDiagnostics(
+                // (3,12): error CS8864: Records may only inherit from object or another record
+                // record E : A { }
+                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(3, 12),
+                // (4,15): error CS0527: Type 'C' in interface list is not an interface
+                // interface E : C { }
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(4, 15),
+                // (5,12): error CS0527: Type 'C' in interface list is not an interface
+                // struct F : C { }
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(5, 12),
+                // (6,10): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
+                // enum G : C
+                Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "C").WithLocation(6, 10)
+            );
+        }
+
+        [Fact]
+        public void GenericRecord()
+        {
+            var src = @"
+using System;
+record A<T>
+{
+    public T Prop { get; init; }
+}
+record B : A<int>;
+record C<T>(T Prop2) : A<T>;
+class P
+{
+    public static void Main()
+    {
+        var a = new A<int>() { Prop = 1 };
+        var a2 = a with { Prop = 2 };
+        Console.WriteLine(a.Prop + "" "" + a2.Prop);
+
+        var b = new B() { Prop = 3 };
+        var b2 = b with { Prop = 4 };
+        Console.WriteLine(b.Prop + "" "" + b2.Prop);
+
+        var c = new C<int>(5) { Prop = 6 };
+        var c2 = c with { Prop = 7, Prop2 = 8 };
+        Console.WriteLine(c.Prop + "" "" + c.Prop2);
+        Console.WriteLine(c2.Prop2 + "" "" + c2.Prop);
+    }
+}";
+            CompileAndVerify(src, expectedOutput: @"
+1 2
+3 4
+6 5
+8 7");
+        }
+
+        [Fact]
+        public void RecordCloneSymbol()
+        {
+            var src = @"
+record R;
+record R2 : R";
+            var comp = CreateCompilation(src);
+            var r = comp.GlobalNamespace.GetTypeMember("R");
+            var clone = (MethodSymbol)r.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
+            Assert.False(clone.IsOverride);
+            Assert.True(clone.IsVirtual);
+            Assert.False(clone.IsAbstract);
+            Assert.Equal(0, clone.ParameterCount);
+            Assert.Equal(0, clone.Arity);
+
+            var r2 = comp.GlobalNamespace.GetTypeMember("R2");
+            var clone2 = (MethodSymbol)r2.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
+            Assert.True(clone2.IsOverride);
+            Assert.False(clone2.IsVirtual);
+            Assert.False(clone2.IsAbstract);
+            Assert.Equal(0, clone2.ParameterCount);
+            Assert.Equal(0, clone2.Arity);
+            Assert.True(clone2.OverriddenMethod.Equals(clone, TypeCompareKind.ConsiderEverything));
         }
     }
 }

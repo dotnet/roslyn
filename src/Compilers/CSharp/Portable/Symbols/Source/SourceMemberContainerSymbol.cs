@@ -2972,8 +2972,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(builder.RecordDeclarationWithParameters is object);
                 Debug.Assert(builder.InstanceInitializersForRecordDeclarationWithParameters is object);
 
-                // PROTOTYPE: The semantics of an empty parameter list have not been decided. Error
-                // for now
+                // https://github.com/dotnet/roslyn/issues/44677
+                // The semantics of an empty parameter list have not been decided. Error for now
                 if (paramList.ParameterCount == 0)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
@@ -2993,11 +2993,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addCopyCtor();
             addCloneMethod();
 
-            var equalityContract = addEqualityContract();
-            var otherEqualsMethods = ArrayBuilder<MethodSymbol>.GetInstance(); // PROTOTYPE: We don't need to hold onto the other Equals methods. The values aren't used.
+            PropertySymbol equalityContract = addEqualityContract();
+            var otherEqualsMethods = ArrayBuilder<MethodSymbol>.GetInstance();
             getOtherEquals(otherEqualsMethods, equalityContract);
 
-            var thisEquals = addThisEquals(equalityContract, otherEqualsMethods.Count == 0 ? null : otherEqualsMethods[0]);
+            var thisEquals = addThisEquals(equalityContract, otherEqualsMethod: otherEqualsMethods.Count == 0 ? null : otherEqualsMethods[0]);
             addOtherEquals(otherEqualsMethods, equalityContract, thisEquals);
             addObjectEquals(thisEquals);
             addHashCode();
@@ -3135,19 +3135,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            static PropertySymbol? getInheritedEqualityContract(NamedTypeSymbol type)
+            {
+                while ((type = type.BaseTypeNoUseSiteDiagnostics) is object)
+                {
+                    var members = type.GetMembers(SynthesizedRecordEqualityContractProperty.PropertyName);
+                    // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
+                    if (members.FirstOrDefault(m => m is PropertySymbol property && property.ParameterCount == 0) is PropertySymbol property)
+                    {
+                        return property;
+                    }
+                }
+                return null;
+            }
+
             PropertySymbol addEqualityContract()
             {
-                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: false);
-                // PROTOTYPE: Test with explicit EqualityContract property from source.
-                // PROTOTYPE: Handle inherited member of unexpected member kind or unexpected
-                // property signature (distinct type, not virtual, sealed, etc.)
-                if (getInheritedMember(property, this) is PropertySymbol inheritedProperty)
+                var property = new SynthesizedRecordEqualityContractProperty(this, isOverride: getInheritedEqualityContract(this) is object);
+                // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
+                if (!memberSignatures.ContainsKey(property))
                 {
-                    // PROTOTYPE: Should not have to re-create property!
-                    property = new SynthesizedRecordEqualityContractProperty(this, isOverride: true);
+                    members.Add(property);
+                    members.Add(property.GetMethod);
                 }
-                members.Add(property);
-                members.Add(property.GetMethod);
                 return property;
             }
 
@@ -3166,20 +3176,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 while ((equalityContract = equalityContract.OverriddenProperty) is object)
                 {
-                    var containingType = equalityContract.ContainingType;
-                    var member = containingType.GetMembers("Equals").FirstOrDefault(m =>
+                    var member = equalityContract.ContainingType.GetMembers("Equals").FirstOrDefault(m =>
                     {
                         if (m is MethodSymbol method)
                         {
                             var parameters = method.Parameters;
-                            if (parameters.Length == 1 && parameters[0].Type.Equals(containingType, TypeCompareKind.AllIgnoreOptions))
+                            if (parameters.Length == 1 && parameters[0].Type.Equals(m.ContainingType, TypeCompareKind.AllIgnoreOptions))
                             {
                                 return true;
                             }
                         }
                         return false;
                     });
-                    // PROTOTYPE: Test with missing or unexpected Equals(Base) methods on base type.
+                    // https://github.com/dotnet/roslyn/issues/44903: Check explicit member has expected signature.
                     if (member is MethodSymbol method)
                     {
                         otherEqualsMethods.Add(method);
@@ -3198,8 +3207,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         equalityContract,
                         otherEqualsMethod: thisEquals,
                         memberOffset: members.Count);
-                    // PROTOTYPE: Test with explicit strongly-typed Equals(Base) methods on derived record type.
-                    members.Add(method);
+                    if (!memberSignatures.ContainsKey(method))
+                    {
+                        members.Add(method);
+                    }
                 }
             }
         }
