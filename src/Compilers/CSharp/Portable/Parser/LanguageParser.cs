@@ -1544,7 +1544,6 @@ tryAgain:
                     closeBrace = null;
                 }
 
-                var semicolon = TryEatToken(SyntaxKind.SemicolonToken);
                 var modifiersList = (SyntaxList<SyntaxToken>)modifiers.ToList();
                 var membersList = (SyntaxList<MemberDeclarationSyntax>)members;
                 var constraintsList = (SyntaxList<TypeParameterConstraintClauseSyntax>)constraints;
