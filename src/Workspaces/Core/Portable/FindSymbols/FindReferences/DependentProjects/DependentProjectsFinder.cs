@@ -279,25 +279,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Contract.ThrowIfNull(assemblyAndSourceProject.assembly);
             Contract.ThrowIfNull(project);
+            Contract.ThrowIfFalse(project.SupportsCompilation);
 
             // If our symbol was from a project, then just check if this current project has a direct reference to it.
             if (assemblyAndSourceProject.sourceProject != null)
                 return project.ProjectReferences.Any(p => p.ProjectId == assemblyAndSourceProject.sourceProject.Id);
 
             // Otherwise, if the symbol is from metadata, see if the project's compilation references that metadata assembly.
-            return project.HasReferenceToAssembly(assemblyAndSourceProject.assembly, cancellationToken);
+            return HasReferenceToAssembly(project, assemblyAndSourceProject.assembly.Name, cancellationToken);
         }
 
-        public static bool HasReferenceToAssembly(this Project project, IAssemblySymbol assemblySymbol, CancellationToken cancellationToken)
-            => project.HasReferenceToAssembly(assemblySymbol.Name, cancellationToken);
-
-        public static bool HasReferenceToAssembly(this Project project, string assemblyName, CancellationToken cancellationToken)
+        private static bool HasReferenceToAssembly(Project project, string assemblyName, CancellationToken cancellationToken)
         {
-            // If the project we're looking at doesn't even support compilations, then there's no 
-            // way for it to have an IAssemblySymbol.  And without that, there is no way for it
-            // to have any sort of 'ReferenceTo' the provided 'containingAssembly' symbol.
-            if (!project.SupportsCompilation)
-                return false;
+            Contract.ThrowIfFalse(project.SupportsCompilation);
 
             if (!project.TryGetCompilation(out var compilation))
             {
