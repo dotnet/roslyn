@@ -5380,7 +5380,7 @@ class C
 
         [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
         [Fact]
-        public void LambdaInsideGenericLocalFunctionInsideLoop()
+        public void LambdaInsideGenericLocalFunctionInsideLoop_CompilesCorrectly()
         {
             string source =
                 @"using System;
@@ -5417,6 +5417,63 @@ static class Program
     }
 }";
             CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
+        }
+
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaInsideLocalFunctionInsideLoop_IsCached()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            void LocalMethod()
+            {
+                StaticMethod(message, _ => message);
+            }
+
+            message = i.ToString();
+            LocalMethod();
+        }
+    }
+
+    static void StaticMethod<TIn, TOut>(TIn value, Func<TIn, TOut> func)
+    {
+        Console.Write($""{func(value)}-{typeof(TIn)};"");
+    }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+            compilation.VerifyIL("Program.<>c__DisplayClass0_0.<Main>g__LocalMethod|0()",
+                @"{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (System.Func<string, string> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""string Program.<>c__DisplayClass0_0.message""
+  IL_0006:  ldarg.0
+  IL_0007:  ldfld      ""System.Func<string, string> Program.<>c__DisplayClass0_0.<>9__1""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0025
+  IL_000f:  pop
+  IL_0010:  ldarg.0
+  IL_0011:  ldarg.0
+  IL_0012:  ldftn      ""string Program.<>c__DisplayClass0_0.<Main>b__1(string)""
+  IL_0018:  newobj     ""System.Func<string, string>..ctor(object, System.IntPtr)""
+  IL_001d:  dup
+  IL_001e:  stloc.0
+  IL_001f:  stfld      ""System.Func<string, string> Program.<>c__DisplayClass0_0.<>9__1""
+  IL_0024:  ldloc.0
+  IL_0025:  call       ""void Program.StaticMethod<string, string>(string, System.Func<string, string>)""
+  IL_002a:  ret
+}");
         }
     }
 }
