@@ -307,10 +307,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol symbol)
+                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol symbol &&
+                    symbol.Name == assemblyName)
                 {
-                    if (symbol.Name == assemblyName)
-                        return true;
+                    return true;
                 }
             }
 
