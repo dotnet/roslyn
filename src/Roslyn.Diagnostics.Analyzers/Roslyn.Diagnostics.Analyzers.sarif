@@ -9,6 +9,24 @@
         "language": "en-US"
       },
       "rules": {
+        "RS0005": {
+          "id": "RS0005",
+          "shortDescription": "Do not use generic 'CodeAction.Create' to create 'CodeAction'",
+          "fullDescription": "Do not use generic 'CodeAction.Create' to create 'CodeAction'",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "CodeActionCreateAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
         "RS0006": {
           "id": "RS0006",
           "shortDescription": "Do not mix attributes from different versions of MEF",
@@ -233,40 +251,6 @@
             ]
           }
         },
-        "RS0005": {
-          "id": "RS0005",
-          "shortDescription": "Do not use generic 'CodeAction.Create' to create 'CodeAction'",
-          "fullDescription": "Do not use generic 'CodeAction.Create' to create 'CodeAction'",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsPerformance",
-            "isEnabledByDefault": true,
-            "typeName": "CSharpCodeActionCreateAnalyzer",
-            "languages": [
-              "C#"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
-        "RS0013": {
-          "id": "RS0013",
-          "shortDescription": "Do not invoke 'Diagnostic.Descriptor'",
-          "fullDescription": "Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsPerformance",
-            "isEnabledByDefault": false,
-            "typeName": "CSharpDiagnosticDescriptorAccessAnalyzer",
-            "languages": [
-              "C#"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
         "RS0019": {
           "id": "RS0019",
           "shortDescription": "'SymbolDeclaredEvent' must be generated for source symbols",
@@ -293,6 +277,74 @@
             "category": "RoslynDiagnosticsMaintainability",
             "isEnabledByDefault": true,
             "typeName": "PreferNullLiteral",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0046": {
+          "id": "RS0046",
+          "shortDescription": "Avoid the 'Opt' suffix",
+          "fullDescription": "Avoid the 'Opt' suffix in a nullable-enabled code.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsDesign",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpAvoidOptSuffixForNullableEnableCode",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0100": {
+          "id": "RS0100",
+          "shortDescription": "Statements must be placed on their own line",
+          "fullDescription": "Statements must be placed on their own line",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsMaintainability",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpWrapStatementsDiagnosticAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0101": {
+          "id": "RS0101",
+          "shortDescription": "Avoid multiple blank lines",
+          "fullDescription": "Avoid multiple blank lines",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsMaintainability",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpBlankLinesDiagnosticAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0102": {
+          "id": "RS0102",
+          "shortDescription": "Braces must not have blank lines between them",
+          "fullDescription": "Braces must not have blank lines between them",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsMaintainability",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpBracePlacementDiagnosticAnalyzer",
             "languages": [
               "C#"
             ],
@@ -361,40 +413,6 @@
             ]
           }
         },
-        "RS0005": {
-          "id": "RS0005",
-          "shortDescription": "Do not use generic 'CodeAction.Create' to create 'CodeAction'",
-          "fullDescription": "Do not use generic 'CodeAction.Create' to create 'CodeAction'",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsPerformance",
-            "isEnabledByDefault": true,
-            "typeName": "BasicCodeActionCreateAnalyzer",
-            "languages": [
-              "Visual Basic"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
-        "RS0013": {
-          "id": "RS0013",
-          "shortDescription": "Do not invoke 'Diagnostic.Descriptor'",
-          "fullDescription": "Accessing the 'Descriptor' property of 'Diagnostic' in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the 'Descriptor' of the compiler diagnostics here. Instead you should directly access these properties off the 'Diagnostic' type.",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsPerformance",
-            "isEnabledByDefault": false,
-            "typeName": "BasicDiagnosticDescriptorAccessAnalyzer",
-            "languages": [
-              "Visual Basic"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
         "RS0019": {
           "id": "RS0019",
           "shortDescription": "'SymbolDeclaredEvent' must be generated for source symbols",
@@ -404,6 +422,23 @@
             "category": "RoslynDiagnosticsReliability",
             "isEnabledByDefault": false,
             "typeName": "BasicSymbolDeclaredEventAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0101": {
+          "id": "RS0101",
+          "shortDescription": "Avoid multiple blank lines",
+          "fullDescription": "Avoid multiple blank lines",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsMaintainability",
+            "isEnabledByDefault": true,
+            "typeName": "VisualBasicBlankLinesDiagnosticAnalyzer",
             "languages": [
               "Visual Basic"
             ],
