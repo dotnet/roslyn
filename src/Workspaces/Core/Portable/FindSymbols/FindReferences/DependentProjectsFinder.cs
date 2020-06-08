@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var visibility = symbol.GetResultantVisibility();
             if (visibility == SymbolVisibility.Private)
             {
+                // For private symbols, we only need the current project (and related submissions).  No need to cache
+                // that, just simply compute and return the result.
                 dependentProjects = await ComputeDependentProjectsAsync(solution, assemblyAndSourceProject, visibility, cancellationToken).ConfigureAwait(false);
             }
             else
