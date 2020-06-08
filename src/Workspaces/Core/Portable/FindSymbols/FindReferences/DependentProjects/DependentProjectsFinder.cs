@@ -8,15 +8,16 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FindSymbols.DependentProjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.FindSymbols.DependentProjects;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -42,6 +43,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<Solution, DependentProjectMap>.CreateValueCallback s_createDependentProjectsMapCallback =
             _ => new DependentProjectMap();
 
+        /// <summary>
+        /// Returns the set of <see cref="Project"/>s in <paramref name="solution"/> that <paramref name="symbol"/>
+        /// could be referenced in.  Note that results are not precise.  Specifically, if a project cannot reference
+        /// <paramref name="symbol"/> it will not be included. However, some projects which cannot reference <paramref
+        /// name="symbol"/> may be included.  In practice though, this should be extremely unlikely.
+        /// </summary>
         public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project>? projects, CancellationToken cancellationToken)
         {
@@ -53,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return projects.ToImmutableArray();
                 }
 
-                return GetAllProjects(solution);
+                return solution.Projects.ToImmutableArray();
             }
             else
             {
@@ -66,12 +73,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return dependentProjects;
             }
         }
-
-        private static ImmutableArray<Project> GetAllProjects(Solution solution)
-            => solution.Projects.ToImmutableArray();
-
-        private static ImmutableArray<Project> GetProjects(Solution solution, ImmutableArray<ProjectId> projectIds)
-            => projectIds.SelectAsArray(id => solution.GetRequiredProject(id));
 
         /// <summary>
         /// This method computes the dependent projects that need to be searched for references of the given <paramref name="symbol"/>.
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var projectIds = dependentProjects.SelectAsArray(dp => dp.ProjectId);
-            return GetProjects(solution, projectIds);
+            return projectIds.SelectAsArray(id => solution.GetRequiredProject(id));
         }
 
         private static async Task AddSubmissionDependentProjectsAsync(
@@ -267,35 +268,76 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (isSubmission)
                 return;
 
-            var fastCheckInternalsVisibleToSourceAsync = GetFastCheckInternalsVisibleToSource(sourceProject);
-            var fastCheckInternalsVisibleToCompilation = GetFastCheckInternalsVisibleToCompilation(containingAssembly);
+            // HashSet<string>? internalsVisibleToSet = null;// fastCheckInternalsVisibleToSourceAsync = GetFastCheckInternalsVisibleToSource(sourceProject);
+            var fastCheckInternalsVisibleToCompilation = GetFastCheckInternalsVisibleToSource(sourceProject);
             var containingAssemblySymbolKey = containingAssembly.GetSymbolKey(cancellationToken);
 
-            foreach (var projectId in solution.ProjectIds)
+            var tasks = solution.Projects.Select(p => Task.Run(() => ComputeDependentProjectAsync(
+                containingAssembly,
+                containingAssemblySymbolKey,
+                sourceProject,
+                p,
+                fastCheckInternalsVisibleToCompilation,
+                cancellationToken))).ToArray();
+
+            var dependentProjectResults = await Task.WhenAll(tasks).ConfigureAwait(false);
+            foreach (var (isDependent, projectId, internalsVisibleTo) in dependentProjectResults)
             {
-                var project = solution.GetRequiredProject(projectId);
+                if (isDependent)
+                    dependentProjects.Add(new DependentProject(projectId, internalsVisibleTo));
+            }
+        }
 
-                cancellationToken.ThrowIfCancellationRequested();
+        private static async Task<(bool isDependent, ProjectId projectId, bool internalsVisibleTo)> ComputeDependentProjectAsync(
+            IAssemblySymbol containingAssembly,
+            SymbolKey containingAssemblySymbolKey,
+            Project? sourceProject,
+            Project project,
+            Func<string, Task<bool>> fastCheckInternalsVisibleToCompilation,
+            CancellationToken cancellationToken)
+        {
+            if (!project.SupportsCompilation ||
+                !HasReferenceTo(containingAssembly, sourceProject, project, cancellationToken))
+            {
+                return default;
+            }
 
-                if (project.SupportsCompilation &&
-                    HasReferenceTo(containingAssembly, sourceProject, project, cancellationToken))
-                {
-                    var hasInternalsAccess =
-                        await fastCheckInternalsVisibleToSourceAsync(project.AssemblyName).ConfigureAwait(false) &&
-                        fastCheckInternalsVisibleToCompilation(project.AssemblyName) &&
-                        await HasInternalsAccessAsync(containingAssembly, containingAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
+            var internalsVisibleTo = sourceProject != null
+                ? await fastCheckInternalsVisibleToCompilation(project.AssemblyName).ConfigureAwait(false)
+                : await MetadataAssemblyHasInternalsAccessAsync(
+                    containingAssembly, containingAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
 
-                    dependentProjects.Add(new DependentProject(project.Id, hasInternalsAccess));
-                }
+            return (isDependent: true, project.Id, internalsVisibleTo);
+        }
+
+        private static async Task<bool> HasInternalsVisibleToAsync(
+            IAssemblySymbol containingAssembly,
+            SymbolKey containingAssemblySymbolKey,
+            Project? sourceProject,
+            Project project,
+            Func<string, Task<bool>> fastCheckInternalsVisibleToCompilation,
+            CancellationToken cancellationToken)
+        {
+            if (sourceProject == null)
+            {
+                // Referencing a metadata-dll, have to go back to the compilations to determine if they have IVT.
+                return await MetadataAssemblyHasInternalsAccessAsync(
+                    containingAssembly, containingAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                return await fastCheckInternalsVisibleToCompilation(project.AssemblyName).ConfigureAwait(false);
             }
         }
 
         /// <summary>
         /// Performs the full, expensive, compilation check if <paramref name="project"/> can see internal symbols from <paramref name="containingAssembly"/>.
         /// </summary>
-        private static async Task<bool> HasInternalsAccessAsync(
-            IAssemblySymbol containingAssembly, SymbolKey containingAssemblySymbolKey,
-            Project project, CancellationToken cancellationToken)
+        private static async Task<bool> MetadataAssemblyHasInternalsAccessAsync(
+            IAssemblySymbol containingAssembly,
+            SymbolKey containingAssemblySymbolKey,
+            Project project,
+            CancellationToken cancellationToken)
         {
             Debug.Assert(project.SupportsCompilation);
 
@@ -354,39 +396,39 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// the assembly names that have friend access to this assembly.  It still requires parsing and binding of all
         /// assembly level attributes in the assembly.
         /// </summary>
-        private static Func<string, bool> GetFastCheckInternalsVisibleToCompilation(IAssemblySymbol assembly)
-        {
-            // Lazily initialize and compute the actual place where we store the information.
-            HashSet<string>? internalsVisibleToMap = null;
+        //private static Func<string, bool> GetFastCheckInternalsVisibleToCompilation(IAssemblySymbol assembly)
+        //{
+        //    // Lazily initialize and compute the actual place where we store the information.
+        //    HashSet<string>? internalsVisibleToMap = null;
 
-            return v =>
-            {
-                internalsVisibleToMap ??= ComputeInternalsVisibleToMap(assembly);
-                return internalsVisibleToMap.Contains(v);
-            };
+        //    return v =>
+        //    {
+        //        internalsVisibleToMap ??= ComputeInternalsVisibleToMap(assembly);
+        //        return internalsVisibleToMap.Contains(v);
+        //    };
 
-            static HashSet<string> ComputeInternalsVisibleToMap(IAssemblySymbol assembly)
-            {
-                var map = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var attr in assembly.GetAttributes().Where(IsInternalsVisibleToAttribute))
-                {
-                    var typeNameConstant = attr.ConstructorArguments.FirstOrDefault();
-                    if (typeNameConstant.Type == null ||
-                        typeNameConstant.Type.SpecialType != SpecialType.System_String ||
-                        !(typeNameConstant.Value is string value))
-                    {
-                        continue;
-                    }
+        //    static HashSet<string> ComputeInternalsVisibleToMap(IAssemblySymbol assembly)
+        //    {
+        //        var map = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        //        foreach (var attr in assembly.GetAttributes().Where(IsInternalsVisibleToAttribute))
+        //        {
+        //            var typeNameConstant = attr.ConstructorArguments.FirstOrDefault();
+        //            if (typeNameConstant.Type == null ||
+        //                typeNameConstant.Type.SpecialType != SpecialType.System_String ||
+        //                !(typeNameConstant.Value is string value))
+        //            {
+        //                continue;
+        //            }
 
-                    var commaIndex = value.IndexOf(',');
-                    var assemblyName = commaIndex >= 0 ? value.Substring(0, commaIndex).Trim() : value;
+        //            var commaIndex = value.IndexOf(',');
+        //            var assemblyName = commaIndex >= 0 ? value.Substring(0, commaIndex).Trim() : value;
 
-                    map.Add(assemblyName);
-                }
+        //            map.Add(assemblyName);
+        //        }
 
-                return map;
-            }
-        }
+        //        return map;
+        //    }
+        //}
 
         private static bool HasReferenceTo(
             IAssemblySymbol containingAssembly,
