@@ -36,12 +36,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<Solution, DependentProjectMap> s_dependentProjectsCache =
             new ConditionalWeakTable<Solution, DependentProjectMap>();
 
-        /// <summary>
-        /// Returns the set of <see cref="Project"/>s in <paramref name="solution"/> that <paramref name="symbol"/>
-        /// could be referenced in.  Note that results are not precise.  Specifically, if a project cannot reference
-        /// <paramref name="symbol"/> it will not be included. However, some projects which cannot reference <paramref
-        /// name="symbol"/> may be included.  In practice though, this should be extremely unlikely.
-        /// </summary>
         public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
             Solution solution, ISymbol symbol, IImmutableSet<Project>? projects, CancellationToken cancellationToken)
         {
