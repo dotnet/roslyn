@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return;
 
             // HashSet<string>? internalsVisibleToSet = null;// fastCheckInternalsVisibleToSourceAsync = GetFastCheckInternalsVisibleToSource(sourceProject);
-            var fastCheckInternalsVisibleToCompilation = GetFastCheckInternalsVisibleToSource(sourceProject);
+            var fastCheckInternalsVisibleToCompilation = GetFastCheckInternalsVisibleToSource(sourceProject, cancellationToken);
             var containingAssemblySymbolKey = containingAssembly.GetSymbolKey(cancellationToken);
 
             var tasks = solution.Projects.Select(p => Task.Run(() => ComputeDependentProjectAsync(
@@ -310,26 +310,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return (isDependent: true, project.Id, internalsVisibleTo);
         }
 
-        private static async Task<bool> HasInternalsVisibleToAsync(
-            IAssemblySymbol containingAssembly,
-            SymbolKey containingAssemblySymbolKey,
-            Project? sourceProject,
-            Project project,
-            Func<string, Task<bool>> fastCheckInternalsVisibleToCompilation,
-            CancellationToken cancellationToken)
-        {
-            if (sourceProject == null)
-            {
-                // Referencing a metadata-dll, have to go back to the compilations to determine if they have IVT.
-                return await MetadataAssemblyHasInternalsAccessAsync(
-                    containingAssembly, containingAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                return await fastCheckInternalsVisibleToCompilation(project.AssemblyName).ConfigureAwait(false);
-            }
-        }
-
         /// <summary>
         /// Performs the full, expensive, compilation check if <paramref name="project"/> can see internal symbols from <paramref name="containingAssembly"/>.
         /// </summary>
@@ -366,7 +346,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// information stored in our syntactic indices to avoid having to check with the compilation to get the 
         /// assembly attributes in the project.
         /// </summary>
-        private static Func<string, Task<bool>> GetFastCheckInternalsVisibleToSource(Project? sourceProject)
+        private static Func<string, Task<bool>> GetFastCheckInternalsVisibleToSource(
+            Project? sourceProject, CancellationToken cancellationToken)
         {
             // If we're dealing with a metadata symbol, we have no source information we can look at to make this
             // determination.  So just assume any other assembly has IVT to us.  We'll later do the more expensive
@@ -379,16 +360,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return async v =>
             {
-                internalsVisibleToMap ??= ComputeInternalsVisibleToMap(sourceProject);
+                internalsVisibleToMap ??= ComputeInternalsVisibleToMap(sourceProject, cancellationToken);
                 var map = await internalsVisibleToMap.ConfigureAwait(false);
                 return map.Contains(v);
             };
 
-            static Task<HashSet<string>> ComputeInternalsVisibleToMap(Project sourceProject)
+            static async Task<HashSet<string>> ComputeInternalsVisibleToMap(Project sourceProject, CancellationToken cancellationToken)
             {
-                var map = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var tasks = sourceProject.Documents.Select(async d =>
+                {
+                    var index = await d.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+                    return index.InternalsVisibleTo.SelectAsArray(ivt => GetAssemblyName(ivt));
+                }).ToArray();
 
+                var assemblyNameArrays = await Task.WhenAll(tasks).ConfigureAwait(false);
+                var allAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var array in assemblyNameArrays)
+                    allAssemblyNames.AddRange(array);
+
+                return allAssemblyNames;
             }
+        }
+
+        private static string GetAssemblyName(string ivtValue)
+        {
+            var commaIndex = ivtValue.IndexOf(',');
+            var assemblyName = commaIndex >= 0 ? ivtValue.Substring(0, commaIndex).Trim() : ivtValue;
+            return assemblyName;
         }
 
         /// <summary>

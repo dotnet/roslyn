@@ -73,7 +73,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
             var complexExtensionMethodInfoBuilder = ArrayBuilder<int>.GetInstance();
             var simpleExtensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
-            using var _ = PooledDictionary<string, string>.GetInstance(out var usingAliases);
+
+            using var _1 = PooledDictionary<string, string>.GetInstance(out var usingAliases);
+            using var _2 = ArrayBuilder<string>.GetInstance(out var internalsVisibleTo);
 
             try
             {
@@ -119,7 +121,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
+
                             containsGlobalAttributes = containsGlobalAttributes || syntaxFacts.IsGlobalAttribute(node);
+                            if (containsGlobalAttributes && syntaxFacts.IsGlobalAssemblyAttribute(node))
+                            {
+                                var attributeName = syntaxFacts.GetNameOfAttribute(node);
+                                var comparer = syntaxFacts.StringComparer;
+                                if (comparer.Equals("InternalsVisibleToAttribute", attributeName) ||
+                                    comparer.Equals("InternalsVisibleTo"))
+                                {
+                                    var arguments = syntaxFacts.GetArgumentsOfAttribute(node);
+                                    if (arguments.Count > 0 && syntaxFacts.IsStringLiteralExpression(arguments[0]))
+                                        internalsVisibleTo.Add(arguments[0].GetFirstToken().ValueText);
+                                }
+                            }
 
                             if (syntaxFacts.IsUsingAliasDirective(node) && infoFactory.TryGetAliasesFromUsingDirective(node, out var aliases))
                             {
@@ -255,21 +270,22 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                         new BloomFilter(FalsePositiveProbability, isCaseSensitive, identifiers),
                         new BloomFilter(FalsePositiveProbability, isCaseSensitive, escapedIdentifiers)),
                     new ContextInfo(
-                            predefinedTypes,
-                            predefinedOperators,
-                            containsForEachStatement,
-                            containsLockStatement,
-                            containsUsingStatement,
-                            containsQueryExpression,
-                            containsThisConstructorInitializer,
-                            containsBaseConstructorInitializer,
-                            containsElementAccess,
-                            containsIndexerMemberCref,
-                            containsDeconstruction,
-                            containsAwait,
-                            containsTupleExpressionOrTupleType,
-                            containsImplicitObjectCreation,
-                            containsGlobalAttributes),
+                        predefinedTypes,
+                        predefinedOperators,
+                        internalsVisibleTo.ToImmutable(),
+                        containsForEachStatement,
+                        containsLockStatement,
+                        containsUsingStatement,
+                        containsQueryExpression,
+                        containsThisConstructorInitializer,
+                        containsBaseConstructorInitializer,
+                        containsElementAccess,
+                        containsIndexerMemberCref,
+                        containsDeconstruction,
+                        containsAwait,
+                        containsTupleExpressionOrTupleType,
+                        containsImplicitObjectCreation,
+                        containsGlobalAttributes),
                     new DeclarationInfo(
                             declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(

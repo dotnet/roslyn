@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ProbablyContainsStringValue(string value) => _literalInfo.ProbablyContainsStringValue(value);
         public bool ProbablyContainsInt64Value(long value) => _literalInfo.ProbablyContainsInt64Value(value);
 
+        public ImmutableArray<string> InternalsVisibleTo => _contextInfo.InternalsVisibleTo;
+
         public bool ContainsForEachStatement => _contextInfo.ContainsForEachStatement;
         public bool ContainsDeconstruction => _contextInfo.ContainsDeconstruction;
         public bool ContainsAwait => _contextInfo.ContainsAwait;
