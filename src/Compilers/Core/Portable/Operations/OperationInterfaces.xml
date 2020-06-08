@@ -13,6 +13,10 @@
       UnusedOperationKinds indicates kinds that are currently skipped by the OperationKind
       enum. They can be used by future nodes by inserting those nodes at the correct point
       in the list.
+
+      When implementing new operations, run tests with additional IOperation validation enabled.
+      You can test with `Build.cmd -testIOperation`.
+      Or to repro in VS, you can do `set ROSLYN_TEST_IOPERATION=true` then `devenv`.
         -->
 
   <UnusedOperationKinds>
@@ -1142,7 +1146,7 @@
         Current usage:
          (1) C# this or base expression.
          (2) VB Me, MyClass, or MyBase expression.
-         (3) C# object or collection initializers.
+         (3) C# object or collection or 'with' expression initializers.
          (4) VB With statements, object or collection initializers.
         </para>
       </summary>
@@ -2998,6 +3002,32 @@
     <Property Name="Value" Type="IOperation">
       <Comments>
         <summary>Constant value of the pattern operation.</summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IWithExpressionOperation" Base="IOperation" ChildrenOrder="Value,Initializer">
+    <Comments>
+      <summary>
+        Represents cloning of an object instance.
+        <para>
+          Current usage:
+          (1) C# with expression.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="Value" Type="IOperation">
+      <Comments>
+        <summary>Value to be cloned.</summary>
+      </Comments>
+    </Property>
+    <Property Name="CloneMethod" Type="IMethodSymbol">
+      <Comments>
+        <summary>Clone method to be invoked on the value.</summary>
+      </Comments>
+    </Property>
+    <Property Name="Initializer" Type="IObjectOrCollectionInitializerOperation">
+      <Comments>
+        <summary>With collection initializer.</summary>
       </Comments>
     </Property>
   </Node>

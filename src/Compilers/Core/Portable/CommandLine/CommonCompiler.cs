@@ -64,6 +64,12 @@ namespace Microsoft.CodeAnalysis
 
         private readonly string _clientDirectory;
 
+        /// <summary>
+        /// Fallback encoding that is lazily retrieved if needed. If <see cref="EncodedStringText.CreateFallbackEncoding"/> is
+        /// evaluated and stored, the value is used if a PDB is created for this compilation.
+        /// </summary>
+        private readonly Lazy<Encoding> _fallbackEncoding = new Lazy<Encoding>(EncodedStringText.CreateFallbackEncoding);
+
         public CommonMessageProvider MessageProvider { get; }
         public CommandLineArguments Arguments { get; }
         public IAnalyzerAssemblyLoader AssemblyLoader { get; private set; }
@@ -256,13 +262,13 @@ namespace Microsoft.CodeAnalysis
                 {
                     using var data = Console.OpenStandardInput();
                     normalizedFilePath = filePath;
-                    return EncodedStringText.Create(data, Arguments.Encoding, Arguments.ChecksumAlgorithm, canBeEmbedded: EmbeddedSourcePaths.Contains(file.Path));
+                    return EncodedStringText.Create(data, _fallbackEncoding, Arguments.Encoding, Arguments.ChecksumAlgorithm, canBeEmbedded: EmbeddedSourcePaths.Contains(file.Path));
                 }
                 else
                 {
                     using var data = OpenFileForReadWithSmallBufferOptimization(filePath);
                     normalizedFilePath = data.Name;
-                    return EncodedStringText.Create(data, Arguments.Encoding, Arguments.ChecksumAlgorithm, canBeEmbedded: EmbeddedSourcePaths.Contains(file.Path));
+                    return EncodedStringText.Create(data, _fallbackEncoding, Arguments.Encoding, Arguments.ChecksumAlgorithm, canBeEmbedded: EmbeddedSourcePaths.Contains(file.Path));
                 }
             }
             catch (Exception e)
@@ -328,6 +334,20 @@ namespace Microsoft.CodeAnalysis
             analyzerConfigSet = AnalyzerConfigSet.Create(configs, out var setDiagnostics);
             diagnostics.AddRange(setDiagnostics);
             return true;
+        }
+
+        /// <summary>
+        /// Returns the fallback encoding for parsing source files, if used, or null
+        /// if not used
+        /// </summary>
+        internal Encoding GetFallbackEncoding()
+        {
+            if (_fallbackEncoding.IsValueCreated)
+            {
+                return _fallbackEncoding.Value;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -791,13 +811,15 @@ namespace Microsoft.CodeAnalysis
             // We pass it to the generators, which will realize any symbols they require. 
             compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, additionalTexts, diagnostics);
 
-            // https://github.com/dotnet/roslyn/issues/44087 
-            // Workaround by getting options for any generated trees that were produced.
-            // In the future we'll want to apply the config set rules at parse time, return the options, and add them in here
-            if (!sourceFileAnalyzerConfigOptions.IsDefault && generators.Length > 0)
+            if (generators.Length > 0)
             {
-                var generatedOptions = compilation.SyntaxTrees.Skip(sourceFileAnalyzerConfigOptions.Length).Select(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath));
-                sourceFileAnalyzerConfigOptions = sourceFileAnalyzerConfigOptions.AddRange(generatedOptions);
+                var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length);
+                if (!sourceFileAnalyzerConfigOptions.IsDefault)
+                {
+                    sourceFileAnalyzerConfigOptions = sourceFileAnalyzerConfigOptions.AddRange(generatedSyntaxTrees.Select(f => analyzerConfigSet.GetOptionsForSourcePath(f.FilePath)));
+                }
+
+                embeddedTexts = embeddedTexts.AddRange(generatedSyntaxTrees.Select(t => EmbeddedText.FromSource(t.FilePath, t.GetText())));
             }
 
             CompileAndEmit(
@@ -1157,6 +1179,10 @@ namespace Microsoft.CodeAnalysis
                             privateKeyOpt = compilation.StrongNameKeys.PrivateKey;
                         }
 
+                        // If we serialize to a PE stream we need to record the fallback encoding if it was used
+                        // so the compilation can be recreated.
+                        emitOptions = emitOptions.WithFallbackSourceFileEncoding(GetFallbackEncoding());
+
                         success = compilation.SerializeToPeStream(
                             moduleBeingBuilt,
                             peStreamProvider,
@@ -1164,10 +1190,7 @@ namespace Microsoft.CodeAnalysis
                             pdbStreamProviderOpt,
                             testSymWriterFactory: null,
                             diagnostics: diagnostics,
-                            metadataOnly: emitOptions.EmitMetadataOnly,
-                            includePrivateMembers: emitOptions.IncludePrivateMembers,
-                            emitTestCoverageData: emitOptions.EmitTestCoverageData,
-                            pePdbFilePath: emitOptions.PdbFilePath,
+                            emitOptions: emitOptions,
                             privateKeyOpt: privateKeyOpt,
                             cancellationToken: cancellationToken);
 
