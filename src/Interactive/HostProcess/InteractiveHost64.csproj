@@ -15,8 +15,11 @@
     <PublishDocumentationFiles>false</PublishDocumentationFiles>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="CSharpInteractive.rsp" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="Core\CSharpInteractive.rsp" Link="CSharpInteractive.rsp">
+      <CopyToOutputDirectory Condition="'$(TargetFramework)' != 'net472'">PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Desktop\CSharpInteractive.rsp" Link="CSharpInteractive.rsp">
+      <CopyToOutputDirectory Condition="'$(TargetFramework)' == 'net472'">PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
 extern alias Scripting;
 extern alias InteractiveHost;
 
@@ -37,11 +38,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
     {
         private const string CommandPrefix = "#";
 
-        // full path or null
-        private readonly string _responseFilePath;
+        private readonly string _responseFileName;
 
         private readonly InteractiveHost _interactiveHost;
 
+        private readonly string _hostDirectory;
         private readonly string _initialWorkingDirectory;
         private string _initialScriptFileOpt;
 
@@ -95,13 +96,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             _threadingContext = threadingContext;
             _contentType = contentType;
-            _responseFilePath = Path.Combine(GetHostDirectory(), responseFileName);
+            _responseFileName = responseFileName;
             _workspace = new InteractiveWorkspace(hostServices, this);
             _contentTypeChangedHandler = new EventHandler<ContentTypeChangedEventArgs>(LanguageBufferContentTypeChanged);
             _classifierAggregator = classifierAggregator;
             _initialWorkingDirectory = initialWorkingDirectory;
             _commandsFactory = commandsFactory;
             _commands = commands;
+            _hostDirectory = Path.Combine(Path.GetDirectoryName(typeof(InteractiveEvaluator).Assembly.Location), "InteractiveHost");
 
             // The following settings will apply when the REPL starts without .rsp file.
             // They are discarded once the REPL is reset.
@@ -190,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// <summary>
         /// Invoked by <see cref="InteractiveHost"/> when a new process is being started.
         /// </summary>
-        private void ProcessStarting(bool initialize)
+        private void ProcessStarting(InteractiveHostOptions options)
         {
             var textView = GetCurrentWindowOrThrow().TextView;
 
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    ProcessStarting(initialize);
+                    ProcessStarting(options);
                 });
 
                 return;
@@ -228,12 +230,12 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             ReferenceSearchPaths = ImmutableArray<string>.Empty;
             SourceSearchPaths = ImmutableArray<string>.Empty;
 
-            if (initialize && File.Exists(_responseFilePath))
+            if (File.Exists(options.InitializationFilePath))
             {
                 // The base directory for relative paths is the directory that contains the .rsp file.
                 // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
-                var responseFileDirectory = Path.GetDirectoryName(_responseFilePath);
-                var args = this.CommandLineParser.Parse(new[] { "@" + _responseFilePath }, responseFileDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null);
+                var responseFileDirectory = Path.GetDirectoryName(options.InitializationFilePath);
+                var args = this.CommandLineParser.Parse(new[] { "@" + options.InitializationFilePath }, responseFileDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null);
 
                 if (args.Errors.Length == 0)
                 {
@@ -470,15 +472,12 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             return ResetCoreAsync(GetHostOptions(initialize, resetOptions.Platform));
         }
 
-        private static string GetHostDirectory()
-            => Path.Combine(Path.GetDirectoryName(typeof(InteractiveEvaluator).Assembly.Location), "InteractiveHost");
-
         public InteractiveHostOptions GetHostOptions(bool initialize, InteractiveHostPlatform? platform)
-            => new InteractiveHostOptions(
-                 hostDirectory: _interactiveHost.OptionsOpt?.HostDirectory ?? GetHostDirectory(),
-                 initializationFile: initialize ? _responseFilePath : null,
-                 culture: CultureInfo.CurrentUICulture,
-                 platform: platform ?? _interactiveHost.OptionsOpt?.Platform ?? InteractiveHost.DefaultPlatform);
+            => InteractiveHostOptions.CreateFromDirectory(
+                _hostDirectory,
+                initialize ? _responseFileName : null,
+                CultureInfo.CurrentUICulture,
+                 platform ?? _interactiveHost.OptionsOpt?.Platform ?? InteractiveHost.DefaultPlatform);
 
         private async Task<ExecutionResult> ResetCoreAsync(InteractiveHostOptions options)
         {

@@ -48,13 +48,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         public InteractiveHostTests()
         {
             _host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1, joinOutputWritingThreadsOnDisposal: true);
-
             RedirectOutput();
         }
 
         public async Task InitializeAsync()
         {
-            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture));
+            await _host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop64));
 
             await _host.SetPathsAsync(new[] { s_fxDir }, new[] { s_homeDir }, s_homeDir);
 
@@ -141,11 +140,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             _synchronizedErrorOutput.Clear();
         }
 
-        private async Task RestartHost(string? rspFile = null)
+        private async Task RestartHost()
         {
             ClearOutput();
 
-            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile, culture: CultureInfo.InvariantCulture));
+            await _host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop64));
         }
 
         public async Task<string> ReadOutputToEnd(bool isError = false)
@@ -883,7 +882,7 @@ new D().Y
             var rspFile = Temp.CreateFile();
             rspFile.WriteAllText("/lib:" + directory.Path);
 
-            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture));
+            await _host.ResetAsync(new InteractiveHostOptions(_host.OptionsOpt!.HostPath, rspFile.Path, culture: CultureInfo.InvariantCulture, _host.OptionsOpt!.Platform));
 
             await Execute(
 $@"#r ""{assemblyName}.dll""
@@ -917,7 +916,7 @@ typeof(C).Assembly.GetName()");
 /u:System.Text
 /u:System.Threading.Tasks
 ");
-            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture));
+            await _host.ResetAsync(new InteractiveHostOptions(_host.OptionsOpt!.HostPath, rspFile.Path, CultureInfo.InvariantCulture, _host.OptionsOpt!.Platform));
 
             await Execute(@"
 dynamic d = new ExpandoObject();
@@ -969,7 +968,7 @@ OK
 {initFile.Path}
 ");
 
-            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture));
+            await _host.ResetAsync(new InteractiveHostOptions(_host.OptionsOpt!.HostPath, rspFile.Path, CultureInfo.InvariantCulture, _host.OptionsOpt!.Platform));
 
             await Execute("new Process()");
 
@@ -997,7 +996,7 @@ a
 b
 c
 ");
-            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture));
+            await _host.ResetAsync(new InteractiveHostOptions(_host.OptionsOpt!.HostPath, rspFile.Path, CultureInfo.InvariantCulture, _host.OptionsOpt!.Platform));
 
             var error = await ReadErrorOutputToEnd();
             Assert.Equal("", error);
@@ -1221,18 +1220,16 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
         public async Task Bitness()
         {
             await _host.ExecuteAsync(@"System.IntPtr.Size");
-            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop64));
+            await _host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop32));
             await _host.ExecuteAsync(@"System.IntPtr.Size");
-            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop32));
-            await _host.ExecuteAsync(@"System.IntPtr.Size");
-            await _host.ResetAsync(new InteractiveHostOptions(GetInteractiveHostDirectory(), initializationFile: null, culture: CultureInfo.InvariantCulture, InteractiveHostPlatform.Core));
+            await _host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Core));
             await _host.ExecuteAsync(@"System.IntPtr.Size");
 
             var output = await ReadOutputToEnd();
             var error = await ReadErrorOutputToEnd();
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences("4\r\n8\r\n4\r\n8\r\n", output);
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("8\r\n4\r\n8\r\n", output);
         }
 
         #region Submission result printing - null/void/value.

@@ -16,9 +16,14 @@ namespace Microsoft.CodeAnalysis.Interactive
     internal sealed class InteractiveHostOptions
     {
         /// <summary>
-        /// Optional path to the .rsp file to process when initializing context of the process.
+        /// Path to interactive host executable.
         /// </summary>
-        public string? InitializationFile { get; }
+        public string HostPath { get; }
+
+        /// <summary>
+        /// Optional file name of the .rsp file to use to initialize the REPL.
+        /// </summary>
+        public string? InitializationFilePath { get; }
 
         /// <summary>
         /// Host culture used for localization of doc comments, errors.
@@ -26,32 +31,37 @@ namespace Microsoft.CodeAnalysis.Interactive
         public CultureInfo Culture { get; }
 
         /// <summary>
-        /// Path to interactive host directory (this directory is expected to contain Core and Desktop subdirectories).
-        /// </summary>
-        public string HostDirectory { get; }
-
-        /// <summary>
         /// Host process platform.
         /// </summary>
         public InteractiveHostPlatform Platform { get; }
 
         public InteractiveHostOptions(
-            string hostDirectory,
-            string? initializationFile = null,
-            CultureInfo? culture = null,
-            InteractiveHostPlatform platform = InteractiveHostPlatform.Desktop32)
+            string hostPath,
+            string? initializationFilePath,
+            CultureInfo culture,
+            InteractiveHostPlatform platform)
         {
-            Contract.ThrowIfNull(hostDirectory);
-            HostDirectory = hostDirectory;
-            InitializationFile = initializationFile;
-            Culture = culture ?? CultureInfo.CurrentUICulture;
+            Contract.ThrowIfNull(hostPath);
+
+            HostPath = hostPath;
+            InitializationFilePath = initializationFilePath;
+            Culture = culture;
             Platform = platform;
         }
 
-        public string GetHostPath()
-            => Path.Combine(
-                HostDirectory,
-                (Platform == InteractiveHostPlatform.Core) ? "Core" : "Desktop",
-                "InteractiveHost" + (Platform == InteractiveHostPlatform.Desktop32 ? "32" : "64") + ".exe");
+        public static InteractiveHostOptions CreateFromDirectory(
+            string hostDirectory,
+            string? initializationFileName,
+            CultureInfo culture,
+            InteractiveHostPlatform platform)
+        {
+            var hostSubdirectory = (platform == InteractiveHostPlatform.Core) ? "Core" : "Desktop";
+            var hostExecutableFileName = "InteractiveHost" + (platform == InteractiveHostPlatform.Desktop32 ? "32" : "64") + ".exe";
+
+            var hostPath = Path.Combine(hostDirectory, hostSubdirectory, hostExecutableFileName);
+            var initializationFilePath = (initializationFileName != null) ? Path.Combine(hostDirectory, hostSubdirectory, initializationFileName) : null;
+
+            return new InteractiveHostOptions(hostPath, initializationFilePath, culture,platform);
+        }
     }
 }

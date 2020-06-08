@@ -310,12 +310,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// Reads given initialization file (.rsp) and loads and executes all assembly references and files, respectively specified in it.
             /// Execution is performed on the UI thread.
             /// </summary>
-            public async Task<RemoteExecutionResult> InitializeContextAsync(string? initializationFile, bool isRestarting)
+            public async Task<RemoteExecutionResult> InitializeContextAsync(string? initializationFilePath, bool isRestarting)
             {
                 var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFile, isRestarting);
+                    _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFilePath, isRestarting);
                 }
                 return await completionSource.Task.ConfigureAwait(false);
             }
@@ -511,10 +511,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             private async Task<EvaluationState> InitializeContextAsync(
                 Task<EvaluationState> lastTask,
                 TaskCompletionSource<RemoteExecutionResult> completionSource,
-                string? initializationFile,
+                string? initializationFilePath,
                 bool isRestarting)
             {
-                Contract.ThrowIfFalse(initializationFile == null || PathUtilities.IsAbsolute(initializationFile));
+                Contract.ThrowIfFalse(initializationFilePath == null || PathUtilities.IsAbsolute(initializationFilePath));
                 var serviceState = GetServiceState();
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
 
@@ -527,15 +527,15 @@ namespace Microsoft.CodeAnalysis.Interactive
                         Console.Out.WriteLine(serviceState.ReplServiceProvider.Logo);
                     }
 
-                    if (File.Exists(initializationFile))
+                    if (File.Exists(initializationFilePath))
                     {
-                        Console.Out.WriteLine(string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(initializationFile)));
+                        Console.Out.WriteLine(string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileName(initializationFilePath)));
                         var parser = serviceState.ReplServiceProvider.CommandLineParser;
 
                         // The base directory for relative paths is the directory that contains the .rsp file.
                         // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
-                        var rspDirectory = Path.GetDirectoryName(initializationFile);
-                        var args = parser.Parse(new[] { "@" + initializationFile }, rspDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null);
+                        var rspDirectory = Path.GetDirectoryName(initializationFilePath);
+                        var args = parser.Parse(new[] { "@" + initializationFilePath }, rspDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null);
 
                         foreach (var error in args.Errors)
                         {

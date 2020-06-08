@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </remarks>
         private readonly bool _joinOutputWritingThreadsOnDisposal;
 
-        internal event Action<bool>? ProcessStarting;
+        internal event Action<InteractiveHostOptions>? ProcessStarting;
 
         public InteractiveHost(
             Type replServiceProviderType,

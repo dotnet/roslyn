@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 try
                 {
-                    Host.ProcessStarting?.Invoke(Options.InitializationFile != null);
+                    Host.ProcessStarting?.Invoke(Options);
 
-                    var remoteService = await TryStartProcessAsync(Options.GetHostPath(), Options.Culture, cancellationToken).ConfigureAwait(false);
+                    var remoteService = await TryStartProcessAsync(Options.HostPath, Options.Culture, cancellationToken).ConfigureAwait(false);
                     if (remoteService == null)
                     {
                         return default;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     // try to execute initialization script:
                     var isRestarting = InstanceId > 1;
-                    var initializationResult = await Async<RemoteExecutionResult>(remoteService, nameof(Service.InitializeContextAsync), Options.InitializationFile, isRestarting).ConfigureAwait(false);
+                    var initializationResult = await Async<RemoteExecutionResult>(remoteService, nameof(Service.InitializeContextAsync), Options.InitializationFilePath, isRestarting).ConfigureAwait(false);
 
                     initializing = false;
 
