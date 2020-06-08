@@ -1476,15 +1476,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type, DiagnosticBag diagnostics, SyntaxNode node)
         {
-            return GetWellKnownType(this.Compilation, type, diagnostics, node);
+            return GetWellKnownType(this.Compilation, type, diagnostics, node.Location);
         }
 
-        internal static NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, DiagnosticBag diagnostics, SyntaxNode node)
+        /// <summary>
+        /// This is a layer on top of the Compilation version that generates a diagnostic if the well-known
+        /// type isn't found.
+        /// </summary>
+        internal NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, DiagnosticBag diagnostics, SyntaxNode node)
         {
-            NamedTypeSymbol typeSymbol = compilation.GetWellKnownType(type);
-            Debug.Assert((object)typeSymbol != null, "Expect an error type if well-known type isn't found");
-            ReportUseSiteDiagnostics(typeSymbol, diagnostics, node);
-            return typeSymbol;
+            return GetWellKnownType(this.Compilation, type, diagnostics, node.Location);
         }
 
         internal static NamedTypeSymbol GetWellKnownType(CSharpCompilation compilation, WellKnownType type, DiagnosticBag diagnostics, Location location)

@@ -62,6 +62,26 @@
         <target state="translated">Alterar a função local para 'static'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Negate_expression_changes_semantics">
+        <source>Negate expression (changes semantics)</source>
+        <target state="new">Negate expression (changes semantics)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_operator_preserves_semantics">
+        <source>Remove operator (preserves semantics)</source>
+        <target state="new">Remove operator (preserves semantics)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_suppression_operators">
+        <source>Remove suppression operators</source>
+        <target state="new">Remove suppression operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression_operator">
+        <source>Remove unnecessary suppression operator</source>
+        <target state="new">Remove unnecessary suppression operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">Simplificar expressão 'default'</target>
@@ -71,6 +91,11 @@
         <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
         <target state="translated">Struct contém atribuição para 'this' fora do construtor. Torne os campos somente leitura graváveis</target>
         <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">
+        <source>Suppression operator has no effect and can be misinterpreted</source>
+        <target state="new">Suppression operator has no effect and can be misinterpreted</target>
+        <note />
       </trans-unit>
       <trans-unit id="Unreachable_code_detected">
         <source>Unreachable code detected</source>

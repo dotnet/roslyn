@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode(text, SyntaxFactory.ParseExpression(text, options: options), expectedErrors);
         }
 
-        private void UsingNode(string text, CSharpSyntaxNode node, DiagnosticDescription[] expectedErrors)
+        protected void UsingNode(string text, CSharpSyntaxNode node, DiagnosticDescription[] expectedErrors)
         {
             // we validate the text roundtrips
             Assert.Equal(text, node.ToFullString());

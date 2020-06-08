@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     var propertySymbol = GetPropertySymbol((BasePropertyDeclarationSyntax)propertyOrEventDecl, resultBinder);
                                     if ((object)propertySymbol != null)
                                     {
-                                        accessor = (parent.Kind() == SyntaxKind.SetAccessorDeclaration) ? propertySymbol.SetMethod : propertySymbol.GetMethod;
+                                        accessor = (parent.Kind() == SyntaxKind.GetAccessorDeclaration) ? propertySymbol.GetMethod : propertySymbol.SetMethod;
                                     }
                                     break;
                                 }
@@ -675,8 +675,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // we are visiting type declarations fairly frequently
                 // and position is more likely to be in the body, so lets check for "inBody" first.
-                if (LookupPosition.IsBetweenTokens(_position, parent.OpenBraceToken, parent.CloseBraceToken) ||
-                    LookupPosition.IsInAttributeSpecification(_position, parent.AttributeLists))
+                if (parent.OpenBraceToken != default &&
+                    parent.CloseBraceToken != default &&
+                    (LookupPosition.IsBetweenTokens(_position, parent.OpenBraceToken, parent.CloseBraceToken) ||
+                     LookupPosition.IsInAttributeSpecification(_position, parent.AttributeLists)))
                 {
                     extraInfo = NodeUsage.NamedTypeBodyOrTypeParameters;
                 }
@@ -686,13 +688,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (LookupPosition.IsBetweenTokens(_position, parent.Keyword, parent.OpenBraceToken))
                 {
-                    extraInfo = NodeUsage.NamedTypeBaseList;
+                    extraInfo = NodeUsage.NamedTypeBaseListOrParameterList;
                 }
 
                 return VisitTypeDeclarationCore(parent, extraInfo);
             }
 
-            private Binder VisitTypeDeclarationCore(TypeDeclarationSyntax parent, NodeUsage extraInfo)
+            internal Binder VisitTypeDeclarationCore(TypeDeclarationSyntax parent, NodeUsage extraInfo)
             {
                 var key = CreateBinderCacheKey(parent, extraInfo);
 
@@ -711,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var typeSymbol = ((NamespaceOrTypeSymbol)resultBinder.ContainingMemberOrLambda).GetSourceTypeMember(parent);
 
-                        if (extraInfo == NodeUsage.NamedTypeBaseList)
+                        if (extraInfo == NodeUsage.NamedTypeBaseListOrParameterList)
                         {
                             // even though there could be no type parameter, we need this binder 
                             // for its "IsAccessible"
@@ -750,6 +752,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return VisitTypeDeclarationCore(node);
             }
+
+            public override Binder VisitRecordDeclaration(RecordDeclarationSyntax node)
+                => VisitTypeDeclarationCore(node);
 
             public override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)
             {
@@ -934,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private static BinderCacheKey CreateBinderCacheKey(CSharpSyntaxNode node, NodeUsage usage)
+            internal static BinderCacheKey CreateBinderCacheKey(CSharpSyntaxNode node, NodeUsage usage)
             {
                 Debug.Assert(BitArithmeticUtilities.CountBits((uint)usage) <= 1, "Not a flags enum.");
                 return new BinderCacheKey(node, usage);
