@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp8;
+        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp9;
 
         /// <summary>Inference of tuple element names was added in C# 7.1</summary>
         internal static bool DisallowInferredTupleElementNames(this LanguageVersion self)

@@ -13,6 +13,11 @@
     <MaxSupportedLangVersion Condition="('$(TargetFrameworkIdentifier)' != '.NETCoreApp' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0') AND
                                         ('$(TargetFrameworkIdentifier)' != '.NETStandard' OR '$(_TargetFrameworkVersionWithoutV)' == '2.1') AND
                                         '$(MaxSupportedLangVersion)' == ''">8.0</MaxSupportedLangVersion>
+
+    <!-- .NETCoreApp == 5.0 -->
+    <!-- https://github.com/dotnet/roslyn/issues/44962 Remove this when CSharp9 becomes the default  -->
+    <MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '5.0')
+                                        '$(MaxSupportedLangVersion)' == ''">9.0</MaxSupportedLangVersion>
     
     <LangVersion Condition="'$(LangVersion)' == '' AND '$(MaxSupportedLangVersion)' != ''">$(MaxSupportedLangVersion)</LangVersion>
   </PropertyGroup>
