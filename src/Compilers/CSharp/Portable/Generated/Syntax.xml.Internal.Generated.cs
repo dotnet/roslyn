@@ -20205,7 +20205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-        /// <summary>Gets the type keyword token ("class", "struct", "interface").</summary>
+        /// <summary>Gets the type keyword token ("class", "struct", "interface", "record").</summary>
         public abstract SyntaxToken Keyword { get; }
 
         public abstract TypeParameterListSyntax? TypeParameterList { get; }
