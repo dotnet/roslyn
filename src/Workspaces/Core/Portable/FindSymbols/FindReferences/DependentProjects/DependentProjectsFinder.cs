@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // If it's not private, then we need to find possible references.
             if (visibility != SymbolVisibility.Private)
             {
-                await AddNonSubmissionDependentProjectsAsync(solution, symbol.ContainingAssembly, sourceProject, dependentProjects, cancellationToken).ConfigureAwait(false);
+                AddNonSubmissionDependentProjects(solution, symbol.ContainingAssembly, sourceProject, dependentProjects, cancellationToken);
             }
 
             // submission projects are special here. The fields generated inside the Script object
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static async Task AddNonSubmissionDependentProjectsAsync(
+        private static void AddNonSubmissionDependentProjects(
             Solution solution,
             IAssemblySymbol containingAssembly,
             Project? sourceProject,
@@ -235,92 +235,118 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (isSubmission)
                 return;
 
-            var sourceProjectInternalsVisibleToMap = GetSourceProjectInternalsVisibleToMap(sourceProject);
-            var containingAssemblySymbolKey = containingAssembly.GetSymbolKey(cancellationToken);
-
-            // In parallel, determine which projects have a dependency on sourceProject/containingAssembly, and
-            // determine if they IVT visibility to that project/assembly.
-            var tasks = solution.Projects.Select(p => Task.Run(() => ComputeDependentProjectAsync(
-                containingAssembly,
-                containingAssemblySymbolKey,
-                sourceProject,
-                p,
-                sourceProjectInternalsVisibleToMap,
-                cancellationToken))).ToArray();
-
-            var dependentProjectResults = await Task.WhenAll(tasks).ConfigureAwait(false);
-            foreach (var (isDependent, projectId, internalsVisibleTo) in dependentProjectResults)
+            HashSet<string>? internalsVisibleToSet = null;
+            foreach (var project in solution.Projects)
             {
-                if (isDependent)
-                    dependentProjects.Add(new DependentProject(projectId, internalsVisibleTo));
-            }
-        }
-
-        private static async Task<(bool isDependent, ProjectId projectId, bool internalsVisibleTo)> ComputeDependentProjectAsync(
-            IAssemblySymbol containingAssembly,
-            SymbolKey containingAssemblySymbolKey,
-            Project? sourceProject,
-            Project project,
-            AsyncLazy<HashSet<string>> sourceProjectInternalsVisibleToMap,
-            CancellationToken cancellationToken)
-        {
-            // Only examine real roslyn projects that have a direct P2P reference to the source project (if it exists),
-            // or contain a metadata reference if we have a metadata-assembly.
-            if (!project.SupportsCompilation ||
-                !HasReferenceTo(containingAssembly, sourceProject, project, cancellationToken))
-            {
-                return default;
-            }
-
-            if (sourceProject == null)
-            {
-                // If it's a symbol from metadata, do the full check for every project to see if it has a reference to
-                // this metadata dll.
-                var internalsVisibleTo = await MetadataAssemblyHasInternalsAccessAsync(
-                    containingAssembly, containingAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
-
-                return (isDependent: true, project.Id, internalsVisibleTo);
-            }
-            else
-            {
-                // If it's a symbol from source, then load our fast cache of IVT information for that source-project and
-                // see if this project is in that set.
-                var ivtMap = await sourceProjectInternalsVisibleToMap.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                var internalsVisibleTo = ivtMap.Contains(project.AssemblyName);
-
-                return (isDependent: true, project.Id, internalsVisibleTo);
-            }
-        }
-
-        /// <summary>
-        /// Performs the full, expensive, compilation check if <paramref name="project"/> can see internal symbols from <paramref name="containingAssembly"/>.
-        /// </summary>
-        private static async Task<bool> MetadataAssemblyHasInternalsAccessAsync(
-            IAssemblySymbol containingAssembly,
-            SymbolKey containingAssemblySymbolKey,
-            Project project,
-            CancellationToken cancellationToken)
-        {
-            Debug.Assert(project.SupportsCompilation);
-
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var targetAssembly = compilation.Assembly;
-
-            if (containingAssembly.Language != targetAssembly.Language)
-            {
-                var resolvedSymbol = containingAssemblySymbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-                if (resolvedSymbol is IAssemblySymbol sourceAssemblyInTargetCompilation)
+                if (!project.SupportsCompilation ||
+                    !HasReferenceTo(containingAssembly, sourceProject, project, cancellationToken))
                 {
-                    return targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssemblyInTargetCompilation);
+                    continue;
                 }
+
+                internalsVisibleToSet ??= GetInternalsVisibleToSet(containingAssembly);
+                var internalsVisableTo = internalsVisibleToSet.Contains(project.AssemblyName);
+                dependentProjects.Add(new DependentProject(project.Id, internalsVisableTo));
             }
-            else
+        }
+
+        private static HashSet<string> GetInternalsVisibleToSet(IAssemblySymbol assembly)
+        {
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var attr in assembly.GetAttributes().Where(IsInternalsVisibleToAttribute))
             {
-                return targetAssembly.IsSameAssemblyOrHasFriendAccessTo(containingAssembly);
+                var typeNameConstant = attr.ConstructorArguments.FirstOrDefault();
+                if (typeNameConstant.Type == null ||
+                    typeNameConstant.Type.SpecialType != SpecialType.System_String ||
+                    !(typeNameConstant.Value is string value))
+                {
+                    continue;
+                }
+
+                var commaIndex = value.IndexOf(',');
+                var assemblyName = commaIndex >= 0 ? value.Substring(0, commaIndex).Trim() : value;
+
+                set.Add(assemblyName);
             }
 
-            return false;
+            return set;
         }
+
+        private static bool IsInternalsVisibleToAttribute(AttributeData attr)
+        {
+            var attrType = attr.AttributeClass;
+            return attrType?.Name == nameof(InternalsVisibleToAttribute) &&
+                   attrType.ContainingNamespace?.Name == nameof(System.Runtime.CompilerServices) &&
+                   attrType.ContainingNamespace.ContainingNamespace?.Name == nameof(System.Runtime) &&
+                   attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&
+                   attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
+        }
+
+        //private static async Task<(bool isDependent, ProjectId projectId, bool internalsVisibleTo)> ComputeDependentProjectAsync(
+        //    IAssemblySymbol containingAssembly,
+        //    SymbolKey containingAssemblySymbolKey,
+        //    Project? sourceProject,
+        //    Project project,
+        //    AsyncLazy<HashSet<string>> sourceProjectInternalsVisibleToMap,
+        //    CancellationToken cancellationToken)
+        //{
+        //    // Only examine real roslyn projects that have a direct P2P reference to the source project (if it exists),
+        //    // or contain a metadata reference if we have a metadata-assembly.
+        //    if (!project.SupportsCompilation ||
+        //        !HasReferenceTo(containingAssembly, sourceProject, project, cancellationToken))
+        //    {
+        //        return default;
+        //    }
+
+        //    if (sourceProject == null)
+        //    {
+        //        // If it's a symbol from metadata, do the full check for every project to see if it has a reference to
+        //        // this metadata dll.
+        //        var internalsVisibleTo = await MetadataAssemblyHasInternalsAccessAsync(
+        //            containingAssembly, containingAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
+
+        //        return (isDependent: true, project.Id, internalsVisibleTo);
+        //    }
+        //    else
+        //    {
+        //        // If it's a symbol from source, then load our fast cache of IVT information for that source-project and
+        //        // see if this project is in that set.
+        //        var ivtMap = await sourceProjectInternalsVisibleToMap.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        //        var internalsVisibleTo = ivtMap.Contains(project.AssemblyName);
+
+        //        return (isDependent: true, project.Id, internalsVisibleTo);
+        //    }
+        //}
+
+        ///// <summary>
+        ///// Performs the full, expensive, compilation check if <paramref name="project"/> can see internal symbols from <paramref name="containingAssembly"/>.
+        ///// </summary>
+        //private static async Task<bool> MetadataAssemblyHasInternalsAccessAsync(
+        //    IAssemblySymbol containingAssembly,
+        //    SymbolKey containingAssemblySymbolKey,
+        //    Project project,
+        //    CancellationToken cancellationToken)
+        //{
+        //    Debug.Assert(project.SupportsCompilation);
+
+        //    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        //    var targetAssembly = compilation.Assembly;
+
+        //    if (containingAssembly.Language != targetAssembly.Language)
+        //    {
+        //        var resolvedSymbol = containingAssemblySymbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+        //        if (resolvedSymbol is IAssemblySymbol sourceAssemblyInTargetCompilation)
+        //        {
+        //            return targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssemblyInTargetCompilation);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        return targetAssembly.IsSameAssemblyOrHasFriendAccessTo(containingAssembly);
+        //    }
+
+        //    return false;
+        //}
 
         /// <summary>
         /// This method creates an cheap InternalsVisibleTo map from the given <paramref name="sourceProject"/> to the
