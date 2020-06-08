@@ -262,7 +262,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     continue;
                 }
 
-
                 var commaIndex = value.IndexOf(',');
                 var assemblyName = commaIndex >= 0 ? value.Substring(0, commaIndex).Trim() : value;
 
