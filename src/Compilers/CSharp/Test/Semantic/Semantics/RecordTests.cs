@@ -4223,8 +4223,7 @@ record B(int X, int Y)
         [Fact]
         public void Deconstruct_Static()
         {
-            var source =
-@"#pragma warning disable CS1717 // TODO: Disabling temporarily until fix for static properties is merged
+            var source = @"
 using System;
 
 record B(int X, int Y)

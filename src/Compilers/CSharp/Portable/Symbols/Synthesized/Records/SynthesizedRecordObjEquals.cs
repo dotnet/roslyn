@@ -142,7 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                // PROTOTYPE: Shouldn't have to bind to "Equals". The caller has the actual method in hand.
                 // For classes:
                 //      return this.Equals(param as ContainingType);
                 expression = F.Call(F.This(), _typedRecordEquals, F.As(paramAccess, ContainingType));
