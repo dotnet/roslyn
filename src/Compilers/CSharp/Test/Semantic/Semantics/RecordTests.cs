@@ -3778,6 +3778,80 @@ record C(int X, int Y)
         }
 
         [Fact]
+        public void Deconstruct_FieldCollision()
+        {
+            var source = @"
+using System;
+
+record C(int X)
+{
+    int X;
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(0));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,14): error CS0102: The type 'C' already contains a definition for 'X'
+                // record C(int X)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(4, 14));
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_EventCollision()
+        {
+            var source = @"
+using System;
+
+record C(Action X)
+{
+    event Action X;
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(Action x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(() => { }));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,17): error CS0102: The type 'C' already contains a definition for 'X'
+                // record C(Action X)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(4, 17));
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Action X)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
         public void Deconstruct_Empty()
         {
             var source = @"
