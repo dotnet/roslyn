@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         // owned by Unit Testing team:
         UnitTestingAnalysisService,
-        LiveUnitTestingService,
-        TestSourceLocationLookupService,
+        LiveUnitTestingBuildService,
+        UnitTestingSourceLookupService,
     }
 }

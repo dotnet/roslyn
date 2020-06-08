@@ -734,7 +734,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             MethodSymbol containingMethod = (MethodSymbol)containing;
                             MethodKind desiredMethodKind = fieldIsStatic ? MethodKind.StaticConstructor : MethodKind.Constructor;
-                            canModifyReadonly = containingMethod.MethodKind == desiredMethodKind;
+                            canModifyReadonly = (containingMethod.MethodKind == desiredMethodKind) ||
+                                isAssignedFromInitOnlySetterOnThis(fieldAccess.ReceiverOpt);
                         }
                         else if (containing.Kind == SymbolKind.Field)
                         {
@@ -770,6 +771,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // for other fields defer to the receiver.
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
+
+            bool isAssignedFromInitOnlySetterOnThis(BoundExpression receiver)
+            {
+                // bad: other.readonlyField = ...
+                // bad: base.readonlyField = ...
+                if (!(receiver is BoundThisReference))
+                {
+                    return false;
+                }
+
+                if (!(ContainingMemberOrLambda is MethodSymbol method))
+                {
+                    return false;
+                }
+
+                return method.IsInitOnly;
+            }
         }
 
         private bool CheckSimpleAssignmentValueKind(SyntaxNode node, BoundAssignmentOperator assignment, BindValueKind valueKind, DiagnosticBag diagnostics)
@@ -995,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var setMethod = propertySymbol.GetOwnOrInheritedSetMethod();
 
-                if ((object)setMethod == null)
+                if (setMethod is null)
                 {
                     var containing = this.ContainingMemberOrLambda;
                     if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing))
@@ -1006,6 +1024,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    if (setMethod.IsInitOnly &&
+                        !isAllowedInitOnlySet(receiver))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_AssignmentInitOnly, node, propertySymbol);
+                        return false;
+                    }
+
                     var accessThroughType = this.GetAccessThroughType(receiver);
                     bool failedThroughTypeCheck;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -1094,6 +1119,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+
+            bool isAllowedInitOnlySet(BoundExpression receiver)
+            {
+                // ok: new C() { InitOnlyProperty = ... }
+                if (receiver is BoundObjectOrCollectionValuePlaceholder)
+                {
+                    return true;
+                }
+
+                // bad: other.InitOnlyProperty = ...
+                if (!(receiver is BoundThisReference || receiver is BoundBaseReference))
+                {
+                    return false;
+                }
+
+                var containingMember = ContainingMemberOrLambda;
+                if (!(containingMember is MethodSymbol method))
+                {
+                    return false;
+                }
+
+                if (method.MethodKind == MethodKind.Constructor || method.IsInitOnly)
+                {
+                    // ok: setting on `this` or `base` from an instance constructor or init-only setter
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         private bool IsBadBaseAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol member, DiagnosticBag diagnostics,
