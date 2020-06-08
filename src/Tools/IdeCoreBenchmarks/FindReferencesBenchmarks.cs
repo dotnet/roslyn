@@ -32,7 +32,7 @@ namespace IdeCoreBenchmarks
         public FindReferencesBenchmarks()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            _solutionPath = Path.Combine(roslynRoot, @"C:\github\roslyn\Compilers.sln");
+            _solutionPath = Path.Combine(roslynRoot, @"C:\github\roslyn\Roslyn.sln");
 
             if (!File.Exists(_solutionPath))
                 throw new ArgumentException("Couldn't find Roslyn.sln");
@@ -73,14 +73,14 @@ namespace IdeCoreBenchmarks
         public async Task RunAnalyzer()
         {
             var solution = _workspace.CurrentSolution;
-            var project = solution.Projects.First(p => p.AssemblyName == "Microsoft.CodeAnalysis.Workspaces");
+            var project = solution.Projects.First(p => p.AssemblyName == "Microsoft.CodeAnalysis.CSharp");
             var compilation = await project.GetCompilationAsync();
-            var documentType = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.Document");
+            var documentType = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser");
             var references = await SymbolFinder.FindReferencesAsync(documentType, solution);
-            //var refList = references.ToList();
-            //Console.WriteLine($"References count: {refList.Count}");
-            // var locations = refList.SelectMany(r => r.Locations).ToList();
-            // Console.WriteLine($"Locations count: {locations.Count}");
+            var refList = references.ToList();
+            Console.WriteLine($"References count: {refList.Count}");
+            var locations = refList.SelectMany(r => r.Locations).ToList();
+            Console.WriteLine($"Locations count: {locations.Count}");
         }
     }
 }
