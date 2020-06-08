@@ -382,6 +382,11 @@
         <target state="translated">'in' değiştiricisine sahip bağımsız değişkenler dinamik olarak dağıtılan ifadelerde kullanılamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstancePropertyInitializerInInterface">
+        <source>Instance properties in interfaces cannot have initializers.</source>
+        <target state="new">Instance properties in interfaces cannot have initializers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
         <target state="translated">'{0}' bir __arglist parametresine sahip olduğundan '{2}' türünde '{1}' arabirim üyesini uygulayamıyor.</target>
@@ -6633,8 +6638,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
-        <source>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</source>
-        <target state="translated">Struct içindeki anonim yöntemler, lambda ifadeleri ve sorgu ifadeleri 'this' değişkeninin örnek üyelerine erişemez. Bunun yerine 'this' öğesini anonim yöntemin, lambda ifadesinin veya sorgu ifadesinin dışındaki yerel değişkene kopyalamayı ve yereli kullanmayı deneyin.</target>
+        <source>Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.</source>
+        <target state="needs-review-translation">Struct içindeki anonim yöntemler, lambda ifadeleri ve sorgu ifadeleri 'this' değişkeninin örnek üyelerine erişemez. Bunun yerine 'this' öğesini anonim yöntemin, lambda ifadesinin veya sorgu ifadesinin dışındaki yerel değişkene kopyalamayı ve yereli kullanmayı deneyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">

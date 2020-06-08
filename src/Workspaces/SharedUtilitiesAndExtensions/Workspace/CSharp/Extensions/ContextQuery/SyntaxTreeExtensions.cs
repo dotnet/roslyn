@@ -2795,7 +2795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (expression.IsAnyLambdaOrAnonymousMethod())
                     return false;
 
-                var symbol = semanticModel.GetSymbolInfo(expression).GetAnySymbol();
+                var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
                 if (symbol is IMethodSymbol)
                     return false;
 

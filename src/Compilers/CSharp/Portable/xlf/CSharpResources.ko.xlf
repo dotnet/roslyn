@@ -382,6 +382,11 @@
         <target state="translated">동적으로 디스패치된 식에서 'in' 한정자가 있는 인수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstancePropertyInitializerInInterface">
+        <source>Instance properties in interfaces cannot have initializers.</source>
+        <target state="new">Instance properties in interfaces cannot have initializers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
         <target state="translated">'{0}'은(는) __arglist 매개 변수가 있으므로 '{2}' 형식의 인터페이스 멤버 '{1}'을(를) 구현할 수 없습니다.</target>
@@ -6633,8 +6638,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
-        <source>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</source>
-        <target state="translated">구조체 안의 무명 메서드, 람다 식 및 쿼리 식은 'this'의 인스턴스 멤버에 액세스할 수 없습니다. 'this'를 무명 메서드, 람다 식 또는 쿼리 식 외부에 있는 지역 변수에 복사한 다음 이 지역 변수를 대신 사용하세요.</target>
+        <source>Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.</source>
+        <target state="needs-review-translation">구조체 안의 무명 메서드, 람다 식 및 쿼리 식은 'this'의 인스턴스 멤버에 액세스할 수 없습니다. 'this'를 무명 메서드, 람다 식 또는 쿼리 식 외부에 있는 지역 변수에 복사한 다음 이 지역 변수를 대신 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">

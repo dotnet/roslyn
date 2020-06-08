@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -2638,7 +2639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree,
                     diagnostics => FilterDiagnosticsByLocation(diagnostics, syntaxTree, filterSpanWithinTree));
 
-                var syntaxDiagnostics = syntaxTree.GetDiagnostics();
+                var syntaxDiagnostics = syntaxTree.GetDiagnostics(cancellationToken);
                 syntaxDiagnostics = FilterDiagnosticsByLocation(syntaxDiagnostics, syntaxTree, filterSpanWithinTree);
                 builder.AddRange(syntaxDiagnostics);
             }
@@ -3581,6 +3582,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void SymbolDeclaredEvent(Symbol symbol)
         {
             EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol.GetPublicSymbol()));
+        }
+
+        internal override void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder)
+        {
+            WriteValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
+            WriteValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
+            WriteValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
+
+            // LanguageVersion should already be mapped to a specific version
+            Debug.Assert(LanguageVersion == LanguageVersion.MapSpecifiedToEffectiveVersion());
+            WriteValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
+
+            var preprocessorSymbols = GetPreprocessorSymbols();
+            if (preprocessorSymbols.Any())
+            {
+                WriteValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
+            }
+
+            void WriteValue(string key, string value)
+            {
+                builder.WriteUTF8(key);
+                builder.WriteByte(0);
+                builder.WriteUTF8(value);
+                builder.WriteByte(0);
+            }
+        }
+
+        private ImmutableArray<string> GetPreprocessorSymbols()
+        {
+            CSharpSyntaxTree firstTree = (CSharpSyntaxTree)SyntaxTrees.FirstOrDefault();
+
+            if (firstTree is null)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            return firstTree.Options.PreprocessorSymbolNames.ToImmutableArray();
         }
 
         /// <summary>

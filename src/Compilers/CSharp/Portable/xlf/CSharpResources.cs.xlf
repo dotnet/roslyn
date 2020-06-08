@@ -382,6 +382,11 @@
         <target state="translated">Argumenty s modifikátorem in se nedají použít v dynamicky volaných výrazech.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstancePropertyInitializerInInterface">
+        <source>Instance properties in interfaces cannot have initializers.</source>
+        <target state="new">Instance properties in interfaces cannot have initializers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
         <target state="translated">{0} nemůže implementovat člen rozhraní {1} v typu {2}, protože má parametr __arglist.</target>
@@ -6633,8 +6638,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
-        <source>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</source>
-        <target state="translated">Anonymní metody, výrazy lambda a dotazovací výrazy uvnitř struktur nemají přístup ke členům instance this. Jako náhradu zkopírujte objekt this do lokální proměnné vně anonymní metody, výrazu lambda nebo dotazovacího výrazu a použijte lokální proměnnou.</target>
+        <source>Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.</source>
+        <target state="needs-review-translation">Anonymní metody, výrazy lambda a dotazovací výrazy uvnitř struktur nemají přístup ke členům instance this. Jako náhradu zkopírujte objekt this do lokální proměnné vně anonymní metody, výrazu lambda nebo dotazovacího výrazu a použijte lokální proměnnou.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">

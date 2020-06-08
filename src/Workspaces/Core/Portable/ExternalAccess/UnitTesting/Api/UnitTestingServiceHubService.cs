@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
     internal enum UnitTestingServiceHubService
     {
         UnitTestingAnalysisService = WellKnownServiceHubService.UnitTestingAnalysisService,
-        LiveUnitTestingService = WellKnownServiceHubService.LiveUnitTestingService,
-        TestSourceLocationLookupService = WellKnownServiceHubService.TestSourceLocationLookupService,
+        LiveUnitTestingBuildService = WellKnownServiceHubService.LiveUnitTestingBuildService,
+        UnitTestingSourceLookupService = WellKnownServiceHubService.UnitTestingSourceLookupService,
     }
 }

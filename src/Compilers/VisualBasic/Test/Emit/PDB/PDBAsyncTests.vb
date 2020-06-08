@@ -898,7 +898,7 @@ End Module
 ", sequencePoints:="M+VB$StateMachine_0_F.MoveNext")
         End Sub
 
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <ConditionalFact(AlwaysSkip:="https://github.com/dotnet/roslyn/issues/44901")>
         Public Sub PartialKickoffMethod()
             Dim src = "
 Public Partial Class C
@@ -943,7 +943,7 @@ MethodDebugInformation (index: 0x31, size: 20):
 1: nil
 2: nil
 3: nil
-4: #4
+4: #125
 {
   Kickoff Method: 0x06000002 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)

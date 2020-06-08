@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsStatic => false;
 
-        public override bool IsVirtual => !IsOverride;
+        public override bool IsVirtual => !IsOverride && !IsAbstract;
 
-        public override bool IsAbstract => false;
+        public override bool IsAbstract => ContainingType.IsAbstract;
 
         public override bool IsSealed => false;
 
@@ -144,10 +144,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         DeclaredAccessibility: Accessibility.Public,
                         IsStatic: false,
-                        IsAbstract: false,
                         ParameterCount: 0,
                         Arity: 0
-                    } method && (method.IsOverride || method.IsVirtual))
+                    } method && (method.IsOverride || method.IsVirtual || method.IsAbstract))
                     {
                         return method;
                     }

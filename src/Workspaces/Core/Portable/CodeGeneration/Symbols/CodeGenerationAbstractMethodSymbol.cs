@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers modifiers,
             string name,
             ImmutableArray<AttributeData> returnTypeAttributes)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
             _returnTypeAttributes = returnTypeAttributes.NullToEmpty();
         }

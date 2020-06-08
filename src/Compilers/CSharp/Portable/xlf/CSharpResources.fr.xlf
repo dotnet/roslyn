@@ -382,6 +382,11 @@
         <target state="translated">Impossible d'utiliser les arguments avec le modificateur 'in' dans les expressions dispatchées dynamiquement.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstancePropertyInitializerInInterface">
+        <source>Instance properties in interfaces cannot have initializers.</source>
+        <target state="new">Instance properties in interfaces cannot have initializers.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
         <target state="translated">'{0}' ne peut pas implémenter le membre d'interface '{1}' dans le type '{2}', car il a un paramètre __arglist</target>
@@ -6633,8 +6638,8 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
-        <source>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</source>
-        <target state="translated">Les méthodes anonymes, les expressions lambda et les expressions de requête dans des structs ne peuvent pas accéder aux membres d'instance de 'this'. Copiez 'this' dans une variable locale en dehors de la méthode anonyme, de l'expression lambda ou de l'expression de requête et utilisez la variable locale à la place.</target>
+        <source>Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.</source>
+        <target state="needs-review-translation">Les méthodes anonymes, les expressions lambda et les expressions de requête dans des structs ne peuvent pas accéder aux membres d'instance de 'this'. Copiez 'this' dans une variable locale en dehors de la méthode anonyme, de l'expression lambda ou de l'expression de requête et utilisez la variable locale à la place.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">

@@ -32,6 +32,8 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecordKeyword = 8444 -> Microsoft.CodeA
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.NewKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver
+Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver.CSharpGeneratorDriver(Microsoft.CodeAnalysis.ParseOptions parseOptions, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator> generators, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText> additionalTexts) -> void
 Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.AddParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.AsteriskToken.get -> Microsoft.CodeAnalysis.SyntaxToken

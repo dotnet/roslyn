@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
                 var variable = localVariables.FirstOrDefault(localVariable
                     => syntaxFactsService.StringComparer.Equals(localVariable.Name, identifierName) &&
-                        localVariable.Equals(semanticModel.GetSymbolInfo(node).Symbol));
+                        localVariable.Equals(semanticModel.GetSymbolInfo(node, cancellationToken).Symbol));
 
                 if (variable is object)
                 {

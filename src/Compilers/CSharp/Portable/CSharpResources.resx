@@ -2990,7 +2990,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64</value>
   </data>
   <data name="ERR_ThisStructNotInAnonMeth" xml:space="preserve">
-    <value>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</value>
+    <value>Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.</value>
   </data>
   <data name="ERR_NoConvToIDisp" xml:space="preserve">
     <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</value>
@@ -4751,6 +4751,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InitializerOnNonAutoProperty" xml:space="preserve">
     <value>Only auto-implemented properties can have initializers.</value>
+  </data>
+  <data name="ERR_InstancePropertyInitializerInInterface" xml:space="preserve">
+    <value>Instance properties in interfaces cannot have initializers.</value>
   </data>
   <data name="ERR_AutoPropertyMustHaveGetAccessor" xml:space="preserve">
     <value>Auto-implemented properties must have get accessors.</value>
