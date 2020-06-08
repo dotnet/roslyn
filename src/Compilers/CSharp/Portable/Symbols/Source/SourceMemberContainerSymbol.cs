@@ -3076,9 +3076,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else
                     {
-                        diagnostics.Add(ErrorCode.ERR_BadRecordMember,
+                        diagnostics.Add(ErrorCode.ERR_BadRecordMemberForPositionalParameter,
                             param.Locations[0],
-                            existingMember.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
+                            new FormattedSymbol(existingMember, SymbolDisplayFormat.CSharpErrorMessageFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)),
                             param.TypeWithAnnotations,
                             param.Name);
                     }

@@ -3065,10 +3065,10 @@ record B(object P1, object P2, object P3, object P4, object P5, object P6, objec
             comp.VerifyDiagnostics(
                 // (12,50): error CS8866: Record member 'A.P4' must be a readable instance property of type 'object' to match positional parameter 'P4'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P4").WithArguments("A.P4", "object", "P4").WithLocation(12, 50),
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "object", "P4").WithLocation(12, 50),
                 // (12,72): error CS8866: Record member 'A.P6' must be a readable instance property of type 'object' to match positional parameter 'P6'.
                 // record B(object P1, object P2, object P3, object P4, object P5, object P6, object P7) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P6").WithArguments("A.P6", "object", "P6").WithLocation(12, 72));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P6").WithArguments("A.P6", "object", "P6").WithLocation(12, 72));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
@@ -3090,10 +3090,10 @@ record B(int P1, object P2) : A
             comp.VerifyDiagnostics(
                 // (7,14): error CS8866: Record member 'A.P1' must be a readable instance property of type 'int' to match positional parameter 'P1'.
                 // record B(int P1, object P2) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P1").WithArguments("A.P1", "int", "P1").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "int", "P1").WithLocation(7, 14),
                 // (7,25): error CS8866: Record member 'A.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
                 // record B(int P1, object P2) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P2").WithArguments("A.P2", "object", "P2").WithLocation(7, 25));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "object", "P2").WithLocation(7, 25));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
@@ -3128,10 +3128,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (7,21): error CS8866: Record member 'A.Y' must be a readable instance property of type 'int' to match positional parameter 'Y'.
                 // record B(int X, int Y, int Z) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "Y").WithArguments("A.Y", "int", "Y").WithLocation(7, 21),
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("A.Y", "int", "Y").WithLocation(7, 21),
                 // (7,28): error CS8866: Record member 'A.Z' must be a readable instance property of type 'int' to match positional parameter 'Z'.
                 // record B(int X, int Y, int Z) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "Z").WithArguments("A.Z", "int", "Z").WithLocation(7, 28));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Z").WithArguments("A.Z", "int", "Z").WithLocation(7, 28));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
         }
@@ -3372,10 +3372,10 @@ record C(object P1, int P2, object P3, int P4) : B
             comp.VerifyDiagnostics(
                 // (13,17): error CS8866: Record member 'B.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
                 // record C(object P1, int P2, object P3, int P4) : B
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P1").WithArguments("B.P1", "object", "P1").WithLocation(13, 17),
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("B.P1", "object", "P1").WithLocation(13, 17),
                 // (13,44): error CS8866: Record member 'A.P4' must be a readable instance property of type 'int' to match positional parameter 'P4'.
                 // record C(object P1, int P2, object P3, int P4) : B
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P4").WithArguments("A.P4", "int", "P4").WithLocation(13, 44));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "int", "P4").WithLocation(13, 44));
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
         }
@@ -3393,10 +3393,10 @@ record C(object P1, int P2, object P3, int P4) : B
             comp.VerifyDiagnostics(
                 // (1,14): error CS8866: Record member 'C.P1' must be a readable instance property of type 'int' to match positional parameter 'P1'.
                 // record C(int P1, object P2)
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P1").WithArguments("C.P1", "int", "P1").WithLocation(1, 14),
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("C.P1", "int", "P1").WithLocation(1, 14),
                 // (1,25): error CS8866: Record member 'C.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
                 // record C(int P1, object P2)
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P2").WithArguments("C.P2", "object", "P2").WithLocation(1, 25));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("C.P2", "object", "P2").WithLocation(1, 25));
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -3427,10 +3427,10 @@ record B(object P1, int P2, object P3, int P4) : A
             comp.VerifyDiagnostics(
                 // (8,25): error CS8866: Record member 'B.P2' must be a readable instance property of type 'int' to match positional parameter 'P2'.
                 // record B(object P1, int P2, object P3, int P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P2").WithArguments("B.P2", "int", "P2").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("B.P2", "int", "P2").WithLocation(8, 25),
                 // (8,36): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
                 // record B(object P1, int P2, object P3, int P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P3").WithArguments("A.P3", "object", "P3").WithLocation(8, 36));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(8, 36));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -3461,10 +3461,10 @@ record B(object P1, int P2, object P3, int P4) : A
             comp.VerifyDiagnostics(
                 // (8,17): error CS8866: Record member 'B.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
                 // record B(object P1, int P2, object P3, int P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P1").WithArguments("B.P1", "object", "P1").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("B.P1", "object", "P1").WithLocation(8, 17),
                 // (8,44): error CS8866: Record member 'A.P4' must be a readable instance property of type 'int' to match positional parameter 'P4'.
                 // record B(object P1, int P2, object P3, int P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P4").WithArguments("A.P4", "int", "P4").WithLocation(8, 44));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("A.P4", "int", "P4").WithLocation(8, 44));
 
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -3695,7 +3695,7 @@ record C(int X, int Y) : B
             comp.VerifyDiagnostics(
                 // (7,14): error CS8866: Record member 'B.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
                 // record C(int X, int Y) : B
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "X").WithArguments("B.X", "int", "X").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("B.X", "int", "X").WithLocation(7, 14)
             );
 
             Assert.Equal(
@@ -3808,6 +3808,228 @@ record C
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
 
             Assert.Null(comp.GetMember("C.Deconstruct"));
+        }
+
+        [Fact]
+        public void Deconstruct_Inheritance_01()
+        {
+            var source = @"
+using System;
+
+record B(int X, int Y)
+{
+    internal B() : this(0, 1) { }
+}
+
+record C : B
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+        switch (c)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C());
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "0101");
+            verifier.VerifyDiagnostics();
+
+            var comp = verifier.Compilation;
+            Assert.Null(comp.GetMember("C.Deconstruct"));
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Inheritance_02()
+        {
+            var source = @"
+using System;
+
+record B(int X, int Y)
+{
+    // https://github.com/dotnet/roslyn/issues/44902
+    internal B() : this(0, 1) { }
+}
+
+record C(int X, int Y, int Z) : B(X, Y)
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y, int z):
+                Console.Write(x);
+                Console.Write(y);
+                Console.Write(z);
+                break;
+        }
+        switch (c)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(0, 1, 2));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "01201");
+            verifier.VerifyDiagnostics();
+
+            var comp = verifier.Compilation;
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y, out System.Int32 Z)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+        
+        [Fact]
+        public void Deconstruct_Conversion_01()
+        {
+            var source = @"
+using System;
+
+record C(int X, int Y)
+{
+    public long X { get; init; }
+    public long Y { get; init; }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(0, 1));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,14): error CS8866: Record member 'C.X' must be a readable instance property of type 'int' to match positional parameter 'X'.
+                // record C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("C.X", "int", "X").WithLocation(4, 14),
+                // (4,21): error CS8866: Record member 'C.Y' must be a readable instance property of type 'int' to match positional parameter 'Y'.
+                // record C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("C.Y", "int", "Y").WithLocation(4, 21));
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+        
+        [Fact]
+        public void Deconstruct_Conversion_02()
+        {
+            var source = @"
+#nullable enable
+using System;
+
+record C(string? X, string Y)
+{
+    public string X { get; init; } = null!;
+    public string? Y { get; init; }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(var x, string y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(""a"", ""b""));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.String? X, out System.String Y)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Conversion_03()
+        {
+            var source = @"
+using System;
+
+class Base { }
+class Derived : Base { }
+
+record C(Derived X, Base Y)
+{
+    public Base X { get; init; }
+    public Derived Y { get; init; }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(Derived x, Base y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(new Derived(), new Base()));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,18): error CS8866: Record member 'C.X' must be a readable instance property of type 'Derived' to match positional parameter 'X'.
+                // record C(Derived X, Base Y)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("C.X", "Derived", "X").WithLocation(7, 18),
+                // (7,26): error CS8866: Record member 'C.Y' must be a readable instance property of type 'Base' to match positional parameter 'Y'.
+                // record C(Derived X, Base Y)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("C.Y", "Base", "Y").WithLocation(7, 26));
+
+            Assert.Equal(
+                "void C.Deconstruct(out Derived X, out Base Y)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
         [Fact]
@@ -3949,7 +4171,7 @@ record B(int X, int Y)
             comp.VerifyDiagnostics(
                 // (4,21): error CS8866: Record member 'B.Y' must be a readable instance property of type 'int' to match positional parameter 'Y'.
                 // record B(int X, int Y)
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "Y").WithArguments("B.Y", "int", "Y").WithLocation(4, 21));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Y").WithArguments("B.Y", "int", "Y").WithLocation(4, 21));
 
             Assert.Equal(
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
@@ -3972,10 +4194,10 @@ record B(int X, int Y)
             comp.VerifyDiagnostics(
                 // (1,39): error CS8866: Record member 'C.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
                 // record C(object P1, object P2, object P3, object P4, object P5)
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P3").WithArguments("C.P3", "object", "P3").WithLocation(1, 39),
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("C.P3", "object", "P3").WithLocation(1, 39),
                 // (1,50): error CS8866: Record member 'C.P4' must be a readable instance property of type 'object' to match positional parameter 'P4'.
                 // record C(object P1, object P2, object P3, object P4, object P5)
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P4").WithArguments("C.P4", "object", "P4").WithLocation(1, 50));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P4").WithArguments("C.P4", "object", "P4").WithLocation(1, 50));
 
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -4163,7 +4385,7 @@ record C(object P1, object P2) : B
             comp.VerifyDiagnostics(
                 // (11,28): error CS8866: Record member 'B.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
                 // record C(object P1, object P2) : B
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P2").WithArguments("B.P2", "object", "P2").WithLocation(11, 28));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("B.P2", "object", "P2").WithLocation(11, 28));
             var actualMembers = GetProperties(comp, "C").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
         }
@@ -4254,13 +4476,13 @@ record C(object P)
             comp.VerifyDiagnostics(
                 // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
                 // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
                 // (1,28): error CS8866: Record member 'A.P2' must be a readable instance property of type 'object' to match positional parameter 'P2'.
                 // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P2").WithArguments("A.P2", "object", "P2").WithLocation(1, 28),
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P2").WithArguments("A.P2", "object", "P2").WithLocation(1, 28),
                 // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
                 // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39));
             var actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -4275,10 +4497,10 @@ record C(object P)
             comp.VerifyDiagnostics(
                 // (1,17): error CS8866: Record member 'A.P1' must be a readable instance property of type 'object' to match positional parameter 'P1'.
                 // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P1").WithArguments("A.P1", "object", "P1").WithLocation(1, 17),
                 // (1,39): error CS8866: Record member 'A.P3' must be a readable instance property of type 'object' to match positional parameter 'P3'.
                 // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P3").WithArguments("A.P3", "object", "P3").WithLocation(1, 39));
             actualMembers = GetProperties(comp, "B").ToTestDisplayStrings();
             expectedMembers = new[]
             {
@@ -4305,7 +4527,7 @@ record C(object P)
             comp.VerifyDiagnostics(
                 // (1,17): error CS8866: Record member 'A.P' must be a readable instance property of type 'object' to match positional parameter 'P'.
                 // record B(object P) : A
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "P").WithArguments("A.P", "object", "P").WithLocation(1, 17));
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "P").WithArguments("A.P", "object", "P").WithLocation(1, 17));
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, GetProperties(comp, "B").ToTestDisplayStrings());
 
             comp = CreateCompilation(sourceA);
@@ -4667,7 +4889,7 @@ record B(int X, int Y) : A
             comp.VerifyDiagnostics(
                 // (1,27): error CS8866: Record member 'C.Q' must be a readable instance property of type 'object' to match positional parameter 'Q'.
                 // record C(object P, object Q)
-                Diagnostic(ErrorCode.ERR_BadRecordMember, "Q").WithArguments("C.Q", "object", "Q").WithLocation(1, 27),
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "Q").WithArguments("C.Q", "object", "Q").WithLocation(1, 27),
                 // (4,16): error CS0102: The type 'C' already contains a definition for 'P'
                 //     public int P { get; }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 16),
