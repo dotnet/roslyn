@@ -5,8 +5,6 @@
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace AnalyzerRunner
@@ -21,8 +19,7 @@ namespace AnalyzerRunner
             {
                 if (s_defaultServices is null)
                 {
-                    Interlocked.CompareExchange(ref s_defaultServices,
-                        MefHostServices.Create(DefaultAssemblies), null);
+                    Interlocked.CompareExchange(ref s_defaultServices, MefHostServices.Create(DefaultAssemblies), null);
                 }
 
                 return s_defaultServices;
