@@ -14152,10 +14152,10 @@ namespace TestNamespace
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (3,23): error CS1014: A get or set accessor expected
+                // (3,23): error CS1014: A get, set or init accessor expected
                 //     public object P { partial get; set; }
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(3, 23),
-                // (4,34): error CS1014: A get or set accessor expected
+                // (4,34): error CS1014: A get, set or init accessor expected
                 //     object Q { get { return 0; } add { } }
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 34));
         }

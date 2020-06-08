@@ -1795,6 +1795,35 @@ class C
             }
         }
 
+
+        [Fact]
+        public void OptimizationLevelAdded_Canary()
+        {
+            // When OptimizationLevel is changed, this test will break. This list must be checked:
+            // - update OptimizationLevelFacts.ToPdbSerializedString
+            // - update tests that call this method
+            // - update docs\features\compilation-from-portable-pdb.md
+            // NOTE: release is duplicated because the return value for release is the same regardless of the debugPluseMode bool
+            AssertEx.SetEqual(new[] { "release", "release", "debug", "debug-plus" },
+                Enum.GetValues(typeof(OptimizationLevel)).Cast<OptimizationLevel>().SelectMany(l => new[] { l.ToPdbSerializedString(false), l.ToPdbSerializedString(true) }));
+        }
+
+        [Theory,
+            InlineData("release", true, OptimizationLevel.Release, false),
+            InlineData("debug", true, OptimizationLevel.Debug, false),
+            InlineData("debug-plus", true, OptimizationLevel.Debug, true),
+            InlineData("other", false, OptimizationLevel.Debug, false),
+            InlineData(null, false, OptimizationLevel.Debug, false)]
+        public void OptimizationLevel_ParsePdbSerializedString(string input, bool success, OptimizationLevel expected, bool expectedDebugPlusMode)
+        {
+            Assert.Equal(success, OptimizationLevelFacts.TryParsePdbSerializedString(input, out var optimization, out var debugPlusMode));
+            Assert.Equal(expected, optimization);
+            Assert.Equal(expectedDebugPlusMode, debugPlusMode);
+
+            // The canary check is a reminder that this test needs to be updated when an optimization level is added
+            OptimizationLevelAdded_Canary();
+        }
+
         [Fact]
         [WorkItem(546961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546961")]
         public void Define()
@@ -2399,7 +2428,6 @@ print Goodbye, World";
                             continue;
                         }
 
-                        Assert.True(embeddedSource.Encoding is UTF8Encoding && embeddedSource.Encoding.GetPreamble().Length == 0);
                         Assert.Equal(expectedEmbeddedMap[docPath], embeddedSource.ToString());
                         Assert.True(expectedEmbeddedMap.Remove(docPath));
                     }
@@ -12195,6 +12223,58 @@ generated_code = auto");
         }
 
         [Fact]
+        public void SourceGenerators_EmbeddedSources()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+
+            var generatedSource = "public class D { }";
+            var generator = new SimpleGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            var generatorPrefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
+            ValidateEmbeddedSources_Portable(new Dictionary<string, string> { { Path.Combine(dir.Path, $"{generatorPrefix}_generatedSource.cs"), generatedSource } }, dir, true);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+        }
+
+        [Theory]
+        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file2.cs")] // different files, different names
+        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file1.cs")] // different files, same names
+        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file2.cs")] // same files, different names
+        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file1.cs")] // same files, same names
+        [InlineData("partial class D {}", "file1.cs", "", "file2.cs")] // empty second file
+        public void SourceGenerators_EmbeddedSources_MultipleFiles(string source1, string source1Name, string source2, string source2Name)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generator = new SimpleGenerator(source1, source1Name);
+            var generator2 = new SimpleGenerator2(source2, source2Name);
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/debug:embedded", "/out:embed.exe" }, generators: new[] { generator, generator2 }, analyzers: null);
+
+            var generator1Prefix = $"{generator.GetType().Module.ModuleVersionId}_{generator.GetType().FullName}";
+            var generator2Prefix = $"{generator2.GetType().Module.ModuleVersionId}_{generator2.GetType().FullName}";
+
+            ValidateEmbeddedSources_Portable(new Dictionary<string, string>
+            {
+                { $"{dir.Path}{Path.DirectorySeparatorChar}{generator1Prefix}_{source1Name}", source1},
+                { $"{dir.Path}{Path.DirectorySeparatorChar}{generator2Prefix}_{source2Name}", source2},
+            }, dir, true);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+        }
+
+        [Fact]
         [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44087")]
         public void SourceGeneratorsAndAnalyzerConfig()
         {
@@ -12207,9 +12287,9 @@ class C
 [*.cs]
 key = value");
 
-            var generator = new SimpleGenerator("public class D {}");
+            var generator = new SimpleGenerator("public class D {}", "generated.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: new HiddenDiagnosticAnalyzer());
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/analyzerconfig:" + analyzerConfig.Path }, generators: new[] { generator }, analyzers: null);
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -12455,6 +12535,7 @@ option1 = def");
     internal class SimpleGenerator : ISourceGenerator
     {
         private readonly string _sourceToAdd;
+        private readonly string _fileName;
 
         /// <remarks>
         /// Required for reflection based tests
@@ -12464,20 +12545,25 @@ option1 = def");
             _sourceToAdd = string.Empty;
         }
 
-        public SimpleGenerator(string sourceToAdd)
+        public SimpleGenerator(string sourceToAdd, string fileName)
         {
             _sourceToAdd = sourceToAdd;
+            _fileName = fileName;
         }
 
         public void Execute(SourceGeneratorContext context)
         {
-            if (!string.IsNullOrWhiteSpace(_sourceToAdd))
-            {
-                context.AddSource("addedSource.cs", SourceText.From(_sourceToAdd, Encoding.UTF8));
-            }
+            context.AddSource(_fileName, SourceText.From(_sourceToAdd, Encoding.UTF8));
         }
 
         public void Initialize(InitializationContext context)
+        {
+        }
+    }
+
+    internal class SimpleGenerator2 : SimpleGenerator
+    {
+        public SimpleGenerator2(string sourceToAdd, string fileName) : base(sourceToAdd, fileName)
         {
         }
     }

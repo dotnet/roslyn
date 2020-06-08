@@ -1443,6 +1443,7 @@
     <Kind Name="CollectionInitializerExpression"/>
     <Kind Name="ArrayInitializerExpression"/>
     <Kind Name="ComplexElementInitializerExpression"/>
+    <Kind Name="WithInitializerExpression" />
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
       <PropertyComment>
@@ -1539,6 +1540,18 @@
     <FactoryComment>
       <summary>Creates an ObjectCreationExpressionSyntax node.</summary>
     </FactoryComment>
+  </Node>
+  <Node Name="WithExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="WithExpression"/>
+    <Field Name="Receiver" Type="ExpressionSyntax" />
+    <Field Name="WithKeyword" Type="SyntaxToken">
+      <Kind Name="WithKeyword" />
+    </Field>
+    <Field Name="Initializer" Type="InitializerExpressionSyntax">
+        <PropertyComment>
+            <summary>InitializerExpressionSyntax representing the initializer expression for the with expression.</summary>
+        </PropertyComment>
+    </Field>
   </Node>
   <Node Name="AnonymousObjectMemberDeclaratorSyntax" Base="CSharpSyntaxNode">
     <Kind Name="AnonymousObjectMemberDeclarator"/>
@@ -3163,13 +3176,13 @@
         <summary>Gets the base type list.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="OpenBraceToken" Type="SyntaxToken">
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the open brace token.</summary>
       </PropertyComment>
       <Kind Name="OpenBraceToken"/>
     </Field>
-    <Field Name="CloseBraceToken" Type="SyntaxToken">
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the close brace token.</summary>
       </PropertyComment>
@@ -3287,6 +3300,31 @@
     </Field>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+  </Node>
+  <Node Name="RecordDeclarationSyntax" Base="TypeDeclarationSyntax">
+    <Kind Name="RecordDeclaration" />
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="Keyword" Type="SyntaxToken" Override="true">
+      <ContextualKind Name="RecordKeyword"/>
+    </Field>
+    <Field Name="Identifier" Type="SyntaxToken" Override="true">
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" />
+    <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
+    <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true" Optional="true">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="CloseBraceToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
@@ -3413,6 +3451,7 @@
     <Kind Name="SimpleBaseType"/>
     <Field Name="Type" Type="TypeSyntax" Override="true">
     </Field>
+    <Field Name="ArgumentList" Type="ArgumentListSyntax" Optional="true"/>
   </Node>
 
   <Node Name="TypeParameterConstraintClauseSyntax" Base="CSharpSyntaxNode">
@@ -3889,6 +3928,7 @@
   <Node Name="AccessorDeclarationSyntax" Base="CSharpSyntaxNode">
     <Kind Name="GetAccessorDeclaration"/>
     <Kind Name="SetAccessorDeclaration"/>
+    <Kind Name="InitAccessorDeclaration"/>
     <Kind Name="AddAccessorDeclaration"/>
     <Kind Name="RemoveAccessorDeclaration"/>
     <Kind Name="UnknownAccessorDeclaration"/>
@@ -3905,6 +3945,7 @@
     <Field Name="Keyword" Type="SyntaxToken">
       <Kind Name="GetKeyword"/>
       <Kind Name="SetKeyword"/>
+      <Kind Name="InitKeyword"/>
       <Kind Name="AddKeyword"/>
       <Kind Name="RemoveKeyword"/>
       <Kind Name="IdentifierToken"/>

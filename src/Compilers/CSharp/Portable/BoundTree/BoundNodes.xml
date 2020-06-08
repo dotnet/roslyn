@@ -2146,4 +2146,15 @@
     <Field Name="Type" Type="TypeSymbol?" Override="true"/> <!-- We use null Type for placeholders representing out vars -->
     <Field Name="NullableAnnotation" Type="NullableAnnotation"/>
   </Node>
+
+  <Node Name="BoundWithExpression" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Receiver" Type="BoundExpression" />
+    <!-- CloneMethod may be null in error scenarios-->
+    <Field Name="CloneMethod" Type="MethodSymbol?" />
+    <!-- Members and expressions passed as arguments to the With expression. -->
+    <Field Name="InitializerExpression" Type="BoundObjectInitializerExpressionBase" />
+  </Node>
+
 </Tree>

@@ -1969,7 +1969,7 @@ class C
         }
 
         [WorkItem(17934, "https://github.com/dotnet/roslyn/issues/17934")]
-        [Fact]
+        [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/44901")]
         public void PartialKickoffMethod()
         {
             string src = @"
@@ -2017,7 +2017,7 @@ MethodDebugInformation (index: 0x31, size: 20):
 1: nil
 2: nil
 3: nil
-4: #4
+4: #e5
 {
   Kickoff Method: 0x06000001 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)
