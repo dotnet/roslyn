@@ -125,14 +125,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsGlobalAttributes = containsGlobalAttributes || syntaxFacts.IsGlobalAttribute(node);
                             if (containsGlobalAttributes && syntaxFacts.IsGlobalAssemblyAttribute(node))
                             {
-                                var attributeName = syntaxFacts.GetNameOfAttribute(node);
-                                var comparer = syntaxFacts.StringComparer;
-                                if (comparer.Equals("InternalsVisibleToAttribute", attributeName) ||
-                                    comparer.Equals("InternalsVisibleTo"))
+                                var attributeName = syntaxFacts.GetNameOfAttribute(node).ToString();
+
+                                var comparer = syntaxFacts.IsCaseSensitive
+                                    ? StringComparison.Ordinal
+                                    : StringComparison.OrdinalIgnoreCase;
+
+                                if (attributeName.EndsWith("InternalsVisibleToAttribute", comparer) ||
+                                    attributeName.EndsWith("InternalsVisibleTo", comparer))
                                 {
                                     var arguments = syntaxFacts.GetArgumentsOfAttribute(node);
-                                    if (arguments.Count > 0 && syntaxFacts.IsStringLiteralExpression(arguments[0]))
-                                        internalsVisibleTo.Add(arguments[0].GetFirstToken().ValueText);
+                                    if (arguments.Count > 0)
+                                    {
+                                        var argument = arguments[0];
+                                        var expression = syntaxFacts.GetExpressionOfAttributeArgument(argument);
+                                        if (syntaxFacts.IsStringLiteralExpression(expression))
+                                            internalsVisibleTo.Add(arguments[0].GetFirstToken().ValueText);
+                                    }
                                 }
                             }
 

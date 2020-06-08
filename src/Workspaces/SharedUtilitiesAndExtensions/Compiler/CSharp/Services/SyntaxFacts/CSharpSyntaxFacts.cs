@@ -573,6 +573,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetExpressionOfArgument(SyntaxNode node)
             => (node as ArgumentSyntax)?.Expression;
 
+        public SyntaxNode GetExpressionOfAttributeArgument(SyntaxNode node)
+            => (node as AttributeArgumentSyntax)?.Expression;
+
         public RefKind GetRefKindOfArgument(SyntaxNode node)
             => (node as ArgumentSyntax).GetRefKind();
 
@@ -1275,6 +1278,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
             => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default;
+
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfAttribute(SyntaxNode attribute)
+            => ((AttributeSyntax)attribute).ArgumentList.Arguments;
 
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();

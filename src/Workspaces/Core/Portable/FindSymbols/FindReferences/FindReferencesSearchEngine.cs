@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 start = DateTime.Now;
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
                 Console.WriteLine("Create project map: " + (DateTime.Now - start));
+                Console.WriteLine("Project count: " + projectMap.Count);
                 if (false)
                 {
                     var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);

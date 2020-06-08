@@ -268,8 +268,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (isSubmission)
                 return;
 
-            // HashSet<string>? internalsVisibleToSet = null;// fastCheckInternalsVisibleToSourceAsync = GetFastCheckInternalsVisibleToSource(sourceProject);
-            var fastCheckInternalsVisibleToCompilation = GetFastCheckInternalsVisibleToSource(sourceProject, cancellationToken);
+            var sourceProjectInternalsVisibleToMap = GetSourceProjectInternalsVisibleToMap(sourceProject);
             var containingAssemblySymbolKey = containingAssembly.GetSymbolKey(cancellationToken);
 
             var tasks = solution.Projects.Select(p => Task.Run(() => ComputeDependentProjectAsync(
@@ -277,7 +276,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 containingAssemblySymbolKey,
                 sourceProject,
                 p,
-                fastCheckInternalsVisibleToCompilation,
+                sourceProjectInternalsVisibleToMap,
                 cancellationToken))).ToArray();
 
             var dependentProjectResults = await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -293,7 +292,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SymbolKey containingAssemblySymbolKey,
             Project? sourceProject,
             Project project,
-            Func<string, Task<bool>> fastCheckInternalsVisibleToCompilation,
+            AsyncLazy<HashSet<string>> sourceProjectInternalsVisibleToMap,
             CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation ||
@@ -302,12 +301,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return default;
             }
 
-            var internalsVisibleTo = sourceProject != null
-                ? await fastCheckInternalsVisibleToCompilation(project.AssemblyName).ConfigureAwait(false)
-                : await MetadataAssemblyHasInternalsAccessAsync(
+            if (sourceProject == null)
+            {
+                var internalsVisibleTo = await MetadataAssemblyHasInternalsAccessAsync(
                     containingAssembly, containingAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
 
-            return (isDependent: true, project.Id, internalsVisibleTo);
+                return (isDependent: true, project.Id, internalsVisibleTo);
+            }
+            else
+            {
+
+                var ivtMap = await sourceProjectInternalsVisibleToMap.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var internalsVisibleTo = ivtMap.Contains(project.AssemblyName);
+
+                return (isDependent: true, project.Id, internalsVisibleTo);
+            }
         }
 
         /// <summary>
@@ -346,40 +354,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// information stored in our syntactic indices to avoid having to check with the compilation to get the 
         /// assembly attributes in the project.
         /// </summary>
-        private static Func<string, Task<bool>> GetFastCheckInternalsVisibleToSource(
-            Project? sourceProject, CancellationToken cancellationToken)
+        private static AsyncLazy<HashSet<string>> GetSourceProjectInternalsVisibleToMap(Project? sourceProject)
         {
             // If we're dealing with a metadata symbol, we have no source information we can look at to make this
             // determination.  So just assume any other assembly has IVT to us.  We'll later do the more expensive
             // semantic check to know for sure.
             if (sourceProject == null)
-                return _ => Task.FromResult(true);
+                return new AsyncLazy<HashSet<string>>(new HashSet<string>());
 
-            // Lazily initialize and compute the actual place where we store the information.
-            Task<HashSet<string>>? internalsVisibleToMap = null;
-
-            return async v =>
-            {
-                internalsVisibleToMap ??= ComputeInternalsVisibleToMap(sourceProject, cancellationToken);
-                var map = await internalsVisibleToMap.ConfigureAwait(false);
-                return map.Contains(v);
-            };
-
-            static async Task<HashSet<string>> ComputeInternalsVisibleToMap(Project sourceProject, CancellationToken cancellationToken)
-            {
-                var tasks = sourceProject.Documents.Select(async d =>
+            return new AsyncLazy<HashSet<string>>(
+                async c =>
                 {
-                    var index = await d.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
-                    return index.InternalsVisibleTo.SelectAsArray(ivt => GetAssemblyName(ivt));
-                }).ToArray();
+                    var tasks = sourceProject.Documents.Select(async d =>
+                    {
+                        var index = await d.GetSyntaxTreeIndexAsync(c).ConfigureAwait(false);
+                        return index.InternalsVisibleTo.SelectAsArray(ivt => GetAssemblyName(ivt));
+                    }).ToArray();
 
-                var assemblyNameArrays = await Task.WhenAll(tasks).ConfigureAwait(false);
-                var allAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var array in assemblyNameArrays)
-                    allAssemblyNames.AddRange(array);
+                    var assemblyNameArrays = await Task.WhenAll(tasks).ConfigureAwait(false);
 
-                return allAssemblyNames;
-            }
+                    var allAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var array in assemblyNameArrays)
+                        allAssemblyNames.AddRange(array);
+
+                    return allAssemblyNames;
+                }, cacheResult: true);
         }
 
         private static string GetAssemblyName(string ivtValue)
