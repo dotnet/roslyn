@@ -1323,7 +1323,8 @@ record R2 : R";
 abstract record R;
 abstract record R2 : R;
 record R3 : R2;
-record R4 : R2;
+abstract record R4 : R3;
+record R5 : R4;
 
 class C
 {
@@ -1331,6 +1332,8 @@ class C
     {
         R r = new R3();
         r = r with { };
+        R4 r4 = new R5();
+        r4 = r4 with { };
     }
 }";
 
@@ -1345,6 +1348,7 @@ class C
             Assert.True(clone.IsAbstract);
             Assert.Equal(0, clone.ParameterCount);
             Assert.Equal(0, clone.Arity);
+            Assert.Equal("R R.<>Clone()", clone.ToTestDisplayString());
 
             var r2 = comp.GlobalNamespace.GetTypeMember("R2");
             var clone2 = (MethodSymbol)r2.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
@@ -1354,33 +1358,51 @@ class C
             Assert.Equal(0, clone2.ParameterCount);
             Assert.Equal(0, clone2.Arity);
             Assert.True(clone2.OverriddenMethod.Equals(clone, TypeCompareKind.ConsiderEverything));
+            Assert.Equal("R R2.<>Clone()", clone2.ToTestDisplayString());
 
             var r3 = comp.GlobalNamespace.GetTypeMember("R3");
             var clone3 = (MethodSymbol)r3.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
             Assert.True(clone3.IsOverride);
             Assert.False(clone3.IsVirtual);
             Assert.False(clone3.IsAbstract);
-            Assert.Equal(0, clone.ParameterCount);
-            Assert.Equal(0, clone.Arity);
+            Assert.Equal(0, clone3.ParameterCount);
+            Assert.Equal(0, clone3.Arity);
+            Assert.True(clone3.OverriddenMethod.Equals(clone2, TypeCompareKind.ConsiderEverything));
+            Assert.Equal("R R3.<>Clone()", clone3.ToTestDisplayString());
 
             var r4 = comp.GlobalNamespace.GetTypeMember("R4");
             var clone4 = (MethodSymbol)r4.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
             Assert.True(clone4.IsOverride);
             Assert.False(clone4.IsVirtual);
-            Assert.False(clone4.IsAbstract);
-            Assert.Equal(0, clone2.ParameterCount);
-            Assert.Equal(0, clone2.Arity);
-            Assert.True(clone2.OverriddenMethod.Equals(clone, TypeCompareKind.ConsiderEverything));
+            Assert.True(clone4.IsAbstract);
+            Assert.Equal(0, clone4.ParameterCount);
+            Assert.Equal(0, clone4.Arity);
+            Assert.True(clone4.OverriddenMethod.Equals(clone3, TypeCompareKind.ConsiderEverything));
+            Assert.Equal("R R4.<>Clone()", clone4.ToTestDisplayString());
+
+            var r5 = comp.GlobalNamespace.GetTypeMember("R5");
+            var clone5 = (MethodSymbol)r5.GetMembers(WellKnownMemberNames.CloneMethodName).Single();
+            Assert.True(clone5.IsOverride);
+            Assert.False(clone5.IsVirtual);
+            Assert.False(clone5.IsAbstract);
+            Assert.Equal(0, clone5.ParameterCount);
+            Assert.Equal(0, clone5.Arity);
+            Assert.True(clone5.OverriddenMethod.Equals(clone4, TypeCompareKind.ConsiderEverything));
+            Assert.Equal("R R5.<>Clone()", clone5.ToTestDisplayString());
 
             var verifier = CompileAndVerify(comp, expectedOutput: "", verify: Verification.Passes);
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       12 (0xc)
+  // Code size       28 (0x1c)
   .maxstack  1
   IL_0000:  newobj     ""R3..ctor()""
   IL_0005:  callvirt   ""R R.<>Clone()""
   IL_000a:  pop
-  IL_000b:  ret
+  IL_000b:  newobj     ""R5..ctor()""
+  IL_0010:  callvirt   ""R R.<>Clone()""
+  IL_0015:  castclass  ""R4""
+  IL_001a:  pop
+  IL_001b:  ret
 }");
         }
     }
