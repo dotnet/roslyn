@@ -2785,7 +2785,7 @@ delegate int D();
 D d = null;
 ";
             CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                    // (3,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                    // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                     // D d = null;
                     Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "D d = null;").WithLocation(3, 1),
                     // (3,3): warning CS0219: The variable 'd' is assigned but its value is never used
@@ -2805,7 +2805,7 @@ D d = {;}
             // In this case, CS0116 is suppressed because of the syntax errors
 
             CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (3,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // D d = {;}
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "D d = {;").WithLocation(3, 1),
                 // (3,8): error CS1513: } expected

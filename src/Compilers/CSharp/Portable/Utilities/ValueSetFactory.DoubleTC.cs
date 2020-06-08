@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            double INumericTC<double>.FromConstantValue(ConstantValue constantValue) => constantValue.DoubleValue;
+            double INumericTC<double>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0.0 : constantValue.DoubleValue;
 
             ConstantValue INumericTC<double>.ToConstantValue(double value) => ConstantValue.Create(value);
 

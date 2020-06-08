@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            float INumericTC<float>.FromConstantValue(ConstantValue constantValue) => constantValue.SingleValue;
+            float INumericTC<float>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0.0F : constantValue.SingleValue;
 
             ConstantValue INumericTC<float>.ToConstantValue(float value) => ConstantValue.Create(value);
 

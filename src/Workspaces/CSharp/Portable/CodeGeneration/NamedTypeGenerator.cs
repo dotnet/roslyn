@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                      cancellationToken)
                 : declaration;
 
-            return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options));
+            return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options, cancellationToken));
         }
 
         public static MemberDeclarationSyntax UpdateNamedTypeDeclaration(

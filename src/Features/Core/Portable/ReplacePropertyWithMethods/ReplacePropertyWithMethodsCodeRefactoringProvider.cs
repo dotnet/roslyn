@@ -425,9 +425,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         private static TSymbol GetSymbolInCurrentCompilation<TSymbol>(Compilation compilation, TSymbol originalDefinition, CancellationToken cancellationToken)
             where TSymbol : class, ISymbol
         {
-            return originalDefinition.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol() as TSymbol;
+            return originalDefinition.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol() as TSymbol;
         }
-
 
         private class ReplacePropertyWithMethodsCodeAction : CodeAction.SolutionChangeAction
         {

@@ -845,5 +845,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.True(s1.All(GreaterThanOrEqual, j - 1));
             }
         }
+
+        [Fact]
+        public void DoNotCrashOnBadInput()
+        {
+            // For error recovery, do not throw exceptions on bad inputs.
+            var ctors = new IValueSetFactory[]
+            {
+                    ForByte,
+                    ForSByte,
+                    ForChar,
+                    ForShort,
+                    ForUShort,
+                    ForInt,
+                    ForUInt,
+                    ForLong,
+                    ForULong,
+                    ForBool,
+                    ForFloat,
+                    ForDouble,
+                    ForString,
+                    ForDecimal,
+                    ForNint,
+                    ForNuint
+            };
+            ConstantValue badConstant = ConstantValue.Bad;
+            foreach (IValueSetFactory fac in ctors)
+            {
+                foreach (BinaryOperatorKind relation in new[] { LessThan, Equal, NotEqual })
+                {
+                    IValueSet set = fac.Related(relation, badConstant);
+                    _ = set.All(relation, badConstant);
+                    _ = set.Any(relation, badConstant);
+                }
+            }
+        }
     }
 }

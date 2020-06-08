@@ -120,7 +120,6 @@ End Class"
             Await TestActionCountAsync(code, count:=0)
         End Function
 
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
         Public Async Function MoveType_ActionCounts_MoveOnly() As Task
             Dim code =

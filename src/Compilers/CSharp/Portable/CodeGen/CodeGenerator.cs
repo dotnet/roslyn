@@ -354,6 +354,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics);
         }
 
+        private void EmitSignatureToken(FunctionPointerTypeSymbol symbol, SyntaxNode syntaxNode)
+        {
+            _builder.EmitToken(PEModuleBuilder.Translate(symbol).Signature, syntaxNode, _diagnostics);
+        }
+
         private void EmitSequencePointStatement(BoundSequencePoint node)
         {
             SyntaxNode syntax = node.Syntax;

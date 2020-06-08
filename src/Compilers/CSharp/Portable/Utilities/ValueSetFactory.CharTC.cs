@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (char)(value + 1);
             }
 
-            char INumericTC<char>.FromConstantValue(ConstantValue constantValue) => constantValue.CharValue;
+            char INumericTC<char>.FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (char)0 : constantValue.CharValue;
 
             string INumericTC<char>.ToString(char c)
             {

@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 while (node != null)
                 {
-                    var symbol = model.GetDeclaredSymbol(node);
+                    var symbol = model.GetDeclaredSymbol(node, cancellationToken);
                     if (symbol != null)
                     {
                         return symbol;

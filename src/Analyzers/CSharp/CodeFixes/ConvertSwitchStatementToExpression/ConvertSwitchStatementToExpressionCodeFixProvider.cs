@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 if (declaratorToRemoveLocationOpt != null)
                 {
                     declaratorToRemoveNodeOpt = declaratorToRemoveLocationOpt.FindNode(cancellationToken);
-                    declaratorToRemoveTypeOpt = semanticModel.GetDeclaredSymbol(declaratorToRemoveNodeOpt).GetSymbolType();
+                    declaratorToRemoveTypeOpt = semanticModel.GetDeclaredSymbol(declaratorToRemoveNodeOpt, cancellationToken).GetSymbolType();
                 }
 
                 var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);

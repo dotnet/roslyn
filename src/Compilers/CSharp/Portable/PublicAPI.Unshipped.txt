@@ -1,3 +1,27 @@
+Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver
+Microsoft.CodeAnalysis.CSharp.CSharpGeneratorDriver.CSharpGeneratorDriver(Microsoft.CodeAnalysis.ParseOptions parseOptions, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator> generators, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText> additionalTexts) -> void
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.AddParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.AsteriskToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.CallingConvention.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.DelegateKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.GreaterThanToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.LessThanToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.Parameters.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax>
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.SyntaxToken asteriskToken, Microsoft.CodeAnalysis.SyntaxToken callingConvention, Microsoft.CodeAnalysis.SyntaxToken lessThanToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters, Microsoft.CodeAnalysis.SyntaxToken greaterThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithAsteriskToken(Microsoft.CodeAnalysis.SyntaxToken asteriskToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithCallingConvention(Microsoft.CodeAnalysis.SyntaxToken callingConvention) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithDelegateKeyword(Microsoft.CodeAnalysis.SyntaxToken delegateKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithGreaterThanToken(Microsoft.CodeAnalysis.SyntaxToken greaterThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithLessThanToken(Microsoft.CodeAnalysis.SyntaxToken lessThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.WithParameters(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.FunctionPointerType = 9056 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerType(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerType(Microsoft.CodeAnalysis.SyntaxToken callingConvention, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FunctionPointerType(Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.SyntaxToken asteriskToken, Microsoft.CodeAnalysis.SyntaxToken callingConvention, Microsoft.CodeAnalysis.SyntaxToken lessThanToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax> parameters, Microsoft.CodeAnalysis.SyntaxToken greaterThanToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.AddArgumentListArguments(params Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax.WithArgumentList(Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax argumentList) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseObjectCreationExpressionSyntax
@@ -87,6 +111,10 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.BinaryPattern(Microsoft.CodeA
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ImplicitObjectCreationExpression() -> Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitObjectCreationExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ImplicitObjectCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax argumentList, Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitObjectCreationExpressionSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ImplicitObjectCreationExpression(Microsoft.CodeAnalysis.SyntaxToken newKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax argumentList, Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax initializer) -> Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitObjectCreationExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseTypeName(string text, int offset = 0, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, bool consumeFullText = true) -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseTypeName(string text, int offset, bool consumeFullText) -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFunctionPointerType(Microsoft.CodeAnalysis.CSharp.Syntax.FunctionPointerTypeSyntax node) -> TResult
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParenthesizedPattern(Microsoft.CodeAnalysis.SyntaxToken openParenToken, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern, Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RelationalPattern(Microsoft.CodeAnalysis.SyntaxToken operatorToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.RelationalPatternSyntax
@@ -99,6 +127,7 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.UnaryPattern(Microsoft.CodeAn
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.Initializer.get -> Microsoft.CodeAnalysis.CSharp.Syntax.InitializerExpressionSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.NewKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+*REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseTypeName(string text, int offset = 0, bool consumeFullText = true) -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitBinaryPattern(Microsoft.CodeAnalysis.CSharp.Syntax.BinaryPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitImplicitObjectCreationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitObjectCreationExpressionSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitParenthesizedPattern(Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedPatternSyntax node) -> void

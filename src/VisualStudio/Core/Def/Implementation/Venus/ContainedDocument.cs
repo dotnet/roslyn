@@ -173,7 +173,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             throw ExceptionUtilities.Unreachable;
         }
 
-
         public SourceTextContainer GetOpenTextContainer()
             => this.SubjectBuffer.AsTextContainer();
 

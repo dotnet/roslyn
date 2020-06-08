@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedSimpleProgramEntryPointSymbol : SourceMemberMethodSymbol
     {
+        internal const string UnspeakableName = "$Main";
+
         /// <summary>
         /// The corresponding <see cref="SingleTypeDeclaration"/>. 
         /// </summary>
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return "$Main";
+                return UnspeakableName;
             }
         }
 
@@ -234,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var span = definedWithinSpan.GetValueOrDefault();
 
-                    foreach (var global in ((CompilationUnitSyntax)tree.GetRoot()).Members.OfType<GlobalStatementSyntax>())
+                    foreach (var global in ((CompilationUnitSyntax)tree.GetRoot(cancellationToken)).Members.OfType<GlobalStatementSyntax>())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 

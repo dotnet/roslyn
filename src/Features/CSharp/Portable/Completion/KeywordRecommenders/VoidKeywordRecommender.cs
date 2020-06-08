@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsTypeOfExpressionContext ||
                 syntaxTree.IsSizeOfExpressionContext(position, context.LeftToken) ||
                 context.IsDelegateReturnTypeContext ||
+                context.IsFunctionPointerTypeArgumentContext ||
                 IsUnsafeLocalVariableDeclarationContext(context) ||
                 IsUnsafeParameterTypeContext(context) ||
                 IsUnsafeCastTypeContext(context) ||

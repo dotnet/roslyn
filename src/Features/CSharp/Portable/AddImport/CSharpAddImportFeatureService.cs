@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         protected override ITypeSymbol GetDeconstructInfo(
             SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         {
-            return semanticModel.GetTypeInfo(node).Type;
+            return semanticModel.GetTypeInfo(node, cancellationToken).Type;
         }
 
         protected override ITypeSymbol GetQueryClauseInfo(

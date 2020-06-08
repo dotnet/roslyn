@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 id = GetCodeActionId(
                     abstractClassType.ContainingAssembly.Name,
                     abstractClassType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                    through.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+                    through.Name);
                 context.RegisterCodeFix(
                     new MyCodeAction(
                         string.Format(FeaturesResources.Implement_through_0, through.Name),
