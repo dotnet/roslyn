@@ -8,6 +8,12 @@
     <Rule Id="CA1802" Action="Warning" />
     <Rule Id="CA1821" Action="Warning" />
     <Rule Id="CA2007" Action="Warning" />
+
+    <!-- Disable analyzer throwing an exception: https://github.com/dotnet/roslyn-analyzers/issues/3724 -->
+    <Rule Id="CA1827" Action="None" />
+    <Rule Id="CA1828" Action="None" />
+    <Rule Id="CA1829" Action="None" />
+    <Rule Id="CA1836" Action="None" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CodeStyle" RuleNamespace="Microsoft.CodeAnalysis.CodeStyle">
     <Rule Id="IDE0055" Action="Warning" />
