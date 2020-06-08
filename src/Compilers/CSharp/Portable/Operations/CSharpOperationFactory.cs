@@ -95,6 +95,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundDynamicIndexerAccessExpressionOperation((BoundDynamicIndexerAccess)boundNode);
                 case BoundKind.ObjectCreationExpression:
                     return CreateBoundObjectCreationExpressionOperation((BoundObjectCreationExpression)boundNode);
+                case BoundKind.WithExpression:
+                    return CreateBoundWithExpressionOperation((BoundWithExpression)boundNode);
                 case BoundKind.DynamicObjectCreationExpression:
                     return CreateBoundDynamicObjectCreationExpressionOperation((BoundDynamicObjectCreationExpression)boundNode);
                 case BoundKind.ObjectInitializerExpression:
@@ -670,6 +672,16 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             return new CSharpLazyObjectCreationOperation(this, boundObjectCreationExpression, constructor.GetPublicSymbol(), _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IOperation CreateBoundWithExpressionOperation(BoundWithExpression boundWithExpression)
+        {
+            MethodSymbol constructor = boundWithExpression.CloneMethod;
+            SyntaxNode syntax = boundWithExpression.Syntax;
+            ITypeSymbol type = boundWithExpression.Type.GetPublicSymbol();
+            Optional<object> constantValue = ConvertToOptional(boundWithExpression.ConstantValue);
+            bool isImplicit = boundWithExpression.WasCompilerGenerated;
+            return new CSharpLazyWithExpressionOperation(this, boundWithExpression, constructor.GetPublicSymbol(), _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDynamicObjectCreationOperation CreateBoundDynamicObjectCreationExpressionOperation(BoundDynamicObjectCreationExpression boundDynamicObjectCreationExpression)

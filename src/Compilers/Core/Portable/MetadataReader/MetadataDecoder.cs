@@ -747,6 +747,12 @@ namespace Microsoft.CodeAnalysis
                         requiredModifiersFound |= AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType;
                         isAllowed = true;
                     }
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0 &&
+                        IsAcceptedIsExternalInitModifierType(type))
+                    {
+                        requiredModifiersFound |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
+                        isAllowed = true;
+                    }
                     else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute) != 0 &&
                         IsAcceptedOutAttributeModifierType(type))
                     {
@@ -1201,10 +1207,21 @@ tryAgain:
         }
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded parameter type is invalid.</exception>
-        private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info, bool allowOutAttribute = false)
+        private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info, bool isReturn, bool allowOutAttribute = false)
         {
-            var allowedAttributes = AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute |
-                (allowOutAttribute ? AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute : 0);
+            var allowedAttributes = AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute;
+
+            if (allowOutAttribute)
+            {
+                allowedAttributes |= AllowedRequiredModifierType.System_Runtime_CompilerServices_OutAttribute;
+            }
+
+            if (isReturn)
+            {
+                // https://github.com/dotnet/roslyn/issues/44671 make this more restrictive (ie. disallow aside from the return value of an instance setter)
+                allowedAttributes |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
+            }
+
             info.CustomModifiers = DecodeModifiersOrThrow(
                 ref signatureReader,
                 allowedAttributes,
@@ -1219,12 +1236,20 @@ tryAgain:
                 }
 
                 info.IsByRef = true;
+
                 info.RefCustomModifiers = info.CustomModifiers;
+                if ((foundRequiredTypes & AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0)
+                {
+                    // This cannot be placed on RefCustomModifiers, just CustomModifiers
+                    info.CustomModifiers = default;
+                    throw new UnsupportedSignatureContent();
+                }
+
                 info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
             }
-            else if (foundRequiredTypes != AllowedRequiredModifierType.None)
+            else if ((foundRequiredTypes & ~AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0)
             {
-                // This cannot be placed on CustomModifiers, just RefCustomModifiers
+                // in and out can only be placed on RefCustomModifiers
                 throw new UnsupportedSignatureContent();
             }
 
@@ -1900,13 +1925,13 @@ tryAgain:
             try
             {
                 // get the return type
-                DecodeParameterOrThrow(ref signatureReader, ref paramInfo[0]);
+                DecodeParameterOrThrow(ref signatureReader, ref paramInfo[0], isReturn: true);
 
                 // Get all of the parameters.
                 for (paramIndex = 1; paramIndex <= paramCount; paramIndex++)
                 {
                     // Figure out the type.
-                    DecodeParameterOrThrow(ref signatureReader, ref paramInfo[paramIndex], isFunctionPointerSignature);
+                    DecodeParameterOrThrow(ref signatureReader, ref paramInfo[paramIndex], isReturn: false, isFunctionPointerSignature);
                 }
 
                 if (shouldProcessAllBytes && signatureReader.RemainingBytes > 0)
@@ -1965,7 +1990,7 @@ tryAgain:
         protected TypeSymbol DecodeFieldSignature(ref BlobReader signatureReader, out bool isVolatile, out ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
             isVolatile = false;
-            customModifiers = default(ImmutableArray<ModifierInfo<TypeSymbol>>);
+            customModifiers = default;
 
             try
             {

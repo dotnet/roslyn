@@ -2054,6 +2054,40 @@ public class MemberInitializerTest
         }
 
         [Fact]
+        public void TestWithExpression()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+#nullable enable
+
+record B(string? X)
+{
+    static void M1(B b1)
+    {
+        var x = ""hello"";
+        _ = /*<bind>*/b1 with { X = x }/*</bind>*/;
+    }
+}
+");
+            Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(analysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
+
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry));
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
+
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("b1, x", GetSymbolNamesJoined(analysis.WrittenOutside));
+        }
+
+        [Fact]
         public void TestCollectionInitializerExpression()
         {
             var analysis = CompileAndAnalyzeDataFlowExpression(@"
