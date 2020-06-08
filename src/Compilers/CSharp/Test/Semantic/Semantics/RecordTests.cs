@@ -4211,6 +4211,13 @@ record B(int X, int Y)
 ";
             var verifier = CompileAndVerify(source, expectedOutput: "123");
             verifier.VerifyDiagnostics();
+
+            var expectedSymbols = new[]
+            {
+                "void B.Deconstruct(out System.Int32 Z)",
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+            };
+            Assert.Equal(expectedSymbols, verifier.Compilation.GetMembers("B.Deconstruct").Select(s => s.ToTestDisplayString(includeNonNullable: false)));
         }
 
         [Fact]

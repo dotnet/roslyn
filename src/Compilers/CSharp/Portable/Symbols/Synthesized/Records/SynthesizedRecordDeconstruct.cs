@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _memberOffset = memberOffset;
             _properties = properties;
             ContainingType = containingType;
+            ReturnTypeWithAnnotations = TypeWithAnnotations.Create(
+                ContainingType.DeclaringCompilation.GetSpecialType(SpecialType.System_Void));
             Parameters = ctorParameters.SelectAsArray(
                 (param, ordinal, _) =>
                     SynthesizedParameterSymbol.Create(
@@ -38,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         param.Name),
                 arg: (object?)null);
         }
+
+        public override TypeWithAnnotations ReturnTypeWithAnnotations { get; }
 
         public override ImmutableArray<ParameterSymbol> Parameters { get; }
 
@@ -71,8 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override RefKind RefKind => RefKind.None;
 
-        public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(
-            ContainingType.DeclaringCompilation.GetSpecialType(SpecialType.System_Void));
 
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
