@@ -15,13 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedRecordGetHashCode : SynthesizedInstanceMethodSymbol
     {
         private readonly int _memberOffset;
+        private readonly PropertySymbol _equalityContract;
 
         public override NamedTypeSymbol ContainingType { get; }
 
-        public SynthesizedRecordGetHashCode(NamedTypeSymbol containingType, int memberOffset)
+        public SynthesizedRecordGetHashCode(NamedTypeSymbol containingType, PropertySymbol equalityContract, int memberOffset)
         {
             _memberOffset = memberOffset;
             ContainingType = containingType;
+            _equalityContract = equalityContract;
         }
 
         public override string Name => "GetHashCode";
@@ -114,8 +116,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            // https://github.com/dotnet/roslyn/issues/44683 We can do better :)
-            F.CloseMethod(F.Return(F.Literal(0)));
+
+            try
+            {
+                MethodSymbol equalityComparer_GetHashCode = F.WellKnownMethod(WellKnownMember.System_Collections_Generic_EqualityComparer_T__GetHashCode, isOptional: false)!;
+                MethodSymbol equalityComparer_get_Default = F.WellKnownMethod(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default, isOptional: false)!;
+
+                BoundExpression currentHashValue;
+
+                if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
+                {
+                    // There are no base record types.
+                    // Get hash code of the equality contract and combine it with hash codes for field values.
+                    currentHashValue = MethodBodySynthesizer.GenerateGetHashCode(equalityComparer_GetHashCode, equalityComparer_get_Default, F.Property(F.This(), _equalityContract), F);
+                }
+                else
+                {
+                    // There are base record types.
+                    // Get base.GetHasgCode() and combine it with hash codes for field values.
+                    var overridden = OverriddenMethod;
+                    currentHashValue = F.Call(F.Base(overridden.ContainingType), overridden);
+                }
+
+                //  bound HASH_FACTOR
+                BoundLiteral? boundHashFactor = null;
+
+                foreach (var f in ContainingType.GetFieldsToEmit())
+                {
+                    if (!f.IsStatic)
+                    {
+                        currentHashValue = MethodBodySynthesizer.GenerateHashCombine(currentHashValue, equalityComparer_GetHashCode, equalityComparer_get_Default, ref boundHashFactor,
+                                                                                     F.Field(F.This(), f),
+                                                                                     F);
+                    }
+                }
+
+                F.CloseMethod(F.Block(F.Return(currentHashValue)));
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+            {
+                diagnostics.Add(ex.Diagnostic);
+                F.CloseMethod(F.ThrowNull());
+            }
         }
     }
 }

@@ -5120,6 +5120,73 @@ record C(int X) : Base(() => X)
             var verifier = CompileAndVerify(src, expectedOutput: @"1");
         }
 
+        [Fact]
+        public void BaseArguments_17()
+        {
+            var src = @"
+record Base
+{
+    public Base(int X, int Y)
+    {
+    }
+
+    public Base() {}
+}
+
+record C(int X, int y)
+    : Base(Test(X, out var y),
+           Test(X, out var z))
+{
+    int Z = z;
+
+    private static int Test(int x, out int y)
+    {
+        y = 2;
+        return x;
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (12,28): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     : Base(Test(X, out var y),
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y").WithArguments("y").WithLocation(12, 28),
+                // (15,13): error CS0103: The name 'z' does not exist in the current context
+                //     int Z = z;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(15, 13)
+                );
+        }
+
+        [Fact]
+        public void BaseArguments_18()
+        {
+            var src = @"
+record Base
+{
+    public Base(int X, int Y)
+    {
+    }
+
+    public Base() {}
+}
+
+record C(int X, int y)
+    : Base(Test(X + 1, out var z),
+           Test(X + 2, out var z))
+{
+    private static int Test(int x, out int y)
+    {
+        y = 2;
+        return x;
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (13,32): error CS0128: A local variable or function named 'z' is already defined in this scope
+                //            Test(X + 2, out var z))
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "z").WithArguments("z").WithLocation(13, 32)
+                );
+        }
+
         [Fact(Skip = "record struct")]
         public void Equality_01()
         {
@@ -5188,7 +5255,7 @@ class Program
     {
         var x = new C();
         var y = new C();
-        WriteLine(x.Equals(y));
+        WriteLine(x.Equals(y) && x.GetHashCode() == y.GetHashCode());
         WriteLine(((object)x).Equals(y));
     }
 }";
@@ -5221,6 +5288,16 @@ True");
   IL_0002:  isinst     ""C""
   IL_0007:  callvirt   ""bool C.Equals(C)""
   IL_000c:  ret
+}");
+            verifier.VerifyIL("C.GetHashCode()",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  call       ""System.Collections.Generic.EqualityComparer<System.Type> System.Collections.Generic.EqualityComparer<System.Type>.Default.get""
+  IL_0005:  ldarg.0
+  IL_0006:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_000b:  callvirt   ""int System.Collections.Generic.EqualityComparer<System.Type>.GetHashCode(System.Type)""
+  IL_0010:  ret
 }");
         }
 
@@ -5271,6 +5348,23 @@ True");
   IL_0028:  ldc.i4.0
   IL_0029:  ret
 }");
+            verifier.VerifyIL("C.GetHashCode()",
+@"{
+  // Code size       40 (0x28)
+  .maxstack  3
+  IL_0000:  call       ""System.Collections.Generic.EqualityComparer<System.Type> System.Collections.Generic.EqualityComparer<System.Type>.Default.get""
+  IL_0005:  ldarg.0
+  IL_0006:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_000b:  callvirt   ""int System.Collections.Generic.EqualityComparer<System.Type>.GetHashCode(System.Type)""
+  IL_0010:  ldc.i4     0xa5555529
+  IL_0015:  mul
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""int C._id""
+  IL_0021:  callvirt   ""int System.Collections.Generic.EqualityComparer<int>.GetHashCode(int)""
+  IL_0026:  add
+  IL_0027:  ret
+}");
         }
 
         [Fact]
@@ -5300,7 +5394,7 @@ class Program
         WriteLine(NewB1(1).Equals(NewB2(1)));
         WriteLine(new A().Equals((A)NewB2(1)));
         WriteLine(((A)NewB2(1)).Equals(new A()));
-        WriteLine(((A)NewB2(1)).Equals(NewB2(1)));
+        WriteLine(((A)NewB2(1)).Equals(NewB2(1)) && ((A)NewB2(1)).GetHashCode() == NewB2(1).GetHashCode());
         WriteLine(NewB2(1).Equals((A)NewB2(1)));
     }
 }";
@@ -5347,6 +5441,21 @@ True");
   IL_0020:  ldc.i4.0
   IL_0021:  ret
 }");
+            verifier.VerifyIL("B1.GetHashCode()",
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int A.GetHashCode()""
+  IL_0006:  ldc.i4     0xa5555529
+  IL_000b:  mul
+  IL_000c:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0011:  ldarg.0
+  IL_0012:  ldfld      ""int B1.<P>k__BackingField""
+  IL_0017:  callvirt   ""int System.Collections.Generic.EqualityComparer<int>.GetHashCode(int)""
+  IL_001c:  add
+  IL_001d:  ret
+}");
         }
 
         [Fact]
@@ -5374,6 +5483,8 @@ class Program
     static B2 NewB2(int p) => new B2 { P = p }; // Use record base call syntax instead
     static void Main()
     {
+        WriteLine(NewA(1).Equals(NewA(2)));
+        WriteLine(NewA(1).Equals(NewA(1)) && NewA(1).GetHashCode() == NewA(1).GetHashCode());
         WriteLine(NewA(1).Equals(NewB1(1)));
         WriteLine(NewB1(1).Equals(NewA(1)));
         WriteLine(NewB1(1).Equals(NewB2(1)));
@@ -5387,6 +5498,8 @@ class Program
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"False
+True
+False
 False
 False
 False
@@ -5422,6 +5535,14 @@ True");
   IL_0001:  ldarg.1
   IL_0002:  call       ""bool A.Equals(A)""
   IL_0007:  ret
+}");
+            verifier.VerifyIL("B1.GetHashCode()",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int A.GetHashCode()""
+  IL_0006:  ret
 }");
         }
 
@@ -5710,7 +5831,7 @@ class Program
         WriteLine(((A)NewC(1, 2, 3)).Equals(NewC(1, 2, 3)));
         WriteLine(((B)NewC(1, 2, 3)).Equals(NewA(1)));
         WriteLine(((B)NewC(1, 2, 3)).Equals(NewB(1, 2)));
-        WriteLine(((B)NewC(1, 2, 3)).Equals(NewC(1, 2, 3)));
+        WriteLine(((B)NewC(1, 2, 3)).Equals(NewC(1, 2, 3)) && NewC(1, 2, 3).GetHashCode() == NewC(1, 2, 3).GetHashCode());
         WriteLine(NewC(1, 2, 3).Equals((A)NewC(1, 2, 3)));
     }
 }";
@@ -5787,6 +5908,21 @@ True");
   IL_001f:  ret
   IL_0020:  ldc.i4.0
   IL_0021:  ret
+}");
+            verifier.VerifyIL("C.GetHashCode()",
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int B.GetHashCode()""
+  IL_0006:  ldc.i4     0xa5555529
+  IL_000b:  mul
+  IL_000c:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0011:  ldarg.0
+  IL_0012:  ldfld      ""int C.<Z>k__BackingField""
+  IL_0017:  callvirt   ""int System.Collections.Generic.EqualityComparer<int>.GetHashCode(int)""
+  IL_001c:  add
+  IL_001d:  ret
 }");
         }
 
@@ -6288,6 +6424,55 @@ True");
   IL_0002:  call       ""bool A<int>.Equals(A<int>)""
   IL_0007:  ret
 }");
+        }
+
+        [Fact]
+        public void Equality_20()
+        {
+            var source =
+@"
+record C;
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_EqualityComparer_T__GetHashCode);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.GetHashCode'
+                // record C;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record C;").WithArguments("System.Collections.Generic.EqualityComparer`1", "GetHashCode").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void Equality_21()
+        {
+            var source =
+@"
+record C;
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.get_Default'
+                // record C;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record C;").WithArguments("System.Collections.Generic.EqualityComparer`1", "get_Default").WithLocation(2, 1)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44988")]
+        [WorkItem(44988, "https://github.com/dotnet/roslyn/issues/44988")]
+        public void Equality_22()
+        {
+            var source =
+@"
+record C
+{
+    int x = 0;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default);
+            comp.VerifyEmitDiagnostics(
+                );
         }
 
         [Fact]
