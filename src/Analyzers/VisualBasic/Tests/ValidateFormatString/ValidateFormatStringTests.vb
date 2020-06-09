@@ -27,11 +27,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
-        Public Async Function ParamsObjectArray() As Task
+        Public Async Function ObjectArray() As Task
             Await TestDiagnosticMissingAsync("
 Class C
      Sub Main 
-        string.Format(""This {0} {1} {[||]2} works"", New Object  { ""test"", ""test2"", ""test3"" })
+        string.Format(""This {0} {1} {[||]2} works"", New Object() { ""test"", ""test2"", ""test3"" })
+    End Sub
+End Class")
+        End Function
+
     End Sub
 End Class")
         End Function
