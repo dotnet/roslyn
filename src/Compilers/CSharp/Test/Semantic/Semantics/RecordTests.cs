@@ -4111,6 +4111,39 @@ record B(int X, int Y)
         }
 
         [Fact]
+        public void Deconstruct_PositionalAndNominalProperty()
+        {
+            var source =
+@"using System;
+
+record B(int X)
+{
+    public int Y { get; init; }
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X)",
+                verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
         public void Deconstruct_Nested()
         {
             var source =
@@ -4960,7 +4993,7 @@ record B(int X, int Y)
         }
 
         [Fact]
-        public void Deconstruct_UserDefined_DifferentSignature()
+        public void Deconstruct_UserDefined_DifferentSignature_01()
         {
             var source =
 @"using System;
@@ -5004,6 +5037,183 @@ record B(int X, int Y)
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
             };
             Assert.Equal(expectedSymbols, verifier.Compilation.GetMembers("B.Deconstruct").Select(s => s.ToTestDisplayString(includeNonNullable: false)));
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined_DifferentSignature_02()
+        {
+            var source =
+@"using System;
+
+record B(int X)
+{
+    public int Deconstruct(out int a) => throw null;
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'B', with 1 out parameters and a void return type.
+                //             case B(int x):
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x)").WithArguments("B", "1").WithLocation(11, 19));
+
+            Assert.Equal("System.Int32 B.Deconstruct(out System.Int32 a)", comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined_DifferentSignature_03()
+        {
+            var source =
+@"using System;
+
+record B(int X)
+{
+    public void Deconstruct(int X)
+    {
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            var expectedSymbols = new[]
+            {
+                "void B.Deconstruct(System.Int32 X)",
+                "void B.Deconstruct(out System.Int32 X)",
+            };
+            Assert.Equal(expectedSymbols, verifier.Compilation.GetMembers("B.Deconstruct").Select(s => s.ToTestDisplayString(includeNonNullable: false)));
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined_DifferentSignature_04()
+        {
+            var source =
+@"using System;
+
+record A(int X)
+{
+    public A() : this(0) { }
+    public int Deconstruct(out int a, out int b) => throw null;
+}
+record B(int X, int Y) : A(X)
+{
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1, 2));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+
+            Assert.Equal("void B.Deconstruct(out System.Int32 X, out System.Int32 Y)", verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/45010")]
+        [WorkItem(45010, "https://github.com/dotnet/roslyn/issues/45010")]
+        public void Deconstruct_ObsoleteProperty()
+        {
+            var source =
+@"using System;
+
+record B(int X)
+{
+    [Obsolete] int X { get; } = X;
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            Assert.Equal("void B.Deconstruct(out System.Int32 X)", verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/45009")]
+        [WorkItem(45009, "https://github.com/dotnet/roslyn/issues/45009")]
+        public void Deconstruct_RefProperty()
+        {
+            var source =
+@"using System;
+
+record B(int X)
+{
+    static int _x = 2;
+    ref int X => ref _x;
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            verifier.VerifyDiagnostics();
+
+            Assert.Equal("void B.Deconstruct(out System.Int32 X)", verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
         [Fact]

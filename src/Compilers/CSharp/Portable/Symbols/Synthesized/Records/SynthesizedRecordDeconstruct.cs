@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int memberOffset)
         {
             _memberOffset = memberOffset;
+            Debug.Assert(properties.All(prop => prop.GetMethod is object));
             _properties = properties;
             ContainingType = containingType;
             ReturnTypeWithAnnotations = TypeWithAnnotations.Create(
@@ -75,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override RefKind RefKind => RefKind.None;
 
-
         public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
@@ -121,7 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 
-            // these lengths only differ in error scenarios
             Debug.Assert(Parameters.Length == _properties.Length);
             var statementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(_properties.Length + 1);
             for (int i = 0; i < _properties.Length; i++)
