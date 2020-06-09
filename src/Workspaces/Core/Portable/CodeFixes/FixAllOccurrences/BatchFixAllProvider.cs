@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
                     // a buggy extension that throws can't bring down the host?
                     return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
-                }));
+                }, cancellationToken));
             }
 
             await Task.WhenAll(fixerTasks).ConfigureAwait(false);
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return currentSolution;
         }
 
-        private async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocumentsAsync(
+        private static async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocumentsAsync(
             Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
             CancellationToken cancellationToken)
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // For each changed document, also keep track of the associated code action that
             // produced it.
             var getChangedDocumentsTasks = new List<Task>();
-            foreach (var (diagnostic, action) in diagnosticsAndCodeActions)
+            foreach (var (_, action) in diagnosticsAndCodeActions)
             {
                 getChangedDocumentsTasks.Add(GetChangedDocumentsAsync(
                     oldSolution, documentIdToChangedDocuments,
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return documentIdToChangedDocuments;
         }
 
-        private async Task<IReadOnlyDictionary<DocumentId, SourceText>> GetDocumentIdToFinalTextAsync(
+        private static async Task<IReadOnlyDictionary<DocumentId, SourceText>> GetDocumentIdToFinalTextAsync(
             Solution oldSolution,
             IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>> documentIdToChangedDocuments,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return documentIdToFinalText;
         }
 
-        private async Task GetFinalDocumentTextAsync(
+        private static async Task GetFinalDocumentTextAsync(
             Solution oldSolution,
             Dictionary<CodeAction, int> codeActionToDiagnosticLocation,
             ConcurrentDictionary<DocumentId, SourceText> documentIdToFinalText,
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static readonly Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
             _ => new ConcurrentBag<(CodeAction, Document)>();
 
-        private async Task GetChangedDocumentsAsync(
+        private static async Task GetChangedDocumentsAsync(
             Solution oldSolution,
             ConcurrentDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>> documentIdToChangedDocuments,
             CodeAction codeAction,

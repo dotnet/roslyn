@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
                     nodesToRemove.Add(node);
                 }
 
-                var symbol = documentEditor.SemanticModel.GetDeclaredSymbol(node);
+                var symbol = documentEditor.SemanticModel.GetDeclaredSymbol(node, cancellationToken);
                 var referencedSymbols = await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, documentsToBeSearched, cancellationToken).ConfigureAwait(false);
 
                 foreach (var referencedSymbol in referencedSymbols)
@@ -107,14 +107,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             }
         }
 
-        protected void RemoveNode(SyntaxEditor editor, SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected static void RemoveNode(SyntaxEditor editor, SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
             var localDeclaration = node.GetAncestorOrThis<TLocalDeclarationStatement>();
             var removeOptions = CreateSyntaxRemoveOptions(localDeclaration, syntaxFacts);
             editor.RemoveNode(node, removeOptions);
         }
 
-        private SyntaxRemoveOptions CreateSyntaxRemoveOptions(TLocalDeclarationStatement localDeclaration, ISyntaxFactsService syntaxFacts)
+        private static SyntaxRemoveOptions CreateSyntaxRemoveOptions(TLocalDeclarationStatement localDeclaration, ISyntaxFactsService syntaxFacts)
         {
             var removeOptions = SyntaxGenerator.DefaultRemoveOptions;
 

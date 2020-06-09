@@ -512,6 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.ArrayType:
                     case SymbolKind.PointerType:
+                    case SymbolKind.FunctionPointer:
                     case SymbolKind.Assembly:
                     case SymbolKind.DynamicType:
                     case SymbolKind.NetModule:

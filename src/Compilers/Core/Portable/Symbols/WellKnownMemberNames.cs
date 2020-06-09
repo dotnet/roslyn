@@ -342,5 +342,8 @@ namespace Microsoft.CodeAnalysis
         /// The required name for the <c>Slice</c> method used in a pattern-based Range indexer.
         /// </summary>
         public const string SliceMethodName = "Slice";
+
+        // internal until we settle on this long-term
+        internal const string CloneMethodName = "<>Clone";
     }
 }

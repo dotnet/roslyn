@@ -269,7 +269,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // reverse this check.
             Debug.Assert((SETSTART & 0x1) == 1, "If SETSTART is not odd, the calculation below this will be reversed");
             if ((min & 0x1) == (start & 0x1))
+            {
                 return true;
+            }
             else
             {
                 if (myCategoryLength == 0)
@@ -292,7 +294,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 if (curcat == 0)
                 {
                     // zero is our marker for a group of categories - treated as a unit
-                    if (CharInCategoryGroup(ch, chcategory, set, ref i))
+                    if (CharInCategoryGroup(chcategory, set, ref i))
                         return true;
                 }
                 else if (curcat > 0)
@@ -302,7 +304,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     if (curcat == SpaceConst)
                     {
                         if (char.IsWhiteSpace(ch))
+                        {
                             return true;
+                        }
                         else
                         {
                             i++;
@@ -320,7 +324,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     if (curcat == NotSpaceConst)
                     {
                         if (!char.IsWhiteSpace(ch))
+                        {
                             return true;
+                        }
                         else
                         {
                             i++;
@@ -344,7 +350,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// This is used for categories which are composed of other categories - L, N, Z, W...
         /// These groups need special treatment when they are negated
         /// </summary>
-        private static bool CharInCategoryGroup(char ch, UnicodeCategory chcategory, string category, ref int i)
+        private static bool CharInCategoryGroup(UnicodeCategory chcategory, string category, ref int i)
         {
             i++;
 

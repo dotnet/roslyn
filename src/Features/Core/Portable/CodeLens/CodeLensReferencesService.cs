@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            var cacheService = solution.Services.CacheService;
-
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -122,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 : string.Empty;
             var referenceSpan = new TextSpan(spanStart, token.Span.Length);
 
-            var symbol = semanticModel.GetDeclaredSymbol(node);
+            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
             var glyph = symbol?.GetGlyph();
             var startLinePosition = location.GetLineSpan().StartLinePosition;
             var documentId = solution.GetDocument(location.SourceTree)?.Id;
@@ -164,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 }
                 else if (syntaxFactsService.IsDeclaration(node) ||
                          syntaxFactsService.IsUsingOrExternOrImport(node) ||
-                         syntaxFactsService.IsGlobalAttribute(node))
+                         syntaxFactsService.IsGlobalAssemblyAttribute(node))
                 {
                     break;
                 }
@@ -199,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
         private static ISymbol GetEnclosingMethod(SemanticModel semanticModel, Location location, CancellationToken cancellationToken)
         {
-            var enclosingSymbol = semanticModel.GetEnclosingSymbol(location.SourceSpan.Start);
+            var enclosingSymbol = semanticModel.GetEnclosingSymbol(location.SourceSpan.Start, cancellationToken);
 
             for (var current = enclosingSymbol; current != null; current = current.ContainingSymbol)
             {

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
                 context.Document, context.Position, context.CompletionListSpan, context.Trigger, context.CancellationToken).ConfigureAwait(false);
         }
 
-        protected CompletionItem CreateEmptySuggestionModeItem()
+        protected static CompletionItem CreateEmptySuggestionModeItem()
             => CreateSuggestionModeItem(displayText: null, description: null);
 
         internal override bool IsInsertionTrigger(SourceText text, int position, OptionSet options) => false;

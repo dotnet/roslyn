@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
     {
         protected abstract AbstractTypeInferrer CreateTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken);
 
-        private ImmutableArray<ITypeSymbol> InferTypeBasedOnNameIfEmpty(
+        private static ImmutableArray<ITypeSymbol> InferTypeBasedOnNameIfEmpty(
             SemanticModel semanticModel, ImmutableArray<ITypeSymbol> result, string nameOpt)
         {
             if (result.IsEmpty && nameOpt != null)
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
             return result;
         }
 
-        private ImmutableArray<TypeInferenceInfo> InferTypeBasedOnNameIfEmpty(
+        private static ImmutableArray<TypeInferenceInfo> InferTypeBasedOnNameIfEmpty(
             SemanticModel semanticModel, ImmutableArray<TypeInferenceInfo> result, string nameOpt)
         {
             if (result.IsEmpty && nameOpt != null)
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
         private static readonly ImmutableArray<string> s_booleanPrefixes =
             ImmutableArray.Create("Is", "Has", "Contains", "Supports");
 
-        private ImmutableArray<ITypeSymbol> InferTypeBasedOnName(
+        private static ImmutableArray<ITypeSymbol> InferTypeBasedOnName(
             SemanticModel semanticModel, string name)
         {
             var matchesBoolean = MatchesBoolean(name);
@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 
             return InferTypeBasedOnNameIfEmpty(semanticModel, result, nameOpt);
         }
-
 
         public ImmutableArray<ITypeSymbol> InferTypes(
             SemanticModel semanticModel, SyntaxNode expression,

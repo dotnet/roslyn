@@ -57,24 +57,21 @@ namespace Microsoft.CodeAnalysis.Classification
 
         /// <returns><see langword="true"/> if the remote call was made successfully and we should
         /// use the results of it. Otherwise, fall back to processing locally</returns>
-        private async Task<bool> TryAddSemanticClassificationsInRemoteProcessAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        private static async Task<bool> TryAddSemanticClassificationsInRemoteProcessAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client == null)
                 return false;
 
-            var classifiedSpans = await client.TryRunRemoteAsync<SerializableClassifiedSpans>(
-                WellKnownServiceHubServices.CodeAnalysisService,
+            var classifiedSpans = await client.RunRemoteAsync<SerializableClassifiedSpans>(
+                WellKnownServiceHubService.CodeAnalysis,
                 nameof(IRemoteSemanticClassificationService.GetSemanticClassificationsAsync),
                 document.Project.Solution,
                 new object[] { document.Id, textSpan },
                 callbackTarget: null,
                 cancellationToken).ConfigureAwait(false);
 
-            if (!classifiedSpans.HasValue)
-                return false;
-
-            classifiedSpans.Value.Rehydrate(result);
+            classifiedSpans.Rehydrate(result);
             return true;
         }
 

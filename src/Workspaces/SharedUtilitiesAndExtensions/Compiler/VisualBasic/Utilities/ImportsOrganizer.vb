@@ -134,8 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Return Nothing
         End Function
 
-        Public Shared Function Organize(clauses As SeparatedSyntaxList(Of ImportsClauseSyntax),
-                                        placeSystemNamespaceFirst As Boolean) As SeparatedSyntaxList(Of ImportsClauseSyntax)
+        Public Shared Function Organize(clauses As SeparatedSyntaxList(Of ImportsClauseSyntax)) As SeparatedSyntaxList(Of ImportsClauseSyntax)
             If clauses.Count > 0 Then
                 Dim result = clauses.OrderBy(ImportsClauseComparer.NormalInstance).ToList()
 

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             cancellationToken.ThrowIfCancellationRequested();
 
             // REVIEW: why IDE services doesnt care about checksumAlgorithm?
-            var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
+            _ = (SourceHashAlgorithm)reader.ReadInt32();
             var encoding = ReadEncodingFrom(reader, cancellationToken);
 
             var kind = (SerializationKinds)reader.ReadInt32();
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteBoolean(reference.EmbedInteropTypes);
         }
 
-        private ProjectReference DeserializeProjectReference(ObjectReader reader, CancellationToken cancellationToken)
+        private static ProjectReference DeserializeProjectReference(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

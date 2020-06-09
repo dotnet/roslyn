@@ -87,5 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int VariableDeclarator => (int)SyntaxKind.VariableDeclarator;
 
         public int TypeArgumentList => (int)SyntaxKind.TypeArgumentList;
+        public int? GlobalStatement => (int)SyntaxKind.GlobalStatement;
     }
 }

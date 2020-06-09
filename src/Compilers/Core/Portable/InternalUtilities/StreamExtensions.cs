@@ -37,7 +37,7 @@ namespace Roslyn.Utilities
             Debug.Assert(count > 0);
 
             int totalBytesRead;
-            int bytesRead = 0;
+            int bytesRead;
             for (totalBytesRead = 0; totalBytesRead < count; totalBytesRead += bytesRead)
             {
                 // Note: Don't attempt to save state in-between calls to .Read as it would

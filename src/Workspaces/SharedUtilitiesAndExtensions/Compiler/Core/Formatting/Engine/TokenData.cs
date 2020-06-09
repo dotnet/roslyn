@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return index1 - index2;
         }
 
-        private int Index(IEnumerable<SyntaxToken> tokens, SyntaxToken token)
+        private static int Index(IEnumerable<SyntaxToken> tokens, SyntaxToken token)
         {
             var index = 0;
 

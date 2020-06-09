@@ -116,6 +116,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         StaticInstanceMismatch,
 
         /// <summary>
+        /// The candidate member was rejected because its calling convention did not match the function pointer
+        /// calling convention.
+        /// </summary>
+        WrongCallingConvention,
+
+        /// <summary>
         /// The candidate method in a delegate conversion was rejected because the ref kind of its return does not match the delegate.
         /// </summary>
         WrongRefKind,

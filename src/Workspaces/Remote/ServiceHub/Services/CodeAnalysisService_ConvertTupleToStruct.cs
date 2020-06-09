@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        private async Task<(DocumentId, TextSpan)> GetRenamedTokenAsync(
+        private static async Task<(DocumentId, TextSpan)> GetRenamedTokenAsync(
             Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
         {
             var changes = newSolution.GetChangedDocuments(oldSolution);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Remote
             throw ExceptionUtilities.Unreachable;
         }
 
-        private async Task<Solution> CleanupAsync(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
+        private static async Task<Solution> CleanupAsync(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
         {
             var changes = newSolution.GetChangedDocuments(oldSolution);
             var final = newSolution;
