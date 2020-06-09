@@ -742,11 +742,7 @@ record C(int x, int y)
 {
     public C(C other) { }
 }");
-            comp.VerifyDiagnostics(
-                // (4,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
-                //     public C(C other) { }
-                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 12)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -758,11 +754,7 @@ record C(int x, int y)
 {
     public C(C other) : base() { }
 }");
-            comp.VerifyDiagnostics(
-                // (4,25): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
-                //     public C(C other) : base() { }
-                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "base").WithLocation(4, 25)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1196,6 +1188,9 @@ enum G : C { }";
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
+                // record B : A { }
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(3, 8),
                 // (3,12): error CS8864: Records may only inherit from object or another record
                 // record B : A { }
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(3, 12),
@@ -1209,7 +1204,7 @@ enum G : C { }";
                 // struct F : C { }
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(7, 12),
                 // (8,10): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
-                // enum G : C
+                // enum G : C { }
                 Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "C").WithLocation(8, 10)
             );
         }
@@ -1240,17 +1235,20 @@ enum H : C { }
             });
 
             comp2.VerifyDiagnostics(
+                // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
+                // record E : A { }
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "E").WithArguments("A").WithLocation(3, 8),
                 // (3,12): error CS8864: Records may only inherit from object or another record
                 // record E : A { }
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(3, 12),
                 // (4,15): error CS0527: Type 'C' in interface list is not an interface
-                // interface E : C { }
+                // interface F : C { }
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(4, 15),
                 // (5,12): error CS0527: Type 'C' in interface list is not an interface
-                // struct F : C { }
+                // struct G : C { }
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "C").WithArguments("C").WithLocation(5, 12),
                 // (6,10): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
-                // enum G : C
+                // enum H : C { }
                 Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "C").WithLocation(6, 10)
             );
         }

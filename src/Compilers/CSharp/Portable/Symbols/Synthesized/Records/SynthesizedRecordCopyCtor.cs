@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -30,13 +31,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<ParameterSymbol> Parameters { get; }
 
+        public override Accessibility DeclaredAccessibility => Accessibility.Protected;
+
         internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
         internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory F, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics)
         {
             // Tracking issue for copy constructor in inheritance scenario: https://github.com/dotnet/roslyn/issues/44902
             // Write assignments to fields
-            //
+            // .ctor(DerivedRecordType original) : base((BaseRecordType)original)
             // {
             //     this.field1 = parameter.field1
             //     ...
@@ -45,11 +48,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var param = F.Parameter(Parameters[0]);
             foreach (var field in ContainingType.GetFieldsToEmit())
             {
-                if (!field.IsStatic)
+                if (!field.IsStatic && field.ContainingType.Equals(ContainingType))
                 {
                     statements.Add(F.Assignment(F.Field(F.This(), field), F.Field(param, field)));
                 }
             }
+        }
+
+        internal static MethodSymbol? FindCopyConstructor(NamedTypeSymbol containingType)
+        {
+            foreach (var member in containingType.GetMembers(WellKnownMemberNames.InstanceConstructorName))
+            {
+                if (member is MethodSymbol { IsStatic: false, ParameterCount: 1, Arity: 0 } method &&
+                    method.Parameters[0].Type.Equals(containingType, TypeCompareKind.CLRSignatureCompareOptions) &&
+                    method.Parameters[0].RefKind == RefKind.None)
+                {
+                    return method;
+                }
+            }
+
+            return null;
         }
     }
 }

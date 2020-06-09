@@ -197,6 +197,11 @@
         <target state="translated">Ein Ausdruck vom Typ "{0}" kann nicht von einem Muster vom Typ "{1}" behandelt werden. Verwenden Sie Sprachversion {2} oder höher, um einen offenen Typ mit einem konstanten Muster abzugleichen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CopyConstructorMustInvokeBaseCopyConstructor">
+        <source>A copy constructor in a record type deriving from another type must invoke that base type's copy constructor '{0}'.</source>
+        <target state="new">A copy constructor in a record type deriving from another type must invoke that base type's copy constructor '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">Der Name "{0}" stimmt nicht mit dem entsprechenden Deconstruct-Parameter "{1}" überein.</target>
@@ -490,6 +495,11 @@
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
         <target state="translated">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertierbar sein. Meinten Sie "await using" anstelle von "using"?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoCopyConstructorInBaseType">
+        <source>No accessible copy constructor found in base type '{0}'.</source>
+        <target state="new">No accessible copy constructor found in base type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">

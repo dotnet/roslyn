@@ -3853,6 +3853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeSymbol constructorReturnType = constructor.ReturnType;
                 Debug.Assert(constructorReturnType.IsVoidType()); //true of all constructors
+                NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
 
                 // Get the bound arguments and the argument names.
                 // : this(__arglist()) is legal
@@ -3949,19 +3950,46 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 MemberResolutionResult<MethodSymbol> memberResolutionResult;
                 ImmutableArray<MethodSymbol> candidateConstructors;
-                if (TryPerformConstructorOverloadResolution(
-                    initializerType,
-                    analyzedArguments,
-                    WellKnownMemberNames.InstanceConstructorName,
-                    errorLocation,
-                    false, // Don't suppress result diagnostics
-                    diagnostics,
-                    out memberResolutionResult,
-                    out candidateConstructors,
-                    allowProtectedConstructorsOfBaseType: true))
+                bool found;
+                MethodSymbol resultMember;
+                ImmutableArray<int> argsToParamsOpt;
+                bool isExpanded;
+                if (constructor is SynthesizedRecordCopyCtor)
+                {
+                    resultMember = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType);
+                    found = resultMember is object;
+                    argsToParamsOpt = ImmutableArray.Create<int>(0);
+                    isExpanded = false;
+                    candidateConstructors = ImmutableArray<MethodSymbol>.Empty;
+                    analyzedArguments.Arguments.Add(new BoundParameter(constructor.GetNonNullSyntaxNode(), constructor.Parameters[0]));
+
+                    if (!found)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, errorLocation, baseType);
+                    }
+                }
+                else
+                {
+                    found = TryPerformConstructorOverloadResolution(
+                                        initializerType,
+                                        analyzedArguments,
+                                        WellKnownMemberNames.InstanceConstructorName,
+                                        errorLocation,
+                                        false, // Don't suppress result diagnostics
+                                        diagnostics,
+                                        out memberResolutionResult,
+                                        out candidateConstructors,
+                                        allowProtectedConstructorsOfBaseType: true);
+                    resultMember = memberResolutionResult.Member;
+                    argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
+                    isExpanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
+                }
+
+                validateRecordCopyConstructor(containingType, constructor, baseType, resultMember, errorLocation, diagnostics);
+
+                if (found)
                 {
                     bool hasErrors = false;
-                    MethodSymbol resultMember = memberResolutionResult.Member;
 
                     if (resultMember == constructor)
                     {
@@ -3989,7 +4017,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var arguments = analyzedArguments.Arguments.ToImmutable();
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
-                    var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
 
                     if (!hasErrors)
                     {
@@ -4012,7 +4039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedArguments.GetNames(),
                         refKinds,
                         isDelegateCall: false,
-                        expanded: memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
+                        expanded: isExpanded,
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: argsToParamsOpt,
                         resultKind: LookupResultKind.Viable,
@@ -4040,6 +4067,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 analyzedArguments.Free();
+            }
+
+            static void validateRecordCopyConstructor(NamedTypeSymbol containingType, MethodSymbol constructor, NamedTypeSymbol baseType, MethodSymbol resultMember, Location errorLocation, DiagnosticBag diagnostics)
+            {
+                // Are we dealing with a user-defined copy constructor in a record type?
+                if (containingType is SourceNamedTypeSymbol sourceType &&
+                    sourceType.IsRecord() &&
+                    SynthesizedRecordCopyCtor.FindCopyConstructor(containingType).Equals(constructor, TypeCompareKind.ConsiderEverything))
+                {
+                    if (baseType.SpecialType == SpecialType.System_Object)
+                    {
+                        return;
+                    }
+
+                    // Unless the base type is 'object', the constructor should invoke the base type copy constructor
+                    var correctBaseCopyCtor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType);
+                    if (correctBaseCopyCtor is null)
+                    {
+                        // We'll have reported a problem with the base type of the record elsewhere
+                        return;
+                    }
+                    else if (!correctBaseCopyCtor.Equals(resultMember, TypeCompareKind.ConsiderEverything))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation, correctBaseCopyCtor);
+                    }
+                }
             }
         }
 

@@ -3618,6 +3618,16 @@ class Program
   IL_0001:  call       ""B..ctor()""
   IL_0006:  ret
 }");
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""B..ctor(B)""
+  IL_0007:  ret
+}");
+
             verifier.VerifyIL("Program.Main",
 @"{
   // Code size       41 (0x29)
@@ -3637,6 +3647,656 @@ class Program
   IL_0023:  call       ""void System.Console.WriteLine(string, object, object)""
   IL_0028:  ret
 }");
+        }
+
+        [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void CopyCtor(bool useCompilationReference)
+        {
+            var sourceA =
+@"public record B(object N1, object N2)
+{
+}";
+            var compA = CreateCompilation(sourceA);
+            var verifierA = CompileAndVerify(compA, verify: ExecutionConditionUtil.IsCoreClr? Verification.Skipped: Verification.Fails);
+
+            verifierA.VerifyIL("B..ctor(B)", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  ldfld      ""object B.<N1>k__BackingField""
+  IL_000d:  stfld      ""object B.<N1>k__BackingField""
+  IL_0012:  ldarg.0
+  IL_0013:  ldarg.1
+  IL_0014:  ldfld      ""object B.<N2>k__BackingField""
+  IL_0019:  stfld      ""object B.<N2>k__BackingField""
+  IL_001e:  ret
+}");
+
+            var refA = useCompilationReference ? compA.ToMetadataReference() : compA.EmitToImageReference();
+
+            var sourceB =
+@"record C(object P1, object P2) : B(3, 4)
+{
+    static void Main()
+    {
+        var c1 = new C(1, 2);
+        System.Console.Write((c1.P1, c1.P2, c1.N1, c1.N2));
+        System.Console.Write("" "");
+
+        var c2 = new C(c1);
+        System.Console.Write((c2.P1, c2.P2, c2.N1, c2.N2));
+        System.Console.Write("" "");
+
+        var c3 = c1 with { P1 = 10, N1 = 30 };
+        System.Console.Write((c3.P1, c3.P2, c3.N1, c3.N2));
+    }
+}";
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            compB.VerifyDiagnostics();
+
+            var verifierB = CompileAndVerify(compB, expectedOutput: "(1, 2, 3, 4) (1, 2, 3, 4) (10, 2, 30, 4)", verify: ExecutionConditionUtil.IsCoreClr? Verification.Skipped: Verification.Fails);
+            // call base copy constructor B..ctor(B)
+            verifierB.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""B..ctor(B)""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  ldfld      ""object C.<P1>k__BackingField""
+  IL_000e:  stfld      ""object C.<P1>k__BackingField""
+  IL_0013:  ldarg.0
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object C.<P2>k__BackingField""
+  IL_001a:  stfld      ""object C.<P2>k__BackingField""
+  IL_001f:  ret
+}");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_WithOtherOverload()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+    public B(C c) : this(30, 40) => throw null;
+}
+public record C(object P1, object P2) : B(3, 4)
+{
+    static void Main()
+    {
+        var c1 = new C(1, 2);
+        System.Console.Write((c1.P1, c1.P2, c1.N1, c1.N2));
+        System.Console.Write("" "");
+
+        var c2 = c1 with { P1 = 10, P2 = 20, N1 = 30, N2 = 40 };
+        System.Console.Write((c2.P1, c2.P2, c2.N1, c2.N2));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 3, 4) (10, 20, 30, 40)", verify: ExecutionConditionUtil.IsCoreClr? Verification.Skipped: Verification.Fails);
+            // call base copy constructor B..ctor(B)
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""B..ctor(B)""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  ldfld      ""object C.<P1>k__BackingField""
+  IL_000e:  stfld      ""object C.<P1>k__BackingField""
+  IL_0013:  ldarg.0
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object C.<P2>k__BackingField""
+  IL_001a:  stfld      ""object C.<P2>k__BackingField""
+  IL_001f:  ret
+}");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_WithObsoleteCopyConstructor()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+    [System.Obsolete(""Obsolete"", true)]
+    public B(B b) : this(30, 40) { }
+}
+public record C(object P1, object P2) : B(3, 4) { }
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,1): error CS0619: 'B.B(B)' is obsolete: 'Obsolete'
+                // public record C(object P1, object P2) : B(3, 4) { }
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "public record C(object P1, object P2) : B(3, 4) { }").WithArguments("B.B(B)", "Obsolete").WithLocation(6, 1)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_WithParamsCopyConstructor()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+    public B(B b, params int[] i) : this(30, 40) { }
+}
+public record C(object P1, object P2) : B(3, 4) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics( );
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().Where(m => m.Name == ".ctor").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "B..ctor(System.Object N1, System.Object N2)",
+                "B..ctor(B b, params System.Int32[] i)",
+                "B..ctor(B )"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_WithInitializers()
+        {
+            var source =
+@"public record C(object N1, object N2)
+{
+    private int field = 42;
+    public int Property = 43;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr? Verification.Skipped: Verification.Fails);
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  ldfld      ""object C.<N1>k__BackingField""
+  IL_000d:  stfld      ""object C.<N1>k__BackingField""
+  IL_0012:  ldarg.0
+  IL_0013:  ldarg.1
+  IL_0014:  ldfld      ""object C.<N2>k__BackingField""
+  IL_0019:  stfld      ""object C.<N2>k__BackingField""
+  IL_001e:  ldarg.0
+  IL_001f:  ldarg.1
+  IL_0020:  ldfld      ""int C.field""
+  IL_0025:  stfld      ""int C.field""
+  IL_002a:  ldarg.0
+  IL_002b:  ldarg.1
+  IL_002c:  ldfld      ""int C.Property""
+  IL_0031:  stfld      ""int C.Property""
+  IL_0036:  ret
+}");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+}
+public record C(object P1, object P2) : B(0, 1)
+{
+    public C(C c) // 1, 2
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS1729: 'B' does not contain a constructor that takes 0 arguments
+                //     public C(C c) // 1, 2
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("B", "0").WithLocation(6, 12),
+                // (6,12): error CS8868: A copy constructor in a record type deriving from another type must invoke that base type's copy constructor 'B.B(B)'.
+                //     public C(C c) // 1, 2
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "C").WithArguments("B.B(B)").WithLocation(6, 12)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_NoPositionalMembers()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+}
+public record C(object P1) : B(0, 1)
+{
+    public C(C c) // 1, 2
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS1729: 'B' does not contain a constructor that takes 0 arguments
+                //     public C(C c) // 1, 2
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("B", "0").WithLocation(6, 12),
+                // (6,12): error CS8868: A copy constructor in a record type deriving from another type must invoke that base type's copy constructor 'B.B(B)'.
+                //     public C(C c) // 1, 2
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "C").WithArguments("B.B(B)").WithLocation(6, 12)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_UsesThis()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+}
+public record C(object P1, object P2) : B(0, 1)
+{
+    public C(C c) : this(1, 2) // 1
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS8868: A copy constructor in a record type deriving from another type must invoke that base type's copy constructor 'B.B(B)'.
+                //     public C(C c) : this(1, 2) // 1
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "this").WithArguments("B.B(B)").WithLocation(6, 21)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButDoesNotDelegateToBaseCopyCtor_UsesBase()
+        {
+            var source =
+@"public record B(int i)
+{
+}
+public record C(int j) : B(0)
+{
+    public C(C c) : base(1) // 1
+    {
+    }
+}
+#nullable enable
+public record D(int j) : B(0)
+{
+    public D(D? d) : base(1) // 2
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS8868: A copy constructor in a record type deriving from another type must invoke that base type's copy constructor 'B.B(B)'.
+                //     public C(C c) : base(1) // 1
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithArguments("B.B(B)").WithLocation(6, 21),
+                // (13,22): error CS8868: A copy constructor in a record type deriving from another type must invoke that base type's copy constructor 'B.B(B)'.
+                //     public D(D? d) : base(1) // 2
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithArguments("B.B(B)").WithLocation(13, 22)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_UserDefinedButPrivate()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+    private B(B b) : this(0, 1) { }
+}
+public record C(object P1, object P2) : B(0, 1)
+{
+    private C(C c) : base(2, 3) { } // 1
+}
+public record D(object P1, object P2) : B(0, 1)
+{
+    private D(D d) : base(d) { } // 2
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,22): error CS8868: A copy constructor in a record type deriving from another type must invoke that base type's copy constructor 'B.B(B)'.
+                //     private C(C c) : base(2, 3) { } // 1
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithArguments("B.B(B)").WithLocation(7, 22),
+                // (11,22): error CS0122: 'B.B(B)' is inaccessible due to its protection level
+                //     private D(D d) : base(d) { } // 2
+                Diagnostic(ErrorCode.ERR_BadAccess, "base").WithArguments("B.B(B)").WithLocation(11, 22)
+                );
+            // Should we complain about private user-defined copy constructor on unsealed type (ie. will prevent inheritance)?
+            // https://github.com/dotnet/roslyn/issues/45012 
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_InaccessibleToCallerFromPE()
+        {
+            var sourceA =
+@"public record B(object N1, object N2)
+{
+    internal B(B b) : this(0, 1) { }
+}";
+            var compA = CreateCompilation(sourceA);
+            var refA = compA.EmitToImageReference();
+
+            var sourceB = @"
+record C(object P1, object P2) : B(3, 4); // 1
+";
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            compB.VerifyDiagnostics(
+                // (2,8): error CS8867: No accessible copy constructor found in base type 'B'.
+                // record C(object P1, object P2) : B(3, 4); // 1
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "C").WithArguments("B").WithLocation(2, 8)
+                );
+
+            var sourceC = @"
+record C(object P1, object P2) : B(3, 4)
+{
+    protected C(C c) : base(c) { } // 1
+}
+";
+            var compC = CreateCompilation(sourceC, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            compC.VerifyDiagnostics(
+                // (4,24): error CS7036: There is no argument given that corresponds to the required formal parameter 'N2' of 'B.B(object, object)'
+                //     protected C(C c) : base(c) { } // 1
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "base").WithArguments("N2", "B.B(object, object)").WithLocation(4, 24)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [WorkItem(45012, "https://github.com/dotnet/roslyn/issues/45012")]
+        public void CopyCtor_UserDefinedButPrivate_InSealedType()
+        {
+            var source =
+@"public record B(int i)
+{
+}
+public sealed record C(int j) : B(0)
+{
+    private C(C c) : base(c)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var copyCtor = comp.GetMembers("C..ctor")[0];
+            Assert.Equal("C..ctor(C c)", copyCtor.ToTestDisplayString());
+            Assert.True(copyCtor.DeclaredAccessibility == Accessibility.Private);
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [WorkItem(45012, "https://github.com/dotnet/roslyn/issues/45012")]
+        public void CopyCtor_UserDefinedButInternal()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+}
+public sealed record Sealed(object P1, object P2) : B(0, 1)
+{
+    internal Sealed(Sealed s) : base(s)
+    {
+    }
+}
+public record Unsealed(object P1, object P2) : B(0, 1)
+{
+    internal Unsealed(Unsealed s) : base(s)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var sealedCopyCtor = comp.GetMembers("Sealed..ctor")[0];
+            Assert.Equal("Sealed..ctor(Sealed s)", sealedCopyCtor.ToTestDisplayString());
+            Assert.True(sealedCopyCtor.DeclaredAccessibility == Accessibility.Internal);
+
+            var unsealedCopyCtor = comp.GetMembers("Unsealed..ctor")[0];
+            Assert.Equal("Unsealed..ctor(Unsealed s)", unsealedCopyCtor.ToTestDisplayString());
+            Assert.True(unsealedCopyCtor.DeclaredAccessibility == Accessibility.Internal);
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_BaseHasRefKind()
+        {
+            var source =
+@"public record B(int i)
+{
+    public B(ref B b) => throw null; // 1, not recognized as copy constructor
+}
+public record C(int j) : B(1)
+{
+    internal C(C c) : base(c)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,12): error CS8862: A constructor declared in a record with parameters must have 'this' constructor initializer.
+                //     public B(ref B b) => throw null; // 1, not recognized as copy constructor
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "B").WithLocation(3, 12)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_BaseHasRefKind_WithThisInitializer()
+        {
+            var source =
+@"public record B(int i)
+{
+    public B(ref B b) : this(0) => throw null; // 1, not recognized as copy constructor
+}
+public record C(int j) : B(1)
+{
+    internal C(C c) : base(c)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().Where(m => m.Name == ".ctor").ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "B..ctor(System.Int32 i)",
+                "B..ctor(ref B b)",
+                "B..ctor(B )"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_WithPrivateField()
+        {
+            var source =
+@"public record B(object N1, object N2)
+{
+    private int field1 = 100;
+    public int GetField1() => field1;
+}
+public record C(object P1, object P2) : B(3, 4)
+{
+    private int field2 = 200;
+    public int GetField2() => field2;
+
+    static void Main()
+    {
+        var c1 = new C(1, 2);
+        var c2 = new C(c1);
+        System.Console.Write((c2.P1, c2.P2, c2.N1, c2.N2, c2.GetField1(), c2.GetField2()));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 3, 4, 100, 200)", verify: ExecutionConditionUtil.IsCoreClr? Verification.Skipped: Verification.Fails);
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""B..ctor(B)""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  ldfld      ""object C.<P1>k__BackingField""
+  IL_000e:  stfld      ""object C.<P1>k__BackingField""
+  IL_0013:  ldarg.0
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object C.<P2>k__BackingField""
+  IL_001a:  stfld      ""object C.<P2>k__BackingField""
+  IL_001f:  ldarg.0
+  IL_0020:  ldarg.1
+  IL_0021:  ldfld      ""int C.field2""
+  IL_0026:  stfld      ""int C.field2""
+  IL_002b:  ret
+}");
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_MissingInMetadata()
+        {
+            // IL for `public record B { }`
+            var ilSource = @"
+.class public auto ansi beforefieldinit B extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class B '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    // Removed copy constructor
+    //.method public hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type B::get_EqualityContract()
+    }
+}
+";
+            var source = @"
+public record C : B {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS8867: No accessible copy constructor found in base type 'B'.
+                // public record C : B {
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "C").WithArguments("B").WithLocation(2, 15)
+                );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_InaccessibleInMetadata()
+        {
+            // IL for `public record B { }`
+            var ilSource = @"
+.class public auto ansi beforefieldinit B extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class B '<>Clone' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class B '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    // Inaccessible copy constructor
+    .method private hidebysig specialname rtspecialname instance void .ctor ( class B '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type B::get_EqualityContract()
+    }
+}
+";
+            var source = @"
+public record C : B {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS8867: No accessible copy constructor found in base type 'B'.
+                // public record C : B {
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "C").WithArguments("B").WithLocation(2, 15)
+                );
         }
 
         [Fact]
@@ -3916,6 +4576,9 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             compB.VerifyDiagnostics(
+                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
                 // (1,32): error CS8864: Records may only inherit from object or another record
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
@@ -3972,6 +4635,9 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             compB.VerifyDiagnostics(
+                // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
                 // (1,32): error CS8864: Records may only inherit from object or another record
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
@@ -4005,6 +4671,8 @@ End Class
         Set
         End Set
     End Property
+    Public Sub New(a as A)
+    End Sub
 End Class
 Public Class B
     Inherits A
@@ -4027,6 +4695,9 @@ Public Class B
         Set
         End Set
     End Property
+    Public Sub New(b as B)
+        MyBase.New(b)
+    End Sub
 End Class
 ";
             var compA = CreateVisualBasicCompilation(sourceA);
@@ -4039,6 +4710,9 @@ End Class
 }";
             var compB = CreateCompilation(new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
             compB.VerifyDiagnostics(
+                // (1,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'B.B(B)'
+                // record C(object P, object Q, object R) : B
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(object P, object Q, object R)").WithArguments("b", "B.B(B)").WithLocation(1, 9),
                 // (1,42): error CS8864: Records may only inherit from object or another record
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(1, 42)

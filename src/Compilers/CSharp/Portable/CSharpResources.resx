@@ -6253,4 +6253,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadRecordMemberForPositionalParameter" xml:space="preserve">
     <value>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</value>
   </data>
+  <data name="ERR_NoCopyConstructorInBaseType" xml:space="preserve">
+    <value>No accessible copy constructor found in base type '{0}'.</value>
+  </data>
+  <data name="ERR_CopyConstructorMustInvokeBaseCopyConstructor" xml:space="preserve">
+    <value>A copy constructor in a record type deriving from another type must invoke that base type's copy constructor '{0}'.</value>
+  </data>
 </root>
