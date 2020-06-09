@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)owner != null);
             Debug.Assert(owner.Kind == SymbolKind.Method);
             Debug.Assert(syntax != null);
-            Debug.Assert(syntax.Kind() != SyntaxKind.CompilationUnit);
+            Debug.Assert(parentRemappedSymbolsOpt is null || IsSpeculativeSemanticModel);
+            Debug.Assert((syntax.Kind() == SyntaxKind.CompilationUnit) == (!IsSpeculativeSemanticModel && owner is SynthesizedSimpleProgramEntryPointSymbol));
         }
 
         /// <summary>
@@ -91,8 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.CompilationUnit:
+                case SyntaxKind.RecordDeclaration:
                     return binder.BindMethodBody(node, diagnostics);
             }
 

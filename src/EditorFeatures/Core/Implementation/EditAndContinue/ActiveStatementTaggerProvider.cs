@@ -26,9 +26,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
+    /// <summary>
+    /// Tagger for active statements. Active statements are only tracked for langauges that support EnC (C#, VB).
+    /// </summary>
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(ActiveStatementTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.VisualBasicContentType)]
     internal partial class ActiveStatementTaggerProvider : AsynchronousTaggerProvider<ITextMarkerTag>
     {
         // We want to track text changes so that we can try to only reclassify a method body if

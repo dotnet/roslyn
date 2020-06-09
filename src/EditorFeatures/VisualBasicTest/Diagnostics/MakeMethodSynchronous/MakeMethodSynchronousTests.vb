@@ -82,8 +82,6 @@ Class C
 End Class")
         End Function
 
-
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestRenameMethod() As Task
             Await TestInRegularAndScriptAsync(

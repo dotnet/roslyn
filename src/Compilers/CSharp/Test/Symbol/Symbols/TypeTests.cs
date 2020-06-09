@@ -1450,9 +1450,9 @@ class Program
 
             var errSymbol = comp.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             Assert.NotNull(errSymbol);
-            Assert.Equal("<invalid-global-code>", errSymbol.Name);
+            Assert.Equal(SimpleProgramNamedTypeSymbol.UnspeakableName, errSymbol.Name);
             Assert.False(errSymbol.IsErrorType(), "ErrorType");
-            Assert.True(errSymbol.IsImplicitClass, "ImplicitClass");
+            Assert.False(errSymbol.IsImplicitClass, "ImplicitClass");
         }
 
         #region "Nullable"

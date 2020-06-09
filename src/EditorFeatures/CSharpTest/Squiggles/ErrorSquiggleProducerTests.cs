@@ -230,7 +230,7 @@ class Program
         public async Task TestNoErrorsAfterDocumentRemoved()
         {
             using var workspace = TestWorkspace.CreateCSharp("class");
-            using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace);
+            using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
             var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
             using var disposable = tagger as IDisposable;
             await wrapper.WaitForTags();
@@ -256,7 +256,7 @@ class Program
         public async Task TestNoErrorsAfterProjectRemoved()
         {
             using var workspace = TestWorkspace.CreateCSharp("class");
-            using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace);
+            using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
             var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
             using var disposable = tagger as IDisposable;
             await wrapper.WaitForTags();

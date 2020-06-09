@@ -1254,7 +1254,6 @@ End Class
                 End Sub)
         End Sub
 
-
         <WorkItem(31735, "https://github.com/dotnet/roslyn/issues/31735")>
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub RenameShouldWorkAndElementsShouldBeUsableAfter()

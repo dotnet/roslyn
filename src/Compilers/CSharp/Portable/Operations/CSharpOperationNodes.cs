@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _boundNode;
 
-        public CSharpLazyNoneOperation(CSharpOperationFactory operationFactory, BoundNode boundNode, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit)
+        public CSharpLazyNoneOperation(CSharpOperationFactory operationFactory, BoundNode boundNode, SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, bool isImplicit, ITypeSymbol type) :
+            base(semanticModel, node, constantValue: constantValue, isImplicit: isImplicit, type)
         {
             _operationFactory = operationFactory;
             _boundNode = boundNode;
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly BoundPattern _boundNode;
 
         public CSharpLazyNonePatternOperation(CSharpOperationFactory operationFactory, BoundPattern boundNode, SemanticModel semanticModel, SyntaxNode node, bool isImplicit) :
-            base(semanticModel, node, constantValue: default, isImplicit: isImplicit)
+            base(semanticModel, node, constantValue: default, isImplicit: isImplicit, type: null)
         {
             _operationFactory = operationFactory;
             _boundNode = boundNode;
@@ -829,6 +827,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 default:
                     throw ExceptionUtilities.UnexpectedValue(_invocableExpression.Kind);
             }
+
             return _operationFactory.CreateReceiverOperation(receiver, TargetMethod.GetSymbol());
         }
 
@@ -1035,6 +1034,29 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override ImmutableArray<IArgumentOperation> CreateArguments()
         {
             return _operationFactory.DeriveArguments(_objectCreation);
+        }
+    }
+
+    internal sealed class CSharpLazyWithExpressionOperation : LazyWithOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundWithExpression _withExpression;
+
+        internal CSharpLazyWithExpressionOperation(CSharpOperationFactory operationFactory, BoundWithExpression withExpression, IMethodSymbol cloneMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(cloneMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _operationFactory = operationFactory;
+            _withExpression = withExpression;
+        }
+
+        protected override IObjectOrCollectionInitializerOperation CreateInitializer()
+        {
+            return (IObjectOrCollectionInitializerOperation)_operationFactory.Create(_withExpression.InitializerExpression);
+        }
+
+        protected override IOperation CreateValue()
+        {
+            return _operationFactory.Create(_withExpression.Receiver);
         }
     }
 

@@ -577,8 +577,6 @@ Public MustInherit Class WriteUtils
         Return lines
     End Function
 
-
-
     ' Create a description XML comment with the given tag, indented the given number of characters
     Private Sub GenerateXmlCommentPart(writer As TextWriter, text As String, xmlTag As String, indent As Integer)
         If String.IsNullOrWhiteSpace(text) Then Return
@@ -645,8 +643,6 @@ Public MustInherit Class WriteUtils
 
         writer.WriteLine(prefix & "</typeparam>")
     End Sub
-
-
 
     ' Generate and XML comment with the given description and remarks sections. If empty, the sections are omitted.
     Protected Sub GenerateXmlComment(writer As TextWriter, descriptionText As String, remarksText As String, indent As Integer)
@@ -887,7 +883,6 @@ Public MustInherit Class WriteUtils
         End If
         Return s
     End Function
-
 
     Public Function GetChildNodeKind(nodeKind As ParseNodeKind, child As ParseNodeChild) As ParseNodeKind
         Dim childNodeKind = TryCast(child.ChildKind, ParseNodeKind)

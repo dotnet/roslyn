@@ -266,6 +266,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 summary.ImplicitConversion = semanticModel.GetConversion(initializer);
                 summary.MemberGroup = semanticModel.GetMemberGroup(initializer);
             }
+            else if (node is PatternSyntax pattern)
+            {
+                symbolInfo = semanticModel.GetSymbolInfo(pattern);
+                var typeInfo = semanticModel.GetTypeInfo(pattern);
+                summary.Type = typeInfo.Type;
+                summary.ConvertedType = typeInfo.ConvertedType;
+                summary.Nullability = typeInfo.Nullability;
+                summary.ConvertedNullability = typeInfo.ConvertedNullability;
+                summary.ImplicitConversion = semanticModel.GetConversion(pattern);
+                summary.MemberGroup = semanticModel.GetMemberGroup(pattern);
+            }
             else
             {
                 throw ExceptionUtilities.UnexpectedValue(node);

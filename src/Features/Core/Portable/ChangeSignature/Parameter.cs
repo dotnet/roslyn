@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     /// <summary>
@@ -35,12 +37,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             ITypeSymbol type,
             string typeName,
             string name,
-            string callSiteValue,
+            CallSiteKind callSiteKind,
+            string callSiteValue = "",
             bool isRequired = true,
             string defaultValue = "",
-            bool useNamedArguments = false,
-            bool isCallsiteOmitted = false,
-            bool isCallsiteTodo = false,
             bool typeBinds = true)
         {
             Type = type;
@@ -51,21 +51,26 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             IsRequired = isRequired;
             DefaultValue = defaultValue;
-            IsCallsiteTodo = isCallsiteTodo;
-            IsCallsiteOmitted = isCallsiteOmitted;
-            UseNamedArguments = useNamedArguments;
+            CallSiteKind = callSiteKind;
 
-            if (IsCallsiteTodo)
+            // Populate the call site text for the UI
+            switch (CallSiteKind)
             {
-                CallSiteValue = FeaturesResources.ChangeSignature_NewParameterIntroduceTODOVariable;
-            }
-            else if (isCallsiteOmitted)
-            {
-                CallSiteValue = FeaturesResources.ChangeSignature_NewParameterOmitValue;
-            }
-            else
-            {
-                CallSiteValue = callSiteValue;
+                case CallSiteKind.Value:
+                case CallSiteKind.ValueWithName:
+                    CallSiteValue = callSiteValue;
+                    break;
+                case CallSiteKind.Todo:
+                    CallSiteValue = FeaturesResources.ChangeSignature_NewParameterIntroduceTODOVariable;
+                    break;
+                case CallSiteKind.Omitted:
+                    CallSiteValue = FeaturesResources.ChangeSignature_NewParameterOmitValue;
+                    break;
+                case CallSiteKind.Inferred:
+                    CallSiteValue = FeaturesResources.ChangeSignature_NewParameterInferValue;
+                    break;
+                default:
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -75,6 +80,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public ITypeSymbol Type { get; }
         public string TypeName { get; }
         public bool TypeBinds { get; }
+
+        public CallSiteKind CallSiteKind { get; }
+
+        /// <summary>
+        /// Display string for the Call Site column in the Change Signature dialog.
+        /// </summary>
         public string CallSiteValue { get; }
 
         /// <summary>
@@ -87,27 +98,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// E.g. the "3" in M(int x = 3);
         /// </summary>
         public string DefaultValue { get; }
-
-        /// <summary>
-        /// When introducing an argument, this indicates whether it
-        /// should be named even if not required to be named. Often
-        /// useful for literal callsite values like "true" or "null".
-        /// </summary>
-        public bool UseNamedArguments { get; }
-
-        /// <summary>
-        /// When an optional parameter is added, passing an argument for
-        /// it is not required. This indicates that the corresponding argument 
-        /// should be omitted. This often results in subsequent arguments needing
-        /// to become named arguments
-        /// </summary>
-        public bool IsCallsiteOmitted { get; }
-
-        /// <summary>
-        /// Indicates whether a "TODO" should be introduced at callsites
-        /// to cause errors that the user can then go visit and fix up.
-        /// </summary>
-        public bool IsCallsiteTodo { get; }
 
         // For test purposes: to display assert failure details in tests.
         public override string ToString() => $"{Type.ToDisplayString(new SymbolDisplayFormat(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters))} {Name} ({CallSiteValue})";
