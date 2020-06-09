@@ -700,6 +700,72 @@ foreach (var v in new[] { 1 })
                 Options.Regular);
         }
 
+        [WorkItem(44664, "https://github.com/dotnet/roslyn/pull/44664")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestWarnOnChangingScopes3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        var [||]i = 0;
+        void LocalFunction()
+        {
+            Console.Write(i);
+            i++;
+        }
+    }
+}",
+@"using System;
+using System.Linq;
+
+class Program
+{
+    void Main()
+    {
+        void LocalFunction()
+        {
+            {|Warning:var i = 0;|}
+            Console.Write(i);
+            i++;
+        }
+    }
+}");
+        }
+
+        [WorkItem(44664, "https://github.com/dotnet/roslyn/pull/44664")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TestWarnOnChangingScopes3_TopLevelStatement()
+        {
+            await TestAsync(
+@"using System;
+using System.Linq;
+
+var [||]i = 0;
+void LocalFunction()
+{
+    Console.Write(i);
+    i++;
+}
+",
+@"using System;
+using System.Linq;
+
+void LocalFunction()
+{
+
+    {|Warning:var i = 0;|}
+    Console.Write(i);
+    i++;
+}
+",
+                Options.Regular);
+        }
+
         [WorkItem(545840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545840")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
         public async Task InsertCastIfNecessary1()
