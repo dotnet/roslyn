@@ -158,10 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Release) when ExecutionConditionUtil.IsMacOS => 520,
                 _ when ExecutionConditionUtil.IsCoreClrUnix => 1200,
                 _ when ExecutionConditionUtil.IsMonoDesktop => 730,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 520,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1640,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 290,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 810,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 460,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1360,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 260,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 750,
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
