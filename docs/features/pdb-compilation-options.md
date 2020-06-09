@@ -1,19 +1,22 @@
-## compilation-from-portable-pdb
+# Embedding Compilation options in Portable PDBs
 
-Compilation from portable PDBs today is not completely possible, but is desirable in order to help reconstruct a compilation from source provided via source link or embedded in a pdb. Motivation is derived from [roslyn 41395](https://github.com/dotnet/roslyn/issues/41395). Once work is finalized on this, a compilation should be able to be made that is exactly the same as an initial compilation as long as it meets the conditions outlined in the assumptions below. [roslyn#44703](https://github.com/dotnet/roslyn/issues/44703) tracks adding an end-to-end validation of the scenario and should also update documentation here to further outline the steps. 
+Prior to this feature the compiler did not emit all information that's necessary to reconstruct the original compilation to the output binaries.
+It is desirable to include such information in order to support scenarios such as validation that given binaries can be reproduced from their original sources, [post-build source analysis](https://github.com/dotnet/roslyn/issues/41395), etc.
+
+The goal of this feature is to be able to construct a compilation that is exactly the same as an initial compilation as long as it meets the conditions outlined in the assumptions below.
 
 This document is restricted to the following assumptions:
 
-1. The benefit is for builds with `-deterministic` and published to the symbol server.
-2. Source generator and analyzer references are not needed for this task. They may be useful, but are out of scope for this document.
+1. The full benefit is for builds with `-deterministic` and published to the symbol server. That said the compiler embeds compilation options and references to all Portable PDBs.
+2. Source generator and analyzer references are not needed for this task. They may be useful, but are out of scope for this feature.
 3. Any storage capacity used for PDBs and source should not impact this feature, such as compression algorithm.
 4. Only Portable PDB files will be included for this spec. This feature can be expanded past these once it is implemented and proven needed elsewhere.
 
-This document will provide the expanded specification to the Portable PDB format. Any additions to that format will be ported to expand documentation provided in [dotnet-runtime](https://github.com/jnm2/dotnet-runtime/blob/26efe3467741fe2a85780b2d2cd18875af6ebd98/docs/design/specs/PortablePdb-Metadata.md#source-link-c-and-vb-compilers).
+This document will provide the expanded specification to the Portable PDB format. Any additions to that format will be ported to expand documentation provided in [dotnet-runtime](https://github.com/dotnet/runtime/blob/master/docs/design/specs/PortablePdb-Metadata.md).
 
 ## PDB Format Additions
 
-#### Metadata References
+#### Compilation Metadata References custom debug information
 
 Symbol server uses a [key](https://github.com/dotnet/symstore/blob/master/docs/specs/SSQP_Key_Conventions.md#pe-timestamp-filesize) computed from the COFF header in the PE image:
 
@@ -22,13 +25,13 @@ Size of image: 4 byte integer
 
 Example:
 
-File name: `example.exe` 
+    File name: `example.exe` 
 
-COFF header Timestamp field: `0x542d5742` 
+    COFF header Timestamp field: `0x542d5742` 
 
-COFF header SizeOfImage field: `0x32000` 
+    COFF header SizeOfImage field: `0x32000` 
 
-Lookup key: `example.exe/542d574232000/example.exe` 
+    Lookup key: `example.exe/542d574232000/example.exe` 
 
 To fully support metadata references, a user will need to be able to find the exact PE image that was used in the compilation. This will be done by storing the parts that make up the symbol server key. The MVID of a reference will be stored since it's a GUID that represents the symbol. This is to future proof the information for reference lookup. 
 
@@ -128,7 +131,7 @@ foreach (var handle in metadataReader.GetCustomDebugInformation(EntityHandle.Mod
 }
 ```
 
-### Compiler Flag Key Value Pairs
+### Compiler Options custom debug information
 
 The remaining values will be stored as key value pairs in the pdb. The storage format will be UTF8 encoded key value pairs that are null terminated. Order is not guaranteed. Any values left out can be assumed to be the default for the type. Keys may be different for Visual Basic and CSharp. They are serialized to reflect the command line arguments representing the same values
 
