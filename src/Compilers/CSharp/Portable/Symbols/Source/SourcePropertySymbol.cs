@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasInitializer)
             {
-                CheckInitializer(isAutoProperty, location, diagnostics);
+                CheckInitializer(isAutoProperty, containingType.IsInterface, IsStatic, location, diagnostics);
             }
 
             if (isAutoProperty || hasInitializer)
@@ -505,10 +505,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckInitializer(
             bool isAutoProperty,
+            bool isInterface,
+            bool isStatic,
             Location location,
             DiagnosticBag diagnostics)
         {
-            if (!isAutoProperty)
+            if (isInterface && !isStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, location, this);
+            }
+            else if (!isAutoProperty)
             {
                 diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, location, this);
             }
