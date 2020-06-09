@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable enable
-using System;using System.Diagnostics;
-using System.Threading.Tasks;using Microsoft.CodeAnalysis.ErrorReporting;
+using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {

@@ -15,7 +15,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters;using System.Text;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -152,7 +152,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
 
             /*public override object? InitializeLifetimeService()
-            {                return null;
+            {
+                return null;
             }*/
 
             public Task InitializeAsync(string replServiceProviderTypeName, string cultureName)
@@ -171,8 +172,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                     uiThread.IsBackground = true;
                     uiThread.Start();
                     resetEvent.Wait();
-                }                // TODO (tomat): we should share the copied files with the host
-                var metadataFileProvider = new MetadataShadowCopyProvider(                    Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
+                }
+                // TODO (tomat): we should share the copied files with the host
+                var metadataFileProvider = new MetadataShadowCopyProvider(
+                    Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
                     noShadowCopyDirectories: s_systemNoShadowCopyDirectories,
                     documentationCommentsCulture: new CultureInfo(cultureName));
 
@@ -184,7 +187,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _serviceState = new ServiceState(assemblyLoader, metadataFileProvider, replServiceProvider, globals);
 
                 return Task.CompletedTask;
-            }            private ServiceState GetServiceState()
+            }
+            private ServiceState GetServiceState()
             {
                 Contract.ThrowIfNull(_serviceState, "Service not initialized");
                 return _serviceState;
@@ -260,7 +264,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 try
                 {
                     using (var resetEvent = new ManualResetEventSlim(false))
-                    {                        var uiThread = new Thread(() =>
+                    {
+                        var uiThread = new Thread(() =>
                         {
                             s_control = new Control();
                             s_control.CreateControl();
@@ -276,8 +281,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                     var serverStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
                     await serverStream.WaitForConnectionAsync().ConfigureAwait(false);
                     var jsonRPC = JsonRpc.Attach(serverStream, new Service());
-                    await jsonRPC.Completion.ConfigureAwait(false);                    // the client can instantiate interactive host now:
-                    s_clientExited.Wait();                }
+                    await jsonRPC.Completion.ConfigureAwait(false);
+                    // the client can instantiate interactive host now:
+                    s_clientExited.Wait();
+                }
                 finally
                 {
                     // TODO:(miziga): delete and make a finally or catch statement for the try
@@ -300,10 +307,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                 string[] referenceSearchPaths,
                 string[] sourceSearchPaths,
                 string? baseDirectory)
-            {                Debug.Assert(referenceSearchPaths != null);
+            {
+                Debug.Assert(referenceSearchPaths != null);
                 Debug.Assert(sourceSearchPaths != null);
                 Debug.Assert(baseDirectory != null);
-                var completionSource = new TaskCompletionSource<RemoteExecutionResult>();                lock (_lastTaskGuard)
+                var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
+                lock (_lastTaskGuard)
                 {
                     _lastTask = SetPathsAsync(_lastTask, completionSource, referenceSearchPaths, sourceSearchPaths, baseDirectory);
                 }
@@ -347,9 +356,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// </summary>
             public async Task<RemoteExecutionResult> InitializeContextAsync(string? initializationFile, bool isRestarting)
             {
-				var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
+                var completionSource = new TaskCompletionSource<RemoteExecutionResult>();
                 lock (_lastTaskGuard)
-                {                    _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFile, isRestarting);
+                {
+                    _lastTask = InitializeContextAsync(_lastTask, completionSource, initializationFile, isRestarting);
                 }
                 return await completionSource.Task.ConfigureAwait(false);
             }
@@ -362,12 +372,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var completionSource = new TaskCompletionSource<bool>();
                 lock (_lastTaskGuard)
                 {
-                    _lastTask = AddReferenceAsync(_lastTask, completionSource, reference);                }
-                return await completionSouce.Task.ConfigureAwait(false);            }
+                    _lastTask = AddReferenceAsync(_lastTask, completionSource, reference);
+                }
+                return await completionSource.Task.ConfigureAwait(false);
+            }
+
             private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, TaskCompletionSource<bool> completionSource, string reference)
             {
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
-                var success = false;                try
+                var success = false;
+                try
                 {
                     var resolvedReferences = state.ScriptOptions.MetadataResolver.ResolveReference(reference, baseFilePath: null, properties: MetadataReferenceProperties.Assembly);
                     if (!resolvedReferences.IsDefaultOrEmpty)
@@ -405,7 +419,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
 
             private async Task<EvaluationState> ExecuteAsync(TaskCompletionSource<RemoteExecutionResult> completionSource, Task<EvaluationState> lastTask, string text)
-            {                var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
+            {
+                var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
 
                 var success = false;
                 try

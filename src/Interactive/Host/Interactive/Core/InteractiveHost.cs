@@ -9,7 +9,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.IO.Pipes;using System.Text;using System.Threading;using System.Threading.Tasks;
+using System.IO.Pipes;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
@@ -66,7 +69,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             _initialWorkingDirectory = workingDirectory;
             _outputGuard = new object();
             _errorOutputGuard = new object();
-		}        #region Test hooks
+        }
+
+        #region Test hooks
 
         internal event Action<char[], int>? OutputReceived;
         internal event Action<char[], int>? ErrorOutputReceived;
@@ -76,9 +81,12 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         internal async Task<RemoteService> TryGetServiceAsync()
             => (await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false)).Service;
+
         // Triggered whenever we create a fresh process.
-        // The ProcessExited event is not hooked yet.        internal event Action<Process>? InteractiveHostProcessCreated;
-        }        #endregion
+        // The ProcessExited event is not hooked yet.
+        internal event Action<Process>? InteractiveHostProcessCreated;
+
+        #endregion
 
         ~InteractiveHost()
         {
@@ -88,8 +96,10 @@ namespace Microsoft.CodeAnalysis.Interactive
         // Dispose may be called anytime.
         public void Dispose()
         {
-			// Run this in background to avoid deadlocking with UIThread operations performing with active outputs.
-            _ = Task.Run(() => SetOutputs(TextWriter.Null, TextWriter.Null));            DisposeRemoteService();
+            // Run this in background to avoid deadlocking with UIThread operations performing with active outputs.
+            _ = Task.Run(() => SetOutputs(TextWriter.Null, TextWriter.Null));
+
+            DisposeRemoteService();
             GC.SuppressFinalize(this);
         }
 
@@ -240,23 +250,26 @@ namespace Microsoft.CodeAnalysis.Interactive
             return default;
         }
 
-        private async Task<TResult> Async<TResult>(string targetName, params object?[] arguments)
+        private async Task<TResult> InvokeRemoteAsync<TResult>(string targetName, params object?[] arguments)
         {
             var initializedRemoteService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
             if (initializedRemoteService.Service == null)
             {
                 return default!;
-            }            return await Async<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);
+            }
+            return await InvokeRemoteAsync<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);
         }
-        private static async Task<TResult> Async<TResult>(RemoteService remoteService, string targetName, params object?[] arguments)
+        private static async Task<TResult> InvokeRemoteAsync<TResult>(RemoteService remoteService, string targetName, params object?[] arguments)
         {
             try
             {
-                return await remoteService.JsonRpc.InvokeAsync<TResult>(targetName, arguments).ConfigureAwait(false);            }
+                return await remoteService.JsonRpc.InvokeAsync<TResult>(targetName, arguments).ConfigureAwait(false);
+            }
             catch (Exception e) when (e is ObjectDisposedException || !remoteService.Process.IsAlive())
             {
                 return default!;
-            }        }
+            }
+        }
 
         #region Operations
 
@@ -305,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<RemoteExecutionResult> ExecuteAsync(string code)
         {
             Contract.ThrowIfNull(code);
-            return Async<RemoteExecutionResult>(nameof(Service.ExecuteAsync), code);
+            return InvokeRemoteAsync<RemoteExecutionResult>(nameof(Service.ExecuteAsync), code);
         }
 
         /// <summary>
@@ -320,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
             Contract.ThrowIfNull(path);
-            return Async<RemoteExecutionResult>(nameof(Service.ExecuteFileAsync), path);
+            return InvokeRemoteAsync<RemoteExecutionResult>(nameof(Service.ExecuteFileAsync), path);
         }
         /// <summary>        /// Asynchronously adds a reference to the set of available references for next submission.
         /// </summary>
@@ -332,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<bool> AddReferenceAsync(string reference)
         {
             Contract.ThrowIfNull(reference);
-            return Async<bool>(nameof(Service.AddReferenceAsync), reference);
+            return InvokeRemoteAsync<bool>(nameof(Service.AddReferenceAsync), reference);
         }
 
         /// <summary>
@@ -344,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             Contract.ThrowIfNull(sourceSearchPaths);
             Contract.ThrowIfNull(baseDirectory);
 
-            return Async<RemoteExecutionResult>(nameof(Service.SetPathsAsync), referenceSearchPaths, sourceSearchPaths, baseDirectory);
+            return InvokeRemoteAsync<RemoteExecutionResult>(nameof(Service.SetPathsAsync), referenceSearchPaths, sourceSearchPaths, baseDirectory);
         }
 
         #endregion

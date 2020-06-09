@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             public readonly Process Process;
             public readonly JsonRpc JsonRpc;
             private readonly int _processId;
-            private readonly SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);            private readonly bool _joinOutputWritingThreadsOnDisposal;
+            private readonly SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
+            private readonly bool _joinOutputWritingThreadsOnDisposal;
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private InteractiveHost? _host;              // nulled on dispose
@@ -32,15 +33,13 @@ namespace Microsoft.CodeAnalysis.Interactive
             private volatile ProcessExitHandlerStatus _processExitHandlerStatus;  // set to Handled on dispose
 
             internal RemoteService(InteractiveHost host, Process process, int processId, JsonRpc jsonRpc)
-            {                Debug.Assert(host != null);
-                Debug.Assert(process != null);
-                Debug.Assert(jsonRpc != null);
-
-                Process = process!;
-                JsonRpc = jsonRpc!;
+            {
+                Process = process;
+                JsonRpc = jsonRpc;
 
                 _host = host;
-                _joinOutputWritingThreadsOnDisposal = _host._joinOutputWritingThreadsOnDisposal;                _processId = processId;
+                _joinOutputWritingThreadsOnDisposal = _host._joinOutputWritingThreadsOnDisposal;
+                _processId = processId;
                 _processExitHandlerStatus = ProcessExitHandlerStatus.Uninitialized;
 
                 // TODO (tomat): consider using single-thread async readers

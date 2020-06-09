@@ -87,9 +87,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     // try to execute initialization script:
                     var isRestarting = InstanceId > 1;
-                    var initializationResult = await Async<RemoteExecutionResult>(remoteService, nameof(Service.InitializeContextAsync), Options.InitializationFile, isRestarting).ConfigureAwait(false);
+                    var initializationResult = await InvokeRemoteAsync<RemoteExecutionResult>(remoteService, nameof(Service.InitializeContextAsync), Options.InitializationFile, isRestarting).ConfigureAwait(false);
                     initializing = false;
-                    if (!initializationResult.Success)                    {
+                    if (!initializationResult.Success)
+                    {
                         Host.ReportProcessExited(remoteService.Process);
                         remoteService.Dispose();
 
