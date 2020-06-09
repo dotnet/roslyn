@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -24,8 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
     internal partial class ExplicitInterfaceMemberCompletionProvider : LSPCompletionProvider
     {
-        private const string InsertionTextOnOpenParen = nameof(InsertionTextOnOpenParen);
-
         private static readonly SymbolDisplayFormat s_signatureDisplayFormat =
             new SymbolDisplayFormat(
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -56,15 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 var document = context.Document;
                 var position = context.Position;
-                var options = context.Options;
                 var cancellationToken = context.CancellationToken;
 
-                var span = new TextSpan(position, length: 0);
-                var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, length: 0), cancellationToken).ConfigureAwait(false);
                 var syntaxTree = semanticModel.SyntaxTree;
 
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
                 if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
                     semanticFacts.IsPreProcessorDirectiveContext(semanticModel, position, cancellationToken))
@@ -76,38 +74,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                             .GetPreviousTokenIfTouchingWord(position);
 
                 if (!syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken))
-                {
                     return;
-                }
 
                 var node = targetToken.Parent;
-
-                if (node.Kind() != SyntaxKind.ExplicitInterfaceSpecifier)
-                {
+                if (!node.IsKind(SyntaxKind.ExplicitInterfaceSpecifier, out ExplicitInterfaceSpecifierSyntax? specifierNode))
                     return;
-                }
 
                 // Bind the interface name which is to the left of the dot
-                var name = ((ExplicitInterfaceSpecifierSyntax)node).Name;
+                var name = specifierNode.Name;
 
                 var symbol = semanticModel.GetSymbolInfo(name, cancellationToken).Symbol as ITypeSymbol;
                 if (symbol?.TypeKind != TypeKind.Interface)
-                {
                     return;
-                }
-
-                var members = symbol.GetMembers();
 
                 // We're going to create a entry for each one, including the signature
                 var namePosition = name.SpanStart;
-
-                var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                foreach (var member in members)
+                foreach (var member in symbol.GetMembers())
                 {
+                    if (!member.IsAbstract && !member.IsVirtual)
+                        continue;
+
                     if (member.IsAccessor() ||
                         member.Kind == SymbolKind.NamedType ||
-                        !(member.IsAbstract || member.IsVirtual) ||
                         !semanticModel.IsAccessible(node.SpanStart, member))
                     {
                         continue;
@@ -119,16 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     // the split so that other features (like spell-checking), only look at the name portion.
                     var (displayText, displayTextSuffix) = SplitMemberName(memberString);
 
-                    var item = SymbolCompletionItem.CreateWithSymbolId(
+                    context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                         displayText,
                         displayTextSuffix,
                         insertionText: memberString,
-                        symbols: ImmutableArray.Create(member),
+                        symbols: ImmutableArray.Create<ISymbol>(member),
                         contextPosition: position,
-                        rules: CompletionItemRules.Default);
-                    item = item.AddProperty(InsertionTextOnOpenParen, member.Name);
-
-                    context.AddItem(item);
+                        rules: CompletionItemRules.Default));
                 }
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
@@ -154,11 +139,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public override Task<TextChange?> GetTextChangeAsync(
             Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
-            var insertionText = ch == '(' && selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, out var value)
-                ? value
-                : SymbolCompletionItem.GetInsertionText(selectedItem);
-
-            return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
+            // If the user is typing a punctuation portion of the signature, then just emit the name.  i.e. if the
+            // member is `Contains<T>(string key)`, then typing `<` should just emit `Contains` and not
+            // `Contains<T>(string key)<`
+            return Task.FromResult<TextChange?>(new TextChange(
+                selectedItem.Span,
+                ch == '(' || ch == '[' || ch == '<'
+                    ? selectedItem.DisplayText
+                    : SymbolCompletionItem.GetInsertionText(selectedItem)));
         }
     }
 }
