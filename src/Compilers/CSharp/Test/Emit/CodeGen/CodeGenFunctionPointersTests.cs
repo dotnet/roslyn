@@ -7034,7 +7034,7 @@ unsafe public class C
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void SpanInArgumentAndReturn()
         {
             var comp = CompileAndVerifyFunctionPointers(@"

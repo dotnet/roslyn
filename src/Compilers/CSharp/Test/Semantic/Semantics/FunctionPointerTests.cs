@@ -2888,7 +2888,7 @@ unsafe static class C
             );
         }
 
-        [Fact, WorkItem(44953, "https://github.com/dotnet/roslyn/issues/44953")]
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem(44953, "https://github.com/dotnet/roslyn/issues/44953")]
         public void RestrictedTypeInFunctionPointer()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
