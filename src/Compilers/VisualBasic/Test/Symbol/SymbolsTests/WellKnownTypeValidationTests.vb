@@ -539,6 +539,7 @@ End Namespace
                          WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
                          WellKnownType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
                         ' Not available on all platforms.
                         Continue For
@@ -604,6 +605,7 @@ End Namespace
                          WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
                          WellKnownType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
                         ' Not available on all platforms.
                         Continue For

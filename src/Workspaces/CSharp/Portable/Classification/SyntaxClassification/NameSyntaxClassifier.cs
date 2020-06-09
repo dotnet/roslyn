@@ -105,17 +105,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             // If everything classifies the same way, then just pick that classification.
             using var _ = PooledHashSet<ClassifiedSpan>.GetInstance(out var set);
+            var isStatic = false;
 
             foreach (var symbol in symbolInfo.CandidateSymbols)
             {
                 if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
                 {
+                    // If one symbol resolves to static, then just make it bold
+                    isStatic = isStatic || IsStaticSymbol(symbol);
                     set.Add(classifiedSpan);
                 }
             }
 
             if (set.Count == 1)
             {
+                // If any of the symbols are static, add the static classification and the regular symbol classification
+                if (isStatic)
+                {
+                    result.Add(new ClassifiedSpan(set.First().TextSpan, ClassificationTypeNames.StaticSymbol));
+                }
+
                 result.Add(set.First());
                 return true;
             }

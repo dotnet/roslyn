@@ -190,6 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLocalFunctionAttributes = MessageBase + 12766,
         IDS_FeatureExternLocalFunctions = MessageBase + 12767,
         IDS_FeatureMemberNotNull = MessageBase + 12768,
+
         IDS_FeatureNativeInt = MessageBase + 12769,
         IDS_FeatureTargetTypedObjectCreation = MessageBase + 12770,
         IDS_FeatureTypePattern = MessageBase + 12771,
@@ -202,7 +203,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_TopLevelStatements = MessageBase + 12778,
         IDS_FeatureFunctionPointers = MessageBase + 12779,
         IDS_AddressOfMethodGroup = MessageBase + 12780,
-        IDS_FeatureCovariantReturnsForOverrides = MessageBase + 12781,
+        IDS_FeatureInitOnlySetters = MessageBase + 12781,
+        IDS_FeatureRecords = MessageBase + 12782,
+        IDS_FeatureCovariantReturnsForOverrides = MessageBase + 12783,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -325,6 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureNativeInt:
                 case MessageID.IDS_FeatureExtendedPartialMethods: // semantic check
                 case MessageID.IDS_TopLevelStatements:
+                case MessageID.IDS_FeatureInitOnlySetters: // semantic check
+                case MessageID.IDS_FeatureRecords:
                 case MessageID.IDS_FeatureCovariantReturnsForOverrides: // semantic check
                     return LanguageVersion.Preview;
 

@@ -601,6 +601,7 @@ namespace System
                     case WellKnownType.System_Threading_CancellationToken:
                     case WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException:
                     case WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_IsExternalInit:
                     case WellKnownType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute:
                         // Not yet in the platform.
                         continue;

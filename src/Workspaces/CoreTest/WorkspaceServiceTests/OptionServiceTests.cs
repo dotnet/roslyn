@@ -5,11 +5,15 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
@@ -212,6 +216,36 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                     Assert.Empty(changedOptions);
                 }
             }
+        }
+
+        [Fact, WorkItem(43788, "https://github.com/dotnet/roslyn/issues/43788")]
+        public void TestChangedTodoCommentOptions()
+        {
+            var option = TodoCommentOptions.TokenList;
+            var optionService = TestOptionService.GetService(GetOptionProvider<TodoCommentOptionsProvider>());
+            var optionSet = optionService.GetOptions();
+            var optionKey = new OptionKey(option);
+
+            var currentOptionValue = optionSet.GetOption(option);
+            var newOptionValue = currentOptionValue + "newValue";
+            var newOptionSet = optionSet.WithChangedOption(optionKey, newOptionValue);
+
+            optionService.SetOptions(newOptionSet);
+            Assert.Equal(newOptionValue, (string?)optionService.GetOptions().GetOption(optionKey));
+
+            var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
+            var serializableOptionSet = optionService.GetSerializableOptionsSnapshot(languages);
+            var changedOptions = serializableOptionSet.GetChangedOptions();
+            var changedOptionKey = Assert.Single(changedOptions);
+            Assert.Equal(optionKey, changedOptionKey);
+            Assert.Equal(newOptionValue, serializableOptionSet.GetOption(changedOptionKey));
+        }
+
+        private static TOptionProvider GetOptionProvider<TOptionProvider>()
+            where TOptionProvider : IOptionProvider
+        {
+            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(TestHost.Catalog);
+            return factory.CreateExportProvider().GetExportedValues<IOptionProvider>().OfType<TOptionProvider>().FirstOrDefault();
         }
 
         [Fact]
