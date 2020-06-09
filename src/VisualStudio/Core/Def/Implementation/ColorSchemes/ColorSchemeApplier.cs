@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             _colorSchemes = _settings.GetColorSchemes();
             _colorDefaulter = new ForegroundColorDefaulter(threadingContext, serviceProvider, _settings, _colorSchemes);
 
-            _colorSchemeRegistryItems = new AsyncLazy<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>>(GetColorSchemeRegistryItemsAsync, cacheResult: true);
+            _colorSchemeRegistryItems = AsyncLazy.Create<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>>(GetColorSchemeRegistryItemsAsync, cacheResult: true);
         }
 
         public void Dispose()
