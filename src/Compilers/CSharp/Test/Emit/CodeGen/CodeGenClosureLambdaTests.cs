@@ -5382,6 +5382,19 @@ class C
         [Fact]
         public void LambdaInsideGenericLocalFunctionInsideLoop_CompilesCorrectly()
         {
+            // The lambda passed into StaticMethod depends on TLocal type argument of LocalMethod
+            // so if the delegate is cached outside the method the type argument reference is broken
+            // and code throws BadImageFormatException. Such a broken code will looks like:
+            // class DisplayClass
+            // {
+            //     Func<TLocal, string> _cachedDelegate;
+            //
+            //     void LocalMethod<TLocal>()
+            //     {
+            //         ...
+            //     }
+            //
+            // The test checks that it is not the issue.
             string source =
                 @"using System;
 using System.Collections.Generic;
