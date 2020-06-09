@@ -3082,7 +3082,7 @@ Test
 
             VerifyOperationTreeForTest(Of MethodBlockSyntax)(compilation, "a.vb", expectedOperationTree:="
 IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub Test5(O ... End Sub')
-  IWithOperation (OperationKind.None, Type: null) (Syntax: 'With x.F2 ... End With')
+  IWithStatementOperation (OperationKind.None, Type: null) (Syntax: 'With x.F2 ... End With')
     Value: 
       IFieldReferenceOperation: C1(Of T).F2 As T (OperationKind.FieldReference, Type: T) (Syntax: 'x.F2')
         Instance Receiver: 

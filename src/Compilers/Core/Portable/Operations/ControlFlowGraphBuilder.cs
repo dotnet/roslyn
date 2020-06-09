@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        internal override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
+        internal override IOperation VisitWithStatement(IWithStatementOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -6982,5 +6982,19 @@ oneMoreTime:
             throw ExceptionUtilities.Unreachable;
         }
 
+        public override IOperation VisitWith(IWithOperation operation, int? argument)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            // Initializer is removed from the tree and turned into a series of statements that assign to the cloned instance
+            IOperation visitedInstance = Visit(operation.Value);
+
+            IOperation cloned = operation.CloneMethod is null
+                ? MakeInvalidOperation(visitedInstance.Type, visitedInstance)
+                : new InvocationOperation(operation.CloneMethod, visitedInstance,
+                    isVirtual: true, arguments: ImmutableArray<IArgumentOperation>.Empty,
+                    semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, isImplicit: true);
+
+            return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, cloned));
+        }
     }
 }
