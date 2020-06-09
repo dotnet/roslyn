@@ -2758,7 +2758,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    internal interface IWithOperation : IOperation
+    internal interface IWithStatementOperation : IOperation
     {
         /// <summary>
         /// Body of the with.
@@ -2887,7 +2887,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IWithExpressionOperation : IOperation
+    public interface IWithOperation : IOperation
     {
         /// <summary>
         /// Value to be cloned.
@@ -8273,9 +8273,9 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseWithOperation : Operation, IWithOperation
+    internal abstract partial class BaseWithStatementOperation : Operation, IWithStatementOperation
     {
-        internal BaseWithOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        internal BaseWithStatementOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit) { }
         public abstract IOperation Body { get; }
         public abstract IOperation Value { get; }
@@ -8287,12 +8287,12 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (Body is object) yield return Body;
             }
         }
-        public override void Accept(OperationVisitor visitor) => visitor.VisitWith(this);
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitWith(this, argument);
+        public override void Accept(OperationVisitor visitor) => visitor.VisitWithStatement(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitWithStatement(this, argument);
     }
-    internal sealed partial class WithOperation : BaseWithOperation, IWithOperation
+    internal sealed partial class WithStatementOperation : BaseWithStatementOperation, IWithStatementOperation
     {
-        internal WithOperation(IOperation body, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        internal WithStatementOperation(IOperation body, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             Body = SetParentOperation(body, this);
@@ -8301,11 +8301,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation Body { get; }
         public override IOperation Value { get; }
     }
-    internal abstract partial class LazyWithOperation : BaseWithOperation, IWithOperation
+    internal abstract partial class LazyWithStatementOperation : BaseWithStatementOperation, IWithStatementOperation
     {
         private IOperation _lazyBody = s_unset;
         private IOperation _lazyValue = s_unset;
-        internal LazyWithOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        internal LazyWithStatementOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(semanticModel, syntax, type, constantValue, isImplicit){ }
         protected abstract IOperation CreateBody();
         public override IOperation Body
@@ -8555,10 +8555,10 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
     }
-    internal abstract partial class BaseWithExpressionOperation : Operation, IWithExpressionOperation
+    internal abstract partial class BaseWithOperation : Operation, IWithOperation
     {
-        internal BaseWithExpressionOperation(IMethodSymbol cloneMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(OperationKind.WithExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        internal BaseWithOperation(IMethodSymbol cloneMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(OperationKind.With, semanticModel, syntax, type, constantValue, isImplicit)
         {
             CloneMethod = cloneMethod;
         }
@@ -8573,12 +8573,12 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (Initializer is object) yield return Initializer;
             }
         }
-        public override void Accept(OperationVisitor visitor) => visitor.VisitWithExpression(this);
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitWithExpression(this, argument);
+        public override void Accept(OperationVisitor visitor) => visitor.VisitWith(this);
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitWith(this, argument);
     }
-    internal sealed partial class WithExpressionOperation : BaseWithExpressionOperation, IWithExpressionOperation
+    internal sealed partial class WithOperation : BaseWithOperation, IWithOperation
     {
-        internal WithExpressionOperation(IOperation value, IMethodSymbol cloneMethod, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        internal WithOperation(IOperation value, IMethodSymbol cloneMethod, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(cloneMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Value = SetParentOperation(value, this);
@@ -8587,11 +8587,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation Value { get; }
         public override IObjectOrCollectionInitializerOperation Initializer { get; }
     }
-    internal abstract partial class LazyWithExpressionOperation : BaseWithExpressionOperation, IWithExpressionOperation
+    internal abstract partial class LazyWithOperation : BaseWithOperation, IWithOperation
     {
         private IOperation _lazyValue = s_unset;
         private IObjectOrCollectionInitializerOperation _lazyInitializer = s_unsetObjectOrCollectionInitializer;
-        internal LazyWithExpressionOperation(IMethodSymbol cloneMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        internal LazyWithOperation(IMethodSymbol cloneMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(cloneMethod, semanticModel, syntax, type, constantValue, isImplicit){ }
         protected abstract IOperation CreateValue();
         public override IOperation Value
@@ -8742,13 +8742,13 @@ namespace Microsoft.CodeAnalysis.Operations
         internal virtual void VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation) => DefaultVisit(operation);
         internal virtual void VisitPlaceholder(IPlaceholderOperation operation) => DefaultVisit(operation);
         internal virtual void VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation) => DefaultVisit(operation);
-        internal virtual void VisitWith(IWithOperation operation) => DefaultVisit(operation);
+        internal virtual void VisitWithStatement(IWithStatementOperation operation) => DefaultVisit(operation);
         public virtual void VisitUsingDeclaration(IUsingDeclarationOperation operation) => DefaultVisit(operation);
         public virtual void VisitNegatedPattern(INegatedPatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitBinaryPattern(IBinaryPatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitTypePattern(ITypePatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitRelationalPattern(IRelationalPatternOperation operation) => DefaultVisit(operation);
-        public virtual void VisitWithExpression(IWithExpressionOperation operation) => DefaultVisit(operation);
+        public virtual void VisitWith(IWithOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -8868,13 +8868,13 @@ namespace Microsoft.CodeAnalysis.Operations
         internal virtual TResult VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         internal virtual TResult VisitPlaceholder(IPlaceholderOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         internal virtual TResult VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
-        internal virtual TResult VisitWith(IWithOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        internal virtual TResult VisitWithStatement(IWithStatementOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult VisitUsingDeclaration(IUsingDeclarationOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult VisitNegatedPattern(INegatedPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult VisitBinaryPattern(IBinaryPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult VisitTypePattern(ITypePatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult VisitRelationalPattern(IRelationalPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
-        public virtual TResult VisitWithExpression(IWithExpressionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult VisitWith(IWithOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }

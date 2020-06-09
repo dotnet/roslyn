@@ -196,9 +196,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ExpressionStatementOperation(Visit(operation.Operation), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitWith(IWithOperation operation, object argument)
+        internal override IOperation VisitWithStatement(IWithStatementOperation operation, object argument)
         {
-            return new WithOperation(Visit(operation.Body), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new WithStatementOperation(Visit(operation.Body), Visit(operation.Value), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitStop(IStopOperation operation, object argument)
@@ -663,9 +663,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return new UsingDeclarationOperation(Visit(operation.DeclarationGroup), operation.IsAsynchronous, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitWithExpression(IWithExpressionOperation operation, object argument)
+        public override IOperation VisitWith(IWithOperation operation, object argument)
         {
-            return new WithExpressionOperation(Visit(operation.Value), operation.CloneMethod, Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new WithOperation(Visit(operation.Value), operation.CloneMethod, Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
     }
 }
