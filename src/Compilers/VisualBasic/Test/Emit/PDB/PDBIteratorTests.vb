@@ -531,7 +531,7 @@ End Module
         End Sub
 
         <WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")>
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <ConditionalFact(AlwaysSkip:="https://github.com/dotnet/roslyn/issues/44901")>
         Public Sub PortableStateMachineDebugInfo()
             Dim src = "
 Imports System.Collections.Generic
@@ -561,7 +561,7 @@ MethodDebugInformation (index: 0x31, size: 40):
 2: nil
 3: nil
 4: nil
-5: #22
+5: #10e
 {
   Kickoff Method: 0x06000002 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)

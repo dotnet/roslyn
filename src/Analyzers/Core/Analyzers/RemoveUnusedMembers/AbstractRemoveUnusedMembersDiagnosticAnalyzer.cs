@@ -542,8 +542,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             AddDebuggerDisplayAttributeArguments(nestedType, builder);
                             break;
 
-                        case IPropertySymbol property:
-                        case IFieldSymbol field:
+                        case IPropertySymbol _:
+                        case IFieldSymbol _:
                             AddDebuggerDisplayAttributeArgumentsCore(member, builder);
                             break;
                     }
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
                 => methodSymbol.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass));
 
-            private bool IsShouldSerializeOrResetPropertyMethod(IMethodSymbol methodSymbol)
+            private static bool IsShouldSerializeOrResetPropertyMethod(IMethodSymbol methodSymbol)
             {
                 // "bool ShouldSerializeXXX()" and "void ResetXXX()" are ok if there is a matching
                 // property XXX as they are used by the windows designer property grid

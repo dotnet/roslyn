@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                                             m.Kind == SymbolKind.Property
                                       select WrapMember(m, canImplementImplicitly, docCommentFormattingService);
 
-                _members = ImmutableArray.CreateRange<ISymbol>(filteredMembers);
+                _members = ImmutableArray.CreateRange(filteredMembers);
             }
 
             private static ISymbol WrapMember(ISymbol m, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
@@ -142,10 +142,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public INamedTypeSymbol NativeIntegerUnderlyingType => _symbol.NativeIntegerUnderlyingType;
 
-            NullableAnnotation ITypeSymbol.NullableAnnotation => throw new System.NotImplementedException();
+            NullableAnnotation ITypeSymbol.NullableAnnotation => throw new NotImplementedException();
 
             ITypeSymbol ITypeSymbol.WithNullableAnnotation(NullableAnnotation nullableAnnotation)
-                => throw new System.NotImplementedException();
+                => throw new NotImplementedException();
         }
     }
 }

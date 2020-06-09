@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public IMethodSymbol ConstructedFrom => _symbol.ConstructedFrom;
 
             public bool IsReadOnly => _symbol.IsReadOnly;
+            public bool IsInitOnly => _symbol.IsInitOnly;
 
             public ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
             {
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
                 => _symbol.Construct(typeArguments);
 
-            public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
+            public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
                 => _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
 
             public DllImportData GetDllImportData()

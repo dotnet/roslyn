@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -264,6 +265,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 summary.ConvertedType = typeInfo.ConvertedType;
                 summary.ImplicitConversion = semanticModel.GetConversion(initializer);
                 summary.MemberGroup = semanticModel.GetMemberGroup(initializer);
+            }
+            else if (node is PatternSyntax pattern)
+            {
+                symbolInfo = semanticModel.GetSymbolInfo(pattern);
+                var typeInfo = semanticModel.GetTypeInfo(pattern);
+                summary.Type = typeInfo.Type;
+                summary.ConvertedType = typeInfo.ConvertedType;
+                summary.Nullability = typeInfo.Nullability;
+                summary.ConvertedNullability = typeInfo.ConvertedNullability;
+                summary.ImplicitConversion = semanticModel.GetConversion(pattern);
+                summary.MemberGroup = semanticModel.GetMemberGroup(pattern);
             }
             else
             {

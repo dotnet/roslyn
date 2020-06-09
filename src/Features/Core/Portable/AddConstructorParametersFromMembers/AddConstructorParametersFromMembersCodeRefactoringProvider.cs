@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             context.RegisterRefactorings(actions);
         }
 
-        public async Task<ImmutableArray<CodeAction>> AddConstructorParametersFromMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<CodeAction>> AddConstructorParametersFromMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers, cancellationToken))
             {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                 if (info != null)
                 {
-                    var state = await State.GenerateAsync(this, info.SelectedMembers, document, cancellationToken).ConfigureAwait(false);
+                    var state = await State.GenerateAsync(info.SelectedMembers, document, cancellationToken).ConfigureAwait(false);
                     if (state?.ConstructorCandidates != null && !state.ConstructorCandidates.IsEmpty)
                     {
                         return CreateCodeActions(document, state);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
         }
 
-        private ImmutableArray<CodeAction> CreateCodeActions(Document document, State state)
+        private static ImmutableArray<CodeAction> CreateCodeActions(Document document, State state)
         {
             var result = ArrayBuilder<CodeAction>.GetInstance();
             var containingType = state.ContainingType;

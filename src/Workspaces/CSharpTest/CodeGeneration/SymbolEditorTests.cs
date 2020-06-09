@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private SyntaxGenerator Generator
             => _g ?? (_g = SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp));
 
-        private Solution GetSolution(params string[] sources)
+        private static Solution GetSolution(params string[] sources)
         {
             var ws = new AdhocWorkspace();
             var pid = ProjectId.CreateNewId();
@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             return ws.AddProject(proj).Solution;
         }
 
-        private async Task<IEnumerable<ISymbol>> GetSymbolsAsync(Solution solution, string name)
+        private static async Task<IEnumerable<ISymbol>> GetSymbolsAsync(Solution solution, string name)
         {
             var compilation = await solution.Projects.First().GetCompilationAsync();
             return compilation.GlobalNamespace.GetMembers(name);
         }
 
-        private async Task<string> GetActualAsync(Document document)
+        private static async Task<string> GetActualAsync(Document document)
         {
             document = await Simplifier.ReduceAsync(document);
             document = await Formatter.FormatAsync(document, Formatter.Annotation);

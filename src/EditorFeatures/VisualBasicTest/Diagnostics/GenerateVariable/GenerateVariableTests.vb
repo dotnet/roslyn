@@ -2774,7 +2774,6 @@ class C
 end class", index:=1)
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Async Function TestGenerateSimplePropertyInSyncLock() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(

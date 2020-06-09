@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static readonly MetadataReference s_mscorlib = TestReferences.NetFx.v4_0_30319.mscorlib;
         private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
-        private Solution CreateSolution()
+        private static Solution CreateSolution()
             => new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly))).CurrentSolution;
 
-        private Solution CreateSolutionWithProjectAndDocuments()
+        private static Solution CreateSolutionWithProjectAndDocuments()
         {
             var projectId = ProjectId.CreateNewId();
 
@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 yield return item;
             }
-
         }
 
         [Fact]
@@ -1252,6 +1251,42 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void RemoveAdditionalDocumentFromUnrelatedProject()
+        {
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            var documentInfo1 = DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "file1.txt");
+
+            var solution = CreateSolution()
+                .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp)
+                .AddProject(projectId2, "project2", "project2.dll", LanguageNames.CSharp)
+                .AddAdditionalDocument(documentInfo1);
+
+            // This should throw if we're removing one document from the wrong project. Right now we don't test the RemoveAdditionalDocument
+            // API due to https://github.com/dotnet/roslyn/issues/41211.
+            Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveAdditionalDocuments(ImmutableArray.Create(documentInfo1.Id)));
+        }
+
+        [Fact]
+        public void RemoveAnalyzerConfigDocumentFromUnrelatedProject()
+        {
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            var documentInfo1 = DocumentInfo.Create(DocumentId.CreateNewId(projectId1), ".editorconfig");
+
+            var solution = CreateSolution()
+                .AddProject(projectId1, "project1", "project1.dll", LanguageNames.CSharp)
+                .AddProject(projectId2, "project2", "project2.dll", LanguageNames.CSharp)
+                .AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo1));
+
+            // This should throw if we're removing one document from the wrong project. Right now we don't test the RemoveAdditionalDocument
+            // API due to https://github.com/dotnet/roslyn/issues/41211.
+            Assert.Throws<ArgumentException>(() => solution.GetProject(projectId2).RemoveAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo1.Id)));
+        }
+
+        [Fact]
         public async Task TestOneCSharpProjectAsync()
         {
             var sol = CreateSolutionWithOneCSharpProject();
@@ -1272,22 +1307,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await ValidateSolutionAndCompilationsAsync(sol);
         }
 
-        private Solution CreateSolutionWithOneCSharpProject()
+        private static Solution CreateSolutionWithOneCSharpProject()
         {
-            return this.CreateSolution()
+            return CreateSolution()
                        .AddProject("goo", "goo.dll", LanguageNames.CSharp)
                        .AddMetadataReference(s_mscorlib)
                        .AddDocument("goo.cs", "public class Goo { }")
                        .Project.Solution;
         }
 
-        private Solution CreateSolutionWithTwoCSharpProjects()
+        private static Solution CreateSolutionWithTwoCSharpProjects()
         {
             var pm1 = ProjectId.CreateNewId();
             var pm2 = ProjectId.CreateNewId();
             var doc1 = DocumentId.CreateNewId(pm1);
             var doc2 = DocumentId.CreateNewId(pm2);
-            return this.CreateSolution()
+            return CreateSolution()
                        .AddProject(pm1, "goo", "goo.dll", LanguageNames.CSharp)
                        .AddProject(pm2, "bar", "bar.dll", LanguageNames.CSharp)
                        .AddProjectReference(pm2, new ProjectReference(pm1))
@@ -1295,11 +1330,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                        .AddDocument(doc2, "bar.cs", "public class Bar : Goo { }");
         }
 
-        private Solution CreateCrossLanguageSolution()
+        private static Solution CreateCrossLanguageSolution()
         {
             var pm1 = ProjectId.CreateNewId();
             var pm2 = ProjectId.CreateNewId();
-            return this.CreateSolution()
+            return CreateSolution()
                        .AddProject(pm1, "goo", "goo.dll", LanguageNames.CSharp)
                        .AddMetadataReference(pm1, s_mscorlib)
                        .AddProject(pm2, "bar", "bar.dll", LanguageNames.VisualBasic)
@@ -1309,7 +1344,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                        .AddDocument(DocumentId.CreateNewId(pm2), "bar.vb", "Public Class Y\r\nInherits X\r\nEnd Class");
         }
 
-        private async Task ValidateSolutionAndCompilationsAsync(Solution solution)
+        private static async Task ValidateSolutionAndCompilationsAsync(Solution solution)
         {
             foreach (var project in solution.Projects)
             {
@@ -1392,9 +1427,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 #endif
 
-        private Solution CreateSolutionWithProjectDependencyChain(int projectCount)
+        private static Solution CreateSolutionWithProjectDependencyChain(int projectCount)
         {
-            var solution = this.CreateNotKeptAliveSolution();
+            var solution = CreateNotKeptAliveSolution();
             projectCount = 5;
             var projectIds = Enumerable.Range(0, projectCount).Select(i => ProjectId.CreateNewId()).ToArray();
             for (var i = 0; i < projectCount; i++)
@@ -1636,9 +1671,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddDocument(did, "goo.cs", text);
 
             var document = sol.GetDocument(did);
-            Assert.False(document.TryGetSyntaxRoot(out var root));
+            Assert.False(document.TryGetSyntaxRoot(out _));
 
-            root = await document.GetSyntaxRootAsync();
+            var root = await document.GetSyntaxRootAsync();
             Assert.NotNull(root);
             Assert.Equal(text, root.ToString());
 
@@ -1691,9 +1726,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var root2 = tree2.GetRoot();
             // text should not be available yet (it should be defer created from the node)
             // and getting the document or root should not cause it to be created.
-            Assert.False(tree2.TryGetText(out var text2));
+            Assert.False(tree2.TryGetText(out _));
 
-            text2 = tree2.GetText();
+            var text2 = tree2.GetText();
             Assert.NotNull(text2);
 
             Assert.NotSame(tree, tree2);
@@ -1746,7 +1781,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             observedRoot.AssertReleased();
 
             // re-get the tree (should recover from storage, not reparse)
-            var root = sol.GetDocument(did).GetSyntaxRootAsync().Result;
+            _ = sol.GetDocument(did).GetSyntaxRootAsync().Result;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -1783,7 +1818,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text1, observedText2.ToString());
         }
 
-        private Solution CreateNotKeptAliveSolution()
+        private static Solution CreateNotKeptAliveSolution()
         {
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), "NotKeptAlive");
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
@@ -2012,7 +2047,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference<SourceText> GetObservedText(Solution solution, DocumentId documentId, string expectedText = null)
+        private static ObjectReference<SourceText> GetObservedText(Solution solution, DocumentId documentId, string expectedText = null)
         {
             var observedText = solution.GetDocument(documentId).GetTextAsync().Result;
 
@@ -2042,7 +2077,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference<SourceText> GetObservedTextAsync(Solution solution, DocumentId documentId, string expectedText = null)
+        private static ObjectReference<SourceText> GetObservedTextAsync(Solution solution, DocumentId documentId, string expectedText = null)
         {
             var observedText = solution.GetDocument(documentId).GetTextAsync().Result;
 
@@ -2073,7 +2108,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference<SyntaxNode> GetObservedSyntaxTreeRoot(Solution solution, DocumentId documentId)
+        private static ObjectReference<SyntaxNode> GetObservedSyntaxTreeRoot(Solution solution, DocumentId documentId)
         {
             var observedTree = solution.GetDocument(documentId).GetSyntaxRootAsync().Result;
             return new ObjectReference<SyntaxNode>(observedTree);
@@ -2098,7 +2133,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference<SyntaxNode> GetObservedSyntaxTreeRootAsync(Solution solution, DocumentId documentId)
+        private static ObjectReference<SyntaxNode> GetObservedSyntaxTreeRootAsync(Solution solution, DocumentId documentId)
         {
             var observedTree = solution.GetDocument(documentId).GetSyntaxRootAsync().Result;
             return new ObjectReference<SyntaxNode>(observedTree);
@@ -2157,7 +2192,7 @@ End Class";
             TestRecoverableSyntaxTree(sol, did);
         }
 
-        private void TestRecoverableSyntaxTree(Solution sol, DocumentId did)
+        private static void TestRecoverableSyntaxTree(Solution sol, DocumentId did)
         {
             // get it async and wait for it to get GC'd
             var observed = GetObservedSyntaxTreeRootAsync(sol, did);
@@ -2210,7 +2245,7 @@ End Class";
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference<Compilation> GetObservedCompilationAsync(Solution solution, ProjectId projectId)
+        private static ObjectReference<Compilation> GetObservedCompilationAsync(Solution solution, ProjectId projectId)
         {
             var observed = solution.GetProject(projectId).GetCompilationAsync().Result;
             return new ObjectReference<Compilation>(observed);
@@ -2234,7 +2269,7 @@ End Class";
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ObjectReference<Compilation> GetObservedCompilation(Solution solution, ProjectId projectId)
+        private static ObjectReference<Compilation> GetObservedCompilation(Solution solution, ProjectId projectId)
         {
             var observed = solution.GetProject(projectId).GetCompilationAsync().Result;
             return new ObjectReference<Compilation>(observed);
@@ -2578,7 +2613,7 @@ public class C : A {
             var newTree = recoverableTree.WithFilePath("different/dummy");
 
             // this shouldn't throw
-            var root = newTree.GetRoot();
+            _ = newTree.GetRoot();
         }
 
         [Fact]
@@ -2938,7 +2973,6 @@ class C
             var projectInfo =
                 ProjectInfo.Create(projectId, VersionStamp.Default, "Test", "Test", LanguageNames.CSharp)
                     .WithAnalyzerConfigDocuments(new[] { DocumentInfo.Create(editorConfigDocumentId, ".editorconfig", filePath: editorConfigFilePath) });
-
 
             solution = solution.AddProject(projectInfo);
 

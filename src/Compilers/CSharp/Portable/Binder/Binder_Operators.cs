@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Pointer types and very special types are not convertible to object.
 
-            return !type.IsPointerType() && !type.IsRestrictedType() && !type.IsVoidType();
+            return !type.IsPointerOrFunctionPointer() && !type.IsRestrictedType() && !type.IsVoidType();
         }
 
         private BoundExpression BindDynamicBinaryOperator(
@@ -2220,15 +2220,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = operand.HasAnyErrors; // This would propagate automatically, but by reading it explicitly we can reduce cascading.
             bool isFixedStatementAddressOfExpression = SyntaxFacts.IsFixedStatementExpression(node);
 
-            switch (operand.Kind)
+            switch (operand)
             {
-                case BoundKind.MethodGroup:
-                case BoundKind.Lambda:
-                case BoundKind.UnboundLambda:
+                case BoundLambda _:
+                case UnboundLambda _:
                     {
                         Debug.Assert(hasErrors);
                         return new BoundAddressOfOperator(node, operand, CreateErrorType(), hasErrors: true);
                     }
+
+                case BoundMethodGroup methodGroup:
+                    return new BoundUnconvertedAddressOfOperator(node, methodGroup, hasErrors);
             }
 
             TypeSymbol operandType = operand.Type;
@@ -2868,7 +2870,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsOperatorErrors(CSharpSyntaxNode node, TypeSymbol operandType, BoundTypeExpression typeExpression, DiagnosticBag diagnostics)
         {
             var targetType = typeExpression.Type;
-            var targetTypeKind = targetType.TypeKind;
 
             // The native compiler allows "x is C" where C is a static class. This
             // is strictly illegal according to the specification (see the section
@@ -2881,33 +2882,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if ((object)operandType != null && operandType.TypeKind == TypeKind.Pointer || targetTypeKind == TypeKind.Pointer)
+            if ((object)operandType != null && operandType.IsPointerOrFunctionPointer() || targetType.IsPointerOrFunctionPointer())
             {
                 // operand for an is or as expression cannot be of pointer type
                 Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);
                 return true;
             }
 
-            return targetTypeKind == TypeKind.Error;
+            return targetType.TypeKind == TypeKind.Error;
         }
+
+        protected static bool IsUnderscore(ExpressionSyntax node) =>
+            node is IdentifierNameSyntax name && name.Identifier.IsUnderscoreToken();
 
         private BoundExpression BindIsOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
             var operand = BindRValueWithoutTargetType(node.Left, diagnostics);
             var operandHasErrors = IsOperandErrors(node, ref operand, diagnostics);
-            // try binding as a type, but back off to binding as an expression if that does not work.
-            AliasSymbol alias;
-            var isTypeDiagnostics = DiagnosticBag.GetInstance();
-            TypeWithAnnotations targetTypeWithAnnotations = BindType(node.Right, isTypeDiagnostics, out alias);
-            TypeSymbol targetType = targetTypeWithAnnotations.Type;
 
-            bool wasUnderscore = node.Right is IdentifierNameSyntax name && name.Identifier.IsUnderscoreToken();
-            if (!wasUnderscore && targetType?.IsErrorType() == true && isTypeDiagnostics.HasAnyResolvedErrors() &&
+            // try binding as a type, but back off to binding as an expression if that does not work.
+            bool wasUnderscore = IsUnderscore(node.Right);
+            if (!tryBindAsType(node.Right, out DiagnosticBag isTypeDiagnostics, out BoundTypeExpression typeExpression) &&
+                !wasUnderscore &&
                 ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
             {
                 // it did not bind as a type; try binding as a constant expression pattern
-                bool wasExpression;
                 var isPatternDiagnostics = DiagnosticBag.GetInstance();
                 if ((object)operand.Type == null)
                 {
@@ -2919,13 +2919,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operand = ToBadExpression(operand);
                 }
 
-                var boundConstantPattern = BindConstantPattern(
-                    node.Right, operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out wasExpression);
-                boundConstantPattern.WasCompilerGenerated = true;
+                bool hasErrors = node.Right.HasErrors;
+                var convertedExpression = BindExpressionForPattern(operand.Type, node.Right, ref hasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression);
                 if (wasExpression)
                 {
+                    hasErrors |= constantValueOpt is null;
                     isTypeDiagnostics.Free();
                     diagnostics.AddRangeAndFree(isPatternDiagnostics);
+                    var boundConstantPattern = new BoundConstantPattern(
+                        node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, operand.Type, convertedExpression.Type ?? operand.Type, hasErrors)
+#pragma warning disable format
+                        { WasCompilerGenerated = true };
+#pragma warning restore format
                     return MakeIsPatternExpression(node, operand, boundConstantPattern, resultType, operandHasErrors, diagnostics);
                 }
 
@@ -2933,13 +2938,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             diagnostics.AddRangeAndFree(isTypeDiagnostics);
+            var targetTypeWithAnnotations = typeExpression.TypeWithAnnotations;
+            var targetType = typeExpression.Type;
             if (targetType.IsReferenceType && targetTypeWithAnnotations.NullableAnnotation.IsAnnotated())
             {
                 Error(diagnostics, ErrorCode.ERR_IsNullableType, node.Right, targetType);
                 operandHasErrors = true;
             }
 
-            var typeExpression = new BoundTypeExpression(node.Right, alias, targetTypeWithAnnotations);
             var targetTypeKind = targetType.TypeKind;
             if (operandHasErrors || IsOperatorErrors(node, operand.Type, typeExpression, diagnostics))
             {
@@ -2948,7 +2954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (wasUnderscore && ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureRecursivePatterns))
             {
-                diagnostics.Add(ErrorCode.WRN_IsTypeNamedUnderscore, node.Right.Location, alias ?? (Symbol)targetType);
+                diagnostics.Add(ErrorCode.WRN_IsTypeNamedUnderscore, node.Right.Location, typeExpression.AliasOpt ?? (Symbol)targetType);
             }
 
             // Is and As operator should have null ConstantValue as they are not constant expressions.
@@ -3004,6 +3010,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteDiagnostics);
             ReportIsOperatorConstantWarnings(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValue);
             return new BoundIsOperator(node, operand, typeExpression, conversion, resultType);
+
+            bool tryBindAsType(
+                ExpressionSyntax possibleType,
+                out DiagnosticBag bindAsTypeDiagnostics,
+                out BoundTypeExpression boundType)
+            {
+                bindAsTypeDiagnostics = DiagnosticBag.GetInstance();
+                TypeWithAnnotations targetTypeWithAnnotations = BindType(possibleType, bindAsTypeDiagnostics, out AliasSymbol alias);
+                TypeSymbol targetType = targetTypeWithAnnotations.Type;
+                boundType = new BoundTypeExpression(possibleType, alias, targetTypeWithAnnotations);
+                return !(targetType?.IsErrorType() == true && bindAsTypeDiagnostics.HasAnyResolvedErrors());
+            }
+
         }
 
         private static void ReportIsOperatorConstantWarnings(
@@ -3288,11 +3307,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ExplicitDynamic:
-                case ConversionKind.PointerToInteger:
-                case ConversionKind.PointerToPointer:
-                case ConversionKind.PointerToVoid:
-                case ConversionKind.IntegerToPointer:
-                case ConversionKind.NullToPointer:
+                case ConversionKind.ExplicitPointerToInteger:
+                case ConversionKind.ExplicitPointerToPointer:
+                case ConversionKind.ImplicitPointerToVoid:
+                case ConversionKind.ExplicitIntegerToPointer:
+                case ConversionKind.ImplicitNullToPointer:
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.NullLiteral:
                 case ConversionKind.DefaultLiteral:
@@ -3362,7 +3381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_AsWithTypeVar, node, targetType);
                 }
-                else if (targetTypeKind == TypeKind.Pointer)
+                else if (targetTypeKind == TypeKind.Pointer || targetTypeKind == TypeKind.FunctionPointer)
                 {
                     Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);
                 }
@@ -3407,8 +3426,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)operandType != null);
             var operandTypeKind = operandType.TypeKind;
 
-            Debug.Assert(targetTypeKind != TypeKind.Pointer, "Should have been caught above");
-            if (operandTypeKind == TypeKind.Pointer)
+            Debug.Assert(!targetType.IsPointerOrFunctionPointer(), "Should have been caught above");
+            if (operandType.IsPointerOrFunctionPointer())
             {
                 // operand for an is or as expression cannot be of pointer type
                 Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);

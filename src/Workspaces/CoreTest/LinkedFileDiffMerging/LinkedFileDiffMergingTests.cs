@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
     [UseExportProvider]
     public partial class LinkedFileDiffMergingTests
     {
-        private void TestLinkedFileSet(string startText, List<string> updatedTexts, string expectedMergedText, string languageName)
+        private static void TestLinkedFileSet(string startText, List<string> updatedTexts, string expectedMergedText, string languageName)
         {
             using var workspace = new AdhocWorkspace();
             var solution = workspace.CurrentSolution;

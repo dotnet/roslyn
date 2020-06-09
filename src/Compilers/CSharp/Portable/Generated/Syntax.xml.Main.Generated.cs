@@ -51,6 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: MaybeNull]
         public virtual TResult VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a FunctionPointerTypeSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitFunctionPointerType(FunctionPointerTypeSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a NullableTypeSyntax node.</summary>
         [return: MaybeNull]
         public virtual TResult VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
@@ -227,6 +231,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: MaybeNull]
         public virtual TResult VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a WithExpressionSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitWithExpression(WithExpressionSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a AnonymousObjectMemberDeclaratorSyntax node.</summary>
         [return: MaybeNull]
         public virtual TResult VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node) => this.DefaultVisit(node);
@@ -350,6 +358,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a ConstantPatternSyntax node.</summary>
         [return: MaybeNull]
         public virtual TResult VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a ParenthesizedPatternSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitParenthesizedPattern(ParenthesizedPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a RelationalPatternSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitRelationalPattern(RelationalPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a TypePatternSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitTypePattern(TypePatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a BinaryPatternSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitBinaryPattern(BinaryPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a UnaryPatternSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitUnaryPattern(UnaryPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolatedStringTextSyntax node.</summary>
         [return: MaybeNull]
@@ -598,6 +626,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a InterfaceDeclarationSyntax node.</summary>
         [return: MaybeNull]
         public virtual TResult VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a RecordDeclarationSyntax node.</summary>
+        [return: MaybeNull]
+        public virtual TResult VisitRecordDeclaration(RecordDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EnumDeclarationSyntax node.</summary>
         [return: MaybeNull]
@@ -909,6 +941,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a PointerTypeSyntax node.</summary>
         public virtual void VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a FunctionPointerTypeSyntax node.</summary>
+        public virtual void VisitFunctionPointerType(FunctionPointerTypeSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a NullableTypeSyntax node.</summary>
         public virtual void VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
 
@@ -1041,6 +1076,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a ObjectCreationExpressionSyntax node.</summary>
         public virtual void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a WithExpressionSyntax node.</summary>
+        public virtual void VisitWithExpression(WithExpressionSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a AnonymousObjectMemberDeclaratorSyntax node.</summary>
         public virtual void VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node) => this.DefaultVisit(node);
 
@@ -1133,6 +1171,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a ConstantPatternSyntax node.</summary>
         public virtual void VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a ParenthesizedPatternSyntax node.</summary>
+        public virtual void VisitParenthesizedPattern(ParenthesizedPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a RelationalPatternSyntax node.</summary>
+        public virtual void VisitRelationalPattern(RelationalPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a TypePatternSyntax node.</summary>
+        public virtual void VisitTypePattern(TypePatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a BinaryPatternSyntax node.</summary>
+        public virtual void VisitBinaryPattern(BinaryPatternSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a UnaryPatternSyntax node.</summary>
+        public virtual void VisitUnaryPattern(UnaryPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolatedStringTextSyntax node.</summary>
         public virtual void VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
@@ -1319,6 +1372,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Called when the visitor visits a InterfaceDeclarationSyntax node.</summary>
         public virtual void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a RecordDeclarationSyntax node.</summary>
+        public virtual void VisitRecordDeclaration(RecordDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EnumDeclarationSyntax node.</summary>
         public virtual void VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
@@ -1560,6 +1616,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNode? VisitPointerType(PointerTypeSyntax node)
             => node.Update((TypeSyntax?)Visit(node.ElementType) ?? throw new ArgumentNullException("elementType"), VisitToken(node.AsteriskToken));
 
+        public override SyntaxNode? VisitFunctionPointerType(FunctionPointerTypeSyntax node)
+            => node.Update(VisitToken(node.DelegateKeyword), VisitToken(node.AsteriskToken), VisitToken(node.CallingConvention), VisitToken(node.LessThanToken), VisitList(node.Parameters), VisitToken(node.GreaterThanToken));
+
         public override SyntaxNode? VisitNullableType(NullableTypeSyntax node)
             => node.Update((TypeSyntax?)Visit(node.ElementType) ?? throw new ArgumentNullException("elementType"), VisitToken(node.QuestionToken));
 
@@ -1692,6 +1751,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNode? VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
             => node.Update(VisitToken(node.NewKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ArgumentListSyntax?)Visit(node.ArgumentList), (InitializerExpressionSyntax?)Visit(node.Initializer));
 
+        public override SyntaxNode? VisitWithExpression(WithExpressionSyntax node)
+            => node.Update((ExpressionSyntax?)Visit(node.Receiver) ?? throw new ArgumentNullException("receiver"), VisitToken(node.WithKeyword), (InitializerExpressionSyntax?)Visit(node.Initializer) ?? throw new ArgumentNullException("initializer"));
+
         public override SyntaxNode? VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
             => node.Update((NameEqualsSyntax?)Visit(node.NameEquals), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
@@ -1784,6 +1846,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitConstantPattern(ConstantPatternSyntax node)
             => node.Update((ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
+
+        public override SyntaxNode? VisitParenthesizedPattern(ParenthesizedPatternSyntax node)
+            => node.Update(VisitToken(node.OpenParenToken), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"), VisitToken(node.CloseParenToken));
+
+        public override SyntaxNode? VisitRelationalPattern(RelationalPatternSyntax node)
+            => node.Update(VisitToken(node.OperatorToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
+
+        public override SyntaxNode? VisitTypePattern(TypePatternSyntax node)
+            => node.Update((TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
+
+        public override SyntaxNode? VisitBinaryPattern(BinaryPatternSyntax node)
+            => node.Update((PatternSyntax?)Visit(node.Left) ?? throw new ArgumentNullException("left"), VisitToken(node.OperatorToken), (PatternSyntax?)Visit(node.Right) ?? throw new ArgumentNullException("right"));
+
+        public override SyntaxNode? VisitUnaryPattern(UnaryPatternSyntax node)
+            => node.Update(VisitToken(node.OperatorToken), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"));
 
         public override SyntaxNode? VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
             => node.Update(VisitToken(node.TextToken));
@@ -1971,6 +2048,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNode? VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.Identifier), (TypeParameterListSyntax?)Visit(node.TypeParameterList), (BaseListSyntax?)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
+        public override SyntaxNode? VisitRecordDeclaration(RecordDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.Identifier), (TypeParameterListSyntax?)Visit(node.TypeParameterList), (ParameterListSyntax?)Visit(node.ParameterList), (BaseListSyntax?)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
+
         public override SyntaxNode? VisitEnumDeclaration(EnumDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.EnumKeyword), VisitToken(node.Identifier), (BaseListSyntax?)Visit(node.BaseList), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
@@ -1984,7 +2064,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.ColonToken), VisitList(node.Types));
 
         public override SyntaxNode? VisitSimpleBaseType(SimpleBaseTypeSyntax node)
-            => node.Update((TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
+            => node.Update((TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ArgumentListSyntax?)Visit(node.ArgumentList));
 
         public override SyntaxNode? VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node)
             => node.Update(VisitToken(node.WhereKeyword), (IdentifierNameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.ColonToken), VisitList(node.Constraints));
@@ -2314,6 +2394,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new PointerTypeSyntax instance.</summary>
         public static PointerTypeSyntax PointerType(TypeSyntax elementType)
             => SyntaxFactory.PointerType(elementType, SyntaxFactory.Token(SyntaxKind.AsteriskToken));
+
+        /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
+        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, SyntaxToken callingConvention, SyntaxToken lessThanToken, SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        {
+            if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
+            if (asteriskToken.Kind() != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
+            if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
+            if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+            return (FunctionPointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerType((Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)callingConvention.Node, (Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
+        public static FunctionPointerTypeSyntax FunctionPointerType(SyntaxToken callingConvention, SeparatedSyntaxList<ParameterSyntax> parameters)
+            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), callingConvention, SyntaxFactory.Token(SyntaxKind.LessThanToken), parameters, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
+
+        /// <summary>Creates a new FunctionPointerTypeSyntax instance.</summary>
+        public static FunctionPointerTypeSyntax FunctionPointerType(SeparatedSyntaxList<ParameterSyntax> parameters = default)
+            => SyntaxFactory.FunctionPointerType(SyntaxFactory.Token(SyntaxKind.DelegateKeyword), SyntaxFactory.Token(SyntaxKind.AsteriskToken), default, SyntaxFactory.Token(SyntaxKind.LessThanToken), parameters, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
 
         /// <summary>Creates a new NullableTypeSyntax instance.</summary>
         public static NullableTypeSyntax NullableType(TypeSyntax elementType, SyntaxToken questionToken)
@@ -3140,7 +3238,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ObjectInitializerExpression:
                 case SyntaxKind.CollectionInitializerExpression:
                 case SyntaxKind.ArrayInitializerExpression:
-                case SyntaxKind.ComplexElementInitializerExpression: break;
+                case SyntaxKind.ComplexElementInitializerExpression:
+                case SyntaxKind.WithInitializerExpression: break;
                 default: throw new ArgumentException(nameof(kind));
             }
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
@@ -3183,6 +3282,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new ObjectCreationExpressionSyntax instance.</summary>
         public static ObjectCreationExpressionSyntax ObjectCreationExpression(TypeSyntax type)
             => SyntaxFactory.ObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), type, default, default);
+
+        /// <summary>Creates a new WithExpressionSyntax instance.</summary>
+        public static WithExpressionSyntax WithExpression(ExpressionSyntax receiver, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
+        {
+            if (receiver == null) throw new ArgumentNullException(nameof(receiver));
+            if (withKeyword.Kind() != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
+            if (initializer == null) throw new ArgumentNullException(nameof(initializer));
+            return (WithExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.WithExpression((Syntax.InternalSyntax.ExpressionSyntax)receiver.Green, (Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new WithExpressionSyntax instance.</summary>
+        public static WithExpressionSyntax WithExpression(ExpressionSyntax receiver, InitializerExpressionSyntax initializer)
+            => SyntaxFactory.WithExpression(receiver, SyntaxFactory.Token(SyntaxKind.WithKeyword), initializer);
 
         /// <summary>Creates a new AnonymousObjectMemberDeclaratorSyntax instance.</summary>
         public static AnonymousObjectMemberDeclaratorSyntax AnonymousObjectMemberDeclarator(NameEqualsSyntax? nameEquals, ExpressionSyntax expression)
@@ -3622,6 +3734,87 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             return (ConstantPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstantPattern((Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
+
+        /// <summary>Creates a new ParenthesizedPatternSyntax instance.</summary>
+        public static ParenthesizedPatternSyntax ParenthesizedPattern(SyntaxToken openParenToken, PatternSyntax pattern, SyntaxToken closeParenToken)
+        {
+            if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
+            if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            return (ParenthesizedPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedPattern((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new ParenthesizedPatternSyntax instance.</summary>
+        public static ParenthesizedPatternSyntax ParenthesizedPattern(PatternSyntax pattern)
+            => SyntaxFactory.ParenthesizedPattern(SyntaxFactory.Token(SyntaxKind.OpenParenToken), pattern, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+
+        /// <summary>Creates a new RelationalPatternSyntax instance.</summary>
+        public static RelationalPatternSyntax RelationalPattern(SyntaxToken operatorToken, ExpressionSyntax expression)
+        {
+            switch (operatorToken.Kind())
+            {
+                case SyntaxKind.EqualsEqualsToken:
+                case SyntaxKind.ExclamationEqualsToken:
+                case SyntaxKind.LessThanToken:
+                case SyntaxKind.LessThanEqualsToken:
+                case SyntaxKind.GreaterThanToken:
+                case SyntaxKind.GreaterThanEqualsToken: break;
+                default: throw new ArgumentException(nameof(operatorToken));
+            }
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            return (RelationalPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.RelationalPattern((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new TypePatternSyntax instance.</summary>
+        public static TypePatternSyntax TypePattern(TypeSyntax type)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            return (TypePatternSyntax)Syntax.InternalSyntax.SyntaxFactory.TypePattern((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new BinaryPatternSyntax instance.</summary>
+        public static BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax left, SyntaxToken operatorToken, PatternSyntax right)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.OrPattern:
+                case SyntaxKind.AndPattern: break;
+                default: throw new ArgumentException(nameof(kind));
+            }
+            if (left == null) throw new ArgumentNullException(nameof(left));
+            switch (operatorToken.Kind())
+            {
+                case SyntaxKind.OrKeyword:
+                case SyntaxKind.AndKeyword: break;
+                default: throw new ArgumentException(nameof(operatorToken));
+            }
+            if (right == null) throw new ArgumentNullException(nameof(right));
+            return (BinaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.BinaryPattern(kind, (Syntax.InternalSyntax.PatternSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.PatternSyntax)right.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new BinaryPatternSyntax instance.</summary>
+        public static BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax left, PatternSyntax right)
+            => SyntaxFactory.BinaryPattern(kind, left, SyntaxFactory.Token(GetBinaryPatternOperatorTokenKind(kind)), right);
+
+        private static SyntaxKind GetBinaryPatternOperatorTokenKind(SyntaxKind kind)
+            => kind switch
+            {
+                SyntaxKind.OrPattern => SyntaxKind.OrKeyword,
+                SyntaxKind.AndPattern => SyntaxKind.AndKeyword,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+
+        /// <summary>Creates a new UnaryPatternSyntax instance.</summary>
+        public static UnaryPatternSyntax UnaryPattern(SyntaxToken operatorToken, PatternSyntax pattern)
+        {
+            if (operatorToken.Kind() != SyntaxKind.NotKeyword) throw new ArgumentException(nameof(operatorToken));
+            if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            return (UnaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.UnaryPattern((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new UnaryPatternSyntax instance.</summary>
+        public static UnaryPatternSyntax UnaryPattern(PatternSyntax pattern)
+            => SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), pattern);
 
         /// <summary>Creates a new InterpolatedStringTextSyntax instance.</summary>
         public static InterpolatedStringTextSyntax InterpolatedStringText(SyntaxToken textToken)
@@ -4736,6 +4929,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static InterfaceDeclarationSyntax InterfaceDeclaration(string identifier)
             => SyntaxFactory.InterfaceDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.InterfaceKeyword), SyntaxFactory.Identifier(identifier), default, default, default, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
 
+        /// <summary>Creates a new RecordDeclarationSyntax instance.</summary>
+        public static RecordDeclarationSyntax RecordDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            switch (openBraceToken.Kind())
+            {
+                case SyntaxKind.OpenBraceToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(openBraceToken));
+            }
+            switch (closeBraceToken.Kind())
+            {
+                case SyntaxKind.CloseBraceToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(closeBraceToken));
+            }
+            switch (semicolonToken.Kind())
+            {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(semicolonToken));
+            }
+            return (RecordDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.RecordDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
+        }
+
+        /// <summary>Creates a new RecordDeclarationSyntax instance.</summary>
+        public static RecordDeclarationSyntax RecordDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+            => SyntaxFactory.RecordDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, default, members, default, default);
+
+        /// <summary>Creates a new RecordDeclarationSyntax instance.</summary>
+        public static RecordDeclarationSyntax RecordDeclaration(SyntaxToken keyword, SyntaxToken identifier)
+            => SyntaxFactory.RecordDeclaration(default, default(SyntaxTokenList), keyword, identifier, default, default, default, default, default, default, default, default);
+
+        /// <summary>Creates a new RecordDeclarationSyntax instance.</summary>
+        public static RecordDeclarationSyntax RecordDeclaration(SyntaxToken keyword, string identifier)
+            => SyntaxFactory.RecordDeclaration(default, default(SyntaxTokenList), keyword, SyntaxFactory.Identifier(identifier), default, default, default, default, default, default, default, default);
+
         /// <summary>Creates a new EnumDeclarationSyntax instance.</summary>
         public static EnumDeclarationSyntax EnumDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken openBraceToken, SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
@@ -4814,11 +5044,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.BaseList(SyntaxFactory.Token(SyntaxKind.ColonToken), types);
 
         /// <summary>Creates a new SimpleBaseTypeSyntax instance.</summary>
-        public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type)
+        public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type, ArgumentListSyntax? argumentList)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
-            return (SimpleBaseTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleBaseType((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+            return (SimpleBaseTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleBaseType((Syntax.InternalSyntax.TypeSyntax)type.Green, argumentList == null ? null : (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
         }
+
+        /// <summary>Creates a new SimpleBaseTypeSyntax instance.</summary>
+        public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type)
+            => SyntaxFactory.SimpleBaseType(type, default);
 
         /// <summary>Creates a new TypeParameterConstraintClauseSyntax instance.</summary>
         public static TypeParameterConstraintClauseSyntax TypeParameterConstraintClause(SyntaxToken whereKeyword, IdentifierNameSyntax name, SyntaxToken colonToken, SeparatedSyntaxList<TypeParameterConstraintSyntax> constraints)
@@ -5240,6 +5474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.UnknownAccessorDeclaration: break;
@@ -5249,6 +5484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.GetKeyword:
                 case SyntaxKind.SetKeyword:
+                case SyntaxKind.InitKeyword:
                 case SyntaxKind.AddKeyword:
                 case SyntaxKind.RemoveKeyword:
                 case SyntaxKind.IdentifierToken: break;
@@ -5276,6 +5512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 SyntaxKind.GetAccessorDeclaration => SyntaxKind.GetKeyword,
                 SyntaxKind.SetAccessorDeclaration => SyntaxKind.SetKeyword,
+                SyntaxKind.InitAccessorDeclaration => SyntaxKind.InitKeyword,
                 SyntaxKind.AddAccessorDeclaration => SyntaxKind.AddKeyword,
                 SyntaxKind.RemoveAccessorDeclaration => SyntaxKind.RemoveKeyword,
                 SyntaxKind.UnknownAccessorDeclaration => SyntaxKind.IdentifierToken,

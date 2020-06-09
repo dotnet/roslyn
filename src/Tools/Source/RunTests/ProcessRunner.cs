@@ -114,7 +114,7 @@ namespace RunTests
                             new ReadOnlyCollection<string>(outputLines),
                             new ReadOnlyCollection<string>(errorLines));
                         tcs.TrySetResult(result);
-                    });
+                    }, cancellationToken);
                 };
 
             var registration = cancellationToken.Register(() =>

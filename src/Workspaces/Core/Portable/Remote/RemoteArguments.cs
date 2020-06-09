@@ -53,17 +53,50 @@ namespace Microsoft.CodeAnalysis.Remote
         public static SerializableSymbolAndProjectId Dehydrate(
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var symbolKey = symbol.GetSymbolKey(cancellationToken);
-            var projectId = solution.GetOriginatingProjectId(symbol);
-            Contract.ThrowIfNull(projectId, WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
+            var project = solution.GetOriginatingProject(symbol);
+            Contract.ThrowIfNull(project, WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
 
-            return new SerializableSymbolAndProjectId
-            {
-                SymbolKeyData = symbolKey.ToString(),
-                ProjectId = projectId,
-            };
+            return Create(symbol, project, cancellationToken);
         }
 
+        public static SerializableSymbolAndProjectId Create(ISymbol symbol, Project project, CancellationToken cancellationToken)
+            => new SerializableSymbolAndProjectId
+            {
+                SymbolKeyData = symbol.GetSymbolKey(cancellationToken).ToString(),
+                ProjectId = project.Id,
+            };
+
+        public static bool TryCreate(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken,
+            out SerializableSymbolAndProjectId result)
+        {
+            var project = solution.GetOriginatingProject(symbol);
+            if (project == null)
+            {
+                result = null;
+                return false;
+            }
+
+            return TryCreate(symbol, project, cancellationToken, out result);
+        }
+
+        public static bool TryCreate(
+            ISymbol symbol, Project project, CancellationToken cancellationToken,
+            out SerializableSymbolAndProjectId result)
+        {
+            if (!SymbolKey.CanCreate(symbol, cancellationToken))
+            {
+                result = null;
+                return false;
+            }
+
+            result = new SerializableSymbolAndProjectId
+            {
+                SymbolKeyData = SymbolKey.CreateString(symbol, cancellationToken),
+                ProjectId = project.Id,
+            };
+            return true;
+        }
         public async Task<ISymbol> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
@@ -74,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // The server and client should both be talking about the same compilation.  As such
             // locations in symbols are save to resolve as we rehydrate the SymbolKey.
             var symbol = SymbolKey.ResolveString(
-                SymbolKeyData, compilation, resolveLocations: true, cancellationToken: cancellationToken).GetAnySymbol();
+                SymbolKeyData, compilation, cancellationToken: cancellationToken).GetAnySymbol();
 
             if (symbol == null)
             {

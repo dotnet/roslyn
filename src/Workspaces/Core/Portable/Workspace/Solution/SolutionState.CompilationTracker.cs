@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (generatorDriver.GeneratorDriver != null)
                     {
-                        // PROTOTYPE: make an API to expose these diagnostics
+                        // https://github.com/dotnet/roslyn/issues/44163: make an API to expose these diagnostics
                         generatorDriver = new TrackedGeneratorDriver(generatorDriver.GeneratorDriver.RunFullGeneration(compilation, out compilation, out var diagnostics, cancellationToken));
                     }
 

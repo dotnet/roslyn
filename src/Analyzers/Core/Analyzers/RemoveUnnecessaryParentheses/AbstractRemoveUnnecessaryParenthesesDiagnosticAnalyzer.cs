@@ -47,17 +47,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         {
         }
 
+        protected abstract TLanguageKindEnum GetSyntaxKind();
         protected abstract ISyntaxFacts GetSyntaxFacts();
 
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
-        {
-            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
-            context.RegisterSyntaxNodeAction(AnalyzeSyntax,
-                syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.ParenthesizedExpression));
-        }
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKind());
 
         protected abstract bool CanRemoveParentheses(
             TParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
@@ -124,8 +121,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
             var severity = preference.Notification.Severity;
 
-            var additionalLocations = ImmutableArray.Create(parenthesizedExpression.GetLocation(),
-                parenthesizedExpression.GetFirstToken().GetLocation(), parenthesizedExpression.GetLastToken().GetLocation());
+            var additionalLocations = ImmutableArray.Create(
+                parenthesizedExpression.GetLocation(),
+                parenthesizedExpression.GetFirstToken().GetLocation(),
+                parenthesizedExpression.GetLastToken().GetLocation());
 
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                 s_diagnosticDescriptor,
@@ -140,7 +139,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         /// If the expression is contained within a single line, the entire expression span is returned.
         /// Otherwise it will return the span from the expression start to the end of the same line.
         /// </summary>
-        private Location GetDiagnosticSquiggleLocation(TParenthesizedExpressionSyntax parenthesizedExpression, CancellationToken cancellationToken)
+        private static Location GetDiagnosticSquiggleLocation(TParenthesizedExpressionSyntax parenthesizedExpression, CancellationToken cancellationToken)
         {
             var parenthesizedExpressionLocation = parenthesizedExpression.GetLocation();
 

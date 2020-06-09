@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static async Task<bool> CheckTypeInfoOfAttributeAsync(Document document, SyntaxNode attributeNode, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelForNodeAsync(attributeNode, cancellationToken).ConfigureAwait(false);
-            var typeInfo = semanticModel.GetTypeInfo(attributeNode);
+            var typeInfo = semanticModel.GetTypeInfo(attributeNode, cancellationToken);
             var type = typeInfo.Type;
             if (type == null)
             {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         var assemblyName = await GetAssemblyNameFromInternalsVisibleToAttributeAsync(document, attribute, completionContext.CancellationToken).ConfigureAwait(false);
                         if (!string.IsNullOrWhiteSpace(assemblyName))
                         {
-                            resultBuilder ??= ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
+                            resultBuilder ??= ImmutableHashSet.CreateBuilder(StringComparer.OrdinalIgnoreCase);
                             resultBuilder.Add(assemblyName);
                         }
                     }
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(constructorArgument, cancellationToken).ConfigureAwait(false);
-            var constantCandidate = semanticModel.GetConstantValue(constructorArgument);
+            var constantCandidate = semanticModel.GetConstantValue(constructorArgument, cancellationToken);
             if (constantCandidate.HasValue && constantCandidate.Value is string argument)
             {
                 if (AssemblyIdentity.TryParseDisplayName(argument, out var assemblyIdentity))
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var projectIdGuid = item.Properties[ProjectGuidKey];
-            var projectId = ProjectId.CreateFromSerialized(new System.Guid(projectIdGuid));
+            var projectId = ProjectId.CreateFromSerialized(new Guid(projectIdGuid));
             var project = document.Project.Solution.GetProject(projectId);
             var assemblyName = item.DisplayText;
             var publicKey = await GetPublicKeyOfProjectAsync(project, cancellationToken).ConfigureAwait(false);

@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
             using var spansDisposer = ArrayBuilder<TextSpan>.GetInstance(diagnostics.Length, out var spans);
             foreach (var diagnostic in diagnostics)
@@ -76,11 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 if (declaratorToRemoveLocationOpt != null)
                 {
                     declaratorToRemoveNodeOpt = declaratorToRemoveLocationOpt.FindNode(cancellationToken);
-                    declaratorToRemoveTypeOpt = semanticModel.GetDeclaredSymbol(declaratorToRemoveNodeOpt).GetSymbolType();
+                    declaratorToRemoveTypeOpt = semanticModel.GetDeclaredSymbol(declaratorToRemoveNodeOpt, cancellationToken).GetSymbolType();
                 }
 
-                var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(cancellationToken);
-                var switchExpression = Rewriter.Rewrite(switchStatement, declaratorToRemoveTypeOpt, nodeToGenerate,
+                var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
+                var switchExpression = Rewriter.Rewrite(
+                    switchStatement, declaratorToRemoveTypeOpt, nodeToGenerate,
                     shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
                     generateDeclaration: declaratorToRemoveLocationOpt is object);
 
@@ -94,9 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 if (shouldRemoveNextStatement)
                 {
                     // Already morphed into the top-level switch expression.
-                    var nextStatement = switchStatement.GetNextStatement();
+                    SyntaxNode nextStatement = switchStatement.GetNextStatement();
                     Debug.Assert(nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement));
-                    editor.RemoveNode(nextStatement);
+                    editor.RemoveNode(nextStatement.IsParentKind(SyntaxKind.GlobalStatement) ? nextStatement.Parent : nextStatement);
                 }
             }
         }

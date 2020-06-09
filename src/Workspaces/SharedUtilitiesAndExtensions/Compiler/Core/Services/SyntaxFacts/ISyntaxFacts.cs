@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         ISyntaxKinds SyntaxKinds { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);
+        bool SupportsNotPattern(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
-
         bool SupportsLocalFunctionDeclaration(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);
-
+        string EscapeIdentifier(string identifier);
         bool IsVerbatimIdentifier(SyntaxToken token);
         bool IsOperator(SyntaxToken token);
         bool IsPredefinedType(SyntaxToken token);
@@ -92,7 +92,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
         bool IsUsingOrExternOrImport(SyntaxNode node);
         bool IsUsingAliasDirective(SyntaxNode node);
-        bool IsGlobalAttribute(SyntaxNode node);
+        bool IsGlobalAssemblyAttribute(SyntaxNode node);
+        bool IsGlobalModuleAttribute(SyntaxNode node);
         bool IsDeclaration(SyntaxNode node);
         bool IsTypeDeclaration(SyntaxNode node);
 
@@ -115,8 +116,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetObjectCreationInitializer(SyntaxNode node);
         SyntaxNode GetObjectCreationType(SyntaxNode node);
 
+        bool IsDeclarationExpression(SyntaxNode node);
+
         bool IsBinaryExpression(SyntaxNode node);
+        bool IsIsExpression(SyntaxNode node);
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
+
+        bool IsIsPatternExpression(SyntaxNode node);
+        void GetPartsOfIsPatternExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken isToken, out SyntaxNode right);
 
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
 
@@ -327,14 +334,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// In VB, this includes all block statements such as a MultiLineIfBlockSyntax.
         /// </summary>
         bool IsExecutableBlock(SyntaxNode node);
-        SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
+        IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
         SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
 
+#nullable enable
         /// <summary>
         /// A node that can host a list of statements or a single statement. In addition to
         /// every "executable block", this also includes C# embedded statement owners.
         /// </summary>
-        bool IsStatementContainer(SyntaxNode node);
+        bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node);
+#nullable restore
+
         IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node);
 
         bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
@@ -374,13 +384,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node);
 
+#nullable enable
         /// <summary>
-        /// Returns the parent node that binds to the symbols that the IDE prefers for features like
-        /// Quick Info and Find All References. For example, if the token is part of the type of
-        /// an object creation, the parenting object creation expression is returned so that binding
-        /// will return constructor symbols.
+        /// Returns the parent node that binds to the symbols that the IDE prefers for features like Quick Info and Find
+        /// All References. For example, if the token is part of the type of an object creation, the parenting object
+        /// creation expression is returned so that binding will return constructor symbols.
         /// </summary>
-        SyntaxNode GetBindableParent(SyntaxToken token);
+        SyntaxNode? TryGetBindableParent(SyntaxToken token);
+#nullable disable
 
         IEnumerable<SyntaxNode> GetConstructors(SyntaxNode root, CancellationToken cancellationToken);
         bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace);
@@ -391,8 +402,38 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
 
+        /// <summary>
+        /// Given a <see cref="SyntaxNode"/>, that represents an attribute argument return the string representation of
+        /// that arguments name.
+        /// </summary>
+        string GetNameForAttributeArgument(SyntaxNode argument);
+
         bool IsNameOfSubpattern(SyntaxNode node);
         bool IsPropertyPatternClause(SyntaxNode node);
+
+        bool IsAnyPattern(SyntaxNode node);
+
+        bool IsAndPattern(SyntaxNode node);
+        bool IsBinaryPattern(SyntaxNode node);
+        bool IsConstantPattern(SyntaxNode node);
+        bool IsDeclarationPattern(SyntaxNode node);
+        bool IsNotPattern(SyntaxNode node);
+        bool IsOrPattern(SyntaxNode node);
+        bool IsParenthesizedPattern(SyntaxNode node);
+        bool IsRecursivePattern(SyntaxNode node);
+        bool IsTypePattern(SyntaxNode node);
+        bool IsUnaryPattern(SyntaxNode node);
+        bool IsVarPattern(SyntaxNode node);
+
+        SyntaxNode GetExpressionOfConstantPattern(SyntaxNode node);
+        void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen);
+
+        void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
+        void GetPartsOfDeclarationPattern(SyntaxNode node, out SyntaxNode type, out SyntaxNode designation);
+        void GetPartsOfRecursivePattern(SyntaxNode node, out SyntaxNode type, out SyntaxNode positionalPart, out SyntaxNode propertyPart, out SyntaxNode designation);
+        void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern);
+
+        SyntaxNode GetTypeOfTypePattern(SyntaxNode node);
 
         /// <summary>
         /// <paramref name="fullHeader"/> controls how much of the type header should be considered. If <see
@@ -451,6 +492,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// Gets the <see cref="DeclarationKind"/> for the declaration.
         /// </summary>
         DeclarationKind GetDeclarationKind(SyntaxNode declaration);
+
+        bool IsImplicitObjectCreation(SyntaxNode node);
     }
 
     [Flags]

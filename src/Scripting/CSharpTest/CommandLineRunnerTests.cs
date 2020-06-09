@@ -235,7 +235,7 @@ $@"{LogoAndHelpPrompt}
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"{LogoAndHelpPrompt}
 > (1,2)
-[(1, 2)]
+(1, 2)
 > ", runner.Console.Out.ToString());
         }
 
@@ -407,7 +407,6 @@ $@"""@arg1""
 /arg2
 -arg3
 --arg4");
-
 
             var runner = CreateRunner(
                 args: new[] { $"@{rsp.Path}", "/arg5", "--", "/arg7" },

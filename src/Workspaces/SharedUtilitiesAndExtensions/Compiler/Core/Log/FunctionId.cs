@@ -372,8 +372,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         // obsolete: RemoteHostClientService_AddGlobalAssetsAsync = 299,
         // obsolete: RemoteHostClientService_RemoveGlobalAssets = 300,
-        RemoteHostClientService_Enabled = 301,
-        RemoteHostClientService_Restarted = 302,
+        // obsolete: RemoteHostClientService_Enabled = 301,
+        // obsolete: RemoteHostClientService_Restarted = 302,
 
         RemoteHostService_SynchronizePrimaryWorkspaceAsync = 303,
         // obsolete: RemoteHostService_SynchronizeGlobalAssetsAsync = 304,
@@ -484,10 +484,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Renamer_FindRenameLocationsAsync = 387,
         Renamer_ResolveConflictsAsync = 388,
 
-        ChangeSignature_Data = 389,
+        ChangeSignature_Data = 400,
 
-        AbstractEncapsulateFieldService_EncapsulateFieldsAsync = 390,
+        AbstractEncapsulateFieldService_EncapsulateFieldsAsync = 410,
 
-        AbstractConvertTupleToStructCodeRefactoringProvider_ConvertToStructAsync = 400,
+        AbstractConvertTupleToStructCodeRefactoringProvider_ConvertToStructAsync = 420,
+
+        DependentTypeFinder_FindAndCacheDerivedClassesAsync = 430,
+        DependentTypeFinder_FindAndCacheDerivedInterfacesAsync = 431,
+        DependentTypeFinder_FindAndCacheImplementingTypesAsync = 432,
     }
 }

@@ -24,9 +24,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindOverridesAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
             return await FindOverridesArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 
@@ -55,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var sourceMember = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                         var bestMember = sourceMember ?? m;
 
-                        if (IsOverride(solution, bestMember, symbol, cancellationToken))
+                        if (IsOverride(solution, bestMember, symbol))
                         {
                             results.Add(bestMember);
                         }
@@ -66,12 +63,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return results.ToImmutableAndFree();
         }
 
-        internal static bool IsOverride(
-            Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
+        internal static bool IsOverride(Solution solution, ISymbol member, ISymbol symbol)
         {
             for (var current = member; current != null; current = current.OverriddenMember())
             {
-                if (OriginalSymbolsMatch(current.OverriddenMember(), symbol.OriginalDefinition, solution, cancellationToken))
+                if (OriginalSymbolsMatch(current.OverriddenMember(), symbol.OriginalDefinition, solution))
                 {
                     return true;
                 }
@@ -86,9 +82,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindImplementedInterfaceMembersAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
-
             return await FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 
@@ -148,8 +141,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                     var sourceMethod = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                                     var bestMethod = sourceMethod ?? m;
 
-                                    var implementations = await type.FindImplementationsForInterfaceMemberAsync(
-                                        bestMethod, solution, cancellationToken).ConfigureAwait(false);
+                                    var implementations = type.FindImplementationsForInterfaceMember(bestMethod, solution, cancellationToken);
                                     foreach (var implementation in implementations)
                                     {
                                         if (implementation != null &&
@@ -210,9 +202,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
 
-            if (solution.GetOriginatingProjectId(type) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
-
             return await FindDerivedClassesArrayAsync(type, solution, transitive, projects, cancellationToken).ConfigureAwait(false);
         }
 
@@ -220,7 +209,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindDerivedClassesArrayAsync(
             INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var types = await DependentTypeFinder.FindAndCacheDerivedClassesAsync(
+            var types = await DependentTypeFinder.FindDerivedClassesAsync(
                 type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
             return types.WhereAsArray(t => IsAccessible(t));
         }
@@ -263,16 +252,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
 
-            if (solution.GetOriginatingProjectId(type) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
-
             return await FindDerivedInterfacesArrayAsync(type, solution, transitive, projects, cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindDerivedInterfacesArrayAsync(
             INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var types = await DependentTypeFinder.FindAndCacheDerivedInterfacesAsync(
+            var types = await DependentTypeFinder.FindDerivedInterfacesAsync(
                 type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
             return types.WhereAsArray(t => IsAccessible(t));
         }
@@ -315,9 +301,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
 
-            if (solution.GetOriginatingProjectId(type) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
-
             return await FindImplementationsArrayAsync(type, solution, transitive, projects, cancellationToken).ConfigureAwait(false);
         }
 
@@ -328,7 +311,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementationsArrayAsync(
             INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var types = await DependentTypeFinder.FindAndCacheImplementingTypesAsync(
+            var types = await DependentTypeFinder.FindImplementingTypesAsync(
                 type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
             return types.WhereAsArray(t => IsAccessible(t));
         }
@@ -347,9 +330,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
-
-            if (solution.GetOriginatingProjectId(symbol) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
 
             // A symbol can only have implementations if it's an interface or a
             // method/property/event from an interface.
@@ -384,7 +364,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
             foreach (var t in allTypes)
             {
-                var implementations = await t.FindImplementationsForInterfaceMemberAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+                var implementations = t.FindImplementationsForInterfaceMember(symbol, solution, cancellationToken);
                 foreach (var implementation in implementations)
                 {
                     var sourceDef = await FindSourceDefinitionAsync(implementation, solution, cancellationToken).ConfigureAwait(false);

@@ -85,6 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement rewritten, SyntaxNode syntax)
         {
+            if (syntax.IsKind(SyntaxKind.Parameter))
+            {
+                // This is an initialization of a generated property based on record parameter.
+                return AddSequencePoint(rewritten);
+            }
+
             Debug.Assert(syntax is { Parent: { Parent: { } } });
             var grandparent = syntax.Parent.Parent;
             switch (grandparent.Kind())
@@ -405,6 +411,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the expression are being executed.
             return AddConditionSequencePoint(base.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory), original.Syntax, factory);
+        }
+
+        public override BoundExpression InstrumentSwitchExpressionArmExpression(BoundExpression original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        {
+            return new BoundSequencePointExpression(original.Syntax, base.InstrumentSwitchExpressionArmExpression(original, rewrittenExpression, factory), rewrittenExpression.Type);
         }
 
         public override BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)

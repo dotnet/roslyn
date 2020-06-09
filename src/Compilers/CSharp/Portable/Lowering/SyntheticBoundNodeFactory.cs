@@ -559,11 +559,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBinaryOperator LogicalAnd(BoundExpression left, BoundExpression right)
         {
+            Debug.Assert(left.Type?.SpecialType == CodeAnalysis.SpecialType.System_Boolean);
+            Debug.Assert(right.Type?.SpecialType == CodeAnalysis.SpecialType.System_Boolean);
             return Binary(BinaryOperatorKind.LogicalBoolAnd, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), left, right);
         }
 
         public BoundBinaryOperator LogicalOr(BoundExpression left, BoundExpression right)
         {
+            Debug.Assert(left.Type?.SpecialType == CodeAnalysis.SpecialType.System_Boolean);
+            Debug.Assert(right.Type?.SpecialType == CodeAnalysis.SpecialType.System_Boolean);
             return Binary(BinaryOperatorKind.LogicalBoolOr, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), left, right);
         }
 
@@ -633,6 +637,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var ctor = WellKnownMethod(wm);
             return new BoundObjectCreationExpression(Syntax, ctor, binderOpt: null, args) { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression MakeIsNotANumberTest(BoundExpression input)
+        {
+            switch (input.Type)
+            {
+                case { SpecialType: CodeAnalysis.SpecialType.System_Double }:
+                    // produce double.IsNaN(input)
+                    return StaticCall(CodeAnalysis.SpecialMember.System_Double__IsNaN, input);
+                case { SpecialType: CodeAnalysis.SpecialType.System_Single }:
+                    // produce float.IsNaN(input)
+                    return StaticCall(CodeAnalysis.SpecialMember.System_Single__IsNaN, input);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(input.Type);
+            }
         }
 
         public BoundExpression InstanceCall(BoundExpression? receiver, string name, BoundExpression arg)
@@ -1056,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(type.CanBeAssignedNull());
             BoundExpression nullLiteral = new BoundLiteral(syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
-            return type.IsPointerType()
+            return type.IsPointerOrFunctionPointer()
                 ? BoundConversion.SynthesizedNonUserDefined(syntax, nullLiteral, Conversion.NullToPointer, type)
                 : nullLiteral;
         }

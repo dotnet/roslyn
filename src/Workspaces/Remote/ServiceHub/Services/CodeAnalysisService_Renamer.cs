@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Rename;
@@ -13,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteRenamer
     {
-        public Task<SerializableConflictResolution> RenameSymbolAsync(
+        public Task<SerializableConflictResolution?> RenameSymbolAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId symbolAndProjectId,
             string newName,
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
             SerializableSymbolAndProjectId[] nonConflictSymbolIds,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync<SerializableConflictResolution>(async () =>
+            return RunServiceAsync<SerializableConflictResolution?>(async () =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -43,13 +46,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public Task<SerializableRenameLocations> FindRenameLocationsAsync(
+        public Task<SerializableRenameLocations?> FindRenameLocationsAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableSymbolAndProjectId symbolAndProjectId,
             SerializableRenameOptionSet options,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync<SerializableRenameLocations>(async () =>
+            return RunServiceAsync<SerializableRenameLocations?>(async () =>
             {
                 using (UserOperationBooster.Boost())
                 {
@@ -68,22 +71,26 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public Task<SerializableConflictResolution> ResolveConflictsAsync(
+        public Task<SerializableConflictResolution?> ResolveConflictsAsync(
             PinnedSolutionInfo solutionInfo,
             SerializableRenameLocations renameLocationSet,
             string replacementText,
             SerializableSymbolAndProjectId[] nonConflictSymbolIds,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync<SerializableConflictResolution>(async () =>
+            return RunServiceAsync<SerializableConflictResolution?>(async () =>
             {
                 using (UserOperationBooster.Boost())
                 {
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                     var nonConflictSymbols = await GetNonConflictSymbolsAsync(solution, nonConflictSymbolIds, cancellationToken).ConfigureAwait(false);
 
+                    var rehydratedSet = await RenameLocations.TryRehydrateAsync(solution, renameLocationSet, cancellationToken).ConfigureAwait(false);
+                    if (rehydratedSet == null)
+                        return null;
+
                     var result = await ConflictResolver.ResolveConflictsAsync(
-                        await RenameLocations.RehydrateAsync(solution, renameLocationSet, cancellationToken).ConfigureAwait(false),
+                        rehydratedSet,
                         replacementText,
                         nonConflictSymbols,
                         cancellationToken).ConfigureAwait(false);
@@ -92,7 +99,8 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        private async Task<ImmutableHashSet<ISymbol>> GetNonConflictSymbolsAsync(Solution solution, SerializableSymbolAndProjectId[] nonConflictSymbolIds, CancellationToken cancellationToken)
+        [return: NotNullIfNotNull("nonConflictSymbolIds")]
+        private static async Task<ImmutableHashSet<ISymbol>?> GetNonConflictSymbolsAsync(Solution solution, SerializableSymbolAndProjectId[]? nonConflictSymbolIds, CancellationToken cancellationToken)
         {
             if (nonConflictSymbolIds == null)
                 return null;

@@ -19,6 +19,60 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
     public class AutomaticBraceCompletionTests : AbstractAutomaticBraceCompletionTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void WithExpressionBracesSameLine()
+        {
+            var code = @"
+class C
+{
+    void M(C c)
+    {
+        c = c with $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M(C c)
+    {
+        c = c with { }
+    }
+}";
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckText(session.Session, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void WithExpressionBracesSameLine_Enter()
+        {
+            var code = @"
+class C
+{
+    void M(C c)
+    {
+        c = c with $$
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(C c)
+    {
+        c = c with
+        {
+
+        }
+    }
+}";
+            using var session = CreateSession(code);
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Creation()
         {
             using var session = CreateSession("$$");
@@ -361,6 +415,100 @@ class C
             CheckStart(session.Session);
             CheckText(session.Session, expectedBeforeReturn);
             CheckReturn(session.Session, 12, expectedAfterReturn);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void RecursivePattern_Nested()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is { Name: $$ }
+    }
+}";
+
+            var expectedBeforeReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is { Name: { } }
+    }
+}";
+
+            var expectedAfterReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is { Name:
+            {
+
+            } }
+    }
+}";
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckText(session.Session, expectedBeforeReturn);
+            CheckReturn(session.Session, 16, expectedAfterReturn);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void RecursivePattern_Parentheses1()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is { Name: $$ }
+    }
+}";
+            var expected = @"
+class C
+{
+    void M()
+    {
+        _ = this is { Name: () }
+    }
+}";
+
+            using var session = CreateSession(TestWorkspace.CreateCSharp(code), '(', ')');
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckText(session.Session, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void RecursivePattern_Parentheses2()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is { Name: { Length: (> 3) and $$ } }
+    }
+}";
+            var expected = @"
+class C
+{
+    void M()
+    {
+        _ = this is { Name: { Length: (> 3) and () } }
+    }
+}";
+
+            using var session = CreateSession(TestWorkspace.CreateCSharp(code), '(', ')');
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckText(session.Session, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]

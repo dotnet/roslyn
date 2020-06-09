@@ -267,9 +267,6 @@
   <data name="Given_Workspace_doesn_t_support_Undo" xml:space="preserve">
     <value>Given Workspace doesn't support Undo</value>
   </data>
-  <data name="Document_must_be_contained_in_the_workspace_that_created_this_service" xml:space="preserve">
-    <value>Document must be contained in the workspace that created this service</value>
-  </data>
   <data name="Searching" xml:space="preserve">
     <value>Searching...</value>
   </data>
@@ -365,9 +362,6 @@
   </data>
   <data name="Preview_Warning" xml:space="preserve">
     <value>Preview Warning</value>
-  </data>
-  <data name="from_metadata" xml:space="preserve">
-    <value>from metadata</value>
   </data>
   <data name="Automatic_Line_Ender" xml:space="preserve">
     <value>Automatic Line Ender</value>
@@ -587,9 +581,6 @@
   </data>
   <data name="Peek" xml:space="preserve">
     <value>Peek</value>
-  </data>
-  <data name="symbol_cannot_be_a_namespace" xml:space="preserve">
-    <value>'symbol' cannot be a namespace.</value>
   </data>
   <data name="Apply1" xml:space="preserve">
     <value>_Apply</value>

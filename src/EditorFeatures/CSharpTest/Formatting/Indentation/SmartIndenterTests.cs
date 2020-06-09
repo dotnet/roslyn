@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.Formatting.FormattingOptions2;
 using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
 
@@ -17,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public partial class SmartIndenterTests : CSharpFormatterTestsBase
     {
+        public SmartIndenterTests(ITestOutputHelper output) : base(output) { }
+
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void EmptyFile()

@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 get
                 {
-                    var text = $"{Modifier} {Type} {Parameter}";
+                    var text = $"{Modifier} {Type} {ParameterName}";
                     if (!string.IsNullOrWhiteSpace(Default))
                     {
                         text += $" = {Default}";
@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 get
                 {
-                    return _addedParameter.UseNamedArguments
+                    return _addedParameter.CallSiteKind == CallSiteKind.ValueWithName
                         ? _addedParameter.Name + ": " + _addedParameter.CallSiteValue
                         : _addedParameter.CallSiteValue;
                 }
@@ -231,7 +231,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                                ParameterSymbol.ExplicitDefaultValue is string ? "\"" + ParameterSymbol.ExplicitDefaultValue.ToString() + "\"" :
                                ParameterSymbol.ExplicitDefaultValue.ToString();
                     }
-
                 }
             }
 

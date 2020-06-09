@@ -82,7 +82,6 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Async Function TestAndAlso() As Task
             Await TestFixOneAsync(

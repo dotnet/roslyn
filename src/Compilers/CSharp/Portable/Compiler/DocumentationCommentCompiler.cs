@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (symbol.IsImplicitlyDeclared || symbol.IsAccessor())
+            if (ShouldSkip(symbol))
             {
                 return;
             }
@@ -371,6 +371,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private static bool ShouldSkip(Symbol symbol)
+        {
+            return symbol.IsImplicitlyDeclared || symbol.IsAccessor() || symbol is SynthesizedSimpleProgramEntryPointSymbol || symbol is SimpleProgramNamedTypeSymbol;
         }
 
         /// <summary>
@@ -548,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)symbol != null);
 
-            if (symbol.IsImplicitlyDeclared || symbol.IsAccessor())
+            if (ShouldSkip(symbol))
             {
                 return false;
             }

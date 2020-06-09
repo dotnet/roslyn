@@ -2,39 +2,41 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    // Must cache using SymbolKey+ProjectId.  That's because the same symbol key may be found among many projects, but
-    // the same operation on the same symbol key might produce different results depending on which project it was found
-    // in.  For example, each symbol's project may have a different set of downstream dependent projects.  As such,
-    // there may be a different set of related symbols found for each.
-    using RelatedTypeCache = ConditionalWeakTable<Solution, ConcurrentDictionary<(SymbolKey, ProjectId, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>>;
-
     using SymbolSet = HashSet<INamedTypeSymbol>;
 
     /// <summary>
-    /// Provides helper methods for finding dependent types (derivations, implementations, 
-    /// etc.) across a solution.  The results found are returned in pairs of <see cref="ISymbol"/>s
-    /// and <see cref="ProjectId"/>s.  The Ids specify what project we were searching in when
-    /// we found the symbol.  That project has the compilation that we found the specific
-    /// source or metadata symbol within.  Note that for metadata symbols there could be
-    /// many projects where the same symbol could be found.  However, we only return the
-    /// first instance we found.
+    /// Provides helper methods for finding dependent types (derivations, implementations, etc.) across a solution. This
+    /// is effectively a graph walk between INamedTypeSymbols walking down the inheritance hierarchy to find related
+    /// types based either on <see cref="ITypeSymbol.BaseType"/> or <see cref="ITypeSymbol.Interfaces"/>.
     /// </summary>
+    /// <remarks>
+    /// While walking up the inheritance hierarchy is trivial (as the information is directly contained on the <see
+    /// cref="ITypeSymbol"/>'s themselves), walking down is complicated.  The general way this works is by using
+    /// out-of-band indices that are built that store this type information in a weak manner.  Specifically, for both
+    /// source and metadata types we have indices that map between the base type name and the inherited type name. i.e.
+    /// for the case <c>class A { } class B : A { }</c> the index stores a link saying "There is a type 'A' somewhere
+    /// which has derived type called 'B' somewhere".  So when the index is examined for the name 'A', it will say
+    /// 'examine types called 'B' to see if they're an actual match'.
+    /// <para/>
+    /// These links are then continually traversed to get the full set of results.
+    /// </remarks>
     internal static partial class DependentTypeFinder
     {
         // Static helpers so we can pass delegates around without allocations.
@@ -46,102 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly Func<INamedTypeSymbol, bool> s_isNonSealedClass = t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
         private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass = t => s_isInterface(t) || s_isNonSealedClass(t);
 
-        private static readonly ObjectPool<PooledHashSet<INamedTypeSymbol>> s_setPool1 = PooledHashSet<INamedTypeSymbol>.CreatePool(SymbolEquivalenceComparer.Instance);
-
-        // Caches from a types to their related types (in the context of a specific solution).
-        // Kept as a cache so that clients who make many calls into us won't end up computing
-        // the same data over and over again.  Will be let go the moment the solution they're
-        // based off of is no longer alive.
-        //
-        // Importantly, the caches only store SymbolKeys and Ids.  As such, they will not hold
-        // any Symbols or Compilations alive.
-
-        private static readonly RelatedTypeCache s_typeToImmediatelyDerivedClassesMap = new RelatedTypeCache();
-        private static readonly RelatedTypeCache s_typeToTransitivelyDerivedClassesMap = new RelatedTypeCache();
-
-        private static readonly RelatedTypeCache s_typeToImmediatelyDerivedInterfacesMap = new RelatedTypeCache();
-        private static readonly RelatedTypeCache s_typeToTransitivelyDerivedInterfacesMap = new RelatedTypeCache();
-
-        private static readonly RelatedTypeCache s_typeToImmediatelyImplementingTypesMap = new RelatedTypeCache();
-        private static readonly RelatedTypeCache s_typeToTransitivelyImplementingTypesMap = new RelatedTypeCache();
-
-        /// <summary>
-        /// We pass the special <see cref="KeyEqualityComparer.Instance"/> here because <see cref="IImmutableSet{T}"/>
-        /// uses reference equality not value equality.
-        /// </summary>
-        private static readonly RelatedTypeCache.CreateValueCallback s_createTypeMap =
-            _ => new ConcurrentDictionary<(SymbolKey, ProjectId, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>(KeyEqualityComparer.Instance);
-
-        private static async Task<ImmutableArray<INamedTypeSymbol>> FindTypesFromCacheOrComputeAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            RelatedTypeCache cache,
-            Func<CancellationToken, Task<ImmutableArray<INamedTypeSymbol>>> findAsync,
-            CancellationToken cancellationToken)
-        {
-            var dictionary = cache.GetValue(solution, s_createTypeMap);
-
-            // Do a quick lookup first to avoid the allocation.  If it fails, go through the
-            // slower allocating path.
-            var key = (type.GetSymbolKey(), solution.GetOriginatingProjectId(type), projects);
-            if (!dictionary.TryGetValue(key, out var lazy))
-            {
-                lazy = dictionary.GetOrAdd(key,
-                    new AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>(
-                        c => GetSymbolKeysAndProjectIdsAsync(solution, findAsync, c),
-                        cacheResult: true));
-            }
-
-            // Otherwise, someone else computed the symbols and cached the results as symbol 
-            // keys.  Convert those symbol keys back to symbols and return.
-            var symbolKeys = await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            var builder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
-
-            // Group by projectId so that we only process one project/compilation at a time.
-            // Also, process in dependency order so that previous compilations are ready if
-            // they're referenced by later compilations.
-            var dependencyOrder = solution.GetProjectDependencyGraph()
-                                          .GetTopologicallySortedProjects()
-                                          .Select((id, index) => (id, index))
-                                          .ToDictionary(t => t.id, t => t.index);
-
-            var orderedGroups = symbolKeys.GroupBy(t => t.Item2).OrderBy(g => dependencyOrder[g.Key]);
-            foreach (var group in orderedGroups)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var project = solution.GetProject(group.Key);
-                if (project.SupportsCompilation)
-                {
-                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                    foreach (var (symbolKey, _) in group)
-                    {
-                        var resolvedSymbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol();
-                        if (resolvedSymbol is INamedTypeSymbol namedType)
-                        {
-                            builder.Add(namedType);
-                        }
-                    }
-                }
-            }
-
-            return builder.ToImmutableAndFree();
-        }
-
-        private static async Task<ImmutableArray<(SymbolKey, ProjectId)>> GetSymbolKeysAndProjectIdsAsync(
-            Solution solution,
-            Func<CancellationToken, Task<ImmutableArray<INamedTypeSymbol>>> findAsync,
-            CancellationToken cancellationToken)
-        {
-            // If we're the code that is actually computing the symbols, then just 
-            // take our result and store it in the outer frame.  That way the caller
-            // doesn't need to incur the cost of deserializing the symbol keys that
-            // we're create right below this.
-            var result = await findAsync(cancellationToken).ConfigureAwait(false);
-            return result.SelectAsArray(t => (t.GetSymbolKey(), solution.GetOriginatingProjectId(t)));
-        }
+        private static readonly ObjectPool<PooledHashSet<INamedTypeSymbol>> s_symbolSetPool = PooledHashSet<INamedTypeSymbol>.CreatePool(SymbolEquivalenceComparer.Instance);
 
         /// <summary>
         /// Walks down a <paramref name="type"/>'s inheritance tree looking for more <see cref="INamedTypeSymbol"/>'s
@@ -174,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // We might miss a derived type in C if there's an intermediate derived type
             // in B.
             //
-            // However, say we have projects A <- B <- C <- D, only only projects A and C
+            // However, say we have projects A <- B <- C <- D, only projects A and C
             // are passed in.  There is no need to check D as there's no way it could
             // contribute an intermediate type that affects A or C.  We only need to check
             // A, B and C
@@ -187,18 +94,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // and the list of projects the caller wants to search, find the actual list of
             // projects we need to search through.
             //
-            // This list of projects is properly topologicaly ordered.  Because of this we
+            // This list of projects is properly topologically ordered.  Because of this we
             // can just process them in order from first to last because we know no project
             // in this list could affect a prior project.
             var orderedProjectsToExamine = GetOrderedProjectsToExamine(
                 solution, projects, projectsThatCouldReferenceType);
 
-
             // The final set of results we'll be returning.
             using var _1 = GetSymbolSet(out var result);
 
             // The current total set of matching metadata types in the descendant tree (including the initial type if it
-            // is from metadata).  Will be used when examining new types to see if they inherit from any of htese.
+            // is from metadata).  Will be used when examining new types to see if they inherit from any of these.
             using var _2 = GetSymbolSet(out var currentMetadataTypes);
 
             // Same as above, but contains source types as well.
@@ -318,9 +224,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 result.Add(type);
         }
 
-        private static void AddRange(
-            SymbolSet foundTypes, SymbolSet currentTypes,
-            Func<INamedTypeSymbol, bool> shouldContinueSearching)
+        private static void AddRange(SymbolSet foundTypes, SymbolSet currentTypes, Func<INamedTypeSymbol, bool> shouldContinueSearching)
         {
             // Directly enumerate to avoid IEnumerator allocations.
             foreach (var type in foundTypes)
@@ -357,7 +261,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else
             {
                 // For a source project, find the project that that type was defined in.
-                var sourceProject = solution.GetProject(type.ContainingAssembly);
+                var sourceProject = solution.GetProject(type.ContainingAssembly, cancellationToken);
                 if (sourceProject == null)
                 {
                     return SpecializedCollections.EmptySet<ProjectId>();
@@ -442,13 +346,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Finally, because we're searching metadata and source symbols, this needs to be a project
             // that actually supports compilations.
             return projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn)
-                                                 .Select(solution.GetProject)
+                                                 .Select(id => solution.GetRequiredProject(id))
                                                  .Where(p => p.SupportsCompilation)
                                                  .ToList();
         }
 
         private static async Task AddDescendantMetadataTypesInProjectAsync(
-            SymbolSet metadataTypes,
+            SymbolSet currentMetadataTypes,
             SymbolSet result,
             Project project,
             Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
@@ -458,15 +362,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Debug.Assert(project.SupportsCompilation);
 
-            if (metadataTypes.Count == 0)
+            if (currentMetadataTypes.Count == 0)
                 return;
 
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             using var _1 = GetSymbolSet(out var typesToSearchFor);
             using var _2 = GetSymbolSet(out var tempBuffer);
 
-            typesToSearchFor.AddAll(metadataTypes);
+            typesToSearchFor.AddAll(currentMetadataTypes);
 
             // As long as there are new types to search for, keep looping.
             while (typesToSearchFor.Count > 0)
@@ -504,7 +408,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // to the names of the all the types that either immediately derive or 
             // implement that type.  Because the mapping is from the simple name
             // we might get false positives.  But that's fine as we still use 
-            // 'metadataTypeMatches' to make sure the match is correct.
+            // 'tpeMatches' to make sure the match is correct.
             var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                 project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -532,7 +436,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static bool TypeHasBaseTypeInSet(INamedTypeSymbol type, SymbolSet set)
-            => set.Contains(type.BaseType?.OriginalDefinition);
+        {
+            var baseType = type.BaseType?.OriginalDefinition;
+            return baseType != null && set.Contains(baseType);
+        }
 
         private static bool TypeHasInterfaceInSet(INamedTypeSymbol type, SymbolSet set)
         {
@@ -546,7 +453,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddDescendantSourceTypesInProjectAsync(
-            SymbolSet sourceAndMetadataTypes,
+            SymbolSet currentSourceAndMetadataTypes,
             SymbolSet result,
             Project project,
             Func<INamedTypeSymbol, SymbolSet, bool> typeMatches,
@@ -558,14 +465,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // We're going to be sweeping over this project over and over until we reach a 
             // fixed point.  In order to limit GC and excess work, we cache all the semantic
-            // models and DeclaredSymbolInfo for hte documents we look at.
+            // models and DeclaredSymbolInfo for the documents we look at.
             // Because we're only processing a project at a time, this is not an issue.
             var cachedModels = new ConcurrentSet<SemanticModel>();
 
             using var _1 = GetSymbolSet(out var typesToSearchFor);
             using var _2 = GetSymbolSet(out var tempBuffer);
 
-            typesToSearchFor.AddAll(sourceAndMetadataTypes);
+            typesToSearchFor.AddAll(currentSourceAndMetadataTypes);
 
             var projectIndex = await ProjectIndex.GetIndexAsync(project, cancellationToken).ConfigureAwait(false);
 
@@ -671,7 +578,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 cachedModels.Add(semanticModel);
 
                 var resolvedType = info.TryResolve(semanticModel, cancellationToken);
@@ -687,7 +594,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ConcurrentSet<SemanticModel> cachedModels,
             MultiDictionary<Document, DeclaredSymbolInfo> documentToInfos,
             SymbolSet result,
-            Func<INamedTypeSymbol, bool> predicateOpt,
+            Func<INamedTypeSymbol, bool>? predicateOpt,
             CancellationToken cancellationToken)
         {
             foreach (var (document, infos) in documentToInfos)
@@ -695,7 +602,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Debug.Assert(infos.Count > 0);
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 cachedModels.Add(semanticModel);
 
                 foreach (var info in infos)
@@ -717,7 +624,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static PooledDisposer<PooledHashSet<INamedTypeSymbol>> GetSymbolSet(out SymbolSet instance)
         {
-            var pooledInstance = s_setPool1.Allocate();
+            var pooledInstance = s_symbolSetPool.Allocate();
             Debug.Assert(pooledInstance.Count == 0);
             instance = pooledInstance;
             return new PooledDisposer<PooledHashSet<INamedTypeSymbol>>(pooledInstance);

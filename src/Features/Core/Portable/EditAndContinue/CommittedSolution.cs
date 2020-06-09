@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private (SourceText? Source, bool? HasDocument) TryGetPdbMatchingSourceText(string sourceFilePath, Encoding? encoding, Project project)
         {
-            bool? hasDocument = TryReadSourceFileChecksumFromPdb(sourceFilePath, project, out var symChecksum, out var algorithm);
+            var hasDocument = TryReadSourceFileChecksumFromPdb(sourceFilePath, project, out var symChecksum, out var algorithm);
             if (hasDocument != true)
             {
                 return (Source: null, hasDocument);

@@ -90,7 +90,7 @@ public class CustomGenerator : ISourceGenerator
 
     public void Execute(SourceGeneratorContext context)
     {
-        context.AddSource("myGeneratedFile.cs", SourceText.From($@"
+        context.AddSource("myGeneratedFile.cs", SourceText.From(@"
 namespace GeneratedNamespace
 {
     public class GeneratedClass
@@ -100,7 +100,7 @@ namespace GeneratedNamespace
             // generated code
         }
     }
-}"));
+}", Encoding.UTF8));
     }
 }
 ```
@@ -131,7 +131,7 @@ public class FileTransformGenerator : ISourceGenerator
                 // do some transforms based on the file context
                 string output = MyXmlToCSharpCompiler.Compile(content);
 
-                var sourceText = SourceText.From(output);
+                var sourceText = SourceText.From(output, Encoding.UTF8);
 
                 context.AddSource($"{file.Name}generated.cs", sourceText);
             }
@@ -193,7 +193,7 @@ public partial class {userClass.Identifier}
     {{
         // generated code
     }}
-}");
+}", Encoding.UTF8);
         context.AddSource("UserClass.Generated.cs", sourceText);
     }
 
@@ -373,7 +373,7 @@ public string Serialize()
     addWithIndent($"\"Item1\": \"{this.Item1.ToString()}\",");
     addWithIndent($"\"Item2\": {this.Item2.ToString()},");
 
-    sb.AppendLine("{");
+    sb.AppendLine("}");
 
     return sb.ToString();
 
