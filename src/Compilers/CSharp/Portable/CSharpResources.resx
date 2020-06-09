@@ -2738,7 +2738,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Semicolon after method or accessor block is not valid</value>
   </data>
   <data name="ERR_MethodReturnCantBeRefAny" xml:space="preserve">
-    <value>Method or delegate cannot return type '{0}'</value>
+    <value>The return type of a method, delegate, or function pointer cannot be '{0}'</value>
   </data>
   <data name="ERR_CompileCancelled" xml:space="preserve">
     <value>Compilation cancelled by user</value>

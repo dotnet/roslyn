@@ -6228,8 +6228,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethodReturnCantBeRefAny">
-        <source>Method or delegate cannot return type '{0}'</source>
-        <target state="translated">方法或委派無法傳回類型 '{0}'</target>
+        <source>The return type of a method, delegate, or function pointer cannot be '{0}'</source>
+        <target state="needs-review-translation">方法或委派無法傳回類型 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompileCancelled">
