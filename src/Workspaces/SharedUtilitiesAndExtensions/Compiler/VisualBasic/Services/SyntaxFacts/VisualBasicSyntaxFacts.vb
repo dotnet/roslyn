@@ -568,10 +568,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TryCast(node, ArgumentSyntax).GetArgumentExpression()
         End Function
 
-        Public Function GetExpressionOfAttributeArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode Implements ISyntaxFacts.GetExpressionOfAttributeArgument
-            Return TryCast(node, ArgumentSyntax).GetArgumentExpression()
-        End Function
-
         Public Function GetRefKindOfArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.RefKind Implements ISyntaxFacts.GetRefKindOfArgument
             ' TODO(cyrusn): Consider the method this argument is passed to, to determine this.
             Return RefKind.None
@@ -1304,10 +1300,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function GetArgumentsOfObjectCreationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfObjectCreationExpression
             Return GetArgumentsOfArgumentList(TryCast(node, ObjectCreationExpressionSyntax)?.ArgumentList)
-        End Function
-
-        Public Function GetArgumentsOfAttribute(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfAttribute
-            Return DirectCast(node, AttributeSyntax).ArgumentList.Arguments
         End Function
 
         Public Function GetArgumentsOfArgumentList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfArgumentList

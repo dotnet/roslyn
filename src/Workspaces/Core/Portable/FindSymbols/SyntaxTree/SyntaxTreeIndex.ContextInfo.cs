@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -17,13 +14,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             private readonly int _predefinedTypes;
             private readonly int _predefinedOperators;
-            public readonly ImmutableArray<string> InternalsVisibleTo;
             private readonly ContainingNodes _containingNodes;
 
             public ContextInfo(
                 int predefinedTypes,
                 int predefinedOperators,
-                ImmutableArray<string> internalsVisibleTo,
                 bool containsForEachStatement,
                 bool containsLockStatement,
                 bool containsUsingStatement,
@@ -37,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsTupleExpressionOrTupleType,
                 bool containsImplicitObjectCreation,
                 bool containsGlobalAttributes)
-                : this(predefinedTypes, predefinedOperators, internalsVisibleTo,
+                : this(predefinedTypes, predefinedOperators,
                        ConvertToContainingNodeFlag(
                          containsForEachStatement,
                          containsLockStatement,
@@ -55,15 +50,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
             }
 
-            private ContextInfo(
-                int predefinedTypes,
-                int predefinedOperators,
-                ImmutableArray<string> internalsVisibleTo,
-                ContainingNodes containingNodes)
+            private ContextInfo(int predefinedTypes, int predefinedOperators, ContainingNodes containingNodes)
             {
                 _predefinedTypes = predefinedTypes;
                 _predefinedOperators = predefinedOperators;
-                InternalsVisibleTo = internalsVisibleTo;
                 _containingNodes = containingNodes;
             }
 
@@ -151,9 +141,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 writer.WriteInt32(_predefinedTypes);
                 writer.WriteInt32(_predefinedOperators);
                 writer.WriteInt32((int)_containingNodes);
-                writer.WriteInt32(InternalsVisibleTo.Length);
-                foreach (var val in InternalsVisibleTo)
-                    writer.WriteString(val);
             }
 
             public static ContextInfo? TryReadFrom(ObjectReader reader)
@@ -164,12 +151,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var predefinedOperators = reader.ReadInt32();
                     var containingNodes = (ContainingNodes)reader.ReadInt32();
 
-                    var arrayLength = reader.ReadInt32();
-                    using var _ = ArrayBuilder<string>.GetInstance(arrayLength, out var internalsVisibleTo);
-                    for (var i = 0; i < arrayLength; i++)
-                        internalsVisibleTo.Add(reader.ReadString());
-
-                    return new ContextInfo(predefinedTypes, predefinedOperators, internalsVisibleTo.ToImmutable(), containingNodes);
+                    return new ContextInfo(predefinedTypes, predefinedOperators, containingNodes);
                 }
                 catch (Exception)
                 {

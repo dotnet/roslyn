@@ -214,9 +214,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
 
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
-        SyntaxNode GetExpressionOfAttributeArgument(SyntaxNode node);
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
-
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
 
         void GetPartsOfConditionalAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull);
@@ -249,7 +247,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode node);
-        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfAttribute(SyntaxNode node);
 
         bool IsUsingDirectiveName(SyntaxNode node);
 
