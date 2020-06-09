@@ -119,19 +119,19 @@ namespace Roslyn.Diagnostics.Analyzers
                         if (attributeData.ConstructorArguments.Length == 0)
                         {
                             // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.MissingDescription, namedType.Name));
+                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), ScenarioProperties.MissingDescription, namedType.Name));
                             break;
                         }
                         else if (attributeData.ConstructorArguments.Length == 1)
                         {
                             // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.MissingError, namedType.Name));
+                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), ScenarioProperties.MissingError, namedType.Name));
                             break;
                         }
                         else
                         {
                             // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), namedType.Name));
                             break;
                         }
                     }
@@ -139,14 +139,14 @@ namespace Roslyn.Diagnostics.Analyzers
                     if (!Equals(attributeData.ConstructorArguments[0].Value, "This exported object must be obtained through the MEF export provider."))
                     {
                         // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.IncorrectDescription, namedType.Name));
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), ScenarioProperties.IncorrectDescription, namedType.Name));
                         break;
                     }
 
                     if (!Equals(attributeData.ConstructorArguments[1].Value, true))
                     {
                         // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.ErrorSetToFalse, namedType.Name));
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), ScenarioProperties.ErrorSetToFalse, namedType.Name));
                         break;
                     }
 
@@ -156,7 +156,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (!foundObsoleteAttribute)
                 {
                     // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, importingConstructorAttributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.MissingAttribute, namedType.Name));
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, importingConstructorAttributeData.ApplicationSyntaxReference.GetSyntax(context.CancellationToken).GetLocation(), ScenarioProperties.MissingAttribute, namedType.Name));
                     break;
                 }
             }
