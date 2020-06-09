@@ -5119,6 +5119,46 @@ record B(int X)
             var source =
 @"using System;
 
+record B(int X)
+{
+    public void Deconstruct(ref int X)
+    {
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,19): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //             case B(int x):
+                Diagnostic(ErrorCode.ERR_BadArgRef, "(int x)").WithArguments("1", "ref").WithLocation(13, 19),
+                // (13,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'B', with 1 out parameters and a void return type.
+                //             case B(int x):
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x)").WithArguments("B", "1").WithLocation(13, 19));
+
+            Assert.Equal("void B.Deconstruct(ref System.Int32 X)", comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined_DifferentSignature_05()
+        {
+            var source =
+@"using System;
+
 record A(int X)
 {
     public A() : this(0) { }
