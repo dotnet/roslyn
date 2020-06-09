@@ -2881,7 +2881,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IWithOperation" Base="IOperation" Internal="true" ChildrenOrder="Value,Body">
+  <Node Name="IWithStatementOperation" Base="IOperation" Internal="true" ChildrenOrder="Value,Body">
     <Comments>
       <summary>
         Represents a <see cref="Body" /> of operations that are executed with implicit reference to the <see cref="Value" /> for member references.
@@ -3005,7 +3005,7 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IWithExpressionOperation" Base="IOperation" ChildrenOrder="Value,Initializer">
+  <Node Name="IWithOperation" Base="IOperation" ChildrenOrder="Value,Initializer">
     <Comments>
       <summary>
         Represents cloning of an object instance.

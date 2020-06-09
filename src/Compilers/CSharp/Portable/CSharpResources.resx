@@ -4752,6 +4752,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InitializerOnNonAutoProperty" xml:space="preserve">
     <value>Only auto-implemented properties can have initializers.</value>
   </data>
+  <data name="ERR_InstancePropertyInitializerInInterface" xml:space="preserve">
+    <value>Instance properties in interfaces cannot have initializers.</value>
+  </data>
   <data name="ERR_AutoPropertyMustHaveGetAccessor" xml:space="preserve">
     <value>Auto-implemented properties must have get accessors.</value>
   </data>
