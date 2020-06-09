@@ -32,6 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public string Add { get { return ServicesVSResources.Add; } }
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
+        public string WarningTypeDoesNotBind { get { return ServicesVSResources.Warning_colon_type_does_not_bind; } }
+        public string WarningDuplicateParameterName { get { return ServicesVSResources.Warning_colon_duplicate_parameter_name; } }
 
         public Brush ParameterText { get; }
         public Brush RemovedParameterText { get; }

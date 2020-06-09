@@ -33,9 +33,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public abstract string Modifier { get; }
             public abstract string Default { get; }
 
+            public string ModifierAutomationText => ValueOrNone(Modifier);
+            public string DefaultAutomationText => ValueOrNone(Default);
+            public string CallSiteAutomationText => ValueOrNone(CallSite);
+
             public ParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel)
             {
                 ChangeSignatureDialogViewModel = changeSignatureDialogViewModel;
+            }
+
+            private string ValueOrNone(string value)
+            {
+                return !string.IsNullOrEmpty(value)
+                    ? value
+                    : ServicesVSResources.None;
             }
 
             public Visibility HasParameterNameConflict { get; set; }
