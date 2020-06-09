@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void AnonymousType()
         {
-            var 
+            var anon = new { X = 1, Y = 2 };
             string result = s_formatter.FormatObject(new { X = 1, Y = 2 });
 
             // conditional statement for difference of old vs. new compilers
