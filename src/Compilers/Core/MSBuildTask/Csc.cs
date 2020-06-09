@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Diagnostics;
@@ -34,16 +38,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(AllowUnsafeBlocks), false); }
         }
 
-        public string ApplicationConfiguration
+        public string? ApplicationConfiguration
         {
             set { _store[nameof(ApplicationConfiguration)] = value; }
-            get { return (string)_store[nameof(ApplicationConfiguration)]; }
+            get { return (string?)_store[nameof(ApplicationConfiguration)]; }
         }
 
-        public string BaseAddress
+        public string? BaseAddress
         {
             set { _store[nameof(BaseAddress)] = value; }
-            get { return (string)_store[nameof(BaseAddress)]; }
+            get { return (string?)_store[nameof(BaseAddress)]; }
         }
 
         public bool CheckForOverflowUnderflow
@@ -52,16 +56,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(CheckForOverflowUnderflow), false); }
         }
 
-        public string DocumentationFile
+        public string? DocumentationFile
         {
             set { _store[nameof(DocumentationFile)] = value; }
-            get { return (string)_store[nameof(DocumentationFile)]; }
+            get { return (string?)_store[nameof(DocumentationFile)]; }
         }
 
-        public string DisabledWarnings
+        public string? DisabledWarnings
         {
             set { _store[nameof(DisabledWarnings)] = value; }
-            get { return (string)_store[nameof(DisabledWarnings)]; }
+            get { return (string?)_store[nameof(DisabledWarnings)]; }
         }
 
         public bool DisableSdkPath
@@ -76,10 +80,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(ErrorEndLocation), false); }
         }
 
-        public string ErrorReport
+        public string? ErrorReport
         {
             set { _store[nameof(ErrorReport)] = value; }
-            get { return (string)_store[nameof(ErrorReport)]; }
+            get { return (string?)_store[nameof(ErrorReport)]; }
         }
 
         public bool GenerateFullPaths
@@ -88,10 +92,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(GenerateFullPaths), false); }
         }
 
-        public string ModuleAssemblyName
+        public string? ModuleAssemblyName
         {
             set { _store[nameof(ModuleAssemblyName)] = value; }
-            get { return (string)_store[nameof(ModuleAssemblyName)]; }
+            get { return (string?)_store[nameof(ModuleAssemblyName)]; }
         }
 
         public bool NoStandardLib
@@ -100,10 +104,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(NoStandardLib), false); }
         }
 
-        public string PdbFile
+        public string? PdbFile
         {
             set { _store[nameof(PdbFile)] = value; }
-            get { return (string)_store[nameof(PdbFile)]; }
+            get { return (string?)_store[nameof(PdbFile)]; }
         }
 
         /// <summary>
@@ -113,16 +117,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// If set to null, "/preferreduilang" option is omitted, and csc.exe uses its default setting.
         /// Otherwise, the value is passed to "/preferreduilang" as is.
         /// </remarks>
-        public string PreferredUILang
+        public string? PreferredUILang
         {
             set { _store[nameof(PreferredUILang)] = value; }
-            get { return (string)_store[nameof(PreferredUILang)]; }
+            get { return (string?)_store[nameof(PreferredUILang)]; }
         }
 
-        public string VsSessionGuid
+        public string? VsSessionGuid
         {
             set { _store[nameof(VsSessionGuid)] = value; }
-            get { return (string)_store[nameof(VsSessionGuid)]; }
+            get { return (string?)_store[nameof(VsSessionGuid)]; }
         }
 
         public bool UseHostCompilerIfAvailable
@@ -137,19 +141,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(WarningLevel), 4); }
         }
 
-        public string WarningsAsErrors
+        public string? WarningsAsErrors
         {
             set { _store[nameof(WarningsAsErrors)] = value; }
-            get { return (string)_store[nameof(WarningsAsErrors)]; }
+            get { return (string?)_store[nameof(WarningsAsErrors)]; }
         }
 
-        public string WarningsNotAsErrors
+        public string? WarningsNotAsErrors
         {
             set { _store[nameof(WarningsNotAsErrors)] = value; }
-            get { return (string)_store[nameof(WarningsNotAsErrors)]; }
+            get { return (string?)_store[nameof(WarningsNotAsErrors)]; }
         }
 
-        public string Nullable
+        public string? Nullable
         {
             set
             {
@@ -158,7 +162,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     _store[nameof(Nullable)] = value;
                 }
             }
-            get { return (string)_store[nameof(Nullable)]; }
+            get { return (string?)_store[nameof(Nullable)]; }
         }
 
         #endregion
@@ -290,7 +294,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         internal static void AddReferencesToCommandLine(
             CommandLineBuilderExtension commandLine,
-            ITaskItem[] references,
+            ITaskItem[]? references,
             bool isInteractive = false)
         {
             // If there were no references passed in, don't add any /reference: switches
@@ -387,11 +391,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Then we look at the resulting list of strings, and remove any that are
         /// illegal identifiers, and pass the remaining ones through to the compiler.
         /// 
-        /// Note that CSharp does support assigning a value to the constants ... in
+        /// Note that CSharp doesn't support assigning a value to the constants ... in
         /// other words, a constant is either defined or not defined ... it can't have
         /// an actual value.
         /// </summary>
-        internal static string GetDefineConstantsSwitch(string originalDefineConstants, TaskLoggingHelper log)
+        internal static string? GetDefineConstantsSwitch(string? originalDefineConstants, TaskLoggingHelper log)
         {
             if (originalDefineConstants == null)
             {
@@ -473,7 +477,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 CheckHostObjectSupport(param = nameof(Sources), cscHostObject.SetSources(Sources));
 
                 // For host objects which support it, pass the list of analyzers.
-                IAnalyzerHostObject analyzerHostObject = cscHostObject as IAnalyzerHostObject;
+                IAnalyzerHostObject? analyzerHostObject = cscHostObject as IAnalyzerHostObject;
                 if (analyzerHostObject != null)
                 {
                     CheckHostObjectSupport(param = nameof(Analyzers), analyzerHostObject.SetAnalyzers(Analyzers));
@@ -521,7 +525,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 CheckHostObjectSupport(param = nameof(PdbFile), cscHostObject.SetPdbFile(PdbFile));
 
                 // For host objects which support it, set platform with 32BitPreference, HighEntropyVA, and SubsystemVersion
-                ICscHostObject4 cscHostObject4 = cscHostObject as ICscHostObject4;
+                ICscHostObject4? cscHostObject4 = cscHostObject as ICscHostObject4;
                 if (cscHostObject4 != null)
                 {
                     CheckHostObjectSupport(param = nameof(PlatformWith32BitPreference), cscHostObject4.SetPlatformWith32BitPreference(PlatformWith32BitPreference));
@@ -534,7 +538,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
 
                 // For host objects which support it, set the analyzer ruleset and additional files.
-                IAnalyzerHostObject analyzerHostObject = cscHostObject as IAnalyzerHostObject;
+                IAnalyzerHostObject? analyzerHostObject = cscHostObject as IAnalyzerHostObject;
                 if (analyzerHostObject != null)
                 {
                     CheckHostObjectSupport(param = nameof(CodeAnalysisRuleSet), analyzerHostObject.SetRuleSet(CodeAnalysisRuleSet));
@@ -548,7 +552,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CheckHostObjectSupport(param = nameof(PotentialAnalyzerConfigFiles), analyzerConfigFilesHostObject.SetPotentialAnalyzerConfigFiles(PotentialAnalyzerConfigFiles));
                 }
 
-                ICscHostObject5 cscHostObject5 = cscHostObject as ICscHostObject5;
+                ICscHostObject5? cscHostObject5 = cscHostObject as ICscHostObject5;
                 if (cscHostObject5 != null)
                 {
                     CheckHostObjectSupport(param = nameof(ErrorLog), cscHostObject5.SetErrorLog(ErrorLog));
@@ -749,8 +753,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             Debug.Assert(HostObject != null, "We should not be here if the host object has not been set.");
 
-            ICscHostObject cscHostObject = HostObject as ICscHostObject;
-            Debug.Assert(cscHostObject != null, "Wrong kind of host object passed in!");
+            ICscHostObject? cscHostObject = HostObject as ICscHostObject;
+            RoslynDebug.Assert(cscHostObject != null, "Wrong kind of host object passed in!");
             return cscHostObject.Compile();
         }
     }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -20,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         }
 
         internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-        {
-            return new AttributeSignatureHelpProvider();
-        }
+            => new AttributeSignatureHelpProvider();
 
         #region "Regular tests"
 
@@ -500,6 +500,36 @@ class D
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute()", string.Empty, null, currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(12544, "https://github.com/dotnet/roslyn/issues/12544")]
+        [WorkItem(23664, "https://github.com/dotnet/roslyn/issues/23664")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestAttributeWithOverriddenProperty()
+        {
+            var markup = @"
+cusing System;
+
+class BaseAttribute : Attribute
+{
+    public virtual string Name { get; set; }
+}
+
+class DerivedAttribute : BaseAttribute
+{
+    public override string Name { get; set; }
+}
+
+[[|Derived($$|])]
+class C
+{
+
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"DerivedAttribute({CSharpFeaturesResources.Properties}: [Name = string])", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
         #endregion

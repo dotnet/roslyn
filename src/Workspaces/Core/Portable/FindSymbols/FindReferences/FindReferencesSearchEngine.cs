@@ -1,7 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,26 +15,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using ProjectToDocumentMap = Dictionary<Project, MultiDictionary<Document, (SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>;
+    using ProjectToDocumentMap = Dictionary<Project, MultiDictionary<Document, (ISymbol symbol, IReferenceFinder finder)>>;
 
     internal partial class FindReferencesSearchEngine
     {
         private readonly Solution _solution;
         private readonly IImmutableSet<Document> _documents;
         private readonly ImmutableArray<IReferenceFinder> _finders;
-        private readonly StreamingProgressTracker _progressTracker;
+        private readonly IStreamingProgressTracker _progressTracker;
         private readonly IStreamingFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
         private readonly ProjectDependencyGraph _dependencyGraph;
         private readonly FindReferencesSearchOptions _options;
-
-        /// <summary>
-        /// Mapping from a document to the list of reference locations found in it.  Kept around so
-        /// we only notify the callback once when a location is found for a reference (in case
-        /// multiple finders find the same reference location for a symbol).
-        /// </summary>
-        private readonly ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>> _documentToLocationMap = new ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>>();
-        private static readonly Func<Document, ConcurrentSet<ReferenceLocation>> s_createDocumentLocations = _ => new ConcurrentSet<ReferenceLocation>();
 
         public FindReferencesSearchEngine(
             Solution solution,
@@ -52,16 +44,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _dependencyGraph = solution.GetProjectDependencyGraph();
             _options = options;
 
-            _progressTracker = new StreamingProgressTracker(progress.ReportProgressAsync);
+            _progressTracker = progress.ProgressTracker;
         }
 
-        public async Task FindReferencesAsync(SymbolAndProjectId symbolAndProjectId)
+        public async Task FindReferencesAsync(ISymbol symbol)
         {
             await _progress.OnStartedAsync().ConfigureAwait(false);
-            await _progressTracker.AddItemsAsync(1).ConfigureAwait(false);
             try
             {
-                var symbols = await DetermineAllSymbolsAsync(symbolAndProjectId).ConfigureAwait(false);
+                await using var _ = await _progressTracker.AddSingleItemAsync().ConfigureAwait(false);
+
+                var symbols = await DetermineAllSymbolsAsync(symbol).ConfigureAwait(false);
 
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
                 var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);
@@ -71,7 +64,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
                 await _progress.OnCompletedAsync().ConfigureAwait(false);
             }
         }
@@ -120,7 +112,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static void ValidateProjectToDocumentMap(
             ProjectToDocumentMap projectToDocumentMap)
         {
-            var set = new HashSet<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>();
+            var set = new HashSet<(ISymbol symbol, IReferenceFinder finder)>();
 
             foreach (var documentMap in projectToDocumentMap.Values)
             {
@@ -136,9 +128,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private Task HandleLocationAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
-        {
-            return _progress.OnReferenceFoundAsync(symbolAndProjectId, location);
-        }
+        private Task HandleLocationAsync(ISymbol symbol, ReferenceLocation location)
+            => _progress.OnReferenceFoundAsync(symbol, location);
     }
 }

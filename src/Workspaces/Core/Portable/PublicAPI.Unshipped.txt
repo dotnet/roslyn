@@ -1,97 +1,42 @@
-*REMOVED*Microsoft.CodeAnalysis.Workspace.ClearOpenDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool isSolutionClosing = false) -> void
-Microsoft.CodeAnalysis.AdditionalDocument
-Microsoft.CodeAnalysis.AnalyzerConfigDocument
-Microsoft.CodeAnalysis.ApplyChangesKind.AddAnalyzerConfigDocument = 17 -> Microsoft.CodeAnalysis.ApplyChangesKind
-Microsoft.CodeAnalysis.ApplyChangesKind.ChangeAnalyzerConfigDocument = 19 -> Microsoft.CodeAnalysis.ApplyChangesKind
-Microsoft.CodeAnalysis.ApplyChangesKind.RemoveAnalyzerConfigDocument = 18 -> Microsoft.CodeAnalysis.ApplyChangesKind
-Microsoft.CodeAnalysis.Project.AddAnalyzerConfigDocument(string name, Microsoft.CodeAnalysis.Text.SourceText text, System.Collections.Generic.IEnumerable<string> folders = null, string filePath = null) -> Microsoft.CodeAnalysis.TextDocument
-Microsoft.CodeAnalysis.Project.AnalyzerConfigDocuments.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.AnalyzerConfigDocument>
-Microsoft.CodeAnalysis.Project.ContainsAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> bool
-Microsoft.CodeAnalysis.Project.DefaultNamespace.get -> string
-Microsoft.CodeAnalysis.Project.GetAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> Microsoft.CodeAnalysis.AnalyzerConfigDocument
-Microsoft.CodeAnalysis.Project.RemoveAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> Microsoft.CodeAnalysis.Project
-Microsoft.CodeAnalysis.Project.WithDefaultNamespace(string defaultNamespace) -> Microsoft.CodeAnalysis.Project
-Microsoft.CodeAnalysis.ProjectChanges.GetAddedAnalyzerConfigDocuments() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
-Microsoft.CodeAnalysis.ProjectChanges.GetChangedAnalyzerConfigDocuments() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
-Microsoft.CodeAnalysis.ProjectChanges.GetRemovedAnalyzerConfigDocuments() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
-Microsoft.CodeAnalysis.ProjectInfo.AnalyzerConfigDocuments.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.DocumentInfo>
-Microsoft.CodeAnalysis.ProjectInfo.WithAnalyzerConfigDocuments(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> analyzerConfigDocuments) -> Microsoft.CodeAnalysis.ProjectInfo
-Microsoft.CodeAnalysis.ProjectInfo.WithDefaultNamespace(string defaultNamespace) -> Microsoft.CodeAnalysis.ProjectInfo
-Microsoft.CodeAnalysis.Solution.AddAdditionalDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentInfos) -> Microsoft.CodeAnalysis.Solution
-Microsoft.CodeAnalysis.Solution.AddAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId, string name, Microsoft.CodeAnalysis.Text.SourceText text, System.Collections.Generic.IEnumerable<string> folders = null, string filePath = null) -> Microsoft.CodeAnalysis.Solution
-Microsoft.CodeAnalysis.Solution.AddAnalyzerConfigDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentInfos) -> Microsoft.CodeAnalysis.Solution
-Microsoft.CodeAnalysis.Solution.ContainsAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> bool
-Microsoft.CodeAnalysis.Solution.GetAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> Microsoft.CodeAnalysis.AnalyzerConfigDocument
-Microsoft.CodeAnalysis.Solution.RemoveAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> Microsoft.CodeAnalysis.Solution
-Microsoft.CodeAnalysis.Solution.WithAnalyzerConfigDocumentText(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.PreservationMode mode = Microsoft.CodeAnalysis.PreservationMode.PreserveValue) -> Microsoft.CodeAnalysis.Solution
-Microsoft.CodeAnalysis.Solution.WithAnalyzerConfigDocumentText(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextAndVersion textAndVersion, Microsoft.CodeAnalysis.PreservationMode mode = Microsoft.CodeAnalysis.PreservationMode.PreserveValue) -> Microsoft.CodeAnalysis.Solution
-Microsoft.CodeAnalysis.Solution.WithAnalyzerConfigDocumentTextLoader(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader loader, Microsoft.CodeAnalysis.PreservationMode mode) -> Microsoft.CodeAnalysis.Solution
-Microsoft.CodeAnalysis.Solution.WithProjectDefaultNamespace(Microsoft.CodeAnalysis.ProjectId projectId, string defaultNamespace) -> Microsoft.CodeAnalysis.Solution
-Microsoft.CodeAnalysis.TextDocumentKind
-Microsoft.CodeAnalysis.TextDocumentKind.AdditionalDocument = 1 -> Microsoft.CodeAnalysis.TextDocumentKind
-Microsoft.CodeAnalysis.TextDocumentKind.AnalyzerConfigDocument = 2 -> Microsoft.CodeAnalysis.TextDocumentKind
-Microsoft.CodeAnalysis.TextDocumentKind.Document = 0 -> Microsoft.CodeAnalysis.TextDocumentKind
-Microsoft.CodeAnalysis.Workspace.CheckAnalyzerConfigDocumentIsInCurrentSolution(Microsoft.CodeAnalysis.DocumentId documentId) -> void
-Microsoft.CodeAnalysis.Workspace.CheckAnalyzerConfigDocumentIsNotInCurrentSolution(Microsoft.CodeAnalysis.DocumentId documentId) -> void
-Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentAdded(Microsoft.CodeAnalysis.DocumentInfo documentInfo) -> void
-Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentClosed(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader reloader) -> void
-Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentOpened(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer, bool isCurrentContext = true) -> void
-Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentRemoved(Microsoft.CodeAnalysis.DocumentId documentId) -> void
-Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentTextChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceText newText, Microsoft.CodeAnalysis.PreservationMode mode) -> void
-Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentTextLoaderChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader loader) -> void
-Microsoft.CodeAnalysis.WorkspaceChangeKind.AnalyzerConfigDocumentAdded = 18 -> Microsoft.CodeAnalysis.WorkspaceChangeKind
-Microsoft.CodeAnalysis.WorkspaceChangeKind.AnalyzerConfigDocumentChanged = 21 -> Microsoft.CodeAnalysis.WorkspaceChangeKind
-Microsoft.CodeAnalysis.WorkspaceChangeKind.AnalyzerConfigDocumentReloaded = 20 -> Microsoft.CodeAnalysis.WorkspaceChangeKind
-Microsoft.CodeAnalysis.WorkspaceChangeKind.AnalyzerConfigDocumentRemoved = 19 -> Microsoft.CodeAnalysis.WorkspaceChangeKind
-abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
-abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameExpression(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol namespaceOrTypeSymbol) -> Microsoft.CodeAnalysis.SyntaxNode
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ControlKeyword = "keyword - control" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.LabelName = "label name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.NamespaceName = "namespace name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.OperatorOverloaded = "operator - overloaded" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexAlternation = "regex - alternation" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexAnchor = "regex - anchor" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexCharacterClass = "regex - character class" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexComment = "regex - comment" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexGrouping = "regex - grouping" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexOtherEscape = "regex - other escape" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexQuantifier = "regex - quantifier" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexSelfEscapedCharacter = "regex - self escaped character" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RegexText = "regex - text" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.StaticSymbol = "static symbol" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.StringEscapeCharacter = "string - escape character" -> string
-const Microsoft.CodeAnalysis.WorkspaceKind.MSBuild = "MSBuildWorkspace" -> string
-Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.get -> Microsoft.CodeAnalysis.ReportDiagnostic
-Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.set -> void
-Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsRef(bool isRef) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.INamespaceOrTypeSymbol symbol) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.FileTextLoader
-Microsoft.CodeAnalysis.FileTextLoader.DefaultEncoding.get -> System.Text.Encoding
-Microsoft.CodeAnalysis.FileTextLoader.FileTextLoader(string path, System.Text.Encoding defaultEncoding) -> void
-Microsoft.CodeAnalysis.FileTextLoader.Path.get -> string
-Microsoft.CodeAnalysis.ProjectChanges.GetChangedDocuments(bool onlyGetDocumentsWithTextChanges) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
-Microsoft.CodeAnalysis.Solution.AddDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentInfos) -> Microsoft.CodeAnalysis.Solution
-Microsoft.CodeAnalysis.Solution.WithProjectDocumentsOrder(Microsoft.CodeAnalysis.ProjectId projectId, System.Collections.Immutable.ImmutableList<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Solution
-Microsoft.CodeAnalysis.Workspace.ClearOpenDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> void
-Microsoft.CodeAnalysis.Workspace.ClearOpenDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool isSolutionClosing) -> void
-Microsoft.CodeAnalysis.Workspace.OnDocumentsAdded(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentInfos) -> void
-Microsoft.CodeAnalysis.Workspace.OnOutputRefFilePathChanged(Microsoft.CodeAnalysis.ProjectId projectId, string outputFilePath) -> void
-override Microsoft.CodeAnalysis.AdhocWorkspace.CloseAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> void
-override Microsoft.CodeAnalysis.AdhocWorkspace.OpenAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool activate = true) -> void
-override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
-override Microsoft.CodeAnalysis.Options.OptionKey.ToString() -> string
-static Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.AdditiveTypeNames.get -> System.Collections.Immutable.ImmutableArray<string>
-static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeAction> nestedActions, bool isInlinable) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
-static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
-static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
-static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Solution solution, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
-static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Solution solution, string pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
-static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Silent -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
-virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream, Microsoft.CodeAnalysis.Workspace workspace) -> Microsoft.CodeAnalysis.Text.SourceText
-virtual Microsoft.CodeAnalysis.Workspace.ApplyAnalyzerConfigDocumentAdded(Microsoft.CodeAnalysis.DocumentInfo info, Microsoft.CodeAnalysis.Text.SourceText text) -> void
-virtual Microsoft.CodeAnalysis.Workspace.ApplyAnalyzerConfigDocumentRemoved(Microsoft.CodeAnalysis.DocumentId documentId) -> void
-virtual Microsoft.CodeAnalysis.Workspace.ApplyAnalyzerConfigDocumentTextChanged(Microsoft.CodeAnalysis.DocumentId id, Microsoft.CodeAnalysis.Text.SourceText text) -> void
-virtual Microsoft.CodeAnalysis.Workspace.CanApplyCompilationOptionChange(Microsoft.CodeAnalysis.CompilationOptions oldOptions, Microsoft.CodeAnalysis.CompilationOptions newOptions, Microsoft.CodeAnalysis.Project project) -> bool
-virtual Microsoft.CodeAnalysis.Workspace.CloseAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> void
-virtual Microsoft.CodeAnalysis.Workspace.GetAnalyzerConfigDocumentName(Microsoft.CodeAnalysis.DocumentId documentId) -> string
-virtual Microsoft.CodeAnalysis.Workspace.OpenAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool activate = true) -> void
+*REMOVED*abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
+*REMOVED*override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
+*REMOVED*static Microsoft.CodeAnalysis.SolutionInfo.Create(Microsoft.CodeAnalysis.SolutionId id, Microsoft.CodeAnalysis.VersionStamp version, string filePath = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectInfo> projects = null) -> Microsoft.CodeAnalysis.SolutionInfo
+abstract Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction.GetDescription(System.Globalization.CultureInfo culture = null) -> string
+Microsoft.CodeAnalysis.ApplyChangesKind.AddSolutionAnalyzerReference = 20 -> Microsoft.CodeAnalysis.ApplyChangesKind
+Microsoft.CodeAnalysis.ApplyChangesKind.RemoveSolutionAnalyzerReference = 21 -> Microsoft.CodeAnalysis.ApplyChangesKind
+Microsoft.CodeAnalysis.CompilationOutputFilePaths
+Microsoft.CodeAnalysis.CompilationOutputFilePaths.AssemblyPath.get -> string
+Microsoft.CodeAnalysis.CompilationOutputFilePaths.Equals(Microsoft.CodeAnalysis.CompilationOutputFilePaths other) -> bool
+Microsoft.CodeAnalysis.CompilationOutputFilePaths.WithAssemblyPath(string path) -> Microsoft.CodeAnalysis.CompilationOutputFilePaths
+Microsoft.CodeAnalysis.Project.CompilationOutputFilePaths.get -> Microsoft.CodeAnalysis.CompilationOutputFilePaths
+Microsoft.CodeAnalysis.Project.RemoveAdditionalDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Project
+Microsoft.CodeAnalysis.Project.RemoveAnalyzerConfigDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId> documentIds) -> Microsoft.CodeAnalysis.Project
+Microsoft.CodeAnalysis.ProjectInfo.CompilationOutputFilePaths.get -> Microsoft.CodeAnalysis.CompilationOutputFilePaths
+Microsoft.CodeAnalysis.ProjectInfo.WithCompilationOutputFilePaths(in Microsoft.CodeAnalysis.CompilationOutputFilePaths paths) -> Microsoft.CodeAnalysis.ProjectInfo
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction.GetErrors(System.Globalization.CultureInfo culture = null) -> System.Collections.Immutable.ImmutableArray<string>
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionSet
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionSet.ApplicableActions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction>
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionSet.UpdateSolutionAsync(Microsoft.CodeAnalysis.Solution solution, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAction> actions, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
+Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionSet.UpdateSolutionAsync(Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
+Microsoft.CodeAnalysis.Solution.AddAnalyzerReference(Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference analyzerReference) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Solution.AddAnalyzerReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Solution.AnalyzerReferences.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference>
+Microsoft.CodeAnalysis.Solution.RemoveAnalyzerReference(Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference analyzerReference) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Solution.WithAnalyzerReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Solution.WithProjectCompilationOutputFilePaths(Microsoft.CodeAnalysis.ProjectId projectId, in Microsoft.CodeAnalysis.CompilationOutputFilePaths paths) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.SolutionChanges.GetAddedAnalyzerReferences() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference>
+Microsoft.CodeAnalysis.SolutionChanges.GetRemovedAnalyzerReferences() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference>
+Microsoft.CodeAnalysis.SolutionInfo.AnalyzerReferences.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference>
+override Microsoft.CodeAnalysis.CompilationOutputFilePaths.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.CompilationOutputFilePaths.GetHashCode() -> int
+static Microsoft.CodeAnalysis.CompilationOutputFilePaths.operator !=(in Microsoft.CodeAnalysis.CompilationOutputFilePaths left, in Microsoft.CodeAnalysis.CompilationOutputFilePaths right) -> bool
+static Microsoft.CodeAnalysis.CompilationOutputFilePaths.operator ==(in Microsoft.CodeAnalysis.CompilationOutputFilePaths left, in Microsoft.CodeAnalysis.CompilationOutputFilePaths right) -> bool
+static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindDerivedClassesAsync(Microsoft.CodeAnalysis.INamedTypeSymbol type, Microsoft.CodeAnalysis.Solution solution, bool transitive, System.Collections.Immutable.IImmutableSet<Microsoft.CodeAnalysis.Project> projects = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.INamedTypeSymbol>>
+static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindDerivedInterfacesAsync(Microsoft.CodeAnalysis.INamedTypeSymbol type, Microsoft.CodeAnalysis.Solution solution, bool transitive, System.Collections.Immutable.IImmutableSet<Microsoft.CodeAnalysis.Project> projects = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.INamedTypeSymbol>>
+static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindDerivedInterfacesAsync(Microsoft.CodeAnalysis.INamedTypeSymbol type, Microsoft.CodeAnalysis.Solution solution, System.Collections.Immutable.IImmutableSet<Microsoft.CodeAnalysis.Project> projects = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.INamedTypeSymbol>>
+static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindImplementationsAsync(Microsoft.CodeAnalysis.INamedTypeSymbol type, Microsoft.CodeAnalysis.Solution solution, bool transitive, System.Collections.Immutable.IImmutableSet<Microsoft.CodeAnalysis.Project> projects = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.INamedTypeSymbol>>
+static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindImplementationsAsync(Microsoft.CodeAnalysis.INamedTypeSymbol type, Microsoft.CodeAnalysis.Solution solution, System.Collections.Immutable.IImmutableSet<Microsoft.CodeAnalysis.Project> projects = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.INamedTypeSymbol>>
+static Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAsync(Microsoft.CodeAnalysis.Document document, string newDocumentName, System.Collections.Generic.IReadOnlyList<string> newDocumentFolders = null, Microsoft.CodeAnalysis.Options.OptionSet optionSet = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionSet>
+static Microsoft.CodeAnalysis.SolutionInfo.Create(Microsoft.CodeAnalysis.SolutionId id, Microsoft.CodeAnalysis.VersionStamp version, string filePath = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectInfo> projects = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences = null) -> Microsoft.CodeAnalysis.SolutionInfo
+static Microsoft.CodeAnalysis.SolutionInfo.Create(Microsoft.CodeAnalysis.SolutionId id, Microsoft.CodeAnalysis.VersionStamp version, string filePath, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectInfo> projects) -> Microsoft.CodeAnalysis.SolutionInfo

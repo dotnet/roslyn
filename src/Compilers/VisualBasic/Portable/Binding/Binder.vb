@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
@@ -744,7 +746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' True if integer overflow checking is off.
+        ''' True if integer overflow checking is On.
         ''' </summary>
         Public Overridable ReadOnly Property CheckOverflow As Boolean
             Get
@@ -895,10 +897,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Issue an error or warning for a symbol if it is Obsolete. If there is not enough
         ''' information to report diagnostics, then store the symbols so that diagnostics
         ''' can be reported at a later stage.
+        ''' Also, check runtime support for the symbol.
         ''' </summary>
-        Friend Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, symbol As Symbol, node As SyntaxNode)
+        Friend Sub ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics As DiagnosticBag, symbol As Symbol, node As SyntaxNode)
             If Not Me.SuppressObsoleteDiagnostics Then
                 ReportDiagnosticsIfObsolete(diagnostics, Me.ContainingMember, symbol, node)
+            End If
+
+            If symbol.Kind <> SymbolKind.Property AndAlso
+               Compilation.SourceModule IsNot symbol.ContainingModule AndAlso
+               (symbol.ContainingType?.IsInterface).GetValueOrDefault() AndAlso
+               Not Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation Then
+
+                If Not symbol.IsShared AndAlso
+                   Not TypeOf symbol Is TypeSymbol AndAlso
+                   Not symbol.RequiresImplementation() Then
+                    ReportDiagnostic(diagnostics, node, ERRID.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation)
+                Else
+                    Select Case symbol.DeclaredAccessibility
+                        Case Accessibility.Protected,
+                             Accessibility.ProtectedOrInternal,
+                             Accessibility.ProtectedAndInternal
+
+                            ReportDiagnostic(diagnostics, node, ERRID.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember)
+                    End Select
+                End If
             End If
         End Sub
 

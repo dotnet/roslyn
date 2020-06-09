@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -28,12 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private IVsInvisibleEditor _invisibleEditor;
         private OLE.Interop.IOleUndoManager _manager;
         private readonly bool _needsUndoRestored;
-
-        [Obsolete("This is a compatibility shim for Live Share; please do not use it.")]
-        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, AbstractProject projectOpt, bool needsSave, bool needsUndoDisabled)
-            : this(serviceProvider, filePath, projectOpt?.Hierarchy, needsSave, needsUndoDisabled)
-        {
-        }
 
         /// <remarks>
         /// <para>The optional project is used to obtain an <see cref="IVsProject"/> instance. When this instance is
@@ -194,9 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 #pragma warning disable CA1821 // Remove empty Finalizers
 #if DEBUG
         ~InvisibleEditor()
-        {
-            Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
-        }
+            => Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
 #endif
 #pragma warning restore CA1821 // Remove empty Finalizers
     }

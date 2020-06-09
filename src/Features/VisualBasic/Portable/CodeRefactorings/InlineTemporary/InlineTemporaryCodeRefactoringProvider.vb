@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -18,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
         Inherits CodeRefactoringProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -58,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 New MyCodeAction(VBFeaturesResources.Inline_temporary_variable, Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c)), variableDeclarator.Span)
         End Function
 
-        Private Async Function GetReferencesAsync(
+        Private Shared Async Function GetReferencesAsync(
             document As Document,
             modifiedIdentifier As ModifiedIdentifierSyntax,
             cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ReferenceLocation))
@@ -131,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
         Private Shared ReadOnly s_initializerAnnotation As New SyntaxAnnotation
         Private Shared ReadOnly s_expressionToInlineAnnotation As New SyntaxAnnotation
 
-        Private Async Function InlineTemporaryAsync(document As Document, modifiedIdentifier As ModifiedIdentifierSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function InlineTemporaryAsync(document As Document, modifiedIdentifier As ModifiedIdentifierSyntax, cancellationToken As CancellationToken) As Task(Of Document)
             ' First, annotate the modified identifier so that we can get back to it later.
             Dim updatedDocument = Await document.ReplaceNodeAsync(modifiedIdentifier, modifiedIdentifier.WithAdditionalAnnotations(s_definitionAnnotation), cancellationToken).ConfigureAwait(False)
             Dim semanticModel = Await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
@@ -270,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Return localDeclaration.Parent
         End Function
 
-        Private Function GetUpdatedDeclaration(modifiedIdentifier As ModifiedIdentifierSyntax) As LocalDeclarationStatementSyntax
+        Private Shared Function GetUpdatedDeclaration(modifiedIdentifier As ModifiedIdentifierSyntax) As LocalDeclarationStatementSyntax
             Dim variableDeclarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
             Dim localDeclaration = DirectCast(variableDeclarator.Parent, LocalDeclarationStatementSyntax)
 
@@ -282,11 +286,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 Return localDeclaration.RemoveNode(modifiedIdentifier, SyntaxRemoveOptions.KeepEndOfLine)
             End If
 
-            Contract.Fail("Failed to update local declaration")
-            Return localDeclaration
+            throw ExceptionUtilities.Unreachable
         End Function
 
-        Private Function RemoveDefinition(modifiedIdentifier As ModifiedIdentifierSyntax, newBlock As SyntaxNode) As SyntaxNode
+        Private Shared Function RemoveDefinition(modifiedIdentifier As ModifiedIdentifierSyntax, newBlock As SyntaxNode) As SyntaxNode
             Dim variableDeclarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
             Dim localDeclaration = DirectCast(variableDeclarator.Parent, LocalDeclarationStatementSyntax)
 
@@ -412,7 +415,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             explicitInitializer = explicitInitializer.CastIfPossible(local.Type,
                                                                      modifiedIdentifier.SpanStart,
                                                                      semanticModel,
-                                                                     wasCastAdded)
+                                                                     wasCastAdded,
+                                                                     cancellationToken)
 
             Return explicitInitializer.WithAdditionalAnnotations(s_expressionToInlineAnnotation)
         End Function

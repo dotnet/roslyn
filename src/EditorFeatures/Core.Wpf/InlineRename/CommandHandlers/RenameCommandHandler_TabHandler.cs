@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -7,7 +9,6 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -15,10 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         IChainedCommandHandler<TabKeyCommandArgs>,
         IChainedCommandHandler<BackTabKeyCommandArgs>
     {
-        public VSCommanding.CommandState GetCommandState(TabKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
-        {
-            return GetCommandState(nextHandler);
-        }
+        public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
+            => GetCommandState(nextHandler);
 
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
@@ -50,10 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             });
         }
 
-        public VSCommanding.CommandState GetCommandState(BackTabKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
-        {
-            return GetCommandState(nextHandler);
-        }
+        public CommandState GetCommandState(BackTabKeyCommandArgs args, Func<CommandState> nextHandler)
+            => GetCommandState(nextHandler);
 
         public void ExecuteCommand(BackTabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {

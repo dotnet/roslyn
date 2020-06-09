@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
@@ -15,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax, CrefReferenceSyntax, StatementSyntax, PropertyStatementSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -39,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 cancellationToken))
         End Function
 
-        Private Function ConvertPropertyToMembers(
+        Private Shared Function ConvertPropertyToMembers(
                 generator As SyntaxGenerator,
                 [property] As IPropertySymbol,
                 propertyStatement As PropertyStatementSyntax,
@@ -72,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return result
         End Function
 
-        Private Function GetGetMethod(
+        Private Shared Function GetGetMethod(
                 generator As SyntaxGenerator,
                 [property] As IPropertySymbol,
                 propertyStatement As PropertyStatementSyntax,
@@ -105,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return statement.WithAdditionalAnnotations(Formatter.Annotation)
         End Function
 
-        Private Function GetSetMethod(
+        Private Shared Function GetSetMethod(
                 generator As SyntaxGenerator,
                 [property] As IPropertySymbol,
                 propertyStatement As PropertyStatementSyntax,
@@ -135,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return methodDeclaration
         End Function
 
-        Private Function UpdateExplicitInterfaceImplementations(
+        Private Shared Function UpdateExplicitInterfaceImplementations(
                 [property] As IPropertySymbol,
                 method As IMethodSymbol,
                 desiredName As String) As IMethodSymbol
@@ -162,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                         method, explicitInterfaceImplementations:=updatedImplementations))
         End Function
 
-        Private Function UpdateExplicitInterfaceImplementation(
+        Private Shared Function UpdateExplicitInterfaceImplementation(
                 [property] As IPropertySymbol,
                 explicitInterfaceImplMethod As IMethodSymbol,
                 desiredName As String) As IMethodSymbol
@@ -178,14 +181,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return explicitInterfaceImplMethod
         End Function
 
-        Private Function CopyLeadingTriviaOver(propertyStatement As PropertyStatementSyntax,
+        Private Shared Function CopyLeadingTriviaOver(propertyStatement As PropertyStatementSyntax,
                                                methodDeclaration As SyntaxNode,
                                                documentationCommentRewriter As VisualBasicSyntaxRewriter) As SyntaxNode
             Return methodDeclaration.WithLeadingTrivia(
                 propertyStatement.GetLeadingTrivia().Select(Function(trivia) ConvertTrivia(trivia, documentationCommentRewriter)))
         End Function
 
-        Private Function ConvertTrivia(trivia As SyntaxTrivia, documentationCommentRewriter As VisualBasicSyntaxRewriter) As SyntaxTrivia
+        Private Shared Function ConvertTrivia(trivia As SyntaxTrivia, documentationCommentRewriter As VisualBasicSyntaxRewriter) As SyntaxTrivia
             If trivia.Kind() = SyntaxKind.DocumentationCommentTrivia Then
                 Dim converted = documentationCommentRewriter.Visit(trivia.GetStructure())
                 Return SyntaxFactory.Trivia(DirectCast(converted, StructuredTriviaSyntax))

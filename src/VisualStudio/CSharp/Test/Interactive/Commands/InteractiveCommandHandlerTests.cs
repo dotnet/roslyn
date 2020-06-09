@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
@@ -199,11 +201,14 @@ $@"#define DEF
         private static void AssertExecuteInInteractive(ExportProvider exportProvider, string code, string[] expectedSubmissions, string submissionBuffer = null)
         {
             var submissions = new List<string>();
-            void appendSubmission(object _, string item) { submissions.Add(item.TrimEnd()); }
+            void appendSubmission(object _, string item)
+            {
+                submissions.Add(item.TrimEnd());
+            }
 
             using var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(exportProvider, code);
             PrepareSubmissionBuffer(submissionBuffer, workspace);
-            Assert.Equal(VSCommanding.CommandState.Available, workspace.GetStateForExecuteInInteractive());
+            Assert.Equal(CommandState.Available, workspace.GetStateForExecuteInInteractive());
 
             workspace.Evaluator.OnExecute += appendSubmission;
             workspace.ExecuteInInteractive();

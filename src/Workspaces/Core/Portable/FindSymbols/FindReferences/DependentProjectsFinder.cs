@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Concurrent;
@@ -22,19 +26,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// A helper struct used for keying in <see cref="s_dependentProjectsCache"/>.
         /// </summary>
-        private struct DefinitionProject
+        private readonly struct DefinitionProject : IEquatable<DefinitionProject>
         {
-            private readonly ProjectId _sourceProjectId;
-            private readonly string _assemblyName;
+            private readonly ProjectId? _sourceProjectId;
+            private readonly string? _assemblyName;
 
-            public DefinitionProject(ProjectId sourceProjectId, string assemblyName)
+            public DefinitionProject(ProjectId? sourceProjectId, string assemblyName)
             {
                 _sourceProjectId = sourceProjectId;
                 _assemblyName = assemblyName;
             }
+
+            public override bool Equals(object? obj)
+                => obj is DefinitionProject project && Equals(project);
+
+            public bool Equals(DefinitionProject other)
+                => EqualityComparer<ProjectId?>.Default.Equals(_sourceProjectId, other._sourceProjectId) &&
+                   _assemblyName == other._assemblyName;
+
+            public override int GetHashCode()
+                => Hash.Combine(_sourceProjectId, _assemblyName?.GetHashCode() ?? 0);
         }
 
-        private struct DependentProject : IEquatable<DependentProject>
+        private readonly struct DependentProject : IEquatable<DependentProject>
         {
             public readonly ProjectId ProjectId;
             public readonly bool HasInternalsAccess;
@@ -45,20 +59,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 this.HasInternalsAccess = hasInternalsAccess;
             }
 
-            public override bool Equals(object obj)
-            {
-                return obj is DependentProject && this.Equals((DependentProject)obj);
-            }
+            public override bool Equals(object? obj)
+                => obj is DependentProject project && this.Equals(project);
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(HasInternalsAccess, ProjectId.GetHashCode());
-            }
+                => Hash.Combine(HasInternalsAccess, ProjectId.GetHashCode());
 
             public bool Equals(DependentProject other)
-            {
-                return HasInternalsAccess == other.HasInternalsAccess && ProjectId.Equals(other.ProjectId);
-            }
+                => HasInternalsAccess == other.HasInternalsAccess && ProjectId.Equals(other.ProjectId);
         }
 
         /// <summary>
@@ -77,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _ => new ConcurrentDictionary<DefinitionProject, ImmutableArray<DependentProject>>(concurrencyLevel: 2, capacity: 20);
 
         public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects, CancellationToken cancellationToken)
         {
             if (symbol.Kind == SymbolKind.Namespace)
             {
@@ -105,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => solution.Projects.ToImmutableArray();
 
         private static ImmutableArray<Project> GetProjects(Solution solution, ImmutableArray<ProjectId> projectIds)
-            => projectIds.SelectAsArray(id => solution.GetProject(id));
+            => projectIds.SelectAsArray(id => solution.GetRequiredProject(id));
 
         /// <summary>
         /// This method computes the dependent projects that need to be searched for references of the given <paramref name="symbol"/>.
@@ -138,6 +146,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Find the projects that reference this assembly.
 
+            // If this is a source symbol from a project, try to find that project.
             var sourceProject = solution.GetProject(containingAssembly, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -169,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<ImmutableArray<DependentProject>> GetDependentProjectsCoreAsync(
             ISymbol symbol,
             Solution solution,
-            Project sourceProject,
+            Project? sourceProject,
             SymbolVisibility visibility,
             CancellationToken cancellationToken)
         {
@@ -215,7 +224,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return GetProjects(solution, projectIds);
         }
 
-        private static async Task AddSubmissionDependentProjectsAsync(Solution solution, Project sourceProject, HashSet<DependentProject> dependentProjects, CancellationToken cancellationToken)
+        private static async Task AddSubmissionDependentProjectsAsync(
+            Solution solution, Project? sourceProject, HashSet<DependentProject> dependentProjects, CancellationToken cancellationToken)
         {
             var isSubmission = sourceProject != null && sourceProject.IsSubmission;
             if (!isSubmission)
@@ -228,26 +238,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // search only submission project
             foreach (var projectId in solution.ProjectIds)
             {
-                var project = solution.GetProject(projectId);
+                var project = solution.GetRequiredProject(projectId);
                 if (project.IsSubmission && project.SupportsCompilation)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // If we are referencing another project, store the link in the other direction
                     // so we walk across it later
-                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var previous = compilation.ScriptCompilationInfo.PreviousScriptCompilation;
+                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var previous = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
 
                     if (previous != null)
                     {
                         var referencedProject = solution.GetProject(previous.Assembly, cancellationToken);
-                        if (!projectIdsToReferencingSubmissionIds.TryGetValue(referencedProject.Id, out var referencingSubmissions))
+                        if (referencedProject != null)
                         {
-                            referencingSubmissions = new List<ProjectId>();
-                            projectIdsToReferencingSubmissionIds.Add(referencedProject.Id, referencingSubmissions);
-                        }
+                            if (!projectIdsToReferencingSubmissionIds.TryGetValue(referencedProject.Id, out var referencingSubmissions))
+                            {
+                                referencingSubmissions = new List<ProjectId>();
+                                projectIdsToReferencingSubmissionIds.Add(referencedProject.Id, referencingSubmissions);
+                            }
 
-                        referencingSubmissions.Add(project.Id);
+                            referencingSubmissions.Add(project.Id);
+                        }
                     }
                 }
             }
@@ -280,33 +293,34 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static bool IsInternalsVisibleToAttribute(AttributeData attr)
         {
             var attrType = attr.AttributeClass;
-            if (attrType == null)
-            {
-                return false;
-            }
-
-            var attributeName = attr.AttributeClass.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted));
-            return attributeName == "System.Runtime.CompilerServices.InternalsVisibleToAttribute";
+            return attrType?.Name == nameof(InternalsVisibleToAttribute) &&
+                   attrType.ContainingNamespace?.Name == nameof(System.Runtime.CompilerServices) &&
+                   attrType.ContainingNamespace.ContainingNamespace?.Name == nameof(System.Runtime) &&
+                   attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&
+                   attrType.ContainingNamespace.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
         }
 
-        private static async Task AddNonSubmissionDependentProjectsAsync(IAssemblySymbol sourceAssembly, Solution solution, Project sourceProject, HashSet<DependentProject> dependentProjects, CancellationToken cancellationToken)
+        private static async Task AddNonSubmissionDependentProjectsAsync(
+            IAssemblySymbol sourceAssembly,
+            Solution solution,
+            Project? sourceProject,
+            HashSet<DependentProject> dependentProjects,
+            CancellationToken cancellationToken)
         {
             var isSubmission = sourceProject != null && sourceProject.IsSubmission;
             if (isSubmission)
-            {
                 return;
-            }
 
             var internalsVisibleToMap = CreateInternalsVisibleToMap(sourceAssembly);
 
-            var sourceAssemblySymbolKey = sourceAssembly.GetSymbolKey();
+            var sourceAssemblySymbolKey = sourceAssembly.GetSymbolKey(cancellationToken);
 
             // TODO(cyrusn): What about error tolerance situations.  Do we maybe want to search
             // transitive dependencies as well?  Even if the code wouldn't compile, they may be
             // things we want to find.
             foreach (var projectId in solution.ProjectIds)
             {
-                var project = solution.GetProject(projectId);
+                var project = solution.GetRequiredProject(projectId);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -328,7 +342,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (internalsVisibleToMap.Value.Contains(project.AssemblyName) &&
                 project.SupportsCompilation)
             {
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var targetAssembly = compilation.Assembly;
                 if (sourceAssembly.Language != targetAssembly.Language)
@@ -363,13 +377,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var attr in assembly.GetAttributes().Where(IsInternalsVisibleToAttribute))
                 {
                     var typeNameConstant = attr.ConstructorArguments.FirstOrDefault();
-                    if (typeNameConstant.Type == null || typeNameConstant.Type.SpecialType != SpecialType.System_String)
-                    {
-                        continue;
-                    }
-
-                    var value = (string)typeNameConstant.Value;
-                    if (value == null)
+                    if (typeNameConstant.Type == null ||
+                        typeNameConstant.Type.SpecialType != SpecialType.System_String ||
+                        !(typeNameConstant.Value is string value))
                     {
                         continue;
                     }
@@ -385,7 +395,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return internalsVisibleToMap;
         }
 
-        private static bool HasReferenceTo(IAssemblySymbol containingAssembly, Project sourceProject, Project project, CancellationToken cancellationToken)
+        private static bool HasReferenceTo(
+            IAssemblySymbol containingAssembly,
+            Project? sourceProject,
+            Project project,
+            CancellationToken cancellationToken)
         {
             if (containingAssembly == null)
             {
@@ -407,9 +421,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static bool HasReferenceToAssembly(this Project project, IAssemblySymbol assemblySymbol, CancellationToken cancellationToken)
-        {
-            return project.HasReferenceToAssembly(assemblySymbol.Name, cancellationToken);
-        }
+            => project.HasReferenceToAssembly(assemblySymbol.Name, cancellationToken);
 
         public static bool HasReferenceToAssembly(this Project project, string assemblyName, CancellationToken cancellationToken)
         {
@@ -435,19 +447,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // way for it to have an IAssemblySymbol.  And without that, there is no way for it
             // to have any sort of 'ReferenceTo' the provided 'containingAssembly' symbol.
             if (!project.SupportsCompilation)
-            {
                 return null;
+
+            if (!project.TryGetCompilation(out var compilation))
+            {
+                // WORKAROUND:
+                // perf check metadata reference using newly created empty compilation with only metadata references.
+                compilation = project.LanguageServices.CompilationFactory!.CreateCompilation(
+                    project.AssemblyName, project.CompilationOptions!);
+
+                compilation = compilation.AddReferences(project.MetadataReferences);
             }
-
-            // WORKAROUND:
-            // perf check metadata reference using newly created empty compilation with only metadata references.
-            //
-            // TODO(cyrusn): Why don't we call project.TryGetCompilation first?  
-            // wouldn't we want to use that compilation if it's available?
-            var compilation = project.LanguageServices.CompilationFactory.CreateCompilation(
-                project.AssemblyName, project.CompilationOptions);
-
-            compilation = compilation.AddReferences(project.MetadataReferences);
 
             foreach (var reference in project.MetadataReferences)
             {

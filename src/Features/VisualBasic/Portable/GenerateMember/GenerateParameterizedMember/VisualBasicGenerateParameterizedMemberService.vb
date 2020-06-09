@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -55,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 Dim typeInference = Document.Project.LanguageServices.GetService(Of ITypeInferenceService)()
                 Dim inferredType = typeInference.InferType(
                     Document.SemanticModel, Me.InvocationExpression, objectAsDefault:=True,
-                    nameOpt:=Me.State.IdentifierToken.ValueText, cancellationToken:=cancellationToken)
+                    name:=Me.State.IdentifierToken.ValueText, cancellationToken:=cancellationToken)
                 Return inferredType
             End Function
 
@@ -140,12 +142,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
 
             Protected Overrides Function DetermineParameterOptionality(cancellationToken As CancellationToken) As ImmutableArray(Of Boolean)
                 Return If(Me.InvocationExpression.ArgumentList IsNot Nothing AndAlso Me.InvocationExpression.ArgumentList.GetArgumentCount() > 0,
-                          Me.InvocationExpression.ArgumentList.Arguments.Select(Function(a) DetermineParameterOptionality(a, cancellationToken)).ToImmutableArray(),
+                          Me.InvocationExpression.ArgumentList.Arguments.Select(AddressOf DetermineParameterOptionality).ToImmutableArray(),
                           ImmutableArray(Of Boolean).Empty)
             End Function
 
-            Private Overloads Function DetermineParameterOptionality(argument As ArgumentSyntax,
-                                                    cancellationToken As CancellationToken) As Boolean
+            Private Overloads Function DetermineParameterOptionality(argument As ArgumentSyntax) As Boolean
                 Return TypeOf argument Is OmittedArgumentSyntax
             End Function
 

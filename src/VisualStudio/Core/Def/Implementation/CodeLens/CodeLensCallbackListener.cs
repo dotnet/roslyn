@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -55,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
         public async Task<string> GetHostGroupIdAsync(CancellationToken cancellationToken)
         {
-            var client = await _workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 // exception is handled by code lens engine
@@ -132,9 +134,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(span.ToTextSpan());
+            var textSpan = span.ToTextSpan();
 
-            return (document.Id, node);
+            // TODO: This check avoids ArgumentOutOfRangeException but it's not clear if this is the right solution
+            // https://github.com/dotnet/roslyn/issues/44639
+            if (!root.FullSpan.Contains(textSpan))
+            {
+                return default;
+            }
+
+            return (document.Id, root.FindNode(textSpan));
         }
 
         private async Task<int> GetMaxResultCapAsync(CancellationToken cancellationToken)

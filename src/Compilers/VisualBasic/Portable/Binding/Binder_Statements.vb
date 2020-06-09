@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -1344,7 +1346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If equalsValueOpt IsNot Nothing Then
                     Dim valueSyntax As ExpressionSyntax = equalsValueOpt.Value
 
-                    ' Use an LocalInProgressBinder to detect cycles using locals.
+                    ' Use a LocalInProgressBinder to detect cycles using locals.
                     Dim binder = New LocalInProgressBinder(Me, symbol)
                     valueExpression = binder.BindValue(valueSyntax, diagnostics)
 
@@ -1923,7 +1925,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         '       where the property is a getter-only autoproperty 
                         '       and the writing is happening in the corresponding constructor or initializer
                         If setMethod IsNot Nothing Then
-                            ReportDiagnosticsIfObsolete(diagnostics, setMethod, node)
+                            ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, setMethod, node)
 
                             If ReportUseSiteError(diagnostics, op1.Syntax, setMethod) Then
                                 isError = True

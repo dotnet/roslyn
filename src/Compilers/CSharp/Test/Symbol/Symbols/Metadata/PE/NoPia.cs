@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -301,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Same(localTypes1_8, ambiguous.EmbeddingAssembly);
             Assert.Same(pia4_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.FirstCandidate);
             Assert.Same(pia1_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.SecondCandidate);
-            Assert.False(((INamedTypeSymbol)ambiguous).IsSerializable);
+            Assert.False(ambiguous.IsSerializable);
 
             Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
             Assert.IsType<NoPiaAmbiguousCanonicalTypeSymbol>(param[1].Type);
@@ -527,7 +529,7 @@ public class LocalTypes2
             Assert.Equal(varI1.ToTestDisplayString(), missing.FullTypeName);
             Assert.Null(missing.Scope);
             Assert.Null(missing.Identifier);
-            Assert.False(((INamedTypeSymbol)missing).IsSerializable);
+            Assert.False(missing.IsSerializable);
 
             Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
             Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);

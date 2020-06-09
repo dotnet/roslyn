@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #if NET472
 using System;
@@ -37,7 +39,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
             internal AssemblyData(Assembly assembly)
             {
-                ModuleData = default(ModuleData);
+                ModuleData = null;
                 Assembly = assembly;
             }
         }
@@ -359,8 +361,8 @@ namespace Roslyn.Test.Utilities.Desktop
             catch (Exception ex)
             {
                 var builder = new StringBuilder();
-                builder.AppendLine($"Error getting signatures {fullyQualifiedTypeName}.{memberName}");
-                builder.AppendLine($"Assemblies");
+                builder.AppendLine($"Error getting signatures {fullyQualifiedTypeName}.{memberName}: {ex.Message}");
+                builder.AppendLine($"Assemblies:");
                 foreach (var module in _fullNameToAssemblyDataMap.Values)
                 {
                     builder.AppendLine($"\t{module.Id.SimpleName} {module.Id.Mvid} - {module.Kind} {_assemblyCache.GetOrDefault(module.Id, reflectionOnly: false) != null} {_assemblyCache.GetOrDefault(module.Id, reflectionOnly: true) != null}");

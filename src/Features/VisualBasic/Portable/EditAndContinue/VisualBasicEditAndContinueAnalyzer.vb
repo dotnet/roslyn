@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Differencing
@@ -16,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Inherits AbstractEditAndContinueAnalyzer
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -271,12 +275,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' Property: Attributes Modifiers [|Identifier$ Initializer|] ImplementsClause
                     Dim propertyStatement = DirectCast(node, PropertyStatementSyntax)
                     If propertyStatement.Initializer IsNot Nothing Then
-                        Return {propertyStatement.Identifier}.Concat(If(propertyStatement.AsClause?.DescendantTokens(),
+                        Return SpecializedCollections.SingletonEnumerable(propertyStatement.Identifier).Concat(If(propertyStatement.AsClause?.DescendantTokens(),
                                                                      Array.Empty(Of SyntaxToken))).Concat(propertyStatement.Initializer.DescendantTokens())
                     End If
 
                     If HasAsNewClause(propertyStatement) Then
-                        Return {propertyStatement.Identifier}.Concat(propertyStatement.AsClause.DescendantTokens())
+                        Return SpecializedCollections.SingletonEnumerable(propertyStatement.Identifier).Concat(propertyStatement.AsClause.DescendantTokens())
                     End If
 
                     Return Nothing
@@ -454,7 +458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             '   Function(a) [|[|Function(b)|] a + b|]
             ' There are 2 active statements, one spanning the the body of the outer lambda and 
             ' the other on the nested lambda's header.
-            ' Find the parent whose span starts at the same position but it's lenght is at least as long as the active span's length.
+            ' Find the parent whose span starts at the same position but it's length is at least as long as the active span's length.
             While node.Span.Length < span.Length AndAlso node.Parent.SpanStart = position
                 node = node.Parent
                 partnerOpt = partnerOpt?.Parent
@@ -755,7 +759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return BreakpointSpans.TryGetEnclosingBreakpointSpan(node, node.SpanStart, minLength, span)
         End Function
 
-        Protected Overrides Iterator Function EnumerateNearStatements(statement As SyntaxNode) As IEnumerable(Of KeyValuePair(Of SyntaxNode, Integer))
+        Protected Overrides Iterator Function EnumerateNearStatements(statement As SyntaxNode) As IEnumerable(Of ValueTuple(Of SyntaxNode, Integer))
             Dim direction As Integer = +1
             Dim nodeOrToken As SyntaxNodeOrToken = statement
             Dim propertyOrFieldModifiers As SyntaxTokenList? = GetFieldOrPropertyModifiers(statement)
@@ -800,7 +804,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
 
                     If propertyOrFieldModifiers.HasValue Then
-                        Yield KeyValuePairUtil.Create(statement, -1)
+                        Yield (statement, -1)
                     End If
 
                     nodeOrToken = parent
@@ -823,7 +827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
                 End If
 
-                Yield KeyValuePairUtil.Create(node, 0)
+                Yield (node, DefaultStatementPart)
             End While
         End Function
 
@@ -1802,7 +1806,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case EditKind.Move
-                        ClassifyMove(_oldNode, _newNode)
+                        ReportError(RudeEditKind.Move)
                         Return
 
                     Case EditKind.Insert
@@ -1819,10 +1823,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
 #Region "Move and Reorder"
-            Private Sub ClassifyMove(oldNode As SyntaxNode, newNode As SyntaxNode)
-                ReportError(RudeEditKind.Move)
-            End Sub
-
             Private Sub ClassifyReorder(oldNode As SyntaxNode, newNode As SyntaxNode)
                 Select Case newNode.Kind
                     Case SyntaxKind.OptionStatement,
@@ -2045,7 +2045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
 
                 For Each member In type.Members
-                    Dim modifiers As SyntaxTokenList = Nothing
+                    Dim modifiers As SyntaxTokenList
 
                     Select Case member.Kind
                         Case SyntaxKind.DeclareFunctionStatement,
@@ -2615,7 +2615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
             End Sub
 
-            Private Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
+            Private Shared Function ClassifyMethodModifierUpdate(oldModifiers As SyntaxTokenList, newModifiers As SyntaxTokenList) As Boolean
                 ' Ignore Async and Iterator keywords when matching modifiers.
                 ' State machine checks are done in ComputeBodyMatch.
 
@@ -2694,18 +2694,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                              newNode,
                                              containingMethod:=Nothing,
                                              containingType:=DirectCast(newNode.Parent.Parent, TypeBlockSyntax))
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As AccessorStatementSyntax, newNode As AccessorStatementSyntax)
-                If oldNode.RawKind <> newNode.RawKind Then
-                    ReportError(RudeEditKind.AccessorKindUpdate)
-                    Return
-                End If
-
-                If Not SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers) Then
-                    ReportError(RudeEditKind.ModifiersUpdate)
-                    Return
-                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As EnumMemberDeclarationSyntax, newNode As EnumMemberDeclarationSyntax)
@@ -2812,7 +2800,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                              SyntaxKind.GroupByClause,
                              SyntaxKind.SimpleJoinClause,
                              SyntaxKind.GroupJoinClause
-                            ReportError(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, node, Me._newNode)
+                            ReportError(RudeEditKind.ComplexQueryExpression, node, Me._newNode)
                             Return
 
                         Case SyntaxKind.LocalDeclarationStatement
@@ -2901,7 +2889,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Protected Overrides Function GetExceptionHandlingAncestors(node As SyntaxNode, isNonLeaf As Boolean) As List(Of SyntaxNode)
             Dim result = New List(Of SyntaxNode)()
-            Dim initialNode = node
 
             While node IsNot Nothing
                 Dim kind = node.Kind

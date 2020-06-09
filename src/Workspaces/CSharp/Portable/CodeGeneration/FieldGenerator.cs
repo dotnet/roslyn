@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var declaration = GenerateFieldDeclaration(field, CodeGenerationDestination.CompilationUnit, options);
+            var declaration = GenerateFieldDeclaration(field, options);
 
             // Place the field after the last field or const, or at the start of the type
             // declaration.
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var declaration = GenerateFieldDeclaration(field, GetDestination(destination), options);
+            var declaration = GenerateFieldDeclaration(field, options);
 
             // Place the field after the last field or const, or at the start of the type
             // declaration.
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public static FieldDeclarationSyntax GenerateFieldDeclaration(
-            IFieldSymbol field, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IFieldSymbol field, CodeGenerationOptions options)
         {
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<VariableDeclaratorSyntax>(field, options);
             if (reusableSyntax != null)
@@ -92,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
-
             var initializer = CodeGenerationFieldInfo.GetInitializer(field) is ExpressionSyntax initializerNode
                 ? SyntaxFactory.EqualsValueClause(initializerNode)
                 : GenerateEqualsValue(field);
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AttributeGenerator.GenerateAttributeLists(field.GetAttributes(), options),
                 GenerateModifiers(field, options),
                 SyntaxFactory.VariableDeclaration(
-                    field.Type.WithNullability(field.NullableAnnotation).GenerateTypeSyntax(),
+                    field.Type.GenerateTypeSyntax(),
                     SyntaxFactory.SingletonSeparatedList(
                         AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer)))));
 

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -12,7 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements,
                     new[] { IDEDiagnosticIds.AddBracesDiagnosticId }),
 
-                new DiagnosticSet(CSharpFeaturesResources.Add_accessibility_modifiers,
+                new DiagnosticSet(AnalyzersResources.Add_accessibility_modifiers,
                     new[] { IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId }),
 
                 new DiagnosticSet(CSharpFeaturesResources.Sort_accessibility_modifiers,
@@ -80,7 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                     new[] { CSharpRemoveUnusedVariableCodeFixProvider.CS0168, CSharpRemoveUnusedVariableCodeFixProvider.CS0219 }),
 
                 new DiagnosticSet(CSharpFeaturesResources.Apply_object_collection_initialization_preferences,
-                    new[] { IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId })
+                    new[] { IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId }),
+
+                new DiagnosticSet(CSharpFeaturesResources.Apply_using_directive_placement_preferences,
+                    new[] { IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId })
             );
 
         public async Task<Document> CleanupAsync(
@@ -118,13 +122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             progressTracker.Description = FeaturesResources.Formatting_document;
             using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
             {
-                var result = await Formatter.FormatAsync(document).ConfigureAwait(false);
+                var result = await Formatter.FormatAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
                 progressTracker.ItemCompleted();
                 return result;
             }
         }
 
-        private async Task<Document> RemoveSortUsingsAsync(
+        private static async Task<Document> RemoveSortUsingsAsync(
             Document document, OrganizeUsingsSet organizeUsingsSet, CancellationToken cancellationToken)
         {
             if (organizeUsingsSet.IsRemoveUnusedImportEnabled)
@@ -143,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_SortImports, cancellationToken))
                 {
-                    document = await OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                    document = await Formatter.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -188,8 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         }
 
         public EnabledDiagnosticOptions GetAllDiagnostics()
-        {
-            return new EnabledDiagnosticOptions(s_diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
-        }
+            => new EnabledDiagnosticOptions(s_diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
     }
 }

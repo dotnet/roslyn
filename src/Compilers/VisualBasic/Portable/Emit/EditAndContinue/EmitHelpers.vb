@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -44,8 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     edits:=edits,
                     isAddedSymbol:=isAddedSymbol)
             Catch e As NotSupportedException
-                ' TODO: better error code (https://github.com/dotnet/roslyn/issues/8910)
-                diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName)
+                ' TODO: https://github.com/dotnet/roslyn/issues/9004
+                diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message)
                 Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing)
             End Try
 
@@ -62,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If compilation.Compile(moduleBeingBuilt,
                                    emittingPdb:=True,
                                    diagnostics:=diagnostics,
-                                   filterOpt:=AddressOf changes.RequiresCompilation,
+                                   filterOpt:=Function(s) changes.RequiresCompilation(s.GetISymbol()),
                                    cancellationToken:=cancellationToken) Then
 
                 ' Map the definitions from the previous compilation to the current compilation.

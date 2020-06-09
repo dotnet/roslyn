@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.Binder;
@@ -36,6 +39,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.SequencePointWithSpan:
                     this.EmitSequencePointStatement((BoundSequencePointWithSpan)statement);
+                    break;
+
+                case BoundKind.SavePreviousSequencePoint:
+                    this.EmitSavePreviousSequencePoint((BoundSavePreviousSequencePoint)statement);
+                    break;
+
+                case BoundKind.RestorePreviousSequencePoint:
+                    this.EmitRestorePreviousSequencePoint((BoundRestorePreviousSequencePoint)statement);
+                    break;
+
+                case BoundKind.StepThroughSequencePoint:
+                    this.EmitStepThroughSequencePoint((BoundStepThroughSequencePoint)statement);
                     break;
 
                 case BoundKind.ExpressionStatement:
@@ -1155,7 +1170,7 @@ oneMoreTime:
             // Emit switch jump table
             if (expression.Type.SpecialType != SpecialType.System_String)
             {
-                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingType().PrimitiveTypeCode);
+                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingTypeOrSelf().PrimitiveTypeCode);
             }
             else
             {

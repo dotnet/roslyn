@@ -1,15 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
-using Xunit;
-using System;
 using Microsoft.CodeAnalysis.Test.Utilities.CommentSelection;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
 {
@@ -1497,7 +1499,7 @@ class C
 
         internal override AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace)
         {
-            return (AbstractCommentSelectionBase<ValueTuple>)workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>()
+            return (AbstractCommentSelectionBase<ValueTuple>)workspace.ExportProvider.GetExportedValues<ICommandHandler>()
                 .First(export => typeof(ToggleBlockCommentCommandHandler).Equals(export.GetType()));
         }
 

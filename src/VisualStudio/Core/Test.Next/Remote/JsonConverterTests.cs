@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 extern alias hub;
 
@@ -9,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -65,7 +68,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 reportSuppressedDiagnostics: true,
                 logAnalyzerExecutionTime: false,
                 projectId: ProjectId.CreateNewId("project"),
-                optionSetChecksum: Checksum.Null,
                 analyzerIds: new[] { "analyzer1", "analyzer2" });
 
             VerifyJsonSerialization(arguments, (x, y) =>
@@ -74,7 +76,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
                     x.LogAnalyzerExecutionTime == y.LogAnalyzerExecutionTime &&
                     x.ProjectId == y.ProjectId &&
-                    x.OptionSetChecksum == y.OptionSetChecksum &&
                     x.AnalyzerIds.Length == y.AnalyzerIds.Length &&
                     x.AnalyzerIds.Except(y.AnalyzerIds).Count() == 0)
                 {

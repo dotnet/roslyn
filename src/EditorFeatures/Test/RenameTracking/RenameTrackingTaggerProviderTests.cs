@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -636,7 +638,7 @@ class CustomAttribute : Attribute
 {
 }
 ";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         }
 
         [WpfFact]
@@ -661,7 +663,7 @@ Public Class CustomAttribute
         Inherits Attribute
 End Class
 ";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         }
 
         [WpfFact]
@@ -686,7 +688,7 @@ Public Class CustomATTRIBUTE
         Inherits Attribute
 End Class
 ";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         }
 
         [WpfFact]
@@ -711,7 +713,7 @@ Public Class Customattribute
         Inherits Attribute
 End Class
 ";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
         }
 
         [WpfFact]
@@ -738,7 +740,7 @@ class Cats
     {
     }
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
 
             state.AssertNoNotificationMessage();
             await state.AssertNoTag();
@@ -771,7 +773,7 @@ class Cat
     {
     }
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
 
             state.AssertNotificationMessage();
         }
@@ -803,7 +805,7 @@ class Cats
     {
     }
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
             await state.AssertNoTag();
         }
 
@@ -968,12 +970,12 @@ class C$$
             state.EditorOperations.InsertText("at");
             await state.AssertTag("C", "Cat");
 
-            Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
+            Assert.NotNull(await state.TryGetCodeActionAsync());
 
             state.SendEscape();
             await state.AssertNoTag();
 
-            Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            Assert.Null(await state.TryGetCodeActionAsync());
         }
 
         [WpfFact]
@@ -1010,7 +1012,7 @@ class C
     {
     }
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
             await state.AssertNoTag();
         }
 
@@ -1040,7 +1042,7 @@ class C
         nameof(Mat).ToString();
     }
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
             await state.AssertNoTag();
         }
 
@@ -1078,7 +1080,7 @@ class C
     {
     }
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
             await state.AssertNoTag();
         }
 
@@ -1137,15 +1139,15 @@ class C
             state.EditorOperations.InsertText("va");
 
             await state.AssertTag("C", "va");
-            Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
+            Assert.NotNull(await state.TryGetCodeActionAsync());
 
             state.EditorOperations.InsertText("r");
             await state.AssertNoTag();
-            Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            Assert.Null(await state.TryGetCodeActionAsync());
 
             state.EditorOperations.InsertText("p");
             await state.AssertTag("C", "varp");
-            Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
+            Assert.NotNull(await state.TryGetCodeActionAsync());
         }
 
         [WpfFact]
@@ -1164,7 +1166,7 @@ class C
             using var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp);
             state.EditorOperations.Backspace();
             await state.AssertNoTag();
-            Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            Assert.Null(await state.TryGetCodeActionAsync());
         }
 
         [WpfFact]
@@ -1183,7 +1185,7 @@ End Class";
             state.EditorOperations.InsertText("var");
 
             await state.AssertTag("C", "var");
-            Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
+            Assert.NotNull(await state.TryGetCodeActionAsync());
         }
 
         [WpfFact]
@@ -1204,15 +1206,15 @@ class C
             state.EditorOperations.InsertText("dynami");
 
             await state.AssertTag("C", "dynami");
-            Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
+            Assert.NotNull(await state.TryGetCodeActionAsync());
 
             state.EditorOperations.InsertText("c");
             await state.AssertNoTag();
-            Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            Assert.Null(await state.TryGetCodeActionAsync());
 
             state.EditorOperations.InsertText("s");
             await state.AssertTag("C", "dynamics");
-            Assert.NotEmpty(await state.GetDocumentDiagnosticsAsync());
+            Assert.NotNull(await state.TryGetCodeActionAsync());
         }
 
         [WpfFact]
@@ -1232,7 +1234,7 @@ class C
             state.EditorOperations.Backspace();
             state.EditorOperations.Backspace();
             await state.AssertNoTag();
-            Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            Assert.Null(await state.TryGetCodeActionAsync());
         }
 
         [WpfFact]
@@ -1251,7 +1253,7 @@ End Class
             state.EditorOperations.Backspace();
             state.EditorOperations.Backspace();
             await state.AssertNoTag();
-            Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            Assert.Null(await state.TryGetCodeActionAsync());
         }
 
         [WpfFact]
@@ -1272,7 +1274,7 @@ class C
             state.EditorOperations.Backspace();
             state.EditorOperations.Backspace();
             await state.AssertNoTag();
-            Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            Assert.Null(await state.TryGetCodeActionAsync());
         }
 
         [WpfFact]
@@ -1291,7 +1293,7 @@ End Class
             state.EditorOperations.Backspace();
             state.EditorOperations.Backspace();
             await state.AssertNoTag();
-            Assert.Empty(await state.GetDocumentDiagnosticsAsync());
+            Assert.Null(await state.TryGetCodeActionAsync());
         }
 
         [WpfFact]
@@ -1525,7 +1527,7 @@ interface myunmanaged
 class C<T> where T : myunmanaged
 {
 }";
-            Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedCode, state.HostDocument.GetTextBuffer().CurrentSnapshot.GetText());
             await state.AssertNoTag();
         }
     }

@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -205,8 +208,10 @@ class Program
 
             var textView = workspace.Documents.Single().GetTextView();
 
-            var handler = new EncapsulateFieldCommandHandler(workspace.GetService<ITextBufferUndoManagerProvider>(),
-                workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+            var handler = new EncapsulateFieldCommandHandler(
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ITextBufferUndoManagerProvider>(),
+                workspace.GetService<IAsynchronousOperationListenerProvider>());
 
             var state = handler.GetCommandState(new EncapsulateFieldCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);

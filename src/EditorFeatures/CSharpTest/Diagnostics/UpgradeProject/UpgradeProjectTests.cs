@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -47,12 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
             await TestAsync(initialMarkup, initialMarkup, parseOptions); // no change to markup
         }
 
-        private async Task TestLanguageVersionNotUpgradedAsync(string initialMarkup,
-#pragma warning disable IDE0060 // Remove unused parameter
-            LanguageVersion expected,
-#pragma warning restore IDE0060 // Remove unused parameter
-            ParseOptions parseOptions,
-            int index = 0)
+        private async Task TestLanguageVersionNotUpgradedAsync(string initialMarkup, ParseOptions parseOptions, int index = 0)
         {
             var parameters = new TestParameters(parseOptions: parseOptions, index: index);
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
@@ -787,7 +784,6 @@ public interface I1
     </Project>
 </Workspace>
 ",
-                expected: LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
 

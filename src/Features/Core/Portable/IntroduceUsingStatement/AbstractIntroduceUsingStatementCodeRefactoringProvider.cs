@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
-            var declarationSyntax = await FindDisposableLocalDeclaration(document, span, cancellationToken).ConfigureAwait(false);
+            var declarationSyntax = await FindDisposableLocalDeclarationAsync(document, span, cancellationToken).ConfigureAwait(false);
 
             if (declarationSyntax != null)
             {
@@ -46,12 +48,12 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             }
         }
 
-        private async Task<TLocalDeclarationSyntax> FindDisposableLocalDeclaration(Document document, TextSpan selection, CancellationToken cancellationToken)
+        private async Task<TLocalDeclarationSyntax> FindDisposableLocalDeclarationAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
             var declarationSyntax = await document.TryGetRelevantNodeAsync<TLocalDeclarationSyntax>(selection, cancellationToken).ConfigureAwait(false);
             if (declarationSyntax is null || !CanRefactorToContainBlockStatements(declarationSyntax.Parent))
             {
-                return default;
+                return null;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -59,19 +61,19 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var disposableType = semanticModel.Compilation.GetSpecialType(SpecialType.System_IDisposable);
             if (disposableType is null)
             {
-                return default;
+                return null;
             }
 
             var operation = semanticModel.GetOperation(declarationSyntax, cancellationToken) as IVariableDeclarationGroupOperation;
             if (operation?.Declarations.Length != 1)
             {
-                return default;
+                return null;
             }
 
             var localDeclaration = operation.Declarations[0];
             if (localDeclaration.Declarators.Length != 1)
             {
-                return default;
+                return null;
             }
 
             var declarator = localDeclaration.Declarators[0];
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             var localType = declarator.Symbol?.Type;
             if (localType is null)
             {
-                return default;
+                return null;
             }
 
             var initializer = (localDeclaration.Initializer ?? declarator.Initializer)?.Value;
@@ -87,12 +89,12 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             // Initializer kind is invalid when incomplete declaration syntax ends in an equals token.
             if (initializer is null || initializer.Kind == OperationKind.Invalid)
             {
-                return default;
+                return null;
             }
 
             if (!IsLegalUsingStatementType(semanticModel.Compilation, disposableType, localType))
             {
-                return default;
+                return null;
             }
 
             return declarationSyntax;
@@ -221,11 +223,11 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 .ToImmutableArray();
 
             // List of local variables that will be in the order they are declared.
-            var localVariables = ArrayBuilder<ISymbol>.GetInstance();
+            using var _0 = ArrayBuilder<ISymbol>.GetInstance(out var localVariables);
 
             // Map a symbol to an index into the statementsFromDeclarationToEnd array.
-            var variableDeclarationIndex = PooledDictionary<ISymbol, int>.GetInstance();
-            var lastVariableUsageIndex = PooledDictionary<ISymbol, int>.GetInstance();
+            using var _1 = PooledDictionary<ISymbol, int>.GetInstance(out var variableDeclarationIndex);
+            using var _2 = PooledDictionary<ISymbol, int>.GetInstance(out var lastVariableUsageIndex);
 
             // Loop through the statements from the trigger declaration to the end of the containing body.
             // By starting with the trigger declaration it will add the trigger variable to the list of
@@ -235,7 +237,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 var currentStatement = statementsFromDeclarationToEnd[statementIndex];
 
                 // Determine which local variables were referenced in this statement.
-                var referencedVariables = PooledHashSet<ISymbol>.GetInstance();
+                using var _ = PooledHashSet<ISymbol>.GetInstance(out var referencedVariables);
                 AddReferencedLocalVariables(referencedVariables, currentStatement, localVariables, semanticModel, syntaxFactsService, cancellationToken);
 
                 // Update the last usage index for each of the referenced variables.
@@ -243,8 +245,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 {
                     lastVariableUsageIndex[referencedVariable] = statementIndex;
                 }
-
-                referencedVariables.Free();
 
                 // Determine if new variables were declared in this statement.
                 var declaredVariables = semanticModel.GetAllDeclaredSymbols(currentStatement, cancellationToken);
@@ -282,10 +282,6 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 endOfUsingStatementIndex = Math.Max(endOfUsingStatementIndex, lastVariableUsageIndex[localSymbol]);
             }
 
-            localVariables.Free();
-            variableDeclarationIndex.Free();
-            lastVariableUsageIndex.Free();
-
             return statementsFromDeclarationToEnd[endOfUsingStatementIndex];
         }
 
@@ -307,7 +303,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
                 var variable = localVariables.FirstOrDefault(localVariable
                     => syntaxFactsService.StringComparer.Equals(localVariable.Name, identifierName) &&
-                        localVariable.Equals(semanticModel.GetSymbolInfo(node).Symbol));
+                        localVariable.Equals(semanticModel.GetSymbolInfo(node, cancellationToken).Symbol));
 
                 if (variable is object)
                 {

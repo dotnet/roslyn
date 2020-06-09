@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -364,6 +366,20 @@ DoneWithErrorReporting:
                             If Not binder.IsAccessible(foundMember, useSiteDiagnostics) Then
                                 resultKind = LookupResult.WorseResultKind(resultKind, LookupResultKind.Inaccessible) ' we specified IgnoreAccessibility above.
                                 Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, binder.GetInaccessibleErrorInfo(foundMember))
+                            ElseIf foundMember.Kind = SymbolKind.Property Then
+                                Dim [property] = DirectCast(DirectCast(foundMember, Symbol), PropertySymbol)
+                                Dim accessorToCheck As MethodSymbol = [property].GetMethod
+                                If accessorToCheck Is Nothing OrElse
+                                   accessorToCheck.DeclaredAccessibility = [property].DeclaredAccessibility OrElse
+                                   Not accessorToCheck.RequiresImplementation() Then
+                                    accessorToCheck = [property].SetMethod
+                                End If
+                                If accessorToCheck IsNot Nothing AndAlso
+                                   accessorToCheck.DeclaredAccessibility <> [property].DeclaredAccessibility AndAlso
+                                   accessorToCheck.RequiresImplementation() AndAlso
+                                   Not binder.IsAccessible(accessorToCheck, useSiteDiagnostics) Then
+                                    Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, binder.GetInaccessibleErrorInfo(accessorToCheck))
+                                End If
                             End If
                         End If
                     End If

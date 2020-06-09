@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
@@ -19,43 +21,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void String_TopLevel()
         {
             using var session = CreateSessionDoubleQuote("$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void VerbatimString_TopLevel()
         {
             using var session = CreateSessionDoubleQuote("@$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void Char_TopLevel()
         {
             using var session = CreateSessionSingleQuote("$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void String_TopLevel2()
         {
             using var session = CreateSessionDoubleQuote("using System;$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void VerbatimString_TopLevel2()
         {
             using var session = CreateSessionDoubleQuote("using System;@$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]

@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommentSelection;
@@ -15,21 +18,20 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.CommentSelection)]
+    [Export(typeof(ICommandHandler))]
+    [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
+    [VisualStudio.Utilities.Name(PredefinedCommandHandlerNames.CommentSelection)]
     internal class CommentUncommentSelectionCommandHandler :
         AbstractCommentSelectionBase<Operation>,
-        VSCommanding.ICommandHandler<CommentSelectionCommandArgs>,
-        VSCommanding.ICommandHandler<UncommentSelectionCommandArgs>
+        ICommandHandler<CommentSelectionCommandArgs>,
+        ICommandHandler<UncommentSelectionCommandArgs>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CommentUncommentSelectionCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
@@ -37,31 +39,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         {
         }
 
-        public VSCommanding.CommandState GetCommandState(CommentSelectionCommandArgs args)
-        {
-            return GetCommandState(args.SubjectBuffer);
-        }
+        public CommandState GetCommandState(CommentSelectionCommandArgs args)
+            => GetCommandState(args.SubjectBuffer);
 
         /// <summary>
         /// Comment the selected spans, and reset the selection.
         /// </summary>
         public bool ExecuteCommand(CommentSelectionCommandArgs args, CommandExecutionContext context)
-        {
-            return this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Comment, context);
-        }
+            => this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Comment, context);
 
-        public VSCommanding.CommandState GetCommandState(UncommentSelectionCommandArgs args)
-        {
-            return GetCommandState(args.SubjectBuffer);
-        }
+        public CommandState GetCommandState(UncommentSelectionCommandArgs args)
+            => GetCommandState(args.SubjectBuffer);
 
         /// <summary>
         /// Uncomment the selected spans, and reset the selection.
         /// </summary>
         public bool ExecuteCommand(UncommentSelectionCommandArgs args, CommandExecutionContext context)
-        {
-            return this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Uncomment, context);
-        }
+            => this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Uncomment, context);
 
         public override string DisplayName => EditorFeaturesResources.Comment_Uncomment_Selection;
 
@@ -264,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         }
 
         private void UncommentPosition(CommentSelectionInfo info, SnapshotSpan span, ArrayBuilder<TextChange> textChanges,
-            ArrayBuilder<CommentTrackingSpan> spansToSelect,int positionOfStart, int positionOfEnd)
+            ArrayBuilder<CommentTrackingSpan> spansToSelect, int positionOfStart, int positionOfEnd)
         {
             if (positionOfStart < 0 || positionOfEnd < 0)
             {

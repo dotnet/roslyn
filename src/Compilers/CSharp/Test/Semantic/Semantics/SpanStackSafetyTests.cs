@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -988,10 +990,7 @@ public class Program
             comp.VerifyDiagnostics(
                 // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
                 //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9),
-                // (13,19): warning CS0219: The variable 'local' is assigned but its value is never used
-                //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local").WithArguments("local").WithLocation(13, 19)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9)
             );
 
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
@@ -999,10 +998,7 @@ public class Program
             comp.VerifyDiagnostics(
                 // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
                 //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9),
-                // (13,19): warning CS0219: The variable 'local' is assigned but its value is never used
-                //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local").WithArguments("local").WithLocation(13, 19)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9)
             );
         }
 
@@ -1128,7 +1124,7 @@ public class Program
 {
     static void Main()
     {
-        // this is ok  (overriden)
+        // this is ok  (overridden)
         default(Span<int>).GetHashCode();
 
         // this is ok  (implicit boxing)

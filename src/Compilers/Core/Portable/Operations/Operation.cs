@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -147,7 +149,9 @@ namespace Microsoft.CodeAnalysis
                 ((Operation)parent).OwningSemanticModel == null || OwningSemanticModel == null);
 
             // make sure given parent and one we already have is same if we have one already
-            Debug.Assert(result == s_unset || result == parent);
+            // This assert is violated in the presence of threading races, tracked by https://github.com/dotnet/roslyn/issues/35818
+            // As it's occasionally hitting in test runs, we're commenting out the assert pending fix.
+            //Debug.Assert(result == s_unset || result == parent);
         }
 
         public static T SetParentOperation<T>(T operation, IOperation parent) where T : IOperation

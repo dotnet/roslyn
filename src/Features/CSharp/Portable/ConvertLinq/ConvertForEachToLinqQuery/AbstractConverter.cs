@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -19,9 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         public ForEachInfo<ForEachStatementSyntax, StatementSyntax> ForEachInfo { get; }
 
         public AbstractConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo)
-        {
-            ForEachInfo = forEachInfo;
-        }
+            => ForEachInfo = forEachInfo;
 
         public abstract void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken);
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         {
             return convertToQuery
                 ? CreateQueryExpression(selectExpression, leadingTokensForSelect, trailingTokensForSelect)
-                : (ExpressionSyntax)CreateLinqInvocation(selectExpression, leadingTokensForSelect, trailingTokensForSelect);
+                : (ExpressionSyntax)CreateLinqInvocationOrSimpleExpression(selectExpression, leadingTokensForSelect, trailingTokensForSelect);
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         /// <param name="leadingTokensForSelect">extra leading tokens to be added to the select clause</param>
         /// <param name="trailingTokensForSelect">extra trailing tokens to be added to the select clause</param>
         /// <returns></returns>
-        private InvocationExpressionSyntax CreateLinqInvocation(
+        private ExpressionSyntax CreateLinqInvocationOrSimpleExpression(
             ExpressionSyntax selectExpression,
             IEnumerable<SyntaxToken> leadingTokensForSelect,
             IEnumerable<SyntaxToken> trailingTokensForSelect)
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             selectExpression = selectExpression.WithCommentsFrom(leadingTokensForSelect, ForEachInfo.TrailingTokens.Concat(trailingTokensForSelect));
             var currentExtendedNodeIndex = 0;
 
-            return CreateLinqInvocation(
+            return CreateLinqInvocationOrSimpleExpression(
                 foreachStatement,
                 receiverForInvocation: foreachStatement.Expression,
                 selectExpression: selectExpression,
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 .WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        private InvocationExpressionSyntax CreateLinqInvocation(
+        private ExpressionSyntax CreateLinqInvocationOrSimpleExpression(
             ForEachStatementSyntax forEachStatement,
             ExpressionSyntax receiverForInvocation,
             IEnumerable<SyntaxTrivia> leadingCommentsTrivia,
@@ -183,7 +183,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             //      OR
             //   c1.SelectMany(n1 => ...
             //
+
             var invokedMethodName = !hasForEachChild ? nameof(Enumerable.Select) : nameof(Enumerable.SelectMany);
+
+            // Avoid `.Select(x => x)`
+            if (invokedMethodName == nameof(Enumerable.Select) &&
+                lambdaBody is IdentifierNameSyntax identifier &&
+                identifier.Identifier.ValueText == forEachStatement.Identifier.ValueText)
+            {
+                // Because we're dropping the lambda, any comments associated with it need to be preserved.
+
+                var droppedTrivia = new List<SyntaxTrivia>();
+                foreach (var token in lambda.DescendantTokens())
+                {
+                    droppedTrivia.AddRange(token.GetAllTrivia().Where(t => !t.IsWhitespace()));
+                }
+
+                return receiverForInvocation.WithAppendedTrailingTrivia(droppedTrivia);
+            }
+
             return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
@@ -232,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     hasForEachChild = true;
                     var foreachStatement = (ForEachStatementSyntax)node.Node;
                     ++extendedNodeIndex;
-                    return CreateLinqInvocation(
+                    return CreateLinqInvocationOrSimpleExpression(
                         foreachStatement,
                         receiverForInvocation: foreachStatement.Expression,
                         selectExpression: selectExpression,

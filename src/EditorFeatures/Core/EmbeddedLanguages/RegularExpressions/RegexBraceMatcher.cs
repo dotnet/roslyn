@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -24,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private readonly RegexEmbeddedLanguage _language;
 
         public RegexBraceMatcher(RegexEmbeddedLanguage language)
-        {
-            _language = language;
-        }
+            => _language = language;
 
         public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, CancellationToken cancellationToken)
@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private static BraceMatchingResult? GetMatchingBraces(RegexTree tree, int position)
         {
-            var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position));
+            var virtualChar = tree.Text.FirstOrNull(vc => vc.Span.Contains(position));
             if (virtualChar == null)
             {
                 return null;
             }
 
             var ch = virtualChar.Value;
-            switch (ch)
+            switch (ch.Value)
             {
                 case '(':
                 case ')':
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private static BraceMatchingResult? CreateResult(RegexToken open, RegexToken close)
             => open.IsMissing || close.IsMissing
-                ? default(BraceMatchingResult?)
+                ? (BraceMatchingResult?)null
                 : new BraceMatchingResult(open.VirtualChars[0].Span, close.VirtualChars[0].Span);
 
         private static BraceMatchingResult? FindCommentBraces(RegexTree tree, VirtualChar ch)
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var firstChar = trivia.Value.VirtualChars[0];
             var lastChar = trivia.Value.VirtualChars[trivia.Value.VirtualChars.Length - 1];
             return firstChar != '(' || lastChar != ')'
-                ? default(BraceMatchingResult?)
+                ? (BraceMatchingResult?)null
                 : new BraceMatchingResult(firstChar.Span, lastChar.Span);
         }
 

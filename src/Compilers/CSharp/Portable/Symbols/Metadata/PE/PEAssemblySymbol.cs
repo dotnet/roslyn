@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -146,6 +148,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // Examine the type forwarders, but only from the primary module.
             return this.PrimaryModule.GetAssembliesForForwardedType(ref emittedName);
+        }
+
+        internal override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
+        {
+            return this.PrimaryModule.GetForwardedTypes();
         }
 
         internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)

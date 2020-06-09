@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Context for code fixes provided by a <see cref="CodeFixProvider"/>.
     /// </summary>
-    public struct CodeFixContext
+    public struct CodeFixContext : ITypeScriptCodeFixContext
     {
         private readonly Document _document;
         private readonly Project _project;
@@ -47,6 +49,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// CancellationToken.
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
+
+        private readonly bool _isBlocking;
+        bool ITypeScriptCodeFixContext.IsBlocking => _isBlocking;
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -102,7 +107,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             bool verifyArguments,
             CancellationToken cancellationToken)
-            : this(document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, cancellationToken)
+            : this(document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, isBlocking: false, cancellationToken)
+        {
+        }
+
+        internal CodeFixContext(
+            Document document,
+            TextSpan span,
+            ImmutableArray<Diagnostic> diagnostics,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
+            bool verifyArguments,
+            bool isBlocking,
+            CancellationToken cancellationToken)
+            : this(document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, isBlocking, cancellationToken)
         {
         }
 
@@ -111,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CancellationToken cancellationToken)
-            : this(document: null, project: project, span: default, diagnostics: diagnostics, registerCodeFix: registerCodeFix, verifyArguments: false, cancellationToken: cancellationToken)
+            : this(document: null, project: project, span: default, diagnostics: diagnostics, registerCodeFix: registerCodeFix, verifyArguments: false, isBlocking: false, cancellationToken: cancellationToken)
         {
         }
 
@@ -122,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             bool verifyArguments,
+            bool isBlocking,
             CancellationToken cancellationToken)
         {
             if (verifyArguments)
@@ -145,6 +163,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _diagnostics = diagnostics;
             _registerCodeFix = registerCodeFix;
             _cancellationToken = cancellationToken;
+
+            _isBlocking = isBlocking;
         }
 
         internal CodeFixContext(
@@ -228,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             if (diagnostics.Any(d => d == null))
             {
-                throw new ArgumentException(WorkspacesResources.Supplied_diagnostic_cannot_be_null, nameof(diagnostics));
+                throw new ArgumentException(WorkspaceExtensionsResources.Supplied_diagnostic_cannot_be_null, nameof(diagnostics));
             }
 
             if (diagnostics.Any(d => d.Location.SourceSpan != span))
@@ -236,5 +256,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentException(string.Format(WorkspacesResources.Diagnostic_must_have_span_0, span.ToString()), nameof(diagnostics));
             }
         }
+    }
+
+    internal interface ITypeScriptCodeFixContext
+    {
+        bool IsBlocking { get; }
     }
 }

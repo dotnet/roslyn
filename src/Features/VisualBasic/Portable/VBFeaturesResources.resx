@@ -153,9 +153,6 @@
   <data name="Delete_the_0_statement2" xml:space="preserve">
     <value>Delete the '{0}' statement.</value>
   </data>
-  <data name="Remove_Unnecessary_Imports" xml:space="preserve">
-    <value>Remove Unnecessary Imports</value>
-  </data>
   <data name="Type_a_name_here_to_declare_a_new_field" xml:space="preserve">
     <value>Type a name here to declare a new field.</value>
   </data>
@@ -299,9 +296,6 @@
   </data>
   <data name="new_variable" xml:space="preserve">
     <value>&lt;new variable&gt;</value>
-  </data>
-  <data name="Remove_and_Sort_Imports" xml:space="preserve">
-    <value>R&amp;emove and Sort Imports</value>
   </data>
   <data name="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName" xml:space="preserve">
     <value>Creates a delegate procedure instance that references the specified procedure.
@@ -979,9 +973,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_0_an_Async_Function" xml:space="preserve">
     <value>Make {0} an Async Function.</value>
   </data>
-  <data name="Insert_Missing_Cast" xml:space="preserve">
-    <value>Insert Missing Cast</value>
-  </data>
   <data name="Convert_0_to_Iterator" xml:space="preserve">
     <value>Convert {0} to Iterator</value>
   </data>
@@ -999,24 +990,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Generate_widening_conversion_in_0" xml:space="preserve">
     <value>Generate widening conversion in '{0}'</value>
-  </data>
-  <data name="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above" xml:space="preserve">
-    <value>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</value>
-  </data>
-  <data name="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below" xml:space="preserve">
-    <value>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</value>
-  </data>
-  <data name="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources" xml:space="preserve">
-    <value>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</value>
-  </data>
-  <data name="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern" xml:space="preserve">
-    <value>This code added by Visual Basic to correctly implement the disposable pattern.</value>
-  </data>
-  <data name="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above" xml:space="preserve">
-    <value>TODO: uncomment the following line if Finalize() is overridden above.</value>
-  </data>
-  <data name="Imports_statement_is_unnecessary" xml:space="preserve">
-    <value>Imports statement is unnecessary.</value>
   </data>
   <data name="Try_block" xml:space="preserve">
     <value>Try block</value>
@@ -1239,26 +1212,14 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Multiple_Types" xml:space="preserve">
     <value>&lt;Multiple Types&gt;</value>
   </data>
-  <data name="Add_Me" xml:space="preserve">
-    <value>Add 'Me.'</value>
-  </data>
   <data name="Convert_to_Select_Case" xml:space="preserve">
     <value>Convert to 'Select Case'</value>
-  </data>
-  <data name="Use_Is_Nothing_check" xml:space="preserve">
-    <value>Use 'Is Nothing' check</value>
-  </data>
-  <data name="Use_IsNot_Nothing_check" xml:space="preserve">
-    <value>Use 'IsNot Nothing' check</value>
   </data>
   <data name="Convert_to_For_Each" xml:space="preserve">
     <value>Convert to 'For Each'</value>
   </data>
   <data name="Convert_to_For" xml:space="preserve">
     <value>Convert  to 'For'</value>
-  </data>
-  <data name="If_statement_can_be_simplified" xml:space="preserve">
-    <value>'If' statement can be simplified</value>
   </data>
   <data name="Add_Obsolete" xml:space="preserve">
     <value>Add &lt;Obsolete&gt;</value>
@@ -1277,8 +1238,5 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Make_0_inheritable" xml:space="preserve">
     <value>Make '{0}' inheritable</value>
-  </data>
-  <data name="Sort_Imports" xml:space="preserve">
-    <value>&amp;Sort Imports</value>
   </data>
 </root>

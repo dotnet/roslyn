@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -28,7 +30,7 @@ metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableR
             var compilation1 = await project.GetCompilationAsync();
             var references1 = compilation1.ExternalReferences;
 
-            // just some arbitary action to create new snpahost that doesnt affect references
+            // just some arbitrary action to create new snpahost that doesnt affect references
             var info = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "code.cs");
             var document = ws.AddDocument(info);
 
@@ -68,7 +70,7 @@ metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableR
             var compilation1 = await project.GetCompilationAsync();
             var references1 = compilation1.ExternalReferences;
 
-            // just some arbitary action to create new snpahost that doesnt affect references
+            // just some arbitrary action to create new snpahost that doesnt affect references
             var info = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "code.cs");
             var document = ws.AddDocument(info);
 
@@ -108,7 +110,7 @@ metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableR
             var compilation1 = await project.GetCompilationAsync();
             var references1 = compilation1.ExternalReferences;
 
-            // just some arbitary action to create new snpahost that doesnt affect references
+            // just some arbitrary action to create new snpahost that doesnt affect references
             var info = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "code.cs");
             var document = ws.AddDocument(info);
 
@@ -152,7 +154,7 @@ metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableR
             var referenceDocumentInfo = DocumentInfo.Create(DocumentId.CreateNewId(referenceProject.Id), "code.cs");
             var referenceDocument = ws.AddDocument(referenceDocumentInfo);
 
-            // just some arbitary action to create new snpahost that doesnt affect references
+            // just some arbitrary action to create new snpahost that doesnt affect references
             var info = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "code.cs");
             var document = ws.AddDocument(info);
 

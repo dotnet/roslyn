@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -12,18 +15,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of EventStatementSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetHighlights(eventDeclaration As EventStatementSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overrides Sub AddHighlights(eventDeclaration As EventStatementSyntax, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             ' If the ancestor is not a event block, treat this as a single line event.
             ' Otherwise, let the EventBlockHighlighter take over.
             Dim eventBlock = eventDeclaration.GetAncestor(Of EventBlockSyntax)()
             If eventBlock IsNot Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
-
-            Dim highlights As New List(Of TextSpan)()
 
             With eventDeclaration
                 Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
@@ -33,8 +35,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     highlights.Add(.ImplementsClause.ImplementsKeyword.Span)
                 End If
             End With
-
-            Return highlights
-        End Function
+        End Sub
     End Class
 End Namespace

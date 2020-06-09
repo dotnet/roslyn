@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -7,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
@@ -26,10 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private readonly IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDefinitionsAndReferencesFactory(SVsServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
+            => _serviceProvider = serviceProvider;
 
         public override DefinitionItem GetThirdPartyDefinitionItem(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
@@ -96,6 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                        originationParts: default,
                        sourceSpans: default,
                        properties: null,
+                       displayableProperties: null,
                        displayIfNoReferences: true)
             {
                 _serviceProvider = serviceProvider;
@@ -106,10 +109,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
             public override bool CanNavigateTo(Workspace workspace) => true;
 
-            public override bool TryNavigateTo(Workspace workspace, bool isPreview)
-            {
-                return TryOpenFile() && TryNavigateToPosition();
-            }
+            public override bool TryNavigateTo(Workspace workspace, NavigationBehavior _)
+                => TryOpenFile() && TryNavigateToPosition();
 
             private bool TryOpenFile()
             {

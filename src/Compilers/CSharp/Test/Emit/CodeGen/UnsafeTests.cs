@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -11225,6 +11227,69 @@ public class A
 }
 ";
             CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "OK", verify: Verification.Passes);
+        }
+
+        [Fact, WorkItem(40768, "https://github.com/dotnet/roslyn/issues/40768")]
+        public void DoesNotEmitArrayDotEmptyForEmptyPointerArrayParams()
+        {
+            var source = @"
+
+using System;
+
+public static class Program
+{
+   public static unsafe void Main()
+   {
+      Console.WriteLine(Test());
+   }
+    
+   public static unsafe int Test(params int*[] types)
+   {
+       return types.Length;
+   }
+}";
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.Fails);
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  newarr     ""int*""
+  IL_0006:  call       ""int Program.Test(params int*[])""
+  IL_000b:  call       ""void System.Console.WriteLine(int)""
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void DoesEmitArrayDotEmptyForEmptyPointerArrayArrayParams()
+        {
+            var source = @"
+
+using System;
+
+public static class Program
+{
+   public static unsafe void Main()
+   {
+      Console.WriteLine(Test());
+   }
+    
+   public static unsafe int Test(params int*[][] types)
+   {
+       return types.Length;
+   }
+}";
+            var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0");
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  call       ""int*[][] System.Array.Empty<int*[]>()""
+  IL_0005:  call       ""int Program.Test(params int*[][])""
+  IL_000a:  call       ""void System.Console.WriteLine(int)""
+  IL_000f:  ret
+}");
         }
 
         #endregion

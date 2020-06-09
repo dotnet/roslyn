@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -54,12 +56,20 @@ namespace Microsoft.CodeAnalysis.AddImport
                 : null;
 
             var installerService = GetPackageInstallerService(document);
-            var packageSources = searchNuGetPackages && symbolSearchService != null && installerService != null
-                ? installerService.GetPackageSources()
+            var packageSources = searchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
+                ? await installerService.TryGetPackageSourcesAsync(allowSwitchToMainThread: false, context.CancellationToken).ConfigureAwait(false)
                 : ImmutableArray<PackageSource>.Empty;
 
+            if (packageSources is null)
+            {
+                // Information about package sources is not available. This code fix cannot provide results for NuGet
+                // packages at this time, but future invocations of the code fix will work. For the current code fix
+                // operation, just treat the package sources as empty.
+                packageSources = ImmutableArray<PackageSource>.Empty;
+            }
+
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
-                document, span, diagnostics, MaxResults, symbolSearchService, searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
+                document, span, diagnostics, MaxResults, symbolSearchService, searchReferenceAssemblies, packageSources.Value, cancellationToken).ConfigureAwait(false);
 
             foreach (var (diagnostic, fixes) in fixesForDiagnostic)
             {

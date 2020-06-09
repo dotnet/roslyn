@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3714,6 +3717,9 @@ class C
                 // (6,36): error CS0103: The name 'x1' does not exist in the current context
                 //         foreach (var (x1, x2) in M(x1)) { }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 36),
+                // (6,34): error CS1579: foreach statement cannot operate on variables of type '(int, int)' because '(int, int)' does not contain a public instance definition for 'GetEnumerator'
+                //         foreach (var (x1, x2) in M(x1)) { }
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "M(x1)").WithArguments("(int, int)", "GetEnumerator").WithLocation(6, 34),
                 // (6,23): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
                 //         foreach (var (x1, x2) in M(x1)) { }
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(6, 23),
@@ -3955,7 +3961,7 @@ class Program
                     if (node is DeclarationExpressionSyntax)
                     {
                         Assert.Equal(SymbolKind.Local, symbol.Kind);
-                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, ((LocalSymbol)symbol).DeclarationKind);
+                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
                     }
                     else
                     {
@@ -3969,7 +3975,7 @@ class Program
                     if (node is SingleVariableDesignationSyntax)
                     {
                         Assert.Equal(SymbolKind.Local, symbol.Kind);
-                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, ((LocalSymbol)symbol).DeclarationKind);
+                        Assert.Equal(LocalDeclarationKind.DeconstructionVariable, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
                     }
                     else
                     {
@@ -4185,12 +4191,12 @@ class Program
 
             var x1 = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("x1", x1.Name);
-            Assert.Equal("System.Int32", ((LocalSymbol)x1).TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((ILocalSymbol)x1).Type.ToTestDisplayString());
             Assert.Same(x1, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x1").Single()).Symbol);
 
             var x2 = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("x2", x2.Name);
-            Assert.Equal("System.Int32", ((LocalSymbol)x2).TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((ILocalSymbol)x2).Type.ToTestDisplayString());
             Assert.Same(x2, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x2").Single()).Symbol);
         }
 
@@ -4252,19 +4258,19 @@ class C
 
             var a = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("var a", a.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)a).DeclarationKind);
+            Assert.Equal(localDeclarationKind, a.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var b = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("var b", b.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)b).DeclarationKind);
+            Assert.Equal(localDeclarationKind, b.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var c = model.GetDeclaredSymbol(designations[2]);
             Assert.Equal("var c", c.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)c).DeclarationKind);
+            Assert.Equal(localDeclarationKind, c.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var d = model.GetDeclaredSymbol(designations[3]);
             Assert.Equal("System.Int32 d", d.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)d).DeclarationKind);
+            Assert.Equal(localDeclarationKind, d.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(3, declarations.Count());
@@ -4728,7 +4734,7 @@ class C
 
             var aa = nodes.OfType<DeclarationExpressionSyntax>().ElementAt(0);
             Assert.Equal("var (a, a)", aa.ToString());
-            var aaType = (TypeSymbol)model.GetTypeInfo(aa).Type;
+            var aaType = model.GetTypeInfo(aa).Type.GetSymbol();
             Assert.True(aaType.TupleElementNames.IsDefault);
         }
 
@@ -5193,19 +5199,19 @@ class C
 
             var a = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("var a", a.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)a).DeclarationKind);
+            Assert.Equal(localDeclarationKind, a.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var b = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("var b", b.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)b).DeclarationKind);
+            Assert.Equal(localDeclarationKind, b.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var c = model.GetDeclaredSymbol(designations[2]);
             Assert.Equal("var c", c.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)c).DeclarationKind);
+            Assert.Equal(localDeclarationKind, c.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var d = model.GetDeclaredSymbol(designations[3]);
             Assert.Equal("System.Int32 d", d.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)d).DeclarationKind);
+            Assert.Equal(localDeclarationKind, d.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(3, declarations.Count());
@@ -5662,19 +5668,19 @@ class C
 
             var a = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("var a", a.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)a).DeclarationKind);
+            Assert.Equal(localDeclarationKind, a.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var b = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("var b", b.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)b).DeclarationKind);
+            Assert.Equal(localDeclarationKind, b.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var c = model.GetDeclaredSymbol(designations[2]);
             Assert.Equal("var c", c.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)c).DeclarationKind);
+            Assert.Equal(localDeclarationKind, c.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var d = model.GetDeclaredSymbol(designations[3]);
             Assert.Equal("System.Int32 d", d.ToTestDisplayString());
-            Assert.Equal(localDeclarationKind, ((LocalSymbol)d).DeclarationKind);
+            Assert.Equal(localDeclarationKind, d.GetSymbol<LocalSymbol>().DeclarationKind);
 
             var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(2, declarations.Count());
@@ -5995,7 +6001,7 @@ class C
             Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(mainCall).Kind);
             var symbols = model.GetSymbolInfo(mainCall);
-            Assert.Equal(symbols.Symbol, main);
+            Assert.Equal(symbols.Symbol, main.GetPublicSymbol());
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
 
@@ -6038,7 +6044,7 @@ class C
             Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(mainCall).Kind);
             var symbols = model.GetSymbolInfo(mainCall);
-            Assert.Equal(symbols.Symbol, main);
+            Assert.Equal(symbols.Symbol, main.GetPublicSymbol());
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
 
@@ -6078,7 +6084,7 @@ class C
             Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(mainCall).Kind);
             var symbols = model.GetSymbolInfo(mainCall);
-            Assert.Equal(symbols.Symbol, main);
+            Assert.Equal(symbols.Symbol, main.GetPublicSymbol());
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
 
@@ -6160,7 +6166,7 @@ class C
             Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(mainCall).Kind);
             var symbols = model.GetSymbolInfo(mainCall);
-            Assert.Equal(symbols.Symbol, main);
+            Assert.Equal(symbols.Symbol, main.GetPublicSymbol());
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
 

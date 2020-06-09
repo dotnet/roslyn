@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -14,9 +15,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var document = DocumentationComment.FromXmlFragment("");
 
-            Assert.Equal(null, document.ExampleText);
-            Assert.Equal(null, document.ReturnsText);
-            Assert.Equal(null, document.SummaryText);
+            Assert.Null(document.ExampleText);
+            Assert.Null(document.ReturnsText);
+            Assert.Null(document.ValueText);
+            Assert.Null(document.SummaryText);
         }
 
         [Fact]
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var comment = DocumentationComment.FromXmlFragment(
                 @"<summary>Hello, world!</summary>
                   <returns>42.</returns>
+                  <value>43.</value>
                   <example>goo.Bar();</example>
                   <param name=""goo"">A goo.</param>
                   <typeparam name=""T"">A type.</typeparam>
@@ -33,6 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal("Hello, world!", comment.SummaryText);
             Assert.Equal("42.", comment.ReturnsText);
+            Assert.Equal("43.", comment.ValueText);
             Assert.Equal("goo.Bar();", comment.ExampleText);
             Assert.Equal("goo", comment.ParameterNames[0]);
             Assert.Equal("A goo.", comment.GetParameterText("goo"));
@@ -246,11 +250,11 @@ Hello
 
             var fullXml = $@"<summary>{multiLineText}</summary>
                   <returns>{multiLineText}</returns>
+                  <value>{multiLineText}</value>
                   <example>{multiLineText}</example>
                   <param name=""goo"">{multiLineText}</param>
                   <typeparam name=""T"">{multiLineText}</typeparam>
                   <remarks>{multiLineText}</remarks>";
-
 
             var expected = @"Hello
 World     .
@@ -263,6 +267,7 @@ World     .
 
             Assert.Equal(expected, comment.SummaryText);
             Assert.Equal(expected, comment.ReturnsText);
+            Assert.Equal(expected, comment.ValueText);
             Assert.Equal(expected, comment.ExampleText);
             Assert.Equal(expected, comment.GetParameterText("goo"));
             Assert.Equal(expected, comment.GetTypeParameterText("T"));

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -172,7 +174,7 @@ interface I
     // (4,20): error CS1514: { expected
     //     int this[int i];
     Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(4, 20),
-    // (4,20): error CS1014: A get or set accessor expected
+    // (4,20): error CS1014: A get, set or init accessor expected
     //     int this[int i];
     Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(4, 20),
     // (5,2): error CS1513: } expected

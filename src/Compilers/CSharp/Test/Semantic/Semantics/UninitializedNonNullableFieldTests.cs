@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -214,12 +216,12 @@ struct S
                 // (3,16): warning CS0649: Field 'C<T>.F1' is never assigned to, and will always have its default value 
                 //     internal T F1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("C<T>.F1", "").WithLocation(3, 16),
-                // (5,21): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (5,21): warning CS8601: Possible null reference assignment.
                 //     internal T F3 = default;
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(5, 21),
-                // (6,21): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(5, 21),
+                // (6,21): warning CS8601: Possible null reference assignment.
                 //     internal T F4 = default(T);
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(6, 21));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default(T)").WithLocation(6, 21));
         }
 
         [Fact]
@@ -521,12 +523,9 @@ class C<T, U, V>
                 // (7,22): warning CS8618: Non-nullable property 'P1' is uninitialized. Consider declaring the property as nullable.
                 //     private static T P1 { get; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(7, 22),
-                // (9,34): warning CS8618: Non-nullable property 'P3' is uninitialized. Consider declaring the property as nullable.
-                //     [MaybeNull] private static T P3 { get; }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P3").WithArguments("property", "P3").WithLocation(9, 34),
-                // (10,48): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (10,48): warning CS8601: Possible null reference assignment.
                 //     [MaybeNull] private static T P4 { get; } = default;
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(10, 48),
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(10, 48),
                 // (11,22): warning CS8618: Non-nullable property 'P5' is uninitialized. Consider declaring the property as nullable.
                 //     private static U P5 { get; set; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P5").WithArguments("property", "P5").WithLocation(11, 22));
@@ -842,9 +841,6 @@ class C<T>
                 // (12,13): warning CS8618: Non-nullable field 'F2' is uninitialized. Consider declaring the field as nullable.
                 //     private C(T t)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(12, 13),
-                // (12,13): warning CS8618: Non-nullable field 'F3' is uninitialized. Consider declaring the field as nullable.
-                //     private C(T t)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(12, 13),
                 // (12,13): warning CS8618: Non-nullable property 'P2' is uninitialized. Consider declaring the property as nullable.
                 //     private C(T t)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(12, 13),
@@ -1343,6 +1339,124 @@ class C
                 // (28,14): warning CS8618: Non-nullable field '_f' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(char c)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(28, 14));
+        }
+
+        [Fact]
+        [WorkItem(1090263, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090263")]
+        public void PropertyNoGetter()
+        {
+            var comp = CreateCompilation(@"
+using System;
+class C
+{
+    public string P { }
+    public string P2 { set { } }
+    public string P3 { } = string.Empty;
+    public C()
+    {
+        P = """";
+        Console.WriteLine(P2);
+        P2 += """";
+    }
+}", options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,19): error CS0548: 'C.P': property or indexer must have at least one accessor
+                //     public string P { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("C.P").WithLocation(5, 19),
+                // (7,19): error CS0548: 'C.P3': property or indexer must have at least one accessor
+                //     public string P3 { } = string.Empty;
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P3").WithArguments("C.P3").WithLocation(7, 19),
+                // (10,9): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
+                //         P = "";
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(10, 9),
+                // (11,27): error CS0154: The property or indexer 'C.P2' cannot be used in this context because it lacks the get accessor
+                //         Console.WriteLine(P2);
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "P2").WithArguments("C.P2").WithLocation(11, 27),
+                // (12,9): error CS0154: The property or indexer 'C.P2' cannot be used in this context because it lacks the get accessor
+                //         P2 += "";
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "P2").WithArguments("C.P2").WithLocation(12, 9)
+            );
+        }
+
+        [Fact]
+        public void MaybeNullT_Uninitialized()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public class C<T>
+{
+    [MaybeNull] public T F;
+    [MaybeNull] public T P { get; set; }
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void MaybeNull_ClassT_Uninitialized()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public class C<T> where T : class
+{
+    [MaybeNull] public T F;
+    [MaybeNull] public T P { get; set; }
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void MaybeNull_NotNullT_Uninitialized()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public class C<T> where T : notnull
+{
+    [MaybeNull] public T F;
+    [MaybeNull] public T P { get; set; }
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void MaybeNull_Uninitialized()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public class C
+{
+    [MaybeNull] public string F;
+    [MaybeNull] public string P { get; set; }
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void MaybeNull_NullInitializer()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+public class C
+{
+    [MaybeNull] public string F = null;
+    [MaybeNull] public string P { get; set; } = null;
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     [MaybeNull] public string F = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 35),
+                // (5,49): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     [MaybeNull] public string P { get; set; } = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 49)
+                );
         }
     }
 }

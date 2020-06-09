@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,27 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// A binder for a method body, which places the method's parameters in scope
     /// and notes if the method is an iterator method.
+    /// Note: instances of this type can be re-used across different attempts at compiling the same method (caching by binder factory).
     /// </summary>
     internal sealed class InMethodBinder : LocalScopeBinder
     {
         private MultiDictionary<string, ParameterSymbol> _lazyParameterMap;
         private readonly MethodSymbol _methodSymbol;
         private SmallDictionary<string, Symbol> _lazyDefinitionMap;
-        private IteratorInfo _iteratorInfo;
-
-        private class IteratorInfo
-        {
-            public static readonly IteratorInfo Empty = new IteratorInfo(default, default(ImmutableArray<Diagnostic>));
-
-            public readonly TypeWithAnnotations ElementType;
-            public readonly ImmutableArray<Diagnostic> ElementTypeDiagnostics;
-
-            public IteratorInfo(TypeWithAnnotations elementType, ImmutableArray<Diagnostic> elementTypeDiagnostics)
-            {
-                this.ElementType = elementType;
-                this.ElementTypeDiagnostics = elementTypeDiagnostics;
-            }
-        }
+        private TypeWithAnnotations.Boxed _iteratorElementType;
 
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
             : base(enclosing, enclosing.Flags & ~BinderFlags.AllClearedAtExecutableCodeBoundary)
@@ -86,19 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool IsNestedFunctionBinder => _methodSymbol.MethodKind == MethodKind.LocalFunction;
 
-        internal void MakeIterator()
-        {
-            if (_iteratorInfo == null)
-            {
-                _iteratorInfo = IteratorInfo.Empty;
-            }
-        }
-
         internal override bool IsDirectlyInIterator
         {
             get
             {
-                return _iteratorInfo != null;
+                return _methodSymbol.IsIterator;
             }
         }
 
@@ -126,7 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        protected override void ValidateYield(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        {
+        }
+
+        internal override TypeWithAnnotations GetIteratorElementType()
         {
             RefKind refKind = _methodSymbol.RefKind;
             TypeSymbol returnType = _methodSymbol.ReturnType;
@@ -139,52 +124,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and deduce an iterator element type from the return type.  If we didn't do this, the 
                 // TypeInfo.ConvertedType of the yield statement would always be an error type.  However, we will 
                 // not mutate any state (i.e. we won't store the result).
-                var elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node, diagnostics).elementType;
+                var elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation: null, diagnostics: null);
                 return !elementType.IsDefault ? elementType : TypeWithAnnotations.Create(CreateErrorType());
             }
 
-            if (_iteratorInfo == IteratorInfo.Empty)
+            if (_iteratorElementType is null)
             {
-                DiagnosticBag elementTypeDiagnostics = DiagnosticBag.GetInstance();
-
-                (TypeWithAnnotations elementType, bool asyncInterface) = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node, elementTypeDiagnostics);
-
-                Location errorLocation = _methodSymbol.Locations[0];
+                TypeWithAnnotations elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation: null, diagnostics: null);
                 if (elementType.IsDefault)
                 {
-                    if (refKind != RefKind.None)
-                    {
-                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturnRef, errorLocation, _methodSymbol);
-                    }
-                    else if (!returnType.IsErrorType())
-                    {
-                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, errorLocation, _methodSymbol, returnType);
-                    }
                     elementType = TypeWithAnnotations.Create(CreateErrorType());
                 }
-                else if (asyncInterface && !_methodSymbol.IsAsync)
-                {
-                    Error(elementTypeDiagnostics, ErrorCode.ERR_IteratorMustBeAsync, errorLocation, _methodSymbol, returnType);
-                }
 
-                var info = new IteratorInfo(elementType, elementTypeDiagnostics.ToReadOnlyAndFree());
-
-                Interlocked.CompareExchange(ref _iteratorInfo, info, IteratorInfo.Empty);
+                Interlocked.CompareExchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(elementType), null);
             }
 
-            if (node == null)
-            {
-                // node==null indicates this we are being called from the top-level of processing of a method. We report
-                // the diagnostic, if any, at that time to ensure it is reported exactly once.
-                diagnostics.AddRange(_iteratorInfo.ElementTypeDiagnostics);
-            }
-
-            return _iteratorInfo.ElementType;
+            return _iteratorElementType.Value;
         }
 
-        // If an element type is found, we also return whether the interface is meant to be used with async.
-        internal static (TypeWithAnnotations elementType, bool asyncInterface) GetIteratorElementTypeFromReturnType(CSharpCompilation compilation,
-            RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
+        internal static TypeWithAnnotations GetIteratorElementTypeFromReturnType(CSharpCompilation compilation,
+            RefKind refKind, TypeSymbol returnType, Location errorLocation, DiagnosticBag diagnostics)
         {
             if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
@@ -196,23 +155,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var objectType = compilation.GetSpecialType(SpecialType.System_Object);
                         if (diagnostics != null)
                         {
-                            ReportUseSiteDiagnostics(objectType, diagnostics, errorLocationNode);
+                            ReportUseSiteDiagnostics(objectType, diagnostics, errorLocation);
                         }
-                        return (TypeWithAnnotations.Create(objectType), false);
+                        return TypeWithAnnotations.Create(objectType);
 
                     case SpecialType.System_Collections_Generic_IEnumerable_T:
                     case SpecialType.System_Collections_Generic_IEnumerator_T:
-                        return (((NamedTypeSymbol)returnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0], false);
+                        return ((NamedTypeSymbol)returnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
                 }
 
-                if (TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T), TypeCompareKind.ConsiderEverything2) ||
-                    TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T), TypeCompareKind.ConsiderEverything2))
+                if (TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T), TypeCompareKind.ConsiderEverything) ||
+                    TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T), TypeCompareKind.ConsiderEverything))
                 {
-                    return (((NamedTypeSymbol)returnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0], true);
+                    return ((NamedTypeSymbol)returnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
                 }
             }
 
             return default;
+        }
+
+        internal static bool IsAsyncStreamInterface(CSharpCompilation compilation, RefKind refKind, TypeSymbol returnType)
+        {
+            if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
+            {
+                TypeSymbol originalDefinition = returnType.OriginalDefinition;
+
+                if (TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T), TypeCompareKind.ConsiderEverything) ||
+                    TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T), TypeCompareKind.ConsiderEverything))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         internal override void LookupSymbolsInSingleBinder(
@@ -260,9 +235,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
-            var oldLocation = parameter.Locations[0];
+#if DEBUG
+            var locations = parameter.Locations;
+            Debug.Assert(!locations.IsEmpty || parameter.IsImplicitlyDeclared);
+            var oldLocation = locations.FirstOrNone();
             Debug.Assert(oldLocation != newLocation || oldLocation == Location.None || newLocation.SourceTree?.GetRoot().ContainsDiagnostics == true,
                 "same nonempty location refers to different symbols?");
+#endif 
             SymbolKind parameterKind = parameter.Kind;
 
             // Quirk of the way we represent lambda parameters.                
@@ -330,6 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(false, "what else could be defined in a method?");
+            diagnostics.Add(ErrorCode.ERR_InternalError, newLocation);
             return true;
         }
 

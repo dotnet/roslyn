@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +19,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
@@ -65,22 +65,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             Document document, ICommentSelectionService service, ITextBuffer textBuffer, NormalizedSnapshotSpanCollection selectedSpans,
             TCommand command, CancellationToken cancellationToken);
 
-        protected static VSCommanding.CommandState GetCommandState(ITextBuffer buffer)
+        protected static CommandState GetCommandState(ITextBuffer buffer)
         {
             return buffer.CanApplyChangeDocumentToWorkspace()
-                ? VSCommanding.CommandState.Available
-                : VSCommanding.CommandState.Unspecified;
+                ? CommandState.Available
+                : CommandState.Unspecified;
         }
 
         protected static void InsertText(ArrayBuilder<TextChange> textChanges, int position, string text)
-        {
-            textChanges.Add(new TextChange(new TextSpan(position, 0), text));
-        }
+            => textChanges.Add(new TextChange(new TextSpan(position, 0), text));
 
         protected static void DeleteText(ArrayBuilder<TextChange> textChanges, TextSpan span)
-        {
-            textChanges.Add(new TextChange(span, string.Empty));
-        }
+            => textChanges.Add(new TextChange(span, string.Empty));
 
         internal bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, TCommand command, CommandExecutionContext context)
         {
@@ -145,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 {
                     // Format the document only during uncomment operations.  Use second transaction so it can be undone.
                     using var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
-                    
+
                     var formattedDocument = Format(service, subjectBuffer.CurrentSnapshot, trackingSnapshotSpans, CancellationToken.None);
                     if (formattedDocument != null)
                     {

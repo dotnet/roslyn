@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -17,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression result;
 
-            string indexedPropertyName = indexerAccess.TryGetIndexedPropertyName();
+            string? indexedPropertyName = indexerAccess.TryGetIndexedPropertyName();
             if (indexedPropertyName != null)
             {
                 // Dev12 forces the receiver to be typed to dynamic to workaround a bug in the runtime binder.
@@ -38,9 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
-            Debug.Assert(node.ReceiverOpt != null);
-
-            var loweredReceiver = VisitExpression(node.ReceiverOpt);
+            var loweredReceiver = VisitExpression(node.Receiver);
             var loweredArguments = VisitList(node.Arguments);
 
             return MakeDynamicGetIndex(node, loweredReceiver, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt);
@@ -78,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(indexer.IsIndexer || indexer.IsIndexedProperty);
 
             // Rewrite the receiver.
-            BoundExpression rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+            BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
+            Debug.Assert(rewrittenReceiver is { });
 
             // Rewrite the arguments.
             // NOTE: We may need additional argument rewriting such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
@@ -109,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             TypeSymbol type,
-            BoundIndexerAccess oldNodeOpt,
+            BoundIndexerAccess? oldNodeOpt,
             bool isLeftOfAssignment)
         {
             if (isLeftOfAssignment && indexer.RefKind == RefKind.None)
@@ -163,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitIndexOrRangePatternIndexerAccess(node, isLeftOfAssignment: false);
         }
 
-        private BoundExpression VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
+        private BoundSequence VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
         {
             if (TypeSymbol.Equals(
                 node.Argument.Type,
@@ -192,7 +195,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression VisitIndexPatternIndexerAccess(
+
+        private BoundSequence VisitIndexPatternIndexerAccess(
             SyntaxNode syntax,
             BoundExpression receiver,
             PropertySymbol lengthOrCountProperty,
@@ -208,6 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var F = _factory;
 
+            Debug.Assert(receiver.Type is { });
             var receiverLocal = F.StoreToTemp(
                 VisitExpression(receiver),
                 out var receiverStore,
@@ -236,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             locals.Add(indexLocal.LocalSymbol);
             sideEffects.Add(indexStore);
 
-            return F.Sequence(
+            return (BoundSequence)F.Sequence(
                 locals.ToImmutable(),
                 sideEffects.ToImmutable(),
                 MakeIndexerAccess(
@@ -253,9 +258,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isLeftOfAssignment));
         }
 
+        /// <summary>
+        /// Used to construct a pattern index offset expression, of the form
+        ///     `unloweredExpr.GetOffset(lengthAccess)`
+        /// where unloweredExpr is an expression of type System.Index and the
+        /// lengthAccess retrieves the length of the indexing target.
+        /// </summary>
+        /// <param name="unloweredExpr">The unlowered argument to the indexing expression</param>
+        /// <param name="lengthAccess">
+        /// An expression accessing the length of the indexing target. This should
+        /// be a non-side-effecting operation.
+        /// </param>
+        /// <param name="usedLength">
+        /// True if we were able to optimize the <paramref name="unloweredExpr"/>
+        /// to use the <paramref name="lengthAccess"/> operation directly on the receiver, instead of
+        /// using System.Index helpers.
+        /// </param>
         private BoundExpression MakePatternIndexOffsetExpression(
             BoundExpression unloweredExpr,
-            BoundLocal lengthAccess,
+            BoundExpression lengthAccess,
             out bool usedLength)
         {
             Debug.Assert(TypeSymbol.Equals(
@@ -269,16 +290,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the System.Index argument is `^index`, we can replace the
                 // `argument.GetOffset(length)` call with `length - index`
-                Debug.Assert(hatExpression.Operand.Type.SpecialType == SpecialType.System_Int32);
+                Debug.Assert(hatExpression.Operand is { Type: { SpecialType: SpecialType.System_Int32 } });
                 usedLength = true;
                 return F.IntSubtract(lengthAccess, VisitExpression(hatExpression.Operand));
             }
-            else if (unloweredExpr is BoundConversion conversion && conversion.Operand.Type.SpecialType == SpecialType.System_Int32)
+            else if (unloweredExpr is BoundConversion { Operand: { Type: { SpecialType: SpecialType.System_Int32 } } operand })
             {
                 // If the System.Index argument is a conversion from int to Index we
                 // can return the int directly
                 usedLength = false;
-                return VisitExpression(conversion.Operand);
+                return VisitExpression(operand);
             }
             else
             {
@@ -290,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression VisitRangePatternIndexerAccess(
+        private BoundSequence VisitRangePatternIndexerAccess(
             BoundExpression receiver,
             PropertySymbol lengthOrCountProperty,
             MethodSymbol sliceMethod,
@@ -419,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rangeSizeExpr = rangeSizeLocal;
             }
 
-            return F.Sequence(
+            return (BoundSequence)F.Sequence(
                 localsBuilder.ToImmutableAndFree(),
                 sideEffectsBuilder.ToImmutableAndFree(),
                 F.Call(receiverLocal, sliceMethod, startExpr, rangeSizeExpr));

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -979,7 +981,7 @@ P[5]
 Q[6] = 5
 ");
 
-            var @namespace = (NamespaceSymbol)compilation2.Compilation.GlobalNamespace;
+            var @namespace = (NamespaceSymbol)((CSharpCompilation)compilation2.Compilation).GlobalNamespace;
             // Property with parameters from type with [ComImport].
             var property = @namespace.GetMember<NamedTypeSymbol>("IA").GetMember<PropertySymbol>("P");
             Assert.False(property.MustCallMethodsDirectly);
@@ -1080,7 +1082,7 @@ Q[6] = 5
 }";
             var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, verify: Verification.Passes);
 
-            var @namespace = (NamespaceSymbol)compilation2.Compilation.GlobalNamespace;
+            var @namespace = (NamespaceSymbol)((CSharpCompilation)compilation2.Compilation).GlobalNamespace;
             // Indexed property with valid name.
             var type = @namespace.GetMember<NamedTypeSymbol>("I");
             var property = type.GetMember<PropertySymbol>("P");

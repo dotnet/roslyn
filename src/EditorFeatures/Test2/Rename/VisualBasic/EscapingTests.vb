@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
@@ -11,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             _outputHelper = outputHelper
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeTypeWhenRenamingToKeyword()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeTypeWhenRenamingToKeyword(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -25,16 +27,16 @@ Module {|Escape:$$Goo|}
 End Module
                                </Document>
                     </Project>
-                </Workspace>, renameTo:="If")
+                </Workspace>, host:=host, renameTo:="If")
 
                 result.AssertLabeledSpecialSpansAre("Escape", "[If]", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("stmt1", "[If]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub DoNotEscapeMethodAfterDotWhenRenamingToKeyword()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub DoNotEscapeMethodAfterDotWhenRenamingToKeyword(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -46,17 +48,16 @@ Module Goo
 End Module
                                </Document>
                     </Project>
-                </Workspace>, renameTo:="If")
-
+                </Workspace>, host:=host, renameTo:="If")
 
                 result.AssertLabeledSpecialSpansAre("Escape", "[If]", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt1", "If", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeAttributeWhenRenamingToRegularKeyword()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeAttributeWhenRenamingToRegularKeyword(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -74,15 +75,15 @@ Module Program
 End Module
                                ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="If")
+                </Workspace>, host:=host, renameTo:="If")
 
                 result.AssertLabeledSpecialSpansAre("Escape", "[If]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeAttributeUsageWhenRenamingToAssembly()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeAttributeUsageWhenRenamingToAssembly(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -100,16 +101,15 @@ Module Program
 End Module
                                ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="Assembly")
-
+                </Workspace>, host:=host, renameTo:="Assembly")
 
                 result.AssertLabeledSpecialSpansAre("Escape", "[Assembly]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeAttributeUsageWhenRenamingToModule()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeAttributeUsageWhenRenamingToModule(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -127,16 +127,15 @@ Module Program
 End Module
                                ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="Module")
-
+                </Workspace>, host:=host, renameTo:="Module")
 
                 result.AssertLabeledSpecialSpansAre("Escape", "[Module]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeWhenRenamingMethodToNew()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeWhenRenamingMethodToNew(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -156,16 +155,16 @@ Class Base
 End Class
                            </Document>
                     </Project>
-                </Workspace>, renameTo:="New")
+                </Workspace>, host:=host, renameTo:="New")
 
                 result.AssertLabeledSpecialSpansAre("Escape", "[New]", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("stmt1", "[New]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeWhenRenamingMethodToRem()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeWhenRenamingMethodToRem(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -177,18 +176,17 @@ Module Goo
 End Module
                                </Document>
                     </Project>
-                </Workspace>, renameTo:="Rem")
-
+                </Workspace>, host:=host, renameTo:="Rem")
 
                 result.AssertLabeledSpecialSpansAre("Escape", "[Rem]", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpecialSpansAre("stmt1", "[Rem]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(542104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542104")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeWhenRenamingPropertyToMid()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeWhenRenamingPropertyToMid(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -205,17 +203,16 @@ End Module
                                End Module
                            </Document>
                     </Project>
-                </Workspace>, renameTo:="Mid")
-
+                </Workspace>, host:=host, renameTo:="Mid")
 
                 result.AssertLabeledSpecialSpansAre("stmt1", "[Mid]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(542104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542104")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeWhenRenamingPropertyToStrangelyCasedMid()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeWhenRenamingPropertyToStrangelyCasedMid(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -232,17 +229,16 @@ End Module
                                        End Module
                                    </Document>
                     </Project>
-                </Workspace>, renameTo:="mId")
-
+                </Workspace>, host:=host, renameTo:="mId")
 
                 result.AssertLabeledSpecialSpansAre("stmt1", "[mId]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(542166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542166")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeWhenRenamingToMidWithTypeCharacters1()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeWhenRenamingToMidWithTypeCharacters1(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -259,17 +255,17 @@ End Module
                                    End Module
                                </Document>
                     </Project>
-                </Workspace>, renameTo:="Mid")
+                </Workspace>, host:=host, renameTo:="Mid")
 
                 result.AssertLabeledSpansAre("escaped", "[Mid]", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt", "Mid$", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(542166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542166")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeWhenRenamingToMidWithTypeCharacters2()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeWhenRenamingToMidWithTypeCharacters2(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -286,16 +282,16 @@ End Module
                                    End Module
                                </Document>
                     </Project>
-                </Workspace>, renameTo:="Mid$")
+                </Workspace>, host:=host, renameTo:="Mid$")
 
                 result.AssertLabeledSpansAre("unresolved", "Mid$", RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansAre("unresolved2", "Mid$$", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapePreserveKeywordWhenRenamingWithRedim()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapePreserveKeywordWhenRenamingWithRedim(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -308,17 +304,17 @@ End Module
                                         End Module
                                    </Document>
                     </Project>
-                </Workspace>, renameTo:="preserve")
+                </Workspace>, host:=host, renameTo:="preserve")
 
                 result.AssertLabeledSpansAre("stmt1", "preserve", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", "[preserve]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
-        Public Sub EscapeRemKeywordWhenDoingTypeNameQualification()
+        Public Sub EscapeRemKeywordWhenDoingTypeNameQualification(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -334,17 +330,17 @@ Module M
 End Module
                                    </Document>
                     </Project>
-                </Workspace>, renameTo:="Rem")
+                </Workspace>, host:=host, renameTo:="Rem")
 
                 result.AssertLabeledSpecialSpansAre("Escape", "[Rem]", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("Resolve", "M.[Rem]", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
-        Public Sub EscapeNewKeywordWhenDoingTypeNameQualification()
+        Public Sub EscapeNewKeywordWhenDoingTypeNameQualification(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -360,17 +356,17 @@ Module M
 End Module
                            </Document>
                     </Project>
-                </Workspace>, renameTo:="New")
+                </Workspace>, host:=host, renameTo:="New")
 
                 result.AssertLabeledSpecialSpansAre("Escape", "[New]", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("Resolve", "M.[New]", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
-        Public Sub EscapeRemKeywordWhenDoingMeQualification()
+        Public Sub EscapeRemKeywordWhenDoingMeQualification(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -386,17 +382,17 @@ Class M
 End Class
                             </Document>
                     </Project>
-                </Workspace>, renameTo:="Rem")
+                </Workspace>, host:=host, renameTo:="Rem")
 
                 result.AssertLabeledSpecialSpansAre("Escaped", "[Rem]", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("Replacement", "Me.[Rem]()", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542322, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542322")>
-        Public Sub DoNotEscapeIfKeywordWhenDoingMeQualification()
+        Public Sub DoNotEscapeIfKeywordWhenDoingMeQualification(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -412,7 +408,7 @@ Class M
 End Class
                                </Document>
                     </Project>
-                </Workspace>, renameTo:="If")
+                </Workspace>, host:=host, renameTo:="If")
 
                 result.AssertLabeledSpecialSpansAre("Escape", "[If]", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("Resolve", "Me.If", RelatedLocationType.ResolvedReferenceConflict)
@@ -420,9 +416,9 @@ End Class
         End Sub
 
         <WorkItem(529935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeIdentifierWhenRenamingToRemKeyword()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeIdentifierWhenRenamingToRemKeyword(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -435,16 +431,16 @@ Module Program
 End Module
                                </Document>
                     </Project>
-                </Workspace>, renameTo:="ＲＥＭ")
+                </Workspace>, host:=host, renameTo:="ＲＥＭ")
 
                 result.AssertLabeledSpansAre("stmt", "[ＲＥＭ]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(529935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529935")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeIdentifierWhenRenamingToRemKeyword2()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeIdentifierWhenRenamingToRemKeyword2(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -457,7 +453,7 @@ Module Program
 End Module
                                </Document>
                     </Project>
-                </Workspace>, renameTo:="ＲＥＭ")
+                </Workspace>, host:=host, renameTo:="ＲＥＭ")
 
                 result.AssertLabeledSpansAre("stmt", "[ＲＥＭ]", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("conflict", "ＲＥＭ$", RelatedLocationType.UnresolvedConflict)
@@ -465,9 +461,9 @@ End Module
         End Sub
 
         <WorkItem(529938, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529938")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamingToEscapedIdentifierWithFullwidthSquareBracket()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamingToEscapedIdentifierWithFullwidthSquareBracket(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -479,16 +475,16 @@ Module Program
 End Module
                                </Document>
                     </Project>
-                </Workspace>, renameTo:="[String］")
+                </Workspace>, host:=host, renameTo:="[String］")
 
                 result.AssertLabeledSpansAre("First", "[String]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(529932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529932")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeContextualKeywordsInQuery1()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeContextualKeywordsInQuery1(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -518,17 +514,16 @@ Module MyExtension
 End Module
                                ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="Group")
-
+                </Workspace>, host:=host, renameTo:="Group")
 
                 result.AssertLabeledSpecialSpansAre("escaped", "[Group]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(530805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530805")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub EscapeMidIfNeeded()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EscapeMidIfNeeded(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -542,17 +537,16 @@ Module M
 End Module
                                ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="Mid")
-
+                </Workspace>, host:=host, renameTo:="Mid")
 
                 result.AssertLabeledSpecialSpansAre("stmt1", "[Mid]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
         <WorkItem(607067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607067")>
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenamingToRemAndUsingTypeCharactersIsNotAllowed()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenamingToRemAndUsingTypeCharactersIsNotAllowed(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -565,15 +559,15 @@ Module Program
 End Module
                                ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="Rem")
+                </Workspace>, host:=host, renameTo:="Rem")
 
                 result.AssertLabeledSpansAre("typechar", "Rem%", RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansAre("escaped", "[Rem]", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameIdentifierBracketed()
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameIdentifierBracketed(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
@@ -586,15 +580,15 @@ Module Program
 End Module
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="y")
+                    </Workspace>, host:=host, renameTo:="y")
 
                 result.AssertLabeledSpansAre("Stmt1", "y", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("Stmt2", "y", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameToIdentifierBracketed()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameToIdentifierBracketed(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
@@ -607,15 +601,15 @@ Module Program
 End Module
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="[y]")
+                    </Workspace>, host:=host, renameTo:="[y]")
 
                 result.AssertLabeledSpansAre("Stmt1", "y", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("Stmt2", "y", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameToIdentifierBracketed_2()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameToIdentifierBracketed_2(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
@@ -632,7 +626,7 @@ Module Program
 End Module
                         </Document>
                         </Project>
-                    </Workspace>, renameTo:="[C]")
+                    </Workspace>, host:=host, renameTo:="[C]")
 
                 result.AssertLabeledSpansAre("decl", "C", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt1", "C", RelatedLocationType.NoConflict)

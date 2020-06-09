@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -42,18 +44,16 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return document.GetLanguageService<SyntaxGenerator>().CreateEqualsMethod(
-                compilation, tree.Options, namedType, members, localNameOpt,
-                s_specializedFormattingAnnotation, cancellationToken);
+                compilation, tree.Options, namedType, members, localNameOpt, s_specializedFormattingAnnotation);
         }
 
         public async Task<IMethodSymbol> GenerateIEquatableEqualsMethodAsync(
             Document document, INamedTypeSymbol namedType,
-            ImmutableArray<ISymbol> members, CancellationToken cancellationToken)
+            ImmutableArray<ISymbol> members, INamedTypeSymbol constructedEquatableType, CancellationToken cancellationToken)
         {
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            return document.GetLanguageService<SyntaxGenerator>().CreateIEqutableEqualsMethod(
-                compilation, namedType, members,
-                s_specializedFormattingAnnotation, cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return document.GetLanguageService<SyntaxGenerator>().CreateIEquatableEqualsMethod(
+                semanticModel, namedType, members, constructedEquatableType, s_specializedFormattingAnnotation);
         }
 
         public async Task<IMethodSymbol> GenerateEqualsMethodThroughIEquatableEqualsAsync(
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var generator = document.GetLanguageService<SyntaxGenerator>();
 
-            var expressions = ArrayBuilder<SyntaxNode>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var expressions);
             var objName = generator.IdentifierName("obj");
             if (containingType.IsValueType)
             {
@@ -108,7 +108,6 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var statement = generator.ReturnStatement(
                 expressions.Aggregate(generator.LogicalAndExpression));
 
-            expressions.Free();
             return compilation.CreateEqualsMethod(
                 ImmutableArray.Create(statement));
         }
@@ -119,17 +118,15 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var factory = document.GetLanguageService<SyntaxGenerator>();
-            return CreateGetHashCodeMethod(
-                factory, compilation, namedType, members, cancellationToken);
+            return CreateGetHashCodeMethod(factory, compilation, namedType, members);
         }
 
         private IMethodSymbol CreateGetHashCodeMethod(
             SyntaxGenerator factory, Compilation compilation,
-            INamedTypeSymbol namedType, ImmutableArray<ISymbol> members,
-            CancellationToken cancellationToken)
+            INamedTypeSymbol namedType, ImmutableArray<ISymbol> members)
         {
             var statements = CreateGetHashCodeStatements(
-                factory, compilation, namedType, members, cancellationToken);
+                factory, compilation, namedType, members);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: default,
@@ -146,25 +143,25 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private ImmutableArray<SyntaxNode> CreateGetHashCodeStatements(
             SyntaxGenerator factory, Compilation compilation,
-            INamedTypeSymbol namedType, ImmutableArray<ISymbol> members,
-            CancellationToken cancellationToken)
+            INamedTypeSymbol namedType, ImmutableArray<ISymbol> members)
         {
-            // If we have access to System.HashCode, then just use that.
+            // See if there's an accessible System.HashCode we can call into to do all the work.
             var hashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
+            if (hashCodeType != null && !hashCodeType.IsAccessibleWithin(namedType))
+                hashCodeType = null;
 
             var components = factory.GetGetHashCodeComponents(
-                compilation, namedType, members,
-                justMemberReference: true, cancellationToken);
+                compilation, namedType, members, justMemberReference: true);
 
             if (components.Length > 0 && hashCodeType != null)
             {
-                return CreateGetHashCodeStatementsUsingSystemHashCode(
-                    factory, compilation, hashCodeType, components);
+                return factory.CreateGetHashCodeStatementsUsingSystemHashCode(
+                    factory.SyntaxGeneratorInternal, hashCodeType, components);
             }
 
             // Otherwise, try to just spit out a reasonable hash code for these members.
             var statements = factory.CreateGetHashCodeMethodStatements(
-                compilation, namedType, members, useInt64: false, cancellationToken);
+                factory.SyntaxGeneratorInternal, compilation, namedType, members, useInt64: false);
 
             // Unfortunately, our 'reasonable' hash code may overflow in checked contexts.
             // C# can handle this by adding 'checked{}' around the code, VB has to jump
@@ -198,41 +195,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             //
             // This does mean all hashcodes will be positive.  But it will avoid the overflow problem.
             return factory.CreateGetHashCodeMethodStatements(
-                compilation, namedType, members, useInt64: true, cancellationToken);
-        }
-
-        private ImmutableArray<SyntaxNode> CreateGetHashCodeStatementsUsingSystemHashCode(
-            SyntaxGenerator factory, Compilation compilation, INamedTypeSymbol hashCodeType,
-            ImmutableArray<SyntaxNode> memberReferences)
-        {
-            if (memberReferences.Length <= 8)
-            {
-                var statement = factory.ReturnStatement(
-                    factory.InvocationExpression(
-                        factory.MemberAccessExpression(factory.TypeExpression(hashCodeType), "Combine"),
-                        memberReferences));
-                return ImmutableArray.Create(statement);
-            }
-
-            const string hashName = "hash";
-            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
-            statements.Add(factory.LocalDeclarationStatement(hashName,
-                factory.ObjectCreationExpression(hashCodeType)));
-
-            var localReference = factory.IdentifierName(hashName);
-            foreach (var member in memberReferences)
-            {
-                statements.Add(factory.ExpressionStatement(
-                    factory.InvocationExpression(
-                        factory.MemberAccessExpression(localReference, "Add"),
-                        member)));
-            }
-
-            statements.Add(factory.ReturnStatement(
-                factory.InvocationExpression(
-                    factory.MemberAccessExpression(localReference, "ToHashCode"))));
-
-            return statements.ToImmutableAndFree();
+                factory.SyntaxGeneratorInternal, compilation, namedType, members, useInt64: true);
         }
     }
 }

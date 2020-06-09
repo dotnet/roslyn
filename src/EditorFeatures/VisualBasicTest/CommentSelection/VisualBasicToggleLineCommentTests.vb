@@ -1,15 +1,18 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Composition
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CommentSelection
     <[UseExportProvider]>
     Public Class VisualBasicToggleLineCommentTests
         Inherits AbstractToggleCommentTestBase
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)>
         Public Sub AddComment()
             Dim markup =
@@ -111,7 +114,7 @@ End Class
 
         Friend Overrides Function GetToggleCommentCommandHandler(workspace As TestWorkspace) As AbstractCommentSelectionBase(Of ValueTuple)
             Return DirectCast(
-                workspace.ExportProvider.GetExportedValues(Of VSCommanding.ICommandHandler)().First(Function(export) TypeOf export Is ToggleLineCommentCommandHandler),
+                workspace.ExportProvider.GetExportedValues(Of ICommandHandler)().First(Function(export) TypeOf export Is ToggleLineCommentCommandHandler),
                 AbstractCommentSelectionBase(Of ValueTuple))
         End Function
 

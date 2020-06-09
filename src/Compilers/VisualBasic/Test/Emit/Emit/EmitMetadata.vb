@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -93,10 +96,38 @@ End Class
 
             CompileAndVerify(c1, symbolValidator:=
                 Sub([Module])
-                    Dim baseLine = Xml.Linq.XElement.Load(New StringReader(My.Resources.Resource.EmitSimpleBaseLine1))
-                    Dim dumpXML As Xml.Linq.XElement = DumpTypeInfo([Module])
+                    Dim dump = DumpTypeInfo([Module]).ToString()
 
-                    Assert.Equal(baseLine.ToString(), dumpXML.ToString())
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("
+<Global>
+<type name=""&lt;Module&gt;"" />
+<type name=""A"" Of=""T"" base=""System.Object"">
+  <field name=""x1"" type=""A(Of T)"" />
+  <field name=""x2"" type=""A(Of D)"" />
+  <type name=""B"" base=""A(Of T)"">
+  <field name=""y1"" type=""A(Of T).B"" />
+  <field name=""y2"" type=""A(Of D).B"" />
+  <type name=""C"" base=""A(Of T).B"" />
+  </type>
+  <type name=""H"" Of=""S"" base=""System.Object"">
+  <type name=""I"" base=""A(Of T).H(Of S)"" />
+  </type>
+</type>
+<type name=""D"" base=""System.Object"">
+  <type name=""K"" Of=""T"" base=""System.Object"">
+  <type name=""L"" base=""D.K(Of T)"" />
+  </type>
+</type>
+<type name=""F"" base=""A(Of D)"" />
+<type name=""G"" base=""A(Of NS1.E).B"" />
+<type name=""J"" base=""A(Of D).H(Of D)"" />
+<type name=""M"" base=""System.Object"" />
+<type name=""N"" base=""D.K(Of M)"" />
+<NS1>
+  <type name=""E"" base=""D"" />
+</NS1>
+</Global>
+", dump)
                 End Sub)
         End Sub
 

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -233,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Not arguments.IsDefault)
 
-            If argumentNames.IsDefault OrElse argumentNames.Count = 0 Then
+            If argumentNames.IsDefault OrElse argumentNames.Length = 0 Then
                 Return
             End If
 
@@ -242,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim seenName As Boolean = False
-            For i As Integer = 0 To argumentNames.Count - 1
+            For i As Integer = 0 To argumentNames.Length - 1
 
                 If argumentNames(i) IsNot Nothing Then
                     seenName = True

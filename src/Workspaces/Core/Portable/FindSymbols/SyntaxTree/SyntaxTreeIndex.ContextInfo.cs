@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -8,7 +10,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SyntaxTreeIndex
     {
-        private struct ContextInfo
+        private readonly struct ContextInfo
         {
             private readonly int _predefinedTypes;
             private readonly int _predefinedOperators;
@@ -27,7 +29,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
                 bool containsAwait,
-                bool containsTupleExpressionOrTupleType)
+                bool containsTupleExpressionOrTupleType,
+                bool containsImplicitObjectCreation,
+                bool containsGlobalAttributes)
                 : this(predefinedTypes, predefinedOperators,
                        ConvertToContainingNodeFlag(
                          containsForEachStatement,
@@ -40,7 +44,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                          containsIndexerMemberCref,
                          containsDeconstruction,
                          containsAwait,
-                         containsTupleExpressionOrTupleType))
+                         containsTupleExpressionOrTupleType,
+                         containsImplicitObjectCreation,
+                         containsGlobalAttributes))
             {
             }
 
@@ -62,7 +68,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool containsIndexerMemberCref,
                 bool containsDeconstruction,
                 bool containsAwait,
-                bool containsTupleExpressionOrTupleType)
+                bool containsTupleExpressionOrTupleType,
+                bool containsImplicitObjectCreation,
+                bool containsGlobalAttributes)
             {
                 var containingNodes = ContainingNodes.None;
 
@@ -77,6 +85,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 containingNodes |= containsDeconstruction ? ContainingNodes.ContainsDeconstruction : 0;
                 containingNodes |= containsAwait ? ContainingNodes.ContainsAwait : 0;
                 containingNodes |= containsTupleExpressionOrTupleType ? ContainingNodes.ContainsTupleExpressionOrTupleType : 0;
+                containingNodes |= containsImplicitObjectCreation ? ContainingNodes.ContainsImplicitObjectCreation : 0;
+                containingNodes |= containsGlobalAttributes ? ContainingNodes.ContainsGlobalAttributes : 0;
 
                 return containingNodes;
             }
@@ -95,6 +105,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public bool ContainsAwait
                 => (_containingNodes & ContainingNodes.ContainsAwait) == ContainingNodes.ContainsAwait;
+
+            public bool ContainsImplicitObjectCreation
+                => (_containingNodes & ContainingNodes.ContainsImplicitObjectCreation) == ContainingNodes.ContainsImplicitObjectCreation;
 
             public bool ContainsLockStatement
                 => (_containingNodes & ContainingNodes.ContainsLockStatement) == ContainingNodes.ContainsLockStatement;
@@ -119,6 +132,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public bool ContainsTupleExpressionOrTupleType
                 => (_containingNodes & ContainingNodes.ContainsTupleExpressionOrTupleType) == ContainingNodes.ContainsTupleExpressionOrTupleType;
+
+            public bool ContainsGlobalAttributes
+                => (_containingNodes & ContainingNodes.ContainsGlobalAttributes) == ContainingNodes.ContainsGlobalAttributes;
 
             public void WriteTo(ObjectWriter writer)
             {
@@ -159,6 +175,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ContainsDeconstruction = 1 << 8,
                 ContainsAwait = 1 << 9,
                 ContainsTupleExpressionOrTupleType = 1 << 10,
+                ContainsImplicitObjectCreation = 1 << 11,
+                ContainsGlobalAttributes = 1 << 12,
             }
         }
     }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -12,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _boundNode As BoundNode
 
         Public Sub New(operationFactory As VisualBasicOperationFactory, boundNode As BoundNode, semanticModel As SemanticModel, node As SyntaxNode, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, node, constantValue, isImplicit)
+            MyBase.New(semanticModel, node, constantValue, isImplicit, type:=Nothing)
             _operationFactory = operationFactory
             _boundNode = boundNode
         End Sub
@@ -413,7 +415,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private ReadOnly _forEachLoop As BoundForEachStatement
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, forEachLoop As BoundForEachStatement, locals As ImmutableArray(Of ILocalSymbol), continueLabel As ILabelSymbol, exitLabel As ILabelSymbol, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(LoopKind.ForEach, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(isAsynchronous:=False, LoopKind.ForEach, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _forEachLoop = forEachLoop
         End Sub
@@ -1095,7 +1097,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _boundUsingStatement As BoundUsingStatement
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, boundUsingStatement As BoundUsingStatement, locals As ImmutableArray(Of ILocalSymbol), semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(locals, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(locals, isAsynchronous:=False, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _boundUsingStatement = boundUsingStatement
         End Sub
@@ -1151,8 +1153,8 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         End Function
     End Class
 
-    Friend NotInheritable Class VisualBasicLazyWithOperation
-        Inherits LazyWithOperation
+    Friend NotInheritable Class VisualBasicLazyWithStatementOperation
+        Inherits LazyWithStatementOperation
 
         Private ReadOnly _operationFactory As VisualBasicOperationFactory
         Private ReadOnly _withStatement As BoundWithStatement

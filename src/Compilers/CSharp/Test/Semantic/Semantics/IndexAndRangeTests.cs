@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -991,7 +994,7 @@ class Test
     }
 }";
             var compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
-            compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1474,7 +1477,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..").WithArguments("range operator", "8.0").WithLocation(9, 17)
             };
             CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
-            CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1549,6 +1552,194 @@ partial class Program
                 // (7,22): error CS0841: Cannot use local variable 'y' before it is declared
                 //         var result = y..Create(out Index y);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 22));
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public void DontAllowNamedArgumentsForImplicitRangeIndexer()
+        {
+            CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+public class C 
+{
+    public static void M(string text) 
+    {
+        _ = text[startIndex: 1..^1];
+        _ = text[range: 1..^1];
+        _ = text[notEvenTheCorrectName: 1..^1];
+        _ = new Span<char>(text.ToCharArray())[start: 1..^1];
+        _ = new Span<char>(text.ToCharArray())[range: 1..^1];
+        _ = new Span<char>(text.ToCharArray())[notEvenTheCorrectName: 1..^1];
+    }
+}").VerifyDiagnostics(
+                    // (7,18): error CS8429: Invocation of implicit Range Indexer cannot name the argument.
+                    //         _ = text[startIndex: 1..^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitRangeIndexerWithName, "startIndex").WithLocation(7, 18),
+                    // (8,18): error CS8429: Invocation of implicit Range Indexer cannot name the argument.
+                    //         _ = text[range: 1..^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitRangeIndexerWithName, "range").WithLocation(8, 18),
+                    // (9,18): error CS8429: Invocation of implicit Range Indexer cannot name the argument.
+                    //         _ = text[notEvenTheCorrectName: 1..^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitRangeIndexerWithName, "notEvenTheCorrectName").WithLocation(9, 18),
+                    // (10,48): error CS8429: Invocation of implicit Range Indexer cannot name the argument.
+                    //         _ = new Span<char>(text.ToCharArray())[start: 1..^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitRangeIndexerWithName, "start").WithLocation(10, 48),
+                    // (11,48): error CS8429: Invocation of implicit Range Indexer cannot name the argument.
+                    //         _ = new Span<char>(text.ToCharArray())[range: 1..^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitRangeIndexerWithName, "range").WithLocation(11, 48),
+                    // (12,48): error CS8429: Invocation of implicit Range Indexer cannot name the argument.
+                    //         _ = new Span<char>(text.ToCharArray())[notEvenTheCorrectName: 1..^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitRangeIndexerWithName, "notEvenTheCorrectName").WithLocation(12, 48));
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public void DontAllowNamedArgumentsForImplicitIndexIndexer()
+        {
+            CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+public class C 
+{
+    public static void M(string text) 
+    {
+        _ = text[index: ^1];
+        _ = text[notEvenTheCorrectName: ^1];
+        _ = new Span<char>(text.ToCharArray())[index: ^1];
+        _ = new Span<char>(text.ToCharArray())[notEvenTheCorrectName: ^1];
+    }
+}").VerifyDiagnostics(
+                    // (7,18): error CS8428: Invocation of implicit Index Indexer cannot name the argument.
+                    //         _ = text[index: ^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitIndexIndexerWithName, "index").WithLocation(7, 18),
+                    // (8,18): error CS8428: Invocation of implicit Index Indexer cannot name the argument.
+                    //         _ = text[notEvenTheCorrectName: ^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitIndexIndexerWithName, "notEvenTheCorrectName").WithLocation(8, 18),
+                    // (9,48): error CS8428: Invocation of implicit Index Indexer cannot name the argument.
+                    //         _ = new Span<char>(text.ToCharArray())[index: ^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitIndexIndexerWithName, "index").WithLocation(9, 48),
+                    // (10,48): error CS8428: Invocation of implicit Index Indexer cannot name the argument.
+                    //         _ = new Span<char>(text.ToCharArray())[notEvenTheCorrectName: ^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitIndexIndexerWithName, "notEvenTheCorrectName").WithLocation(10, 48));
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public void AllowNamedArgumentsForRealRangeIndexer1()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+using System;
+public class A
+{
+     public int this[Range range] => 42;
+}
+public class C 
+{
+    public static void Main() 
+    {
+        Console.Write(new A()[range: 1..^1]);
+    }
+}", options: TestOptions.ReleaseExe).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public void AllowNamedArgumentsForRealRangeIndexer2()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+using System;
+public class A
+{
+     public int this[Range param] => 42;
+}
+public class C 
+{
+    public static void Main() 
+    {
+        Console.Write(new A()[param: 1..^1]);
+    }
+}", options: TestOptions.ReleaseExe).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public void DontAllowIncorrectNamedArgumentsForRealRangeIndexer()
+        {
+            CreateCompilationWithIndexAndRange(@"
+using System;
+public class A
+{
+     public int this[Range range] => 42;
+}
+public class C 
+{
+    public static void Main() 
+    {
+        Console.Write(new A()[param: 1..^1]);
+    }
+}").VerifyDiagnostics(
+                    // (11,31): error CS1739: The best overload for 'this' does not have a parameter named 'param'
+                    //         Console.Write(new A()[param: 1..^1]);
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "param").WithArguments("this", "param").WithLocation(11, 31));
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public void AllowNamedArgumentsForRealIndexIndexer1()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+using System;
+public class A
+{
+     public int this[Index index] => 42;
+}
+public class C 
+{
+    public static void Main() 
+    {
+        Console.Write(new A()[index: ^1]);
+    }
+}", options: TestOptions.ReleaseExe).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public void AllowNamedArgumentsForRealIndexIndexer2()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+using System;
+public class A
+{
+     public int this[Index param] => 42;
+}
+public class C 
+{
+    public static void Main() 
+    {
+        Console.Write(new A()[param: ^1]);
+    }
+}", options: TestOptions.ReleaseExe).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public void DontAllowIncorrectNamedArgumentsForRealIndexIndexer()
+        {
+            CreateCompilationWithIndexAndRange(@"
+using System;
+public class A
+{
+     public int this[Index index] => 42;
+}
+public class C 
+{
+    public static void Main() 
+    {
+        Console.Write(new A()[param: ^1]);
+    }
+}").VerifyDiagnostics(
+                    // (11,31): error CS1739: The best overload for 'this' does not have a parameter named 'param'
+                    //         Console.Write(new A()[param: ^1]);
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "param").WithArguments("this", "param").WithLocation(11, 31));
         }
     }
 }

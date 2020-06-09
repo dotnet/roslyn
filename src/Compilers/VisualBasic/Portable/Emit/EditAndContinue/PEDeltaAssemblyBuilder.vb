@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -60,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious)
             _previousGeneration = previousGeneration
-            _changes = New SymbolChanges(_previousDefinitions, edits, isAddedSymbol)
+            _changes = New VisualBasicSymbolChanges(_previousDefinitions, edits, isAddedSymbol)
 
             ' Workaround for https://github.com/dotnet/roslyn/issues/3192. 
             ' When compiling state machine we stash types of awaiters and state-machine hoisted variables,
@@ -226,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return _previousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
         End Function
 
-        Friend Overrides Function TryGetAnonymousTypeName(template As IAnonymousTypeTemplateSymbolInternal, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
+        Friend Overrides Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Debug.Assert(Compilation Is template.DeclaringCompilation)
             Return _previousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function

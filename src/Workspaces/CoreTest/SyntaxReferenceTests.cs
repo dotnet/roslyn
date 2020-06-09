@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public class SyntaxReferenceTests : TestBase
     {
-        private Solution CreateSingleFileCSharpSolution(string source)
+        private static Solution CreateSingleFileCSharpSolution(string source)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                            .AddDocument(did, "Test.cs", SourceText.From(source));
         }
 
-        private Solution CreateSingleFileVisualBasicSolution(string source)
+        private static Solution CreateSingleFileVisualBasicSolution(string source)
         {
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
@@ -38,7 +40,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static Solution CreateEmptySolutionUsingRecoverableSyntaxTrees()
         {
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), workspaceKind: "NotKeptAlive");
-            workspace.Options = workspace.Options.WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0)));
             return workspace.CurrentSolution;
         }
 

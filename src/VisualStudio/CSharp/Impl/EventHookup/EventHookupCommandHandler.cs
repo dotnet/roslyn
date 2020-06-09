@@ -1,11 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     /// Because we are explicitly asking the user to tab, so we should handle the tab command before
     /// Automatic Completion.
     /// </summary>
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.EventHookup)]
     [Order(Before = PredefinedCommandHandlerNames.AutomaticCompletion)]
@@ -43,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         internal Mutex TESTSessionHookupMutex;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public EventHookupCommandHandler(
             IThreadingContext threadingContext,
             IInlineRenameService inlineRenameService,

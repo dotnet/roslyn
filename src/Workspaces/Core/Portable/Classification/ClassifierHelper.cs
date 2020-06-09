@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -102,23 +104,15 @@ namespace Microsoft.CodeAnalysis.Classification
             // things it knows about.  i.e. there will be gaps in what it produces.
             // Fill in those gaps so we have *all* parts of the span 
             // classified properly.
-            var filledInSyntaxSpans = ArrayBuilder<ClassifiedSpan>.GetInstance();
-            var filledInSemanticSpans = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSyntaxSpans);
+            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var filledInSemanticSpans);
 
-            try
-            {
-                FillInClassifiedSpanGaps(widenedSpan.Start, syntaxSpans, filledInSyntaxSpans);
-                FillInClassifiedSpanGaps(widenedSpan.Start, semanticSpans, filledInSemanticSpans);
+            FillInClassifiedSpanGaps(widenedSpan.Start, syntaxSpans, filledInSyntaxSpans);
+            FillInClassifiedSpanGaps(widenedSpan.Start, semanticSpans, filledInSemanticSpans);
 
-                // Now merge the lists together, taking all the results from syntaxParts
-                // unless they were overridden by results in semanticParts.
-                return MergeParts(filledInSyntaxSpans, filledInSemanticSpans);
-            }
-            finally
-            {
-                filledInSyntaxSpans.Free();
-                filledInSemanticSpans.Free();
-            }
+            // Now merge the lists together, taking all the results from syntaxParts
+            // unless they were overridden by results in semanticParts.
+            return MergeParts(filledInSyntaxSpans, filledInSemanticSpans);
         }
 
         private static void Order(List<ClassifiedSpan> syntaxSpans)

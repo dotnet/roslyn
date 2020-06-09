@@ -1,8 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.InternalUtilities
 {
@@ -11,6 +16,8 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
     /// Thread-safe.
     /// </summary>
     internal class ConcurrentLruCache<K, V>
+        where K : notnull
+        where V : notnull
     {
         private readonly int _capacity;
 
@@ -96,8 +103,8 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         {
             Debug.Assert(_capacity > 0);
             var lastNode = _nodeList.Last;
-            _nodeList.Remove(lastNode);
-            _cache.Remove(lastNode.Value);
+            _nodeList.Remove(lastNode!);
+            _cache.Remove(lastNode!.Value);
         }
 
         private void UnsafeAddNodeToTop(K key, V value)
@@ -157,7 +164,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
             }
         }
 
-        public bool TryGetValue(K key, out V value)
+        public bool TryGetValue(K key, [MaybeNullWhen(returnValue: false)] out V value)
         {
             lock (_lockObject)
             {
@@ -168,7 +175,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         /// <summary>
         /// Doesn't lock.
         /// </summary>
-        public bool UnsafeTryGetValue(K key, out V value)
+        public bool UnsafeTryGetValue(K key, [MaybeNullWhen(returnValue: false)] out V value)
         {
             if (_cache.TryGetValue(key, out var result))
             {
@@ -178,7 +185,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
             }
             else
             {
-                value = default;
+                value = default!;
                 return false;
             }
         }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
@@ -67,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Checks if 'symbol' is accessible from within type 'within', with
-        ''' an qualifier of type "throughTypeOpt". Sets "failedThroughTypeCheck" to true
+        ''' a qualifier of type "throughTypeOpt". Sets "failedThroughTypeCheck" to true
         ''' if it failed the "through type" check.
         ''' </summary>
         Public Shared Function CheckSymbolAccessibility(symbol As Symbol,
@@ -947,15 +949,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If container.OriginalDefinition.Equals(containerOfTypeDefinition) Then
                 Return True
-            ElseIf container.IsInterfaceType() Then
-                If containerOfType.IsInterfaceType() Then
-                    For Each iface In container.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                        If iface.OriginalDefinition.Equals(containerOfTypeDefinition) Then
-                            Return True
-                        End If
-                    Next
-                End If
-            ElseIf Not containerOfType.IsInterfaceType() Then
+            End If
+
+            If containerOfType.IsInterfaceType() Then
+                For Each iface In container.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                    If iface.OriginalDefinition.Equals(containerOfTypeDefinition) Then
+                        Return True
+                    End If
+                Next
+            Else
                 Dim baseDefinition = container.BaseTypeOriginalDefinition(useSiteDiagnostics)
 
                 While baseDefinition IsNot Nothing

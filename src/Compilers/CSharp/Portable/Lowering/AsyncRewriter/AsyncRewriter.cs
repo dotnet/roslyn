@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -48,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CSharpCompilation compilation = method.DeclaringCompilation;
-            bool isAsyncEnumerableOrEnumerator = method.IsIAsyncEnumerableReturningAsync(compilation) ||
-                method.IsIAsyncEnumeratorReturningAsync(compilation);
+            bool isAsyncEnumerableOrEnumerator = method.IsAsyncReturningIAsyncEnumerable(compilation) ||
+                method.IsAsyncReturningIAsyncEnumerator(compilation);
             if (isAsyncEnumerableOrEnumerator && !method.IsIterator)
             {
                 bool containsAwait = AwaitDetector.ContainsAwait(bodyWithAwaitLifted);
@@ -204,7 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
-            var builderVariable = F.SynthesizedLocal(methodScopeAsyncMethodBuilderMemberCollection.BuilderType, null);
 
             // local.$builder = System.Runtime.CompilerServices.AsyncTaskMethodBuilder<typeArgs>.Create();
             bodyBuilder.Add(
@@ -220,11 +221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.Field(F.Local(stateMachineVariable), stateField.AsMember(frameType)),
                     F.Literal(StateMachineStates.NotStartedStateMachine)));
 
-            bodyBuilder.Add(
-                F.Assignment(
-                    F.Local(builderVariable),
-                    F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType))));
-
             // local.$builder.Start(ref local) -- binding to the method AsyncTaskMethodBuilder<typeArgs>.Start()
             var startMethod = methodScopeAsyncMethodBuilderMemberCollection.Start.Construct(frameType);
             if (methodScopeAsyncMethodBuilderMemberCollection.CheckGenericMethodConstraints)
@@ -234,20 +230,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(
                 F.ExpressionStatement(
                     F.Call(
-                        F.Local(builderVariable),
+                        F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType)),
                         startMethod,
                         ImmutableArray.Create<BoundExpression>(F.Local(stateMachineVariable)))));
 
-            bodyBuilder.Add(method.IsVoidReturningAsync()
+            bodyBuilder.Add(method.IsAsyncReturningVoid()
                 ? F.Return()
                 : F.Return(
                     F.Property(
                         F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType)),
                         methodScopeAsyncMethodBuilderMemberCollection.Task)));
 
-            return F.Block(
-                ImmutableArray.Create(builderVariable),
-                bodyBuilder.ToImmutableAndFree());
+            return F.Block(bodyBuilder.ToImmutableAndFree());
         }
 
         protected virtual void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)

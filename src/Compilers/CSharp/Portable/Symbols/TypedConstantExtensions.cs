@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return "{" + string.Join(", ", constant.Values.Select(v => v.ToCSharpString())) + "}";
             }
 
-            if (constant.Kind == TypedConstantKind.Type || constant.Type.SpecialType == SpecialType.System_Object)
+            if (constant.Kind == TypedConstantKind.Type || constant.TypeInternal.SpecialType == SpecialType.System_Object)
             {
                 return "typeof(" + constant.Value.ToString() + ")";
             }
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return DisplayEnumConstant(constant);
             }
 
-            return SymbolDisplay.FormatPrimitive(constant.Value, quoteStrings: true, useHexadecimalNumbers: false);
+            return SymbolDisplay.FormatPrimitive(constant.ValueInternal, quoteStrings: true, useHexadecimalNumbers: false);
         }
 
         // Decode the value of enum constant
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Create a ConstantValue of enum underlying type
             SpecialType splType = ((INamedTypeSymbol)constant.Type).EnumUnderlyingType.SpecialType;
-            ConstantValue valueConstant = ConstantValue.Create(constant.Value, splType);
+            ConstantValue valueConstant = ConstantValue.Create(constant.ValueInternal, splType);
 
             string typeName = constant.Type.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat);
             if (valueConstant.IsUnsigned)
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Unable to decode the enum constant, just display the integral value
-            return constant.Value.ToString();
+            return constant.ValueInternal.ToString();
         }
 
         private static string DisplaySignedEnumConstant(TypedConstant constant, SpecialType specialType, long constantToDecode, string typeName)
@@ -211,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Unable to decode the enum constant, just display the integral value
-            return constant.Value.ToString();
+            return constant.ValueInternal.ToString();
         }
     }
 }

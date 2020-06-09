@@ -95,8 +95,7 @@ We add the new APIs for retreiving and interacting with nullability:
 ```C#
 public enum NullableAnnotation : byte
 {
-    NotApplicable,
-    Disabled,
+    None,
     NotAnnotated,
     Annotated
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -877,6 +879,65 @@ partial class C
 {
     /** <summary>Summary 2</summary>*/
     partial void M();
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            var actualA = GetDocumentationCommentText(compA);
+            var expectedA = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""M:C.M"">
+            <summary>Summary 1</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            Assert.Equal(expectedA, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            var actualB = GetDocumentationCommentText(compB);
+            var expectedB = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""M:C.M"">
+            <summary>Summary 1</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            Assert.Equal(expectedB, actualB);
+        }
+
+        [Fact]
+        public void ExtendedPartialMethods_MultipleFiles()
+        {
+            var source1 = @"
+partial class C
+{
+    /** <summary>Summary 1</summary>*/
+    public partial int M() => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int M();
 }
 ";
 

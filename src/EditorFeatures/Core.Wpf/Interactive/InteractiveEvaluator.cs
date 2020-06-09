@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 extern alias Scripting;
 extern alias InteractiveHost;
 
@@ -161,9 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         #region Initialization
 
         public string GetConfiguration()
-        {
-            return null;
-        }
+            => null;
 
         private IInteractiveWindow GetCurrentWindowOrThrow()
         {
@@ -276,18 +276,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         }
 
         private static SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
-        {
-            return new SourceFileResolver(searchPaths, baseDirectory);
-        }
+            => new SourceFileResolver(searchPaths, baseDirectory);
 
         #endregion
 
         #region Workspace
 
         private void SubmissionBufferAdded(object sender, SubmissionBufferAddedEventArgs args)
-        {
-            AddSubmission(args.NewBuffer, this.LanguageName);
-        }
+            => AddSubmission(args.NewBuffer, this.LanguageName);
 
         // The REPL window might change content type to host command content type (when a host command is typed at the beginning of the buffer).
         private void LanguageBufferContentTypeChanged(object sender, ContentTypeChangedEventArgs e)
@@ -312,18 +308,21 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             // We're switching between the target language and the Interactive Command "language".
             // First, remove the current submission from the solution.
 
+            var documentId = _workspace.GetDocumentIdInCurrentContext(buffer.AsTextContainer());
             var oldSolution = _workspace.CurrentSolution;
+            var relatedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId);
+
             var newSolution = oldSolution;
 
-            foreach (var documentId in _workspace.GetRelatedDocumentIds(buffer.AsTextContainer()))
+            foreach (var relatedDocumentId in relatedDocumentIds)
             {
-                Debug.Assert(documentId != null);
+                Debug.Assert(relatedDocumentId != null);
 
-                newSolution = newSolution.RemoveDocument(documentId);
+                newSolution = newSolution.RemoveDocument(relatedDocumentId);
 
                 // TODO (tomat): Is there a better way to remove mapping between buffer and document in REPL? 
                 // Perhaps TrackingWorkspace should implement RemoveDocumentAsync?
-                _workspace.ClearOpenDocument(documentId);
+                _workspace.ClearOpenDocument(relatedDocumentId);
             }
 
             // Next, remove the previous submission project and update the workspace.
@@ -455,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             _interactiveHost.SetOutputs(window.OutputWriter, window.ErrorOutputWriter);
 
-            return ResetAsyncWorker(GetHostOptions(initialize: true, resetOptions.Is64Bit));
+            return ResetCoreAsync(GetHostOptions(initialize: true, resetOptions.Is64Bit));
         }
 
         Task<ExecutionResult> IInteractiveEvaluator.ResetAsync(bool initialize)
@@ -468,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             window.WriteLine(InteractiveEditorFeaturesResources.Resetting_execution_engine);
             window.FlushOutput();
 
-            return ResetAsyncWorker(GetHostOptions(initialize, resetOptions.Is64Bit));
+            return ResetCoreAsync(GetHostOptions(initialize, resetOptions.Is64Bit));
         }
 
         private static string GetDesktopHostDirectory()
@@ -481,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                  culture: CultureInfo.CurrentUICulture,
                  is64Bit: is64bit ?? _interactiveHost.OptionsOpt?.Is64Bit ?? InteractiveHost.DefaultIs64Bit);
 
-        private async Task<ExecutionResult> ResetAsyncWorker(InteractiveHostOptions options)
+        private async Task<ExecutionResult> ResetCoreAsync(InteractiveHostOptions options)
         {
             try
             {
@@ -555,9 +554,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         #region Paths, Resolvers
 
         private void UpdateResolvers(RemoteExecutionResult result)
-        {
-            UpdateResolvers(result.ChangedReferencePaths.AsImmutableOrNull(), result.ChangedSourcePaths.AsImmutableOrNull(), result.ChangedWorkingDirectory);
-        }
+            => UpdateResolvers(result.ChangedReferencePaths.AsImmutableOrNull(), result.ChangedSourcePaths.AsImmutableOrNull(), result.ChangedWorkingDirectory);
 
         private void UpdateResolvers(ImmutableArray<string> changedReferenceSearchPaths, ImmutableArray<string> changedSourceSearchPaths, string changedWorkingDirectory)
         {

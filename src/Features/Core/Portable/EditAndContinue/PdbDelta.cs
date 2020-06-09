@@ -1,6 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.IO;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -8,11 +10,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         // Tokens of updated methods. The debugger enumerates this list 
         // updated methods containing active statements.
-        public readonly int[] UpdatedMethods;
+        public readonly ImmutableArray<int> UpdatedMethods;
 
-        public readonly MemoryStream Stream;
+        public readonly ImmutableArray<byte> Stream;
 
-        public PdbDelta(MemoryStream stream, int[] updatedMethods)
+        public PdbDelta(ImmutableArray<byte> stream, ImmutableArray<int> updatedMethods)
         {
             Stream = stream;
             UpdatedMethods = updatedMethods;

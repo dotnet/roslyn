@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -23,14 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new OverrideCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(OverrideCompletionProvider);
 
-        protected override void SetWorkspaceOptions(TestWorkspace workspace)
+        protected override OptionSet WithChangedOptions(OptionSet options)
         {
-            workspace.Options = workspace.Options
+            return options
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement)
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
         }
@@ -2360,18 +2362,18 @@ End Class
     
 </Workspace>", LanguageNames.CSharp, csharpFile, LanguageNames.VisualBasic, vbFile);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString);
+            using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
             var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
             var solution = testWorkspace.CurrentSolution;
             var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
             var document = solution.GetDocument(documentId);
             var triggerInfo = CompletionTrigger.Invoke;
 
-            var service = GetCompletionService(testWorkspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
             var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Bar[int bay]"));
 
-            if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
+            if (service.GetProvider(completionItem) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
                 var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                 customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
@@ -2614,18 +2616,18 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file1, file2);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString);
+            using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
             var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").CursorPosition.Value;
             var solution = testWorkspace.CurrentSolution;
             var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").Id;
             var document = solution.GetDocument(documentId);
             var triggerInfo = CompletionTrigger.Invoke;
 
-            var service = GetCompletionService(testWorkspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
             var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
-            if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
+            if (service.GetProvider(completionItem) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
                 var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                 customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
@@ -2667,18 +2669,18 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file2, file1);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString);
+            using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
             var cursorPosition = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
             var solution = testWorkspace.CurrentSolution;
             var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
             var document = solution.GetDocument(documentId);
             var triggerInfo = CompletionTrigger.Invoke;
 
-            var service = GetCompletionService(testWorkspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, cursorPosition, triggerInfo);
             var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
-            if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
+            if (service.GetProvider(completionItem) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
                 var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                 customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
@@ -2768,12 +2770,12 @@ namespace ConsoleApplication46
         override $$
     }
 }";
-            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), text);
+            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, ExportProvider);
             var provider = new OverrideCompletionProvider();
             var testDocument = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-            var service = GetCompletionService(workspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
 
             var oldTree = await document.GetSyntaxTreeAsync();
@@ -2895,7 +2897,7 @@ namespace ClassLibrary7
             // P1 has a metadata reference to P3 and therefore doesn't get the transitive
             // reference to P2. If we try to override Goo, the missing "Missing" type will
             // prevent round tripping the symbolkey.
-            using var workspace = TestWorkspace.Create(text);
+            using var workspace = TestWorkspace.Create(text, exportProvider: ExportProvider);
             var compilation = await workspace.CurrentSolution.Projects.First(p => p.Name == "P3").GetCompilationAsync();
 
             // CompilationExtensions is in the Microsoft.CodeAnalysis.Test.Utilities namespace 
@@ -2909,7 +2911,7 @@ namespace ClassLibrary7
             var testDocument = workspace.Documents.First(d => d.Name == "CurrentDocument.cs");
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-            var service = GetCompletionService(workspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
 
             Assert.True(completionList.Items.Any(c => c.DisplayText == "Bar()"));
@@ -2931,7 +2933,7 @@ public class SomeClass : Base
     </Project>
 </Workspace>");
 
-            using var workspace = TestWorkspace.Create(source);
+            using var workspace = TestWorkspace.Create(source, exportProvider: ExportProvider);
             var before = @"
 public abstract class Base
 {
@@ -2961,7 +2963,7 @@ public class SomeClass : Base
             var testDocument = workspace.Documents.First(d => d.Name == "CurrentDocument.cs");
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-            var service = GetCompletionService(workspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
             var completionItem = completionList.Items.Where(c => c.DisplayText == "M(in int x)").Single();
 
@@ -2972,10 +2974,73 @@ public class SomeClass : Base
             var newDoc = document.WithText(newText);
             document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
 
-            var textBuffer = workspace.Documents.Single().TextBuffer;
+            var textBuffer = workspace.Documents.Single().GetTextBuffer();
             var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
 
             Assert.Equal(after, actualCodeAfterCommit);
+        }
+
+        [WorkItem(39909, "https://github.com/dotnet/roslyn/issues/39909")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitAddsMissingImports()
+        {
+            var markupBeforeCommit = @"
+namespace NS1
+{
+    using NS2;
+
+    public class Foo
+    {
+        public virtual bool Bar(Baz baz) => true;
+    }
+}
+
+namespace NS2
+{
+    public class Baz {}
+}
+
+namespace NS3
+{
+    using NS1;
+
+    class D : Foo
+    {
+        override $$
+    }
+}";
+
+            var expectedCodeAfterCommit = @"
+namespace NS1
+{
+    using NS2;
+
+    public class Foo
+    {
+        public virtual bool Bar(Baz baz) => true;
+    }
+}
+
+namespace NS2
+{
+    public class Baz {}
+}
+
+namespace NS3
+{
+    using NS1;
+    using NS2;
+
+    class D : Foo
+    {
+        public override bool Bar(Baz baz)
+        {
+            return base.Bar(baz);$$
+        }
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Bar(NS2.Baz baz)", expectedCodeAfterCommit);
         }
     }
 }

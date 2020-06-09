@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -65,5 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Show_items_from_unimported_namespaces =>
             CSharpVSResources.Show_items_from_unimported_namespaces;
+
+        public static string Automatically_show_completion_list_in_argument_lists =>
+            CSharpVSResources.Automatically_show_completion_list_in_argument_lists;
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -6,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2874,8 +2877,8 @@ unsafe public class Test
             var value = ((VariableDeclaratorSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.VariableDeclarator)).Initializer.Value;
             Assert.Equal("M<int>()", value.ToFullString());
 
-            var symbol = (MethodSymbol)model.GetSymbolInfo(value).Symbol;
-            Assert.Equal("System.Int32*", symbol.ReturnTypeWithAnnotations.ToTestDisplayString());
+            var symbol = (IMethodSymbol)model.GetSymbolInfo(value).Symbol;
+            Assert.Equal("System.Int32*", symbol.ReturnType.ToTestDisplayString());
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3134,11 +3137,11 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var inferredMethod = (MethodSymbol)model.GetSymbolInfo(call).Symbol;
+            var inferredMethod = (IMethodSymbol)model.GetSymbolInfo(call).Symbol;
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
-            Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArgumentsWithAnnotations.Single().Type);
+            Assert.Equal(declaredMethod.GetPublicSymbol(), inferredMethod);
+            Assert.Equal(declaredMethod.TypeParameters.Single().GetPublicSymbol(), inferredMethod.TypeArguments.Single());
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3164,11 +3167,11 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var inferredMethod = (MethodSymbol)model.GetSymbolInfo(call).Symbol;
+            var inferredMethod = (IMethodSymbol)model.GetSymbolInfo(call).Symbol;
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
-            Assert.Equal(declaredMethod, inferredMethod.ConstructedFrom());
-            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArgumentsWithAnnotations.Single().SpecialType);
+            Assert.Equal(declaredMethod.GetPublicSymbol(), inferredMethod.ConstructedFrom());
+            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3190,11 +3193,11 @@ unsafe class C
             var model = compilation.GetSemanticModel(tree);
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var inferredMethod = (MethodSymbol)model.GetSymbolInfo(call).Symbol;
+            var inferredMethod = (IMethodSymbol)model.GetSymbolInfo(call).Symbol;
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
-            Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArgumentsWithAnnotations.Single().Type);
+            Assert.Equal(declaredMethod.GetPublicSymbol(), inferredMethod);
+            Assert.Equal(declaredMethod.TypeParameters.Single().GetPublicSymbol(), inferredMethod.TypeArguments.Single());
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3219,11 +3222,11 @@ unsafe class C
             var model = compilation.GetSemanticModel(tree);
 
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var inferredMethod = (MethodSymbol)model.GetSymbolInfo(call).Symbol;
+            var inferredMethod = (IMethodSymbol)model.GetSymbolInfo(call).Symbol;
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
-            Assert.Equal(declaredMethod, inferredMethod.ConstructedFrom());
-            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArgumentsWithAnnotations.Single().SpecialType);
+            Assert.Equal(declaredMethod.GetPublicSymbol(), inferredMethod.ConstructedFrom());
+            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]

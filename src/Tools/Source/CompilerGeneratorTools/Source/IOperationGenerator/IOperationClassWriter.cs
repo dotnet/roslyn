@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -162,7 +164,9 @@ namespace IOperationGenerator
 
             void writeHeader()
             {
-                WriteLine("// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.");
+                WriteLine("// Licensed to the .NET Foundation under one or more agreements.");
+                WriteLine("// The .NET Foundation licenses this file to you under the MIT license.");
+                WriteLine("// See the LICENSE file in the project root for more information.");
                 WriteLine("// < auto-generated />");
             }
         }
@@ -216,7 +220,8 @@ namespace IOperationGenerator
 
                     foreach (var line in lines)
                     {
-                        if (string.IsNullOrWhiteSpace(line)) continue;
+                        if (string.IsNullOrWhiteSpace(line))
+                            continue;
                         WriteLine($"/// {line.Substring(indentation)}");
                     }
 
@@ -246,7 +251,8 @@ namespace IOperationGenerator
 
         private void WriteInterfaceProperty(Property prop)
         {
-            if (prop.IsInternal) return;
+            if (prop.IsInternal)
+                return;
             WriteComments(prop.Comments, writeReservedRemark: false);
             var modifiers = prop.IsNew ? "new " : "";
             WriteLine($"{modifiers}{prop.Type} {prop.Name} {{ get; }}");
@@ -345,7 +351,8 @@ namespace IOperationGenerator
             WriteLine("#region Implementations");
             foreach (var type in _tree.Types.OfType<AbstractNode>())
             {
-                if (type.SkipClassGeneration) continue;
+                if (type.SkipClassGeneration)
+                    continue;
 
                 var allProps = GetAllProperties(type);
                 bool hasSkippedProperties = !GetAllProperties(type, includeSkipGenerationProperties: true).SequenceEqual(allProps);
@@ -360,7 +367,6 @@ namespace IOperationGenerator
                 {
                     baseProperties = GetAllProperties(baseNode);
                 }
-
 
                 // Start by generating any necessary base classes
                 if (hasIOpChildren || type.IsAbstract)
@@ -378,7 +384,8 @@ namespace IOperationGenerator
 
                     foreach (var prop in type.Properties)
                     {
-                        if (prop.SkipGeneration) continue;
+                        if (prop.SkipGeneration)
+                            continue;
                         writeProperty(prop, propExtensibility: IsIOperationType(prop.Type) ? "abstract " : string.Empty);
                     }
 
@@ -446,7 +453,8 @@ namespace IOperationGenerator
                     Unbrace();
                 }
 
-                if (type.IsAbstract) continue;
+                if (type.IsAbstract)
+                    continue;
 
                 // Generate the non-lazy class. Nested block to allow for duplicate variable names
                 {
@@ -478,7 +486,8 @@ namespace IOperationGenerator
                     {
                         foreach (var property in type.Properties)
                         {
-                            if (property.SkipGeneration) continue;
+                            if (property.SkipGeneration)
+                                continue;
                             writeProperty(property, propExtensibility: string.Empty);
                         }
 
@@ -563,7 +572,8 @@ namespace IOperationGenerator
                 Write($"{accessibility} {@class}(");
                 foreach (var prop in properties)
                 {
-                    if (classType != ClassType.NonLazy && IsIOperationType(prop.Type)) continue;
+                    if (classType != ClassType.NonLazy && IsIOperationType(prop.Type))
+                        continue;
                     if (prop.Type == "CommonConversion")
                     {
                         Write($"IConvertibleConversion {prop.Name.ToCamelCase()}, ");
@@ -599,8 +609,9 @@ namespace IOperationGenerator
                     { IsAbstract: true } => "kind",
                     { } when multipleValidKinds => "kind",
                     { IsInternal: true } => "OperationKind.None",
-                    _ => $"OperationKind.{getKind(type)}"
+                    _ => $"OperationKind.{getKind(type!)}"
                 };
+                Debug.Assert(type is object);
                 Write($"{(includeKind || multipleValidKinds ? $"{kind}, " : string.Empty)}semanticModel, syntax, type, constantValue, isImplicit)");
 
                 Outdent();
@@ -711,7 +722,8 @@ namespace IOperationGenerator
             var types = _tree.Types.OfType<Node>();
             foreach (var type in types)
             {
-                if (type.SkipInVisitor) continue;
+                if (type.SkipInVisitor)
+                    continue;
 
                 WriteObsoleteIfNecessary(type.Obsolete);
                 var accessibility = type.IsInternal ? "internal" : "public";
@@ -730,7 +742,8 @@ namespace IOperationGenerator
 
             foreach (var type in types)
             {
-                if (type.SkipInVisitor) continue;
+                if (type.SkipInVisitor)
+                    continue;
 
                 WriteObsoleteIfNecessary(type.Obsolete);
                 var accessibility = type.IsInternal ? "internal" : "public";
@@ -763,7 +776,8 @@ namespace IOperationGenerator
             {
                 string baseName = @base.Base;
                 @base = _typeMap[baseName];
-                if (@base is null) break;
+                if (@base is null)
+                    break;
                 properties.AddRange(@base.Properties.Where(p => !p.SkipGeneration || includeSkipGenerationProperties));
             }
 

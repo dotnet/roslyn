@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -42,19 +47,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     ///     IList&lt;Symbol&gt; SemanticModel.LookupSymbols(CSharpSyntaxNode location, NamespaceOrTypeSymbol container = null, string name = null, int? arity = null, LookupOptions options = LookupOptions.Default, List&lt;Symbol> results = null);
     /// </pre>
     /// </summary>
-    internal sealed class AliasSymbol : Symbol, IAliasSymbol
+    internal sealed class AliasSymbol : Symbol
     {
         private readonly SyntaxToken _aliasName;
         private readonly Binder _binder;
 
         private SymbolCompletionState _state;
-        private NamespaceOrTypeSymbol _aliasTarget;
+        private NamespaceOrTypeSymbol? _aliasTarget;
         private readonly ImmutableArray<Location> _locations;  // NOTE: can be empty for the "global" alias.
 
         // lazy binding
-        private readonly NameSyntax _aliasTargetName;
+        private readonly NameSyntax? _aliasTargetName;
         private readonly bool _isExtern;
-        private DiagnosticBag _aliasTargetDiagnostics;
+        private DiagnosticBag? _aliasTargetDiagnostics;
 
         private AliasSymbol(Binder binder, NamespaceOrTypeSymbol target, SyntaxToken aliasName, ImmutableArray<Location> locations)
         {
@@ -72,10 +77,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _binder = binder;
         }
 
-        internal AliasSymbol(Binder binder, UsingDirectiveSyntax syntax)
-            : this(binder, syntax.Alias.Name.Identifier)
+        internal AliasSymbol(Binder binder, NameSyntax name, NameEqualsSyntax alias)
+            : this(binder, alias.Name.Identifier)
         {
-            _aliasTargetName = syntax.Name;
+            Debug.Assert(name.Parent.IsKind(SyntaxKind.UsingDirective));
+            Debug.Assert(name.Parent == alias.Parent);
+
+            _aliasTargetName = name;
         }
 
         internal AliasSymbol(Binder binder, ExternAliasDirectiveSyntax syntax)
@@ -210,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -229,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// return that as the "containing" symbol, even though the alias isn't a member of the
         /// namespace as such.
         /// </summary>
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -253,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // basesBeingResolved is only used to break circular references.
-        internal NamespaceOrTypeSymbol GetAliasTarget(ConsList<TypeSymbol> basesBeingResolved)
+        internal NamespaceOrTypeSymbol GetAliasTarget(ConsList<TypeSymbol>? basesBeingResolved)
         {
             if (!_state.HasComplete(CompletionPart.AliasTarget))
             {
@@ -265,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ResolveExternAliasTarget(newDiagnostics) :
                     ResolveAliasTarget(_binder, _aliasTargetName, newDiagnostics, basesBeingResolved);
 
-                if ((object)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
+                if ((object?)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
                 {
                     // Note: It's important that we don't call newDiagnosticsToReadOnlyAndFree here. That call
                     // can force the prompt evaluation of lazy initialized diagnostics.  That in turn can 
@@ -284,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return _aliasTarget;
+            return _aliasTarget!;
         }
 
         internal DiagnosticBag AliasTargetDiagnostics
@@ -292,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 GetAliasTarget(null);
-                Debug.Assert(_aliasTargetDiagnostics != null);
+                RoslynDebug.Assert(_aliasTargetDiagnostics != null);
                 return _aliasTargetDiagnostics;
             }
         }
@@ -300,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void CheckConstraints(DiagnosticBag diagnostics)
         {
             var target = this.Target as TypeSymbol;
-            if ((object)target != null && _locations.Length > 0)
+            if ((object?)target != null && _locations.Length > 0)
             {
                 var corLibrary = this.ContainingAssembly.CorLibrary;
                 var conversions = new TypeConversions(corLibrary);
@@ -310,24 +318,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private NamespaceSymbol ResolveExternAliasTarget(DiagnosticBag diagnostics)
         {
-            NamespaceSymbol target;
+            NamespaceSymbol? target;
             if (!_binder.Compilation.GetExternAliasTarget(_aliasName.ValueText, out target))
             {
                 diagnostics.Add(ErrorCode.ERR_BadExternAlias, _aliasName.GetLocation(), _aliasName.ValueText);
             }
 
-            Debug.Assert((object)target != null);
+            RoslynDebug.Assert(target is object);
 
             return target;
         }
 
-        private static NamespaceOrTypeSymbol ResolveAliasTarget(Binder binder, NameSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved)
+        private static NamespaceOrTypeSymbol ResolveAliasTarget(Binder binder, NameSyntax? syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol>? basesBeingResolved)
         {
             var declarationBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
             return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             if (ReferenceEquals(this, obj))
             {
@@ -339,9 +347,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            AliasSymbol other = obj as AliasSymbol;
+            AliasSymbol? other = obj as AliasSymbol;
 
-            return (object)other != null &&
+            return (object?)other != null &&
                 Equals(this.Locations.FirstOrDefault(), other.Locations.FirstOrDefault()) &&
                 this.ContainingAssembly.Equals(other.ContainingAssembly, compareKind);
         }
@@ -359,27 +367,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        #region IAliasSymbol Members
-
-        INamespaceOrTypeSymbol IAliasSymbol.Target
+        protected override ISymbol CreateISymbol()
         {
-            get { return this.Target; }
+            return new PublicModel.AliasSymbol(this);
         }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitAlias(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitAlias(this);
-        }
-
-        #endregion
     }
 }

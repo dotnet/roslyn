@@ -1,7 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
@@ -42,9 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         }
 
         protected override bool IsParentAnAttribute(SyntaxNode node)
-        {
-            return node.IsParentKind(SyntaxKind.Attribute);
-        }
+            => node.IsParentKind(SyntaxKind.Attribute);
 
         private void ClassifyTypeSyntax(
             NameSyntax name,
@@ -93,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private bool TryClassifyAmbiguousSymbol(
+        private static bool TryClassifyAmbiguousSymbol(
             NameSyntax name,
             SymbolInfo symbolInfo,
             SemanticModel semanticModel,
@@ -101,34 +104,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             CancellationToken cancellationToken)
         {
             // If everything classifies the same way, then just pick that classification.
-            var set = PooledHashSet<ClassifiedSpan>.GetInstance();
-            try
+            using var _ = PooledHashSet<ClassifiedSpan>.GetInstance(out var set);
+            var isStatic = false;
+
+            foreach (var symbol in symbolInfo.CandidateSymbols)
             {
-                foreach (var symbol in symbolInfo.CandidateSymbols)
+                if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
                 {
-                    if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
-                    {
-                        set.Add(classifiedSpan);
-                    }
+                    // If one symbol resolves to static, then just make it bold
+                    isStatic = isStatic || IsStaticSymbol(symbol);
+                    set.Add(classifiedSpan);
+                }
+            }
+
+            if (set.Count == 1)
+            {
+                // If any of the symbols are static, add the static classification and the regular symbol classification
+                if (isStatic)
+                {
+                    result.Add(new ClassifiedSpan(set.First().TextSpan, ClassificationTypeNames.StaticSymbol));
                 }
 
-                if (set.Count == 1)
-                {
-                    result.Add(set.First());
-                    return true;
-                }
+                result.Add(set.First());
+                return true;
+            }
 
-                return false;
-            }
-            finally
-            {
-                set.Free();
-            }
+            return false;
         }
 
-        private bool TryClassifySymbol(
+        private static bool TryClassifySymbol(
             NameSyntax name,
-            ISymbol symbol,
+            [NotNullWhen(returnValue: true)] ISymbol? symbol,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
             out ClassifiedSpan classifiedSpan)
@@ -167,6 +173,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
                         return true;
                     }
+                }
+            }
+
+            if (name.IsNint || name.IsNuint)
+            {
+                if (symbol is ITypeSymbol type && type.IsNativeIntegerType)
+                {
+                    classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
+                    return true;
                 }
             }
 
@@ -209,11 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForMethod(methodSymbol));
                     return true;
-                case IPropertySymbol propertySymbol:
+                case IPropertySymbol _:
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.PropertyName);
                     return true;
-                case IEventSymbol eventSymbol:
+                case IEventSymbol _:
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.EventName);
                     return true;
@@ -230,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForLocal(localSymbol));
                     return true;
-                case ILabelSymbol labelSymbol:
+                case ILabelSymbol _:
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.LabelName);
                     return true;
@@ -275,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 : ClassificationTypeNames.MethodName;
         }
 
-        private bool IsInVarContext(NameSyntax name)
+        private static bool IsInVarContext(NameSyntax name)
         {
             return
                 name.CheckParent<RefTypeSyntax>(v => v.Type == name) ||
@@ -285,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 name.CheckParent<DeclarationExpressionSyntax>(f => f.Type == name);
         }
 
-        private bool TryClassifyFromIdentifier(
+        private static bool TryClassifyFromIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
             ArrayBuilder<ClassifiedSpan> result)
@@ -307,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private bool TryClassifyValueIdentifier(
+        private static bool TryClassifyValueIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
             ArrayBuilder<ClassifiedSpan> result)
@@ -315,14 +330,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             var identifierName = name as IdentifierNameSyntax;
             if (symbolInfo.Symbol.IsImplicitValueParameter())
             {
+#nullable disable // Can 'identifierName' be null here?
                 result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
+#nullable enable
                 return true;
             }
 
             return false;
         }
 
-        private bool TryClassifyNameOfIdentifier(
+        private static bool TryClassifyNameOfIdentifier(
             NameSyntax name, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
         {
             if (name is IdentifierNameSyntax identifierName &&
@@ -337,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private bool IsSymbolWithName(ISymbol symbol, string name)
+        private static bool IsSymbolWithName([NotNullWhen(returnValue: true)] ISymbol? symbol, string name)
         {
             if (symbol is null || symbol.Name != name)
             {

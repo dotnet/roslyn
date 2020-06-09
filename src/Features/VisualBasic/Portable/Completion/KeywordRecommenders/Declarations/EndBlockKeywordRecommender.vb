@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -60,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
         End Function
 
-        Private Function GetToolTipForKeyword(keyword As String) As String
+        Private Shared Function GetToolTipForKeyword(keyword As String) As String
             Select Case keyword
                 Case "Region", "Class", "Structure", "Namespace", "Module"
                     Return String.Format(VBFeaturesResources.Terminates_a_0_block, keyword)
@@ -77,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             End Select
         End Function
 
-        Private Sub EnsureAllIfAny(collection As ICollection(Of String), ParamArray completions() As String)
+        Private Shared Sub EnsureAllIfAny(collection As ICollection(Of String), ParamArray completions() As String)
             For Each item In completions
                 If collection.Contains(item) Then
                     For Each item2 In completions
@@ -90,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             Next
         End Sub
 
-        Private Function GetUnclosedBlockKeywords(node As SyntaxNode) As IEnumerable(Of SyntaxKind)
+        Private Shared Function GetUnclosedBlockKeywords(node As SyntaxNode) As IEnumerable(Of SyntaxKind)
             Dim visitor As New MissingKeywordExtractor()
 
             Return From ancestor In node.GetAncestorsOrThis(Of SyntaxNode)()
@@ -151,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 End If
             End Function
 
-            Private Function VisitMethodBlockBase(node As MethodBlockBaseSyntax) As SyntaxKind?
+            Private Shared Function VisitMethodBlockBase(node As MethodBlockBaseSyntax) As SyntaxKind?
                 If node.EndBlockStatement.IsMissing Then
                     Return node.BlockStatement.DeclarationKeyword.Kind
                 Else

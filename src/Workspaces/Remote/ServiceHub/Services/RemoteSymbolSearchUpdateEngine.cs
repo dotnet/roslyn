@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,8 +11,7 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteSymbolSearchUpdateEngine :
-        ServiceHubServiceBase, IRemoteSymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
+    internal partial class RemoteSymbolSearchUpdateEngine : ServiceBase, IRemoteSymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
     {
         private readonly SymbolSearchUpdateEngine _updateEngine;
 
@@ -29,7 +29,10 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(() =>
             {
-                return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
+                // In non-test scenarios, we're not cancellable.  Our lifetime will simply be that
+                // of the OOP process itself.  i.e. when it goes away, it will just tear down our
+                // update-loop itself.  So we don't need any additional controls over it.
+                return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, CancellationToken.None);
             }, CancellationToken.None);
         }
 
@@ -68,23 +71,23 @@ namespace Microsoft.CodeAnalysis.Remote
 
         #region Messages to forward from here to VS
 
-        public Task LogExceptionAsync(string exception, string text, CancellationToken cancellationToken)
-            => this.InvokeAsync(nameof(LogExceptionAsync), new object[] { exception, text }, cancellationToken);
+        public Task LogExceptionAsync(string exception, string text)
+            => EndPoint.InvokeAsync(nameof(LogExceptionAsync), new object[] { exception, text }, CancellationToken.None);
 
-        public Task LogInfoAsync(string text, CancellationToken cancellationToken)
-            => this.InvokeAsync(nameof(LogInfoAsync), new object[] { text }, cancellationToken);
+        public Task LogInfoAsync(string text)
+            => EndPoint.InvokeAsync(nameof(LogInfoAsync), new object[] { text }, CancellationToken.None);
 
-        public Task OnDownloadFullDatabaseStartedAsync(string title, CancellationToken cancellationToken)
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), new object[] { title }, cancellationToken);
+        public Task OnDownloadFullDatabaseStartedAsync(string title)
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), new object[] { title }, CancellationToken.None);
 
-        public Task OnDownloadFullDatabaseSucceededAsync(CancellationToken cancellationToken)
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync), cancellationToken);
+        public Task OnDownloadFullDatabaseSucceededAsync()
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync), Array.Empty<object>(), CancellationToken.None);
 
-        public Task OnDownloadFullDatabaseCanceledAsync(CancellationToken cancellationToken)
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync), cancellationToken);
+        public Task OnDownloadFullDatabaseCanceledAsync()
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync), Array.Empty<object>(), CancellationToken.None);
 
-        public Task OnDownloadFullDatabaseFailedAsync(string message, CancellationToken cancellationToken)
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), new object[] { message }, cancellationToken);
+        public Task OnDownloadFullDatabaseFailedAsync(string message)
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), new object[] { message }, CancellationToken.None);
 
         #endregion
     }

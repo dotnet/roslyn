@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         private static readonly TypeSyntax s_objectType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpUseLocalFunctionCodeFixProvider()
         {
         }
@@ -208,12 +212,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var returnType = delegateMethod.GenerateReturnTypeSyntax();
 
             var identifier = localDeclaration.Declaration.Variables[0].Identifier;
-            var typeParameterList = default(TypeParameterListSyntax);
+            var typeParameterList = (TypeParameterListSyntax)null;
 
             var constraintClauses = default(SyntaxList<TypeParameterConstraintClauseSyntax>);
 
-            var body = anonymousFunction.Body.IsKind(SyntaxKind.Block)
-                ? (BlockSyntax)anonymousFunction.Body
+            var body = anonymousFunction.Body.IsKind(SyntaxKind.Block, out BlockSyntax block)
+                ? block
                 : null;
 
             var expressionBody = anonymousFunction.Body is ExpressionSyntax expression
@@ -247,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
                 if (parameterNode.Type == null)
                 {
-                    parameterNode = parameterNode.WithType(delegateParameter?.Type.WithNullability(delegateParameter.NullableAnnotation).GenerateTypeSyntax() ?? s_objectType);
+                    parameterNode = parameterNode.WithType(delegateParameter?.Type.GenerateTypeSyntax() ?? s_objectType);
                 }
 
                 if (delegateParameter?.HasExplicitDefaultValue == true)
@@ -308,10 +312,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         private static EqualsValueClauseSyntax GetDefaultValue(IParameterSymbol parameter)
             => SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_local_function, createChangedDocument, FeaturesResources.Use_local_function)
+                : base(CSharpAnalyzersResources.Use_local_function, createChangedDocument, CSharpAnalyzersResources.Use_local_function)
             {
             }
         }

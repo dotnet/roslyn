@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -15,12 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
     internal class CSharpAnonymousTypeDisplayService : AbstractAnonymousTypeDisplayService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpAnonymousTypeDisplayService()
         {
         }
 
         public override IEnumerable<SymbolDisplayPart> GetAnonymousTypeParts(
-            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position, ISymbolDisplayService displayService)
+            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position)
         {
             var members = new List<SymbolDisplayPart>();
 
@@ -39,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 }
 
                 first = false;
-                members.AddRange(displayService.ToMinimalDisplayParts(semanticModel, position, property.Type).Select(p => p.MassageErrorTypeNames("?")));
+                members.AddRange(property.Type.ToMinimalDisplayParts(semanticModel, position).Select(p => p.MassageErrorTypeNames("?")));
                 members.AddRange(Space());
                 members.Add(new SymbolDisplayPart(SymbolDisplayPartKind.PropertyName, property, property.Name));
             }

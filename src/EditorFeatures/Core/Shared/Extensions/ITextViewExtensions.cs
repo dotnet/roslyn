@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -73,14 +75,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         public static SnapshotPoint? GetPositionInView(this ITextView textView, SnapshotPoint point)
-        {
-            return textView.BufferGraph.MapUpToSnapshot(point, PointTrackingMode.Positive, PositionAffinity.Successor, textView.TextSnapshot);
-        }
+            => textView.BufferGraph.MapUpToSnapshot(point, PointTrackingMode.Positive, PositionAffinity.Successor, textView.TextSnapshot);
 
         public static NormalizedSnapshotSpanCollection GetSpanInView(this ITextView textView, SnapshotSpan span)
-        {
-            return textView.BufferGraph.MapUpToSnapshot(span, SpanTrackingMode.EdgeInclusive, textView.TextSnapshot);
-        }
+            => textView.BufferGraph.MapUpToSnapshot(span, SpanTrackingMode.EdgeInclusive, textView.TextSnapshot);
 
         public static void SetSelection(
             this ITextView textView, VirtualSnapshotPoint anchorPoint, VirtualSnapshotPoint activePoint)
@@ -110,9 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, SnapshotPoint point, IOutliningManagerService outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
-        {
-            return textView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(point), outliningManagerService, ensureSpanVisibleOptions);
-        }
+            => textView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(point), outliningManagerService, ensureSpanVisibleOptions);
 
         public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, VirtualSnapshotPoint point, IOutliningManagerService outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
         {
@@ -314,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             var targetSpan = textView.BufferGraph.MapUpToSnapshot(
                 virtualSnapshotSpan.SnapshotSpan,
                 SpanTrackingMode.EdgeExclusive,
-                textView.TextSnapshot).FirstOrNullable();
+                textView.TextSnapshot).FirstOrNull();
 
             if (targetSpan.HasValue)
             {

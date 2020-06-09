@@ -1,10 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Notification
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
@@ -103,8 +106,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             Dim notificationService = DirectCast(workspace.Services.GetService(Of INotificationService)(), INotificationServiceCallback)
             notificationService.NotificationCallback = Sub(message, title, severity) NotificationMessage = message
 
+            Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
             _presenter = New MockCallHierarchyPresenter()
-            _commandHandler = New CallHierarchyCommandHandler({_presenter}, provider)
+            _commandHandler = New CallHierarchyCommandHandler(threadingContext, {_presenter}, provider)
         End Sub
 
         Private Shared Function CreateExportProvider(additionalTypes As IEnumerable(Of Type)) As ExportProvider

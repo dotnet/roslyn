@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Text;
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var newTree = oldTree.WithFilePath("new.cs");
             var newText = newTree.GetText();
 
-            Assert.Equal(newTree.FilePath, "new.cs");
+            Assert.Equal("new.cs", newTree.FilePath);
             Assert.Equal(oldTree.ToString(), newTree.ToString());
 
             Assert.Null(newText.Encoding);
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var newTree = oldTree.WithFilePath("new.cs");
             var newText = newTree.GetText();
 
-            Assert.Equal(newTree.FilePath, "new.cs");
+            Assert.Equal("new.cs", newTree.FilePath);
             Assert.Equal(oldTree.ToString(), newTree.ToString());
 
             Assert.Same(Encoding.UTF7, newText.Encoding);
@@ -186,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var oldTree = new CSharpSyntaxTree.DummySyntaxTree();
             var newTree = oldTree.WithFilePath("new.cs");
 
-            Assert.Equal(newTree.FilePath, "new.cs");
+            Assert.Equal("new.cs", newTree.FilePath);
             Assert.Equal(oldTree.ToString(), newTree.ToString());
         }
 

@@ -1,18 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using Roslyn.Utilities;
 using System.IO;
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class AssemblyIdentityUtils
     {
-        public static AssemblyIdentity TryGetAssemblyIdentity(string filePath)
+        public static AssemblyIdentity? TryGetAssemblyIdentity(string filePath)
         {
             try
             {
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis
                 Version version = assemblyDefinition.Version;
 
                 StringHandle cultureHandle = assemblyDefinition.Culture;
-                string cultureName = (!cultureHandle.IsNil) ? metadataReader.GetString(cultureHandle) : null;
+                string? cultureName = (!cultureHandle.IsNil) ? metadataReader.GetString(cultureHandle) : null;
                 AssemblyFlags flags = assemblyDefinition.Flags;
 
                 bool hasPublicKey = (flags & AssemblyFlags.PublicKey) != 0;

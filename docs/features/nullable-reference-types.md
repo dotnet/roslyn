@@ -6,10 +6,10 @@ Reference types may be nullable, non-nullable, or null-oblivious (abbreviated he
 
 Project level nullable context can be set by using "nullable" command line switch:
 -nullable[+|-]                        Specify nullable context option enable|disable.
--nullable:{enable|disable|warnings}   Specify nullable context option enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}   Specify nullable context option enable|disable|warnings|annotations.
 
 Through msbuild the context could be set by supplying an argument for a "Nullable" parameter of Csc build task.
-Accepted values are "enable", "disable", "warnings", or null (for the default nullable context according to the compiler).
+Accepted values are "enable", "disable", "warnings", "annotations", or null (for the default nullable context according to the compiler).
 The Microsoft.CSharp.Core.targets passes value of msbuild property named "Nullable" for that parameter.
 
 Note that in previous preview releases of C# 8.0 this "Nullable" property was successively named "NullableReferenceTypes" then "NullableContextOptions".
@@ -43,8 +43,47 @@ A number of null checks affect the flow state when tested for:
   - `static bool object.Equals(object, object)`
   - `static bool object.ReferenceEquals(object, object)`
   - `bool object.Equals(object)` and overrides
-  - `bool IEquatable<T>(T)` and implementations
-  - `bool IEqualityComparer<T>(T, T)` and implementations
+  - `bool IEquatable<T>.Equals(T)` and implementations
+  - `bool IEqualityComparer<T>.Equals(T, T)` and implementations
+
+Some null checks are "pure null tests", which means that they can cause a variable whose flow state was previously not-null to update to maybe-null. Pure null tests include:
+- `x == null`, `x != null` *whether using a built-in or user-defined operator*
+- `(Type)x == null`, `(Type)x != null`
+- `x is null`
+- `object.Equals(x, null)`, `object.ReferenceEquals(x, null)`
+- `IEqualityComparer<Type?>.Equals(x, null)`
+
+All of the above checks except for `x is null` are commutative. For example, `null == x` is also a valid pure null test.
+
+Some expressions which may not return `bool` are also considered pure null tests:
+- `x?.Member` will change the receiver's flow state to maybe-null unconditionally
+- `x ?? y` will change the LHS expression's flow state to maybe-null unconditionally
+
+Example of how a pure null test can affect flow analysis:
+```cs
+string s = "hello";
+if (s != null)
+{
+    _ = s.ToString(); // ok
+}
+else
+{
+    _ = s.ToString(); // warning
+}
+```
+
+Versus a "not pure" null test:
+```cs
+string s = "hello";
+if (s is string)
+{
+    _ = s.ToString(); // ok
+}
+else
+{
+    _ = s.ToString(); // ok
+}
+```
 
 Invocation of methods annotated with the following attributes will also affect flow analysis:
 - simple pre-conditions: `[AllowNull]` and `[DisallowNull]`
@@ -52,11 +91,34 @@ Invocation of methods annotated with the following attributes will also affect f
 - conditional post-conditions: `[MaybeNullWhen(bool)]` and `[NotNullWhen(bool)]`
 - `[DoesNotReturnIf(bool)]` (e.g. `[DoesNotReturnIf(false)]` for `Debug.Assert`) and `[DoesNotReturn]`
 - `[NotNullIfNotNull(string)]`
+ - member post-conditions: `[MemberNotNull(params string[])]` and `[MemberNotNullWhen(bool, params string[])]`
 See https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-15.md
 
 The `Interlocked.CompareExchange` methods have special handling in flow analysis instead of being annotated due to the complexity of their nullability semantics. The affected overloads include:
 - `static object? System.Threading.Interlocked.CompareExchange(ref object? location, object? value, object? comparand)`
 - `static T System.Threading.Interlocked.CompareExchange<T>(ref T location, T value, T comparand) where T : class?`
+
+When simple pre- and post-condition attributes are applied to a property, and an allowed input state is assigned to the property, the property's state is updated to be an allowed output state. For instance an `[AllowNull] string` property can be assigned `null` and still return not-null values.
+
+
+Enforcing nullability attributes within method bodies:
+- An input parameter marked with `[AllowNull]` is initialized with a maybe-null (or maybe-default) state.
+- An input parameter marked with `[DisallowNull]` is initialized with a not-null state.
+- A parameter marked with `[MaybeNull]` or `[MaybeNullWhen]` can be assigned a maybe-null value, without warning. Same for return values. Same for a nullable parameter marked with `[NotNullWhen]` (the attribute is ignored).
+- A parameter marked with `[NotNull]` will produce a warning when assigned a maybe-null value. Same for return values.
+- The state of a parameter marked with `[MaybeNullWhen]`/`[NotNullWhen]` is checked upon exiting the method instead.
+- A method marked with `[DoesNotReturn]` will produce a warning if it returns or exits normally.
+
+Note: we don't validate the internal consistency of auto-properties, so it is possible to misuse attributes on auto-props as on fields. For example: `[AllowNull, NotNull] public TOpen P { get; set; }`.
+
+Enforcing nullability attributes when overriding and implementing:
+In addition to checking the types in overrides/implementations are compatible with overridden/implemented members, we also check that the nullability attributes are compatible.
+- For input parameters (by-value and `in`), we check that the widest allowed value by the overridden/implemented parameter can be assigned to the overriding/implementing parameter.
+- For output parameters (`out` and return values), we check that the widest produced value by the overriding/implementing parameter can be assigned to the overridden/implemented parameter.
+- For `ref` parameters and return values, we check both.
+- We check that the post-condition contract `[NotNull]`/`[MaybeNull]` on input parameters is enforced by overriding/implementing members.
+- We check that overrides/implementations have the `[DoesNotReturn]` attribute if the overridden/implemented member has it.
+- We check that members used in `[MemberNotNull(...)]` or `[MemberNotNullWhen(...)]` are not null upon exit, by assuming they had maybe-null state on entry.
 
 ## `default`
 If `T` is a reference type, `default(T)` is `T?`.
@@ -77,7 +139,6 @@ If `T` is an unconstrained type parameter, `default(T)` is a `T` that is maybe n
 ```c#
 T t = default; // warning
 ```
-_Is `default(T?)` an error?_
 
 ### Conversions
 Conversions can be calculated with ~ considered distinct from ? and !, or with ~ implicitly convertible to ? and !.
@@ -104,11 +165,11 @@ Nullablilty follows from assignment above. Assigning `?` to `!` is a W warning.
 ```c#
 string notNull = maybeNull; // assigns ?, warning
 ```
-Nullability of `var` declarations is determined from flow analysis.
+The nullability of `var` declarations is the nullable version of the inferred type.
 ```c#
 var s = maybeNull; // s is ?, no warning
 if (maybeNull == null) return;
-var t = maybeNull; // t is !
+var t = maybeNull; // t is ? too
 ```
 
 ### Suppression operator (`!`)
@@ -327,7 +388,7 @@ A syntax tree is determined to be generated if meets one or more of the followin
     - .g.i.cs
 - Contains a top level comment that contains
     - `<autogenerated`
-    - `<auto-generateed`
+    - `<auto-generated`
 
 Newer, nullable-aware generators may then opt-in to nullable analysis by including a generated `#nullable restore` at the beginning of the code, ensuring that the generated syntax tree will be analyzed according to the project-level nullable context.
 

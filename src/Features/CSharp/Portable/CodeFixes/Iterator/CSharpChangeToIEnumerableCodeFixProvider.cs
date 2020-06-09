@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
         private const string CS1624 = nameof(CS1624);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpChangeToIEnumerableCodeFixProvider()
         {
         }
@@ -57,11 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 if (arity == 1)
                 {
                     var typeArg = type.GetTypeArguments().First();
-                    ienumerableGenericSymbol = ienumerableGenericSymbol.ConstructWithNullability(typeArg);
+                    ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeArg);
                 }
                 else if (arity == 0 && type is IArrayTypeSymbol)
                 {
-                    ienumerableGenericSymbol = ienumerableGenericSymbol.ConstructWithNullability((type as IArrayTypeSymbol).ElementType);
+                    ienumerableGenericSymbol = ienumerableGenericSymbol.Construct((type as IArrayTypeSymbol).ElementType);
                 }
                 else
                 {

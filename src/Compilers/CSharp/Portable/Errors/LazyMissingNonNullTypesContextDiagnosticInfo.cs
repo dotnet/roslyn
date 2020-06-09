@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -32,10 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             rawInfos.Free();
         }
 
+#nullable enable
         private static void GetRawDiagnosticInfos(bool isNullableEnabled, CSharpSyntaxTree tree, ArrayBuilder<DiagnosticInfo> infos)
         {
             const MessageID featureId = MessageID.IDS_FeatureNullableReferenceTypes;
-            var info = featureId.GetFeatureAvailabilityDiagnosticInfoOpt(tree.Options);
+            var info = featureId.GetFeatureAvailabilityDiagnosticInfo(tree.Options);
             if (info is object)
             {
                 infos.Add(info);
@@ -47,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 infos.Add(new CSDiagnosticInfo(code));
             }
         }
+#nullable restore
 
         private static bool IsNullableReference(TypeSymbol type)
             => type is null || !(type.IsValueType || type.IsErrorType());

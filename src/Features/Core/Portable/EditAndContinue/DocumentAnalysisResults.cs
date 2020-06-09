@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public ImmutableArray<ActiveStatement> ActiveStatements { get; }
 
         /// <summary>
-        /// Diagnostics for rude edits in the document, or null if the document is unchanged or has syntax errors.
+        /// Diagnostics for rude edits in the document, or empty if the document is unchanged or has syntax errors.
         /// If the compilation has semantic errors only syntactic rude edits are calculated.
         /// </summary>
         public ImmutableArray<RudeEditDiagnostic> RudeEditErrors { get; }
@@ -68,6 +70,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private DocumentAnalysisResults(ImmutableArray<RudeEditDiagnostic> rudeEdits)
         {
+            Debug.Assert(!rudeEdits.IsDefault);
             _hasCompilationErrors = rudeEdits.Length == 0;
             RudeEditErrors = rudeEdits;
         }
@@ -80,12 +83,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<LineChange> lineEditsOpt,
             bool? hasSemanticErrors)
         {
+            Debug.Assert(!rudeEdits.IsDefault);
             Debug.Assert(!activeStatements.IsDefault);
             Debug.Assert(activeStatements.All(a => a != null));
 
             if (hasSemanticErrors.HasValue)
             {
-                Debug.Assert(!rudeEdits.IsDefault);
 
                 if (hasSemanticErrors.Value || rudeEdits.Length > 0)
                 {
@@ -124,7 +127,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             get
             {
-                return HasChanges && (_hasCompilationErrors.Value || !RudeEditErrors.IsDefaultOrEmpty);
+                return HasChanges && (_hasCompilationErrors.Value || !RudeEditErrors.IsEmpty);
             }
         }
 
@@ -136,7 +139,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public bool HasSignificantChanges
+        public bool HasSignificantValidChanges
         {
             get
             {
@@ -145,9 +148,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public static DocumentAnalysisResults SyntaxErrors(ImmutableArray<RudeEditDiagnostic> rudeEdits)
-        {
-            return new DocumentAnalysisResults(rudeEdits);
-        }
+            => new DocumentAnalysisResults(rudeEdits);
 
         public static DocumentAnalysisResults Unchanged(
             ImmutableArray<ActiveStatement> activeStatements,
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             return new DocumentAnalysisResults(
                 activeStatements,
-                default,
+                ImmutableArray<RudeEditDiagnostic>.Empty,
                 ImmutableArray<SemanticEdit>.Empty,
                 exceptionRegionsOpt,
                 ImmutableArray<LineChange>.Empty,

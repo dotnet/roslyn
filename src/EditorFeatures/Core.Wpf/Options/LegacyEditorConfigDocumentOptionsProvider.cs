@@ -1,12 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -26,17 +28,18 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         /// </summary>
         private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
 
+#pragma warning disable IDE0052 // Remove unread private members - Used in EditorFeatures project context
         private readonly Workspace _workspace;
         private readonly IAsynchronousOperationListener _listener;
+#pragma warning disable IDE0052
+
         private readonly ICodingConventionsManager _codingConventionsManager;
-        private readonly IErrorLoggerService _errorLogger;
 
         internal LegacyEditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager, IAsynchronousOperationListenerProvider listenerProvider)
         {
             _workspace = workspace;
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
             _codingConventionsManager = codingConventionsManager;
-            _errorLogger = workspace.Services.GetService<IErrorLoggerService>();
 
             workspace.DocumentOpened += Workspace_DocumentOpened;
             workspace.DocumentClosed += Workspace_DocumentClosed;
@@ -72,12 +75,16 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             {
                 var documentId = e.Document.Id;
                 var filePath = e.Document.FilePath;
-                _openDocumentContexts.Add(documentId, Task.Run(async () =>
+
+                if (filePath != null)
                 {
-                    var context = await GetConventionContextAsync(filePath, CancellationToken.None).ConfigureAwait(false);
-                    OnCodingConventionContextCreated(documentId, context);
-                    return context;
-                }));
+                    _openDocumentContexts.Add(documentId, Task.Run(async () =>
+                    {
+                        var context = await GetConventionContextAsync(filePath, CancellationToken.None).ConfigureAwait(false);
+                        OnCodingConventionContextCreated(documentId, context);
+                        return context;
+                    }));
+                }
             }
         }
 
@@ -99,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             }
         }
 
-        private void ClearOpenFileCache(ProjectId projectId = null)
+        private void ClearOpenFileCache(ProjectId? projectId = null)
         {
             lock (_gate)
             {
@@ -133,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 TaskScheduler.Default);
         }
 
-        public async Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
+        public async Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             Task<ICodingConventionContext> contextTask;
 
@@ -154,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     TaskScheduler.Default);
 
                 var context = await cancellableContextTask.ConfigureAwait(false);
-                return new DocumentOptions(context.CurrentConventions, _errorLogger);
+                return new DocumentOptions(context.CurrentConventions);
             }
             else
             {
@@ -181,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 using var context = await conventionsAsync.ConfigureAwait(false);
 
-                return new DocumentOptions(context.CurrentConventions, _errorLogger);
+                return new DocumentOptions(context.CurrentConventions);
             }
         }
 

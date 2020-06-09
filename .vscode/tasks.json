@@ -1,0 +1,178 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+        "label": "build",
+        "command": "./build.sh",
+        "type": "shell",
+        "args": [
+        ],
+        "windows": {
+          "command": "./build.cmd",
+        },
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build with analyzers",
+        "command": "./build.sh",
+        "type": "shell",
+        "args": [
+          "--runAnalyzers"
+        ],
+        "windows": {
+          "command": "./build.cmd",
+          "args": [
+            "-runAnalyzers"
+          ],
+        },
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build csc",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
+        "args": [
+          "msbuild",
+          "-p:UseRoslynAnalyzers=false",
+          "-p:GenerateFullPaths=true",
+          "src/Compilers/CSharp/csc/csc.csproj"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build current project",
+        "type": "shell",
+        "command": "./.dotnet/dotnet",
+        "args": [
+          "pwsh",
+          "${workspaceRoot}/scripts/vscode-build.ps1",
+          "-filePath",
+          "${file}",
+          "-msbuildEngine",
+          "dotnet"
+        ],
+        "windows": {
+          "command": "powershell",
+          "args": [
+            "${workspaceRoot}/scripts/vscode-build.ps1",
+            "-filePath",
+            "${file}",
+            "-msbuildEngine",
+            "dotnet"
+          ],
+        },
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "msbuild current project",
+        "type": "shell",
+        "command": "echo 'Task not supported on this OS'",
+        "windows": {
+          "command": "powershell",
+          "args": [
+            "${workspaceRoot}/scripts/vscode-build.ps1",
+            "-filePath",
+            "${file}",
+            "-msbuildEngine",
+            "vs"
+          ],
+        },
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "generate compiler code",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
+        "args": [
+          "pwsh",
+          "${workspaceRoot}/eng/generate-compiler-code.ps1"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "update xlf files",
+        "command": "./build.sh",
+        "type": "shell",
+        "windows": {
+          "command": "./build.cmd"
+        },
+        "options": {
+          "env": { "UpdateXlfOnBuild": "true" }
+        },
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "run tests in current file (netcoreapp3.1)",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
+        "args": [
+          "pwsh",
+          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "-filePath",
+          "${file}",
+          "-msbuildEngine",
+          "dotnet",
+          "-framework",
+          "netcoreapp3.1",
+          "-filter",
+          "${fileBasenameNoExtension}"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "test"
+    },
+    {
+        "label": "run tests in current project (netcoreapp3.1)",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
+        "args": [
+          "pwsh",
+          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "-filePath",
+          "${file}",
+          "-msbuildEngine",
+          "dotnet",
+          "-framework",
+          "netcoreapp3.1"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "test"
+    },
+    {
+        "label": "run tests in current file (all frameworks)",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
+        "args": [
+          "pwsh",
+          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "-filePath",
+          "${file}",
+          "-filter",
+          "${fileBasenameNoExtension}"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "test"
+    },
+    {
+        "label": "run tests in current project (all frameworks)",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
+        "args": [
+          "pwsh",
+          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "-filePath",
+          "${file}"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "test"
+    }
+  ]
+}

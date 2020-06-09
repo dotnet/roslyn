@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -475,7 +477,7 @@ namespace System
     [CLSCompliant(true)]
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }";
 
@@ -485,7 +487,7 @@ namespace System
     [CLSCompliant(false)]
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }";
 
@@ -2742,10 +2744,13 @@ using System;
 public void M() { }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,13): error CS0116: A namespace does not directly contain members such as fields or methods
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (5,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void M() { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "M"));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(5, 1),
+                // (5,13): warning CS8321: The local function 'M' is declared but never used
+                // public void M() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(5, 13));
         }
 
         [Fact]
@@ -2760,10 +2765,13 @@ using System;
 public void M() { }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,13): error CS0116: A namespace does not directly contain members such as fields or methods
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (7,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void M() { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "M"));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 1),
+                // (7,13): warning CS8321: The local function 'M' is declared but never used
+                // public void M() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(7, 13));
         }
 
         [Fact]
@@ -2778,10 +2786,13 @@ using System;
 public void M() { }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,13): error CS0116: A namespace does not directly contain members such as fields or methods
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (7,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void M() { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "M"));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 1),
+                // (7,13): warning CS8321: The local function 'M' is declared but never used
+                // public void M() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(7, 13));
         }
 
         [Fact]

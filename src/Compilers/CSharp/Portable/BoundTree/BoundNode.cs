@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -15,6 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly BoundKind _kind;
         private BoundNodeAttributes _attributes;
 
+        /// <summary>
+        /// Sequence points permit Syntax to be null.  But all other contexts require a non-null Syntax,
+        /// so we annotate it for the majority of uses.
+        /// </summary>
         public readonly SyntaxNode Syntax;
 
         [Flags()]
@@ -129,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public SyntaxTree SyntaxTree
+        public SyntaxTree? SyntaxTree
         {
             get
             {
@@ -143,7 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
             this.IsSuppressed = original.IsSuppressed;
+#if DEBUG
             this.WasConverted = original.WasConverted;
+#endif
         }
 
         /// <remarks>
@@ -209,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
 
                 // This is broken out into a separate property so the debugger can display the
-                // top level nullability without setting the _attributes flag and interferring
+                // top level nullability without setting the _attributes flag and interfering
                 // with the normal operation of tests.
                 return TopLevelNullabilityCore;
             }
@@ -288,6 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#if DEBUG
         /// <summary>
         /// WasConverted flag is used for debugging purposes only (not to direct the behavior of semantic analysis).
         /// It is used on BoundLocal and BoundParameter to check that every such rvalue that has not been converted to
@@ -297,23 +308,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-#if DEBUG
                 return (_attributes & BoundNodeAttributes.WasConverted) != 0;
-#else
-                return true;
-#endif
             }
             protected set
             {
-#if DEBUG
                 Debug.Assert((_attributes & BoundNodeAttributes.WasConverted) == 0, "WasConverted flag should not be set twice or reset");
                 if (value)
                 {
                     _attributes |= BoundNodeAttributes.WasConverted;
                 }
-#endif
             }
         }
+#endif
 
         public BoundKind Kind
         {
@@ -323,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public virtual BoundNode Accept(BoundTreeVisitor visitor)
+        public virtual BoundNode? Accept(BoundTreeVisitor visitor)
         {
             throw new NotImplementedException();
         }
@@ -427,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public override BoundNode VisitFieldEqualsValue(BoundFieldEqualsValue node)
+            public override BoundNode? VisitFieldEqualsValue(BoundFieldEqualsValue node)
             {
                 AddAll(node.Locals);
                 base.VisitFieldEqualsValue(node);
@@ -435,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitPropertyEqualsValue(BoundPropertyEqualsValue node)
+            public override BoundNode? VisitPropertyEqualsValue(BoundPropertyEqualsValue node)
             {
                 AddAll(node.Locals);
                 base.VisitPropertyEqualsValue(node);
@@ -443,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitParameterEqualsValue(BoundParameterEqualsValue node)
+            public override BoundNode? VisitParameterEqualsValue(BoundParameterEqualsValue node)
             {
                 AddAll(node.Locals);
                 base.VisitParameterEqualsValue(node);
@@ -451,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitBlock(BoundBlock node)
+            public override BoundNode? VisitBlock(BoundBlock node)
             {
                 AddAll(node.Locals);
                 base.VisitBlock(node);
@@ -459,14 +465,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
+            public override BoundNode? VisitLocalDeclaration(BoundLocalDeclaration node)
             {
                 CheckDeclared(node.LocalSymbol);
                 base.VisitLocalDeclaration(node);
                 return null;
             }
 
-            public override BoundNode VisitSequence(BoundSequence node)
+            public override BoundNode? VisitSequence(BoundSequence node)
             {
                 AddAll(node.Locals);
                 base.VisitSequence(node);
@@ -474,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitSpillSequence(BoundSpillSequence node)
+            public override BoundNode? VisitSpillSequence(BoundSpillSequence node)
             {
                 AddAll(node.Locals);
                 base.VisitSpillSequence(node);
@@ -482,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
+            public override BoundNode? VisitSwitchStatement(BoundSwitchStatement node)
             {
                 AddAll(node.InnerLocals);
                 base.VisitSwitchStatement(node);
@@ -490,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
+            public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
             {
                 AddAll(node.Locals);
                 base.VisitSwitchExpressionArm(node);
@@ -498,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitSwitchSection(BoundSwitchSection node)
+            public override BoundNode? VisitSwitchSection(BoundSwitchSection node)
             {
                 AddAll(node.Locals);
                 base.VisitSwitchSection(node);
@@ -506,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitDoStatement(BoundDoStatement node)
+            public override BoundNode? VisitDoStatement(BoundDoStatement node)
             {
                 AddAll(node.Locals);
                 base.VisitDoStatement(node);
@@ -514,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitWhileStatement(BoundWhileStatement node)
+            public override BoundNode? VisitWhileStatement(BoundWhileStatement node)
             {
                 AddAll(node.Locals);
                 base.VisitWhileStatement(node);
@@ -522,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitForStatement(BoundForStatement node)
+            public override BoundNode? VisitForStatement(BoundForStatement node)
             {
                 AddAll(node.OuterLocals);
                 this.Visit(node.Initializer);
@@ -535,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitForEachStatement(BoundForEachStatement node)
+            public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
             {
                 AddAll(node.IterationVariables);
                 base.VisitForEachStatement(node);
@@ -543,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitUsingStatement(BoundUsingStatement node)
+            public override BoundNode? VisitUsingStatement(BoundUsingStatement node)
             {
                 AddAll(node.Locals);
                 base.VisitUsingStatement(node);
@@ -551,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitFixedStatement(BoundFixedStatement node)
+            public override BoundNode? VisitFixedStatement(BoundFixedStatement node)
             {
                 AddAll(node.Locals);
                 base.VisitFixedStatement(node);
@@ -559,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitCatchBlock(BoundCatchBlock node)
+            public override BoundNode? VisitCatchBlock(BoundCatchBlock node)
             {
                 AddAll(node.Locals);
                 base.VisitCatchBlock(node);
@@ -567,21 +573,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitLocal(BoundLocal node)
+            public override BoundNode? VisitLocal(BoundLocal node)
             {
                 CheckDeclared(node.LocalSymbol);
                 base.VisitLocal(node);
                 return null;
             }
 
-            public override BoundNode VisitPseudoVariable(BoundPseudoVariable node)
+            public override BoundNode? VisitPseudoVariable(BoundPseudoVariable node)
             {
                 CheckDeclared(node.LocalSymbol);
                 base.VisitPseudoVariable(node);
                 return null;
             }
 
-            public override BoundNode VisitConstructorMethodBody(BoundConstructorMethodBody node)
+            public override BoundNode? VisitConstructorMethodBody(BoundConstructorMethodBody node)
             {
                 AddAll(node.Locals);
                 base.VisitConstructorMethodBody(node);

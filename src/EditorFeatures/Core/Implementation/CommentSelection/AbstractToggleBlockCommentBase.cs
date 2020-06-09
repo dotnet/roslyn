@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -18,14 +20,13 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
     internal abstract class AbstractToggleBlockCommentBase :
         // Value tuple to represent that there is no distinct command to be passed in.
         AbstractCommentSelectionBase<ValueTuple>,
-        VSCommanding.ICommandHandler<ToggleBlockCommentCommandArgs>
+        ICommandHandler<ToggleBlockCommentCommandArgs>
     {
         private static readonly CommentSelectionResult s_emptyCommentSelectionResult =
             new CommentSelectionResult(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
@@ -56,15 +57,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         protected abstract Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocumentAsync(Document document, ITextSnapshot snapshot,
             TextSpan linesContainingSelections, CommentSelectionInfo commentInfo, CancellationToken cancellationToken);
 
-        public VSCommanding.CommandState GetCommandState(ToggleBlockCommentCommandArgs args)
-        {
-            return GetCommandState(args.SubjectBuffer);
-        }
+        public CommandState GetCommandState(ToggleBlockCommentCommandArgs args)
+            => GetCommandState(args.SubjectBuffer);
 
         public bool ExecuteCommand(ToggleBlockCommentCommandArgs args, CommandExecutionContext context)
-        {
-            return ExecuteCommand(args.TextView, args.SubjectBuffer, ValueTuple.Create(), context);
-        }
+            => ExecuteCommand(args.TextView, args.SubjectBuffer, ValueTuple.Create(), context);
 
         public override string DisplayName => EditorFeaturesResources.Toggle_Block_Comment;
 
@@ -317,9 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             /// Determines if the location falls inside a commented span.
             /// </summary>
             public bool IsLocationCommented(int location)
-            {
-                return IntersectingBlockComments.Contains(span => span.Contains(location));
-            }
+                => IntersectingBlockComments.Contains(span => span.Contains(location));
 
             /// <summary>
             /// Checks if the selection already starts with a comment marker.
@@ -345,22 +340,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             /// Checks if the selected span contains any uncommented non whitespace characters.
             /// </summary>
             public bool IsEntirelyCommented()
-            {
-                return !UncommentedSpansInSelection.Any() && HasIntersectingBlockComments();
-            }
+                => !UncommentedSpansInSelection.Any() && HasIntersectingBlockComments();
 
             /// <summary>
             /// Returns if the selection intersects with any block comments.
             /// </summary>
             public bool HasIntersectingBlockComments()
-            {
-                return IntersectingBlockComments.Any();
-            }
+                => IntersectingBlockComments.Any();
 
             public string GetSubstringFromText(int position, int length)
-            {
-                return SnapshotSpan.Snapshot.GetText().Substring(position, length);
-            }
+                => SnapshotSpan.Snapshot.GetText().Substring(position, length);
 
             /// <summary>
             /// Tries to get a block comment on the same line.  There are two cases:
@@ -406,9 +395,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             /// Spans are intersecting if 1 location is the same between them (empty spans look at the start).
             /// </summary>
             private ImmutableArray<TextSpan> GetIntersectingBlockComments(ImmutableArray<TextSpan> allBlockComments, TextSpan span)
-            {
-                return allBlockComments.WhereAsArray(blockCommentSpan => span.OverlapsWith(blockCommentSpan) || blockCommentSpan.Contains(span));
-            }
+                => allBlockComments.WhereAsArray(blockCommentSpan => span.OverlapsWith(blockCommentSpan) || blockCommentSpan.Contains(span));
 
             /// <summary>
             /// Retrieves all non commented, non whitespace spans.

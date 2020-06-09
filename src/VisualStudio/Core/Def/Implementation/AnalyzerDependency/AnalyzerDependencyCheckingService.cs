@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
@@ -60,8 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AnalyzerDependencyCheckingService(
             VisualStudioWorkspace workspace,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
@@ -145,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         analyzerFilePaths.Contains(conflict.AnalyzerFilePath2))
                     {
                         var messageArguments = new string[] { conflict.AnalyzerFilePath1, conflict.AnalyzerFilePath2, conflict.Identity.ToString() };
-                        if (DiagnosticData.TryCreate(s_analyzerDependencyConflictRule, messageArguments, project.Id, solution.Workspace, out var diagnostic))
+                        if (DiagnosticData.TryCreate(s_analyzerDependencyConflictRule, messageArguments, project, out var diagnostic))
                         {
                             builder.Add(diagnostic);
                         }
@@ -157,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     if (analyzerFilePaths.Contains(missingDependency.AnalyzerPath))
                     {
                         var messageArguments = new string[] { missingDependency.AnalyzerPath, missingDependency.DependencyIdentity.ToString() };
-                        if (DiagnosticData.TryCreate(s_missingAnalyzerReferenceRule, messageArguments, project.Id, solution.Workspace, out var diagnostic))
+                        if (DiagnosticData.TryCreate(s_missingAnalyzerReferenceRule, messageArguments, project, out var diagnostic))
                         {
                             builder.Add(diagnostic);
                         }

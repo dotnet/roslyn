@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -8,15 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenUsingDeclarationTests : EmitMetadataTestBase
     {
-        private const string _asyncDisposable = @"
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask DisposeAsync();
-    }
-}";
-
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void UsingVariableVarEmitTest()
         {
@@ -683,7 +676,7 @@ Dispose Async Catch
 Created Finally
 Dispose Async Finally
 ";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe).VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -820,7 +813,7 @@ This object has been disposed by IDisposable.Dispose().";
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (17,13): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                // (17,13): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //             using S1 s1 = new S1();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using S1 s1 = new S1();").WithArguments("S1").WithLocation(17, 13)
                 );
@@ -1164,7 +1157,7 @@ class C2
         await using C1 c = new C1();
     }
 }";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe).VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: "Dispose async");
         }
@@ -1191,7 +1184,7 @@ class C2
         await using C1 c = new C1();
     }
 }";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe).VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: "Dispose async");
         }
@@ -1236,7 +1229,7 @@ Dispose async third
 Dispose async second
 Dispose async first
 ";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -1283,7 +1276,7 @@ Dispose async second
 Dispose async first
 ";
 
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -1319,7 +1312,7 @@ class C3
         Console.Write(""After declarations; "");
     }
 }";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe).VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: "After declarations; ");
         }
@@ -1346,7 +1339,7 @@ class C2
     }
 }";
 
-            var comp = CreateCompilationWithTasksExtensions(source + _asyncDisposable);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
             comp.VerifyDiagnostics(
                 // (16,9): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported

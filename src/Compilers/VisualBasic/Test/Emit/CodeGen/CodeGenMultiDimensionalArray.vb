@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -30,7 +32,7 @@ End Module
   IL_0001:  ldc.i4.3
   IL_0002:  newobj     "Integer(*,*)..ctor"
   IL_0007:  dup
-  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.D64E555B758C5B66DFAC42F18587BB1B3C9BCFA8"
+  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.618A09BD4B017EFD77C1C5CEA9D47D21EC52DDDEE4892C2A026D588E54AE8F19"
   IL_000d:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0012:  ldc.i4.1
   IL_0013:  ldc.i4.1
@@ -64,7 +66,7 @@ End Module
   IL_0001:  ldc.i4.3
   IL_0002:  newobj     "Integer(*,*)..ctor"
   IL_0007:  dup
-  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.A4B74E064E285570B3499538C5B205C3D0972FDF"
+  IL_0008:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.70DE168CE7BA89AB94AD130FD8CB2C588B408E6B5C7FA55F4B322158684A1362"
   IL_000d:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
   IL_0012:  dup
   IL_0013:  ldc.i4.1
@@ -1432,7 +1434,7 @@ End Class
 0]]>)
         End Sub
 
-        ' Parse an Attribute instance that takes a generic type with an generic argument that is a multi-dimensional array
+        ' Parse an Attribute instance that takes a generic type with a generic argument that is a multi-dimensional array
         <Fact>
         Public Sub Generic()
             CompileAndVerify(

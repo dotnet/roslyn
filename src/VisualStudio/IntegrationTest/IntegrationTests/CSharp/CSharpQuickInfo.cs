@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -19,7 +21,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38301"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void QuickInfo_MetadataDocumentation()
         {
             SetUpEditor(@"
@@ -87,7 +89,7 @@ class C
         }");
 
             VisualStudio.Editor.InvokeQuickInfo();
-            var expected = "(awaitable) Task<int> C.M()\r\n\r\nUsage:\r\n  int x = await M();\r\n\r\nExceptions:\r\n  Exception";
+            var expected = "(awaitable) Task<int> C.M()\r\n\r\nExceptions:\r\n  Exception";
             Assert.Equal(expected, VisualStudio.Editor.GetQuickInfo());
         }
     }

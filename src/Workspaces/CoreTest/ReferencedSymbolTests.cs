@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -49,8 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 locations.Add(new ReferenceLocation());
             }
 
-            var referencedSymbol = new ReferencedSymbol(
-                SymbolAndProjectId.Create(symbol, projectId: null), locations);
+            var referencedSymbol = new ReferencedSymbol(symbol, locations);
             return referencedSymbol;
         }
 
@@ -59,9 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             private readonly string _name;
 
             public StubSymbol(string name)
-            {
-                _name = name;
-            }
+                => _name = name;
 
             public bool CanBeReferencedByName
             {
@@ -248,64 +247,40 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             public void Accept(SymbolVisitor visitor)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public ImmutableArray<AttributeData> GetAttributes()
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public string GetDocumentationCommentId()
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public SymbolKey GetSymbolId()
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public string ToDisplayString(SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public string ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public bool Equals(ISymbol other)
-            {
-                return this.Equals((object)other);
-            }
+                => this.Equals((object)other);
 
             public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
-            {
-                return equalityComparer.Equals(this, other);
-            }
+                => this.Equals(other);
         }
     }
 }

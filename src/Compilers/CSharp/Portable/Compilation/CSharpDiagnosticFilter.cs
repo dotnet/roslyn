@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///     3. Compilation level
         ///     4. Global warning level
         ///
-        /// Pragmas are considered seperately. If a diagnostic would not otherwise
+        /// Pragmas are considered separately. If a diagnostic would not otherwise
         /// be suppressed, but is suppressed by a pragma, <paramref name="hasPragmaSuppression"/>
         /// is true but the diagnostic is not reported as suppressed.
         /// </summary> 
@@ -126,8 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isNullableFlowAnalysisWarning = ErrorFacts.NullableWarnings.Contains(id);
             if (isNullableFlowAnalysisWarning)
             {
-                var nullableWarningsGloballyEnabled = nullableOption == NullableContextOptions.Enable || nullableOption == NullableContextOptions.Warnings;
-                var nullableWarningsEnabled = tree?.GetNullableContextState(position).WarningsState ?? nullableWarningsGloballyEnabled;
+                Syntax.NullableContextState.State? warningsState = tree?.GetNullableContextState(position).WarningsState;
+                var nullableWarningsEnabled = warningsState switch
+                {
+                    Syntax.NullableContextState.State.Enabled => true,
+                    Syntax.NullableContextState.State.Disabled => false,
+                    _ => nullableOption == NullableContextOptions.Enable || nullableOption == NullableContextOptions.Warnings
+                };
+
                 if (!nullableWarningsEnabled)
                 {
                     return ReportDiagnostic.Suppress;

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -19,9 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Determines if the symbol is purely a code generation symbol.
         /// </summary>
         public static bool IsCodeGenerationSymbol(this ISymbol symbol)
-        {
-            return symbol is CodeGenerationSymbol;
-        }
+            => symbol is CodeGenerationSymbol;
 
         /// <summary>
         /// Creates an event symbol that can be used to describe an event declaration.
@@ -146,18 +145,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         internal static IMethodSymbol CreateMethodSymbol(
             INamedTypeSymbol containingType,
             ImmutableArray<AttributeData> attributes,
-            Accessibility accessibility, DeclarationModifiers modifiers,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers,
             ITypeSymbol returnType,
             RefKind refKind,
-            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations, string name,
+            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations,
+            string name,
             ImmutableArray<ITypeParameterSymbol> typeParameters,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<SyntaxNode> statements = default,
             ImmutableArray<SyntaxNode> handlesExpressions = default,
             ImmutableArray<AttributeData> returnTypeAttributes = default,
-            MethodKind methodKind = MethodKind.Ordinary)
+            MethodKind methodKind = MethodKind.Ordinary,
+            bool isInitOnly = false)
         {
-            var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes, methodKind);
+            var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes, methodKind, isInitOnly);
             CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions);
             return result;
         }
@@ -169,15 +171,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers,
             ITypeSymbol returnType,
             RefKind refKind,
-            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations, string name,
-            ImmutableArray<ITypeParameterSymbol> typeParameters,
+            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations,
+            string name, ImmutableArray<ITypeParameterSymbol> typeParameters,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<SyntaxNode> statements = default,
             ImmutableArray<SyntaxNode> handlesExpressions = default,
             ImmutableArray<AttributeData> returnTypeAttributes = default,
-            MethodKind methodKind = MethodKind.Ordinary)
+            MethodKind methodKind = MethodKind.Ordinary,
+            bool isInitOnly = false)
         {
-            return CreateMethodSymbol(null, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, statements, handlesExpressions, returnTypeAttributes, methodKind);
+            return CreateMethodSymbol(null, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, statements, handlesExpressions, returnTypeAttributes, methodKind, isInitOnly);
         }
 
         /// <summary>
@@ -249,6 +252,36 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates a parameter symbol that can be used to describe a parameter declaration.
         /// </summary>
+        internal static IParameterSymbol CreateParameterSymbol(
+            IParameterSymbol parameter,
+            ImmutableArray<AttributeData>? attributes = null,
+            RefKind? refKind = null,
+            bool? isParams = null,
+            ITypeSymbol type = null,
+            Optional<string> name = default,
+            bool? isOptional = null,
+            bool? hasDefaultValue = null,
+            Optional<object> defaultValue = default)
+        {
+            return new CodeGenerationParameterSymbol(
+                containingType: null,
+                attributes ?? parameter.GetAttributes(),
+                refKind ?? parameter.RefKind,
+                isParams ?? parameter.IsParams,
+                type ?? parameter.Type,
+                name.HasValue ? name.Value : parameter.Name,
+                isOptional ?? parameter.IsOptional,
+                hasDefaultValue ?? parameter.HasExplicitDefaultValue,
+                defaultValue.HasValue
+                    ? defaultValue.Value
+                    : parameter.HasExplicitDefaultValue
+                        ? parameter.ExplicitDefaultValue
+                        : null);
+        }
+
+        /// <summary>
+        /// Creates a parameter symbol that can be used to describe a parameter declaration.
+        /// </summary>
         public static ITypeParameterSymbol CreateTypeParameterSymbol(string name, int ordinal = 0)
         {
             return CreateTypeParameter(
@@ -265,6 +298,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<AttributeData> attributes,
             VarianceKind varianceKind, string name,
             ImmutableArray<ITypeSymbol> constraintTypes,
+            NullableAnnotation nullableAnnotation = NullableAnnotation.None,
             bool hasConstructorConstraint = false,
             bool hasReferenceConstraint = false,
             bool hasUnmanagedConstraint = false,
@@ -272,24 +306,20 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool hasNotNullConstraint = false,
             int ordinal = 0)
         {
-            return new CodeGenerationTypeParameterSymbol(null, attributes, varianceKind, name, constraintTypes, hasConstructorConstraint, hasReferenceConstraint, hasValueConstraint, hasUnmanagedConstraint, hasNotNullConstraint, ordinal);
+            return new CodeGenerationTypeParameterSymbol(null, attributes, varianceKind, name, nullableAnnotation, constraintTypes, hasConstructorConstraint, hasReferenceConstraint, hasValueConstraint, hasUnmanagedConstraint, hasNotNullConstraint, ordinal);
         }
 
         /// <summary>
         /// Creates a pointer type symbol that can be used to describe a pointer type reference.
         /// </summary>
         public static IPointerTypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType)
-        {
-            return new CodeGenerationPointerTypeSymbol(pointedAtType);
-        }
+            => new CodeGenerationPointerTypeSymbol(pointedAtType);
 
         /// <summary>
         /// Creates an array type symbol that can be used to describe an array type reference.
         /// </summary>
-        public static IArrayTypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank = 1)
-        {
-            return new CodeGenerationArrayTypeSymbol(elementType, rank);
-        }
+        public static IArrayTypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank = 1, NullableAnnotation nullableAnnotation = NullableAnnotation.None)
+            => new CodeGenerationArrayTypeSymbol(elementType, rank, nullableAnnotation);
 
         internal static IMethodSymbol CreateAccessorSymbol(
             IMethodSymbol accessor,
@@ -298,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations = default,
             ImmutableArray<SyntaxNode> statements = default)
         {
-            return CodeGenerationSymbolFactory.CreateMethodSymbol(
+            return CreateMethodSymbol(
                 attributes,
                 accessibility ?? accessor.DeclaredAccessibility,
                 accessor.GetSymbolModifiers().WithIsAbstract(statements == null),
@@ -308,8 +338,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 accessor.Name,
                 accessor.TypeParameters,
                 accessor.Parameters,
-                statements,
-                returnTypeAttributes: accessor.GetReturnTypeAttributes());
+                statements: statements,
+                returnTypeAttributes: accessor.GetReturnTypeAttributes(),
+                methodKind: accessor.MethodKind,
+                isInitOnly: accessor.IsInitOnly);
         }
 
         /// <summary>
@@ -320,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility accessibility,
             ImmutableArray<SyntaxNode> statements)
         {
-            return CodeGenerationSymbolFactory.CreateMethodSymbol(
+            return CreateMethodSymbol(
                 attributes,
                 accessibility,
                 new DeclarationModifiers(isAbstract: statements == null),
@@ -356,13 +388,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             INamedTypeSymbol baseType = null,
             ImmutableArray<INamedTypeSymbol> interfaces = default,
             SpecialType specialType = SpecialType.None,
-            ImmutableArray<ISymbol> members = default)
+            ImmutableArray<ISymbol> members = default,
+            NullableAnnotation nullableAnnotation = NullableAnnotation.None,
+            IAssemblySymbol containingAssembly = null)
         {
             members = members.NullToEmpty();
 
             return new CodeGenerationNamedTypeSymbol(
-                null, attributes, accessibility, modifiers, typeKind, name,
-                typeParameters, baseType, interfaces, specialType,
+                containingAssembly, null, attributes, accessibility, modifiers, typeKind, name,
+                typeParameters, baseType, interfaces, specialType, nullableAnnotation,
                 members.WhereAsArray(m => !(m is INamedTypeSymbol)),
                 members.OfType<INamedTypeSymbol>().Select(n => n.ToCodeGenerationSymbol()).ToImmutableArray(),
                 enumUnderlyingType: null);
@@ -379,7 +413,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             RefKind refKind,
             string name,
             ImmutableArray<ITypeParameterSymbol> typeParameters = default,
-            ImmutableArray<IParameterSymbol> parameters = default)
+            ImmutableArray<IParameterSymbol> parameters = default,
+            NullableAnnotation nullableAnnotation = NullableAnnotation.None)
         {
             var invokeMethod = CreateMethodSymbol(
                 attributes: default,
@@ -393,6 +428,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 parameters: parameters);
 
             return new CodeGenerationNamedTypeSymbol(
+                containingAssembly: null,
                 containingType: null,
                 attributes: attributes,
                 declaredAccessibility: accessibility,
@@ -405,6 +441,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 specialType: SpecialType.None,
                 members: ImmutableArray.Create<ISymbol>(invokeMethod),
                 typeMembers: ImmutableArray<CodeGenerationAbstractNamedTypeSymbol>.Empty,
+                nullableAnnotation: nullableAnnotation,
                 enumUnderlyingType: null);
         }
 
@@ -425,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers? modifiers = null,
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations = default,
             string name = null,
-            ImmutableArray<IParameterSymbol>? parameters = default,
+            ImmutableArray<IParameterSymbol>? parameters = null,
             ImmutableArray<SyntaxNode> statements = default,
             INamedTypeSymbol containingType = null,
             ITypeSymbol returnType = null,
@@ -436,20 +473,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 attributes,
                 accessibility ?? method.DeclaredAccessibility,
                 modifiers ?? method.GetSymbolModifiers(),
-                returnType ?? method.GetReturnTypeWithAnnotatedNullability(),
+                returnType ?? method.ReturnType,
                 method.RefKind,
                 explicitInterfaceImplementations,
                 name ?? method.Name,
                 method.TypeParameters,
                 parameters ?? method.Parameters,
                 statements,
-                returnTypeAttributes: returnTypeAttributes.HasValue ? returnTypeAttributes.Value : method.GetReturnTypeAttributes());
+                returnTypeAttributes: returnTypeAttributes.HasValue ? returnTypeAttributes.Value : method.GetReturnTypeAttributes(),
+                methodKind: method.MethodKind,
+                isInitOnly: method.IsInitOnly);
         }
 
         internal static IPropertySymbol CreatePropertySymbol(
             IPropertySymbol property,
             ImmutableArray<AttributeData> attributes = default,
-            ImmutableArray<IParameterSymbol>? parameters = default,
+            ImmutableArray<IParameterSymbol>? parameters = null,
             Accessibility? accessibility = null,
             DeclarationModifiers? modifiers = null,
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
@@ -458,11 +497,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IMethodSymbol getMethod = null,
             IMethodSymbol setMethod = null)
         {
-            return CodeGenerationSymbolFactory.CreatePropertySymbol(
+            return CreatePropertySymbol(
                 attributes,
                 accessibility ?? property.DeclaredAccessibility,
                 modifiers ?? property.GetSymbolModifiers(),
-                property.GetTypeWithAnnotatedNullability(),
+                property.Type,
                 property.RefKind,
                 explicitInterfaceImplementations,
                 name ?? property.Name,
@@ -482,11 +521,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IMethodSymbol addMethod = null,
             IMethodSymbol removeMethod = null)
         {
-            return CodeGenerationSymbolFactory.CreateEventSymbol(
+            return CreateEventSymbol(
                 attributes,
                 accessibility ?? @event.DeclaredAccessibility,
                 modifiers ?? @event.GetSymbolModifiers(),
-                @event.GetTypeWithAnnotatedNullability(),
+                @event.Type,
                 explicitInterfaceImplementations,
                 name ?? @event.Name,
                 addMethod,

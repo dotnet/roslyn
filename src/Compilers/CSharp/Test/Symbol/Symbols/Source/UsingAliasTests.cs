@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using System.Linq;
@@ -153,19 +156,19 @@ partial class A : Object {}
             var model = comp.GetSemanticModel(tree);
 
             var symbolInfo = model.GetSpeculativeSymbolInfo(base2.SpanStart, base2, SpeculativeBindingOption.BindAsTypeOrNamespace);
-            var info2 = symbolInfo.Symbol as TypeSymbol;
+            var info2 = symbolInfo.Symbol as ITypeSymbol;
             Assert.NotNull(info2);
             Assert.Equal("System.Object", info2.ToDisplayString(format: SymbolDisplayFormat.TestFormat));
             Assert.Equal("System.Object", info2.ToDisplayString(format: SymbolDisplayFormat.TestFormat));
 
             symbolInfo = model.GetSpeculativeSymbolInfo(base3.SpanStart, base3, SpeculativeBindingOption.BindAsTypeOrNamespace);
-            var info3 = symbolInfo.Symbol as TypeSymbol;
+            var info3 = symbolInfo.Symbol as ITypeSymbol;
             Assert.NotNull(info3);
             Assert.Equal("System.Object", info3.ToDisplayString(format: SymbolDisplayFormat.TestFormat));
             Assert.Equal("System.Object", info3.ToDisplayString(format: SymbolDisplayFormat.TestFormat));
 
             symbolInfo = model.GetSpeculativeSymbolInfo(base4.SpanStart, base4, SpeculativeBindingOption.BindAsTypeOrNamespace);
-            var info4 = symbolInfo.Symbol as TypeSymbol;
+            var info4 = symbolInfo.Symbol as ITypeSymbol;
             Assert.Null(info4); // no "using System;"
         }
 
@@ -186,8 +189,8 @@ partial class A : Object {}
             var alias = model.GetDeclaredSymbol(usingAlias);
             Assert.Equal("O", alias.ToDisplayString());
             Assert.Equal("O=System.Object", alias.ToDisplayString(format: SymbolDisplayFormat.TestFormat));
-            var global = (NamespaceSymbol)alias.ContainingSymbol;
-            Assert.Equal(NamespaceKind.Module, global.Extent.Kind);
+            var global = (INamespaceSymbol)alias.ContainingSymbol;
+            Assert.Equal(NamespaceKind.Module, global.NamespaceKind);
         }
 
         [Fact]
@@ -203,7 +206,7 @@ partial class A : Object {}
             var model = comp.GetSemanticModel(tree);
 
             var alias = model.GetDeclaredSymbol(usingAlias);
-            Assert.Equal(null, alias);
+            Assert.Null(alias);
         }
 
         [Fact]

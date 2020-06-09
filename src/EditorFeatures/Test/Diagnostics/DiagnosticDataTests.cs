@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await VerifyTextSpanAsync(code, 1, 30, 2, 40, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Test.Utilities.Traits.Feature, Test.Utilities.Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task DiagnosticData_GetText7()
         {
             var code = @"
@@ -115,10 +117,11 @@ namespace B
                 projectId: document.Project.Id,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string>.Empty,
-                location: new DiagnosticDataLocation(document.Id, null, "originalFile1", startLine, startColumn, endLine, endColumn));
+                location: new DiagnosticDataLocation(document.Id, null, "originalFile1", startLine, startColumn, endLine, endColumn),
+                language: document.Project.Language);
 
             var text = await document.GetTextAsync();
-            var actual = data.GetExistingOrCalculatedTextSpan(text);
+            var actual = DiagnosticData.GetExistingOrCalculatedTextSpan(data.DataLocation, text);
 
             Assert.Equal(span, actual);
         }
