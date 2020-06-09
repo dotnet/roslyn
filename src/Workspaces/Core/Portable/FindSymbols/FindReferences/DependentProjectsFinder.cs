@@ -98,10 +98,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var dependentProjects = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
             // 2) Filter the above computed dependent projects based on symbol visibility.
-            if (visibility == SymbolVisibility.Internal)
-                dependentProjects = dependentProjects.WhereAsArray(dp => dp.HasInternalsAccess);
-
-            return GetProjects(solution, dependentProjects);
+            return GetProjects(solution, visibility == SymbolVisibility.Internal
+                ? dependentProjects.WhereAsArray(dp => dp.HasInternalsAccess)
+                : dependentProjects);
         }
 
         private static ImmutableArray<Project> GetProjects(Solution solution, ImmutableArray<DependentProject> dependentProjects)
