@@ -171,14 +171,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     addParameterViewModel.TypeBinds);
 
                 _viewModel.AddParameter(addedParameter);
+            }
 
-                SetFocusToSelectedRow(true);
-            }
-            else
-            {
-                // Cancel/esc was pressed.
-                AddButton.Focus();
-            }
+            SetFocusToSelectedRow(false);
         }
 
         private CallSiteKind GetCallSiteKind(AddParameterDialogViewModel addParameterViewModel)
