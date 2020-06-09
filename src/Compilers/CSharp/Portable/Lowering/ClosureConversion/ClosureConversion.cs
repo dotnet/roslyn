@@ -1637,6 +1637,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
 
+            // The method returns true if:
+            //   - symbolToCheck represents a type argument from referencedMethod
+            //   - symbolToCheck represents a constructed generic type with any type argument representing a referencedMethod`s type argument
+            //   - symbolToCheck represents an array type with the element type referencing a referencedMethod`s type argument
+            //
+            // Examples:
+            //
+            // referencedMethod: void TheMethod<T>()
+            // symbolToCheck: Func<T[], int>
+            // returns true
+            //
+            // referencedMethod: void TheMethod<TFirst>()
+            // symbolToCheck: Func<TSecond, int>
+            // returns false
             bool HasTypeArgumentsFromReferencedMethod(TypeSymbol symbolToCheck)
             {
                 if (symbolToCheck is TypeParameterSymbol)
