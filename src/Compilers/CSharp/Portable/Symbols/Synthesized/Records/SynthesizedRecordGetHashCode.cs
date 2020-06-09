@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // There are base record types.
-                    // Get base.GetHasgCode() and combine it with hash codes for field values.
+                    // Get base.GetHashCode() and combine it with hash codes for field values.
                     var overridden = OverriddenMethod;
                     currentHashValue = F.Call(F.Base(overridden.ContainingType), overridden);
                 }
