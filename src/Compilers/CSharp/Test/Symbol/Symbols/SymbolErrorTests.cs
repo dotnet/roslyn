@@ -10577,22 +10577,22 @@ interface IA
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-    // (12,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
-    //         clx a = new clx();   // CS8036
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("x.cly").WithLocation(12, 13),
-    // (13,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
-    //         int i = 7;           // CS8036
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "i").WithArguments("x.cly").WithLocation(13, 13),
-    // (12,13): warning CS0169: The field 'cly.a' is never used
-    //         clx a = new clx();   // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
-    // (13,13): warning CS0169: The field 'cly.i' is never used
-    //         int i = 7;           // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
-    // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
-    //         static int s = 2;    // no error
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20)
-    );
+                // (12,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
+                //         clx a = new clx();   // CS8036
+                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("x.cly").WithLocation(12, 13),
+                // (13,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
+                //         int i = 7;           // CS8036
+                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "i").WithArguments("x.cly").WithLocation(13, 13),
+                // (12,13): warning CS0169: The field 'cly.a' is never used
+                //         clx a = new clx();   // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
+                // (13,13): warning CS0169: The field 'cly.i' is never used
+                //         int i = 7;           // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+                // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
+                //         static int s = 2;    // no error
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20)
+            );
         }
 
         [Fact]
@@ -14152,10 +14152,10 @@ namespace TestNamespace
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (3,23): error CS1014: A get or set accessor expected
+                // (3,23): error CS1014: A get, set or init accessor expected
                 //     public object P { partial get; set; }
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(3, 23),
-                // (4,34): error CS1014: A get or set accessor expected
+                // (4,34): error CS1014: A get, set or init accessor expected
                 //     object Q { get { return 0; } add { } }
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 34));
         }
@@ -16313,6 +16313,31 @@ namespace N1
             };
 
             CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void CS8050ERR_InitializerOnNonAutoProperty()
+        {
+            var source =
+@"public class C
+{
+    int A { get; set; } = 1;
+    
+    int I { get { throw null; } set {  } } = 1;
+    static int S { get { throw null; } set {  } } = 1;
+    protected int P { get { throw null; } set {  } } = 1;
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,9): error CS8050: Only auto-implemented properties can have initializers.
+                //     int I { get { throw null; } set {  } } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("C.I").WithLocation(5, 9),
+                // (6,16): error CS8050: Only auto-implemented properties can have initializers.
+                //     static int S { get { throw null; } set {  } } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithArguments("C.S").WithLocation(6, 16),
+                // (7,19): error CS8050: Only auto-implemented properties can have initializers.
+                //     protected int P { get { throw null; } set {  } } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("C.P").WithLocation(7, 19)
+            );
         }
 
         [Fact]

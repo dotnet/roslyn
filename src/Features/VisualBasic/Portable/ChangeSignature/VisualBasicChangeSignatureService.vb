@@ -328,13 +328,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
                 Dim delegateInvokeMethod = DirectCast(DirectCast(semanticModel.GetSymbolInfo(raiseEventStatement.Name).Symbol, IEventSymbol).Type, INamedTypeSymbol).DelegateInvokeMethod
 
-                Return raiseEventStatement.WithArgumentList(UpdateArgumentList(
+                Return raiseEventStatement.WithArgumentList(Await UpdateArgumentListAsync(
                     delegateInvokeMethod,
                     updatedSignature,
                     raiseEventStatement.ArgumentList,
                     isReducedExtensionMethod:=False,
                     isParamsArrayExpanded:=False,
-                    generateAttributeArguments:=False))
+                    generateAttributeArguments:=False,
+                    document,
+                    originalNode.SpanStart,
+                    cancellationToken).ConfigureAwait(False))
             End If
 
             If vbnode.IsKind(SyntaxKind.InvocationExpression) Then
@@ -348,13 +351,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod = True
                 End If
 
-                Return invocation.WithArgumentList(UpdateArgumentList(
+                Return invocation.WithArgumentList(Await UpdateArgumentListAsync(
                     declarationSymbol,
                     updatedSignature,
                     invocation.ArgumentList,
                     isReducedExtensionMethod,
                     IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken),
-                    generateAttributeArguments:=False))
+                    generateAttributeArguments:=False,
+                    document,
+                    originalNode.SpanStart,
+                    cancellationToken).ConfigureAwait(False))
             End If
 
             If vbnode.IsKind(SyntaxKind.SubNewStatement) Then
@@ -370,13 +376,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, AttributeSyntax))
                 Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
 
-                Return attribute.WithArgumentList(UpdateArgumentList(
+                Return attribute.WithArgumentList(Await UpdateArgumentListAsync(
                     declarationSymbol,
                     updatedSignature,
                     attribute.ArgumentList,
                     isReducedExtensionMethod:=False,
                     isParamsArrayExpanded:=False,
-                    generateAttributeArguments:=True))
+                    generateAttributeArguments:=True,
+                    document,
+                    originalNode.SpanStart,
+                    cancellationToken).ConfigureAwait(False))
             End If
 
             If vbnode.IsKind(SyntaxKind.ObjectCreationExpression) Then
@@ -388,13 +397,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
                 Dim paramsArrayExpanded = IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken)
 
-                Return objectCreation.WithArgumentList(UpdateArgumentList(
+                Return objectCreation.WithArgumentList(Await UpdateArgumentListAsync(
                     declarationSymbol,
                     updatedSignature,
                     objectCreation.ArgumentList,
                     isReducedExtensionMethod:=False,
                     IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken),
-                    generateAttributeArguments:=False))
+                    generateAttributeArguments:=False,
+                    document,
+                    originalNode.SpanStart,
+                    cancellationToken).ConfigureAwait(False))
             End If
 
             If vbnode.IsKind(SyntaxKind.PropertyStatement) Then
@@ -453,13 +465,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return vbnode
         End Function
 
-        Private Function UpdateArgumentList(
+        Private Async Function UpdateArgumentListAsync(
             declarationSymbol As ISymbol,
             signaturePermutation As SignatureChange,
             argumentList As ArgumentListSyntax,
             isReducedExtensionMethod As Boolean,
             isParamsArrayExpanded As Boolean,
-            generateAttributeArguments As Boolean) As ArgumentListSyntax
+            generateAttributeArguments As Boolean,
+            document As Document,
+            position As Integer,
+            cancellationToken As CancellationToken) As Task(Of ArgumentListSyntax)
 
             Dim newArguments = PermuteArgumentList(
                 argumentList.Arguments,
@@ -467,13 +482,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 declarationSymbol,
                 isReducedExtensionMethod)
 
-            newArguments = AddNewArgumentsToList(
+            newArguments = Await AddNewArgumentsToListAsync(
                 declarationSymbol,
                 newArguments,
                 signaturePermutation,
                 isReducedExtensionMethod,
                 isParamsArrayExpanded,
-                generateAttributeArguments)
+                generateAttributeArguments,
+                document,
+                position,
+                cancellationToken).ConfigureAwait(False)
 
             Return argumentList.
                 WithArguments(newArguments).

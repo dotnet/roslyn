@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private bool _defaultRenameFileFlag;
         private bool _defaultPreviewChangesFlag;
 
-
         public DashboardViewModel(InlineRenameSession session)
         {
             Contract.ThrowIfNull(session);

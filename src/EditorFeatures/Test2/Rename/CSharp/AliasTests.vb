@@ -73,7 +73,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
 
-
             End Using
         End Sub
 
@@ -96,7 +95,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
                         ]]></Document>
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
-
 
             End Using
         End Sub
@@ -339,11 +337,9 @@ public class C3
                     </Project>
                 </Workspace>, host:=host, renameTo:="BarBaz")
 
-
                 result.AssertLabeledSpansAre("stmt1", "BarBaz", RelatedLocationType.NoConflict)
             End Using
         End Sub
-
 
         <Theory>
         <WorkItem(542693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542693")>

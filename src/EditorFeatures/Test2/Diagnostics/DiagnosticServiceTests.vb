@@ -1555,7 +1555,6 @@ public class B
             End Property
         End Class
 
-
         Private MustInherit Class AbstractDiagnosticAnalyzer
             Inherits DiagnosticAnalyzer
 

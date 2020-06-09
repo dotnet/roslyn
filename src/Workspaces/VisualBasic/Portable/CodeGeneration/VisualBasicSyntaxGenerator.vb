@@ -822,7 +822,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     asClause:=asClause)
             End If
 
-
             If modifiers.IsAbstract Then
                 Return statement
             Else
@@ -3565,7 +3564,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return root
             End If
         End Function
-
 
         Private Function WithSubDeclarationsRemoved(declaration As SyntaxNode, index As Integer, count As Integer) As SyntaxNode
             Return Me.RemoveNodes(declaration, GetSubDeclarations(declaration).Skip(index).Take(count))
