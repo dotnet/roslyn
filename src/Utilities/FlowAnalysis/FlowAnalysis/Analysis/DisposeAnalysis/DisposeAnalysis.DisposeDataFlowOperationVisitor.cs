@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 if (operation.Parent is IInvocationOperation invocation &&
                     invocation.TargetMethod.ReturnType.SpecialType == SpecialType.System_Boolean &&
                     invocation.TargetMethod.Name.StartsWith("TryGet", StringComparison.Ordinal) &&
-                    invocation.Arguments[invocation.Arguments.Length - 1] == operation)
+                    invocation.Arguments[^1] == operation)
                 {
                     return DisposeAbstractValue.NotDisposable;
                 }

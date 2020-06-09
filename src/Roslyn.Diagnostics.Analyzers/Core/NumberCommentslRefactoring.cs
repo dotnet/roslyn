@@ -81,7 +81,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 (int commentStartIndex, _) = FindNumberComment(cursor, eolOrEofIndex, text);
                 if (commentStartIndex > 0)
                 {
-                    var separatedNumbers = text.Substring(commentStartIndex, eolOrEofIndex - commentStartIndex);
+                    var separatedNumbers = text[commentStartIndex..eolOrEofIndex];
                     var numbers = separatedNumbers.Split(',').Select(s => removeWhiteSpace(s));
                     foreach (var number in numbers)
                     {

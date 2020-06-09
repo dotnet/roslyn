@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 }
                 else if (index == text.Length - 1)
                 {
-                    DeclarationId = text.Substring(0, text.Length - 1).Trim();
+                    DeclarationId = text[0..^1].Trim();
                     Message = "";
                 }
                 else

@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                     if (branch.FinallyRegions.Length > 0)
                     {
-                        maxSuccessorOrdinal = Math.Max(maxSuccessorOrdinal, branch.FinallyRegions[branch.FinallyRegions.Length - 1].LastBlockOrdinal);
+                        maxSuccessorOrdinal = Math.Max(maxSuccessorOrdinal, branch.FinallyRegions[^1].LastBlockOrdinal);
                     }
 
                     loopRangeMap.Add(branch.Destination.Ordinal, maxSuccessorOrdinal);

@@ -339,7 +339,7 @@ namespace Analyzer.Utilities
                 // Check if the given suffix is the special suffix symbol "{[ ]*?}" (opening curly brace '{', 0..N spaces and a closing curly brace '}')
                 if (trimmedSuffix.Length >= 2 &&
                     trimmedSuffix[0] == '{' &&
-                    trimmedSuffix[trimmedSuffix.Length - 1] == '}')
+                    trimmedSuffix[^1] == '}')
                 {
                     for (int i = 1; i < trimmedSuffix.Length - 2; i++)
                     {

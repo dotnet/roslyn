@@ -102,7 +102,7 @@ namespace Analyzer.Utilities
 
                 // Wildcard is not last or is the only char, bail-out
                 if (numberOfWildcards == 1 &&
-                    (parts.SymbolName[parts.SymbolName.Length - 1] != WildcardChar ||
+                    (parts.SymbolName[^1] != WildcardChar ||
                     parts.SymbolName.Length == 1))
                 {
                     continue;
@@ -136,7 +136,7 @@ namespace Analyzer.Utilities
             // Local functions
             static void ProcessWildcardName(NameParts parts, PooledDictionary<SymbolKind, PooledDictionary<string, TValue>> wildcardNamesBuilder)
             {
-                Debug.Assert(parts.SymbolName[parts.SymbolName.Length - 1] == WildcardChar);
+                Debug.Assert(parts.SymbolName[^1] == WildcardChar);
                 Debug.Assert(parts.SymbolName.Length >= 2);
 
                 if (parts.SymbolName[1] != ':')
@@ -145,7 +145,7 @@ namespace Analyzer.Utilities
                     {
                         wildcardNamesBuilder.Add(AllKinds, PooledDictionary<string, TValue>.GetInstance());
                     }
-                    wildcardNamesBuilder[AllKinds].Add(parts.SymbolName.Substring(0, parts.SymbolName.Length - 1), parts.AssociatedValue);
+                    wildcardNamesBuilder[AllKinds].Add(parts.SymbolName[0..^1], parts.AssociatedValue);
                     return;
                 }
 
@@ -166,7 +166,7 @@ namespace Analyzer.Utilities
                     {
                         wildcardNamesBuilder.Add(symbolKind.Value, PooledDictionary<string, TValue>.GetInstance());
                     }
-                    wildcardNamesBuilder[symbolKind.Value].Add(parts.SymbolName.Substring(2, parts.SymbolName.Length - 3), parts.AssociatedValue);
+                    wildcardNamesBuilder[symbolKind.Value].Add(parts.SymbolName[2..^1], parts.AssociatedValue);
                 }
             }
 
