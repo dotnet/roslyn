@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
             => _treeDict.TryGetValue(textFile, out var options) ? options : CompilerAnalyzerConfigOptions.Empty;
 
-        internal CompilerAnalyzerConfigOptionsProvider WithTreeOptions(ImmutableDictionary<object, AnalyzerConfigOptions> treeDict)
+        internal CompilerAnalyzerConfigOptionsProvider WithAdditionalTreeOptions(ImmutableDictionary<object, AnalyzerConfigOptions> treeDict)
             => new CompilerAnalyzerConfigOptionsProvider(_treeDict.AddRange(treeDict), GlobalOptions);
 
         internal CompilerAnalyzerConfigOptionsProvider WithGlobalOptions(AnalyzerConfigOptions globalOptions)

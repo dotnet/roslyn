@@ -866,11 +866,13 @@ namespace Microsoft.CodeAnalysis
             int i = 0;
             foreach (var syntaxTree in syntaxTrees)
             {
+
                 var options = sourceFileAnalyzerConfigOptions[i].AnalyzerOptions;
 
                 // Optimization: don't create a bunch of entries pointing to a no-op
                 if (options.Count > 0)
                 {
+                    Debug.Assert(existing.GetOptions(syntaxTree) == CompilerAnalyzerConfigOptions.Empty);
                     builder.Add(syntaxTree, new CompilerAnalyzerConfigOptions(options));
                 }
                 i++;
@@ -885,11 +887,13 @@ namespace Microsoft.CodeAnalysis
                     // Optimization: don't create a bunch of entries pointing to a no-op
                     if (options.Count > 0)
                     {
+                        Debug.Assert(existing.GetOptions(additionalFiles[i]) == CompilerAnalyzerConfigOptions.Empty);
                         builder.Add(additionalFiles[i], new CompilerAnalyzerConfigOptions(options));
                     }
                 }
             }
-            return existing.WithTreeOptions(builder.ToImmutable());
+
+            return existing.WithAdditionalTreeOptions(builder.ToImmutable());
         }
 
         /// <summary>
