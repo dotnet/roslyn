@@ -1531,8 +1531,6 @@ class C
         [InlineData("7.3", LanguageVersion.CSharp7_3)]
         [InlineData("8", LanguageVersion.CSharp8)]
         [InlineData("8.0", LanguageVersion.CSharp8)]
-        [InlineData("9", LanguageVersion.Preview)]
-        [InlineData("9.0", LanguageVersion.Preview)]
         [InlineData("preview", LanguageVersion.Preview)]
         public void LangVersion_CanParseCorrectVersions(string value, LanguageVersion expectedVersion)
         {
