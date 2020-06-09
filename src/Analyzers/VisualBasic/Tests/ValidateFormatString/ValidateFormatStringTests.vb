@@ -37,6 +37,16 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function LiteralArray() As Task
+            Await TestDiagnosticMissingAsync("
+Class C
+     Sub Main 
+        string.Format(""This {0[||]} {1} {2} {3} works"", { ""test"", ""test2"", ""test3"", ""test4"" })
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function StringArray() As Task
             Await TestDiagnosticMissingAsync("
 Class C
