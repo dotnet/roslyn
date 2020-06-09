@@ -114,7 +114,7 @@ namespace Analyzer.Utilities
                 }
                 else if (parts.SymbolName.Equals(".ctor", StringComparison.Ordinal) ||
                     parts.SymbolName.Equals(".cctor", StringComparison.Ordinal) ||
-                    !parts.SymbolName.Contains(".") && !parts.SymbolName.Contains(":"))
+                    !parts.SymbolName.Contains(".", StringComparison.Ordinal) && !parts.SymbolName.Contains(":", StringComparison.Ordinal))
                 {
                     ProcessName(parts, namesBuilder);
                 }
