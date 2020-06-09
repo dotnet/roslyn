@@ -1,6 +1,9 @@
+trigger: none
+pr: none
+
 schedules:
 - cron: "0 0 * * *"
-  displayName: Daily midnight RichNav indexer run
+  displayName: Daily midnight (UTC) RichNav indexer run
   branches:
     include:
     - master
