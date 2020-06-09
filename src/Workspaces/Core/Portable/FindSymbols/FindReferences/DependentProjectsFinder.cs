@@ -115,9 +115,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             var assembly = symbol.OriginalDefinition.ContainingAssembly;
-            return assembly == null
-                ? default
-                : (assembly, solution.GetProject(assembly, cancellationToken));
+            return assembly == null ? default : (assembly, solution.GetProject(assembly, cancellationToken));
         }
 
         private static async Task<ImmutableArray<DependentProject>> ComputeDependentProjectsAsync(
