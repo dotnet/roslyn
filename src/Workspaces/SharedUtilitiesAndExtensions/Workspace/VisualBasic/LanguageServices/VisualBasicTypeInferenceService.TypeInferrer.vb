@@ -165,6 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression),
                     Function(switchStatement As SelectStatementSyntax) InferTypeInSelectStatement(switchStatement),
                     Function(throwStatement As ThrowStatementSyntax) InferTypeInThrowStatement(),
+                    Function(tupleExpression As TupleExpressionSyntax) InferTypeInTupleExpression(tupleExpression, token),
                     Function(usingStatement As UsingStatementSyntax) InferTypeInUsingStatement(),
                     Function(whileStatement As WhileOrUntilClauseSyntax) InferTypeInWhileOrUntilClause(),
                     Function(whileStatement As WhileStatementSyntax) InferTypeInWhileStatement(),
@@ -194,8 +195,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)
             End Function
 
-            Private Function InferTypeInTupleExpression(tupleExpression As TupleExpressionSyntax,
-                                                        argument As SimpleArgumentSyntax) As IEnumerable(Of TypeInferenceInfo)
+            Private Function InferTypeInTupleExpression(
+                    tupleExpression As TupleExpressionSyntax,
+                    previousToken As SyntaxToken) As IEnumerable(Of TypeInferenceInfo)
+                If previousToken = tupleExpression.OpenParenToken Then
+                    Return InferTypeInTupleExpression(tupleExpression, tupleExpression.Arguments(0))
+                ElseIf previousToken.IsKind(SyntaxKind.CommaToken) Then
+                    Dim argsAndCommas = tupleExpression.Arguments.GetWithSeparators()
+                    Dim commaIndex = argsAndCommas.IndexOf(previousToken)
+                    Return InferTypeInTupleExpression(tupleExpression, DirectCast(argsAndCommas(commaIndex + 1).AsNode(), SimpleArgumentSyntax))
+                End If
+
+                Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
+            End Function
+
+            Private Function InferTypeInTupleExpression(
+                    tupleExpression As TupleExpressionSyntax,
+                    argument As SimpleArgumentSyntax) As IEnumerable(Of TypeInferenceInfo)
                 Dim index = tupleExpression.Arguments.IndexOf(argument)
                 Dim parentTypes = InferTypes(tupleExpression)
 

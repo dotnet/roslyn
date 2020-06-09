@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             if (switchNode == null)
                 return;
 
-            var model = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             // https://github.com/dotnet/roslyn/issues/40505
             var switchStatement = (TSwitchOperation)model.GetOperation(switchNode, cancellationToken)!;
 

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 || context.SyntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken)
                 || context.IsMemberDeclarationContext(
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken);
         }

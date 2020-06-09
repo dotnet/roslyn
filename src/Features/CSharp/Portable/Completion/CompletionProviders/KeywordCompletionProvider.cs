@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new HiddenKeywordRecommender(),
                 new IfKeywordRecommender(),
                 new ImplicitKeywordRecommender(),
+                new InitKeywordRecommender(),
                 new InKeywordRecommender(),
                 new InterfaceKeywordRecommender(),
                 new InternalKeywordRecommender(),
@@ -131,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new ProtectedKeywordRecommender(),
                 new PublicKeywordRecommender(),
                 new ReadOnlyKeywordRecommender(),
+                new RecordKeywordRecommender(),
                 new ReferenceKeywordRecommender(),
                 new RefKeywordRecommender(),
                 new RegionKeywordRecommender(),
@@ -172,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new WhenKeywordRecommender(),
                 new WhereKeywordRecommender(),
                 new WhileKeywordRecommender(),
+                new WithKeywordRecommender(),
                 new YieldKeywordRecommender(),
             }.ToImmutableArray();
         }

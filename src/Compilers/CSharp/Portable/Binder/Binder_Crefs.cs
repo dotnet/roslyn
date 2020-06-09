@@ -759,6 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 containingType: null,
                                 name: null,
                                 refKind: RefKind.None,
+                                isInitOnly: false,
                                 returnType: default,
                                 refCustomModifiers: ImmutableArray<CustomModifier>.Empty,
                                 explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);
