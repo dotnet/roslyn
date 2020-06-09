@@ -6228,7 +6228,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethodReturnCantBeRefAny">
-        <source>Method, delegate, or function pointer cannot return type '{0}'</source>
+        <source>The return type of a method, delegate, or function pointer cannot be '{0}'</source>
         <target state="needs-review-translation">Yöntem veya temsilci '{0}' türünü döndüremiyor</target>
         <note />
       </trans-unit>

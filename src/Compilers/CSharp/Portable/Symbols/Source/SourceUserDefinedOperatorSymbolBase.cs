@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: Span-like types can be returned (if expression is returnable).
             if (_lazyReturnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
-                // Method, delegate, or function pointer cannot return type '{0}'
+                // The return type of a method, delegate, or function pointer cannot be '{0}'
                 diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, ReturnTypeSyntax.Location, _lazyReturnType.Type);
             }
 

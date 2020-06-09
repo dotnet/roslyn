@@ -6228,7 +6228,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethodReturnCantBeRefAny">
-        <source>Method, delegate, or function pointer cannot return type '{0}'</source>
+        <source>The return type of a method, delegate, or function pointer cannot be '{0}'</source>
         <target state="needs-review-translation">Metoda ani delegat nie może zwracać typu „{0}”</target>
         <note />
       </trans-unit>

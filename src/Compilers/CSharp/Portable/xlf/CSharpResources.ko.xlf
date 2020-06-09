@@ -6228,7 +6228,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethodReturnCantBeRefAny">
-        <source>Method, delegate, or function pointer cannot return type '{0}'</source>
+        <source>The return type of a method, delegate, or function pointer cannot be '{0}'</source>
         <target state="needs-review-translation">메서드 또는 대리자는 '{0}' 형식을 반환할 수 없습니다.</target>
         <note />
       </trans-unit>

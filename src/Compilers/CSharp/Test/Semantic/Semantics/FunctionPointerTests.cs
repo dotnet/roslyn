@@ -2902,7 +2902,7 @@ unsafe static class C
                 // (5,35): error CS1601: Cannot make reference to variable of type 'ArgIterator'
                 //     static delegate*<ArgIterator, ref ArgIterator, ArgIterator> Ptr;
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref ArgIterator").WithArguments("System.ArgIterator").WithLocation(5, 35),
-                // (5,52): error CS1599: Method, delegate, or function pointer cannot return type 'System.ArgIterator'
+                // (5,52): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.ArgIterator'
                 //     static delegate*<ArgIterator, ref ArgIterator, ArgIterator> Ptr;
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(5, 52),
                 // (5,65): warning CS0169: The field 'C.Ptr' is never used
