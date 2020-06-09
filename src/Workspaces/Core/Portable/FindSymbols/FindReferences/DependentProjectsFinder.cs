@@ -72,46 +72,47 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var assemblyAndSourceProject = GetAssemblyAndSourceProject(solution, symbol, cancellationToken);
-            if (assemblyAndSourceProject.assembly == null)
-            {
-                // currently we don't support finding references for a symbol that doesn't have containing assembly symbol
+            var symbolOrigination = GetSymbolOrigination(solution, symbol, cancellationToken);
+
+            // If we can't find where the symbol came from, we can't determine what projects to search for references to it.
+            if (symbolOrigination.assembly == null)
                 return ImmutableArray<Project>.Empty;
-            }
 
             // 1) Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.
-            ImmutableArray<DependentProject> dependentProjects;
 
             var visibility = symbol.GetResultantVisibility();
             if (visibility == SymbolVisibility.Private)
             {
                 // For private symbols, we only need the current project (and related submissions).  No need to cache
                 // that, just simply compute and return the result.
-                dependentProjects = await ComputeDependentProjectsAsync(solution, assemblyAndSourceProject, visibility, cancellationToken).ConfigureAwait(false);
+                return GetProjects(solution, await ComputeDependentProjectsAsync(solution, symbolOrigination, visibility, cancellationToken).ConfigureAwait(false));
             }
-            else
-            {
-                // We cache the dependent projects for non-private symbols to speed up future calls.
-                var dependentProjectsMap = s_dependentProjectsCache.GetValue(solution, _ => new DependentProjectMap());
 
-                var asyncLazy = dependentProjectsMap.GetOrAdd(
-                    new DefinitionProject(assemblyAndSourceProject.sourceProject?.Id, assemblyAndSourceProject.assembly.Name.ToLower()),
-                    _ => AsyncLazy.Create(c => ComputeDependentProjectsAsync(solution, assemblyAndSourceProject, visibility, c), cacheResult: true));
-                dependentProjects = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            }
+            // Otherwise, for non-private symbols, we cache the dependent projects for non-private symbols to speed up
+            // future calls.
+            var dependentProjectsMap = s_dependentProjectsCache.GetValue(solution, _ => new DependentProjectMap());
+
+            var asyncLazy = dependentProjectsMap.GetOrAdd(
+                new DefinitionProject(symbolOrigination.sourceProject?.Id, symbolOrigination.assembly.Name.ToLower()),
+                _ => AsyncLazy.Create(c => ComputeDependentProjectsAsync(solution, symbolOrigination, visibility, c), cacheResult: true));
+            var dependentProjects = await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
             // 2) Filter the above computed dependent projects based on symbol visibility.
             if (visibility == SymbolVisibility.Internal)
                 dependentProjects = dependentProjects.WhereAsArray(dp => dp.HasInternalsAccess);
 
-            return dependentProjects.SelectAsArray(dp => solution.GetRequiredProject(dp.ProjectId));
+            return GetProjects(solution, dependentProjects);
         }
 
+        private static ImmutableArray<Project> GetProjects(Solution solution, ImmutableArray<DependentProject> dependentProjects)
+            => dependentProjects.SelectAsArray(dp => solution.GetRequiredProject(dp.ProjectId));
+
         /// <summary>
-        /// Returns a pair of data bout where <paramref name="symbol"/> came from.  It's <see cref="IAssemblySymbol"/>
-        /// for both source and metadata symbols, and an optional <see cref="Project"/> if this was a symbol from source.
+        /// Returns a pair of data bout where <paramref name="symbol"/> originates from.  It's <see
+        /// cref="IAssemblySymbol"/> for both source and metadata symbols, and an optional <see cref="Project"/> if this
+        /// was a symbol from source.
         /// </summary>
-        private static (IAssemblySymbol assembly, Project? sourceProject) GetAssemblyAndSourceProject(
+        private static (IAssemblySymbol assembly, Project? sourceProject) GetSymbolOrigination(
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             var assembly = symbol.OriginalDefinition.ContainingAssembly;
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static async Task<ImmutableArray<DependentProject>> ComputeDependentProjectsAsync(
             Solution solution,
-            (IAssemblySymbol assembly, Project? sourceProject) assemblyAndSourceProject,
+            (IAssemblySymbol assembly, Project? sourceProject) symbolOrigination,
             SymbolVisibility visibility,
             CancellationToken cancellationToken)
         {
@@ -132,16 +133,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // If a symbol was defined in source, then it is always visible to the project it
             // was defined in.
-            if (assemblyAndSourceProject.sourceProject != null)
-                dependentProjects.Add(new DependentProject(assemblyAndSourceProject.sourceProject.Id, hasInternalsAccess: true));
+            if (symbolOrigination.sourceProject != null)
+                dependentProjects.Add(new DependentProject(symbolOrigination.sourceProject.Id, hasInternalsAccess: true));
 
             // If it's not private, then we need to find possible references.
             if (visibility != SymbolVisibility.Private)
-                AddNonSubmissionDependentProjects(solution, assemblyAndSourceProject, dependentProjects, cancellationToken);
+                AddNonSubmissionDependentProjects(solution, symbolOrigination, dependentProjects, cancellationToken);
 
             // submission projects are special here. The fields generated inside the Script object is private, but
             // further submissions can bind to them.
-            await AddSubmissionDependentProjectsAsync(solution, assemblyAndSourceProject.sourceProject, dependentProjects, cancellationToken).ConfigureAwait(false);
+            await AddSubmissionDependentProjectsAsync(solution, symbolOrigination.sourceProject, dependentProjects, cancellationToken).ConfigureAwait(false);
 
             return dependentProjects.ToImmutableArray();
         }
@@ -221,11 +222,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static void AddNonSubmissionDependentProjects(
             Solution solution,
-            (IAssemblySymbol assembly, Project? sourceProject) assemblyAndSourceProject,
+            (IAssemblySymbol assembly, Project? sourceProject) symbolOrigination,
             HashSet<DependentProject> dependentProjects,
             CancellationToken cancellationToken)
         {
-            if (assemblyAndSourceProject.sourceProject?.IsSubmission == true)
+            if (symbolOrigination.sourceProject?.IsSubmission == true)
                 return;
 
             // Set of assembly names that `assembly` has IVT to.  Computed on demand once needed.
@@ -233,14 +234,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var project in solution.Projects)
             {
                 if (!project.SupportsCompilation ||
-                    !HasReferenceTo(assemblyAndSourceProject, project, cancellationToken))
+                    !HasReferenceTo(symbolOrigination, project, cancellationToken))
                 {
                     continue;
                 }
 
                 // Ok, we have some project that at least references this assembly.  Add it to the result, keeping track
                 // if it can see internals or not as well.
-                internalsVisibleToSet ??= GetInternalsVisibleToSet(assemblyAndSourceProject.assembly);
+                internalsVisibleToSet ??= GetInternalsVisibleToSet(symbolOrigination.assembly);
                 var internalsVisableTo = internalsVisibleToSet.Contains(project.AssemblyName);
                 dependentProjects.Add(new DependentProject(project.Id, internalsVisableTo));
             }
@@ -269,20 +270,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static bool HasReferenceTo(
-            (IAssemblySymbol assembly, Project? sourceProject) assemblyAndSourceProject,
+            (IAssemblySymbol assembly, Project? sourceProject) symbolOrigination,
             Project project,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(assemblyAndSourceProject.assembly);
+            Contract.ThrowIfNull(symbolOrigination.assembly);
             Contract.ThrowIfNull(project);
             Contract.ThrowIfFalse(project.SupportsCompilation);
 
             // If our symbol was from a project, then just check if this current project has a direct reference to it.
-            if (assemblyAndSourceProject.sourceProject != null)
-                return project.ProjectReferences.Any(p => p.ProjectId == assemblyAndSourceProject.sourceProject.Id);
+            if (symbolOrigination.sourceProject != null)
+                return project.ProjectReferences.Any(p => p.ProjectId == symbolOrigination.sourceProject.Id);
 
             // Otherwise, if the symbol is from metadata, see if the project's compilation references that metadata assembly.
-            return HasReferenceToAssembly(project, assemblyAndSourceProject.assembly.Name, cancellationToken);
+            return HasReferenceToAssembly(project, symbolOrigination.assembly.Name, cancellationToken);
         }
 
         private static bool HasReferenceToAssembly(Project project, string assemblyName, CancellationToken cancellationToken)
