@@ -765,9 +765,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Operation, "Expression");
         }
 
-        internal override void VisitWith(IWithOperation operation)
+        internal override void VisitWithStatement(IWithStatementOperation operation)
         {
-            LogString(nameof(IWithOperation));
+            LogString(nameof(IWithStatementOperation));
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Value, "Value");
@@ -1973,9 +1973,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.DimensionSizes, "DimensionSizes", logElementCount: true);
         }
 
-        public override void VisitWithExpression(IWithExpressionOperation operation)
+        public override void VisitWith(IWithOperation operation)
         {
-            LogString(nameof(IWithExpressionOperation));
+            LogString(nameof(IWithOperation));
             LogCommonPropertiesAndNewLine(operation);
             Visit(operation.Value, "Value");
             Indent();

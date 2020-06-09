@@ -1562,8 +1562,8 @@ class C
 </symbols>");
         }
 
+        [Fact]
         [WorkItem(8473, "https://github.com/dotnet/roslyn/issues/8473")]
-        [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/44901")]
         public void PortableStateMachineDebugInfo()
         {
             string src = @"
@@ -1586,22 +1586,23 @@ public class C
                pdbStream,
                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
 
+            Assert.True(result.Success);
             pdbStream.Position = 0;
-            using (var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream))
-            {
-                var mdReader = provider.GetMetadataReader();
-                var writer = new StringWriter();
-                var visualizer = new MetadataVisualizer(mdReader, writer);
-                visualizer.WriteMethodDebugInformation();
 
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+            using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
+            var mdReader = provider.GetMetadataReader();
+            var writer = new StringWriter();
+            var visualizer = new MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences);
+            visualizer.WriteMethodDebugInformation();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 MethodDebugInformation (index: 0x31, size: 40): 
 ==================================================
 1: nil
 2: nil
 3: nil
 4: nil
-5: #d0
+5:
 {
   Kickoff Method: 0x06000001 (MethodDef)
   Locals: 0x11000001 (StandAloneSig)
@@ -1618,8 +1619,7 @@ MethodDebugInformation (index: 0x31, size: 40):
 9: nil
 a: nil
 ",
-                    writer.ToString());
-            }
+                writer.ToString());
         }
     }
 }

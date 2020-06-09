@@ -1037,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyWithExpressionOperation : LazyWithExpressionOperation
+    internal sealed class CSharpLazyWithExpressionOperation : LazyWithOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundWithExpression _withExpression;
