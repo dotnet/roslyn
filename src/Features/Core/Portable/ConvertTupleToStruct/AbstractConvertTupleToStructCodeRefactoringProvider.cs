@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             // help create members like Equals/GetHashCode.  Then, once we have all the members we
             // create the final type.
             var namedTypeWithoutMembers = CreateNamedType(
-                scope, structName, typeParameters, members: default);
+                semanticModel.Compilation.Assembly, scope, structName, typeParameters, members: default);
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var constructor = CreateConstructor(semanticModel, structName, fields, generator);
@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             members.Add(GenerateDeconstructMethod(semanticModel, generator, tupleType, constructor));
             AddConversions(generator, members, tupleType, namedTypeWithoutMembers);
 
-            var namedTypeSymbol = CreateNamedType(scope, structName, typeParameters, members.ToImmutableAndFree());
+            var namedTypeSymbol = CreateNamedType(semanticModel.Compilation.Assembly, scope, structName, typeParameters, members.ToImmutableAndFree());
             return namedTypeSymbol;
         }
 
@@ -834,6 +834,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private static INamedTypeSymbol CreateNamedType(
+            IAssemblySymbol containingAssembly,
             Scope scope, string structName,
             ImmutableArray<ITypeParameterSymbol> typeParameters, ImmutableArray<ISymbol> members)
         {
@@ -842,7 +843,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 : Accessibility.Internal;
             return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                 attributes: default, accessibility, modifiers: default,
-                TypeKind.Struct, structName, typeParameters, members: members);
+                TypeKind.Struct, structName, typeParameters, members: members, containingAssembly: containingAssembly);
         }
 
         private static IMethodSymbol CreateConstructor(

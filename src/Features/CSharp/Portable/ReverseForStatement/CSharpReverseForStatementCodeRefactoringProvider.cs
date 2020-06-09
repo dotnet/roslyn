@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             if (MatchesIncrementPattern(variable, condition, after, out var start, out var equals, out var end) ||
                 MatchesDecrementPattern(variable, condition, after, out end, out start))
             {
-                var semanticModel = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 if (IsUnsignedBoundary(semanticModel, variable, start, end, cancellationToken))
                 {
                     // Don't allow reversing when you have unsigned types and are on the start/end

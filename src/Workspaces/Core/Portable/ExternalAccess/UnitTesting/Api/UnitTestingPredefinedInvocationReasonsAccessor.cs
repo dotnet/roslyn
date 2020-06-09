@@ -4,10 +4,12 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
+    [Obsolete]
     internal static class UnitTestingPredefinedInvocationReasonsAccessor
     {
         public const string Reanalyze = PredefinedInvocationReasons.Reanalyze;
