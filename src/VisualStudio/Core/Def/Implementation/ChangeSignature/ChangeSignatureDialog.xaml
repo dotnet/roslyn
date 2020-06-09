@@ -19,14 +19,27 @@
     HasDialogFrame="True"
     WindowStartupLocation="CenterOwner">
     <Window.Resources>
-        <Style x:Key="DataGridStyle" TargetType="DataGrid">
-            <Setter Property="CellStyle">
+        <Style x:Key="DataGridCellStyle" TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="KeyboardNavigation.IsTabStop" Value="False"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
                 <Setter.Value>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="BorderThickness" Value="0"/>
-                    </Style>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            Padding="{TemplateBinding Padding}"
+                                            KeyboardNavigation.IsTabStop="False">
+                            <ContentPresenter />
+                        </Border>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+        <Style x:Key="DataGridStyle" TargetType="DataGrid">
+            <Setter Property="CellStyle" Value="{StaticResource DataGridCellStyle}" />
         </Style>
         <Thickness x:Key="labelPadding">0, 5, 0, 2</Thickness>
         <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
@@ -187,7 +200,7 @@
                     experience that avoids moving cell-by-cell through the DataGrid -->
                     <DataGridTextColumn x:Name="automationHeader" IsReadOnly="True" Width="0">
                         <DataGridTextColumn.CellStyle>
-                            <Style TargetType="DataGridCell">
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding FullAutomationText}"/>
                             </Style>
                         </DataGridTextColumn.CellStyle>
@@ -201,7 +214,7 @@
                     </DataGridTextColumn>
                     <DataGridTextColumn x:Name="modifierHeader" Binding="{Binding Modifier, Mode=OneWay}" IsReadOnly="True">
                         <DataGridTextColumn.CellStyle>
-                            <Style TargetType="DataGridCell">
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding ModifierAutomationText, Mode=OneWay}"/>
                             </Style>
                         </DataGridTextColumn.CellStyle>
@@ -213,7 +226,7 @@
                     </DataGridTextColumn>
                     <DataGridTemplateColumn x:Name="typeHeader" Width="*" IsReadOnly="True">
                         <DataGridTemplateColumn.CellStyle>
-                            <Style TargetType="DataGridCell">
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding Type, Mode=OneWay}" />
                             </Style>
                         </DataGridTemplateColumn.CellStyle>
@@ -233,7 +246,7 @@
                     </DataGridTemplateColumn>
                     <DataGridTemplateColumn x:Name="parameterHeader" Width="*" IsReadOnly="True">
                         <DataGridTemplateColumn.CellStyle>
-                            <Style TargetType="DataGridCell">
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding ParameterName, Mode=OneWay}" />
                             </Style>
                         </DataGridTemplateColumn.CellStyle>
@@ -253,7 +266,7 @@
                     </DataGridTemplateColumn>
                     <DataGridTextColumn x:Name="defaultHeader" Binding="{Binding DefaultValue, Mode=OneWay}" Width="*" IsReadOnly="True">
                         <DataGridTextColumn.CellStyle>
-                            <Style TargetType="DataGridCell">
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding DefaultAutomationText, Mode=OneWay}"/>
                             </Style>
                         </DataGridTextColumn.CellStyle>
@@ -265,7 +278,7 @@
                     </DataGridTextColumn>
                     <DataGridTextColumn x:Name="callsiteHeader" Binding="{Binding CallSite, Mode=OneWay}" Width="*" IsReadOnly="True">
                         <DataGridTextColumn.CellStyle>
-                            <Style TargetType="DataGridCell">
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DataGridCellStyle}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding CallSiteAutomationText, Mode=OneWay}"/>
                             </Style>
                         </DataGridTextColumn.CellStyle>
