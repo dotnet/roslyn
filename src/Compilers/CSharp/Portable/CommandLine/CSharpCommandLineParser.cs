@@ -1441,7 +1441,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 runtimeMetadataVersion: runtimeMetadataVersion,
                 instrumentationKinds: instrumentationKinds.ToImmutableAndFree(),
                 // TODO: set from /checksumalgorithm (see https://github.com/dotnet/roslyn/issues/24735)
-                pdbChecksumAlgorithm: HashAlgorithmName.SHA256
+                pdbChecksumAlgorithm: HashAlgorithmName.SHA256,
+                defaultSourceFileEncoding: codepage
             );
 
             // add option incompatibility errors if any

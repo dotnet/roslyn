@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -60,6 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
                         {
                             result.Add(SyntaxKind.AsyncKeyword);
+                            token = token.GetPreviousToken(includeSkipped: true);
+                            continue;
+                        }
+
+                        if (token.HasMatchingText(SyntaxKindEx.DataKeyword))
+                        {
+                            result.Add(SyntaxKindEx.DataKeyword);
                             token = token.GetPreviousToken(includeSkipped: true);
                             continue;
                         }

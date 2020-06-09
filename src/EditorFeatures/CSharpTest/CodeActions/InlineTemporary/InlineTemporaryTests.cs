@@ -5173,6 +5173,42 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineIntoWithExpression()
+        {
+            await TestInRegularAndScriptAsync(@"
+record Person(string Name)
+{
+    void M(Person p)
+    {
+        string [||]x = """";
+        _ = p with { Name = x };
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}",
+@"
+record Person(string Name)
+{
+    void M(Person p)
+    {
+        _ = p with { Name = """" };
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         [WorkItem(44263, "https://github.com/dotnet/roslyn/issues/44263")]
         public async Task Call_TopLevelStatement()
         {

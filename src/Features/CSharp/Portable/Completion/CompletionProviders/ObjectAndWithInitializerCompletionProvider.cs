@@ -22,14 +22,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    [ExportCompletionProvider(nameof(ObjectInitializerCompletionProvider), LanguageNames.CSharp)]
+    // Provides symbol completions in object and 'with' initializers:
+    // - new C() { $$
+    // - expr with { $$
+    [ExportCompletionProvider(nameof(ObjectAndWithInitializerCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(ObjectCreationCompletionProvider))]
     [Shared]
-    internal class ObjectInitializerCompletionProvider : AbstractObjectInitializerCompletionProvider
+    internal class ObjectAndWithInitializerCompletionProvider : AbstractObjectInitializerCompletionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ObjectInitializerCompletionProvider()
+        public ObjectAndWithInitializerCompletionProvider()
         {
         }
 
@@ -122,9 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return null;
             }
 
-            // If we got a comma, we can syntactically find out if we're in an ObjectInitializerExpression
+            // If we got a comma, we can syntactically find out if we're in an ObjectInitializerExpression or WithExpression
             if (token.Kind() == SyntaxKind.CommaToken &&
-                token.Parent.Kind() != SyntaxKind.ObjectInitializerExpression)
+                !token.Parent.IsKind(SyntaxKind.ObjectInitializerExpression, SyntaxKind.WithInitializerExpression))
             {
                 return null;
             }
@@ -149,6 +152,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var parentInitializer = token.GetAncestor<InitializerExpressionSyntax>();
                 var expectedType = typeInferenceService.InferType(semanticModel, parentInitializer, objectAsDefault: false, cancellationToken: cancellationToken);
                 return Tuple.Create(expectedType, token.GetLocation());
+            }
+
+            // expr with { $$
+            if (token.Parent.Parent.IsKind(SyntaxKind.WithExpression, out WithExpressionSyntax withExpression))
+            {
+                var type = semanticModel.GetTypeInfo(withExpression.Receiver, cancellationToken).Type;
+                // Note: no special handling for type parameters since they can't be used in 'with' expressions ('with' is restricted to records at the moment)
+
+                return Tuple.Create(type, token.GetLocation());
             }
 
             return null;

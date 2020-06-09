@@ -111,6 +111,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
             }
+
+            // Records can only inherit from other records or object
+            if (declaration.Kind == DeclarationKind.Record &&
+                localBase.SpecialType != SpecialType.System_Object &&
+                SynthesizedRecordClone.FindValidCloneMethod(localBase) is null)
+            {
+                var baseLocation = FindBaseRefSyntax(localBase);
+                diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
+            }
+            else if (declaration.Kind != DeclarationKind.Record &&
+                     SynthesizedRecordClone.FindValidCloneMethod(localBase) is object)
+            {
+                var baseLocation = FindBaseRefSyntax(localBase);
+                diagnostics.Add(ErrorCode.ERR_BadInheritanceFromRecord, baseLocation);
+            }
         }
 
         protected override void CheckInterfaces(DiagnosticBag diagnostics)

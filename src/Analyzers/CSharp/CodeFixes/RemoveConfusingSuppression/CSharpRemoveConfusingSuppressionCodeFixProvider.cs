@@ -20,25 +20,25 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppression
+namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal sealed partial class CSharpRemoveUnnecessarySuppressionCodeFixProvider : CodeFixProvider
+    internal sealed partial class CSharpRemoveConfusingSuppressionCodeFixProvider : CodeFixProvider
     {
         public const string RemoveOperator = nameof(RemoveOperator);
         public const string NegateExpression = nameof(NegateExpression);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpRemoveUnnecessarySuppressionCodeFixProvider()
+        public CSharpRemoveConfusingSuppressionCodeFixProvider()
         {
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessarySuppressionForIsExpressionDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId);
 
         public override FixAllProvider GetFixAllProvider()
-            => new CSharpRemoveUnnecessarySuppressionFixAllProvider();
+            => new CSharpRemoveConfusingSuppressionFixAllProvider();
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

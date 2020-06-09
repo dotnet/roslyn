@@ -8,13 +8,13 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppression
+namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
 {
-    internal partial class CSharpRemoveUnnecessarySuppressionCodeFixProvider
+    internal partial class CSharpRemoveConfusingSuppressionCodeFixProvider
     {
-        private class CSharpRemoveUnnecessarySuppressionFixAllProvider : DocumentBasedFixAllProvider
+        private class CSharpRemoveConfusingSuppressionFixAllProvider : DocumentBasedFixAllProvider
         {
-            public CSharpRemoveUnnecessarySuppressionFixAllProvider()
+            public CSharpRemoveConfusingSuppressionFixAllProvider()
             {
             }
 

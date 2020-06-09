@@ -4,17 +4,17 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppression;
+using Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppression
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Confusing
 {
-    using VerifyCS = CSharpCodeFixVerifier<CSharpRemoveUnnecessarySuppressionDiagnosticAnalyzer, CSharpRemoveUnnecessarySuppressionCodeFixProvider>;
+    using VerifyCS = CSharpCodeFixVerifier<CSharpRemoveConfusingSuppressionDiagnosticAnalyzer, CSharpRemoveConfusingSuppressionCodeFixProvider>;
 
-    public class RemoveUnnecessarySuppressionTests
+    public class RemoveConfusingSuppressionTests
     {
         [Fact, WorkItem(44872, "https://github.com/dotnet/roslyn/issues/44872")]
         public async Task TestRemoveWithIsExpression1()
@@ -240,7 +240,7 @@ class C
     }
 }",
                 NumberOfFixAllIterations = 1,
-                CodeActionEquivalenceKey = CSharpRemoveUnnecessarySuppressionCodeFixProvider.RemoveOperator,
+                CodeActionEquivalenceKey = CSharpRemoveConfusingSuppressionCodeFixProvider.RemoveOperator,
             }.RunAsync();
         }
 
@@ -278,7 +278,7 @@ class C
     }
 }",
                 CodeActionIndex = 1,
-                CodeActionEquivalenceKey = CSharpRemoveUnnecessarySuppressionCodeFixProvider.NegateExpression,
+                CodeActionEquivalenceKey = CSharpRemoveConfusingSuppressionCodeFixProvider.NegateExpression,
                 NumberOfFixAllIterations = 1,
             }.RunAsync();
         }
@@ -317,7 +317,7 @@ class C
     }
 }",
                 NumberOfFixAllIterations = 1,
-                CodeActionEquivalenceKey = CSharpRemoveUnnecessarySuppressionCodeFixProvider.RemoveOperator,
+                CodeActionEquivalenceKey = CSharpRemoveConfusingSuppressionCodeFixProvider.RemoveOperator,
             }.RunAsync();
         }
 
@@ -356,7 +356,7 @@ class C
 }",
                 NumberOfFixAllIterations = 1,
                 CodeActionIndex = 1,
-                CodeActionEquivalenceKey = CSharpRemoveUnnecessarySuppressionCodeFixProvider.NegateExpression,
+                CodeActionEquivalenceKey = CSharpRemoveConfusingSuppressionCodeFixProvider.NegateExpression,
             }.RunAsync();
         }
     }
