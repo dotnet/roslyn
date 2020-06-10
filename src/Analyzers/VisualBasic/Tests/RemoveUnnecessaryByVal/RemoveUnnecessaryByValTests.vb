@@ -14,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryB
             {
                 .TestCode = source,
                 .FixedCode = fixedSource,
-                ' This analyzer has special behavior in generated code that needs to be tested separately
                 .TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck
             }.RunAsync()
         End Function
