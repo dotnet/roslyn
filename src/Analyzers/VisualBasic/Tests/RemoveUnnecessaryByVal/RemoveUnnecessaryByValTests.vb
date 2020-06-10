@@ -79,5 +79,113 @@ End Class
 End Class
 ")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        Public Async Function TestRemoveByValInConstructor() As Task
+            Await VerifyCodeFixAsync(
+"Public Class Program
+    Public Sub New([|ByVal|] arg As String)
+    End Sub
+End Class
+",
+"Public Class Program
+    Public Sub New(arg As String)
+    End Sub
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        Public Async Function TestRemoveByValInOperator() As Task
+            Await VerifyCodeFixAsync(
+"Public Class Program
+    Public Shared Operator +([|ByVal|] arg1 As Program, [|ByVal|] arg2 As Program) As Program
+        Return New Program()
+    End Operator
+End Class
+",
+"Public Class Program
+    Public Shared Operator +(arg1 As Program, arg2 As Program) As Program
+        Return New Program()
+    End Operator
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        Public Async Function TestRemoveByValParameterizedProperty() As Task
+            Await VerifyCodeFixAsync(
+"Public Class Program
+    Public ReadOnly Property Test([|ByVal|] v as String) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class
+",
+"Public Class Program
+    Public ReadOnly Property Test(v as String) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        Public Async Function TestRemoveByValInDelegate() As Task
+            Await VerifyCodeFixAsync(
+"Public Class Program
+    Delegate Function CompareNumbers([|ByVal|] num1 As Integer, [|ByVal|] num2 As Integer) As Boolean
+End Class
+",
+"Public Class Program
+    Delegate Function CompareNumbers(num1 As Integer, num2 As Integer) As Boolean
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        Public Async Function TestRemoveByValInLambdaSingleLine() As Task
+            Await VerifyCodeFixAsync(
+"Public Class Program
+    Public Shared Sub Main()
+        Dim add1 = Function([|ByVal|] num As Integer) num + 1
+        Dim print = Sub([|ByVal|] str As String) Console.WriteLine(str)
+    End Sub
+End Class
+",
+"Public Class Program
+        Dim add1 = Function(num As Integer) num + 1
+        Dim print = Sub(str As String) Console.WriteLine(str)
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveByVal)>
+        Public Async Function TestRemoveByValInLambdaMultiLine() As Task
+            Await VerifyCodeFixAsync(
+"Public Class Program
+    Public Shared Sub Main()
+        Dim add1 = Function([|ByVal|] num As Integer)
+                       num + 1
+                   End Function
+        Dim print = Sub([|ByVal|] str As String)
+                       Console.WriteLine(str)
+                    End Sub
+    End Sub
+End Class
+",
+"Public Class Program
+        Dim add1 = Function(num As Integer)
+                       num + 1
+                   End Function
+        Dim print = Sub(str As String)
+                       Console.WriteLine(str)
+                    End Sub
+End Class
+")
+        End Function
     End Class
 End Namespace
