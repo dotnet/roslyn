@@ -154,20 +154,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public Task InitializeAsync(string replServiceProviderTypeName, string cultureName)
             {
                 Debug.Assert(cultureName != null);
-                using (var resetEvent = new ManualResetEventSlim(false))
-                {
-                    var uiThread = new Thread(() =>
-                    {
-                        s_control = new Control();
-                        s_control.CreateControl();
-                        resetEvent.Set();
-                        Application.Run();
-                    });
-                    uiThread.SetApartmentState(ApartmentState.STA);
-                    uiThread.IsBackground = true;
-                    uiThread.Start();
-                    resetEvent.Wait();
-                }
+
                 // TODO (tomat): we should share the copied files with the host
                 var metadataFileProvider = new MetadataShadowCopyProvider(
                     Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
