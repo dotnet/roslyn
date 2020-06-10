@@ -153,13 +153,15 @@ End Class
 "Public Class Program
     Public Shared Sub Main()
         Dim add1 = Function([|ByVal|] num As Integer) num + 1
-        Dim print = Sub([|ByVal|] str As String) Console.WriteLine(str)
+        Dim print = Sub([|ByVal|] str As String) System.Console.WriteLine(str)
     End Sub
 End Class
 ",
 "Public Class Program
+    Public Shared Sub Main()
         Dim add1 = Function(num As Integer) num + 1
-        Dim print = Sub(str As String) Console.WriteLine(str)
+        Dim print = Sub(str As String) System.Console.WriteLine(str)
+    End Sub
 End Class
 ")
         End Function
@@ -170,21 +172,23 @@ End Class
 "Public Class Program
     Public Shared Sub Main()
         Dim add1 = Function([|ByVal|] num As Integer)
-                       num + 1
+                       Return num + 1
                    End Function
         Dim print = Sub([|ByVal|] str As String)
-                       Console.WriteLine(str)
+                       System.Console.WriteLine(str)
                     End Sub
     End Sub
 End Class
 ",
 "Public Class Program
+    Public Shared Sub Main()
         Dim add1 = Function(num As Integer)
-                       num + 1
+                       Return num + 1
                    End Function
         Dim print = Sub(str As String)
-                       Console.WriteLine(str)
+                       System.Console.WriteLine(str)
                     End Sub
+    End Sub
 End Class
 ")
         End Function
