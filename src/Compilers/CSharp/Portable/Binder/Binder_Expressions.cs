@@ -3963,7 +3963,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     candidateConstructors = ImmutableArray<MethodSymbol>.Empty;
                     analyzedArguments.Arguments.Add(new BoundParameter(constructor.GetNonNullSyntaxNode(), constructor.Parameters[0]));
 
-                    if (!found)
+                    if (found)
+                    {
+                        HashSet<DiagnosticInfo> ignoredUseSiteDiagnostics = null;
+                        if (!this.IsAccessible(resultMember, ref ignoredUseSiteDiagnostics, accessThroughType: null))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadAccess, errorLocation, resultMember);
+                        }
+                    }
+                    else
                     {
                         diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, errorLocation, baseType);
                     }

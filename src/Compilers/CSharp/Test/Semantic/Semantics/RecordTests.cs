@@ -3966,7 +3966,7 @@ public record D(object P1, object P2) : B(0, 1)
 {
     private D(D d) : base(d) { } // 2
 }
-public record E(object P1, object P2) : B(0, 1);
+public record E(object P1, object P2) : B(0, 1); // 3
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -3975,7 +3975,10 @@ public record E(object P1, object P2) : B(0, 1);
                 Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithArguments("B.B(B)").WithLocation(7, 22),
                 // (11,22): error CS0122: 'B.B(B)' is inaccessible due to its protection level
                 //     private D(D d) : base(d) { } // 2
-                Diagnostic(ErrorCode.ERR_BadAccess, "base").WithArguments("B.B(B)").WithLocation(11, 22)
+                Diagnostic(ErrorCode.ERR_BadAccess, "base").WithArguments("B.B(B)").WithLocation(11, 22),
+                // (13,15): error CS0122: 'B.B(B)' is inaccessible due to its protection level
+                // public record E(object P1, object P2) : B(0, 1); // 3
+                Diagnostic(ErrorCode.ERR_BadAccess, "E").WithArguments("B.B(B)").WithLocation(13, 15)
                 );
             // Should we complain about private user-defined copy constructor on unsealed type (ie. will prevent inheritance)?
             // https://github.com/dotnet/roslyn/issues/45012 
@@ -4014,6 +4017,36 @@ record C(object P1, object P2) : B(3, 4)
                 //     protected C(C c) : base(c) { } // 1
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "base").WithArguments("N2", "B.B(object, object)").WithLocation(4, 24)
                 );
+        }
+
+        [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        public void CopyCtor_InaccessibleToCallerFromPE_WithIVT()
+        {
+            var sourceA = @"
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo(""AssemblyB"")]
+
+public record B(object N1, object N2)
+{
+    internal B(B b) : this(0, 1) { }
+}";
+            var compA = CreateCompilation(new[] { sourceA, IsExternalInitTypeDefinition }, assemblyName: "AssemblyA", parseOptions: TestOptions.RegularPreview);
+            var refA = compA.EmitToImageReference();
+
+            var sourceB = @"
+record C(int j) : B(3, 4);
+";
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, assemblyName: "AssemblyB");
+            compB.VerifyDiagnostics();
+
+            var sourceC = @"
+record C(int j) : B(3, 4)
+{
+    protected C(C c) : base(c) { }
+}
+";
+            var compC = CreateCompilation(sourceC, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, assemblyName: "AssemblyB");
+            compC.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
