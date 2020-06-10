@@ -21,10 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
         Protected Overrides Sub InitializeWorker(context As AnalysisContext)
             context.RegisterSyntaxNodeAction(
                 Sub(syntaxContext As SyntaxNodeAnalysisContext)
-                    Dim parameterSyntax = TryCast(syntaxContext.Node, ParameterSyntax)
-                    If parameterSyntax Is Nothing Then
-                        Return
-                    End If
+                    Dim parameterSyntax = DirectCast(syntaxContext.Node, ParameterSyntax)
                     For Each modifier In parameterSyntax.Modifiers
                         If modifier.IsKind(SyntaxKind.ByValKeyword) Then
                             syntaxContext.ReportDiagnostic(Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, modifier.GetLocation()))
