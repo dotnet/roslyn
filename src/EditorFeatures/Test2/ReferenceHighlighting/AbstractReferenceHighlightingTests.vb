@@ -70,7 +70,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                         expectedTags.Add(nameAndSpan.Item1 + ":" + nameAndSpan.Item2.ToString())
                     Next
                 Next
+
                 AssertEx.Equal(expectedTags, producedTags)
+
             End Using
         End Function
     End Class
