@@ -24,8 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioMoveToNamespaceOptionsService()
-            : this(new string[3], (viewModel) => new MoveToNamespaceDialog(viewModel).ShowModal())
         {
+            _history = new string[3];
+            _showDialog = viewModel => new MoveToNamespaceDialog(viewModel).ShowModal();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should be marked with 'ImportingConstructorAttribute'", Justification = "Test constructor")]
@@ -69,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 
             for (var i = _history.Length - 1; i > 0; i--)
             {
-                if (_history[i-1] == null)
+                if (_history[i - 1] == null)
                 {
                     continue;
                 }
