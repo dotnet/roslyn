@@ -321,8 +321,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (declaration.Kind == DeclarationKind.Record)
             {
-                var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T);
-                baseInterfaces.Add(type.Construct(this));
+                var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
+                if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.IgnoringNullable) < 0)
+                {
+                    baseInterfaces.Add(type);
+                }
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
