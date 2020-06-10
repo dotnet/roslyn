@@ -275,7 +275,7 @@ $$
     int P {get;
     void Main() { }
 }";
-            await VerifyProviderCommitAsync(markupBeforeCommit, "get", expectedCodeAfterCommit, commitChar: ';', textTypedSoFar: "g");
+            await VerifyProviderCommitAsync(markupBeforeCommit, "get", expectedCodeAfterCommit, commitChar: ';');
         }
 
         [WorkItem(7768, "https://github.com/dotnet/roslyn/issues/7768")]
@@ -294,7 +294,7 @@ $$
     int P {get;set;
     void Main() { }
 }";
-            await VerifyProviderCommitAsync(markupBeforeCommit, "set", expectedCodeAfterCommit, commitChar: ';', textTypedSoFar: "set");
+            await VerifyProviderCommitAsync(markupBeforeCommit, "set", expectedCodeAfterCommit, commitChar: ';');
         }
 
         [WorkItem(7768, "https://github.com/dotnet/roslyn/issues/7768")]
@@ -313,7 +313,7 @@ $$
     public static void Test() { return;
     void Main() { }
 }";
-            await VerifyProviderCommitAsync(markupBeforeCommit, "return", expectedCodeAfterCommit, commitChar: ';', textTypedSoFar: "return");
+            await VerifyProviderCommitAsync(markupBeforeCommit, "return", expectedCodeAfterCommit, commitChar: ';');
         }
 
         [WorkItem(14218, "https://github.com/dotnet/roslyn/issues/14218")]

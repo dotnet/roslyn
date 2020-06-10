@@ -312,7 +312,7 @@ End Module
 
 </Text>.Value
 
-            Await VerifyProviderCommitAsync(text, "args:=", expected, "="c, Nothing)
+            Await VerifyProviderCommitAsync(text, "args:=", expected, "="c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -335,7 +335,7 @@ End Module
 
 </Text>.Value
 
-            Await VerifyProviderCommitAsync(text, "args:=", expected, ":"c, Nothing)
+            Await VerifyProviderCommitAsync(text, "args:=", expected, ":"c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -358,7 +358,7 @@ End Module
 
 </Text>.Value
 
-            Await VerifyProviderCommitAsync(text, "args:=", expected, " "c, Nothing)
+            Await VerifyProviderCommitAsync(text, "args:=", expected, " "c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

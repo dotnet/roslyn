@@ -72,7 +72,7 @@ partial class C<Bar> { }
 
 partial class C<";
 
-            await VerifyProviderCommitAsync(text, "C<Bar>", expected, '<', "");
+            await VerifyProviderCommitAsync(text, "C<Bar>", expected, '<');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -92,7 +92,7 @@ partial class C<Bar> { }
 
 partial class C<Bar>";
 
-            await VerifyProviderCommitAsync(text, "C<Bar>", expected, null, "");
+            await VerifyProviderCommitAsync(text, "C<Bar>", expected, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -108,7 +108,7 @@ partial class C<T> { }
 
 partial class C<T> ";
 
-            await VerifyProviderCommitAsync(text, "C<T>", expected, ' ', "");
+            await VerifyProviderCommitAsync(text, "C<T>", expected, ' ');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -238,7 +238,7 @@ partial class C1<T> where T : System.Exception { }
 
 partial class C1<T>";
 
-            await VerifyProviderCommitAsync(text, "C1<T>", expected, null, "");
+            await VerifyProviderCommitAsync(text, "C1<T>", expected, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -273,7 +273,7 @@ partial class @class { }
 
 partial class @class";
 
-            await VerifyProviderCommitAsync(text, "@class", expected, null, "");
+            await VerifyProviderCommitAsync(text, "@class", expected, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -289,7 +289,7 @@ partial class @class<T> { }
 
 partial class @class<T>";
 
-            await VerifyProviderCommitAsync(text, "@class<T>", expected, null, "");
+            await VerifyProviderCommitAsync(text, "@class<T>", expected, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -305,7 +305,7 @@ partial interface I<out T> { }
 
 partial interface I<out T>";
 
-            await VerifyProviderCommitAsync(text, "I<out T>", expected, null, "");
+            await VerifyProviderCommitAsync(text, "I<out T>", expected, null);
         }
     }
 }

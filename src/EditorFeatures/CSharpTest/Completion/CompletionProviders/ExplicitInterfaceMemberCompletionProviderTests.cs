@@ -131,7 +131,7 @@ class Bar : IGoo
      void IGoo.Goo()
 }";
 
-            await VerifyProviderCommitAsync(markup, "Goo()", expected, null, "");
+            await VerifyProviderCommitAsync(markup, "Goo()", expected, null);
         }
 
         [WorkItem(709988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
@@ -160,7 +160,7 @@ class Bar : IGoo
      void IGoo.Goo(
 }";
 
-            await VerifyProviderCommitAsync(markup, "Goo()", expected, '(', "");
+            await VerifyProviderCommitAsync(markup, "Goo()", expected, '(');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
