@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     return;
                 }
 
-                referencesToReport.AddRange(_resultsChunk.ToArray());
+                referencesToReport.AddRange(_resultsChunk);
                 _resultsChunk.Clear();
             }
 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 return;
             }
 
-            referencesToReport.AddRange(_resultsChunk.ToArray());
+            referencesToReport.AddRange(_resultsChunk);
             _resultsChunk.Clear();
         }
 
