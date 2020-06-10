@@ -84,7 +84,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (project.SupportsCompilation)
                 {
                     // make sure we hold onto compilation while we search documents belong to this project
+                    var start = DateTime.Now;
                     var compilation = await project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                    _getCompilationsTime += DateTime.Now - start;
 
                     var documentTasks = new List<Task>();
                     foreach (var kvp in documentMap)

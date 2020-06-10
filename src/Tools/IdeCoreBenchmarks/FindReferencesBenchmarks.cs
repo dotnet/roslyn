@@ -81,11 +81,30 @@ namespace IdeCoreBenchmarks
             var start = DateTime.Now;
             var compilation = await project.GetCompilationAsync();
             Console.WriteLine("Time to get first compilation: " + (DateTime.Now - start));
-            var type = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser");
+
+            Console.WriteLine("Pausing 5 seconds");
+            Thread.Sleep(5000);
+
+            await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser");
+            await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.Lexer");
+            await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.SyntaxFacts");
+
+            await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser");
+            await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.Lexer");
+            await FindReferences(solution, compilation, "Microsoft.CodeAnalysis.CSharp.SyntaxFacts");
+
+            Console.ReadLine();
+        }
+
+        private static async Task FindReferences(Solution solution, Compilation compilation, string typeName)
+        {
+            Console.WriteLine("Finding " + typeName);
+
+            var type = compilation.GetTypeByMetadataName(typeName);
             if (type == null)
                 throw new Exception("Couldn't find type");
 
-            start = DateTime.Now;
+            var start = DateTime.Now;
             var references = await SymbolFinder.FindReferencesAsync(type, solution);
             Console.WriteLine("Time to find-refs: " + (DateTime.Now - start));
             var refList = references.ToList();

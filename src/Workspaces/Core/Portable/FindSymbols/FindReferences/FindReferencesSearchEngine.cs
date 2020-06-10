@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _progressTracker = progress.ProgressTracker;
         }
 
+        private TimeSpan _getCompilationsTime;
+
         public async Task FindReferencesAsync(ISymbol symbol)
         {
             await _progress.OnStartedAsync().ConfigureAwait(false);
@@ -67,8 +69,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);
                 Console.WriteLine("Create document map: " + (DateTime.Now - start));
 
-                //ValidateProjectToDocumentMap(projectToDocumentMap);
-                //await ProcessAsync(projectToDocumentMap).ConfigureAwait(false);
+                ValidateProjectToDocumentMap(projectToDocumentMap);
+
+                start = DateTime.Now;
+                await ProcessAsync(projectToDocumentMap).ConfigureAwait(false);
+                Console.WriteLine("Search cost: " + (DateTime.Now - start));
+                Console.WriteLine("GetCompilations: " + _getCompilationsTime);
             }
             finally
             {
