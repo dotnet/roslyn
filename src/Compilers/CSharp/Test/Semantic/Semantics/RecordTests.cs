@@ -8106,10 +8106,95 @@ record B : A<int>;
                 // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record B : A<int>;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8));
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<B>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Int32>>[missing]", "System.IEquatable<B>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
         }
 
         [Fact]
         public void IEquatableT_10()
+        {
+            var source =
+@"record A<T> : System.IEquatable<A<T>>;
+record B : A<int>, System.IEquatable<B>;
+";
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_IEquatable_T);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(1, 8),
+                // (1,15): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "System.IEquatable<A<T>>").WithArguments("System.IEquatable`1").WithLocation(1, 15),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, System.IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, System.IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,20): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, System.IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "System.IEquatable<B>").WithArguments("System.IEquatable`1").WithLocation(2, 20));
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>", "System.IEquatable<A<T>>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>", "System.IEquatable<A<T>>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<B>", "System.IEquatable<B>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Int32>>", "System.IEquatable<A<System.Int32>>[missing]", "System.IEquatable<B>", "System.IEquatable<B>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_11()
+        {
+            var source =
+@"using System;
+record A<T> : IEquatable<A<T>>;
+record B : A<int>, IEquatable<B>;
+";
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_IEquatable_T);
+            comp.VerifyDiagnostics(
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 8),
+                // (2,15): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "IEquatable<A<T>>").WithArguments("System.IEquatable`1").WithLocation(2, 15),
+                // (3,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(3, 8),
+                // (3,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.IEquatable`1").WithLocation(3, 8),
+                // (3,20): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                // record B : A<int>, IEquatable<B>;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "IEquatable<B>").WithArguments("System.IEquatable`1").WithLocation(3, 20));
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>", "System.IEquatable<A<T>>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>", "System.IEquatable<A<T>>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+
+            type = comp.GetMember<NamedTypeSymbol>("B");
+            AssertEx.Equal(new[] { "System.IEquatable<B>", "System.IEquatable<B>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<System.Int32>>", "System.IEquatable<A<System.Int32>>[missing]", "System.IEquatable<B>", "System.IEquatable<B>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_12()
         {
             var source0 =
 @"namespace System
@@ -8152,7 +8237,7 @@ class Program
         }
 
         [Fact]
-        public void IEquatableT_11()
+        public void IEquatableT_13()
         {
             var source =
 @"record A
@@ -8167,7 +8252,7 @@ class Program
         }
 
         [Fact]
-        public void IEquatableT_12()
+        public void IEquatableT_14()
         {
             var source =
 @"record A
@@ -8186,7 +8271,7 @@ record B : A
 
         [WorkItem(45026, "https://github.com/dotnet/roslyn/issues/45026")]
         [Fact]
-        public void IEquatableT_13()
+        public void IEquatableT_15()
         {
             var source =
 @"using System;
