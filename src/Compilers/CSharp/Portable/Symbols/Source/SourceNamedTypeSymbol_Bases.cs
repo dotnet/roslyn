@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (declaration.Kind == DeclarationKind.Record)
             {
                 var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
-                if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptionsPlusNullableWithUnknownMatchesAny) < 0)
+                if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)
                 {
                     baseInterfaces.Add(type);
                     type.AddUseSiteDiagnostics(ref useSiteDiagnostics);
