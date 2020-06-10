@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class VisualBasicRemoveUnnecessaryByValDiagnosticAnalyzer
+    Friend NotInheritable Class VisualBasicRemoveUnnecessaryByValDiagnosticAnalyzer
         Inherits AbstractBuiltInCodeStyleDiagnosticAnalyzer
 
         Public Sub New()
