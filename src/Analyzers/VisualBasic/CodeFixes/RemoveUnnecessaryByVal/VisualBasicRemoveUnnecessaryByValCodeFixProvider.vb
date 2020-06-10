@@ -22,13 +22,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
         Public Sub New()
         End Sub
 
-        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryByValDiagnosticId)
+        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
+            ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryByValDiagnosticId)
 
-        Friend Overrides ReadOnly Property CodeFixCategory As CodeFixCategory
-            Get
-                Return CodeFixCategory.CodeStyle
-            End Get
-        End Property
+        Friend Overrides ReadOnly Property CodeFixCategory As CodeFixCategory = CodeFixCategory.CodeStyle
 
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             For Each diagnostic In context.Diagnostics

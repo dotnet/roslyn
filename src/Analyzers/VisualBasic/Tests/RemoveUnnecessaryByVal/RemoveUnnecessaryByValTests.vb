@@ -8,9 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryByVal
-
     Public Class RemoveUnnecessaryByValTests
-
         Private Shared Async Function VerifyCodeFixAsync(source As String, fixedSource As String) As Task
             Await New VerifyVB.Test With
             {
@@ -81,7 +79,5 @@ End Class
 End Class
 ")
         End Function
-
     End Class
-
 End Namespace
