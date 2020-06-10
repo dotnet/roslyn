@@ -8194,7 +8194,6 @@ record R
 {
     bool IEquatable<R>.Equals(R other) => false;
 }";
-            // https://github.com/dotnet/roslyn/issues/45026: Report error for explicit implementation of implicit interface.
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
