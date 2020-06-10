@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static MethodSymbol? FindCopyConstructor(NamedTypeSymbol containingType)
         {
-            foreach (var member in containingType.GetMembers(WellKnownMemberNames.InstanceConstructorName))
+            foreach (var member in containingType.InstanceConstructors)
             {
                 if (member is MethodSymbol { IsStatic: false, ParameterCount: 1, Arity: 0 } method &&
                     method.Parameters[0].Type.Equals(containingType, TypeCompareKind.CLRSignatureCompareOptions) &&

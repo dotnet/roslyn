@@ -3958,7 +3958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     resultMember = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType);
                     found = resultMember is object;
-                    argsToParamsOpt = ImmutableArray.Create<int>(0);
+                    argsToParamsOpt = default;
                     isExpanded = false;
                     candidateConstructors = ImmutableArray<MethodSymbol>.Empty;
                     analyzedArguments.Arguments.Add(new BoundParameter(constructor.GetNonNullSyntaxNode(), constructor.Parameters[0]));
@@ -4077,7 +4077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.Free();
             }
 
-            static void validateRecordCopyConstructor(NamedTypeSymbol containingType, MethodSymbol constructor, NamedTypeSymbol baseType, MethodSymbol resultMember, Location errorLocation, DiagnosticBag diagnostics)
+            static void validateRecordCopyConstructor(NamedTypeSymbol containingType, MethodSymbol constructor, NamedTypeSymbol baseType, MethodSymbol baseCtor, Location errorLocation, DiagnosticBag diagnostics)
             {
                 // Are we dealing with a user-defined copy constructor in a record type?
                 if (containingType is SourceNamedTypeSymbol sourceType &&
@@ -4096,7 +4096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We'll have reported a problem with the base type of the record elsewhere
                         return;
                     }
-                    else if (!correctBaseCopyCtor.Equals(resultMember, TypeCompareKind.ConsiderEverything))
+                    else if (!correctBaseCopyCtor.Equals(baseCtor, TypeCompareKind.ConsiderEverything))
                     {
                         diagnostics.Add(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, errorLocation, correctBaseCopyCtor);
                     }

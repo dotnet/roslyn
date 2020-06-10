@@ -3805,6 +3805,26 @@ public record C(object P1, object P2) : B(3, 4) { }
                 "B..ctor(B )"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails);
+            verifier.VerifyIL("C..ctor(C)", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""B..ctor(B)""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.1
+  IL_0009:  ldfld      ""object C.<P1>k__BackingField""
+  IL_000e:  stfld      ""object C.<P1>k__BackingField""
+  IL_0013:  ldarg.0
+  IL_0014:  ldarg.1
+  IL_0015:  ldfld      ""object C.<P2>k__BackingField""
+  IL_001a:  stfld      ""object C.<P2>k__BackingField""
+  IL_001f:  ret
+}
+");
         }
 
         [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
