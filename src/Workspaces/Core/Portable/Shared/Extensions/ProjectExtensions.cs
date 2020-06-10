@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -36,5 +38,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         internal static Project WithSolutionOptions(this Project project, OptionSet options)
             => project.Solution.WithOptions(options).GetProject(project.Id)!;
+
+        public static TextDocument? GetTextDocument(this Project project, DocumentId? documentId)
+            => project.Solution.GetTextDocument(documentId);
+
+        internal static DocumentId? GetDocumentForExternalLocation(this Project project, Location location)
+        {
+            Debug.Assert(location.Kind == LocationKind.ExternalFile);
+            return project.GetDocumentIdWithFilePath(location.GetLineSpan().Path);
+        }
+
+        internal static DocumentId? GetDocumentForFile(this Project project, AdditionalText additionalText)
+            => project.GetDocumentIdWithFilePath(additionalText.Path);
+
+        private static DocumentId? GetDocumentIdWithFilePath(this Project project, string filePath)
+            => project.Solution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault(id => id.ProjectId == project.Id);
     }
 }

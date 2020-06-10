@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static DiagnosticDataLocation? CreateLocation(Document? document, Location location)
+        private static DiagnosticDataLocation? CreateLocation(TextDocument? document, Location location)
         {
             if (document == null)
             {
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return Create(diagnostic, project.Id, project.Language, project.Solution.Options, location: null, additionalLocations: null, additionalProperties: null);
         }
 
-        public static DiagnosticData Create(Diagnostic diagnostic, Document document)
+        public static DiagnosticData Create(Diagnostic diagnostic, TextDocument document)
         {
             var project = document.Project;
             var location = CreateLocation(document, diagnostic.Location);
@@ -403,9 +403,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isSuppressed: diagnostic.IsSuppressed);
         }
 
-        private static ImmutableDictionary<string, string?>? GetAdditionalProperties(Document document, Diagnostic diagnostic)
+        private static ImmutableDictionary<string, string?>? GetAdditionalProperties(TextDocument document, Diagnostic diagnostic)
         {
-            var service = document.GetLanguageService<IDiagnosticPropertiesService>();
+            var service = document.Project.GetLanguageService<IDiagnosticPropertiesService>();
             return service?.GetAdditionalProperties(diagnostic);
         }
 
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static void GetLocationInfo(Document document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
+        private static void GetLocationInfo(TextDocument document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
         {
             var diagnosticSpanMappingService = document.Project.Solution.Workspace.Services.GetService<IWorkspaceVenusSpanMappingService>();
             if (diagnosticSpanMappingService != null)

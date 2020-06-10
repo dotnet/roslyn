@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -171,6 +172,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         diagnostics = diagnostics.Filter(diagnosticIdsToFilter);
                         Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
                         result.AddSemanticDiagnostics(tree, diagnostics);
+                    }
+                }
+
+                foreach (var (file, diagnosticsByAnalyzerMap) in analysisResult.NonSourceFileDiagnostics)
+                {
+                    if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
+                    {
+                        diagnostics = diagnostics.Filter(diagnosticIdsToFilter);
+                        Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+
+                        if (project.GetDocumentForFile(file) is DocumentId documentId)
+                        {
+                            result.AddExternalSyntaxDiagnostics(documentId, diagnostics);
+                        }
+                        else
+                        {
+                            result.AddCompilationDiagnostics(diagnostics);
+                        }
                     }
                 }
 

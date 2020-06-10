@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Return all diagnostics for the given document stored in this state including non local diagnostics for this document
             /// </summary>
-            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(IPersistentStorageService persistentService, Document document, bool avoidLoadingData, CancellationToken cancellationToken)
+            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(IPersistentStorageService persistentService, TextDocument document, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
                 var lastResult = _lastResult;
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializer = new DiagnosticDataSerializer(_owner.AnalyzerVersion, result.Version);
                 foreach (var documentId in result.DocumentIds)
                 {
-                    var document = project.GetDocument(documentId);
+                    var document = project.GetTextDocument(documentId);
                     if (document == null)
                     {
                         // it can happen with build synchronization since, in build case, 
@@ -229,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _lastResult = _lastResult.Reset();
             }
 
-            public async Task MergeAsync(IPersistentStorageService persistentService, ActiveFileState state, Document document)
+            public async Task MergeAsync(IPersistentStorageService persistentService, ActiveFileState state, TextDocument document)
             {
                 Contract.ThrowIfFalse(state.DocumentId == document.Id);
 
@@ -312,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(IPersistentStorageService persistentService, Document document, CancellationToken cancellationToken)
+            private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(IPersistentStorageService persistentService, TextDocument document, CancellationToken cancellationToken)
             {
                 // loading data can be cancelled any time.
                 var project = document.Project;
@@ -344,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            private async Task SerializeAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, Project project, Document? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
+            private async Task SerializeAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
             {
                 Contract.ThrowIfFalse(document == null || document.Project == project);
 
@@ -360,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 InMemoryStorage.Cache(_owner.Analyzer, (key, stateKey), new CacheEntry(serializer.Version, diagnostics));
             }
 
-            private async Task<bool> TryDeserializeDocumentDiagnosticsAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, Document document, Builder builder, CancellationToken cancellationToken)
+            private async Task<bool> TryDeserializeDocumentDiagnosticsAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, TextDocument document, Builder builder, CancellationToken cancellationToken)
             {
                 var success = true;
                 var project = document.Project;
@@ -411,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return false;
             }
 
-            private ValueTask<ImmutableArray<DiagnosticData>> DeserializeDiagnosticsAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, Project project, Document? document, object key, string stateKey, CancellationToken cancellationToken)
+            private ValueTask<ImmutableArray<DiagnosticData>> DeserializeDiagnosticsAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, Project project, TextDocument? document, object key, string stateKey, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(document == null || document.Project == project);
 

@@ -19,7 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Public Sub DiagnosticAnalyzerAllInOne()
             Dim source = TestResource.AllInOneVisualBasicBaseline
             Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
-            CreateCompilationWithMscorlib40({source}).VerifyAnalyzerDiagnostics({analyzer})
+            Dim options = New AnalyzerOptions({DirectCast(New TestAdditionalText(), AdditionalText)}.ToImmutableArray())
+            CreateCompilationWithMscorlib40({source}).VerifyAnalyzerDiagnostics({analyzer}, options)
             analyzer.VerifyAllAnalyzerMembersWereCalled()
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds()
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(New HashSet(Of SyntaxKind)())

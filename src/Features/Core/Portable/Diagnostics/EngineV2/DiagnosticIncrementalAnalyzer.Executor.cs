@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Return all local diagnostics (syntax, semantic) that belong to given document for the given StateSet (analyzer) either from cache or by calculating them
         /// </summary>
         private async Task<DocumentAnalysisData> GetDocumentAnalysisDataAsync(
-            CompilationWithAnalyzers? compilation, Document document, StateSet stateSet, AnalysisKind kind, CancellationToken cancellationToken)
+            CompilationWithAnalyzers? compilation, TextDocument document, StateSet stateSet, AnalysisKind kind, CancellationToken cancellationToken)
         {
             // get log title and functionId
             GetLogFunctionIdAndTitle(kind, out var functionId, out var title);

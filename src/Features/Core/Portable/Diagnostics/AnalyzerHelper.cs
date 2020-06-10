@@ -303,19 +303,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public static async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(
             DiagnosticAnalyzer analyzer,
-            Document document,
+            TextDocument textDocument,
             AnalysisKind kind,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
             CompilationWithAnalyzers? compilationWithAnalyzers,
             TextSpan? span,
             CancellationToken cancellationToken)
         {
-            var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
+            var document = textDocument as Document;
+            RoslynDebug.Assert(document != null || kind == AnalysisKind.Syntax, "We only support syntactic analysis for non-source documents");
+
+            var loadDiagnostic = await textDocument.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
 
             if (analyzer == FileContentLoadAnalyzer.Instance)
             {
                 return loadDiagnostic != null ?
-                    SpecializedCollections.SingletonEnumerable(DiagnosticData.Create(loadDiagnostic, document)) :
+                    SpecializedCollections.SingletonEnumerable(DiagnosticData.Create(loadDiagnostic, textDocument)) :
                     SpecializedCollections.EmptyEnumerable<DiagnosticData>();
             }
 
@@ -324,9 +327,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
             }
 
-            if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
+            ImmutableArray<Diagnostic> diagnostics;
+            if (document != null &&
+                analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
             {
-                var diagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
+                diagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
                     documentAnalyzer, document, kind, compilationWithAnalyzers?.Compilation, cancellationToken).ConfigureAwait(false);
 
                 return diagnostics.ConvertToLocalDiagnostics(document);
@@ -338,14 +343,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (kind == AnalysisKind.Syntax)
                 {
                     Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic,
-                        (r, d, a, k) => $"Driver: {r != null}, {d.Id}, {d.Project.Id}, {a}, {k}", compilationWithAnalyzers, document, analyzer, kind);
+                        (r, d, a, k) => $"Driver: {r != null}, {d.Id}, {d.Project.Id}, {a}, {k}", compilationWithAnalyzers, textDocument, analyzer, kind);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
             }
 
             // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
-            if (kind != AnalysisKind.Syntax && analyzer.IsCompilerAnalyzer())
+            if (kind != AnalysisKind.Syntax && analyzer.IsCompilerAnalyzer() && document != null)
             {
                 var isEnabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -359,52 +364,61 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // REVIEW: more unnecessary allocations just to get diagnostics per analyzer
             var singleAnalyzer = ImmutableArray.Create(analyzer);
-            var skippedAnalyzerInfo = document.Project.GetSkippedAnalyzersInfo(analyzerInfoCache);
+            var skippedAnalyzerInfo = textDocument.Project.GetSkippedAnalyzersInfo(analyzerInfoCache);
             ImmutableArray<string> filteredIds;
 
             switch (kind)
             {
                 case AnalysisKind.Syntax:
-                    var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    if (tree == null)
+                    if (document != null)
                     {
+                        var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                        if (tree == null)
+                        {
+                            return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+                        }
+
+                        diagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, singleAnalyzer, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // Currently, we only support analysis for additional documents. In future, we may support analyzer config documents.
+                        if (textDocument.Kind == TextDocumentKind.AdditionalDocument)
+                        {
+                            var filePath = textDocument.FilePath ?? textDocument.Name;
+                            var additionalFile = compilationWithAnalyzers.AnalysisOptions.Options?.AdditionalFiles.FirstOrDefault(a => PathUtilities.Comparer.Equals(a.Path, filePath));
+                            if (additionalFile != null)
+                            {
+                                diagnostics = await compilationWithAnalyzers.GetAnalyzerAdditionalFileDiagnosticsAsync(additionalFile, singleAnalyzer, cancellationToken).ConfigureAwait(false);
+                                break;
+                            }
+                        }
+
                         return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                     }
-
-                    var diagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, singleAnalyzer, cancellationToken).ConfigureAwait(false);
-
-                    if (diagnostics.IsDefaultOrEmpty)
-                    {
-                        Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic, (d, a, t) => $"{d.Id}, {d.Project.Id}, {a}, {t.Length}", document, analyzer, tree);
-                    }
-                    else if (skippedAnalyzerInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out filteredIds))
-                    {
-                        diagnostics = diagnostics.Filter(filteredIds);
-                    }
-
-                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
-                    return diagnostics.ConvertToLocalDiagnostics(document);
+                    break;
 
                 case AnalysisKind.Semantic:
-                    var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var model = await document!.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     if (model == null)
                     {
                         return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                     }
 
                     diagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, span, singleAnalyzer, cancellationToken).ConfigureAwait(false);
-
-                    if (skippedAnalyzerInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out filteredIds))
-                    {
-                        diagnostics = diagnostics.Filter(filteredIds);
-                    }
-
-                    Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
-                    return diagnostics.ConvertToLocalDiagnostics(document);
+                    break;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
+
+            if (skippedAnalyzerInfo.FilteredDiagnosticIdsForAnalyzers.TryGetValue(analyzer, out filteredIds))
+            {
+                diagnostics = diagnostics.Filter(filteredIds);
+            }
+
+            Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
+            return diagnostics.ConvertToLocalDiagnostics(textDocument);
         }
 
         public static async Task<ImmutableArray<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
@@ -567,60 +581,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 #endif
 
-        public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(this IEnumerable<Diagnostic> diagnostics, Document targetDocument, TextSpan? span = null)
+        public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(this IEnumerable<Diagnostic> diagnostics, TextDocument targetDocument, TextSpan? span = null)
         {
-            var project = targetDocument.Project;
-
-            if (project.SupportsCompilation)
+            foreach (var diagnostic in diagnostics)
             {
-                return ConvertToLocalDiagnosticsWithCompilation();
+                if (!IsReportedInDocument(diagnostic, targetDocument))
+                {
+                    continue;
+                }
+
+                if (span.HasValue && !span.Value.IntersectsWith(diagnostic.Location.SourceSpan))
+                {
+                    continue;
+                }
+
+                yield return DiagnosticData.Create(diagnostic, targetDocument);
             }
 
-            return ConvertToLocalDiagnosticsWithoutCompilation();
-
-            IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithoutCompilation()
+            static bool IsReportedInDocument(Diagnostic diagnostic, TextDocument targetDocument)
             {
-                Contract.ThrowIfTrue(project.SupportsCompilation);
-
-                foreach (var diagnostic in diagnostics)
+                if (diagnostic.Location.SourceTree != null)
                 {
-                    var location = diagnostic.Location;
-                    if (location.Kind != LocationKind.ExternalFile)
-                    {
-                        continue;
-                    }
-
-                    var lineSpan = location.GetLineSpan();
-
-                    var documentIds = project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
-                    if (documentIds.IsEmpty || documentIds.All(id => id != targetDocument.Id))
-                    {
-                        continue;
-                    }
-
-                    yield return DiagnosticData.Create(diagnostic, targetDocument);
+                    return targetDocument.Project.GetDocument(diagnostic.Location.SourceTree) == targetDocument;
                 }
-            }
-
-            IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithCompilation()
-            {
-                Contract.ThrowIfFalse(project.SupportsCompilation);
-
-                foreach (var diagnostic in diagnostics)
+                else if (diagnostic.Location.Kind == LocationKind.ExternalFile)
                 {
-                    var document = project.GetDocument(diagnostic.Location.SourceTree);
-                    if (document == null || document != targetDocument)
-                    {
-                        continue;
-                    }
+                    var lineSpan = diagnostic.Location.GetLineSpan();
 
-                    if (span.HasValue && !span.Value.IntersectsWith(diagnostic.Location.SourceSpan))
-                    {
-                        continue;
-                    }
-
-                    yield return DiagnosticData.Create(diagnostic, document);
+                    var documentIds = targetDocument.Project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
+                    return documentIds.Any(id => id == targetDocument.Id);
                 }
+
+                return false;
             }
         }
 
@@ -708,6 +700,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action) { }
             public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action) { }
             public override void RegisterSymbolStartAction(Action<SymbolStartAnalysisContext> action, SymbolKind symbolKind) { }
+            public override void RegisterAdditionalFileAction(Action<AdditionalFileAnalysisContext> action) { }
             #endregion
 
             private class CollectNestedCompilationContext : CompilationStartAnalysisContext
@@ -740,6 +733,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action) { }
                 public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action) { }
                 public override void RegisterSymbolStartAction(Action<SymbolStartAnalysisContext> action, SymbolKind symbolKind) { }
+                public override void RegisterAdditionalFileAction(Action<AdditionalFileAnalysisContext> action) { }
                 #endregion
             }
         }

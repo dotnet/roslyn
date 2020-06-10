@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal class AggregateIncrementalAnalyzer : IIncrementalAnalyzer
+    internal class AggregateIncrementalAnalyzer : IIncrementalAnalyzer2
     {
         public readonly ImmutableDictionary<string, Lazy<IIncrementalAnalyzer>> Analyzers;
 
@@ -124,6 +124,42 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     await analyzer.Value.RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
                 }
+            }
+        }
+
+        public async Task NonSourceDocumentOpenAsync(TextDocument document, CancellationToken cancellationToken)
+        {
+            if (TryGetAnalyzer(document.Project, out var analyzer) &&
+                analyzer is IIncrementalAnalyzer2 analyzer2)
+            {
+                await analyzer2.NonSourceDocumentOpenAsync(document, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public async Task NonSourceDocumentCloseAsync(TextDocument document, CancellationToken cancellationToken)
+        {
+            if (TryGetAnalyzer(document.Project, out var analyzer) &&
+                analyzer is IIncrementalAnalyzer2 analyzer2)
+            {
+                await analyzer2.NonSourceDocumentCloseAsync(document, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public async Task NonSourceDocumentResetAsync(TextDocument document, CancellationToken cancellationToken)
+        {
+            if (TryGetAnalyzer(document.Project, out var analyzer) &&
+                analyzer is IIncrementalAnalyzer2 analyzer2)
+            {
+                await analyzer2.NonSourceDocumentResetAsync(document, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public async Task AnalyzeNonSourceDocumentAsync(TextDocument document, InvocationReasons reasons, CancellationToken cancellationToken)
+        {
+            if (TryGetAnalyzer(document.Project, out var analyzer) &&
+                analyzer is IIncrementalAnalyzer2 analyzer2)
+            {
+                await analyzer2.AnalyzeNonSourceDocumentAsync(document, reasons, cancellationToken).ConfigureAwait(false);
             }
         }
     }

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
             => DiagnosticsUpdated?.Invoke(this, state);
 
-        private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
+        private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer2
         {
             private readonly DefaultDiagnosticAnalyzerService _service;
             private readonly Workspace _workspace;
@@ -82,7 +82,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            public async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+                => AnalyzeSyntaxOrNonSourceDocumentAsync(document, cancellationToken);
+
+            public Task AnalyzeNonSourceDocumentAsync(TextDocument document, InvocationReasons reasons, CancellationToken cancellationToken)
+                => AnalyzeSyntaxOrNonSourceDocumentAsync(document, cancellationToken);
+
+            private async Task AnalyzeSyntaxOrNonSourceDocumentAsync(TextDocument document, CancellationToken cancellationToken)
             {
                 Debug.Assert(document.Project.Solution.Workspace == _workspace);
 
@@ -124,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            private async Task AnalyzeForKindAsync(Document document, AnalysisKind kind, CancellationToken cancellationToken)
+            private async Task AnalyzeForKindAsync(TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 var diagnosticData = await GetDiagnosticsAsync(document, kind, cancellationToken).ConfigureAwait(false);
 
@@ -146,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// that provide all kinds of knobs/cache/persistency/OOP to get better perf over simplicity.
             /// </summary>
             private async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-               Document document, AnalysisKind kind, CancellationToken cancellationToken)
+               TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
                 if (loadDiagnostic != null)
@@ -203,8 +209,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return RemoveDocumentAsync(document.Id, cancellationToken);
             }
 
+            public Task NonSourceDocumentResetAsync(TextDocument document, CancellationToken cancellationToken)
+            {
+                // no closed file diagnostic and file is not opened, remove any existing diagnostics
+                return RemoveDocumentAsync(document.Id, cancellationToken);
+            }
+
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
                 => DocumentResetAsync(document, cancellationToken);
+
+            public Task NonSourceDocumentCloseAsync(TextDocument document, CancellationToken cancellationToken)
+                => NonSourceDocumentResetAsync(document, cancellationToken);
 
             private void RaiseEmptyDiagnosticUpdated(AnalysisKind kind, DocumentId documentId)
             {
@@ -216,6 +231,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 => Task.CompletedTask;
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public Task NonSourceDocumentOpenAsync(TextDocument document, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)

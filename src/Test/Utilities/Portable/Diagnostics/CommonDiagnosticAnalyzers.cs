@@ -2146,7 +2146,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        public sealed class AdditionalFileAnalyzer : DiagnosticAnalyzer
+        public class AdditionalFileAnalyzer : DiagnosticAnalyzer
         {
             private readonly bool _registerFromInitialize;
             private readonly TextSpan _diagnosticSpan;
