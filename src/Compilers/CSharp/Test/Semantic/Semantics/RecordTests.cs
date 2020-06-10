@@ -8356,6 +8356,26 @@ record R
         }
 
         [Fact]
+        public void IEquatableT_16()
+        {
+            var source =
+@"using System;
+class A<T>
+{
+    record B<U> : IEquatable<B<T>>
+    {
+        bool IEquatable<B<T>>.Equals(B<T> other) => false;
+        bool IEquatable<B<U>>.Equals(B<U> other) => false;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS0695: 'A<T>.B<U>' cannot implement both 'IEquatable<A<T>.B<T>>' and 'IEquatable<A<T>.B<U>>' because they may unify for some type parameter substitutions
+                //     record B<U> : IEquatable<B<T>>
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "B").WithArguments("A<T>.B<U>", "System.IEquatable<A<T>.B<T>>", "System.IEquatable<A<T>.B<U>>").WithLocation(4, 12));
+        }
+
+        [Fact]
         public void Initializers_01()
         {
             var src = @"
